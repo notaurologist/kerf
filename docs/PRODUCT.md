@@ -105,10 +105,16 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 - The cut list and diagrams match what we actually built, with no recuts from wrong numbers.
 - One trip to the store covers the shopping list.
 
+## Resolved questions
+
+The questions this section used to list are settled in `docs/decisions/`:
+
+- Stack: 0002, 0003, 0004.
+- Hosting: 0006. Login: 0007.
+- Rendering: SVG (0004).
+- Knowledge base format: typed data in the repository (0009).
+- Template authoring: TypeScript functions (0008).
+
 ## Open questions
 
-- Stack details: likely the rowing app's TypeScript, React, and Vite for the client, with Hono and Postgres for the backend.
-- Hosting for the API and database, and how the single-user login works.
-- Rendering: SVG with isometric projection vs. three.js. SVG is likely enough for isometric, exploded, and printable views.
-- Knowledge base format: how operations, methods, skills, and flags are stored (likely versioned JSON or Markdown in the repo).
-- Template authoring: code (TypeScript functions) vs. a declarative format.
+- Target date for building the swing set, which sets the milestone pace.
