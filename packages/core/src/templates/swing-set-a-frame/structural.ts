@@ -264,7 +264,8 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
     assumptions: [
       `Supported at the two frame centerlines, ${formatLength(x0)} and ${formatLength(x1)} from the left end; the span runs center to center of the legs.`,
       'Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.',
-      "The beam's own weight is not included (issue #12).",
+      // Point loads only for now; adding the beam's weight is GitHub issue #12.
+      "The beam's own weight is not included.",
     ],
   });
 
