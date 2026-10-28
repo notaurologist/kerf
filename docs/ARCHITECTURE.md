@@ -159,6 +159,14 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 
 Snapshots are stored, not regenerated on every read. A project's plan therefore never changes underneath it when the template changes; the API reports the difference and regeneration is the owner's choice. Snapshots are parsed with their Zod schema when read back.
 
+### Deploying (0006)
+
+- `vercel.json` defines two services in one Vercel project: the web build at `/` and the API at `/api/*`, entered through `apps/api/src/vercel.ts`. The API's routes already start with `/api`, so the same paths work in development and production.
+- The API connects to Neon's pooled connection string with prepared statements off (`POOLED_CONNECTION` in `bootstrap.ts`).
+- Secrets live only in Vercel's environment settings and a local `.env`: `DATABASE_URL` and `PASSWORD_HASH` (see `.env.example`). The API refuses to start if either is missing or malformed, naming the variable but never printing its value.
+- Migrations run from a local machine before a deploy that needs them: `DATABASE_URL=<Neon direct URL> pnpm db:migrate`.
+- Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, redeploy, and delete the rows in `sessions` (0007).
+
 ## apps/web
 
 - Talks only to `/api/*` on its own origin, through the Hono typed client.
