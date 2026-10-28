@@ -135,7 +135,7 @@ Rejected combinations, each with a message saying which values conflict:
 
 ## Worked example (hand-checked)
 
-Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 4x4 (w = 3.5, t = 3.5), crossbar 2x6 (cw = 5.5) at zc = 40 with flush ends, gusset from a 2x8 (gh = 7.25, gt = 1.5), e = 12, ground falling g = 1" per foot toward the front (k = 1/12), burial depth d = 24.
+Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 4x4 (w = 3.5, t = 3.5), crossbar 2x6 (cw = 5.5) at zc = 40 with flush ends, gusset from a 2x8 (gh = 7.25, gt = 1.5) on the outside face only, e = 12, ground falling g = 1" per foot toward the front (k = 1/12), burial depth d = 24.
 
 | Quantity | Value |
 |---|---|
@@ -157,7 +157,7 @@ Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 
 | Leg length below grade | 24 / 0.93969 = 25.540 |
 | Footprint at grade | 39.226 + 41.680 = 80.906 |
 | Crossbar top edge, bottom edge | 51.714, 55.718 |
-| Gusset top, bottom, height | 10.949, 16.227, 7.25 |
+| Gusset top, bottom, height | 10.949, 16.227, 7.25 (one per frame) |
 | Cut settings | Leg top, leg foot, crossbar ends, and gusset sides 20.0°; flush cut a taper at 20.0° to the face |
 
 With d = 0 (pads), the same inputs give back legs of 105.970 (106") and front legs of 112.814 (112-13/16"). Tests cover both.
@@ -166,6 +166,5 @@ Tests compare template output with these values to within 0.001 inch and 0.01°.
 
 ## Open questions
 
-- **Gussets:** outside face only, or both faces? The template supports both; the worked example needs the owner's choice.
 - **Crossbar ends:** flush and angled, or square and overhanging? The template supports both.
 - The site's measured slope and the burial depth, chosen with an experienced builder.
