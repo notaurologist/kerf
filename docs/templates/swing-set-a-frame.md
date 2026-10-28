@@ -1,6 +1,6 @@
 # Template: two-swing A-frame swing set
 
-Status: Draft v0.3, for review before implementation
+Status: v1, approved by the owner October 2026
 
 This is the geometry spec for the first template (`PRODUCT.md`, First template). The template code in `packages/core/src/templates/swing-set-a-frame/` implements exactly what is written here, and its tests use the worked example below. Structural checks (M2) and hangers and site layout (a later M1 change) build on it.
 
@@ -10,12 +10,12 @@ Matches the owner's earlier build (photos reviewed October 2026).
 
 - A top beam held by two A-frames, one near each end. The beam overhangs the frames.
 - **Legs cut flush to the beam.** The two legs of each A-frame rise alongside the beam, one against its front face and one against its back face. The inside of each leg's top is cut with a vertical face so it sits flush against the beam, and each leg's top is cut off level with the top of the beam. One bolt passes through the front leg, the beam, and the back leg.
-- **A board under the beam** (a gusset) is fastened across both legs with its level top edge against the beam's underside. The beam rests on it and is also held by the bolt. The gusset can be on the outside face of the frame only, or on both faces.
-- **One crossbar per A-frame**, horizontal, fastened to the outside face of the legs (the face away from the swings). Its ends are either cut flush with the legs' outer faces at the splay angle, or cut square and left overhanging the legs.
+- **A board under the beam** (a gusset) is fastened across both legs on the outside face of the frame, with its level top edge against the beam's underside. The beam rests on it and is also held by the bolt.
+- **One crossbar per A-frame**, horizontal, fastened to the outside face of the legs (the face away from the swings). Its ends are cut at the splay angle, flush with the legs' outer faces.
 - **Ground that slopes front to back.** The ground is level along the beam, so the beam is the same height above the ground everywhere. The front legs are downhill. The beam stays level and each A-frame stays plumb, so the front legs are longer.
 - **Feet either buried or on pads.** A burial depth of 0 means each foot sits on a level pad or footing with ground anchors. A depth greater than 0 means each leg continues that far below grade. Either way, each foot gets a level cut.
 
-Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, and ground that slopes along the beam.
+Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
 
@@ -35,8 +35,7 @@ Not covered in version 1: metal A-frame brackets, legs with seat cuts under the 
 | Leg stock | w × t | Actual dimensions; w is measured toward the beam (in the plane of the A-frame), t along the beam |
 | Crossbar stock | cw × ct | cw is the crossbar's vertical depth, ct its thickness along the beam |
 | Crossbar height | zc | Height of the crossbar's top edge above z = 0 |
-| Crossbar ends | | Flush and angled, or square with overhang o beyond each leg's outer face (measured at the crossbar's bottom edge) |
-| Gusset | gh, gt, faces | Height below the beam, thickness, and whether it is on the outside face only or both faces |
+| Gusset | gh, gt | Height below the beam, and thickness |
 | Frame inset | e | Distance from each beam end to the outside face of that frame's legs (the beam overhang) |
 | Ground slope | g | Inches the ground falls per foot of horizontal distance toward the front. 0 is level ground; negative means the front is uphill. |
 | Burial depth | d | How far each leg extends below grade, measured vertically. 0 for pads. |
@@ -91,30 +90,28 @@ Where each leg's outer face meets the ground: y = (bw/2 + w / cos α + H·tan α
 | Leg top (level) | α | 90° − α |
 | Leg foot (level) | α | 90° − α |
 | Flush cut | taper along the leg | α |
-| Crossbar ends, flush | α | 90° − α |
-| Crossbar ends, overhanging | 0° (square) | 90° |
+| Crossbar ends | α | 90° − α |
 | Gusset sides | α | 90° − α |
 
 The flush cut is a taper along the leg, not a crosscut, so it has no miter setting; the method step (M6) handles how to make it.
 
 ### Crossbar
 
-Horizontal, on the outside face of the legs.
+Horizontal, on the outside face of the legs, ends flush with the legs' outer faces.
 
-- Flush ends: top edge 2·y_out(zc), bottom edge (overall) 2·y_out(zc − cw).
-- Square ends: length 2·(y_out(zc − cw) + o).
+- Top edge: 2·y_out(zc). Bottom edge (overall, stock needed): 2·y_out(zc − cw).
 
 ### Gusset
 
 A trapezoid with its top edge against the beam's underside (z = H) and its sides flush with the legs' outer faces.
 
 - Top width: 2·y_out(H). Bottom width: 2·y_out(H − gh). Height: gh.
-- Quantity per frame: 1 (outside face) or 2 (both faces).
+- One per frame, on the outside face.
 
 ### Positions along the beam
 
 - Left frame legs occupy x from e to e + t; right frame legs from L − e − t to L − e.
-- The outside gusset and the crossbar sit on the outside face (x < e on the left frame); an inside gusset sits on the inside face.
+- The gusset and the crossbar sit on the outside face (x < e on the left frame).
 - Frame centerlines (the supports for the structural checks) are at x = e + t/2 and L − e − t/2.
 
 ## Validation
@@ -124,7 +121,7 @@ Rejected combinations, each with a message saying which values conflict:
 - w − bd·sin α ≤ 0 (the flush cut would go through the leg). Less than 1 inch left also gets an **expert check** flag.
 - The crossbar overlaps the gusset (zc > H − gh), or its bottom edge is at or below grade at the back (uphill) leg.
 - Ground so steep that a leg meets the ground at or above the beam.
-- 2·(e + t) ≥ L, or an inside gusset that would not fit between the frames.
+- 2·(e + t) ≥ L (the frames don't fit on the beam).
 - Any length, stock dimension, or angle outside its range in the parameter schema.
 
 ## Flags
@@ -135,7 +132,7 @@ Rejected combinations, each with a message saying which values conflict:
 
 ## Worked example (hand-checked)
 
-Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 4x4 (w = 3.5, t = 3.5), crossbar 2x6 (cw = 5.5) at zc = 40 with flush ends, gusset from a 2x8 (gh = 7.25, gt = 1.5) on the outside face only, e = 12, ground falling g = 1" per foot toward the front (k = 1/12), burial depth d = 24.
+Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 4x4 (w = 3.5, t = 3.5), crossbar 2x6 (cw = 5.5) at zc = 40, gusset from a 2x8 (gh = 7.25, gt = 1.5), e = 12, ground falling g = 1" per foot toward the front (k = 1/12), burial depth d = 24.
 
 | Quantity | Value |
 |---|---|
@@ -166,5 +163,4 @@ Tests compare template output with these values to within 0.001 inch and 0.01°.
 
 ## Open questions
 
-- **Crossbar ends:** flush and angled, or square and overhanging? The template supports both.
 - The site's measured slope and the burial depth, chosen with an experienced builder.
