@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { FrameGeometry } from './geometry.ts';
 import type { SwingSetParams } from './params.ts';
 
@@ -18,28 +19,33 @@ export const CLEARANCES = {
   seatClearance: { value: 8, source: `${CPSC_324}, p. 5` },
 } as const;
 
-export interface SwingGeometry {
+const Span = z.object({ xMin: z.number(), xMax: z.number() });
+
+export const SwingGeometry = z.object({
   /** Hanger positions along the beam, left to right: the beam's load points. */
-  hangersX: [number, number, number, number];
-  seats: [{ xMin: number; xMax: number }, { xMin: number; xMax: number }];
+  hangersX: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+  seats: z.tuple([Span, Span]),
   /** Pivot to seat underside, before subtracting the hanger hardware's drop. */
-  chainLength: number;
-}
+  chainLength: z.number(),
+});
+export type SwingGeometry = z.infer<typeof SwingGeometry>;
 
-export interface PlanRect {
-  label: string;
-  xMin: number;
-  xMax: number;
-  yMin: number;
-  yMax: number;
-  source?: string;
-}
+export const PlanRect = z.object({
+  label: z.string(),
+  xMin: z.number(),
+  xMax: z.number(),
+  yMin: z.number(),
+  yMax: z.number(),
+  source: z.string().optional(),
+});
+export type PlanRect = z.infer<typeof PlanRect>;
 
-export interface SiteLayout {
-  footprint: PlanRect;
-  clearArea: PlanRect;
-  swingZones: [PlanRect, PlanRect];
-}
+export const SiteLayout = z.object({
+  footprint: PlanRect,
+  clearArea: PlanRect,
+  swingZones: z.tuple([PlanRect, PlanRect]),
+});
+export type SiteLayout = z.infer<typeof SiteLayout>;
 
 export function swingGeometry(p: SwingSetParams): SwingGeometry {
   const { centers, hangerSpacing, seatWidth, seatHeight } = p.swings;

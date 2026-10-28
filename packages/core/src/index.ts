@@ -1,7 +1,10 @@
 export * as designValues from './design-values/index.ts';
 export * from './lumber/stock.ts';
 export * from './outputs/index.ts';
+export * from './snapshot/index.ts';
 export * as structural from './structural/index.ts';
+export type { TemplateDefinition } from './templates/definition.ts';
+export { findTemplate, TEMPLATES } from './templates/index.ts';
 export * as swingSetAFrame from './templates/swing-set-a-frame/index.ts';
 export type * from './templates/types.ts';
 export * from './units/index.ts';

@@ -10,7 +10,7 @@ export {
 } from './beam.ts';
 export {
   type BeamCheckInput,
-  type BeamChecks,
+  BeamChecks,
   type BeamLoads,
   type BeamMember,
   beamChecks,

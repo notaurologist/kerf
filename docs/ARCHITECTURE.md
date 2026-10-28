@@ -71,7 +71,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │           ├── steps/          # Build steps: operations to methods, using the tool inventory
 │           ├── knowledge/      # Tool types, skills, methods, expert-check categories (data)
 │           ├── design-values/  # NDS reference values and adjustment factors (data, sourced)
-│           └── types/          # Shared domain types and Zod schemas
+│           └── snapshot/       # Project snapshots: create, read back, compare with the current version
 └── docs/
 ```
 
@@ -113,6 +113,10 @@ parameters ─► template.generate ─► TemplateOutput
 ```
 
 The result of the whole pipeline is a **project snapshot**: one JSON-serializable object with a Zod schema, containing the template ID and version, the parameters and inputs used, and every generated output. Structural checks with missing inputs appear in the snapshot as "input needed," never computed with a stand-in value.
+
+Every type that appears in a snapshot is a Zod schema with its TypeScript type inferred from it, so one definition both types the code and parses a stored snapshot. Each template exports a `TemplateDefinition` (ID, version, name, schemas for parameters, structural inputs, and outputs, and a pure `generate`), and `templates/index.ts` lists them; generic code finds a template there and never imports one directly.
+
+`snapshot/` creates a snapshot with a template's current version, reads one back, and compares a stored snapshot with what the current version would produce from the same parameters and inputs, as a list of changed paths with their values before and after. Only the current version's schemas exist, so a snapshot from an older version whose shape has since changed cannot be read; the comparison still works from the stored JSON, and the owner regenerates to see the plan.
 
 ### Method selection
 

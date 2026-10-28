@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { stock } from '../../lumber/stock.ts';
 import type { SwingSetParams } from './params.ts';
 
@@ -59,42 +60,44 @@ export function dimensions(p: SwingSetParams): Dimensions {
   };
 }
 
-export interface LegGeometry {
+export const LegGeometry = z.object({
   /** Height where the leg's centerline meets the ground (spec, Where the leg meets the ground). */
-  groundZ: number;
+  groundZ: z.number(),
   /** Height of the foot's level cut. */
-  footZ: number;
+  footZ: z.number(),
   /** Each edge, top cut to foot cut. */
-  edgeLength: number;
+  edgeLength: z.number(),
   /** Long point to long point. */
-  overallLength: number;
+  overallLength: z.number(),
   /** Length of leg below grade, along the leg. */
-  belowGrade: number;
+  belowGrade: z.number(),
   /** Plan-view distance from the beam's centerline to the leg's outer face at grade. */
-  outerAtGrade: number;
-}
+  outerAtGrade: z.number(),
+});
+export type LegGeometry = z.infer<typeof LegGeometry>;
 
-export interface FrameGeometry {
+export const FrameGeometry = z.object({
   /** Splay from vertical, degrees. */
-  splay: number;
-  flushCut: {
+  splay: z.number(),
+  flushCut: z.object({
     /** Depth at the top of the beam, square to the leg's face. */
-    depthAtTop: number;
+    depthAtTop: z.number(),
     /** Length along the leg's inner face. */
-    lengthAlongLeg: number;
-    woodLeftAtTop: number;
-    woodLeftAtBolt: number;
-  };
+    lengthAlongLeg: z.number(),
+    woodLeftAtTop: z.number(),
+    woodLeftAtBolt: z.number(),
+  }),
   /** Through both legs and the beam, at mid-depth of the beam. */
-  boltGrip: number;
-  back: LegGeometry;
-  front: LegGeometry;
-  footprintDepth: number;
-  crossbar: { topEdge: number; bottomEdge: number };
-  gusset: { topWidth: number; bottomWidth: number; height: number };
+  boltGrip: z.number(),
+  back: LegGeometry,
+  front: LegGeometry,
+  footprintDepth: z.number(),
+  crossbar: z.object({ topEdge: z.number(), bottomEdge: z.number() }),
+  gusset: z.object({ topWidth: z.number(), bottomWidth: z.number(), height: z.number() }),
   /** Frame centerlines along the beam: the supports for the structural checks. */
-  supportsX: [number, number];
-}
+  supportsX: z.tuple([z.number(), z.number()]),
+});
+export type FrameGeometry = z.infer<typeof FrameGeometry>;
 
 /** Outer face of the back leg at height z (spec, Leg faces). */
 function outerFaceY(dims: Dimensions, splay: number, z: number): number {

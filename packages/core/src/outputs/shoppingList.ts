@@ -1,5 +1,6 @@
-import type { NominalSize } from '../lumber/stock.ts';
-import type { Issue, Part } from '../templates/types.ts';
+import { z } from 'zod';
+import { NOMINAL_SIZES, type NominalSize } from '../lumber/stock.ts';
+import { Issue, type Part } from '../templates/types.ts';
 import { formatLength } from '../units/length.ts';
 
 // Groups parts into boards to buy (PRODUCT.md, MVP feature 4; DOMAIN.md, Buyable lengths).
@@ -21,34 +22,40 @@ export const DEFAULT_BOARD_OPTIONS: BoardOptions = {
   buyableFeet: [8, 10, 12, 14, 16],
 };
 
-export interface PlannedPiece {
-  partId: string;
-  name: string;
-  length: number;
-}
+const Nominal = z.enum(NOMINAL_SIZES as [NominalSize, ...NominalSize[]]);
 
-export interface PlannedBoard {
-  nominal: NominalSize;
-  feet: number;
-  pieces: PlannedPiece[];
+export const PlannedPiece = z.object({
+  partId: z.string(),
+  name: z.string(),
+  length: z.number(),
+});
+export type PlannedPiece = z.infer<typeof PlannedPiece>;
+
+export const PlannedBoard = z.object({
+  nominal: Nominal,
+  feet: z.number(),
+  pieces: z.array(PlannedPiece),
   /** Board length left after trim, pieces, and kerf. */
-  offcut: number;
-}
+  offcut: z.number(),
+});
+export type PlannedBoard = z.infer<typeof PlannedBoard>;
 
-export interface ShoppingLine {
-  nominal: NominalSize;
-  feet: number;
-  count: number;
-}
+export const ShoppingLine = z.object({
+  nominal: Nominal,
+  feet: z.number(),
+  count: z.number().int(),
+});
+export type ShoppingLine = z.infer<typeof ShoppingLine>;
 
-export interface LumberPlan {
-  boards: PlannedBoard[];
-  lines: ShoppingLine[];
+export const LumberPlan = z.object({
+  boards: z.array(PlannedBoard),
+  lines: z.array(ShoppingLine),
   /** Assumptions and tips to show with the list. */
-  notes: string[];
+  notes: z.array(z.string()),
   /** Parts that fit no buyable board. They are never dropped silently. */
-  issues: Issue[];
-}
+  issues: z.array(Issue),
+});
+export type LumberPlan = z.infer<typeof LumberPlan>;
 
 /** Length a set of pieces uses on one board: trim at both ends, plus each piece and its kerf. */
 function used(pieces: readonly PlannedPiece[], options: BoardOptions): number {

@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 // Dimensional lumber: nominal names and actual dressed sizes in inches (DOMAIN.md, Lumber
 // basics). Actual sizes are the standard dry dressed sizes for US softwood dimension lumber
 // (American Softwood Lumber Standard, PS 20). Pressure-treated lumber is often sold wet and can
@@ -17,13 +19,14 @@ export type NominalSize = keyof typeof STOCK_SIZES;
 
 export const NOMINAL_SIZES = Object.keys(STOCK_SIZES) as NominalSize[];
 
-export interface Stock {
-  nominal: NominalSize;
+export const Stock = z.object({
+  nominal: z.enum(NOMINAL_SIZES as [NominalSize, ...NominalSize[]]),
   /** Smaller actual dimension, inches. */
-  thickness: number;
+  thickness: z.number(),
   /** Larger actual dimension, inches. */
-  width: number;
-}
+  width: z.number(),
+});
+export type Stock = z.infer<typeof Stock>;
 
 export function stock(nominal: NominalSize): Stock {
   return { nominal, ...STOCK_SIZES[nominal] };
