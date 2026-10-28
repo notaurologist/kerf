@@ -131,7 +131,7 @@ The site layout diagram should draw the frame footprint plus these zones, with v
 
 - Imperial throughout (US lumber, personal use). Store lengths as decimal inches; display as feet, inches, and fractions rounded to 1/16. Angles in degrees.
 - Rounding must be consistent and visible: a displayed fraction is never silently different from what other views show. Round once, at display, from the stored decimal values; never compute with rounded values. A total is rounded from the exact sum, so it can differ from the sum of rounded parts, and where that happens the display says so.
-- **Angle convention.** Angles are stored and shown as miter-saw settings: 0° is a square cut, and the angle is measured from square. Each cut detail shows which face the angle is measured from. Circular-saw methods also show the speed-square equivalent, since a speed square's scale reads differently. Mixing the two (for example, 15° vs. 75°) is the most likely cause of a recut.
+- **Angle convention.** Angles are stored and shown as miter-saw settings: 0° is a square cut, and the angle is measured from square. Each cut detail shows which face the angle is measured from. It also shows the angle between the cut line and the board's edge (90° minus the setting), which is what a protractor or sliding bevel reads against the edge. Mixing the two (for example, 15° vs. 75°) is the most likely cause of a recut. A speed square's degree scale is believed to read from square like a saw; confirm against the owner's square before the method text relies on it.
 
 ## Verification
 

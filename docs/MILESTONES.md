@@ -22,7 +22,7 @@ Geometry and structural math come before any UI because they decide the success 
 
 ## M1: Units and swing-set geometry
 
-- `units/`: fractions to 1/16 inch, feet-inches display, the angle convention and its speed-square equivalent (`DOMAIN.md`, Units).
+- `units/`: fractions to 1/16 inch, feet-inches display, the angle convention and the matching angle to the board's edge (`DOMAIN.md`, Units).
 - Swing-set template (0008): parameter schema with ranges, validation of contradictory combinations, and generation of parts, hardware, operations, placements, and site layout.
 - Cut list and shopping list in `outputs/`, with board grouping that allows for kerf and end trim.
 
