@@ -123,6 +123,7 @@ For each operation, `steps/` lists the methods from the knowledge base whose req
 
 | Route | Purpose |
 |---|---|
+| `GET /api/health` | Deploy and uptime check; no session, no data |
 | `POST /api/login`, `POST /api/logout`, `GET /api/session` | Login and session (0007) |
 | `GET /api/templates` | Templates with their current version and parameter schema metadata |
 | `GET/PUT /api/tools` | Tool inventory |

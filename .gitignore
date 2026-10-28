@@ -1,6 +1,9 @@
-.DS_Store
 node_modules/
+dist/
+coverage/
+*.log
 .env
 .env.*
 !.env.example
-dist/
+.DS_Store
+.vercel

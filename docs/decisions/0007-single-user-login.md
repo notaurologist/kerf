@@ -9,7 +9,7 @@ The API is reachable on the public internet (0006) and holds the owner's project
 - **One password, no username.** Its hash is stored in an environment variable, created with a small script in the repository. Hashing uses Node's built-in `crypto.scrypt`, so no new dependency.
 - **Server-side sessions in Postgres.** Login creates a session row with a random 256-bit ID and an expiry; the cookie holds only that ID. Logout and expiry delete the row, so a session can be revoked.
 - **Cookie settings:** `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/`.
-- **Every API route except login requires a valid session**, enforced by one Hono middleware. Tests cover that each route rejects requests without one.
+- **Every API route except login and `GET /api/health` requires a valid session**, enforced by one Hono middleware. The health check returns no data. Tests cover that each route rejects requests without one.
 - **Login rate limiting in Postgres** (failed attempts per time window), since function instances do not share memory.
 - **Cross-site requests:** `SameSite=Strict` plus a same-origin API, and state-changing routes accept only JSON bodies.
 

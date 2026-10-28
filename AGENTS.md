@@ -22,7 +22,7 @@ Kerf is a personal planning tool for woodworking projects. Pick a template, set 
 6. **Numbers in core, logic not only in the client.** The web app renders snapshots from the API and does not compute values it presents as authoritative.
 7. **Parse at boundaries with Zod:** request input, stored JSON read back from Postgres, and reference data.
 8. **Geometry and structural changes need hand-checked worked examples** in tests. A change that alters template output for the same parameters bumps the template version (0008).
-9. **Every API route except login requires a session** (0007), with a test for it.
+9. **Every API route except login and the health check requires a session** (0007), with a test for it. The health check returns no data.
 10. **Generic tool suggestions only.** No brands or products.
 11. **No secrets** in code, tests, fixtures, or logs.
 12. **Ask before** adding a dependency, changing a recorded decision, or expanding scope beyond the current milestone.
@@ -35,7 +35,21 @@ Versions are pinned exactly. Libraries like Hono and Drizzle change quickly: che
 
 ## Commands
 
-Keep this list to commands that work today. None exist yet; M0 adds them.
+Keep this list to commands that work today. Requires Node 24 (`.nvmrc`) and pnpm 12.15.0.
+
+```
+pnpm install        # also turns on the pre-push hook
+pnpm dev            # api on :3000, web on :5173 (proxies /api to the api)
+pnpm test           # Vitest, every package
+pnpm typecheck      # tsc in every package
+pnpm lint           # Biome check (code and config, not Markdown)
+pnpm format         # Biome format, writes changes
+pnpm check          # lint, typecheck, test; what the pre-push hook and CI run
+```
+
+Run one package's script with `pnpm --filter @kerf/api <script>` (or `@kerf/web`, `@kerf/core`).
+
+API routes are served under `/api` in both development and production, so the Vite proxy passes paths through unchanged.
 
 ## Conventions
 
