@@ -1,6 +1,6 @@
 # Domain Knowledge
 
-Status: Draft v0.3
+Status: Draft v0.4
 
 Background for anyone (human or agent) working on this project. This is not authoritative woodworking or safety guidance. Where something is marked **expert check**, the app should flag it for review by an experienced woodworker. Sources are listed at the end; add a source for any new safety-relevant claim.
 
@@ -62,6 +62,7 @@ Kerf computes a limited set of well-understood checks and lists everything else 
 - **Beam deflection.** Superpose the single-load deflection curve: for a load P a distance b from the right support, deflection at x (measured from the left support, left of the load) is P·b·x·(L² - b² - x²) / (6·E·I·L), mirrored for points right of the load. Evaluate along the span and take the maximum. Symmetric hand check: δ = P·a·(3L² - 4a²) / (24·E·I) at midspan. Deflection uses the pendulum load W(3 - 2cos θ) without the dynamic factor, since it describes normal use, not peak snap loads. Shown against a user-confirmed deflection limit (span divided by a number).
 - **Adjustment factors.** Allowable stresses are the NDS reference design values with the factors that apply to a single outdoor beam: wet service (C_M), size (C_F), beam stability (C_L), and temperature (C_t) if relevant. Load duration C_D is 1.0; the NDS impact increase is not used. The repetitive-member factor C_r does not apply to a single beam. Every factor used is listed on the result.
 - **Hardware load vs. rating.** Per-hanger load (with dynamic factor) compared against the manufacturer's rated working load for one hanger, shown as a margin.
+- **Built-up beams.** Checked as one member with the combined section only under the conditions the design source sets for built-up members; verify those provisions in the NDS before implementing, and test with a two-ply worked example.
 - **Results** are reported as margins under stated assumptions ("margin 2.1x" means the adjusted allowable value is 2.1 times the computed value), never as "safe" or "pass." There is no separate user safety factor; the margin is the number to judge with an experienced builder.
 
 ### Checklist only (not computed)
@@ -87,7 +88,7 @@ Design values and adjustment factors come from the American Wood Council's Natio
 ### Structure
 
 - Typical form: a top beam supported at each end by an A-frame of two splayed legs, with braces, and ground anchors.
-- The top beam is a single solid member. Built-up beams (boards fastened together) need different design values and fastening rules and are out of scope for the MVP.
+- The top beam is a single solid member or a built-up beam: two or three 2x boards fastened face to face (decision 0012). A built-up beam acts as one member only when the plies are fastened together as the design source requires. **Expert check** on the ply fastening (fastener type, size, spacing, and pattern).
 - Leg splay is in one plane, perpendicular to the beam: legs meet the beam and the ground at an angle, so each end cut is a single angle, not a compound cut. (Legs that also lean outward along the beam would need compound cuts; not supported.) Metal A-frame brackets set the angle and simplify the joinery considerably; cutting the angles directly needs accurate angled cuts and careful bolt placement.
 - **Expert check:** beam size and span for adult use (supported by the computed beam checks), leg and brace sizing, joinery and bolt sizing, anchoring (checklist only).
 
