@@ -46,6 +46,14 @@ export function validate(dims: Dimensions, g: FrameGeometry): Issue[] {
     });
   }
 
+  if (dims.plies > 1 && dims.beamBoardThickness !== 1.5) {
+    issues.push({
+      code: 'built-up-beam-stock',
+      message: 'A built-up beam is made of 2x boards. Use a 2x size for the beam, or one ply.',
+      params: ['beamStock', 'beamPlies'],
+    });
+  }
+
   if (2 * (dims.e + dims.t) >= dims.L) {
     issues.push({
       code: 'frames-do-not-fit',
@@ -72,6 +80,14 @@ export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
       category: 'load-bearing',
       ask: `Only ${len(g.flushCut.woodLeftAtTop)} of leg is left at the top of the flush cut. Confirm that is enough.`,
       why: 'The flush cut thins the leg where it is bolted to the beam.',
+    });
+  }
+
+  if (dims.plies > 1) {
+    result.push({
+      category: 'load-bearing',
+      ask: `Confirm how the ${dims.plies} beam plies are fastened together: fastener type, size, spacing, and pattern.`,
+      why: 'A built-up beam only acts as one member when its plies are fastened well enough to share the load.',
     });
   }
 

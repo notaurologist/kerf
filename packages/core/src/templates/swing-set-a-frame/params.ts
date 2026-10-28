@@ -20,6 +20,8 @@ export const SwingSetParams = z.object({
   splay: Splay,
   /** Stands on edge: thickness is its width, width is its depth. */
   beamStock: Nominal,
+  /** 1 for a solid beam; 2 or 3 for a built-up beam of 2x plies fastened face to face (0012). */
+  beamPlies: z.number().int().min(1).max(3),
   /** Width lies toward the beam, in the plane of the A-frame; thickness runs along the beam. */
   legStock: Nominal,
   /** Width is the crossbar's vertical depth. */

@@ -15,3 +15,4 @@ One file per decision. Format: context, decision, consequences. Never edit a pas
 | 0009 | Knowledge base and design values as typed data in the repository | Accepted |
 | 0010 | Local pre-push checks, free CI, Vitest, Biome, and PGlite | Accepted |
 | 0011 | Toolchain versions at M0 | Accepted |
+| 0012 | Built-up beams in the MVP | Accepted |

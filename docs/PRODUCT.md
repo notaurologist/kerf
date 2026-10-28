@@ -1,6 +1,6 @@
 # Product Spec
 
-Status: Draft v0.4
+Status: Draft v0.5
 Name: Kerf (the width of material a saw blade removes)
 
 ## Overview
@@ -35,7 +35,7 @@ For our backyard: two swings, used by kids (7 and 10) and adults.
 
 - Top beam length and height
 - Leg splay angle (or footprint width, deriving the angle). Legs splay in one plane, perpendicular to the beam; no outward lean along the beam, so end cuts are single angles, not compound.
-- Lumber sizes for beam, legs, and braces. The top beam is a single solid member.
+- Lumber sizes for beam, legs, and braces. The top beam is a single solid member, or two or three 2x boards fastened face to face (a built-up beam, decision 0012).
 - Joinery approach: metal A-frame brackets vs. cutting and bolting the angles directly
 - Swing hanger type and positions. Each swing hangs from two hangers; positions do not have to be symmetric.
 - Swing chain or rope length and seat height
@@ -84,7 +84,6 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 - AI-generated dimensions or diagrams.
 - Accounts, sharing, other users.
 - Cut optimization (fitting parts into boards to minimize waste).
-- Built-up beams (two or more boards fastened together).
 - Native apps and installable web apps (PWA).
 - Offline use (see After the MVP).
 
@@ -93,7 +92,6 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 - More templates: workbench, bookshelf, box, cutting board, outdoor bench.
 - References to past projects: when a step uses a method or skill I've used before, the step points back to it ("you cut these angles on the swing set legs"). Built on the project history recorded in the MVP.
 - Skill progression (the Fitbod-like part: what I've done, what to try next).
-- Built-up beams, with their own design values and fastening rules.
 - Cut optimization for board yield.
 - Read-only offline mode for build steps, using a service worker without installing the app, if shop connectivity turns out to be unreliable. To keep this possible without restructuring, the API returns a project as one complete snapshot (parameters, template version, and generated outputs) rather than requiring many small requests to render it.
 - An AI explanation layer: answering questions about a step or technique, grounded in the knowledge base and clearly labeled, never the source of dimensions.

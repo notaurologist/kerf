@@ -11,7 +11,11 @@ const RAD = Math.PI / 180;
 export interface Dimensions {
   L: number;
   H: number;
-  /** Beam width (horizontal) and depth (vertical). */
+  /** Beam plies: 1 for a solid beam. */
+  plies: number;
+  /** Thickness of one beam board, to check built-up beams use 2x stock. */
+  beamBoardThickness: number;
+  /** Beam width (horizontal, all plies together) and depth (vertical). */
   bw: number;
   bd: number;
   /** Leg size toward the beam, and along the beam. */
@@ -37,7 +41,9 @@ export function dimensions(p: SwingSetParams): Dimensions {
   return {
     L: p.beamLength,
     H: p.beamHeight,
-    bw: beam.thickness,
+    plies: p.beamPlies,
+    beamBoardThickness: beam.thickness,
+    bw: beam.thickness * p.beamPlies,
     bd: beam.width,
     w: leg.width,
     t: leg.thickness,

@@ -8,7 +8,7 @@ This is the geometry spec for the first template (`PRODUCT.md`, First template).
 
 Matches the owner's earlier build (photos reviewed October 2026).
 
-- A top beam held by two A-frames, one near each end. The beam overhangs the frames.
+- A top beam held by two A-frames, one near each end. The beam overhangs the frames. It is one solid member, or two or three 2x plies fastened face to face (decision 0012); the owner's earlier build used two 2x6s.
 - **Legs cut flush to the beam.** The two legs of each A-frame rise alongside the beam, one against its front face and one against its back face. The inside of each leg's top is cut with a vertical face so it sits flush against the beam, and each leg's top is cut off level with the top of the beam. One bolt passes through the front leg, the beam, and the back leg.
 - **A board under the beam** (a gusset) is fastened across both legs on the outside face of the frame, with its level top edge against the beam's underside. The beam rests on it and is also held by the bolt.
 - **One crossbar per A-frame**, horizontal, fastened to the outside face of the legs (the face away from the swings). Its ends are cut at the splay angle, flush with the legs' outer faces.
@@ -32,6 +32,7 @@ Not covered in version 1: metal A-frame brackets, legs with seat cuts under the 
 | Beam height | H | Height of the underside of the beam above the ground directly under it. This is the pivot height the hangers hang from. |
 | Splay | α | Angle of each leg from vertical. Can be entered as an angle, or as a footprint depth (the plan-view distance between the outer faces of the front and back legs where they meet the ground), from which α is solved. |
 | Beam stock | bw × bd | Actual width (horizontal) and depth (vertical); the beam stands on edge |
+| Beam plies | n | 1 for a solid beam; 2 or 3 for a built-up beam of 2x stock, where bw is n times the board's thickness |
 | Leg stock | w × t | Actual dimensions; w is measured toward the beam (in the plane of the A-frame), t along the beam |
 | Crossbar stock | cw × ct | cw is the crossbar's vertical depth, ct its thickness along the beam |
 | Crossbar height | zc | Height of the crossbar's top edge above z = 0 |
@@ -122,6 +123,7 @@ Rejected combinations, each with a message saying which values conflict:
 - The crossbar overlaps the gusset (zc > H − gh), or its bottom edge is at or below grade at the back (uphill) leg.
 - Ground so steep that a leg meets the ground at or above the beam.
 - 2·(e + t) ≥ L (the frames don't fit on the beam).
+- More than one ply of anything other than 2x stock.
 - Any length, stock dimension, or angle outside its range in the parameter schema.
 
 ## Flags
@@ -129,6 +131,7 @@ Rejected combinations, each with a message saying which values conflict:
 - The leg-to-beam bolt and the flush cut: **expert check** on bolt size, the wood left at the bolt, and bearing on the tilted outer face.
 - Buried legs (d > 0): **expert check** on burial depth, and on lumber rated for ground contact, since decay is fastest at the ground line.
 - Pads (d = 0): **expert check** on ground anchors (`DOMAIN.md`, Tipping and anchoring).
+- Built-up beam (n > 1): **expert check** on how the plies are fastened together.
 
 ## Worked example (hand-checked)
 
@@ -158,6 +161,21 @@ Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 
 | Cut settings | Leg top, leg foot, crossbar ends, and gusset sides 20.0°; flush cut a taper at 20.0° to the face |
 
 With d = 0 (pads), the same inputs give back legs of 105.970 (106") and front legs of 112.814 (112-13/16"). Tests cover both.
+
+### Built-up beam check
+
+The same inputs with the beam as two 2x6 plies (bw = 3.0, bd = 5.5). The flush cut depends only on bd, so it is unchanged. Everything that depends on the beam's width changes, including the leg lengths on a slope, because the legs sit closer to the centerline:
+
+| Quantity | Value |
+|---|---|
+| Bolt grip | 3.0 + 2·(3.7246 − 1.0009) = 8.447 |
+| Q | (1.5 + 1.8623, 96) = (3.3623, 96) |
+| Back leg meets ground | s = (96 − 0.2802) / 0.96819 = 98.865; z_g = 96 − 98.865·0.93969 = 3.098 |
+| Back leg overall length | 131.531 |
+| Front leg overall length | 138.331 |
+| Footprint at grade | 38.983 + 41.422 = 80.405 |
+| Crossbar top edge, bottom edge | 51.214, 55.218 |
+| Gusset top, bottom | 10.449, 15.727 |
 
 Tests compare template output with these values to within 0.001 inch and 0.01°.
 

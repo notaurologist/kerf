@@ -10,6 +10,7 @@ const example: SwingSetParams = {
   beamHeight: 96,
   splay: { kind: 'angle', degrees: 20 },
   beamStock: '4x6',
+  beamPlies: 1,
   legStock: '4x4',
   crossbarStock: '2x6',
   crossbarHeight: 40,
@@ -176,6 +177,49 @@ describe('fit', () => {
     const gusset = part(output, 'gusset');
     expect(gusset.markLengths[0]?.value).toBeCloseTo(2 * outerAt(H), 9);
     expect(gusset.length).toBeCloseTo(2 * outerAt(H - 7.25), 9);
+  });
+});
+
+describe('built-up beam', () => {
+  // Spec, Built-up beam check: two 2x6 plies, otherwise the worked example.
+  const builtUp = { ...example, beamStock: '2x6', beamPlies: 2 } as const;
+  const output = run(builtUp);
+  const g = output.geometry;
+
+  it('matches the spec values that depend on the beam width', () => {
+    expect(g.boltGrip).toBeCloseTo(8.447, 3);
+    expect(g.back.groundZ).toBeCloseTo(3.098, 3);
+    expect(g.back.overallLength).toBeCloseTo(131.531, 3);
+    expect(g.front.overallLength).toBeCloseTo(138.331, 3);
+    expect(g.footprintDepth).toBeCloseTo(80.405, 3);
+    expect(g.crossbar.topEdge).toBeCloseTo(51.214, 3);
+    expect(g.crossbar.bottomEdge).toBeCloseTo(55.218, 3);
+    expect(g.gusset.topWidth).toBeCloseTo(10.449, 3);
+    expect(g.gusset.bottomWidth).toBeCloseTo(15.727, 3);
+  });
+
+  it('leaves the flush cut unchanged, since it depends only on the beam depth', () => {
+    expect(g.flushCut.depthAtTop).toBeCloseTo(1.881, 3);
+  });
+
+  it('lists one beam part per ply and flags the ply fastening', () => {
+    const beam = part(output, 'beam');
+    expect(beam.quantity).toBe(2);
+    expect(beam.stock.nominal).toBe('2x6');
+    expect(beam.length).toBe(120);
+    expect(output.flags.some((f) => f.ask.includes('beam plies are fastened'))).toBe(true);
+  });
+
+  it('does not flag ply fastening for a solid beam', () => {
+    expect(run(example).flags.some((f) => f.ask.includes('plies'))).toBe(false);
+  });
+
+  it('rejects plies of anything but 2x stock', () => {
+    expect(issueCodes({ ...example, beamPlies: 2 })).toContain('built-up-beam-stock');
+  });
+
+  it('rejects more than three plies', () => {
+    expect(issueCodes({ ...builtUp, beamPlies: 4 })).toContain('invalid-too_big');
   });
 });
 

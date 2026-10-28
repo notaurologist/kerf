@@ -64,10 +64,10 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
   return [
     {
       id: 'beam',
-      name: 'Beam',
+      name: p.beamPlies > 1 ? 'Beam ply' : 'Beam',
       role: 'beam',
       stock: stock(p.beamStock),
-      quantity: 1,
+      quantity: p.beamPlies,
       length: dims.L,
       markLengths: [],
       ends: [
@@ -75,7 +75,12 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
         { setting: 0, description: 'Square' },
       ],
       endsParallel: true,
-      notes: [],
+      notes:
+        p.beamPlies > 1
+          ? [
+              `${p.beamPlies} plies fastened face to face make one ${formatLength(dims.bw)} wide beam.`,
+            ]
+          : [],
     },
     leg('back'),
     leg('front'),
