@@ -11,11 +11,22 @@
     "api": {
       "root": "apps/api/",
       "entrypoint": "src/vercel.ts",
-      "installCommand": "pnpm install --frozen-lockfile"
+      "installCommand": "pnpm install --frozen-lockfile",
+      "buildCommand": "pnpm db:migrate"
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": { "service": "api" } },
-    { "source": "/(.*)", "destination": { "service": "web" } }
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "web"
+      }
+    }
   ]
 }

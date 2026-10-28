@@ -3,13 +3,17 @@ import type { TemplateDefinition } from '../templates/definition.ts';
 import type { GenerateResult, Issue } from '../templates/types.ts';
 import { type Diff, diff } from './diff.ts';
 
-// A project snapshot: the template and version that generated it, the parameters and structural
-// inputs used, and every generated output, as one JSON value (ARCHITECTURE.md, Generation
-// pipeline). The API stores it and parses it back with the template's schemas.
+// A project snapshot: the template and version that generated it, the shape it is stored in, the
+// parameters and structural inputs used, and every generated output, as one JSON value
+// (ARCHITECTURE.md, Generation pipeline). The API stores it and reads it back with the template's
+// upgrades and schemas (decision 0014).
 
 export interface ProjectSnapshot<Params = unknown, Inputs = unknown, Outputs = unknown> {
   templateId: string;
+  /** The template version whose numbers this is (decision 0008). */
   templateVersion: number;
+  /** The shape it is stored in (decision 0014). */
+  snapshotVersion: number;
   params: Params;
   structuralInputs: Inputs;
   outputs: Outputs;
@@ -45,6 +49,7 @@ export function createSnapshot(
     output: {
       templateId: template.id,
       templateVersion: template.version,
+      snapshotVersion: template.snapshotVersion,
       params: p.data,
       structuralInputs: i.data,
       outputs: generated.output,
@@ -52,21 +57,27 @@ export function createSnapshot(
   };
 }
 
-const Envelope = z.object({
+const Envelope = z.looseObject({
   templateId: z.string(),
-  templateVersion: z.number().int().positive(),
-  params: z.unknown(),
-  structuralInputs: z.unknown(),
-  outputs: z.unknown(),
+  snapshotVersion: z.number().int().positive(),
 });
 
 export type ReadResult =
-  | { ok: true; snapshot: ProjectSnapshot }
-  | { ok: false; reason: 'malformed' | 'unknown-template' | 'unreadable-version'; message: string };
+  | {
+      ok: true;
+      snapshot: ProjectSnapshot;
+      /** The shape version it was stored in, when it had to be upgraded to read it. */
+      upgradedFrom?: number;
+    }
+  | {
+      ok: false;
+      reason: 'malformed' | 'unknown-template' | 'newer-snapshot' | 'missing-upgrade';
+      message: string;
+    };
 
 /**
- * Parses a stored snapshot. Only the current version's schema exists, so a snapshot from an
- * earlier version whose shape has since changed cannot be read; the owner regenerates it.
+ * Parses a stored snapshot, first upgrading it step by step if it was stored in an older shape
+ * (decision 0014). Upgrades restructure only, so the plan keeps the numbers it was made with.
  */
 export function readSnapshot(
   templates: readonly TemplateDefinition[],
@@ -76,7 +87,7 @@ export function readSnapshot(
   if (!envelope.success) {
     return { ok: false, reason: 'malformed', message: 'The stored snapshot is not a snapshot.' };
   }
-  const { templateId, templateVersion } = envelope.data;
+  const { templateId, snapshotVersion } = envelope.data;
   const template = templates.find((t) => t.id === templateId);
   if (!template) {
     return {
@@ -85,22 +96,48 @@ export function readSnapshot(
       message: `No template has the ID "${templateId}".`,
     };
   }
+  if (snapshotVersion > template.snapshotVersion) {
+    return {
+      ok: false,
+      reason: 'newer-snapshot',
+      message: `This snapshot was stored in shape ${snapshotVersion}, newer than this code reads (${template.snapshotVersion}).`,
+    };
+  }
+
+  let current: Record<string, unknown> = envelope.data;
+  for (let v = snapshotVersion; v < template.snapshotVersion; v++) {
+    const upgrade = template.snapshotUpgrades[v];
+    if (!upgrade) {
+      return {
+        ok: false,
+        reason: 'missing-upgrade',
+        message: `No upgrade from snapshot shape ${v} to ${v + 1}.`,
+      };
+    }
+    current = { ...upgrade(current), snapshotVersion: v + 1 };
+  }
+
   const schema = z.object({
     templateId: z.literal(template.id),
     templateVersion: z.number().int().positive(),
+    snapshotVersion: z.literal(template.snapshotVersion),
     params: template.params,
     structuralInputs: template.structuralInputs,
     outputs: template.outputs,
   });
-  const parsed = schema.safeParse(stored);
+  const parsed = schema.safeParse(current);
   if (!parsed.success) {
     return {
       ok: false,
-      reason: 'unreadable-version',
-      message: `This snapshot was generated with version ${templateVersion} of the template and cannot be read by version ${template.version}. Regenerate it to see the plan.`,
+      reason: 'malformed',
+      message: `The stored snapshot does not match shape ${template.snapshotVersion}.`,
     };
   }
-  return { ok: true, snapshot: parsed.data };
+  return {
+    ok: true,
+    snapshot: parsed.data,
+    ...(snapshotVersion < template.snapshotVersion ? { upgradedFrom: snapshotVersion } : {}),
+  };
 }
 
 export type VersionReport =
@@ -115,31 +152,31 @@ export type VersionReport =
     };
 
 /**
- * Compares a stored snapshot with what the template's current version produces from the same
- * parameters and inputs. Works on the stored JSON, so it reports even when the snapshot itself
- * cannot be read.
+ * Compares a snapshot, already read (and so in the current shape), with what the template's
+ * current version produces from the same parameters and inputs.
  */
 export function compareWithCurrent(
   template: TemplateDefinition,
-  stored: Pick<ProjectSnapshot, 'templateVersion' | 'params' | 'structuralInputs' | 'outputs'>,
+  snapshot: ProjectSnapshot,
 ): VersionReport {
-  if (stored.templateVersion === template.version) {
+  if (snapshot.templateVersion === template.version) {
     return { status: 'current', version: template.version };
   }
-  if (stored.templateVersion > template.version) {
+  if (snapshot.templateVersion > template.version) {
     return {
       status: 'ahead',
-      storedVersion: stored.templateVersion,
+      storedVersion: snapshot.templateVersion,
       currentVersion: template.version,
     };
   }
-  const current = createSnapshot(template, stored.params, stored.structuralInputs);
+  const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
+  const asJson = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
   return {
     status: 'behind',
-    storedVersion: stored.templateVersion,
+    storedVersion: snapshot.templateVersion,
     currentVersion: template.version,
     regenerated: current.ok
-      ? { ok: true, ...diff(stored.outputs, JSON.parse(JSON.stringify(current.output.outputs))) }
+      ? { ok: true, ...diff(asJson(snapshot.outputs), asJson(current.output.outputs)) }
       : { ok: false, issues: current.issues },
   };
 }

@@ -116,7 +116,7 @@ The result of the whole pipeline is a **project snapshot**: one JSON-serializabl
 
 Every type that appears in a snapshot is a Zod schema with its TypeScript type inferred from it, so one definition both types the code and parses a stored snapshot. Each template exports a `TemplateDefinition` (ID, version, name, schemas for parameters, structural inputs, and outputs, and a pure `generate`), and `templates/index.ts` lists them; generic code finds a template there and never imports one directly.
 
-`snapshot/` creates a snapshot with a template's current version, reads one back, and compares a stored snapshot with what the current version would produce from the same parameters and inputs, as a list of changed paths with their values before and after. Only the current version's schemas exist, so a snapshot from an older version whose shape has since changed cannot be read; the comparison still works from the stored JSON, and the owner regenerates to see the plan.
+`snapshot/` creates a snapshot with a template's current version, reads one back, and compares a stored snapshot with what the current version would produce from the same parameters and inputs, as a list of changed paths with their values before and after. A snapshot records two versions: the template version whose numbers it holds (0008) and the shape it is stored in. Reading a snapshot stored in an older shape upgrades it step by step first, without recomputing, so old projects stay readable with their original numbers (0014).
 
 ### Method selection
 
@@ -133,7 +133,7 @@ For each operation, `steps/` lists the methods from the knowledge base whose req
 | `GET /api/templates` | Templates with their current version and name |
 | `GET/PUT /api/tools` | Tool inventory; `PUT` replaces the whole list |
 | `GET /api/projects`, `POST /api/projects` | List (summaries, no snapshots) and create |
-| `GET /api/projects/:id` | The stored snapshot, plus a version report: `current`, `ahead`, or `behind` with the changed paths regenerating would bring (or the issues that stop it) |
+| `GET /api/projects/:id` | The stored snapshot (upgraded to the current shape if needed, 0014), plus a version report: `current`, `ahead`, or `behind` with the changed paths regenerating would bring (or the issues that stop it) |
 | `PUT /api/projects/:id` | Update name, status, parameters, or structural inputs; changing parameters or inputs regenerates the snapshot with the current template version |
 | `POST /api/projects/:id/regenerate` | Regenerate with the current template version (explicit, never automatic) |
 
@@ -152,7 +152,7 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 | Table | Contents |
 |---|---|
 | `tools` | Tool type ID and capabilities |
-| `projects` | Name, status, template ID, template version, parameters (JSON), structural inputs (JSON), snapshot (JSON), timestamps |
+| `projects` | Name, status, template ID, template version, snapshot (JSON, holding the parameters and structural inputs), timestamps |
 | `project_history` | One row per operation in a project: operation type, method ID, skills. Written when the snapshot is saved; used later for references to past projects |
 | `sessions` | Session ID, created, expires |
 | `login_attempts` | Time window and failure count for rate limiting |
@@ -164,8 +164,17 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 - `vercel.json` defines two services in one Vercel project: the web build at `/` and the API at `/api/*`, entered through `apps/api/src/vercel.ts`. The API's routes already start with `/api`, so the same paths work in development and production.
 - The API connects to Neon's pooled connection string with prepared statements off (`POOLED_CONNECTION` in `bootstrap.ts`).
 - Secrets live only in Vercel's environment settings and a local `.env`: `DATABASE_URL` and `PASSWORD_HASH` (see `.env.example`). The API refuses to start if either is missing or malformed, naming the variable but never printing its value.
-- Migrations run from a local machine before a deploy that needs them: `DATABASE_URL=<Neon direct URL> pnpm db:migrate`.
+- Every production build runs `pnpm db:migrate` for the API service (`vercel.json`): the Drizzle migrations, then the snapshot backfill (0014). It connects through `DATABASE_URL_UNPOOLED` (Neon's direct connection) when set. Preview builds skip it. Locally, `pnpm db:migrate` does the same against `.env` or the Docker database.
 - Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, redeploy, and delete the rows in `sessions` (0007).
+
+#### First deploy (the owner's steps; they need accounts)
+
+1. **Neon:** a free project on Postgres 18 in AWS `us-east-1`, near Vercel's default function region. Copy the pooled connection string (host ends in `-pooler`) and the direct one.
+2. **Password hash:** in a terminal, `pnpm --filter @kerf/api hash-password`; copy the printed `scrypt:...` value.
+3. **Vercel:** on the Hobby plan, import the GitHub repository with the repository root as the root directory, so `vercel.json` applies. Node.js version 24.x.
+4. **Environment variables, Production only, marked Sensitive:** `DATABASE_URL` (pooled), `DATABASE_URL_UNPOOLED` (direct), `PASSWORD_HASH`. Preview deployments get none, so they cannot reach the production database; their API does not start.
+5. **Deploy** `main`. The API's build log shows `release: migrations applied.`
+6. **Check:** `pnpm --filter @kerf/api check-deploy https://<project>.vercel.app` asks for the password without echo, then checks health, login, storing and reading a project, and logout. It leaves one project named "Deploy check".
 
 ## apps/web
 

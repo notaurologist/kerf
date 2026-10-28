@@ -14,3 +14,4 @@ A template turns parameters into parts, hardware, operations, and 3D geometry (`
 - Templates are type-checked and unit-tested like any other code.
 - Adding a template means writing code, which is fine for a one-user app.
 - A version bump needs a test showing which outputs changed, so the app can tell the owner what would differ for an existing project.
+- Stored snapshots also record the shape they are stored in, which changes separately from this version; see 0014.

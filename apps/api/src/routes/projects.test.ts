@@ -1,7 +1,9 @@
 import { createSnapshot, swingSetAFrame, TEMPLATES, type TemplateDefinition } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { createTestApp } from '../../test/app.ts';
 import { swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
+import { createProjectService } from '../services/projects.ts';
 
 const newProject: Record<string, unknown> = {
   name: 'Backyard swing set',
@@ -207,16 +209,65 @@ describe('a project whose template version is behind', () => {
     expect(regenerated.snapshot.outputs.cutList[0].length).toBe('121"');
   });
 
-  it('says so when the stored snapshot cannot be read, and still reports the difference', async () => {
-    const { authed, client } = await createTestApp({ templates: [version2] });
+  it('says so when a stored snapshot is damaged, rather than guessing', async () => {
+    const { authed, client } = await createTestApp();
     const { body } = await create(authed);
     await client.query(
-      `update projects set template_version = 1,
-         snapshot = jsonb_set(jsonb_set(snapshot, '{templateVersion}', '1'), '{outputs,cutList}', '"old shape"')`,
+      `update projects set snapshot = jsonb_set(snapshot, '{outputs,cutList}', '"damaged"')`,
     );
     const project = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
-    expect(project.snapshot).toBeNull();
-    expect(project.unreadable.reason).toBe('unreadable-version');
-    expect(project.version).toMatchObject({ status: 'behind', regenerated: { ok: true } });
+    expect(project).toMatchObject({
+      snapshot: null,
+      unreadable: { reason: 'malformed' },
+      version: null,
+    });
+    const regenerate = await authed(`/api/projects/${body.id}/regenerate`, { method: 'POST' });
+    expect(regenerate.status).toBe(500);
+  });
+});
+
+// A made-up shape 2 of the swing-set snapshot that renames outputs.cutList to outputs.cuts, with
+// its upgrade (decision 0014).
+const shape2: TemplateDefinition = {
+  ...(swingSetAFrame.definition as TemplateDefinition),
+  snapshotVersion: 2,
+  outputs: z.looseObject({ cuts: z.array(z.object({ length: z.string() }).loose()) }),
+  snapshotUpgrades: {
+    1: (s) => {
+      const { cutList, ...outputs } = s.outputs as { cutList: unknown };
+      return { ...s, outputs: { ...outputs, cuts: cutList } };
+    },
+  },
+};
+
+describe('a project stored in an older snapshot shape', () => {
+  it('reads through the upgrade, keeping the stored numbers', async () => {
+    const before = await createTestApp();
+    const { body } = await create(before.authed);
+    const after = await createTestApp({ database: before, templates: [shape2] });
+    const project = (await (await after.authed(`/api/projects/${body.id}`)).json()) as Json;
+    expect(project.snapshot.snapshotVersion).toBe(2);
+    expect(project.snapshot.outputs.cuts[0].length).toBe('120"');
+    expect(project.version).toEqual({ status: 'current', version: 1 });
+  });
+
+  it('is rewritten in the current shape by the release backfill, numbers and dates unchanged', async () => {
+    const before = await createTestApp();
+    const { body } = await create(before.authed);
+    const service = createProjectService({
+      db: before.db,
+      templates: [shape2],
+      now: () => new Date('2030-01-01T00:00:00Z'),
+    });
+    expect(await service.upgradeStoredSnapshots()).toEqual({ upgraded: 1, unreadable: [] });
+    expect(await service.upgradeStoredSnapshots()).toEqual({ upgraded: 0, unreadable: [] });
+
+    const { rows } = await before.client.query<{ snapshot: Json; updated_at: Date }>(
+      'select snapshot, updated_at from projects',
+    );
+    expect(rows[0]?.snapshot.snapshotVersion).toBe(2);
+    expect(rows[0]?.snapshot.outputs.cuts[0].length).toBe('120"');
+    expect(rows[0]?.snapshot.outputs).not.toHaveProperty('cutList');
+    expect(rows[0]?.updated_at.toISOString()).toBe(body.updatedAt);
   });
 });

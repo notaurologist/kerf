@@ -18,6 +18,8 @@ function failure(c: Context, result: Extract<Result<unknown>, { ok: false }>) {
       return c.json({ error: result.error }, 404);
     case 'unknown-template':
       return c.json({ error: result.error }, 400);
+    case 'unreadable-snapshot':
+      return c.json({ error: result.error }, 500);
     case 'invalid-project':
       return c.json({ error: result.error, issues: result.issues }, 422);
   }

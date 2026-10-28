@@ -3,6 +3,7 @@ import { CutListRow, cutList } from '../../outputs/cutList.ts';
 import { HardwareLine, hardwareList } from '../../outputs/hardwareList.ts';
 import { LumberPlan, planLumber } from '../../outputs/shoppingList.ts';
 import type { TemplateDefinition } from '../definition.ts';
+import { EXAMPLES } from './examples.ts';
 import { SwingSetParams } from './params.ts';
 import {
   SwingSetStructuralInputs,
@@ -32,6 +33,10 @@ export const swingSetAFrame: TemplateDefinition<
   params: SwingSetParams,
   structuralInputs: SwingSetStructuralInputs,
   outputs: SwingSetOutputs,
+  // Shape 1 is the first stored shape; snapshots/v1.json is its fixture (decision 0014).
+  snapshotVersion: 1,
+  snapshotUpgrades: {},
+  examples: EXAMPLES,
   generate(params, structuralInputs) {
     const design = generate(params);
     if (!design.ok) return design;

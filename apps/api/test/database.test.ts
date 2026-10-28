@@ -21,8 +21,8 @@ describe('createTestDatabase', () => {
     const { client, close } = await createTestDatabase();
     const insert = (status: string, name: string) =>
       client.query(
-        `insert into projects (name, status, template_id, template_version, params, structural_inputs, snapshot)
-         values ($1, $2, 't', 1, '{}', '{}', '{}')`,
+        `insert into projects (name, status, template_id, template_version, snapshot)
+         values ($1, $2, 't', 1, '{}')`,
         [name, status],
       );
     await expect(insert('done', 'Swing set')).rejects.toThrow(/projects_status/);
@@ -36,8 +36,8 @@ describe('createTestDatabase', () => {
   it("deletes a project's history with the project", async () => {
     const { client, close } = await createTestDatabase();
     const { rows } = await client.query<{ id: string }>(
-      `insert into projects (name, status, template_id, template_version, params, structural_inputs, snapshot)
-       values ('Swing set', 'planned', 't', 1, '{}', '{}', '{}') returning id`,
+      `insert into projects (name, status, template_id, template_version, snapshot)
+       values ('Swing set', 'planned', 't', 1, '{}') returning id`,
     );
     const id = rows[0]?.id;
     await client.query(
