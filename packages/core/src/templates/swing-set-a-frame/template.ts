@@ -2,7 +2,7 @@ import type { z } from 'zod';
 import { stock } from '../../lumber/stock.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
-import type { Flag, GenerateResult, Issue, Part } from '../types.ts';
+import type { Flag, GenerateResult, HardwareItem, Issue, Part } from '../types.ts';
 import {
   type Dimensions,
   dimensions,
@@ -11,6 +11,7 @@ import {
   legsReachGround,
   splayForFootprint,
 } from './geometry.ts';
+import { HARDWARE_NOTES, hardware, validateHardware } from './hardware.ts';
 import { type SiteLayout, type SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
 import { flags, validate, validateSwings } from './validate.ts';
@@ -28,6 +29,9 @@ export interface SwingSetOutput {
   swings: SwingGeometry;
   layout: SiteLayout;
   parts: Part[];
+  hardware: HardwareItem[];
+  /** Notes to show with the hardware shopping list. */
+  hardwareNotes: readonly string[];
   flags: Flag[];
 }
 
@@ -37,6 +41,14 @@ function parseIssues(error: z.ZodError): Issue[] {
     message: issue.message,
     params: issue.path.length > 0 ? [String(issue.path[0])] : [],
   }));
+}
+
+/** "Back leg (uphill)", or no slope note on level ground. Ground falls toward the front when g > 0. */
+function legName(side: 'back' | 'front', groundSlope: number): string {
+  const name = side === 'back' ? 'Back leg' : 'Front leg';
+  if (groundSlope === 0) return name;
+  const uphill = (side === 'back') === groundSlope > 0;
+  return `${name} (${uphill ? 'uphill' : 'downhill'})`;
 }
 
 function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
@@ -49,7 +61,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
     const l = g[side];
     return {
       id: `leg-${side}`,
-      name: side === 'back' ? 'Back leg (uphill)' : 'Front leg (downhill)',
+      name: legName(side, p.groundSlope),
       role: 'leg',
       stock: stock(p.legStock),
       quantity: 2,
@@ -169,7 +181,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
 
   const g = frameGeometry(dims, splay);
   const swings = swingGeometry(p);
-  const issues = [...validate(dims, g), ...validateSwings(dims, swings)];
+  const issues = [...validate(dims, g), ...validateSwings(dims, swings), ...validateHardware(p)];
   if (issues.length > 0) return { ok: false, issues };
 
   return {
@@ -180,6 +192,8 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       swings,
       layout: siteLayout(p, g, swings),
       parts: parts(p, dims, g),
+      hardware: hardware(p, dims, g),
+      hardwareNotes: HARDWARE_NOTES,
       flags: flags(dims, g),
     },
   };

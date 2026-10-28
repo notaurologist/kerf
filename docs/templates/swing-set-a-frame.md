@@ -44,6 +44,7 @@ Not covered in version 1: metal A-frame brackets, legs with seat cuts under the 
 | Hanger spacing | s_h | Distance between a swing's two hangers along the beam |
 | Seat width | s_w | Side-to-side width of a seat |
 | Seat height | h_s | Height of the seat's underside above the ground under the beam, at rest |
+| Hardware | | Bolt diameters and counts, confirmed with an experienced builder; no defaults (see Hardware) |
 
 The ground is the line z_g(y) = k·y with k = g / 12, the same at every x.
 
@@ -134,6 +135,24 @@ Plan view, values from the CPSC home handbook (`DOMAIN.md`, Layout and clearance
 - **Swing zones:** for each swing, x across its seat (x_i ± s_w/2), y from −2·H to +2·H.
 - The area to keep clear of structures and cover with surfacing is the union of the clear area and the swing zones.
 
+### Hardware
+
+Every structural connection is a through-bolt with a flat washer at each end and a locking nut, following the CPSC home handbook (`DOMAIN.md`, Hardware guidance). Sizes and counts are inputs confirmed with an experienced builder, never defaults. The template computes quantities and grip lengths (the thickness of wood each bolt passes through).
+
+| Connection | Inputs | Quantity | Grip |
+|---|---|---|---|
+| Leg to beam | diameter | 1 per frame | bw + 2·(w / cos α − (bd/2)·tan α) |
+| Crossbar to leg | diameter, bolts per joint | 4 joints | ct + t |
+| Gusset to leg | diameter, bolts per joint | 4 joints | gt + t |
+| Beam plies (built-up beams only) | diameter, total count | as entered | bw |
+
+- **Bolt length:** at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC p. 3). Washer and nut thickness vary by type, so the shopping list gives the grip and the rule rather than guessing a stock length.
+- **Per bolt:** two flat washers, one locking nut, and one cap for the exposed end.
+- **Swing hangers:** 4, rated for swing use. Their rating is a structural input checked in M2.
+- **Swing seats:** 2, lightweight (CPSC p. 4), with chain set to the chain length.
+- **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none.
+- All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
+
 ## Validation
 
 Rejected combinations, each with a message saying which values conflict:
@@ -146,6 +165,7 @@ Rejected combinations, each with a message saying which values conflict:
 - A seat closer than 8 inches to the other seat or to a frame's inside face (CPSC).
 - A seat underside less than 8 inches above the ground (CPSC).
 - Hangers of the two swings overlapping, or a hanger outside the span between the frames' inside faces.
+- A built-up beam without ply bolts, or pads without an anchor count.
 - Any length, stock dimension, or angle outside its range in the parameter schema.
 
 ## Flags
@@ -199,6 +219,40 @@ With swings centered at x = 40 and 80, hangers 20 apart, seats 20 wide, and seat
 | Footprint at grade | x 0 to 120, y −41.680 to 39.226 |
 | Clear area | x −72 to 192, y −113.680 to 111.226 |
 | Swing zones | x 30 to 50 and 70 to 90, y −192 to 192 |
+
+### Hardware
+
+With every bolt 1/2" and 2 bolts per crossbar and gusset joint, buried legs:
+
+| Item | Quantity | Grip |
+|---|---|---|
+| Leg-to-beam bolts | 2 | 8.947 |
+| Crossbar bolts | 4 joints × 2 = 8 | 1.5 + 3.5 = 5 |
+| Gusset bolts | 4 joints × 2 = 8 | 1.5 + 3.5 = 5 |
+| 1/2" flat washers | 2 × 18 = 36 | |
+| 1/2" locking nuts and caps | 18 each | |
+| Swing hangers, seats | 4, 2 | |
+
+On pads with 1 anchor per foot, add 4 ground anchors. With the two-ply 2x6 beam and 6 ply bolts, add 6 bolts with a 3" grip, 12 washers, 6 nuts, and 6 caps.
+
+### Edge of range
+
+Every range at or near its limit: L = 240, H = 144 (maximum), α = 35° (maximum), a two-ply 2x6 beam (bw = 3.0, bd = 5.5), 4x4 legs, ground falling 3" per foot toward the back (g = −3, the steepest allowed, front uphill), burial depth 48 (maximum), crossbar 2x6 at zc = 100, gusset from a 2x8, swings at 80 and 160.
+
+| Quantity | Value |
+|---|---|
+| Flush cut depth at the top | 5.5·0.57358 = 3.155 |
+| Wood left at the top | 3.5 − 3.155 = 0.345 (expert-check flag: under 1") |
+| Bolt grip | 7.694 |
+| Back (now downhill) leg: meets ground, foot cut | z_g = −31.658, z_b = −79.658 |
+| Back leg overall length | 282.202 |
+| Front (now uphill) leg: meets ground, foot cut | z_g = 22.226, z_b = −25.774 |
+| Front leg overall length | 216.421 |
+| Footprint at grade | 129.223 + 90.722 = 219.945 |
+| Crossbar top edge, bottom edge | 73.164, 80.866 |
+| Gusset top, bottom | 11.545, 21.698 |
+
+The back legs are longer than a 16 ft board; the shopping list reports that as an issue instead of dropping them.
 
 ### Built-up beam check
 

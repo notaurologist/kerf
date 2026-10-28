@@ -31,11 +31,11 @@ Geometry and structural math come before any UI because they decide the success 
 ## M2: Structural checks
 
 - NDS design values and adjustment factors for the species and grades the owner is likely to buy, stored as sourced data (0009). Values and formulas checked against the current NDS edition before entry.
-- Swing load, per-hanger load, beam bending, shear, and deflection with arbitrary hanger positions, and hardware margin (`DOMAIN.md`, Structural checks).
-- Confirmation checklist generated from the template output.
+- Generic checks in `structural/`: beam bending, shear, and deflection for any point loads between two supports, built-up members, and hardware margin (`DOMAIN.md`, Structural checks). No template-specific code.
+- The swing-set template's structural model: swing load, per-hanger load, load cases, service conditions, and its checklist items (`DOMAIN.md`, Swing set specifics, Loads).
 - Missing inputs produce "input needed," never a default.
 
-**Accept when:** each check matches a hand-calculated worked example, including the symmetric hand-check cases and an asymmetric hanger layout; every result lists inputs, formula, adjustment factors, assumptions, and source; no copy says "safe" or "pass."
+**Accept when:** each check matches a hand-calculated worked example, including the symmetric hand-check cases and an asymmetric load layout; every result lists inputs, formula, adjustment factors, assumptions, and source; no copy says "safe" or "pass."
 
 ## M3: API, database, login, and first deploy
 
