@@ -41,7 +41,7 @@ Keep this list to commands that work today. Requires Node 24 (`.nvmrc`) and pnpm
 
 ```
 pnpm install        # also turns on the pre-push hook
-pnpm dev            # api on :3000, web on :5173 (proxies /api to the api)
+pnpm dev            # api on :3000, web on :5173 (proxies /api to the api); needs .env (copy .env.example), Postgres, and pnpm db:migrate
 pnpm test           # Vitest, every package
 pnpm typecheck      # tsc in every package
 pnpm lint           # Biome check (code and config, not Markdown)
