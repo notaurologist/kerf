@@ -4,6 +4,7 @@ import type { SwingSetParams } from '../templates/swing-set-a-frame/params.ts';
 import { generate } from '../templates/swing-set-a-frame/template.ts';
 import type { Part } from '../templates/types.ts';
 import { cutList } from './cutList.ts';
+import { hardwareList } from './hardwareList.ts';
 import { planLumber } from './shoppingList.ts';
 
 // The swing-set worked example (docs/templates/swing-set-a-frame.md).
@@ -21,12 +22,21 @@ const example: SwingSetParams = {
   groundSlope: 1,
   burialDepth: 24,
   swings: { centers: [40, 80], hangerSpacing: 20, seatWidth: 20, seatHeight: 16 },
+  hardware: {
+    legBoltDiameter: 0.5,
+    crossbarBolts: { diameter: 0.5, perJoint: 2 },
+    gussetBolts: { diameter: 0.5, perJoint: 2 },
+  },
 };
 
-function parts(params: SwingSetParams): Part[] {
+function output(params: SwingSetParams) {
   const result = generate(params);
   if (!result.ok) throw new Error(JSON.stringify(result.issues));
-  return result.output.parts;
+  return result.output;
+}
+
+function parts(params: SwingSetParams): Part[] {
+  return output(params).parts;
 }
 
 describe('cutList', () => {
@@ -100,7 +110,14 @@ describe('planLumber, worked example', () => {
 describe('planLumber, built-up beam', () => {
   // Two 2x6 plies (120) and two crossbars (55.218 with the narrower beam) share 2x6 boards:
   // 120 + 55.218 + 2 kerf + 1 trim = 176.468, so two 16' boards, each with one ply and one crossbar.
-  const plan = planLumber(parts({ ...example, beamStock: '2x6', beamPlies: 2 }));
+  const plan = planLumber(
+    parts({
+      ...example,
+      beamStock: '2x6',
+      beamPlies: 2,
+      hardware: { ...example.hardware, plyBolts: { diameter: 0.5, count: 6 } },
+    }),
+  );
 
   it('puts each ply and a crossbar on one 16 foot board', () => {
     const twoBySix = plan.boards.filter((b) => b.nominal === '2x6');
@@ -144,5 +161,40 @@ describe('planLumber, edge cases', () => {
     const plan = planLumber([piece(30, 3)], { kerf: 0, trimPerEnd: 0, buyableFeet: [6, 8] });
     expect(plan.lines).toEqual([{ nominal: '2x4', feet: 8, count: 1 }]);
     expect(plan.boards[0]?.offcut).toBe(6);
+  });
+});
+
+describe('hardwareList', () => {
+  // Spec, Hardware example: 2 leg bolts (grip 8.947) and 16 bolts with a 5" grip, all 1/2".
+  const list = hardwareList(output(example).hardware);
+
+  it('groups bolts by diameter and grip and totals the fittings', () => {
+    expect(list.lines).toEqual([
+      { description: '1/2" through-bolt, grip 8-15/16"', quantity: 2 },
+      { description: '1/2" through-bolt, grip 5"', quantity: 16 },
+      { description: '1/2" flat washers', quantity: 36 },
+      { description: '1/2" locking nuts', quantity: 18 },
+      { description: '1/2" bolt caps', quantity: 18 },
+      { description: 'Swing hangers', quantity: 4 },
+      { description: 'Swing seats with chain', quantity: 2 },
+    ]);
+  });
+
+  it('states the bolt length rule and treatment compatibility', () => {
+    expect(list.notes.join(' ')).toContain('no more than one bolt diameter past the nut');
+    expect(list.notes.join(' ')).toContain('pressure treatment');
+  });
+
+  it('keeps different diameters apart', () => {
+    const mixed = hardwareList(
+      output({
+        ...example,
+        hardware: { ...example.hardware, legBoltDiameter: 0.625 },
+      }).hardware,
+    );
+    expect(mixed.lines.filter((l) => l.description.includes('washers'))).toEqual([
+      { description: '1/2" flat washers', quantity: 32 },
+      { description: '5/8" flat washers', quantity: 4 },
+    ]);
   });
 });

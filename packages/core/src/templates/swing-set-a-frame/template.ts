@@ -2,7 +2,7 @@ import type { z } from 'zod';
 import { stock } from '../../lumber/stock.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
-import type { Flag, GenerateResult, Issue, Part } from '../types.ts';
+import type { Flag, GenerateResult, HardwareItem, Issue, Part } from '../types.ts';
 import {
   type Dimensions,
   dimensions,
@@ -11,6 +11,7 @@ import {
   legsReachGround,
   splayForFootprint,
 } from './geometry.ts';
+import { hardware, validateHardware } from './hardware.ts';
 import { type SiteLayout, type SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
 import { flags, validate, validateSwings } from './validate.ts';
@@ -28,6 +29,7 @@ export interface SwingSetOutput {
   swings: SwingGeometry;
   layout: SiteLayout;
   parts: Part[];
+  hardware: HardwareItem[];
   flags: Flag[];
 }
 
@@ -169,7 +171,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
 
   const g = frameGeometry(dims, splay);
   const swings = swingGeometry(p);
-  const issues = [...validate(dims, g), ...validateSwings(dims, swings)];
+  const issues = [...validate(dims, g), ...validateSwings(dims, swings), ...validateHardware(p)];
   if (issues.length > 0) return { ok: false, issues };
 
   return {
@@ -180,6 +182,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       swings,
       layout: siteLayout(p, g, swings),
       parts: parts(p, dims, g),
+      hardware: hardware(p, dims, g),
       flags: flags(dims, g),
     },
   };

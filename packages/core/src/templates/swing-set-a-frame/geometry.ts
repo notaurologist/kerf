@@ -21,8 +21,9 @@ export interface Dimensions {
   /** Leg size toward the beam, and along the beam. */
   w: number;
   t: number;
-  /** Crossbar vertical depth. */
+  /** Crossbar vertical depth, and thickness along the beam. */
   cw: number;
+  ct: number;
   zc: number;
   /** Gusset height below the beam, and thickness. */
   gh: number;
@@ -48,6 +49,7 @@ export function dimensions(p: SwingSetParams): Dimensions {
     w: leg.width,
     t: leg.thickness,
     cw: crossbar.width,
+    ct: crossbar.thickness,
     zc: p.crossbarHeight,
     gh: gusset.width,
     gt: gusset.thickness,

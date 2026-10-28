@@ -6,6 +6,9 @@ import { NOMINAL_SIZES, type NominalSize } from '../../lumber/stock.ts';
 
 const Nominal = z.enum(NOMINAL_SIZES as [NominalSize, ...NominalSize[]]);
 
+/** Common through-bolt diameters, inches. */
+const BoltDiameter = z.union([z.literal(0.375), z.literal(0.5), z.literal(0.625), z.literal(0.75)]);
+
 const Splay = z.discriminatedUnion('kind', [
   /** Each leg's angle from vertical. */
   z.object({ kind: z.literal('angle'), degrees: z.number().min(5).max(35) }),
@@ -45,6 +48,21 @@ export const SwingSetParams = z.object({
     seatWidth: z.number().positive(),
     /** Height of the seat's underside above the ground under the beam, at rest. */
     seatHeight: z.number().positive(),
+  }),
+  /**
+   * Bolt sizes and counts, confirmed with an experienced builder. No defaults: these decide
+   * whether the frame holds (spec, Hardware).
+   */
+  hardware: z.object({
+    legBoltDiameter: BoltDiameter,
+    crossbarBolts: z.object({ diameter: BoltDiameter, perJoint: z.number().int().min(1).max(4) }),
+    gussetBolts: z.object({ diameter: BoltDiameter, perJoint: z.number().int().min(1).max(4) }),
+    /** Required for a built-up beam. */
+    plyBolts: z
+      .object({ diameter: BoltDiameter, count: z.number().int().min(1).max(40) })
+      .optional(),
+    /** Required for pads (burial depth 0). */
+    anchorsPerFoot: z.number().int().min(1).max(4).optional(),
   }),
 });
 

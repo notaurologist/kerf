@@ -19,6 +19,17 @@ const example: SwingSetParams = {
   groundSlope: 1,
   burialDepth: 24,
   swings: { centers: [40, 80], hangerSpacing: 20, seatWidth: 20, seatHeight: 16 },
+  hardware: {
+    legBoltDiameter: 0.5,
+    crossbarBolts: { diameter: 0.5, perJoint: 2 },
+    gussetBolts: { diameter: 0.5, perJoint: 2 },
+  },
+};
+
+const pads: SwingSetParams = {
+  ...example,
+  burialDepth: 0,
+  hardware: { ...example.hardware, anchorsPerFoot: 1 },
 };
 
 function run(params: unknown): SwingSetOutput {
@@ -82,7 +93,7 @@ describe('worked example, buried legs', () => {
 });
 
 describe('worked example, pads', () => {
-  const { geometry: g } = run({ ...example, burialDepth: 0 });
+  const { geometry: g } = run(pads);
 
   it('matches the leg lengths', () => {
     expect(g.back.overallLength).toBeCloseTo(105.97, 3);
@@ -136,7 +147,7 @@ describe('fit', () => {
   for (const burialDepth of [24, 0]) {
     for (const side of ['back', 'front'] as const) {
       it(`${side} leg, burial ${burialDepth}: cuts are level and the foot lands at the right depth`, () => {
-        const output = run({ ...example, burialDepth });
+        const output = run(burialDepth === 0 ? pads : { ...example, burialDepth });
         const leg = placedLeg(output, side);
         const k = 1 / 12;
 
@@ -248,9 +259,60 @@ describe('swings and layout', () => {
   });
 });
 
+describe('hardware', () => {
+  // Spec, Hardware example: every bolt 1/2", two per crossbar and gusset joint.
+  const item = (o: SwingSetOutput, id: string) => o.hardware.find((h) => h.id === id);
+
+  it('counts bolts and gives each group its grip', () => {
+    const output = run(example);
+    expect(item(output, 'leg-beam-bolts')?.quantity).toBe(2);
+    expect(item(output, 'leg-beam-bolts')?.bolt?.grip).toBeCloseTo(8.947, 3);
+    expect(item(output, 'crossbar-bolts')).toMatchObject({
+      quantity: 8,
+      bolt: { diameter: 0.5, grip: 5 },
+    });
+    expect(item(output, 'gusset-bolts')).toMatchObject({
+      quantity: 8,
+      bolt: { diameter: 0.5, grip: 5 },
+    });
+    expect(item(output, 'swing-hangers')?.quantity).toBe(4);
+    expect(item(output, 'swing-seats')?.quantity).toBe(2);
+    expect(item(output, 'ground-anchors')).toBeUndefined();
+  });
+
+  it('adds anchors for pads and ply bolts for a built-up beam', () => {
+    expect(item(run(pads), 'ground-anchors')?.quantity).toBe(4);
+    const builtUp = run({
+      ...example,
+      beamStock: '2x6',
+      beamPlies: 2,
+      hardware: { ...example.hardware, plyBolts: { diameter: 0.5, count: 6 } },
+    });
+    expect(item(builtUp, 'ply-bolts')).toMatchObject({ quantity: 6, bolt: { grip: 3 } });
+  });
+
+  it('requires anchors for pads and ply bolts for a built-up beam', () => {
+    expect(issueCodes({ ...example, burialDepth: 0 })).toEqual(['anchors-missing']);
+    expect(issueCodes({ ...example, beamStock: '2x6', beamPlies: 2 })).toEqual([
+      'ply-bolts-missing',
+    ]);
+  });
+
+  it('rejects bolt sizes outside the list', () => {
+    expect(
+      issueCodes({ ...example, hardware: { ...example.hardware, legBoltDiameter: 0.45 } }),
+    ).toContain('invalid-invalid_union');
+  });
+});
+
 describe('built-up beam', () => {
   // Spec, Built-up beam check: two 2x6 plies, otherwise the worked example.
-  const builtUp = { ...example, beamStock: '2x6', beamPlies: 2 } as const;
+  const builtUp: SwingSetParams = {
+    ...example,
+    beamStock: '2x6',
+    beamPlies: 2,
+    hardware: { ...example.hardware, plyBolts: { diameter: 0.5, count: 6 } },
+  };
   const output = run(builtUp);
   const g = output.geometry;
 
@@ -363,7 +425,7 @@ describe('flags', () => {
   });
 
   it('flags anchors for pads', () => {
-    const asks = run({ ...example, burialDepth: 0 }).flags.map((f) => f.ask);
+    const asks = run(pads).flags.map((f) => f.ask);
     expect(asks.some((a) => a.includes('anchors'))).toBe(true);
     expect(asks.some((a) => a.includes('ground contact'))).toBe(false);
   });

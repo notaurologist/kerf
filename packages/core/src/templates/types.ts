@@ -52,4 +52,15 @@ export interface Part {
   notes: string[];
 }
 
+export interface HardwareItem {
+  id: string;
+  name: string;
+  quantity: number;
+  /** Through-bolts only: diameter and grip (thickness of wood the bolt passes through). */
+  bolt?: { diameter: number; grip: number };
+  /** True when the item carries load and its size was confirmed with an experienced builder. */
+  structural: boolean;
+  notes: string[];
+}
+
 export type GenerateResult<Output> = { ok: true; output: Output } | { ok: false; issues: Issue[] };
