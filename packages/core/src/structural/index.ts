@@ -30,4 +30,5 @@ export {
   type ServiceConditions,
   type StabilityGeometry,
 } from './factors.ts';
+export { formatNumber, formatQuantity } from './format.ts';
 export * from './types.ts';

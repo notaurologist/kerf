@@ -7,6 +7,7 @@ import { type Project, STATUS_LABELS } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import { CutList } from '../cut-list/CutList.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
+import { StructuralReview } from '../structural/StructuralReview.tsx';
 
 // One project, rendered from the snapshot the API returns (ARCHITECTURE.md, apps/web). The
 // stored plan is shown as stored; the web app computes none of its numbers.
@@ -46,6 +47,9 @@ export function ProjectView(props: { project: Project }) {
             <button type="button" className="link" onClick={() => jump('shopping-list')}>
               Shopping list
             </button>
+            <button type="button" className="link" onClick={() => jump('structural-review')}>
+              Structural review
+            </button>
           </nav>
           <section id="cut-list">
             <h2>Cut list</h2>
@@ -61,6 +65,15 @@ export function ProjectView(props: { project: Project }) {
               lumber={plan.plan.lumber}
               hardware={plan.plan.hardware}
               hardwareNotes={plan.plan.hardwareNotes}
+            />
+          </section>
+          <section id="structural-review">
+            <h2>Structural review</h2>
+            <StructuralReview
+              projectId={project.id}
+              checks={plan.plan.checks}
+              flags={plan.plan.flags}
+              checklist={plan.plan.checklist}
             />
           </section>
         </>

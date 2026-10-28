@@ -26,6 +26,17 @@ export const FlagCategory = z.enum([
 ]);
 export type FlagCategory = z.infer<typeof FlagCategory>;
 
+export const FLAG_CATEGORY_LABELS: Record<FlagCategory, string> = {
+  'table-saw': 'Table saw',
+  router: 'Router technique',
+  'jointer-planer-lathe': 'Jointer, planer, or lathe',
+  'load-bearing': 'Load-bearing design',
+  'dynamic-loads': 'Dynamic loads',
+  'wood-movement': 'Wood movement',
+  finishes: 'Finishes',
+  'dust-and-species': 'Dust and species',
+};
+
 /** Something to ask an experienced builder about, and why (DOMAIN.md, Expert-check categories). */
 export const Flag = z.object({
   category: FlagCategory,
@@ -98,6 +109,15 @@ export const ChecklistCategory = z.enum([
   'check-assumptions',
 ]);
 export type ChecklistCategory = z.infer<typeof ChecklistCategory>;
+
+export const CHECKLIST_CATEGORY_LABELS: Record<ChecklistCategory, string> = {
+  'bolted-connections': 'Bolted connections',
+  racking: 'Racking',
+  'tipping-and-anchoring': 'Tipping and anchoring',
+  'long-term-condition': 'Long-term condition',
+  'lumber-quality': 'Lumber quality',
+  'check-assumptions': 'Assumptions to confirm',
+};
 
 /** Something to confirm with an experienced builder, tied to one element of the design. */
 export const ChecklistItem = z.object({

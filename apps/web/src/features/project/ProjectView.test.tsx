@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { readPlan } from '../../lib/plan.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { renderText } from '../../test/render.tsx';
+import { CutList } from '../cut-list/CutList.tsx';
+import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import { ProjectView } from './ProjectScreen.tsx';
 
 const [workedExample] = storedSnapshots;
@@ -30,9 +33,22 @@ describe('ProjectView, from a stored snapshot', () => {
     for (const line of outputs.hardware) expect(text).toContain(line.description);
   });
 
-  it('shows no unrounded number: decimals appear only in angles, to one place', () => {
-    expect(text.match(/\d+\.\d+(?!°)/g) ?? []).toEqual([]);
-    expect(text.match(/\d+\.\d{2,}°/g) ?? []).toEqual([]);
+  it('shows no unrounded number in the lists: decimals appear only in angles, to one place', () => {
+    const plan = readPlan(projectFrom(workedExample));
+    if (!plan.ok) throw new Error(plan.message);
+    const lists = renderText(
+      <>
+        <CutList rows={plan.plan.cutList} />
+        <ShoppingList
+          lumber={plan.plan.lumber}
+          hardware={plan.plan.hardware}
+          hardwareNotes={plan.plan.hardwareNotes}
+        />
+      </>,
+    );
+    expect(lists).toContain('138-3/8"');
+    expect(lists.match(/\d+\.\d+(?!°)/g) ?? []).toEqual([]);
+    expect(lists.match(/\d+\.\d{2,}°/g) ?? []).toEqual([]);
   });
 });
 
