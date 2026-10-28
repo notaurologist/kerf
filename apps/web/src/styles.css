@@ -281,3 +281,15 @@ table.list th.number {
     font-weight: 600;
   }
 }
+
+.capability {
+  align-items: flex-end;
+}
+
+.capability .field {
+  flex: 1 1 9rem;
+}
+
+code {
+  font-size: 0.9em;
+}

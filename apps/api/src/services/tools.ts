@@ -1,26 +1,9 @@
-import { z } from 'zod';
+import { Inventory } from '@kerf/core';
 import type { Database } from '../db/client.ts';
 import { tools } from '../db/schema.ts';
 
-// The tool inventory (PRODUCT.md, MVP feature 1). Tool type IDs will be checked against the
-// knowledge base once it exists (M6); until then any lowercase ID is accepted.
-
-export const Tool = z.object({
-  toolTypeId: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'must be a lowercase ID like miter-saw'),
-  /** Capabilities that matter for choosing methods, such as { bevels: true }. */
-  capabilities: z.record(z.string(), z.union([z.boolean(), z.number(), z.string()])),
-});
-export type Tool = z.infer<typeof Tool>;
-
-export const Inventory = z.object({
-  tools: z
-    .array(Tool)
-    .refine(
-      (list) => new Set(list.map((t) => t.toolTypeId)).size === list.length,
-      'lists a tool type more than once',
-    ),
-});
-export type Inventory = z.infer<typeof Inventory>;
+// The tool inventory, stored as one row per tool. Its schema lives in core so the web app checks
+// it the same way before saving.
 
 export async function getInventory(db: Database): Promise<Inventory> {
   const rows = await db.select().from(tools).orderBy(tools.toolTypeId);
