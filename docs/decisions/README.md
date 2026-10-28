@@ -16,3 +16,4 @@ One file per decision. Format: context, decision, consequences. Never edit a pas
 | 0010 | Local pre-push checks, free CI, Vitest, Biome, and PGlite | Accepted |
 | 0011 | Toolchain versions at M0 | Accepted |
 | 0012 | Built-up beams in the MVP | Accepted |
+| 0013 | Built-up beams are checked one ply at a time | Accepted |
