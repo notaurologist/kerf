@@ -17,7 +17,7 @@ Kerf is a personal planning tool for woodworking projects. Pick a template, set 
 
 1. **No AI-generated numbers.** Every dimension, angle, quantity, and structural result comes from template and check code in `packages/core` (0001).
 2. **Margins, not verdicts.** Never write "safe," "unsafe," "pass," or "fail" in code, copy, or tests. Report "margin N.Nx under these assumptions."
-3. **No hidden structural defaults.** Species and grade, rider weights, swing angle, dynamic factor, deflection limit, and hardware ratings are entered or confirmed by the user. Missing means "input needed."
+3. **No hidden structural defaults.** Species and grade, loads (for the swing set: riders, swing angle, dynamic factor), deflection limit, and hardware sizes and ratings are entered or confirmed by the user. Missing means "input needed."
 4. **Exact until display.** Store lengths in decimal inches and angles in degrees, miter-saw convention (0° = square). Round to 1/16 only in core's display formatters, and never compute with rounded values.
 5. **Source every safety-relevant claim and design value.** Record the source and edition in the data. Verify formulas and values against the source before implementing.
 6. **Numbers in core, logic not only in the client.** The web app renders snapshots from the API and does not compute values it presents as authoritative.

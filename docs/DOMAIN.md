@@ -52,34 +52,38 @@ The app flags steps and design choices in these categories:
 
 Kerf computes a limited set of well-understood checks and lists everything else for confirmation. Every check shows inputs, formula, assumptions, adjustment factors, and source. Formulas and design values must be verified against the sources before implementation, and every check needs unit tests with worked examples checked by hand.
 
+The checks are generic: they work on members, supports, and loads, and know nothing about a particular project. Each template supplies its structural model (which members, where they are supported, which loads act on them, and which load cases to check) and its own checklist items. The swing set's loads are under Swing set specifics, Loads.
+
 ### Computed (sanity checks)
 
-- **Swing load.** For a rider of weight W swinging to a maximum angle θ from vertical, the total chain tension at the bottom of the arc is W(3 - 2cos θ). At θ = 90° (swinging up to horizontal) that is 3W. Riders swinging in sync add together. This is the smooth pendulum case only: snap loads from slack chains (bouncing, jerking) exceed it, so a user-confirmed dynamic factor is applied on top. No hidden default; the value is chosen with an experienced builder and shown on every result.
-- **Per-hanger load.** Each swing hangs from two hangers. The swing load is split between them, assumed equal for a centered rider; the split is a stated assumption on every result that uses it.
-- **Beam model.** Top beam as a simply supported span L, measured between the points where the A-frames support it (not necessarily the beam ends). Each hanger is a separate point load at its own position; positions do not have to be symmetric. Results come from superposition of the single-load cases. The symmetric two-load formulas below are kept as hand-check cases for the tests.
+- **Beam model.** A simply supported span L between two supports, with any number of point loads at any positions. Results come from superposition of the single-load cases. Symmetric two-load formulas are kept as hand-check cases for the tests.
 - **Beam bending.** Maximum moment occurs under one of the point loads; compute the moment at each load position from the support reactions and take the largest. Symmetric hand check: two equal loads P, each a distance a from its nearest support, M = P·a. Bending stress f_b = M / S (S = section modulus of the actual cross section), compared against the adjusted allowable bending stress for the species and grade.
 - **Beam shear.** Maximum shear V is the larger support reaction (V = P in the symmetric case). Shear stress f_v = 3V / (2A) for a rectangular section, compared against the adjusted allowable shear stress.
-- **Beam deflection.** Superpose the single-load deflection curve: for a load P a distance b from the right support, deflection at x (measured from the left support, left of the load) is P·b·x·(L² - b² - x²) / (6·E·I·L), mirrored for points right of the load. Evaluate along the span and take the maximum. Symmetric hand check: δ = P·a·(3L² - 4a²) / (24·E·I) at midspan. Deflection uses the pendulum load W(3 - 2cos θ) without the dynamic factor, since it describes normal use, not peak snap loads. Shown against a user-confirmed deflection limit (span divided by a number).
-- **Adjustment factors.** Allowable stresses are the NDS reference design values with the factors that apply to a single outdoor beam: wet service (C_M), size (C_F), beam stability (C_L), and temperature (C_t) if relevant. Load duration C_D is 1.0; the NDS impact increase is not used. The repetitive-member factor C_r does not apply to a single beam. Every factor used is listed on the result.
-- **Hardware load vs. rating.** Per-hanger load (with dynamic factor) compared against the manufacturer's rated working load for one hanger, shown as a margin.
+- **Beam deflection.** Superpose the single-load deflection curve: for a load P a distance b from the right support, deflection at x (measured from the left support, left of the load) is P·b·x·(L² - b² - x²) / (6·E·I·L), mirrored for points right of the load. Evaluate along the span and take the maximum. Symmetric hand check: δ = P·a·(3L² - 4a²) / (24·E·I) at midspan. Shown against a user-confirmed deflection limit (span divided by a number). The template says which load case deflection uses.
+- **Adjustment factors.** Allowable stresses are the NDS reference design values with the factors that apply to the member as used, from conditions the template states: wet service (C_M), size (C_F), beam stability (C_L), temperature (C_t) if relevant, load duration (C_D), and repetitive member (C_r) only where several members share load. Every factor used is listed on the result.
+- **Hardware load vs. rating.** A computed load on one piece of hardware compared against the manufacturer's rated working load, shown as a margin.
 - **Built-up beams.** Checked as one member with the combined section only under the conditions the design source sets for built-up members; verify those provisions in the NDS before implementing, and test with a two-ply worked example.
 - **Results** are reported as margins under stated assumptions ("margin 2.1x" means the adjusted allowable value is 2.1 times the computed value), never as "safe" or "pass." There is no separate user safety factor; the margin is the number to judge with an experienced builder.
 
 ### Checklist only (not computed)
 
+Generic categories; each template lists the specific items for its design.
+
 - Bolted connections: bolt size, spacing, edge and end distances, washers, load direction relative to grain.
-- Racking: whether the A-frames and braces resist side-to-side and fore-aft swing forces.
-- Tipping and anchoring: whether the frame can lift or walk, and what anchors are needed.
+- Racking: whether the structure resists sideways forces.
+- Tipping and anchoring: whether the structure can lift, tip, or walk, and what anchors are needed.
 - Long-term condition: decay, checking, loosening hardware, inspection schedule.
-- Lumber quality for structural parts: knots, grain slope, and defects in beams and legs.
+- Lumber quality for structural parts: knots, grain slope, and defects.
 
 ### Inputs
 
+Generic inputs, entered or confirmed by the user, never defaulted:
+
 - Species and grade of each structural member (determines design values).
-- Rider weights and number of simultaneous riders.
-- Maximum swing angle and dynamic factor.
 - Hardware rated loads, from manufacturer specifications.
-- Deflection limit, user-confirmed.
+- Deflection limit.
+
+Templates add their own load inputs (for the swing set: riders, swing angle, dynamic factor).
 
 Design values and adjustment factors come from the American Wood Council's National Design Specification (NDS) for Wood Construction and its supplement. [4] Verify current editions and values before implementing; store them as sourced, versioned data, not constants in code.
 
@@ -91,6 +95,18 @@ Design values and adjustment factors come from the American Wood Council's Natio
 - The top beam is a single solid member or a built-up beam: two or three 2x boards fastened face to face (decision 0012). A built-up beam acts as one member only when the plies are fastened together as the design source requires. **Expert check** on the ply fastening (fastener type, size, spacing, and pattern).
 - Leg splay is in one plane, perpendicular to the beam: legs meet the beam and the ground at an angle, so each end cut is a single angle, not a compound cut. (Legs that also lean outward along the beam would need compound cuts; not supported.) Metal A-frame brackets set the angle and simplify the joinery considerably; cutting the angles directly needs accurate angled cuts and careful bolt placement.
 - **Expert check:** beam size and span for adult use (supported by the computed beam checks), leg and brace sizing, joinery and bolt sizing, anchoring (checklist only).
+
+### Loads
+
+The swing set's structural model, supplied by its template to the generic checks.
+
+- **Swing load.** For a rider of weight W swinging to a maximum angle θ from vertical, the total chain tension at the bottom of the arc is W(3 - 2cos θ). At θ = 90° (swinging up to horizontal) that is 3W. Riders swinging in sync add together. This is the smooth pendulum case only: snap loads from slack chains (bouncing, jerking) exceed it, so a user-confirmed dynamic factor is applied on top. No hidden default; the value is chosen with an experienced builder and shown on every result.
+- **Per-hanger load.** Each swing hangs from two hangers. The swing load is split between them, assumed equal for a centered rider; the split is a stated assumption on every result that uses it.
+- **Beam.** Supported at the two frame centerlines, with each hanger as a point load at its own position.
+- **Load cases.** Strength checks (bending, shear, hardware) use the swing load with the dynamic factor. Deflection uses W(3 - 2cos θ) without it, since it describes normal use, not peak snap loads.
+- **Service conditions.** A single outdoor beam: wet service applies, the repetitive-member factor does not, and load duration C_D is 1.0 (the NDS impact increase is not used).
+- **Inputs:** rider weights and number of simultaneous riders, maximum swing angle, and dynamic factor.
+- **Checklist items:** leg-to-beam bolts and gusset; racking of the A-frames and crossbars against side-to-side and fore-aft swing forces; anchoring or burial; lumber quality in the beam and legs.
 
 ### Hardware
 

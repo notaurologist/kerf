@@ -67,7 +67,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │           ├── geometry/       # 3D vectors, part placement, projection to 2D drawing primitives
 │           ├── templates/      # One folder per template; swing-set-a-frame/ first
 │           ├── outputs/        # Cut list, shopping list (board grouping with kerf and trim)
-│           ├── structural/     # Beam and hardware checks, adjustment factors, checklist generation
+│           ├── structural/     # Generic beam and hardware checks and adjustment factors
 │           ├── steps/          # Build steps: operations to methods, using the tool inventory
 │           ├── knowledge/      # Tool types, skills, methods, expert-check categories (data)
 │           ├── design-values/  # NDS reference values and adjustment factors (data, sourced)
@@ -95,7 +95,7 @@ interface TemplateOutput {
   hardware: HardwareItem[];
   operations: Operation[];      // per part: cuts, holes, counterbores, easing
   placements: Placement[];      // 3D position and orientation of each part instance
-  structuralModel: StructuralModel; // members, supports, load points for structural/
+  structuralModel: StructuralModel; // members, supports, loads, load cases, checklist items
   layout: SiteLayout;           // footprint and clearance zones
 }
 ```

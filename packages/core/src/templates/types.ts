@@ -36,7 +36,8 @@ export interface EndCut {
 export interface Part {
   id: string;
   name: string;
-  role: 'beam' | 'leg' | 'crossbar' | 'gusset';
+  /** What the part does in its template, such as 'leg'. Set by the template. */
+  role: string;
   stock: Stock;
   quantity: number;
   /** Overall length, long point to long point: the stock each piece needs. */
