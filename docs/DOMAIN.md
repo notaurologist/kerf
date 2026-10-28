@@ -79,7 +79,7 @@ Generic categories; each template lists the specific items for its design.
 
 Generic inputs, entered or confirmed by the user, never defaulted:
 
-- Species and grade of each structural member (determines design values).
+- Species and grade of each structural member (determines design values), and whether the lumber is incised (NDS 4.3.8; pressure-treated lumber sometimes is).
 - Hardware rated loads, from manufacturer specifications.
 - Deflection limit.
 
@@ -105,7 +105,7 @@ The swing set's structural model, supplied by its template to the generic checks
 - **Beam.** Supported at the two frame centerlines, with each hanger as a point load at its own position.
 - **Load cases.** Strength checks (bending, shear, hardware) use the swing load with the dynamic factor. Deflection uses W(3 - 2cos θ) without it, since it describes normal use, not peak snap loads.
 - **Service conditions.** A single outdoor beam: wet service applies, the repetitive-member factor does not, and load duration C_D is 1.0 (the NDS impact increase is not used).
-- **Inputs:** rider weights and number of simultaneous riders, maximum swing angle, and dynamic factor.
+- **Inputs:** the heaviest rider on each swing including seat and chain (0 for an empty swing, which covers the number of simultaneous riders), maximum swing angle, and dynamic factor. The beam's own weight is not included in the loads.
 - **Checklist items:** leg-to-beam bolts and gusset; racking of the A-frames and crossbars against side-to-side and fore-aft swing forces; anchoring or burial; lumber quality in the beam and legs.
 
 ### Hardware

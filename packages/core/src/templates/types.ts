@@ -74,3 +74,21 @@ export interface HardwareItem {
 }
 
 export type GenerateResult<Output> = { ok: true; output: Output } | { ok: false; issues: Issue[] };
+
+/** Checklist-only categories (DOMAIN.md, Structural checks, Checklist only). */
+export type ChecklistCategory =
+  | 'bolted-connections'
+  | 'racking'
+  | 'tipping-and-anchoring'
+  | 'long-term-condition'
+  | 'lumber-quality'
+  | 'check-assumptions';
+
+/** Something to confirm with an experienced builder, tied to one element of the design. */
+export interface ChecklistItem {
+  category: ChecklistCategory;
+  /** The specific design element, such as 'Leg-to-beam bolt, each frame'. */
+  element: string;
+  confirm: string;
+  why: string;
+}
