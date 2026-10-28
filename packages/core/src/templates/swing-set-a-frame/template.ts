@@ -40,7 +40,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
   const angle = formatAngle(g.splay);
   const levelCut = (where: string) => ({
     setting: g.splay,
-    description: `${where}: level cut, ${angle} from square`,
+    description: `${where}: level cut`,
   });
   const leg = (side: 'back' | 'front'): Part => {
     const l = g[side];
@@ -96,8 +96,8 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
         { label: 'Bottom edge', value: g.crossbar.bottomEdge },
       ],
       ends: [
-        { setting: g.splay, description: `${angle} from square, flush with the leg` },
-        { setting: g.splay, description: `${angle} from square, flush with the leg` },
+        { setting: g.splay, description: 'Flush with the leg' },
+        { setting: g.splay, description: 'Flush with the leg' },
       ],
       endsParallel: false,
       notes: ['Fastened to the outside face of the legs.'],
@@ -114,8 +114,8 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
         { label: 'Bottom edge', value: g.gusset.bottomWidth },
       ],
       ends: [
-        { setting: g.splay, description: `${angle} from square, flush with the leg` },
-        { setting: g.splay, description: `${angle} from square, flush with the leg` },
+        { setting: g.splay, description: 'Flush with the leg' },
+        { setting: g.splay, description: 'Flush with the leg' },
       ],
       endsParallel: false,
       notes: ["On the outside face of the frame, top edge against the beam's underside."],
