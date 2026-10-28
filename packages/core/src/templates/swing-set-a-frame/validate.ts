@@ -1,6 +1,7 @@
 import { formatLength } from '../../units/length.ts';
 import type { Flag, Issue } from '../types.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
+import { CLEARANCES, type SwingGeometry } from './layout.ts';
 
 // Validation and flags (docs/templates/swing-set-a-frame.md, Validation and Flags).
 
@@ -65,6 +66,53 @@ export function validate(dims: Dimensions, g: FrameGeometry): Issue[] {
   return issues;
 }
 
+/** Swing positions against the frame and the CPSC spacing (spec, Validation). */
+export function validateSwings(dims: Dimensions, s: SwingGeometry): Issue[] {
+  const issues: Issue[] = [];
+  const gap = CLEARANCES.seatGap.value;
+  const [left, right] = s.seats;
+  const leftFace = dims.e + dims.t;
+  const rightFace = dims.L - dims.e - dims.t;
+  const [h1, h2, h3, h4] = s.hangersX;
+
+  if (h2 >= h3) {
+    issues.push({
+      code: 'hangers-overlap',
+      message: 'The two swings overlap. Move the swing centers apart or reduce the hanger spacing.',
+      params: ['swings'],
+    });
+  }
+  if (h1 < leftFace || h4 > rightFace) {
+    issues.push({
+      code: 'hanger-outside-span',
+      message: `Hangers must be between the frames' inside faces (${len(leftFace)} to ${len(rightFace)} along the beam).`,
+      params: ['swings', 'frameInset'],
+    });
+  }
+  if (left.xMin - leftFace < gap || rightFace - right.xMax < gap) {
+    issues.push({
+      code: 'seat-too-close-to-frame',
+      message: `Each seat needs at least ${len(gap)} of space from the frame (${CLEARANCES.seatGap.source}).`,
+      params: ['swings'],
+    });
+  }
+  if (right.xMin - left.xMax < gap) {
+    issues.push({
+      code: 'seats-too-close',
+      message: `The seats need at least ${len(gap)} between them (${CLEARANCES.seatGap.source}).`,
+      params: ['swings'],
+    });
+  }
+  if (dims.H - s.chainLength < CLEARANCES.seatClearance.value) {
+    issues.push({
+      code: 'seat-too-low',
+      message: `Seats need at least ${len(CLEARANCES.seatClearance.value)} above the ground (${CLEARANCES.seatClearance.source}).`,
+      params: ['swings'],
+    });
+  }
+  return issues;
+}
+
 /** Expert-check flags for a frame that validates. */
 export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
   const result: Flag[] = [
@@ -88,6 +136,14 @@ export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
       category: 'load-bearing',
       ask: `Confirm how the ${dims.plies} beam plies are fastened together: fastener type, size, spacing, and pattern.`,
       why: 'A built-up beam only acts as one member when its plies are fastened well enough to share the load.',
+    });
+  }
+
+  if (dims.k !== 0) {
+    result.push({
+      category: 'load-bearing',
+      ask: 'Confirm the frame on sloped ground: leg lengths, footing or burial on the downhill side, and whether to regrade instead.',
+      why: 'The CPSC home handbook recommends a level site to reduce the chance of tipping (Pub. 324, p. 2).',
     });
   }
 

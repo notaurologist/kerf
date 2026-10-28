@@ -11,8 +11,9 @@ import {
   legsReachGround,
   splayForFootprint,
 } from './geometry.ts';
+import { type SiteLayout, type SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
-import { flags, validate } from './validate.ts';
+import { flags, validate, validateSwings } from './validate.ts';
 
 /**
  * Bump whenever output for the same parameters would change (decision 0008).
@@ -24,6 +25,8 @@ export const TEMPLATE_ID = 'swing-set-a-frame';
 export interface SwingSetOutput {
   params: SwingSetParams;
   geometry: FrameGeometry;
+  swings: SwingGeometry;
+  layout: SiteLayout;
   parts: Part[];
   flags: Flag[];
 }
@@ -165,11 +168,19 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
   }
 
   const g = frameGeometry(dims, splay);
-  const issues = validate(dims, g);
+  const swings = swingGeometry(p);
+  const issues = [...validate(dims, g), ...validateSwings(dims, swings)];
   if (issues.length > 0) return { ok: false, issues };
 
   return {
     ok: true,
-    output: { params: p, geometry: g, parts: parts(p, dims, g), flags: flags(dims, g) },
+    output: {
+      params: p,
+      geometry: g,
+      swings,
+      layout: siteLayout(p, g, swings),
+      parts: parts(p, dims, g),
+      flags: flags(dims, g),
+    },
   };
 }

@@ -40,6 +40,10 @@ Not covered in version 1: metal A-frame brackets, legs with seat cuts under the 
 | Frame inset | e | Distance from each beam end to the outside face of that frame's legs (the beam overhang) |
 | Ground slope | g | Inches the ground falls per foot of horizontal distance toward the front. 0 is level ground; negative means the front is uphill. |
 | Burial depth | d | How far each leg extends below grade, measured vertically. 0 for pads. |
+| Swing centers | x₁, x₂ | Position of each swing's center along the beam |
+| Hanger spacing | s_h | Distance between a swing's two hangers along the beam |
+| Seat width | s_w | Side-to-side width of a seat |
+| Seat height | h_s | Height of the seat's underside above the ground under the beam, at rest |
 
 The ground is the line z_g(y) = k·y with k = g / 12, the same at every x.
 
@@ -115,6 +119,21 @@ A trapezoid with its top edge against the beam's underside (z = H) and its sides
 - The gusset and the crossbar sit on the outside face (x < e on the left frame).
 - Frame centerlines (the supports for the structural checks) are at x = e + t/2 and L − e − t/2.
 
+### Swings
+
+- **Hangers:** two per swing, at x_i ± s_h/2. These are the beam's load points for the structural checks.
+- **Seat edges:** x_i ± s_w/2.
+- **Chain length to set:** H − h_s, from the hanger's pivot to the seat's underside. The hanger hardware's own drop comes out of this; measure it before cutting or adjusting chain.
+
+### Site layout
+
+Plan view, values from the CPSC home handbook (`DOMAIN.md`, Layout and clearances), each shown with its source:
+
+- **Frame footprint at grade:** x from 0 to L (the beam), y from −(front outer at grade) to +(back outer at grade).
+- **Clear area:** the footprint plus 72 inches on every side.
+- **Swing zones:** for each swing, x across its seat (x_i ± s_w/2), y from −2·H to +2·H.
+- The area to keep clear of structures and cover with surfacing is the union of the clear area and the swing zones.
+
 ## Validation
 
 Rejected combinations, each with a message saying which values conflict:
@@ -124,6 +143,9 @@ Rejected combinations, each with a message saying which values conflict:
 - Ground so steep that a leg meets the ground at or above the beam.
 - 2·(e + t) ≥ L (the frames don't fit on the beam).
 - More than one ply of anything other than 2x stock.
+- A seat closer than 8 inches to the other seat or to a frame's inside face (CPSC).
+- A seat underside less than 8 inches above the ground (CPSC).
+- Hangers of the two swings overlapping, or a hanger outside the span between the frames' inside faces.
 - Any length, stock dimension, or angle outside its range in the parameter schema.
 
 ## Flags
@@ -132,6 +154,7 @@ Rejected combinations, each with a message saying which values conflict:
 - Buried legs (d > 0): **expert check** on burial depth, and on lumber rated for ground contact, since decay is fastest at the ground line.
 - Pads (d = 0): **expert check** on ground anchors (`DOMAIN.md`, Tipping and anchoring).
 - Built-up beam (n > 1): **expert check** on how the plies are fastened together.
+- Sloped ground (g ≠ 0): **expert check**, since the CPSC handbook recommends a level site.
 
 ## Worked example (hand-checked)
 
@@ -161,6 +184,21 @@ Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 
 | Cut settings | Leg top, leg foot, crossbar ends, and gusset sides 20.0°; flush cut a taper at 20.0° to the face |
 
 With d = 0 (pads), the same inputs give back legs of 105.970 (106") and front legs of 112.814 (112-13/16"). Tests cover both.
+
+### Swings and layout
+
+With swings centered at x = 40 and 80, hangers 20 apart, seats 20 wide, and seat height 16:
+
+| Quantity | Value |
+|---|---|
+| Hangers | 30, 50, 70, 90 |
+| Frame inside faces | 12 + 3.5 = 15.5 and 120 − 15.5 = 104.5 |
+| Seat to frame, left and right | 30 − 15.5 = 14.5; 104.5 − 90 = 14.5 |
+| Seat to seat | 70 − 50 = 20 |
+| Chain length to set | 96 − 16 = 80 |
+| Footprint at grade | x 0 to 120, y −41.680 to 39.226 |
+| Clear area | x −72 to 192, y −113.680 to 111.226 |
+| Swing zones | x 30 to 50 and 70 to 90, y −192 to 192 |
 
 ### Built-up beam check
 

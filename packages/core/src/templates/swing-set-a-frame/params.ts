@@ -36,6 +36,16 @@ export const SwingSetParams = z.object({
   groundSlope: z.number().min(-3).max(3),
   /** How far each leg extends below grade, measured vertically. 0 for pads. */
   burialDepth: z.number().min(0).max(48),
+  swings: z.object({
+    /** Each swing's center along the beam, left swing first. */
+    centers: z.tuple([z.number(), z.number()]),
+    /** Distance between a swing's two hangers along the beam. */
+    hangerSpacing: z.number().positive(),
+    /** Side-to-side width of a seat. */
+    seatWidth: z.number().positive(),
+    /** Height of the seat's underside above the ground under the beam, at rest. */
+    seatHeight: z.number().positive(),
+  }),
 });
 
 export type SwingSetParams = z.infer<typeof SwingSetParams>;
