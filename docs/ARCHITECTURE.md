@@ -11,6 +11,7 @@ Read `PRODUCT.md` and `DOMAIN.md` first. Decisions behind the choices here are r
 3. **Exact until display.** Lengths are decimal inches and angles are degrees in the miter-saw convention (`DOMAIN.md`, Units). Rounding to 1/16 inch happens once, in display formatting.
 4. **Every structural result carries its working.** Inputs with sources, formula, intermediate values, adjustment factors, assumptions, and margin travel together as one object.
 5. **Reference data is versioned with the code** (0009). Projects store IDs and versions, never copies of reference data.
+6. **Kerf is a general woodworking planner; templates hold what is specific to a project type.** Everything in `packages/core` outside `templates/<template-id>/` (units, lumber, outputs, geometry helpers, structural checks) works for any template and never mentions one. Rules that apply to one kind of project, such as playground guidance from the CPSC for the swing set, live in that template's folder and reach generic code as data (for example, which fittings a bolt takes, or notes to show with a list).
 
 ## System overview
 

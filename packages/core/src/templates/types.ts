@@ -56,8 +56,17 @@ export interface HardwareItem {
   id: string;
   name: string;
   quantity: number;
-  /** Through-bolts only: diameter and grip (thickness of wood the bolt passes through). */
-  bolt?: { diameter: number; grip: number };
+  /**
+   * Through-bolts only: diameter, grip (thickness of wood the bolt passes through), and the
+   * fittings each bolt takes. The template decides the fittings; shopping lists total them.
+   */
+  bolt?: {
+    diameter: number;
+    grip: number;
+    washers: number;
+    nut: 'locking' | 'standard';
+    cap: boolean;
+  };
   /** True when the item carries load and its size was confirmed with an experienced builder. */
   structural: boolean;
   notes: string[];

@@ -11,7 +11,7 @@ import {
   legsReachGround,
   splayForFootprint,
 } from './geometry.ts';
-import { hardware, validateHardware } from './hardware.ts';
+import { HARDWARE_NOTES, hardware, validateHardware } from './hardware.ts';
 import { type SiteLayout, type SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
 import { flags, validate, validateSwings } from './validate.ts';
@@ -30,6 +30,8 @@ export interface SwingSetOutput {
   layout: SiteLayout;
   parts: Part[];
   hardware: HardwareItem[];
+  /** Notes to show with the hardware shopping list. */
+  hardwareNotes: readonly string[];
   flags: Flag[];
 }
 
@@ -191,6 +193,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       layout: siteLayout(p, g, swings),
       parts: parts(p, dims, g),
       hardware: hardware(p, dims, g),
+      hardwareNotes: HARDWARE_NOTES,
       flags: flags(dims, g),
     },
   };

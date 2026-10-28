@@ -42,13 +42,20 @@ function bolts(
     id,
     name,
     quantity,
-    bolt: { diameter, grip },
+    // CPSC Pub. 324, p. 3: a washer at each end, a locking nut, and a cap on the exposed end.
+    bolt: { diameter, grip, washers: 2, nut: 'locking', cap: true },
     structural: true,
     notes: [
       `${formatLength(diameter)} through-bolt, at least ${formatLength(grip)} plus two washers and a locking nut long, ending no more than ${formatLength(diameter)} past the nut.`,
     ],
   };
 }
+
+/** Notes for the hardware shopping list, from the CPSC home handbook (spec, Hardware). */
+export const HARDWARE_NOTES = [
+  'Bolt length: at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC Pub. 324, p. 3).',
+  "All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC Pub. 324, p. 3).",
+] as const;
 
 export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): HardwareItem[] {
   const h = p.hardware;

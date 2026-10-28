@@ -2,21 +2,20 @@ import type { HardwareItem } from '../templates/types.ts';
 import { formatLength, toSixteenths } from '../units/length.ts';
 
 // Hardware lines for the shopping list (PRODUCT.md, MVP feature 4). Bolts with the same diameter
-// and grip share a line; washers, locking nuts, and caps are totaled per diameter.
+// and grip share a line, and the fittings each bolt calls for (washers, nuts, caps) are totaled
+// per diameter. Which fittings a bolt needs, and any notes for the list, come from the template.
 
 export interface HardwareLine {
   description: string;
   quantity: number;
 }
 
-export interface HardwareList {
-  lines: HardwareLine[];
-  notes: string[];
-}
-
-export function hardwareList(items: readonly HardwareItem[]): HardwareList {
+export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
   const boltLines = new Map<string, HardwareLine>();
-  const perDiameter = new Map<number, number>();
+  const fittings = new Map<
+    number,
+    { washers: number; locking: number; plain: number; caps: number }
+  >();
   const others: HardwareLine[] = [];
 
   for (const item of items) {
@@ -24,7 +23,7 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareList {
       others.push({ description: item.name, quantity: item.quantity });
       continue;
     }
-    const { diameter, grip } = item.bolt;
+    const { diameter, grip, washers, nut, cap } = item.bolt;
     // Grip is grouped as displayed, so two bolts that print the same share one line.
     const key = `${diameter}/${toSixteenths(grip)}`;
     const line = boltLines.get(key) ?? {
@@ -33,24 +32,26 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareList {
     };
     line.quantity += item.quantity;
     boltLines.set(key, line);
-    perDiameter.set(diameter, (perDiameter.get(diameter) ?? 0) + item.quantity);
+
+    const f = fittings.get(diameter) ?? { washers: 0, locking: 0, plain: 0, caps: 0 };
+    f.washers += washers * item.quantity;
+    if (nut === 'locking') f.locking += item.quantity;
+    else f.plain += item.quantity;
+    if (cap) f.caps += item.quantity;
+    fittings.set(diameter, f);
   }
 
-  const fittings: HardwareLine[] = [];
-  for (const [diameter, count] of [...perDiameter].sort(([a], [b]) => a - b)) {
+  const fittingLines: HardwareLine[] = [];
+  for (const [diameter, f] of [...fittings].sort(([a], [b]) => a - b)) {
     const size = formatLength(diameter);
-    fittings.push(
-      { description: `${size} flat washers`, quantity: 2 * count },
-      { description: `${size} locking nuts`, quantity: count },
-      { description: `${size} bolt caps`, quantity: count },
-    );
+    const add = (description: string, quantity: number) => {
+      if (quantity > 0) fittingLines.push({ description: `${size} ${description}`, quantity });
+    };
+    add('flat washers', f.washers);
+    add('locking nuts', f.locking);
+    add('nuts', f.plain);
+    add('bolt caps', f.caps);
   }
 
-  return {
-    lines: [...boltLines.values(), ...fittings, ...others],
-    notes: [
-      'Bolt length: at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC Pub. 324, p. 3).',
-      "All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC Pub. 324, p. 3).",
-    ],
-  };
+  return [...boltLines.values(), ...fittingLines, ...others];
 }

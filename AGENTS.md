@@ -21,12 +21,13 @@ Kerf is a personal planning tool for woodworking projects. Pick a template, set 
 4. **Exact until display.** Store lengths in decimal inches and angles in degrees, miter-saw convention (0° = square). Round to 1/16 only in core's display formatters, and never compute with rounded values.
 5. **Source every safety-relevant claim and design value.** Record the source and edition in the data. Verify formulas and values against the source before implementing.
 6. **Numbers in core, logic not only in the client.** The web app renders snapshots from the API and does not compute values it presents as authoritative.
-7. **Parse at boundaries with Zod:** request input, stored JSON read back from Postgres, and reference data.
-8. **Geometry and structural changes need hand-checked worked examples** in tests. A change that alters template output for the same parameters bumps the template version (0008).
-9. **Every API route except login and the health check requires a session** (0007), with a test for it. The health check returns no data.
-10. **Generic tool suggestions only.** No brands or products.
-11. **No secrets** in code, tests, fixtures, or logs.
-12. **Ask before** adding a dependency, changing a recorded decision, or expanding scope beyond the current milestone.
+7. **Generic code stays generic.** Only `templates/<template-id>/` may know about a specific project type or its rules (for example, CPSC playground guidance). See `ARCHITECTURE.md`, principle 6.
+8. **Parse at boundaries with Zod:** request input, stored JSON read back from Postgres, and reference data.
+9. **Geometry and structural changes need hand-checked worked examples** in tests. A change that alters template output for the same parameters bumps the template version (0008).
+10. **Every API route except login and the health check requires a session** (0007), with a test for it. The health check returns no data.
+11. **Generic tool suggestions only.** No brands or products.
+12. **No secrets** in code, tests, fixtures, or logs.
+13. **Ask before** adding a dependency, changing a recorded decision, or expanding scope beyond the current milestone.
 
 ## Stack
 
