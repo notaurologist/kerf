@@ -18,6 +18,7 @@ const example: SwingSetParams = {
   frameInset: 12,
   groundSlope: 1,
   burialDepth: 24,
+  swings: { centers: [40, 80], hangerSpacing: 20, seatWidth: 20, seatHeight: 16 },
 };
 
 function run(params: unknown): SwingSetOutput {
@@ -177,6 +178,73 @@ describe('fit', () => {
     const gusset = part(output, 'gusset');
     expect(gusset.markLengths[0]?.value).toBeCloseTo(2 * outerAt(H), 9);
     expect(gusset.length).toBeCloseTo(2 * outerAt(H - 7.25), 9);
+  });
+});
+
+describe('swings and layout', () => {
+  // Spec, Swings and layout.
+  const output = run(example);
+
+  it('places the hangers and gives the chain length', () => {
+    expect(output.swings.hangersX).toEqual([30, 50, 70, 90]);
+    expect(output.swings.seats).toEqual([
+      { xMin: 30, xMax: 50 },
+      { xMin: 70, xMax: 90 },
+    ]);
+    expect(output.swings.chainLength).toBe(80);
+  });
+
+  it('draws the footprint, clear area, and swing zones', () => {
+    const { footprint, clearArea, swingZones } = output.layout;
+    expect(footprint.xMin).toBe(0);
+    expect(footprint.xMax).toBe(120);
+    expect(footprint.yMin).toBeCloseTo(-41.68, 3);
+    expect(footprint.yMax).toBeCloseTo(39.226, 3);
+    expect(clearArea.xMin).toBe(-72);
+    expect(clearArea.xMax).toBe(192);
+    expect(clearArea.yMin).toBeCloseTo(-113.68, 3);
+    expect(clearArea.yMax).toBeCloseTo(111.226, 3);
+    expect(swingZones.map((z) => [z.xMin, z.xMax, z.yMin, z.yMax])).toEqual([
+      [30, 50, -192, 192],
+      [70, 90, -192, 192],
+    ]);
+    expect(clearArea.source).toContain('Pub. 324');
+  });
+
+  const withSwings = (swings: Partial<SwingSetParams['swings']>) => ({
+    ...example,
+    swings: { ...example.swings, ...swings },
+  });
+
+  it('accepts seats exactly 8 inches from each other and the frame', () => {
+    // Inside faces at 15.5 and 104.5. Seats 20 wide at 33.5 and 86.5 span 23.5-43.5 and
+    // 76.5-96.5: exactly 8 from each frame, 33 apart.
+    expect(generate(withSwings({ centers: [33.5, 86.5] })).ok).toBe(true);
+    // Seats 20 wide at 50 and 78: edges 40-60 and 68-88, exactly 8 apart.
+    expect(generate(withSwings({ centers: [50, 78] })).ok).toBe(true);
+  });
+
+  it('rejects seats closer than 8 inches to the frame or each other', () => {
+    expect(issueCodes(withSwings({ centers: [33.4, 86.5] }))).toEqual(['seat-too-close-to-frame']);
+    expect(issueCodes(withSwings({ centers: [50, 77.9] }))).toEqual(['seats-too-close']);
+  });
+
+  it('rejects overlapping swings and hangers outside the frames', () => {
+    expect(issueCodes(withSwings({ centers: [60, 70] }))).toContain('hangers-overlap');
+    expect(issueCodes(withSwings({ centers: [20, 80], seatWidth: 4 }))).toContain(
+      'hanger-outside-span',
+    );
+  });
+
+  it('rejects a seat less than 8 inches above the ground', () => {
+    expect(issueCodes(withSwings({ seatHeight: 7.9 }))).toEqual(['seat-too-low']);
+    expect(generate(withSwings({ seatHeight: 8 })).ok).toBe(true);
+  });
+
+  it('flags sloped ground but not level ground', () => {
+    const slopeFlag = (o: SwingSetOutput) => o.flags.some((f) => f.ask.includes('sloped ground'));
+    expect(slopeFlag(output)).toBe(true);
+    expect(slopeFlag(run({ ...example, groundSlope: 0 }))).toBe(false);
   });
 });
 

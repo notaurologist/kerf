@@ -1,6 +1,6 @@
 # Domain Knowledge
 
-Status: Draft v0.4
+Status: Draft v0.5
 
 Background for anyone (human or agent) working on this project. This is not authoritative woodworking or safety guidance. Where something is marked **expert check**, the app should flag it for review by an experienced woodworker. Sources are listed at the end; add a source for any new safety-relevant claim.
 
@@ -104,14 +104,24 @@ Design values and adjustment factors come from the American Wood Council's Natio
 
 ### Layout and clearances
 
-CPSC publishes clearance guidance. The home handbook [1] is the primary reference for this project; its exact numbers must be verified there before implementation. Commonly cited guidance from CPSC-based sources includes:
+Verified against the CPSC home handbook [1] (Publication 324, 2005) in October 2026. Page numbers are the handbook's printed page numbers.
 
-- A clear use zone in front of and behind swings extending twice the height of the pivot (swing hanger) above the ground. [2][3]
-- Space between swings, and between a swing and the frame, of at least 8 inches, and a gap of at least 8 inches under the seat. [2]
-- Swing sets should be securely anchored. [2]
-- Clear space to the sides of the frame (6 feet in public playground guidance). [3]
+- **Clear area:** play equipment at least 6 feet from any structure or obstacle, such as a house, fence, shed, tree, or pole (p. 2). Protective surfacing at least 6 feet beyond the equipment in all directions (p. 7).
+- **Swing zones:** in front of and behind to-fro swings, keep structures away and extend surfacing to twice the height of the top bar the swing hangs from (pp. 2, 7). Kerf measures this from the beam's centerline and uses the height of the beam's underside (the pivot height); measuring to the top of the beam would add twice the beam depth.
+- **Spacing:** at least 8 inches for swings with limited sideways motion, which Kerf applies between seats and between a seat and the frame; at least 8 inches between the surfacing and the underside of a seat (p. 5).
+- **Seats:** lightweight; avoid heavy metal or wood seats (p. 4).
+- **Anchors:** follow the manufacturer's instructions, and bury or cover anchors (p. 4).
+- **Level site:** the handbook recommends a level location, and notes some sites need regrading (p. 2). A sloped site is a deliberate departure: **expert check**.
 
-The site layout diagram should draw the frame footprint plus these zones, with values configurable and sourced.
+The site layout draws the frame's footprint at grade plus these zones, with each value configurable and its source shown.
+
+### Hardware guidance from the handbook [1]
+
+- Bolts and screws corrosion-resistant, fastened tightly, with lock washers, self-locking nuts, or other locking means (p. 3).
+- Bolt ends capped, protruding no more than one bolt diameter past the nut (p. 3).
+- S-hooks and other hooks closed to a gap less than the thickness of a dime; open hooks are acceptable only at the uppermost attachment point of a swinging element (p. 3).
+- Hardware compatible with the wood's pressure treatment, since the treatment chemicals corrode some metals faster (p. 3).
+- Check nuts and bolts twice a month; check seats, ropes, chains, and cables monthly (p. 5).
 
 ## Implications for the data model
 

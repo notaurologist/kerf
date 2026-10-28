@@ -20,6 +20,7 @@ const example: SwingSetParams = {
   frameInset: 12,
   groundSlope: 1,
   burialDepth: 24,
+  swings: { centers: [40, 80], hangerSpacing: 20, seatWidth: 20, seatHeight: 16 },
 };
 
 function parts(params: SwingSetParams): Part[] {
