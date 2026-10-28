@@ -6,10 +6,12 @@ export {
   momentAt,
   reactions,
   type SpanLoad,
+  type SpanLoads,
 } from './beam.ts';
 export {
   type BeamCheckInput,
   type BeamChecks,
+  type BeamLoads,
   type BeamMember,
   beamChecks,
   type HardwareCheckInput,
@@ -17,6 +19,7 @@ export {
   type LoadCase,
   type MaterialInput,
   type PointLoad,
+  type UniformLoad,
 } from './checks.ts';
 export {
   type AdjustedValues,

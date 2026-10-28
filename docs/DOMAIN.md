@@ -56,8 +56,8 @@ The checks are generic: they work on members, supports, and loads, and know noth
 
 ### Computed (sanity checks)
 
-- **Beam model.** A simply supported span L between two supports, with any number of point loads at any positions. Results come from superposition of the single-load cases. Symmetric two-load formulas are kept as hand-check cases for the tests.
-- **Beam bending.** Maximum moment occurs under one of the point loads; compute the moment at each load position from the support reactions and take the largest. Symmetric hand check: two equal loads P, each a distance a from its nearest support, M = P·a. Bending stress f_b = M / S (S = section modulus of the actual cross section), compared against the adjusted allowable bending stress for the species and grade.
+- **Beam model.** A simply supported span L between two supports, with any number of point loads at any positions and, optionally, a uniform load over the span (such as the member's own weight). Results come from superposition of the single-load cases (AWC Design Aid 6, Figures 1 and 8). Symmetric two-load formulas are kept as hand-check cases for the tests. Loads on overhangs beyond the supports are not checked.
+- **Beam bending.** Maximum moment occurs where the shear changes sign: under a point load, or with a uniform load, between point loads where the shear crosses zero. Compute the moment at each such position from the support reactions and take the largest. Symmetric hand check: two equal loads P, each a distance a from its nearest support, M = P·a. Bending stress f_b = M / S (S = section modulus of the actual cross section), compared against the adjusted allowable bending stress for the species and grade.
 - **Beam shear.** Maximum shear V is the larger support reaction (V = P in the symmetric case). Shear stress f_v = 3V / (2A) for a rectangular section, compared against the adjusted allowable shear stress. This is the same as the NDS 2024 form V ≤ Vr' = (2/3)·Fv'·b·d (Eq. 3.4-2). The NDS allowance to reduce loads within d of a support (3.4.2.2) is not used.
 - **Beam deflection.** Superpose the single-load deflection curve: for a load P a distance b from the right support, deflection at x (measured from the left support, left of the load) is P·b·x·(L² - b² - x²) / (6·E·I·L), mirrored for points right of the load. Evaluate along the span and take the maximum. Symmetric hand check: δ = P·a·(3L² - 4a²) / (24·E·I) at midspan. Shown against a user-confirmed deflection limit (span divided by a number). The template says which load case deflection uses. Tabulated E for sawn lumber already includes shear deflection (NDS Appendix F.3.1), so bending deflection alone is computed; long-term creep (NDS 3.5.2) is not included. The maximum is found exactly: between loads the curve is a cubic, so its maximum is at a load or where its slope is zero.
 - **Adjustment factors.** Allowable stresses are the NDS reference design values with the factors that apply to the member as used, from conditions the template states: wet service (C_M), size (C_F), beam stability (C_L), temperature (C_t) if relevant, load duration (C_D), incising (C_i) if the lumber is incised, and repetitive member (C_r) only where several members share load. Every factor is listed on the result with its value, reason, and source, including factors equal to 1.0. C_L follows NDS 3.3.3 with the effective length for loads not listed in Table 3.3.3 (its footnote 1), and the unbraced length is the distance between supports that prevent rotation.
@@ -79,7 +79,7 @@ Generic categories; each template lists the specific items for its design.
 
 Generic inputs, entered or confirmed by the user, never defaulted:
 
-- Species and grade of each structural member (determines design values).
+- Species and grade of each structural member (determines design values), and whether the lumber is incised (NDS 4.3.8; pressure-treated lumber sometimes is).
 - Hardware rated loads, from manufacturer specifications.
 - Deflection limit.
 
@@ -105,7 +105,7 @@ The swing set's structural model, supplied by its template to the generic checks
 - **Beam.** Supported at the two frame centerlines, with each hanger as a point load at its own position.
 - **Load cases.** Strength checks (bending, shear, hardware) use the swing load with the dynamic factor. Deflection uses W(3 - 2cos θ) without it, since it describes normal use, not peak snap loads.
 - **Service conditions.** A single outdoor beam: wet service applies, the repetitive-member factor does not, and load duration C_D is 1.0 (the NDS impact increase is not used).
-- **Inputs:** rider weights and number of simultaneous riders, maximum swing angle, and dynamic factor.
+- **Inputs:** the heaviest rider on each swing including seat and chain (0 for an empty swing, which covers the number of simultaneous riders), maximum swing angle, and dynamic factor. The beam's own weight is included as a uniform load, from its density at a moisture content the owner enters (Simpson, FPL-GTR-76 [7]).
 - **Checklist items:** leg-to-beam bolts and gusset; racking of the A-frames and crossbars against side-to-side and fore-aft swing forces; anchoring or burial; lumber quality in the beam and legs.
 
 ### Hardware
@@ -173,5 +173,6 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 4. American Wood Council, National Design Specification (NDS) for Wood Construction, 2024 edition, and the NDS Supplement: Design Values for Wood Construction, 2024 edition with addenda of February 2024 and March 2025. Free view-only copies: https://awc.org/publications/2024-nds/ and https://awc.org/publications/2024-nds-supplement/
 5. Southern Forest Products Association, Southern Pine Reference Design Values based on SPIB grading rules, effective June 1, 2013 (corroborates NDS Supplement Table 4B): https://www.southernpine.com/wp-content/uploads/2023/09/TABLE01_L1.pdf
 6. American Wood Council, Design Aid No. 6, Beam Design Formulas with Shear and Moment Diagrams (corroborates the beam formulas): https://awc.org/wp-content/uploads/2021/12/AWC-DA6-BeamFormulas-0710.pdf
+7. Simpson, W. T., Specific Gravity, Moisture Content, and Density Relationship for Wood, USDA Forest Products Laboratory FPL-GTR-76, 1993: https://research.fs.usda.gov/download/treesearch/5914.pdf
 
 Also relevant: CPSC Public Playground Safety Handbook (Publication 325, 2025 edition), for public playgrounds rather than home use: https://www.cpsc.gov/s3fs-public/325_PublicPlaygroundSafetyHandbook2025_7-30-25_1.pdf

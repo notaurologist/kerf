@@ -36,6 +36,12 @@ export const SOURCES = {
     url: 'https://www.southernpine.com/wp-content/uploads/2023/09/TABLE01_L1.pdf',
     note: 'Used to corroborate NDS Supplement Table 4B, not as the primary source.',
   },
+  'fpl-gtr-76': {
+    title: 'Specific Gravity, Moisture Content, and Density Relationship for Wood (FPL-GTR-76)',
+    publisher: 'USDA Forest Service, Forest Products Laboratory (William T. Simpson)',
+    edition: 'July 1993',
+    url: 'https://research.fs.usda.gov/download/treesearch/5914.pdf',
+  },
   'awc-da6': {
     title: 'Design Aid No. 6: Beam Design Formulas with Shear and Moment Diagrams',
     publisher: 'American Wood Council',
@@ -67,6 +73,8 @@ export const SOURCE_LINKS = {
     'https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-4-Sawn-Lumber.pdf',
   ndsAppendix:
     'https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Appendix.pdf',
+  supplementChapter3:
+    'https://awc.org/pdf-viewer/index.html#https://web-media.awc.org/wp-content/uploads/2021/10/17210145/AWC_NDS2024-Supplement_20231129_AWCWebsite_Section-Properties.pdf',
   supplementChapter4:
     'https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/08/AWC_NDS2024-Supplement_20240719_Chapter-4-Reference-Design-Values_Website-1.pdf',
 } as const;

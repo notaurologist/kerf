@@ -271,6 +271,94 @@ The same inputs with the beam as two 2x6 plies (bw = 3.0, bd = 5.5). The flush c
 
 Tests compare template output with these values to within 0.001 inch and 0.01°.
 
+## Structural model
+
+Added in M2. The structural review is computed from the template output and the owner's structural inputs by `structuralReview` in `structural.ts`. It is separate from `generate`, so adding it did not change the template output or its version. The generic checks it feeds are described in `DOMAIN.md`, Structural checks.
+
+### Inputs
+
+None has a default (decision 0001). A missing input makes every check that needs it report "input needed".
+
+| Input | Used by |
+|---|---|
+| Beam species and grade (Southern Pine No.1 or No.2, NDS Supplement 2024 Table 4B) | Bending, shear, deflection |
+| Whether the beam lumber is incised | Bending, shear, deflection |
+| Beam moisture content in service, percent (for the beam's weight) | Bending, shear, deflection |
+| Heaviest rider on each swing, including seat and chain (0 for an empty swing) | All |
+| Maximum swing angle θ from vertical | All |
+| Dynamic factor | Bending, shear, hanger |
+| Deflection limit, span divided by N | Deflection |
+| Swing hanger rated working load, from the manufacturer | Hanger |
+
+### Loads and load cases
+
+- **Swing load:** chain tension at the bottom of the arc T = W·(3 − 2·cos θ). For a pendulum of length r released from rest at θ, the speed at the bottom gives v² = 2·g·r·(1 − cos θ), and T = W + W·v²/(g·r) = W·(3 − 2·cos θ). It is 1·W at rest, 2·W at 60°, and 3·W at 90°.
+- **Per hanger:** T / 2, assuming a centered rider. Both swings are taken at the bottom of their arcs together.
+- **Strength** (bending, shear, hanger): per-hanger load times the dynamic factor.
+- **Deflection:** per-hanger load without the dynamic factor.
+- **Beam:** supported at the frame centerlines, `geometry.supportsX`, with a point load at each hanger, `swings.hangersX`. The unbraced length for beam stability is the span, since each frame holds the beam against rotation (a checklist item). The beam's own weight is a uniform load over the span, not multiplied by the dynamic factor; the overhangs' weight is left out, which slightly raises the moment between the supports.
+- **Service conditions:** wet service (outdoors, uncovered), C_t = 1.0 (no sustained heat above 100°F), C_D = 1.0 (the impact increase is not used, and the NDS bars factors above 1.6 for lumber treated with water-borne preservatives), no repetitive member factor (one beam).
+- **Beam weight:** w = ρ·A / 1728 lb/in, with A the cross-section of all plies and ρ the density at the entered moisture content M from Simpson, FPL-GTR-76: G_b = G / (1 + 0.265·G) with G = 0.55 from Table 4B, then ρ = 62.4·G_b·(1 + M/100) at or above 30%, divided by (1 − 0.265·a·G_b) with a = (30 − M)/30 below 30%. The NDS Supplement 3.1.3 formula agrees within 0.3% up to 30%; above 30% it reads low, because it keeps shrinking the volume of wood that no longer swells.
+- **Built-up beam:** each ply carries an equal share of every load, including the beam's weight (decision 0013).
+
+### Checklist
+
+Leg-to-beam bolt and gusset; beam plies (built-up beams only); beam held against rotation at each frame; racking of the A-frames and crossbars; burial or ground anchors; swing hanger installation; lumber quality in the beam and legs; an inspection routine (CPSC Pub. 324, p. 5).
+
+### Worked examples (hand-checked)
+
+Geometry from the worked example above: supports at 13.75 and 106.25 (span L = 92.5), hangers at 30, 50, 70, 90, which are 16.25, 36.25, 56.25, and 76.25 from the left support. Southern Pine No.2, not incised, beam moisture content 30%, θ = 60° (3 − 2·cos θ = 2), dynamic factor 2, deflection limit L/240, hanger rating 1200 lb.
+
+Design values (Table 4B, 5"–6" wide): Fb = 1000, Fv = 175, E = 1,400,000, Emin = 510,000 psi, G = 0.55. Wet service: C_M = 1.0 for Fb (Fb·C_F = 1000 ≤ 1150 psi), 0.97 for Fv, 0.9 for E and Emin. So Fv' = 169.75 psi, E' = 1,260,000 psi, Emin' = 459,000 psi.
+
+Beam weight at 30%: G_b = 0.55 / 1.14575 = 0.480035, ρ = 62.4 · 0.480035 · 1.30 = 38.940 lb/ft³. A 4x6 (19.25 in²) weighs w = 38.940 · 19.25 / 1728 = 0.433798 lb/in (5.21 lb/ft); two 2x6 plies (16.5 in²) weigh 0.371827 lb/in, 0.185914 per ply.
+
+Beam stability: ℓu/d = 92.5/5.5 = 16.8 > 14.3, so ℓe = 1.84·92.5 = 170.2.
+
+| | 4x6, b = 3.5 | One ply of 2x6, b = 1.5 |
+|---|---|---|
+| R_B = √(ℓe·d / b²) | 8.7416 | 20.3972 |
+| F_bE = 1.20·Emin' / R_B² | 7207.9 | 1323.9 |
+| C_L | 0.99208 | 0.90309 |
+| Fb' | 992.08 | 903.09 |
+| S = b·d²/6, I = b·d³/12 | 17.6458, 48.5260 | 7.5625, 20.7969 |
+
+**Example 1, symmetric, 4x6:** 150 lb riders on both swings. T = 300 per swing; 150 per hanger for deflection, 300 for strength.
+
+| Quantity | Value |
+|---|---|
+| Reactions, 600 + w·L/2 | 620.06, 620.06 |
+| M at midspan: hangers 600·36.25 − 300·20 = 15,750, plus w·L²/8 = 463.96 | 16,213.96 lb·in |
+| f_b = M/S | 918.85 psi; margin 992.08 / 918.85 = 1.08 |
+| f_v = 3·620.06 / (2·3.5·5.5) | 48.32 psi; margin 169.75 / 48.32 = 3.51 |
+| δ·EI at midspan: two symmetric pairs (DA6 Fig. 9), [150·16.25·(3·92.5² − 4·16.25²) + 150·36.25·(3·92.5² − 4·36.25²)] / 24 = 7,124,414, plus 5·w·L⁴/384 = 413,517 (DA6 Fig. 1) | 7,537,931 / 61,142,813 = 0.1233 in |
+| Limit 92.5/240 | 0.3854 in; margin 3.13 |
+| Hanger | 300 lb against 1200; margin 4.0 |
+
+**Example 2, asymmetric, 4x6:** 200 lb on the left swing, 80 lb on the right. Strength loads per hanger 400, 400, 160, 160.
+
+| Quantity | Value |
+|---|---|
+| R1 = (400·(76.25 + 56.25) + 160·(36.25 + 16.25)) / 92.5 + w·L/2 | 663.78 + 20.06 = 683.85; R2 = 1120 + 40.13 − 683.85 = 476.28 |
+| M under the second hanger, 683.85·36.25 − 400·20 − w·36.25²/2 | 16,504.44 lb·in (the shear changes sign there) |
+| f_b | 935.31 psi; margin 1.06 |
+| f_v = 3·683.85 / 38.5 | 53.29 psi; margin 3.19 |
+| δ (deflection loads 200, 200, 80, 80, plus w) | 0.1157 in, at x = 58.34; margin 3.33 |
+| Hanger | 400 lb against 1200; margin 3.0 |
+
+**Example 3, two-ply 2x6, example 1's loads:** each ply carries half of every load and half the beam's weight.
+
+| Quantity | Value |
+|---|---|
+| M per ply, 7,875 + 0.185914·92.5²/8 | 8,073.84 lb·in |
+| f_b = 8073.84 / 7.5625 | 1067.62 psi; margin 903.09 / 1067.62 = 0.85 |
+| f_v = 3·308.60 / (2·1.5·5.5) | 56.11 psi; margin 3.03 |
+| δ | 0.1427 in; margin 2.70 |
+
+The two-ply 2x6 has less margin in bending than the 4x6 under the same inputs, for two reasons: two 2x6 plies (3.0 in) are narrower than a 4x6 (3.5 in), and one ply is far more slender for beam stability. The beam's weight lowers each bending margin by about 3%. Maximum moments and deflections were also found by sampling the summed DA6 curves at 200,000 points; the code finds them exactly, and both agree to the precision shown.
+
+These inputs are only for testing. The real values are the owner's to choose with an experienced builder.
+
 ## Open questions
 
 - The site's measured slope and the burial depth, chosen with an experienced builder.

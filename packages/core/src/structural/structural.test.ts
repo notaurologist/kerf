@@ -5,6 +5,8 @@ import {
   maxMoment,
   maxShear,
   reactions,
+  type SpanLoad,
+  type SpanLoads,
 } from './beam.ts';
 import { type BeamCheckInput, type BeamChecks, beamChecks, hardwareCheck } from './checks.ts';
 import type { ServiceConditions } from './factors.ts';
@@ -15,6 +17,8 @@ import type { CheckResult, ComputedCheck } from './types.ts';
 // the textbook formulas, with deflection found by sampling the DA6 Figure 8 curve at 200,000
 // points rather than by the exact method in beam.ts.
 
+const pts = (points: SpanLoad[], w = 0): SpanLoads => ({ points, w });
+
 describe('beam mechanics', () => {
   it('matches the symmetric two-load formulas (DA6 Figure 9)', () => {
     // L = 120, P = 500 at a = 30 from each support: M = P·a, V = P, δ·EI = P·a·(3L² − 4a²)/24.
@@ -22,17 +26,17 @@ describe('beam mechanics', () => {
       { a: 30, P: 500 },
       { a: 90, P: 500 },
     ];
-    expect(maxMoment(120, loads)).toEqual({ M: 15000, x: 30 });
-    expect(maxShear(120, loads)).toBeCloseTo(500, 9);
-    const d = maxDeflectionTimesEI(120, loads);
+    expect(maxMoment(120, pts(loads))).toEqual({ M: 15000, x: 30 });
+    expect(maxShear(120, pts(loads))).toBeCloseTo(500, 9);
+    const d = maxDeflectionTimesEI(120, pts(loads));
     expect(d.deltaEI).toBeCloseTo((500 * 30 * (3 * 120 ** 2 - 4 * 30 ** 2)) / 24, 3);
     expect(d.x).toBeCloseTo(60, 6);
   });
 
   it('matches a single centered load (DA6 Figure 7)', () => {
     const loads = [{ a: 50, P: 1000 }];
-    expect(maxMoment(100, loads).M).toBeCloseTo((1000 * 100) / 4, 9);
-    expect(maxDeflectionTimesEI(100, loads).deltaEI).toBeCloseTo((1000 * 100 ** 3) / 48, 3);
+    expect(maxMoment(100, pts(loads)).M).toBeCloseTo((1000 * 100) / 4, 9);
+    expect(maxDeflectionTimesEI(100, pts(loads)).deltaEI).toBeCloseTo((1000 * 100 ** 3) / 48, 3);
   });
 
   it('matches an asymmetric pair of unequal loads', () => {
@@ -42,18 +46,38 @@ describe('beam mechanics', () => {
       { a: 20, P: 300 },
       { a: 70, P: 100 },
     ];
-    const R = reactions(100, loads);
+    const R = reactions(100, pts(loads));
     expect(R.left).toBeCloseTo(270, 9);
     expect(R.right).toBeCloseTo(130, 9);
-    expect(maxMoment(100, loads)).toEqual({ M: 5400, x: 20 });
-    const d = maxDeflectionTimesEI(100, loads);
+    expect(maxMoment(100, pts(loads))).toEqual({ M: 5400, x: 20 });
+    const d = maxDeflectionTimesEI(100, pts(loads));
     expect(d.deltaEI).toBeCloseTo(5_218_658.94, 0);
     expect(d.x).toBeCloseTo(47.14, 2);
   });
 
+  it('matches a uniform load alone (DA6 Figure 1): M = wL²/8, δ·EI = 5wL⁴/384', () => {
+    const loads = pts([], 2);
+    expect(reactions(100, loads).left).toBeCloseTo(100, 9);
+    expect(maxMoment(100, loads).M).toBeCloseTo(2500, 9);
+    expect(maxMoment(100, loads).x).toBeCloseTo(50, 9);
+    const d = maxDeflectionTimesEI(100, loads);
+    expect(d.deltaEI).toBeCloseTo((5 * 2 * 100 ** 4) / 384, 3);
+    expect(d.x).toBeCloseTo(50, 6);
+  });
+
+  it('finds the largest moment between loads when a uniform load is added', () => {
+    // L = 100, 100 lb at 20, w = 2: R1 = 80 + 100 = 180. Right of the load, V = 180 − 100 − 2x
+    // is zero at x = 40, where M = 180·40 − 2·40²/2 − 100·20 = 3600.
+    const loads = pts([{ a: 20, P: 100 }], 2);
+    expect(maxMoment(100, loads)).toEqual({ M: 3600, x: 40 });
+    const d = maxDeflectionTimesEI(100, loads);
+    expect(d.deltaEI).toBeCloseTo(3_794_474.86, 0);
+    expect(d.x).toBeCloseTo(48.01, 2);
+  });
+
   it('gives the same deflection from either side of a load', () => {
     const loads = [{ a: 30, P: 200 }];
-    expect(deflectionTimesEIAt(100, loads, 30)).toBeCloseTo(
+    expect(deflectionTimesEIAt(100, pts(loads), 30)).toBeCloseTo(
       (200 * 30 * 30 * 70 * 70) / (3 * 100),
       6,
     );
@@ -85,10 +109,12 @@ function rail(overrides: Partial<BeamCheckInput['member']> = {}): BeamCheckInput
     strength: {
       name: 'Strength',
       loads: {
-        value: [
-          { x: 34, P: 400, label: 'Load 1' },
-          { x: 82, P: 400, label: 'Load 2' },
-        ],
+        value: {
+          points: [
+            { x: 34, P: 400, label: 'Load 1' },
+            { x: 82, P: 400, label: 'Load 2' },
+          ],
+        },
       },
       working: [],
       assumptions: [],
@@ -96,10 +122,12 @@ function rail(overrides: Partial<BeamCheckInput['member']> = {}): BeamCheckInput
     deflection: {
       name: 'Deflection',
       loads: {
-        value: [
-          { x: 34, P: 200, label: 'Load 1' },
-          { x: 82, P: 200, label: 'Load 2' },
-        ],
+        value: {
+          points: [
+            { x: 34, P: 200, label: 'Load 1' },
+            { x: 82, P: 200, label: 'Load 2' },
+          ],
+        },
       },
       working: [],
       assumptions: [],
@@ -197,16 +225,20 @@ describe('beam checks, asymmetric loads', () => {
   // 400 lb at 24 and 200 lb at 60 from the left support: R1 = 375, R2 = 225, M = 375·24 = 9000.
   const input = rail();
   input.strength.loads = {
-    value: [
-      { x: 34, P: 400, label: 'Load 1' },
-      { x: 70, P: 200, label: 'Load 2' },
-    ],
+    value: {
+      points: [
+        { x: 34, P: 400, label: 'Load 1' },
+        { x: 70, P: 200, label: 'Load 2' },
+      ],
+    },
   };
   input.deflection.loads = {
-    value: [
-      { x: 34, P: 200, label: 'Load 1' },
-      { x: 70, P: 100, label: 'Load 2' },
-    ],
+    value: {
+      points: [
+        { x: 34, P: 200, label: 'Load 1' },
+        { x: 70, P: 100, label: 'Load 2' },
+      ],
+    },
   };
   const checks = beamChecks(input);
 
@@ -256,7 +288,7 @@ describe('missing and unavailable inputs', () => {
 
   it('does not compute loads outside the supports', () => {
     const input = rail();
-    input.strength.loads = { value: [{ x: 5, P: 100, label: 'Overhang load' }] };
+    input.strength.loads = { value: { points: [{ x: 5, P: 100, label: 'Overhang load' }] } };
     expect(beamChecks(input).bending.status).toBe('not-computed');
   });
 

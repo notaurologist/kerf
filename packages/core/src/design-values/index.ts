@@ -8,6 +8,12 @@ export {
   type TemperatureRange,
 } from './adjustmentFactors.ts';
 export {
+  basicSpecificGravity,
+  DENSITY_SOURCES,
+  ndsSupplementDensity,
+  woodDensity,
+} from './density.ts';
+export {
   nominalDimensions,
   ReferenceValues,
   referenceRow,
