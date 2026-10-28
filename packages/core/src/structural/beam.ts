@@ -1,7 +1,8 @@
-// A simply supported span with point loads between its supports (DOMAIN.md, Structural checks,
-// Beam model). Results come from superposing the single-load case, AWC Design Aid No. 6,
-// Figure 8 ("Simple Beam - Concentrated Load at Any Point"). Positions are measured from the left
-// support; loads act downward and are positive.
+// A simply supported span with point loads between its supports and an optional uniform load
+// over the whole span (DOMAIN.md, Structural checks, Beam model). Results come from superposing
+// the single-load cases in AWC Design Aid No. 6: Figure 8 ("Simple Beam - Concentrated Load at
+// Any Point") and Figure 1 ("Simple Beam - Uniformly Distributed Load"). Positions are measured
+// from the left support; loads act downward and are positive.
 
 export interface SpanLoad {
   /** Distance from the left support, 0 < a < L. */
@@ -10,62 +11,80 @@ export interface SpanLoad {
   P: number;
 }
 
+export interface SpanLoads {
+  points: readonly SpanLoad[];
+  /** Uniform load over the whole span, pounds per inch, downward. 0 for none. */
+  w: number;
+}
+
 export interface Reactions {
   left: number;
   right: number;
 }
 
-/** R1 = Σ P·b / L, R2 = Σ P·a / L, with b = L − a. */
-export function reactions(L: number, loads: readonly SpanLoad[]): Reactions {
-  let left = 0;
-  let right = 0;
-  for (const { a, P } of loads) {
+/** R1 = Σ P·b / L + w·L / 2, R2 = Σ P·a / L + w·L / 2, with b = L − a. */
+export function reactions(L: number, loads: SpanLoads): Reactions {
+  let left = (loads.w * L) / 2;
+  let right = left;
+  for (const { a, P } of loads.points) {
     left += (P * (L - a)) / L;
     right += (P * a) / L;
   }
   return { left, right };
 }
 
-/** Bending moment at x: R1·x minus each load to the left of x times its distance from x. */
-export function momentAt(L: number, loads: readonly SpanLoad[], x: number): number {
-  let M = reactions(L, loads).left * x;
-  for (const { a, P } of loads) if (a < x) M -= P * (x - a);
+/** Bending moment at x: R1·x − w·x²/2, minus each point load left of x times its distance from x. */
+export function momentAt(L: number, loads: SpanLoads, x: number): number {
+  let M = reactions(L, loads).left * x - (loads.w * x * x) / 2;
+  for (const { a, P } of loads.points) if (a < x) M -= P * (x - a);
   return M;
 }
 
 /**
- * Largest moment and where it occurs. With point loads only, the moment diagram is straight
- * between loads, so the maximum is under one of them.
+ * Largest moment and where it occurs. The moment is greatest where the shear changes sign: under a
+ * point load, or, with a uniform load, where the shear crosses zero between two point loads.
  */
-export function maxMoment(L: number, loads: readonly SpanLoad[]): { M: number; x: number } {
+export function maxMoment(L: number, loads: SpanLoads): { M: number; x: number } {
+  const R1 = reactions(L, loads).left;
+  const sorted = [...loads.points].sort((p, q) => p.a - q.a);
+  const candidates = sorted.map((l) => l.a);
+  if (loads.w > 0) {
+    // Between point loads, V(x) = R1 − (loads to the left) − w·x is zero at one x.
+    let left = 0;
+    const breaks = [0, ...candidates, L];
+    for (let i = 1; i < breaks.length; i++) {
+      const x = (R1 - left) / loads.w;
+      if (x > (breaks[i - 1] as number) && x < (breaks[i] as number)) candidates.push(x);
+      left += sorted[i - 1]?.P ?? 0;
+    }
+  }
   let best = { M: 0, x: 0 };
-  for (const { a } of loads) {
-    const M = momentAt(L, loads, a);
-    if (M > best.M) best = { M, x: a };
+  for (const x of candidates) {
+    const M = momentAt(L, loads, x);
+    if (M > best.M) best = { M, x };
   }
   return best;
 }
 
 /** Largest shear: the larger support reaction, since every load acts downward between supports. */
-export function maxShear(L: number, loads: readonly SpanLoad[]): number {
+export function maxShear(L: number, loads: SpanLoads): number {
   const { left, right } = reactions(L, loads);
   return Math.max(left, right);
 }
 
+type Quartic = [number, number, number, number, number];
+
 /**
- * Deflection times EI at x, as the cubic c3·x³ + c2·x² + c1·x + c0 valid on the stretch of span
- * that contains x. For one load P at a (b = L − a), DA6 Figure 8 gives:
+ * Deflection times EI at x, as c4·x⁴ + c3·x³ + c2·x² + c1·x + c0 on the stretch of span that
+ * contains x. For one point load P at a (b = L − a), DA6 Figure 8 gives
  *   x ≤ a: P·b·x·(L² − b² − x²) / (6·EI·L)
  *   x ≥ a: P·a·(L − x)·(2·L·x − x² − a²) / (6·EI·L),
- * and (L − x)·(2Lx − x² − a²) = x³ − 3L·x² + (2L² + a²)·x − a²·L.
+ * with (L − x)·(2Lx − x² − a²) = x³ − 3L·x² + (2L² + a²)·x − a²·L. For the uniform load, DA6
+ * Figure 1 gives w·x·(L³ − 2·L·x² + x³) / (24·EI).
  */
-function cubicOn(
-  L: number,
-  loads: readonly SpanLoad[],
-  x: number,
-): [number, number, number, number] {
-  const c: [number, number, number, number] = [0, 0, 0, 0];
-  for (const { a, P } of loads) {
+function polynomialOn(L: number, loads: SpanLoads, x: number): Quartic {
+  const c: Quartic = [0, 0, 0, 0, 0];
+  for (const { a, P } of loads.points) {
     const b = L - a;
     if (x <= a) {
       const k = (P * b) / (6 * L);
@@ -79,51 +98,37 @@ function cubicOn(
       c[0] -= a * a * L * k;
     }
   }
+  const k = loads.w / 24;
+  c[1] += k * L * L * L;
+  c[3] -= 2 * k * L;
+  c[4] += k;
   return c;
 }
 
-function evaluate(c: [number, number, number, number], x: number): number {
-  return ((c[3] * x + c[2]) * x + c[1]) * x + c[0];
+/** Deflection at x times EI (lb·in³), downward positive. Divide by E·I for inches. */
+export function deflectionTimesEIAt(L: number, loads: SpanLoads, x: number): number {
+  const c = polynomialOn(L, loads, x);
+  return (((c[4] * x + c[3]) * x + c[2]) * x + c[1]) * x + c[0];
 }
 
-/** Deflection at x times EI (lb·in³), downward positive. Divide by E·I for inches. */
-export function deflectionTimesEIAt(L: number, loads: readonly SpanLoad[], x: number): number {
-  return evaluate(cubicOn(L, loads, x), x);
+function slopeTimesEIAt(L: number, loads: SpanLoads, x: number): number {
+  const c = polynomialOn(L, loads, x);
+  return ((4 * c[4] * x + 3 * c[3]) * x + 2 * c[2]) * x + c[1];
 }
 
 /**
- * Largest deflection times EI, and where. Between consecutive loads the deflection is one cubic,
- * so its maximum is at an end of the stretch or where its slope, a quadratic, is zero. This finds
- * the maximum exactly rather than by sampling.
+ * Largest deflection times EI, and where. With every load downward the moment is never negative,
+ * so the slope of the deflection curve only decreases along the span; the maximum is where the
+ * slope is zero, found by bisection to the limit of floating point rather than by sampling.
  */
-export function maxDeflectionTimesEI(
-  L: number,
-  loads: readonly SpanLoad[],
-): { deltaEI: number; x: number } {
-  const breaks = [0, ...loads.map((l) => l.a).sort((p, q) => p - q), L];
-  let best = { deltaEI: 0, x: L / 2 };
-  const consider = (x: number) => {
-    const deltaEI = deflectionTimesEIAt(L, loads, x);
-    if (deltaEI > best.deltaEI) best = { deltaEI, x };
-  };
-  for (let i = 1; i < breaks.length; i++) {
-    const x0 = breaks[i - 1] as number;
-    const x1 = breaks[i] as number;
-    if (x1 <= x0) continue;
-    consider(x0);
-    consider(x1);
-    const c = cubicOn(L, loads, (x0 + x1) / 2);
-    for (const root of quadraticRoots(3 * c[3], 2 * c[2], c[1])) {
-      if (root > x0 && root < x1) consider(root);
-    }
+export function maxDeflectionTimesEI(L: number, loads: SpanLoads): { deltaEI: number; x: number } {
+  let lo = 0;
+  let hi = L;
+  for (let i = 0; i < 200 && hi - lo > 1e-12 * L; i++) {
+    const mid = (lo + hi) / 2;
+    if (slopeTimesEIAt(L, loads, mid) > 0) lo = mid;
+    else hi = mid;
   }
-  return best;
-}
-
-function quadraticRoots(A: number, B: number, C: number): number[] {
-  if (Math.abs(A) < 1e-12) return Math.abs(B) < 1e-12 ? [] : [-C / B];
-  const disc = B * B - 4 * A * C;
-  if (disc < 0) return [];
-  const s = Math.sqrt(disc);
-  return [(-B - s) / (2 * A), (-B + s) / (2 * A)];
+  const x = (lo + hi) / 2;
+  return { deltaEI: deflectionTimesEIAt(L, loads, x), x };
 }

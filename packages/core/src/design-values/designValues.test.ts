@@ -7,6 +7,7 @@ import {
   REPETITIVE_MEMBER,
   TEMPERATURE,
 } from './adjustmentFactors.ts';
+import { basicSpecificGravity, ndsSupplementDensity, woodDensity } from './density.ts';
 import {
   nominalDimensions,
   referenceRow,
@@ -82,5 +83,33 @@ describe('adjustment factors', () => {
       expect(() => Citation.parse(citation)).not.toThrow();
       expect(SOURCES[citation.source]).toBeDefined();
     }
+  });
+});
+
+describe('wood density', () => {
+  // Simpson (FPL-GTR-76), p. 3: basic specific gravity 0.56 at 8% moisture content is 42.3 lb/ft³.
+  it("reproduces Simpson's worked example", () => {
+    const G0 = 0.56 / (1 - 0.265 * 0.56);
+    expect(basicSpecificGravity(G0)).toBeCloseTo(0.56, 12);
+    expect(woodDensity(G0, 8)).toBeCloseTo(42.3, 1);
+  });
+
+  it('is 62.4·G when oven-dry, and continuous at fiber saturation', () => {
+    expect(woodDensity(0.55, 0)).toBeCloseTo(62.4 * 0.55, 9);
+    expect(woodDensity(0.55, 30 - 1e-9)).toBeCloseTo(woodDensity(0.55, 30), 6);
+  });
+
+  it('agrees with the NDS Supplement 3.1.3 formula within 0.3% up to 30%, not above', () => {
+    for (const M of [0, 8, 12, 15, 19, 25, 30]) {
+      const ratio = woodDensity(0.55, M) / ndsSupplementDensity(0.55, M);
+      expect(Math.abs(ratio - 1)).toBeLessThan(0.003);
+    }
+    expect(woodDensity(0.55, 50) / ndsSupplementDensity(0.55, 50)).toBeGreaterThan(1.08);
+  });
+
+  // Southern Pine, G = 0.55 (Table 4B): G_b = 0.55 / 1.14575 = 0.480035.
+  it('gives Southern Pine 38.940 lb/ft³ at 30% and 44.931 at 50%', () => {
+    expect(woodDensity(0.55, 30)).toBeCloseTo(62.4 * 0.480035 * 1.3, 3);
+    expect(woodDensity(0.55, 50)).toBeCloseTo(44.931, 3);
   });
 });

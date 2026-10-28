@@ -1,6 +1,6 @@
 import { referenceRow, type SpeciesGradeId, speciesGrade } from '../design-values/sawnLumber.ts';
 import { type Citation, SOURCE_LINKS } from '../design-values/sources.ts';
-import { maxDeflectionTimesEI, maxMoment, reactions, type SpanLoad } from './beam.ts';
+import { maxDeflectionTimesEI, maxMoment, reactions, type SpanLoads } from './beam.ts';
 import { type AdjustedValues, adjustedValues, type ServiceConditions } from './factors.ts';
 import {
   type CheckKind,
@@ -28,6 +28,19 @@ export interface PointLoad {
   label: string;
 }
 
+/** A load spread evenly over the whole span between the supports, such as the member's weight. */
+export interface UniformLoad {
+  /** Pounds per inch, downward. */
+  w: number;
+  label: string;
+}
+
+/** The loads in one load case: point loads, and optionally a uniform load over the span. */
+export interface BeamLoads {
+  points: PointLoad[];
+  uniform?: UniformLoad;
+}
+
 export interface BeamMember {
   /** Named by the template, such as 'Top beam'. */
   subject: string;
@@ -52,7 +65,7 @@ export interface MaterialInput {
 export interface LoadCase {
   /** Named by the template, such as 'Strength: peak load'. */
   name: string;
-  loads: Needed<PointLoad[]>;
+  loads: Needed<BeamLoads>;
   /** Template inputs and intermediate values behind the loads, shown with every result. */
   working: Quantity[];
   assumptions: string[];
@@ -81,6 +94,7 @@ const nds = (locator: string, url: string): Citation => ({ source: 'nds-2024', l
 const SOURCES = {
   superposition: [
     { source: 'awc-da6', locator: 'Figure 8, Simple Beam, Concentrated Load at Any Point, p. 7' },
+    { source: 'awc-da6', locator: 'Figure 1, Simple Beam, Uniformly Distributed Load, p. 4' },
     {
       source: 'awc-da6',
       locator: 'Figure 9, Two Equal Concentrated Loads Symmetrically Placed, p. 8 (hand check)',
@@ -100,19 +114,21 @@ function header(kind: CheckKind, title: string, subject: string, loadCase: strin
   return { kind, title, subject, loadCase };
 }
 
+/** Missing inputs across several needs, each listed once. */
 function missingFrom(...needs: Needed<unknown>[]): MissingInput[] {
-  return needs.flatMap((n) => (isMissing(n) ? n.missing : []));
+  const all = needs.flatMap((n) => (isMissing(n) ? n.missing : []));
+  return all.filter((m, i) => all.findIndex((other) => other.key === m.key) === i);
 }
 
 interface Prepared {
   L: number;
   /** Loads on one ply, positioned from the left support. */
-  plyLoads: SpanLoad[];
+  plyLoads: SpanLoads;
   inputs: Quantity[];
   steps: Quantity[];
 }
 
-function prepare(member: BeamMember, loads: PointLoad[]): Prepared | string {
+function prepare(member: BeamMember, { points: loads, uniform }: BeamLoads): Prepared | string {
   const [x0, x1] = member.supportsX;
   const L = x1 - x0;
   const outside = loads.find((l) => l.x <= x0 || l.x >= x1);
@@ -137,6 +153,9 @@ function prepare(member: BeamMember, loads: PointLoad[]): Prepared | string {
     },
     { symbol: 'd', label: 'Depth', value: member.depth, unit: 'in' },
     ...(n > 1 ? [{ symbol: 'n', label: 'Plies', value: n, unit: '' }] : []),
+    ...(uniform
+      ? [{ symbol: 'w', label: `${uniform.label}, over the span`, value: uniform.w, unit: 'lb/in' }]
+      : []),
     ...loads.flatMap((l, i) => [
       { symbol: `x${i + 1}`, label: `${l.label}, position`, value: l.x, unit: 'in' },
       { symbol: `P${i + 1}`, label: `${l.label}, load`, value: l.P, unit: 'lb' },
@@ -144,7 +163,10 @@ function prepare(member: BeamMember, loads: PointLoad[]): Prepared | string {
   ];
   return {
     L,
-    plyLoads: loads.map((l) => ({ a: l.x - x0, P: l.P / n })),
+    plyLoads: {
+      points: loads.map((l) => ({ a: l.x - x0, P: l.P / n })),
+      w: (uniform?.w ?? 0) / n,
+    },
     inputs,
     steps:
       n > 1 ? [{ symbol: '1/n', label: 'Share of each load per ply', value: 1 / n, unit: '' }] : [],
@@ -210,18 +232,14 @@ export function beamChecks(input: BeamCheckInput): BeamChecks {
   });
 
   if (isMissing(input.material)) {
-    const missing = input.material.missing;
+    const m = input.material;
     return {
-      bending: {
-        ...h.bending,
-        status: 'input-needed',
-        missing: [...missing, ...missingFrom(s.loads)],
-      },
-      shear: { ...h.shear, status: 'input-needed', missing: [...missing, ...missingFrom(s.loads)] },
+      bending: { ...h.bending, status: 'input-needed', missing: missingFrom(m, s.loads) },
+      shear: { ...h.shear, status: 'input-needed', missing: missingFrom(m, s.loads) },
       deflection: {
         ...h.deflection,
         status: 'input-needed',
-        missing: [...missing, ...missingFrom(d.loads, d.limitRatio)],
+        missing: missingFrom(m, d.loads, d.limitRatio),
       },
     };
   }
@@ -263,7 +281,7 @@ export function beamChecks(input: BeamCheckInput): BeamChecks {
   const assumptions = [
     ...(member.plies > 1 ? [BUILT_UP] : []),
     ...input.assumptions,
-    'Simply supported between the two supports; loads outside the supports are not part of this check.',
+    'Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.',
   ];
 
   return {
@@ -312,9 +330,9 @@ function strengthCheck(
     const result: ComputedCheck = {
       ...common,
       formulas: [
-        ...(input.member.plies > 1 ? ['Load per ply = P / n'] : []),
-        'R1 = Σ P·(L − a) / L, R2 = Σ P·a / L (a = distance of each load from the left support)',
-        'M(x) = R1·x − Σ P·(x − a) over loads left of x; the largest M is under a load',
+        ...(input.member.plies > 1 ? ['Load per ply = P / n and w / n'] : []),
+        'R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2 (a = distance of each load from the left support)',
+        'M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign',
         'S = b·d² / 6',
         'f_b = M / S',
         "Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r",
@@ -355,7 +373,8 @@ function strengthCheck(
       'Loads near the supports are not reduced (NDS 3.4.2.2 permits it for some support conditions; not used).',
     ],
     formulas: [
-      ...(input.member.plies > 1 ? ['Load per ply = P / n'] : []),
+      ...(input.member.plies > 1 ? ['Load per ply = P / n and w / n'] : []),
+      'R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2',
       'V = larger of R1 and R2',
       'f_v = 3·V / (2·b·d)',
       "Fv' = Fv · C_D · C_M · C_t · C_i",
@@ -423,8 +442,9 @@ function deflectionCheck(
       'Immediate deflection only; long-term creep (NDS 3.5.2) is not included.',
     ],
     formulas: [
-      ...(input.member.plies > 1 ? ['Load per ply = P / n'] : []),
+      ...(input.member.plies > 1 ? ['Load per ply = P / n and w / n'] : []),
       "For each load P at a (b = L − a): δ(x) = P·b·x·(L² − b² − x²) / (6·E'·I·L) for x ≤ a, mirrored for x ≥ a",
+      "For the uniform load w: δ(x) = w·x·(L³ − 2·L·x² + x³) / (24·E'·I)",
       'δ = largest of the summed curves over the span',
       'I = b·d³ / 12',
       "E' = E · C_M · C_t · C_i",

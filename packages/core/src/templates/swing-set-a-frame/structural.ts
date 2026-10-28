@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { SPECIES_GRADE_IDS } from '../../design-values/sawnLumber.ts';
+import { DENSITY_SOURCES, woodDensity } from '../../design-values/density.ts';
+import { referenceRow, SPECIES_GRADE_IDS } from '../../design-values/sawnLumber.ts';
 import { stock } from '../../lumber/stock.ts';
 import {
   type BeamChecks,
@@ -28,6 +29,11 @@ export const SwingSetStructuralInputs = z
     /** Whether the beam lumber is incised (small cuts along the faces from pressure treatment). */
     beamIncised: z.boolean(),
     /**
+     * Beam moisture content in service, percent of oven-dry weight, for the beam's own weight.
+     * Pressure-treated lumber is often sold above 30%.
+     */
+    beamMoistureContent: z.number().min(0).max(100),
+    /**
      * Heaviest rider expected on each swing, including the seat and chain, left swing first,
      * pounds. 0 for a swing left empty.
      */
@@ -50,6 +56,7 @@ export type SwingSetStructuralInputs = z.infer<typeof SwingSetStructuralInputs>;
 const LABELS = {
   beamSpeciesGrade: 'Beam species and grade',
   beamIncised: 'Whether the beam lumber is incised',
+  beamMoistureContent: 'Beam moisture content',
   riderWeights: 'Heaviest rider on each swing, with seat and chain',
   maxSwingAngle: 'Maximum swing angle',
   dynamicFactor: 'Dynamic factor',
@@ -72,6 +79,11 @@ function need<K extends Key>(
 
 function mapNeeded<T, U>(n: Needed<T>, f: (value: T) => U): Needed<U> {
   return 'value' in n ? { value: f(n.value) } : n;
+}
+
+function combine<A, B, U>(a: Needed<A>, b: Needed<B>, f: (a: A, b: B) => U): Needed<U> {
+  if ('value' in a && 'value' in b) return { value: f(a.value, b.value) };
+  return { missing: [...('missing' in a ? a.missing : []), ...('missing' in b ? b.missing : [])] };
 }
 
 const LOAD_CASES = {
@@ -221,19 +233,63 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
     },
   );
 
+  // The beam's own weight, from its density at the entered moisture content. With no design values
+  // for the size there is no G either; the beam checks then report that.
+  const beamWeight = mapNeeded(need(inputs, 'beamSpeciesGrade', 'beamMoistureContent'), (v) => {
+    const row = referenceRow(v.beamSpeciesGrade, p.beamStock);
+    if (!row) return null;
+    const density = woodDensity(row.values.G, v.beamMoistureContent);
+    const area = p.beamPlies * beam.thickness * beam.width;
+    const w = (density * area) / 1728;
+    const working: Quantity[] = [
+      {
+        symbol: 'MC',
+        label: 'Beam moisture content',
+        value: v.beamMoistureContent,
+        unit: '%',
+        basis: 'Entered',
+      },
+      {
+        symbol: 'G',
+        label: 'Specific gravity, oven-dry',
+        value: row.values.G,
+        unit: '',
+        basis: `Table 4B, ${row.label}`,
+      },
+      {
+        symbol: 'ρ',
+        label: 'Beam density at that moisture content',
+        value: density,
+        unit: 'lb/ft³',
+        sources: DENSITY_SOURCES,
+      },
+      { symbol: 'A', label: 'Beam cross-section, all plies', value: area, unit: 'in²' },
+      { symbol: 'w', label: 'Beam weight, ρ·A / 1728', value: w, unit: 'lb/in' },
+    ];
+    return { w, working };
+  });
+  const withWeight = <T extends { perHanger: number[]; working: Quantity[] }>(l: Needed<T>) =>
+    combine(l, beamWeight, (loads, weight) => ({
+      points: pointLoads(hangersX, loads.perHanger),
+      ...(weight ? { uniform: { w: weight.w, label: "Beam's own weight" } } : {}),
+      working: [...loads.working, ...(weight?.working ?? [])],
+    }));
+  const strengthBeam = withWeight(strengthLoads);
+  const deflectionBeam = withWeight(swing);
+
   const strength: LoadCase = {
     name: LOAD_CASES.strength,
-    loads: mapNeeded(strengthLoads, (l) => pointLoads(hangersX, l.perHanger)),
-    working: 'value' in strengthLoads ? strengthLoads.value.working : [],
+    loads: mapNeeded(strengthBeam, ({ points, uniform }) => ({ points, uniform })),
+    working: 'value' in strengthBeam ? strengthBeam.value.working : [],
     assumptions: [
       ...SWING_ASSUMPTIONS,
-      'The dynamic factor covers snap loads from slack chains, which exceed the smooth pendulum load.',
+      "The dynamic factor covers snap loads from slack chains, which exceed the smooth pendulum load. It is not applied to the beam's own weight.",
     ],
   };
   const deflection: LoadCase & { limitRatio: Needed<number> } = {
     name: LOAD_CASES.deflection,
-    loads: mapNeeded(swing, (l) => pointLoads(hangersX, l.perHanger)),
-    working: 'value' in swing ? swing.value.working : [],
+    loads: mapNeeded(deflectionBeam, ({ points, uniform }) => ({ points, uniform })),
+    working: 'value' in deflectionBeam ? deflectionBeam.value.working : [],
     assumptions: [
       ...SWING_ASSUMPTIONS,
       'Deflection describes normal use, so the dynamic factor is not applied.',
@@ -264,8 +320,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
     assumptions: [
       `Supported at the two frame centerlines, ${formatLength(x0)} and ${formatLength(x1)} from the left end; the span runs center to center of the legs.`,
       'Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.',
-      // Point loads only for now; adding the beam's weight is GitHub issue #12.
-      "The beam's own weight is not included.",
+      "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
     ],
   });
 
