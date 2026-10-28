@@ -51,6 +51,7 @@ pnpm db:migrate     # Drizzle migrations, then upgrade stored snapshots (0014); 
 pnpm --filter @kerf/api db:generate  # after changing apps/api/src/db/schema.ts; commit the new migration
 pnpm --filter @kerf/api write-snapshot-fixture <template-id>  # after bumping a template's snapshotVersion (0014)
 pnpm --filter @kerf/api hash-password  # prints PASSWORD_HASH for a login password (typed without echo)
+pnpm --filter @kerf/api check-deploy <url>  # end-to-end check of a deployment; asks for the password
 docker compose up -d  # local Postgres 18 for development (tests use PGlite and need no Docker)
 ```
 

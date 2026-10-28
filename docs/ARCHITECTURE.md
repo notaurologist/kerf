@@ -167,6 +167,15 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 - Every production build runs `pnpm db:migrate` for the API service (`vercel.json`): the Drizzle migrations, then the snapshot backfill (0014). It connects through `DATABASE_URL_UNPOOLED` (Neon's direct connection) when set. Preview builds skip it. Locally, `pnpm db:migrate` does the same against `.env` or the Docker database.
 - Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, redeploy, and delete the rows in `sessions` (0007).
 
+#### First deploy (the owner's steps; they need accounts)
+
+1. **Neon:** a free project on Postgres 18 in AWS `us-east-1`, near Vercel's default function region. Copy the pooled connection string (host ends in `-pooler`) and the direct one.
+2. **Password hash:** in a terminal, `pnpm --filter @kerf/api hash-password`; copy the printed `scrypt:...` value.
+3. **Vercel:** on the Hobby plan, import the GitHub repository with the repository root as the root directory, so `vercel.json` applies. Node.js version 24.x.
+4. **Environment variables, Production only, marked Sensitive:** `DATABASE_URL` (pooled), `DATABASE_URL_UNPOOLED` (direct), `PASSWORD_HASH`. Preview deployments get none, so they cannot reach the production database; their API does not start.
+5. **Deploy** `main`. The API's build log shows `release: migrations applied.`
+6. **Check:** `pnpm --filter @kerf/api check-deploy https://<project>.vercel.app` asks for the password without echo, then checks health, login, storing and reading a project, and logout. It leaves one project named "Deploy check".
+
 ## apps/web
 
 - Talks only to `/api/*` on its own origin, through the Hono typed client.

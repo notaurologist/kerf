@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node scripts/release.ts",
     "hash-password": "node scripts/hash-password.ts",
-    "write-snapshot-fixture": "node scripts/write-snapshot-fixture.ts"
+    "write-snapshot-fixture": "node scripts/write-snapshot-fixture.ts",
+    "check-deploy": "node scripts/check-deploy.ts"
   },
   "dependencies": {
     "@hono/node-server": "2.1.5",
