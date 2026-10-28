@@ -85,7 +85,7 @@ Generic inputs, entered or confirmed by the user, never defaulted:
 
 Templates add their own load inputs (for the swing set: riders, swing angle, dynamic factor).
 
-Design values and adjustment factors come from the American Wood Council's National Design Specification (NDS) for Wood Construction and its supplement. [4] Verify current editions and values before implementing; store them as sourced, versioned data, not constants in code.
+Design values and adjustment factors come from the American Wood Council's National Design Specification (NDS) for Wood Construction and its supplement, 2024 editions. [4] They are stored as sourced, versioned data in `packages/core/src/design-values/`, each with a citation (table or section, page, and a link to AWC's free view-only copy) so the app can show where a number came from. Entered so far (October 2026): Southern Pine No.1 and No.2 dimension lumber, NDS Supplement Table 4B, checked row by row against SPIB's own table [5]; and the NDS factors for load duration, wet service, temperature, incising, size, and repetitive members.
 
 ## Swing set specifics
 
@@ -170,6 +170,8 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 1. CPSC, Outdoor Home Playground Safety Handbook (Publication 324): https://www.cpsc.gov/s3fs-public/324.pdf
 2. Maryland State Department of Education, Playground Safety (summary of CPSC guidance): https://earlychildhood.marylandpublicschools.org:443/system/files/filedepot/3/playgroundsafety.pdf
 3. PRISM, Identifying Playground Hazards (summary of CPSC public playground handbook): https://www.prismrisk.gov/member-services/guidance-and-resource-library/risk-simplified/prism-risk-simplified/identifying-playground-hazards/
-4. American Wood Council, National Design Specification (NDS) for Wood Construction and NDS Supplement (design values). Verify current edition at awc.org.
+4. American Wood Council, National Design Specification (NDS) for Wood Construction, 2024 edition, and the NDS Supplement: Design Values for Wood Construction, 2024 edition with addenda of February 2024 and March 2025. Free view-only copies: https://awc.org/publications/2024-nds/ and https://awc.org/publications/2024-nds-supplement/
+5. Southern Forest Products Association, Southern Pine Reference Design Values based on SPIB grading rules, effective June 1, 2013 (corroborates NDS Supplement Table 4B): https://www.southernpine.com/wp-content/uploads/2023/09/TABLE01_L1.pdf
+6. American Wood Council, Design Aid No. 6, Beam Design Formulas with Shear and Moment Diagrams (corroborates the beam formulas): https://awc.org/wp-content/uploads/2021/12/AWC-DA6-BeamFormulas-0710.pdf
 
 Also relevant: CPSC Public Playground Safety Handbook (Publication 325, 2025 edition), for public playgrounds rather than home use: https://www.cpsc.gov/s3fs-public/325_PublicPlaygroundSafetyHandbook2025_7-30-25_1.pdf
