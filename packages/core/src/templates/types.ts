@@ -29,6 +29,7 @@ export interface Flag {
 export interface EndCut {
   /** Saw setting in degrees, miter-saw convention: 0 is square (DOMAIN.md, Units). */
   setting: number;
+  /** What the cut is, without its angle; displays add the angle from `setting`. */
   description: string;
 }
 
