@@ -7,7 +7,7 @@ import {
 } from '@kerf/core';
 import { Measured } from '../../components/Measured.tsx';
 import { href } from '../../lib/route.ts';
-import { CitationList } from './Citation.tsx';
+import { CitationList, SourceList, SourceToggle } from './Citation.tsx';
 
 // The structural review (PRODUCT.md, MVP feature 7): sanity checks with their full working, the
 // design's expert-check flags, and the confirmation checklist. Results are margins under stated
@@ -55,6 +55,8 @@ export function StructuralReview(props: {
           </ul>
         </>
       )}
+
+      <SourcesUsed checks={props.checks} />
 
       <h3>Confirmation checklist</h3>
       <p className="muted">Not computed. Confirm each with an experienced builder.</p>
@@ -139,6 +141,12 @@ function Working(props: { check: Extract<CheckResult, { status: 'computed' }> })
           </li>
         ))}
       </ol>
+      {check.sources.length > 0 && (
+        <>
+          <p className="muted">Formulas from:</p>
+          <CitationList citations={check.sources} />
+        </>
+      )}
       {check.steps.length > 0 && (
         <>
           <h5>Steps</h5>
@@ -166,7 +174,10 @@ function Working(props: { check: Extract<CheckResult, { status: 'computed' }> })
                   <td data-label="Value" className="number">
                     <Value q={{ value: f.value, unit: '' }} />
                   </td>
-                  <td data-label="Why">{f.reason}</td>
+                  <td data-label="Why">
+                    {f.reason}
+                    <SourceToggle citations={f.sources} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -187,12 +198,6 @@ function Working(props: { check: Extract<CheckResult, { status: 'computed' }> })
           </li>
         ))}
       </ul>
-      {check.sources.length > 0 && (
-        <>
-          <h5>Sources</h5>
-          <CitationList citations={check.sources} />
-        </>
-      )}
     </details>
   );
 }
@@ -209,6 +214,7 @@ function Quantities(props: { list: readonly Quantity[] }) {
             <td data-label="What">
               {q.label}
               {q.basis && <span className="muted"> ({q.basis})</span>}
+              <SourceToggle citations={q.sources} />
             </td>
             <td data-label="Value" className="number">
               <Value q={q} />
@@ -217,5 +223,29 @@ function Quantities(props: { list: readonly Quantity[] }) {
         ))}
       </tbody>
     </table>
+  );
+}
+
+/** Every citation in the checks: on the check, its values, and its factors. */
+export function citationsIn(checks: readonly CheckResult[]) {
+  return checks.flatMap((c) => {
+    if (c.status === 'input-needed') return [];
+    if (c.status === 'not-computed') return c.sources;
+    return [
+      ...c.sources,
+      ...[...c.inputs, ...c.steps, c.computed, c.allowable].flatMap((q) => q.sources ?? []),
+      ...c.factors.flatMap((f) => f.sources),
+    ];
+  });
+}
+
+function SourcesUsed(props: { checks: readonly CheckResult[] }) {
+  const citations = citationsIn(props.checks);
+  if (citations.length === 0) return null;
+  return (
+    <details className="sources-used">
+      <summary>Publications these checks draw on</summary>
+      <SourceList citations={citations} />
+    </details>
   );
 }

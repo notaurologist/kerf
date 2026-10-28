@@ -476,3 +476,22 @@ ul.citations {
 .stack .card p {
   margin: 0.25rem 0 0;
 }
+
+details.source {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 0.85rem;
+}
+
+details.source[open] {
+  display: block;
+  margin: 0.25rem 0 0;
+}
+
+details.source summary {
+  min-height: auto;
+}
+
+details.sources-used {
+  margin: 1rem 0;
+}

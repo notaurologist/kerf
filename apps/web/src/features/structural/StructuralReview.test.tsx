@@ -22,7 +22,7 @@ describe('the structural review, worked example with every input', () => {
   it('shows the full working: inputs, formulas, steps, factors, assumptions, and sources', () => {
     expect(review).toContain('Show the working');
     expect(review).toContain(
-      'Span between support centerlines (From the template geometry) 92.5 in (92-1/2")',
+      'Span between support centerlines (From the template geometry) Source National Design Specification (NDS) for Wood Construction (2024), 3.2.1, p. 17 92.5 in (92-1/2")',
     );
     expect(review).toContain('f_b = M / S');
     expect(review).toContain('Section modulus 17.6 in³');
