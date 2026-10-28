@@ -1,4 +1,4 @@
-import { createApp } from '../src/app.ts';
+import { type AppDeps, createApp } from '../src/app.ts';
 import { hashPassword } from '../src/auth/password.ts';
 import { createTestDatabase } from './database.ts';
 
@@ -8,10 +8,15 @@ export const TEST_PASSWORD = 'correct horse battery staple';
 /** A cheap scrypt cost so tests run fast; production uses the default. */
 const passwordHash = await hashPassword(TEST_PASSWORD, { N: 1024, r: 8, p: 1 });
 
-export async function createTestApp() {
-  const database = await createTestDatabase();
+type TestDatabase = Awaited<ReturnType<typeof createTestDatabase>>;
+
+/** Pass `database` to serve an existing test database, as a later deploy of the code would. */
+export async function createTestApp(
+  options: Pick<AppDeps, 'templates'> & { database?: TestDatabase } = {},
+) {
+  const { database = await createTestDatabase(), ...deps } = options;
   const clock = { now: new Date('2026-10-28T12:00:00Z') };
-  const app = createApp({ db: database.db, passwordHash, now: () => clock.now });
+  const app = createApp({ db: database.db, passwordHash, now: () => clock.now, ...deps });
 
   const login = (password = TEST_PASSWORD) =>
     app.request('/api/login', {
@@ -29,5 +34,16 @@ export async function createTestApp() {
     return cookie;
   };
 
-  return { app, clock, login, sessionCookie, ...database };
+  /** A request with a session, sending `body` as JSON when given. */
+  const authed = async (path: string, init: { method?: string; body?: unknown } = {}) => {
+    const cookie = await sessionCookie();
+    return app.request(path, {
+      method: init.method ?? 'GET',
+      headers: { cookie, 'content-type': 'application/json' },
+      ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
+    });
+  };
+
+  const { db, client, close } = database;
+  return { app, clock, login, sessionCookie, authed, db, client, close };
 }
