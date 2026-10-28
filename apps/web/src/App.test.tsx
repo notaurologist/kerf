@@ -1,9 +1,31 @@
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { App } from './App.tsx';
+import { Screen } from './App.tsx';
+import { LoginForm } from './features/login/LoginScreen.tsx';
 
-describe('App', () => {
-  it('renders the app name', () => {
-    expect(renderToString(<App />)).toContain('Kerf');
+describe('LoginForm', () => {
+  const render = (props: Partial<Parameters<typeof LoginForm>[0]>) =>
+    renderToString(<LoginForm busy={false} error={null} onSubmit={() => {}} {...props} />);
+
+  it('asks for a password only', () => {
+    const html = render({});
+    expect(html).toContain('type="password"');
+    expect(html).not.toMatch(/user ?name|email/i);
+  });
+
+  it('says when the password is wrong', () => {
+    expect(render({ error: { kind: 'wrong-password' } })).toContain('That password is not right.');
+  });
+
+  it('says when to try again after too many attempts', () => {
+    expect(render({ error: { kind: 'rate-limited', retryAfterSeconds: 900 } })).toContain(
+      'Try again in 15 minutes.',
+    );
+  });
+});
+
+describe('Screen', () => {
+  it('says when there is no page at an address', () => {
+    expect(renderToString(<Screen route={{ screen: 'not-found' }} />)).toContain('no page here');
   });
 });

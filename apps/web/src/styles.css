@@ -1,0 +1,283 @@
+/* Phone first: large text, full-width controls, no horizontal scroll (PRODUCT.md, MVP 9). */
+
+:root {
+  --text: #1d1d1b;
+  --muted: #5f5f5a;
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --line: #d9d6cf;
+  --accent: #8a4b14;
+  --accent-text: #ffffff;
+  --error: #a3261a;
+  --error-bg: #fbeae7;
+  --notice-bg: #fff4d6;
+  --radius: 6px;
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 18px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #ecebe6;
+    --muted: #a9a79f;
+    --bg: #181816;
+    --surface: #222220;
+    --line: #3d3c38;
+    --accent: #e09a5b;
+    --accent-text: #181816;
+    --error: #ff9c8f;
+    --error-bg: #3a1d19;
+    --notice-bg: #3a3218;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0.5rem 0 1rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 1.75rem 0 0.75rem;
+}
+
+h3 {
+  font-size: 1.05rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+.page {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 16px 4rem;
+}
+
+.shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.shell nav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.shell a {
+  text-decoration: none;
+}
+
+.shell a[aria-current="page"] {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.login {
+  max-width: 24rem;
+  margin: 15vh auto 0;
+  padding: 0 16px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field > span {
+  font-weight: 600;
+}
+
+.field small,
+.muted {
+  color: var(--muted);
+}
+
+input,
+select,
+button {
+  font: inherit;
+  min-height: 2.75rem;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1.4rem;
+  min-height: 1.4rem;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+button {
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+button.link {
+  border: none;
+  background: none;
+  padding: 0;
+  min-height: auto;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  color: var(--error);
+  background: var(--error-bg);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+.field .error {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+.notice {
+  background: var(--notice-bg);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  margin: 1rem 0;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
+ul.plain {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Tables read as rows on a laptop and as stacked cards on a phone. Each cell carries its column
+   name in data-label for the stacked layout. */
+table.list {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+
+table.list th,
+table.list td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+table.list td.number,
+table.list th.number {
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  table.list thead {
+    display: none;
+  }
+
+  table.list,
+  table.list tbody,
+  table.list tr,
+  table.list td {
+    display: block;
+    width: 100%;
+  }
+
+  table.list tr {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 0.75rem;
+    padding: 0.25rem 0;
+  }
+
+  table.list td {
+    border: none;
+    padding: 0.25rem 0.75rem;
+  }
+
+  table.list td.number {
+    text-align: left;
+  }
+
+  table.list td[data-label]::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+  }
+}
