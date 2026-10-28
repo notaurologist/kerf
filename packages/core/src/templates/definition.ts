@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import type { TemplateForm } from './form.ts';
 import type { GenerateResult } from './types.ts';
 
 /** Turns a stored snapshot of one shape version into the next (decision 0014). */
@@ -17,6 +18,8 @@ export interface TemplateDefinition<Params = unknown, Inputs = unknown, Outputs 
   params: z.ZodType<Params>;
   /** Structural inputs. Every one is optional: a missing input makes its checks "input needed". */
   structuralInputs: z.ZodType<Inputs>;
+  /** How the parameters and structural inputs are entered, for the web app's editor. */
+  form: TemplateForm;
   /** Everything this version generates, as stored in a project snapshot. */
   outputs: z.ZodType<Outputs>;
   /** Pure: the same parameters and inputs always give the same outputs. */

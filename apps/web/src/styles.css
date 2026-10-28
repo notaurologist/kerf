@@ -342,3 +342,49 @@ label.inline select {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.editor .section {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem 1rem;
+  margin: 0 0 1rem;
+  background: var(--surface);
+}
+
+.editor legend {
+  font-weight: 700;
+  padding: 0 0.25rem;
+}
+
+.editor > .field {
+  margin-bottom: 1rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.field > label span {
+  font-weight: 600;
+}
+
+.with-unit {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.unit {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.echo {
+  color: var(--text);
+}
+
+.actions {
+  margin-top: 1rem;
+}
