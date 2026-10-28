@@ -47,6 +47,9 @@ pnpm typecheck      # tsc in every package
 pnpm lint           # Biome check (code and config, not Markdown)
 pnpm format         # Biome format, writes changes
 pnpm check          # lint, typecheck, test; what the pre-push hook and CI run
+pnpm db:migrate     # apply Drizzle migrations; DATABASE_URL defaults to the local container
+pnpm --filter @kerf/api db:generate  # after changing apps/api/src/db/schema.ts; commit the new migration
+docker compose up -d  # local Postgres 18 for development (tests use PGlite and need no Docker)
 ```
 
 Run one package's script with `pnpm --filter @kerf/api <script>` (or `@kerf/web`, `@kerf/core`).
