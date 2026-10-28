@@ -38,8 +38,7 @@ export const projects = pgTable(
     status: text('status', { enum: PROJECT_STATUSES }).notNull(),
     templateId: text('template_id').notNull(),
     templateVersion: integer('template_version').notNull(),
-    params: jsonb('params').notNull(),
-    structuralInputs: jsonb('structural_inputs').notNull(),
+    /** Parameters and structural inputs live in the snapshot, the one copy upgrades keep current. */
     snapshot: jsonb('snapshot').notNull(),
     ...timestamps,
   },

@@ -53,20 +53,21 @@ export interface ProjectSummary {
 }
 
 export interface Project extends ProjectSummary {
-  /** Null when the stored snapshot cannot be read; `unreadable` says why. */
+  /**
+   * Null only when the stored snapshot cannot be read even after upgrading, which tests guard
+   * against (decision 0014); `unreadable` says why.
+   */
   snapshot: ProjectSnapshot | null;
   unreadable?: { reason: string; message: string };
-  version: VersionReport;
+  version: VersionReport | null;
 }
 
 export type Result<T> =
   | { ok: true; value: T }
-  | { ok: false; error: 'not-found' | 'unknown-template' }
+  | { ok: false; error: 'not-found' | 'unknown-template' | 'unreadable-snapshot' }
   | { ok: false; error: 'invalid-project'; issues: Issue[] };
 
 type Row = typeof projects.$inferSelect;
-
-const StoredEnvelope = z.object({ outputs: z.unknown() });
 
 export function createProjectService(deps: {
   db: Database;
@@ -90,23 +91,30 @@ export function createProjectService(deps: {
     };
   }
 
+  /** The stored snapshot, upgraded to the current shape if it was stored in an older one. */
+  const read = (row: Row) => readSnapshot(templates, row.snapshot);
+
   function view(row: Row): Result<Project> {
     const template = findTemplate(row.templateId);
     if (!template) return { ok: false, error: 'unknown-template' };
-    const read = readSnapshot(templates, row.snapshot);
-    const stored = StoredEnvelope.safeParse(row.snapshot);
+    const result = read(row);
+    if (!result.ok) {
+      return {
+        ok: true,
+        value: {
+          ...summary(row),
+          snapshot: null,
+          unreadable: { reason: result.reason, message: result.message },
+          version: null,
+        },
+      };
+    }
     return {
       ok: true,
       value: {
         ...summary(row),
-        snapshot: read.ok ? read.snapshot : null,
-        ...(read.ok ? {} : { unreadable: { reason: read.reason, message: read.message } }),
-        version: compareWithCurrent(template, {
-          templateVersion: row.templateVersion,
-          params: row.params,
-          structuralInputs: row.structuralInputs,
-          outputs: stored.success ? stored.data.outputs : undefined,
-        }),
+        snapshot: result.snapshot,
+        version: compareWithCurrent(template, result.snapshot),
       },
     };
   }
@@ -121,8 +129,6 @@ export function createProjectService(deps: {
 
   const snapshotColumns = (s: ProjectSnapshot) => ({
     templateVersion: s.templateVersion,
-    params: s.params,
-    structuralInputs: s.structuralInputs,
     snapshot: s,
   });
 
@@ -132,6 +138,28 @@ export function createProjectService(deps: {
   }
 
   return {
+    /**
+     * Rewrites every snapshot stored in an older shape in the current one (decision 0014). Runs
+     * at each release, after the database migrations. Numbers and timestamps are left alone.
+     */
+    async upgradeStoredSnapshots(): Promise<{ upgraded: number; unreadable: string[] }> {
+      const rows = await db.select().from(projects);
+      let upgraded = 0;
+      const unreadable: string[] = [];
+      for (const row of rows) {
+        const result = read(row);
+        if (!result.ok) unreadable.push(row.id);
+        else if (result.upgradedFrom !== undefined) {
+          await db
+            .update(projects)
+            .set({ snapshot: result.snapshot })
+            .where(eq(projects.id, row.id));
+          upgraded++;
+        }
+      }
+      return { upgraded, unreadable };
+    },
+
     async list(): Promise<ProjectSummary[]> {
       const rows = await db.select().from(projects).orderBy(desc(projects.updatedAt));
       return rows.map(summary);
@@ -167,10 +195,12 @@ export function createProjectService(deps: {
       if (!row) return { ok: false, error: 'not-found' };
       let regenerated = {};
       if (changes.params !== undefined || changes.structuralInputs !== undefined) {
+        const stored = read(row);
+        if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
         const generated = generate(
           row.templateId,
-          changes.params ?? row.params,
-          changes.structuralInputs ?? row.structuralInputs,
+          changes.params ?? stored.snapshot.params,
+          changes.structuralInputs ?? stored.snapshot.structuralInputs,
         );
         if (!generated.ok) return generated;
         regenerated = snapshotColumns(generated.snapshot);
@@ -193,7 +223,13 @@ export function createProjectService(deps: {
     async regenerate(id: string): Promise<Result<Project>> {
       const row = await load(id);
       if (!row) return { ok: false, error: 'not-found' };
-      const generated = generate(row.templateId, row.params, row.structuralInputs);
+      const stored = read(row);
+      if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+      const generated = generate(
+        row.templateId,
+        stored.snapshot.params,
+        stored.snapshot.structuralInputs,
+      );
       if (!generated.ok) return generated;
       const [updated] = await db
         .update(projects)
