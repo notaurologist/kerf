@@ -1,9 +1,13 @@
 import { serve } from '@hono/node-server';
-import { app } from './app.ts';
+import { createApp } from './app.ts';
+import { loadConfig } from './config.ts';
+import { createDatabase } from './db/client.ts';
 
-// Local development and any plain Node host. Vercel gets its own entry point in M3.
-const port = Number(process.env.PORT ?? 3000);
+// Local development and any plain Node host.
+const config = loadConfig(process.env);
+const { db } = createDatabase(config.databaseUrl);
+const app = createApp({ db, passwordHash: config.passwordHash });
 
-serve({ fetch: app.fetch, port }, (info) => {
+serve({ fetch: app.fetch, port: config.port }, (info) => {
   console.log(`api listening on http://localhost:${info.port}`);
 });

@@ -11,7 +11,8 @@
     "start": "node --env-file-if-exists=../../.env src/index.ts",
     "typecheck": "tsc -p .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "hash-password": "node scripts/hash-password.ts"
   },
   "dependencies": {
     "@hono/node-server": "2.1.5",

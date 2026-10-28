@@ -137,6 +137,14 @@ For each operation, `steps/` lists the methods from the knowledge base whose req
 | `PUT /api/projects/:id` | Update name, status, parameters, or structural inputs; regenerates the snapshot |
 | `POST /api/projects/:id/regenerate` | Regenerate with the current template version (explicit, never automatic) |
 
+### Login (0007)
+
+- `PASSWORD_HASH` holds `scrypt:N:r:p:salt:hash` (base64url), made by `pnpm --filter @kerf/api hash-password` with N = 2^17, r = 8, p = 1. Verification reads the cost from the stored hash and compares in constant time.
+- The session cookie `kerf_session` holds a random 256-bit token; `sessions` stores only its SHA-256 hash, so the table alone gives no working session. Sessions last 30 days. Expired rows are deleted at the next login.
+- Rate limiting counts failed logins for the whole app in fixed 15-minute windows, at most 10 per window, then answers 429 with `Retry-After`, even for the right password. Each attempt is counted before the password is checked and taken back on success, so parallel guesses cannot slip under the limit. The limit is global rather than per address: there is one user, and a per-address limit lets anyone with many addresses keep guessing. The cost is that someone guessing can keep the owner locked out; changing that is a new decision.
+- One middleware requires a session on every route except `GET /api/health` and `POST /api/login`, listed by method and path. A test walks every route the app registers and checks each answers 401 without a session.
+- `POST`, `PUT`, `PATCH`, and `DELETE` requests must have a JSON content type (415 otherwise).
+
 ### Data (sketch)
 
 | Table | Contents |

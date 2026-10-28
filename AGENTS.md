@@ -49,6 +49,7 @@ pnpm format         # Biome format, writes changes
 pnpm check          # lint, typecheck, test; what the pre-push hook and CI run
 pnpm db:migrate     # apply Drizzle migrations; DATABASE_URL defaults to the local container
 pnpm --filter @kerf/api db:generate  # after changing apps/api/src/db/schema.ts; commit the new migration
+pnpm --filter @kerf/api hash-password  # prints PASSWORD_HASH for a login password (typed without echo)
 docker compose up -d  # local Postgres 18 for development (tests use PGlite and need no Docker)
 ```
 
