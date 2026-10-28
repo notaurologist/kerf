@@ -1,10 +1,11 @@
+import { z } from 'zod';
 import { referenceRow, type SpeciesGradeId, speciesGrade } from '../design-values/sawnLumber.ts';
 import { type Citation, SOURCE_LINKS } from '../design-values/sources.ts';
 import { maxDeflectionTimesEI, maxMoment, reactions, type SpanLoads } from './beam.ts';
 import { type AdjustedValues, adjustedValues, type ServiceConditions } from './factors.ts';
 import {
   type CheckKind,
-  type CheckResult,
+  CheckResult,
   type ComputedCheck,
   isMissing,
   type MissingInput,
@@ -83,11 +84,12 @@ export interface BeamCheckInput {
   assumptions: string[];
 }
 
-export interface BeamChecks {
-  bending: CheckResult;
-  shear: CheckResult;
-  deflection: CheckResult;
-}
+export const BeamChecks = z.object({
+  bending: CheckResult,
+  shear: CheckResult,
+  deflection: CheckResult,
+});
+export type BeamChecks = z.infer<typeof BeamChecks>;
 
 const nds = (locator: string, url: string): Citation => ({ source: 'nds-2024', locator, url });
 

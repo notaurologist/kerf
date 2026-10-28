@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { HardwareItem } from '../templates/types.ts';
 import { formatLength, toSixteenths } from '../units/length.ts';
 
@@ -5,10 +6,11 @@ import { formatLength, toSixteenths } from '../units/length.ts';
 // and grip share a line, and the fittings each bolt calls for (washers, nuts, caps) are totaled
 // per diameter. Which fittings a bolt needs, and any notes for the list, come from the template.
 
-export interface HardwareLine {
-  description: string;
-  quantity: number;
-}
+export const HardwareLine = z.object({
+  description: z.string(),
+  quantity: z.number().int(),
+});
+export type HardwareLine = z.infer<typeof HardwareLine>;
 
 export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
   const boltLines = new Map<string, HardwareLine>();

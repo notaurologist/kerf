@@ -3,16 +3,21 @@ import { DENSITY_SOURCES, woodDensity } from '../../design-values/density.ts';
 import { referenceRow, SPECIES_GRADE_IDS } from '../../design-values/sawnLumber.ts';
 import { stock } from '../../lumber/stock.ts';
 import {
-  type BeamChecks,
+  BeamChecks,
   beamChecks,
   hardwareCheck,
   type LoadCase,
   type PointLoad,
 } from '../../structural/checks.ts';
 import type { ServiceConditions } from '../../structural/factors.ts';
-import type { CheckResult, MissingInput, Needed, Quantity } from '../../structural/types.ts';
+import {
+  CheckResult,
+  type MissingInput,
+  type Needed,
+  type Quantity,
+} from '../../structural/types.ts';
 import { formatLength } from '../../units/length.ts';
-import type { ChecklistItem, Issue } from '../types.ts';
+import { ChecklistItem, type Issue } from '../types.ts';
 import type { SwingSetOutput } from './template.ts';
 
 // The swing set's structural model (DOMAIN.md, Swing set specifics, Loads; spec, Structural
@@ -179,13 +184,14 @@ export const BEAM_CONDITIONS: ServiceConditions = {
   waterborneTreatment: true,
 };
 
-export interface SwingSetStructuralReview {
-  inputs: SwingSetStructuralInputs;
-  beam: BeamChecks;
+export const SwingSetStructuralReview = z.object({
+  inputs: SwingSetStructuralInputs,
+  beam: BeamChecks,
   /** The most heavily loaded hanger against its rating. */
-  hanger: CheckResult;
-  checklist: ChecklistItem[];
-}
+  hanger: CheckResult,
+  checklist: z.array(ChecklistItem),
+});
+export type SwingSetStructuralReview = z.infer<typeof SwingSetStructuralReview>;
 
 export type ReviewResult =
   | { ok: true; review: SwingSetStructuralReview }

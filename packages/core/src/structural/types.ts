@@ -1,16 +1,18 @@
-import type { Citation } from '../design-values/sources.ts';
+import { z } from 'zod';
+import { Citation } from '../design-values/sources.ts';
 
 // Results of structural checks. Every result carries its working (ARCHITECTURE.md, principle 4):
 // inputs with sources, formulas, intermediate values, adjustment factors, assumptions, and the
 // margin. A margin is the allowable value divided by the computed one; there is no verdict
-// (decision 0001).
+// (decision 0001). The result shapes are Zod schemas so a stored snapshot can be parsed back.
 
 /** An input the user has to enter or confirm before a check can run. */
-export interface MissingInput {
+export const MissingInput = z.object({
   /** Path a form can point at, such as 'loads.weight'. */
-  key: string;
-  label: string;
-}
+  key: z.string(),
+  label: z.string(),
+});
+export type MissingInput = z.infer<typeof MissingInput>;
 
 /** A value the check needs, or the inputs still missing for it. Never a stand-in default. */
 export type Needed<T> = { value: T } | { missing: MissingInput[] };
@@ -20,68 +22,83 @@ export function isMissing<T>(n: Needed<T>): n is { missing: MissingInput[] } {
 }
 
 /** A named number in the working, with where it came from. */
-export interface Quantity {
-  symbol: string;
-  label: string;
-  value: number;
-  unit: string;
+export const Quantity = z.object({
+  symbol: z.string(),
+  label: z.string(),
+  value: z.number(),
+  unit: z.string(),
   /** How it was obtained: entered by the user, from the template, a table, or a formula. */
-  basis?: string;
-  sources?: Citation[];
-}
+  basis: z.string().optional(),
+  sources: z.array(Citation).optional(),
+});
+export type Quantity = z.infer<typeof Quantity>;
 
-export type DesignValueName = 'Fb' | 'Fv' | 'E' | 'Emin';
+export const DesignValueName = z.enum(['Fb', 'Fv', 'E', 'Emin']);
+export type DesignValueName = z.infer<typeof DesignValueName>;
 
 /** One adjustment factor as applied, including factors equal to 1.0, with the reason. */
-export interface AppliedFactor {
-  symbol: string;
-  name: string;
-  value: number;
-  appliesTo: DesignValueName[];
-  reason: string;
-  sources: Citation[];
-}
+export const AppliedFactor = z.object({
+  symbol: z.string(),
+  name: z.string(),
+  value: z.number(),
+  appliesTo: z.array(DesignValueName),
+  reason: z.string(),
+  sources: z.array(Citation),
+});
+export type AppliedFactor = z.infer<typeof AppliedFactor>;
 
-export type CheckKind = 'beam-bending' | 'beam-shear' | 'beam-deflection' | 'hardware';
+export const CheckKind = z.enum(['beam-bending', 'beam-shear', 'beam-deflection', 'hardware']);
+export type CheckKind = z.infer<typeof CheckKind>;
 
-interface CheckHeader {
-  kind: CheckKind;
+const CheckHeader = {
+  kind: CheckKind,
   /** Such as 'Bending'. */
-  title: string;
+  title: z.string(),
   /** The member or hardware checked, named by the template. */
-  subject: string;
+  subject: z.string(),
   /** The load case used, named by the template. */
-  loadCase: string;
-}
+  loadCase: z.string(),
+};
 
-export interface ComputedCheck extends CheckHeader {
-  status: 'computed';
-  inputs: Quantity[];
-  formulas: string[];
-  steps: Quantity[];
-  factors: AppliedFactor[];
-  assumptions: string[];
-  sources: Citation[];
+export const ComputedCheck = z.object({
+  ...CheckHeader,
+  status: z.literal('computed'),
+  inputs: z.array(Quantity),
+  formulas: z.array(z.string()),
+  steps: z.array(Quantity),
+  factors: z.array(AppliedFactor),
+  assumptions: z.array(z.string()),
+  sources: z.array(Citation),
   /** What the loads produce, and what the member or hardware is allowed. Same units. */
-  computed: Quantity;
-  allowable: Quantity;
+  computed: Quantity,
+  allowable: Quantity,
   /** allowable / computed: "margin 2.1x under these assumptions". */
-  margin: number;
-}
+  margin: z.number(),
+});
+export type ComputedCheck = z.infer<typeof ComputedCheck>;
 
-export interface InputNeededCheck extends CheckHeader {
-  status: 'input-needed';
-  missing: MissingInput[];
-}
+export const InputNeededCheck = z.object({
+  ...CheckHeader,
+  status: z.literal('input-needed'),
+  missing: z.array(MissingInput),
+});
+export type InputNeededCheck = z.infer<typeof InputNeededCheck>;
 
 /** The check cannot be computed for a reason other than missing input. */
-export interface NotComputedCheck extends CheckHeader {
-  status: 'not-computed';
-  reason: string;
-  sources: Citation[];
-}
+export const NotComputedCheck = z.object({
+  ...CheckHeader,
+  status: z.literal('not-computed'),
+  reason: z.string(),
+  sources: z.array(Citation),
+});
+export type NotComputedCheck = z.infer<typeof NotComputedCheck>;
 
-export type CheckResult = ComputedCheck | InputNeededCheck | NotComputedCheck;
+export const CheckResult = z.discriminatedUnion('status', [
+  ComputedCheck,
+  InputNeededCheck,
+  NotComputedCheck,
+]);
+export type CheckResult = z.infer<typeof CheckResult>;
 
 /** Formats a margin the way results read it: "margin 2.1x". */
 export function formatMargin(margin: number): string {

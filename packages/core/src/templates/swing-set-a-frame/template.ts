@@ -1,18 +1,18 @@
-import type { z } from 'zod';
+import { z } from 'zod';
 import { stock } from '../../lumber/stock.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
-import type { Flag, GenerateResult, HardwareItem, Issue, Part } from '../types.ts';
+import { Flag, type GenerateResult, HardwareItem, type Issue, Part } from '../types.ts';
 import {
   type Dimensions,
   dimensions,
-  type FrameGeometry,
+  FrameGeometry,
   frameGeometry,
   legsReachGround,
   splayForFootprint,
 } from './geometry.ts';
 import { HARDWARE_NOTES, hardware, validateHardware } from './hardware.ts';
-import { type SiteLayout, type SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
+import { SiteLayout, SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
 import { flags, validate, validateSwings } from './validate.ts';
 
@@ -23,17 +23,18 @@ import { flags, validate, validateSwings } from './validate.ts';
 export const TEMPLATE_VERSION = 1;
 export const TEMPLATE_ID = 'swing-set-a-frame';
 
-export interface SwingSetOutput {
-  params: SwingSetParams;
-  geometry: FrameGeometry;
-  swings: SwingGeometry;
-  layout: SiteLayout;
-  parts: Part[];
-  hardware: HardwareItem[];
+export const SwingSetOutput = z.object({
+  params: SwingSetParams,
+  geometry: FrameGeometry,
+  swings: SwingGeometry,
+  layout: SiteLayout,
+  parts: z.array(Part),
+  hardware: z.array(HardwareItem),
   /** Notes to show with the hardware shopping list. */
-  hardwareNotes: readonly string[];
-  flags: Flag[];
-}
+  hardwareNotes: z.array(z.string()).readonly(),
+  flags: z.array(Flag),
+});
+export type SwingSetOutput = z.infer<typeof SwingSetOutput>;
 
 function parseIssues(error: z.ZodError): Issue[] {
   return error.issues.map((issue) => ({
