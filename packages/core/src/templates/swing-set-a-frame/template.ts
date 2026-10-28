@@ -41,6 +41,14 @@ function parseIssues(error: z.ZodError): Issue[] {
   }));
 }
 
+/** "Back leg (uphill)", or no slope note on level ground. Ground falls toward the front when g > 0. */
+function legName(side: 'back' | 'front', groundSlope: number): string {
+  const name = side === 'back' ? 'Back leg' : 'Front leg';
+  if (groundSlope === 0) return name;
+  const uphill = (side === 'back') === groundSlope > 0;
+  return `${name} (${uphill ? 'uphill' : 'downhill'})`;
+}
+
 function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
   const angle = formatAngle(g.splay);
   const levelCut = (where: string) => ({
@@ -51,7 +59,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
     const l = g[side];
     return {
       id: `leg-${side}`,
-      name: side === 'back' ? 'Back leg (uphill)' : 'Front leg (downhill)',
+      name: legName(side, p.groundSlope),
       role: 'leg',
       stock: stock(p.legStock),
       quantity: 2,

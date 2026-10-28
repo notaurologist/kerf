@@ -305,6 +305,53 @@ describe('hardware', () => {
   });
 });
 
+describe('edge of range', () => {
+  // Spec, Edge of range.
+  const edge: SwingSetParams = {
+    ...example,
+    beamLength: 240,
+    beamHeight: 144,
+    splay: { kind: 'angle', degrees: 35 },
+    beamStock: '2x6',
+    beamPlies: 2,
+    groundSlope: -3,
+    burialDepth: 48,
+    crossbarHeight: 100,
+    swings: { ...example.swings, centers: [80, 160] },
+    hardware: { ...example.hardware, plyBolts: { diameter: 0.5, count: 10 } },
+  };
+  const output = run(edge);
+  const g = output.geometry;
+
+  it('matches the spec values', () => {
+    expect(g.flushCut.depthAtTop).toBeCloseTo(3.155, 3);
+    expect(g.flushCut.woodLeftAtTop).toBeCloseTo(0.345, 3);
+    expect(g.boltGrip).toBeCloseTo(7.694, 3);
+    expect(g.back.groundZ).toBeCloseTo(-31.658, 3);
+    expect(g.back.footZ).toBeCloseTo(-79.658, 3);
+    expect(g.back.overallLength).toBeCloseTo(282.202, 3);
+    expect(g.front.groundZ).toBeCloseTo(22.226, 3);
+    expect(g.front.footZ).toBeCloseTo(-25.774, 3);
+    expect(g.front.overallLength).toBeCloseTo(216.421, 3);
+    expect(g.footprintDepth).toBeCloseTo(219.945, 3);
+    expect(g.crossbar.topEdge).toBeCloseTo(73.164, 3);
+    expect(g.crossbar.bottomEdge).toBeCloseTo(80.866, 3);
+    expect(g.gusset.topWidth).toBeCloseTo(11.545, 3);
+    expect(g.gusset.bottomWidth).toBeCloseTo(21.698, 3);
+  });
+
+  it('names legs by which way the ground actually slopes', () => {
+    expect(output.parts.find((p) => p.id === 'leg-back')?.name).toBe('Back leg (downhill)');
+    expect(output.parts.find((p) => p.id === 'leg-front')?.name).toBe('Front leg (uphill)');
+    const level = run({ ...example, groundSlope: 0 });
+    expect(level.parts.find((p) => p.id === 'leg-back')?.name).toBe('Back leg');
+  });
+
+  it('flags the thin flush cut', () => {
+    expect(output.flags.some((f) => f.ask.includes('left at the top of the flush cut'))).toBe(true);
+  });
+});
+
 describe('built-up beam', () => {
   // Spec, Built-up beam check: two 2x6 plies, otherwise the worked example.
   const builtUp: SwingSetParams = {

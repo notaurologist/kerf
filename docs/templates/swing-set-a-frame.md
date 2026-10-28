@@ -235,6 +235,25 @@ With every bolt 1/2" and 2 bolts per crossbar and gusset joint, buried legs:
 
 On pads with 1 anchor per foot, add 4 ground anchors. With the two-ply 2x6 beam and 6 ply bolts, add 6 bolts with a 3" grip, 12 washers, 6 nuts, and 6 caps.
 
+### Edge of range
+
+Every range at or near its limit: L = 240, H = 144 (maximum), α = 35° (maximum), a two-ply 2x6 beam (bw = 3.0, bd = 5.5), 4x4 legs, ground falling 3" per foot toward the back (g = −3, the steepest allowed, front uphill), burial depth 48 (maximum), crossbar 2x6 at zc = 100, gusset from a 2x8, swings at 80 and 160.
+
+| Quantity | Value |
+|---|---|
+| Flush cut depth at the top | 5.5·0.57358 = 3.155 |
+| Wood left at the top | 3.5 − 3.155 = 0.345 (expert-check flag: under 1") |
+| Bolt grip | 7.694 |
+| Back (now downhill) leg: meets ground, foot cut | z_g = −31.658, z_b = −79.658 |
+| Back leg overall length | 282.202 |
+| Front (now uphill) leg: meets ground, foot cut | z_g = 22.226, z_b = −25.774 |
+| Front leg overall length | 216.421 |
+| Footprint at grade | 129.223 + 90.722 = 219.945 |
+| Crossbar top edge, bottom edge | 73.164, 80.866 |
+| Gusset top, bottom | 11.545, 21.698 |
+
+The back legs are longer than a 16 ft board; the shopping list reports that as an issue instead of dropping them.
+
 ### Built-up beam check
 
 The same inputs with the beam as two 2x6 plies (bw = 3.0, bd = 5.5). The flush cut depends only on bd, so it is unchanged. Everything that depends on the beam's width changes, including the leg lengths on a slope, because the legs sit closer to the centerline:

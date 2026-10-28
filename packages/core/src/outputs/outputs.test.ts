@@ -198,3 +198,43 @@ describe('hardwareList', () => {
     ]);
   });
 });
+
+describe('planLumber, edge of range', () => {
+  it('reports legs longer than any board', () => {
+    const plan = planLumber(
+      parts({
+        ...example,
+        beamLength: 240,
+        beamHeight: 144,
+        splay: { kind: 'angle', degrees: 35 },
+        beamStock: '2x6',
+        beamPlies: 2,
+        groundSlope: -3,
+        burialDepth: 48,
+        crossbarHeight: 100,
+        swings: { ...example.swings, centers: [80, 160] },
+        hardware: { ...example.hardware, plyBolts: { diameter: 0.5, count: 10 } },
+      }),
+    );
+    // The longest board is 16' (192"). Too long: both 240" beam plies, the two 282.2" back
+    // legs, and the two 216.4" front legs.
+    expect(
+      plan.issues.map(
+        (i) =>
+          i.message.split(' (')[0] +
+          (i.message.includes('(downhill)')
+            ? ' (downhill)'
+            : i.message.includes('(uphill)')
+              ? ' (uphill)'
+              : ''),
+      ),
+    ).toEqual([
+      'Beam ply',
+      'Beam ply',
+      'Back leg (downhill)',
+      'Back leg (downhill)',
+      'Front leg (uphill)',
+      'Front leg (uphill)',
+    ]);
+  });
+});
