@@ -39,6 +39,18 @@ export const swingSetAFrame: TemplateDefinition<
   snapshotVersion: 1,
   snapshotUpgrades: {},
   examples: EXAMPLES,
+  plan(outputs) {
+    const review = outputs.structuralReview;
+    return {
+      cutList: outputs.cutList,
+      lumber: outputs.lumber,
+      hardware: outputs.hardware,
+      hardwareNotes: outputs.design.hardwareNotes,
+      flags: outputs.design.flags,
+      checks: [review.beam.bending, review.beam.shear, review.beam.deflection, review.hanger],
+      checklist: review.checklist,
+    };
+  },
   generate(params, structuralInputs) {
     const design = generate(params);
     if (!design.ok) return design;

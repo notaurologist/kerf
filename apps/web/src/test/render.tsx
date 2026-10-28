@@ -6,7 +6,10 @@ export function render(node: ReactNode): string {
   return renderToString(node).replace(/<!-- -->/g, '');
 }
 
-/** Just the text a reader sees, with tags turned into spaces and runs of space collapsed. */
+/**
+ * Roughly the text a reader sees: tags become spaces, runs of space collapse, and no space is
+ * left before punctuation or inside parentheses, so inline markup does not split phrases.
+ */
 export function renderText(node: ReactNode): string {
   return render(node)
     .replace(/<[^>]+>/g, ' ')
@@ -14,5 +17,7 @@ export function renderText(node: ReactNode): string {
     .replace(/&#x27;/g, "'")
     .replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ')
+    .replace(/ ([.,;:)])/g, '$1')
+    .replace(/\( /g, '(')
     .trim();
 }
