@@ -8,6 +8,7 @@
      so a diagram can break out to the full width. */
   .l-page {
     display: grid;
+    padding-block: var(--space-m) var(--space-xl);
     grid-template-columns:
       [full-start] minmax(var(--space-s), 1fr)
       [content-start] min(100% - 2 * var(--space-s), var(--content-max))
@@ -66,6 +67,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: var(--cluster-justify, flex-start);
     gap: var(--cluster-gap, var(--space-xs));
   }
 
@@ -99,6 +101,14 @@
   .l-switcher > * {
     flex-grow: 1;
     flex-basis: calc((var(--switcher-threshold, 30rem) - 100%) * 999);
+  }
+
+  /* Grid: as many columns of at least --grid-min as fit, one column on a phone. */
+  .l-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--grid-min, 16rem), 100%), 1fr));
+    gap: var(--grid-gap, var(--space-s));
+    align-items: start;
   }
 
   /* Center: a readable measure, centered. */

@@ -19,9 +19,16 @@ export function Stack(props: { gap?: Space; as?: 'div' | 'section' | 'ul'; child
   );
 }
 
-export function Cluster(props: { gap?: Space; children: ReactNode }) {
+/** Children in a row that wraps. `spread` pushes them to either end, such as a name and a menu. */
+export function Cluster(props: { gap?: Space; spread?: boolean; children: ReactNode }) {
   return (
-    <div className="l-cluster" style={vars({ '--cluster-gap': space(props.gap) })}>
+    <div
+      className="l-cluster"
+      style={vars({
+        '--cluster-gap': space(props.gap),
+        '--cluster-justify': props.spread ? 'space-between' : undefined,
+      })}
+    >
       {props.children}
     </div>
   );
@@ -49,6 +56,18 @@ export function Switcher(props: { threshold?: string; gap?: Space; children: Rea
     <div
       className="l-switcher"
       style={vars({ '--switcher-threshold': props.threshold, '--switcher-gap': space(props.gap) })}
+    >
+      {props.children}
+    </div>
+  );
+}
+
+/** As many columns of at least `min` as fit, such as a form's fields on a laptop. */
+export function Grid(props: { min?: string; gap?: Space; children: ReactNode }) {
+  return (
+    <div
+      className="l-grid"
+      style={vars({ '--grid-min': props.min, '--grid-gap': space(props.gap) })}
     >
       {props.children}
     </div>

@@ -5,9 +5,18 @@
     box-sizing: border-box;
   }
 
-  /* Margins on text elements are reset in #80, when screens move to the layout primitives;
-     until then the old stylesheet relies on the browser's paragraph spacing. */
-  body {
+  /* Space between elements comes from the layout primitives' gaps, not from margins. */
+  body,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  p,
+  figure,
+  blockquote,
+  dl,
+  dd {
     margin: 0;
   }
 

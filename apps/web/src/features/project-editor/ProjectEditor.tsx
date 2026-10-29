@@ -10,12 +10,30 @@ import {
   type TemplateDefinition,
   visibleFields,
 } from '@kerf/core';
-import { type FormEvent, useEffect, useRef, useState } from 'react';
-import { Notice } from '../../components/Shell.tsx';
+import { type FormEvent, useState } from 'react';
 import { api, describeError, type FieldIssue, send } from '../../lib/api.ts';
+import { setFlash } from '../../lib/flash.ts';
 import { href, navigate } from '../../lib/route.ts';
 import type { Project } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
+import {
+  Button,
+  ButtonLink,
+  Card,
+  Cluster,
+  ErrorSummary,
+  Field,
+  FieldGroup,
+  Grid,
+  Loading,
+  Notice,
+  Select,
+  Stack,
+  type SummaryItem,
+  Text,
+  TextInput,
+  useLeaveGuard,
+} from '../../ui/index.ts';
 import { belongsTo, type FormIssues, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 
 // Create or edit a project's parameters and structural inputs (PRODUCT.md, MVP features 2 and
@@ -24,7 +42,7 @@ import { belongsTo, type FormIssues, NO_ISSUES, placeIssues, schemaIssues } from
 
 export function NewProjectScreen(props: { templateId: string }) {
   const template = findTemplate(props.templateId);
-  if (!template) return <Notice tone="error">There is no template "{props.templateId}".</Notice>;
+  if (!template) return <Notice>There is no template "{props.templateId}".</Notice>;
   return (
     <ProjectEditor
       template={template}
@@ -42,14 +60,14 @@ export function EditProjectScreen(props: { id: string }) {
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
   );
-  if (loaded.state === 'loading') return <Notice>Loading project…</Notice>;
-  if (loaded.state === 'error') return <Notice tone="error">{describeError(loaded.error)}</Notice>;
+  if (loaded.state === 'loading') return <Loading>Loading project…</Loading>;
+  if (loaded.state === 'error') return <Notice>{describeError(loaded.error)}</Notice>;
   const project = loaded.value;
   const template = findTemplate(project.templateId);
-  if (!template) return <Notice tone="error">This project's template is no longer offered.</Notice>;
+  if (!template) return <Notice>This project's template is no longer offered.</Notice>;
   if (!project.snapshot) {
     return (
-      <Notice tone="error">
+      <Notice>
         This project's stored plan cannot be read ({project.unreadable?.message}), so it cannot be
         edited.
       </Notice>
@@ -105,13 +123,12 @@ export function ProjectEditor(props: {
     inputs: NO_ISSUES,
   });
   const [saving, setSaving] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
-  // After a failed save, move to the first marked field: on a phone it is usually off screen.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: runs when a new set of issues is shown.
-  useEffect(() => {
-    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
-  }, [issues]);
+  const [failure, setFailure] = useState<{ message: string; connection: boolean } | null>(null);
+  const dirty =
+    name !== props.initial.name ||
+    !sameJson(params, props.initial.params) ||
+    !sameJson(inputs, props.initial.inputs);
+  const guard = useLeaveGuard(dirty && !saving);
 
   const show = (fieldIssues: FieldIssue[], nameIssue?: string) => {
     const forParams = fieldIssues.filter(
@@ -132,7 +149,7 @@ export function ProjectEditor(props: {
     const builtInputs = buildFromForm(form.structuralInputs, inputs);
     const p = template.params.safeParse(builtParams);
     const i = template.structuralInputs.safeParse(builtInputs);
-    const nameIssue = name.trim() ? undefined : 'Give the project a name.';
+    const nameIssue = name.trim() ? undefined : 'Enter a project name.';
     // Text Kerf cannot read says what to type; the schema's problems cover the rest.
     const unread = [
       ...entryProblems(form.params, params),
@@ -149,10 +166,7 @@ export function ProjectEditor(props: {
       ].filter((issue) => !unreadFields.has(issue.field)),
     ];
     show(found, nameIssue);
-    if (found.length > 0 || nameIssue) {
-      setFailure('Fix the marked fields, then save again.');
-      return;
-    }
+    if (found.length > 0 || nameIssue) return;
 
     setSaving(true);
     const result = project
@@ -169,84 +183,116 @@ export function ProjectEditor(props: {
         );
     setSaving(false);
     if (result.ok) {
+      setFlash(project ? 'Saved.' : 'Created.');
       navigate({ screen: 'project', id: result.value.id });
       return;
     }
-    if (result.error.kind === 'invalid') show(result.error.issues);
-    setFailure(
-      result.error.kind === 'invalid'
-        ? 'The plan cannot be made from these values. Fix the marked fields, then save again.'
-        : describeError(result.error),
-    );
+    if (result.error.kind === 'invalid') {
+      show(result.error.issues);
+      return;
+    }
+    setFailure({
+      message: describeError(result.error),
+      connection: result.error.kind === 'failed' && result.error.status === 0,
+    });
   };
 
+  const fieldLabel = (path: string) =>
+    [...form.params, ...form.structuralInputs].flatMap((s) => s.fields).find((f) => f.path === path)
+      ?.label;
+  const summary: SummaryItem[] = [
+    ...(issues.name ? [{ field: 'project-name', message: issues.name }] : []),
+    ...Object.entries(issues.params.fields).map(([path, message]) => ({
+      field: `p-${path}`,
+      message: named(fieldLabel(path), message),
+    })),
+    ...Object.entries(issues.inputs.fields).map(([path, message]) => ({
+      field: `s-${path}`,
+      message: named(fieldLabel(path), message),
+    })),
+  ];
+  const general = [...issues.params.general, ...issues.inputs.general];
+
   return (
-    <form ref={formRef} onSubmit={submit} className="editor" noValidate>
-      <h1>
-        {project
-          ? `Edit ${project.name}`
-          : `New ${template.name.charAt(0).toLowerCase()}${template.name.slice(1)}`}
-      </h1>
-      {project?.version?.status === 'behind' && (
-        <p className="notice">
-          Saving changed parameters or structural inputs regenerates this plan with template version{' '}
-          {project.version.currentVersion}. It was made with version {project.version.storedVersion}
-          .
-        </p>
-      )}
-      <label className="field">
-        <span>Project name</span>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          aria-invalid={issues.name ? true : undefined}
-          maxLength={200}
+    <form onSubmit={submit} noValidate>
+      <Stack gap="l">
+        <h1>
+          {project
+            ? `Edit ${project.name}`
+            : `New ${template.name.charAt(0).toLowerCase()}${template.name.slice(1)}`}
+        </h1>
+        <ErrorSummary items={summary} general={general} />
+        {project?.version?.status === 'behind' && (
+          <Card>
+            <Text>
+              Saving changed parameters or structural inputs regenerates this plan with template
+              version {project.version.currentVersion}. It was made with version{' '}
+              {project.version.storedVersion}.
+            </Text>
+          </Card>
+        )}
+        <Field id="project-name" label="Project name" error={issues.name}>
+          {(c) => <TextInput {...c} value={name} onChange={setName} readOnly={saving} />}
+        </Field>
+
+        <h2>Dimensions and hardware</h2>
+        <FormSections
+          sections={form.params}
+          values={params}
+          issues={issues.params}
+          onChange={setParams}
+          prefix="p"
+          readOnly={saving}
         />
-        {issues.name && <span className="error">{issues.name}</span>}
-      </label>
 
-      <h2>Design</h2>
-      <FormSections
-        sections={form.params}
-        values={params}
-        issues={issues.params}
-        onChange={setParams}
-        prefix="p"
-      />
+        <h2>Structural inputs</h2>
+        <Text tone="muted">
+          These decide the structural checks. Leave any you have not settled empty; the checks that
+          need them will say "Input needed". Nothing here is filled in for you.
+        </Text>
+        <FormSections
+          sections={form.structuralInputs}
+          values={inputs}
+          issues={issues.inputs}
+          onChange={setInputs}
+          prefix="s"
+          readOnly={saving}
+          structural
+        />
 
-      <h2>Structural inputs</h2>
-      <p className="muted">
-        These decide the sanity checks. Leave any you have not settled empty; the checks that need
-        them will say "input needed". Nothing here is filled in for you.
-      </p>
-      <FormSections
-        sections={form.structuralInputs}
-        values={inputs}
-        issues={issues.inputs}
-        onChange={setInputs}
-        prefix="s"
-      />
-
-      {[...issues.params.general, ...issues.inputs.general].map((m) => (
-        <Notice key={m} tone="error">
-          {m}
-        </Notice>
-      ))}
-      {failure && <Notice tone="error">{failure}</Notice>}
-      <div className="row actions">
-        <button type="submit" className="primary" disabled={saving}>
-          {saving ? 'Saving…' : project ? 'Save changes' : 'Create project'}
-        </button>
-        <a
-          href={
-            project ? href({ screen: 'project', id: project.id }) : href({ screen: 'projects' })
-          }
-        >
-          Cancel
-        </a>
-      </div>
+        {failure &&
+          (failure.connection ? (
+            <Notice icon="connection">
+              <b>Not saved.</b> {failure.message} Your changes are still here.
+            </Notice>
+          ) : (
+            <Notice>
+              <b>Not saved.</b> {failure.message}
+            </Notice>
+          ))}
+        <Cluster>
+          <Button type="submit" busy={saving}>
+            {saving ? 'Saving…' : project ? 'Save changes' : 'Create project'}
+          </Button>
+          <ButtonLink
+            variant="secondary"
+            href={
+              project ? href({ screen: 'project', id: project.id }) : href({ screen: 'projects' })
+            }
+          >
+            Cancel
+          </ButtonLink>
+        </Cluster>
+      </Stack>
+      {guard.dialog}
     </form>
   );
+}
+
+/** A summary line that names its field, unless the message already does. */
+function named(label: string | undefined, message: string): string {
+  if (!label || message.startsWith(label)) return message;
+  return `${label}: ${message.charAt(0).toLowerCase()}${message.slice(1)}`;
 }
 
 /**
@@ -284,15 +330,16 @@ export function FormSections(props: {
   issues: FormIssues;
   onChange: (values: FormValues) => void;
   prefix: string;
+  readOnly?: boolean;
+  /** Structural inputs: an empty one is shown as input needed, never filled in (#43, rule 4). */
+  structural?: boolean;
 }) {
   const visible = new Set(visibleFields(props.sections, props.values).map((f) => f.path));
   return (
-    <>
+    <Stack gap="l">
       {props.sections.map((section) => (
-        <fieldset key={section.title} className="section">
-          <legend>{section.title}</legend>
-          {section.help && <p className="muted">{section.help}</p>}
-          <div className="fields">
+        <FieldGroup key={section.title} legend={section.title} help={section.help}>
+          <Grid>
             {section.fields
               .filter((f) => visible.has(f.path))
               .map((field) => (
@@ -302,13 +349,15 @@ export function FormSections(props: {
                   field={field}
                   text={props.values[field.path] ?? ''}
                   issue={props.issues.fields[field.path]}
+                  readOnly={props.readOnly}
+                  needed={props.structural}
                   onChange={(text) => props.onChange({ ...props.values, [field.path]: text })}
                 />
               ))}
-          </div>
-        </fieldset>
+          </Grid>
+        </FieldGroup>
       ))}
-    </>
+    </Stack>
   );
 }
 
@@ -316,7 +365,7 @@ export function FormSections(props: {
 // under the field says how Kerf read them.
 const UNITS: Partial<Record<FormField['kind'], string>> = { angle: '°' };
 
-/** The format a length is typed in, shown with its help (content guide: hints give the format, never a sample value). */
+/** The format a length is typed in (content guide: hints give the format, never a sample value). */
 const LENGTH_HINT = 'Inches, or feet and inches.';
 
 /** Which on-screen keyboard to show. Lengths and fractions need ', ", /, and -. */
@@ -332,64 +381,48 @@ export function FieldInput(props: {
   text: string;
   issue: string | undefined;
   onChange: (text: string) => void;
+  readOnly?: boolean;
+  needed?: boolean;
 }) {
-  const { field, text, issue } = props;
-  const unit = field.unit ?? UNITS[field.kind];
-  const describedBy = `${props.id}-help`;
-  const echo = entryEcho(field, text);
+  const { field, text } = props;
+  const unit = field.unit || UNITS[field.kind];
   const help =
     field.kind === 'length' ? [field.help, LENGTH_HINT].filter(Boolean).join(' ') : field.help;
-  const typed = keyboard(field) === 'text';
-  const control =
-    field.kind === 'choice' || field.kind === 'yes-no' ? (
-      <select
-        id={props.id}
-        value={text}
-        onChange={(e) => props.onChange(e.target.value)}
-        aria-invalid={issue ? true : undefined}
-        aria-describedby={describedBy}
-      >
-        <option value="">Choose…</option>
-        {(field.kind === 'yes-no'
-          ? [
-              { value: 'true', label: 'Yes' },
-              { value: 'false', label: 'No' },
-            ]
-          : (field.options ?? [])
-        ).map((o) => (
-          <option key={String(o.value)} value={String(o.value)}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    ) : (
-      <span className="with-unit">
-        <input
-          id={props.id}
-          value={text}
-          inputMode={keyboard(field)}
-          autoCapitalize={typed ? 'off' : undefined}
-          autoCorrect={typed ? 'off' : undefined}
-          spellCheck={typed ? false : undefined}
-          onChange={(e) => props.onChange(e.target.value)}
-          aria-invalid={issue ? true : undefined}
-          aria-describedby={describedBy}
-        />
-        {unit && <span className="unit">{unit}</span>}
-      </span>
-    );
   return (
-    <div className="field">
-      <label htmlFor={props.id}>
-        <span>{field.label}</span>
-      </label>
-      {control}
-      <small id={describedBy}>
-        {echo && <strong className="echo">{echo}</strong>}
-        {echo && help ? ' · ' : ''}
-        {help}
-      </small>
-      {issue && <span className="error">{issue}</span>}
-    </div>
+    <Field
+      id={props.id}
+      label={field.label}
+      hint={help}
+      error={props.issue}
+      echo={entryEcho(field, text)}
+      needed={props.needed && text.trim() === ''}
+      unit={unit}
+    >
+      {(c) =>
+        field.kind === 'choice' || field.kind === 'yes-no' ? (
+          <Select
+            {...c}
+            value={text}
+            onChange={props.onChange}
+            options={
+              field.kind === 'yes-no'
+                ? [
+                    { value: 'true', label: 'Yes' },
+                    { value: 'false', label: 'No' },
+                  ]
+                : (field.options ?? []).map((o) => ({ value: String(o.value), label: o.label }))
+            }
+          />
+        ) : (
+          <TextInput
+            {...c}
+            keyboard={keyboard(field)}
+            value={text}
+            onChange={props.onChange}
+            readOnly={props.readOnly}
+          />
+        )
+      }
+    </Field>
   );
 }

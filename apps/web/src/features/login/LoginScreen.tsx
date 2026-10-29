@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import { type ApiError, api, describeError, send } from '../../lib/api.ts';
+import { Button, Center, ErrorText, Field, Page, Stack, TextInput } from '../../ui/index.ts';
 
 // One password, no username (decision 0007).
 
@@ -11,33 +12,39 @@ export function LoginForm(props: {
   const [password, setPassword] = useState('');
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (password) props.onSubmit(password);
+    if (password && !props.busy) props.onSubmit(password);
   };
   return (
-    <main className="login">
-      <h1>Kerf</h1>
-      <form onSubmit={submit} className="stack">
-        <label className="field">
-          <span>Password</span>
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={props.busy}
-            required
-          />
-        </label>
-        {props.error && (
-          <p className="error" role="alert">
-            {describeError(props.error)}
-          </p>
-        )}
-        <button type="submit" className="primary" disabled={props.busy || !password}>
-          {props.busy ? 'Logging in…' : 'Log in'}
-        </button>
-      </form>
-    </main>
+    <Page>
+      <Center max="24rem">
+        <form onSubmit={submit} noValidate>
+          <Stack>
+            <h1>Kerf</h1>
+            <Field label="Password">
+              {(c) => (
+                <TextInput
+                  {...c}
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={setPassword}
+                />
+              )}
+            </Field>
+            {props.error && (
+              <div role="alert">
+                <ErrorText>{describeError(props.error)}</ErrorText>
+              </div>
+            )}
+            <div>
+              <Button type="submit" busy={props.busy}>
+                {props.busy ? 'Logging in…' : 'Log in'}
+              </Button>
+            </div>
+          </Stack>
+        </form>
+      </Center>
+    </Page>
   );
 }
 

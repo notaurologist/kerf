@@ -1,6 +1,15 @@
 import { formatLength, type HardwareLine, type LumberPlan } from '@kerf/core';
 import { Fragment } from 'react';
-import { Measured } from '../../components/Measured.tsx';
+import {
+  Disclosure,
+  ErrorText,
+  Length,
+  List,
+  Measured,
+  MeasureTable,
+  Stack,
+  Text,
+} from '../../ui/index.ts';
 
 // The shopping list (PRODUCT.md, MVP feature 4): boards to buy, how the parts fit on them, and
 // hardware. Board and piece lengths are stored in inches or feet and shown through core's
@@ -16,96 +25,87 @@ export function ShoppingList(props: {
 }) {
   const { lumber } = props;
   return (
-    <>
+    <Stack>
       <h3>Lumber</h3>
       {lumber.issues.map((issue) => (
-        <p key={issue.message} className="error" role="alert">
-          <Measured text={issue.message} />
-        </p>
+        <div key={issue.message} role="alert">
+          <ErrorText>
+            <Measured text={issue.message} />
+          </ErrorText>
+        </div>
       ))}
-      <table className="list keep">
-        <thead>
-          <tr>
-            <th className="number">Buy</th>
-            <th>Stock</th>
-            <th>Board length</th>
-          </tr>
-        </thead>
-        <tbody>
-          {lumber.lines.map((line) => (
-            <tr key={`${line.nominal}/${line.feet}`}>
-              <td data-label="Buy" className="number">
-                {line.count}
-              </td>
-              <td data-label="Stock">{line.nominal}</td>
-              <td data-label="Board length" className="nowrap">
-                {feet(line.feet)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <ul className="notes">
+      <MeasureTable
+        caption="Lumber to buy"
+        captionHidden
+        rows={lumber.lines}
+        rowKey={(line) => `${line.nominal}/${line.feet}`}
+        columns={[
+          { key: 'stock', label: 'Stock', cell: (line) => <b>{line.nominal}</b> },
+          {
+            key: 'length',
+            label: 'Board length',
+            numeric: true,
+            cell: (line) => <Length>{feet(line.feet)}</Length>,
+          },
+          { key: 'buy', label: 'Buy', numeric: true, cell: (line) => line.count },
+        ]}
+      />
+      <List>
         {lumber.notes.map((n) => (
           <li key={n}>
             <Measured text={n} />
           </li>
         ))}
-      </ul>
-      <details className="boards">
-        <summary>Which parts come from which board</summary>
-        <ol>
+      </List>
+      <Disclosure summary="Which parts come from which board">
+        <List ordered>
           {lumber.boards.map((board, b) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: boards are listed in the plan's order and have no ID.
             <li key={b}>
-              <strong>
-                {board.nominal}, {feet(board.feet)}
-              </strong>
+              <b>
+                {board.nominal}, <Length>{feet(board.feet)}</Length>
+              </b>
               :{' '}
               {board.pieces.map((p, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: pieces are listed in cutting order and repeat.
                 <Fragment key={i}>
                   {i > 0 && ', '}
-                  {p.name} <span className="nowrap">{formatLength(p.length)}</span>
+                  {p.name} <Length>{formatLength(p.length)}</Length>
                 </Fragment>
               ))}
               .{' '}
-              <span className="muted">
-                Offcut about <span className="nowrap">{formatLength(board.offcut)}</span>.
-              </span>
+              <Text tone="muted" as="span">
+                Offcut about <Length>{formatLength(board.offcut)}</Length>.
+              </Text>
             </li>
           ))}
-        </ol>
-      </details>
+        </List>
+      </Disclosure>
 
       <h3>Hardware</h3>
-      <table className="list keep">
-        <thead>
-          <tr>
-            <th className="number">Qty</th>
-            <th>Item</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.hardware.map((line) => (
-            <tr key={line.description}>
-              <td data-label="Qty" className="number">
-                {line.quantity}
-              </td>
-              <td data-label="Item">
-                <Measured text={line.description} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <ul className="notes">
+      <MeasureTable
+        caption="Hardware to buy"
+        captionHidden
+        rows={props.hardware}
+        rowKey={(line) => line.description}
+        columns={[
+          { key: 'item', label: 'Item', cell: (line) => <Measured text={line.description} /> },
+          {
+            key: 'qty',
+            label: 'Qty',
+            fullLabel: 'Quantity',
+            numeric: true,
+            cell: (line) => line.quantity,
+          },
+        ]}
+      />
+      <List>
         {props.hardwareNotes.map((n) => (
           <li key={n}>
             <Measured text={n} />
           </li>
         ))}
-      </ul>
-    </>
+      </List>
+    </Stack>
   );
 }

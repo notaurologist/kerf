@@ -5,6 +5,67 @@
  * color alone.
  */
 @layer components {
+  /* ---------- Text ---------- */
+  .k-text[data-tone="muted"] {
+    color: var(--muted);
+  }
+
+  .k-text[data-size="small"] {
+    font-size: var(--size--1);
+  }
+
+  .k-visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .k-plain-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
+  .k-plain-list[data-gap="xs"] {
+    gap: var(--space-xs);
+  }
+
+  .k-list {
+    margin: 0;
+    padding-inline-start: 1.3em;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3xs);
+  }
+
+  /* Formulas never wrap (#42); a long one scrolls sideways on its own instead of the page. */
+  .k-code {
+    display: inline-block;
+    max-inline-size: 100%;
+    overflow-x: auto;
+    vertical-align: bottom;
+    font-family: var(--font-mono);
+    font-size: 0.95em;
+    white-space: nowrap;
+  }
+
+  /* ---------- Plan sections (#40, #41) ---------- */
+  .k-section {
+    display: grid;
+    gap: var(--space-s);
+    scroll-margin-block-start: var(--space-s);
+  }
+
+  .k-section__title-block {
+    display: none;
+  }
+
   /* ---------- Icons ---------- */
   .k-icon {
     display: inline-block;
@@ -92,6 +153,10 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .k-compact-select .k-field__input {
+    inline-size: auto;
+  }
+
   .k-field__input:focus-visible {
     border-color: var(--input-border);
   }
@@ -125,6 +190,22 @@
 
   .k-field__input[readonly] {
     background: var(--sunken);
+  }
+
+  .k-fieldset {
+    display: grid;
+    gap: var(--space-s);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-inline-size: 0;
+  }
+
+  .k-fieldset > legend {
+    padding: 0;
+    margin-block-end: var(--space-2xs);
+    font-size: var(--size-1);
+    font-weight: 700;
   }
 
   /* ---------- Error text and summary ---------- */
@@ -389,6 +470,11 @@
     transform: rotate(180deg);
   }
 
+  .k-disclosure[data-size="small"] > summary {
+    min-block-size: auto;
+    font-size: var(--size--1);
+  }
+
   .k-disclosure__body {
     padding-block-start: var(--space-xs);
   }
@@ -499,6 +585,24 @@
 
 @layer print {
   @media print {
+    /* Each section of the plan starts a page with its title block (#41). */
+    .k-section {
+      break-before: page;
+    }
+
+    .k-section__title-block {
+      display: block;
+      padding-block-end: 4pt;
+      border-block-end: 1px solid var(--text);
+      font-size: 9pt;
+    }
+
+    .k-card,
+    .k-flag,
+    .k-table tr {
+      break-inside: avoid;
+    }
+
     .k-disclosure > summary .k-icon {
       display: none;
     }

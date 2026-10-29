@@ -37,7 +37,9 @@ describe.each(storedSnapshots.map((s, i) => [i, s] as const))(
         ),
         ...c.factors.filter((f) => f.sources.length > 0),
       ]);
-      expect(html.match(/<details class="source">/g)?.length ?? 0).toBe(withSources.length);
+      expect(html.match(/<details class="k-disclosure" data-size="small">/g)?.length ?? 0).toBe(
+        withSources.length,
+      );
     });
   },
 );

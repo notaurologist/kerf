@@ -192,7 +192,7 @@ describe('MeasureTable', () => {
   });
 
   it('labels each cell, so stacked rows on a phone still say what each value is', () => {
-    expect(html).toContain('<td data-label="Length" data-numeric="">120&quot;</td>');
+    expect(html).toContain('<td data-label="Length" data-numeric=""><div>120&quot;</div></td>');
   });
 });
 

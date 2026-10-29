@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stage 6 (#45) is being built in four parts, #78 to #81.
+Status: in progress. Stage 6 (#45): foundations, components, and screens are built (#78 to #80); guidance and the owner's review remain (#81).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -53,6 +53,23 @@ Checked by hand in the catalog, October 2026:
 | Reflow (WCAG 1.4.10) | No sideways scrolling at 360 px or at 640 px (a 1280 px window at 200%); the measurement table stacks into labeled rows. The browser pane used could not go below 360 px, so 320 px itself was not tested. |
 | Reduced motion | The rule is in the reset layer and outranks every later layer. The only motion is the disclosure arrow's 0.15 s turn. The preference could not be switched on in the browser used, so the rule was confirmed, not seen in effect. |
 | Screen reader | Not tested with VoiceOver; covered by the render tests' roles and names. Worth a pass in #81. |
+
+### Screens (#80)
+
+Every M4 screen is built from `apps/web/src/ui` only: login, projects, tools, the editor, and the plan. `ui/screens.test.ts` fails if any file outside `ui/` writes `className` or `style`, or imports a stylesheet. The old `styles.css` and its `legacy` layer are gone. The changes the stages called for:
+
+- The plan reads in section order A (#40): summary, structural review, cut list, shopping list. On paper each section starts a page with a title block naming the project and the section (#41), and every "Show the working" opens for printing.
+- The editor follows #67:
+  - an error summary at the top that takes focus, with each problem linked to its field;
+  - errors beside fields only after a save, with core's reading under each length while typing;
+  - "Input needed" on empty structural inputs;
+  - a busy Save button, and read-only fields while saving;
+  - "Not saved." with the reason when the server cannot be reached, keeping what was typed;
+  - a "Saved." line on the plan afterwards;
+  - a prompt before leaving with unsaved changes, from any link or when the tab closes.
+- The 14 screen strings from #68's audit are changed. The core hardware note waits for the next template version bump (0008).
+
+Checked in the browser with the worked example's stored snapshot served in place of the API, at 375 px and about 820 px, in light and dark: the plan, the editor's failed save and leave prompt, and the tools screen. No page scrolls sideways, and long formulas scroll within their own line. Print was not checked in a browser; it is worth checking on paper in #81.
 
 ## Stage 5b: words (#68)
 

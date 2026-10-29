@@ -1,4 +1,5 @@
 import { designValues } from '@kerf/core';
+import { Disclosure, List, Text } from '../../ui/index.ts';
 
 type CitationData = designValues.Citation;
 
@@ -15,13 +16,13 @@ export function Citation(props: { citation: CitationData }) {
 
 export function CitationList(props: { citations: readonly CitationData[] }) {
   return (
-    <ul className="citations">
+    <List>
       {props.citations.map((c) => (
         <li key={`${c.source}/${c.locator}`}>
           <Citation citation={c} />
         </li>
       ))}
-    </ul>
+    </List>
   );
 }
 
@@ -29,10 +30,9 @@ export function CitationList(props: { citations: readonly CitationData[] }) {
 export function SourceToggle(props: { citations: readonly CitationData[] | undefined }) {
   if (!props.citations || props.citations.length === 0) return null;
   return (
-    <details className="source">
-      <summary>Source</summary>
+    <Disclosure summary="Source" size="small">
       <CitationList citations={props.citations} />
-    </details>
+    </Disclosure>
   );
 }
 
@@ -40,7 +40,7 @@ export function SourceToggle(props: { citations: readonly CitationData[] | undef
 export function SourceList(props: { citations: readonly CitationData[] }) {
   const ids = [...new Set(props.citations.map((c) => c.source))];
   return (
-    <ul className="citations">
+    <List>
       {ids.map((id) => {
         const source = designValues.SOURCES[id];
         return (
@@ -49,10 +49,15 @@ export function SourceList(props: { citations: readonly CitationData[] }) {
               {source.title}
             </a>
             , {source.publisher}, {source.edition}.
-            {'note' in source && source.note ? <span className="muted"> {source.note}</span> : null}
+            {'note' in source && source.note ? (
+              <Text tone="muted" as="span">
+                {' '}
+                {source.note}
+              </Text>
+            ) : null}
           </li>
         );
       })}
-    </ul>
+    </List>
   );
 }
