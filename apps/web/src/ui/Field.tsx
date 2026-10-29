@@ -107,24 +107,57 @@ export interface Option {
   label: string;
 }
 
-/** A choice with nothing chosen at first: no option is a stand-in value (hard rule 3). */
+/**
+ * A choice with nothing chosen at first, so no option is a stand-in value (hard rule 3), unless
+ * the menu always has a value.
+ */
 export function Select(
   props: ControlProps & {
     value: string;
     onChange: (value: string) => void;
     options: readonly Option[];
+    /** False for a menu that always has a value, such as a capability's kind. */
+    placeholder?: boolean;
   },
 ) {
-  const { value, onChange, options, ...rest } = props;
+  const { value, onChange, options, placeholder = true, ...rest } = props;
   return (
     <select {...rest} value={value} onChange={(e) => onChange(e.target.value)}>
-      <option value="">Choose…</option>
+      {placeholder && <option value="">Choose…</option>}
       {options.map((o) => (
         <option key={o.value} value={o.value}>
           {o.label}
         </option>
       ))}
     </select>
+  );
+}
+
+/**
+ * A menu that always has a value, such as a project's status, with its label read by screen
+ * readers only, for a row where the layout already says what it is.
+ */
+export function CompactSelect(props: {
+  label: string;
+  value: string;
+  options: readonly Option[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="k-compact-select">
+      <span className="k-visually-hidden">{props.label}</span>
+      <select
+        className="k-field__input"
+        value={props.value}
+        onChange={(e) => props.onChange(e.target.value)}
+      >
+        {props.options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -138,5 +171,16 @@ export function YesNo(props: ControlProps & { value: string; onChange: (value: s
         { value: 'false', label: 'No' },
       ]}
     />
+  );
+}
+
+/** Related fields under one heading, such as "Frame" or "Loads", with optional help. */
+export function FieldGroup(props: { legend: string; help?: ReactNode; children: ReactNode }) {
+  return (
+    <fieldset className="k-fieldset">
+      <legend>{props.legend}</legend>
+      {props.help && <p className="k-field__hint">{props.help}</p>}
+      {props.children}
+    </fieldset>
   );
 }

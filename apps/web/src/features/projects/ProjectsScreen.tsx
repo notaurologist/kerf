@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Notice } from '../../components/Shell.tsx';
 import { api, describeError, send } from '../../lib/api.ts';
 import { href } from '../../lib/route.ts';
 import {
@@ -11,6 +10,17 @@ import {
   type TemplateSummary,
 } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
+import {
+  ButtonLink,
+  Card,
+  Cluster,
+  CompactSelect,
+  Loading,
+  Notice,
+  PlainList,
+  Stack,
+  Text,
+} from '../../ui/index.ts';
 
 // Projects with their status (PRODUCT.md, MVP features 2 and 8), most recently updated first.
 
@@ -29,8 +39,8 @@ export function ProjectsScreen() {
   }, 'projects');
   const [error, setError] = useState<string | null>(null);
 
-  if (loaded.state === 'loading') return <Notice>Loading projects…</Notice>;
-  if (loaded.state === 'error') return <Notice tone="error">{describeError(loaded.error)}</Notice>;
+  if (loaded.state === 'loading') return <Loading>Loading projects…</Loading>;
+  if (loaded.state === 'error') return <Notice>{describeError(loaded.error)}</Notice>;
   const { projects, templates } = loaded.value;
 
   const changeStatus = async (id: string, status: ProjectStatus) => {
@@ -68,58 +78,49 @@ export function ProjectList(props: {
 }) {
   const templateName = (id: string) => props.templates.find((t) => t.id === id)?.name ?? id;
   return (
-    <>
+    <Stack>
       <h1>Projects</h1>
-      <div className="row">
+      <Cluster>
         {props.templates.map((t) => (
-          <a
-            key={t.id}
-            className="button primary"
-            href={href({ screen: 'new-project', templateId: t.id })}
-          >
+          <ButtonLink key={t.id} href={href({ screen: 'new-project', templateId: t.id })}>
             New {t.name.charAt(0).toLowerCase() + t.name.slice(1)}
-          </a>
+          </ButtonLink>
         ))}
-      </div>
-      {props.error && <Notice tone="error">{props.error}</Notice>}
+      </Cluster>
+      {props.error && <Notice>{props.error}</Notice>}
       {props.projects.length === 0 ? (
-        <Notice>No projects yet.</Notice>
+        <Text>No projects yet. Start one with a New button above.</Text>
       ) : (
-        <ul className="plain stack projects">
+        <PlainList>
           {props.projects.map((p) => (
-            <li key={p.id} className="card">
-              <div className="row spread">
-                <a className="project-name" href={href({ screen: 'project', id: p.id })}>
-                  {p.name}
-                </a>
-                <label className="inline">
-                  <span className="visually-hidden">Status of {p.name}</span>
-                  <select
+            <Card key={p.id} as="li">
+              <Stack gap="2xs">
+                <Cluster spread>
+                  <a href={href({ screen: 'project', id: p.id })}>
+                    <b>{p.name}</b>
+                  </a>
+                  <CompactSelect
+                    label={`Status of ${p.name}`}
                     value={p.status}
-                    onChange={(e) => props.onStatus(p.id, e.target.value as ProjectStatus)}
-                  >
-                    {STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {STATUS_LABELS[s]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <p className="muted">
-                {templateName(p.templateId)}, version {p.templateVersion}. Updated{' '}
-                {new Date(p.updatedAt).toLocaleDateString()}.
-              </p>
-              {p.templateBehind && (
-                <p className="notice">
-                  The template has a newer version. Open the project to see what regenerating would
-                  change.
-                </p>
-              )}
-            </li>
+                    options={STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+                    onChange={(status) => props.onStatus(p.id, status as ProjectStatus)}
+                  />
+                </Cluster>
+                <Text tone="muted">
+                  {templateName(p.templateId)}, version {p.templateVersion}. Updated{' '}
+                  {new Date(p.updatedAt).toLocaleDateString()}.
+                </Text>
+                {p.templateBehind && (
+                  <Text>
+                    The template has a newer version. Open the project to see what regenerating
+                    would change.
+                  </Text>
+                )}
+              </Stack>
+            </Card>
           ))}
-        </ul>
+        </PlainList>
       )}
-    </>
+    </Stack>
   );
 }

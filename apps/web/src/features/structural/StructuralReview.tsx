@@ -5,12 +5,26 @@ import {
   type Flag,
   structural,
 } from '@kerf/core';
-import { Measured } from '../../components/Measured.tsx';
 import { href } from '../../lib/route.ts';
+import {
+  Card,
+  Code,
+  Disclosure,
+  ExpertCheck,
+  InputNeeded,
+  Length,
+  List,
+  MarginLine,
+  Measured,
+  MeasureTable,
+  PlainList,
+  Stack,
+  Text,
+} from '../../ui/index.ts';
 import { CitationList, SourceList, SourceToggle } from './Citation.tsx';
 
-// The structural review (PRODUCT.md, MVP feature 7): sanity checks with their full working, the
-// design's expert-check flags, and the confirmation checklist. Results are margins under stated
+// The structural review (PRODUCT.md, MVP feature 7): structural checks with their full working,
+// the design's expert checks, and the confirmation checklist. Results are margins under stated
 // assumptions, never verdicts (decision 0001). Every number comes formatted from core.
 
 type CheckResult = structural.CheckResult;
@@ -24,205 +38,229 @@ export function StructuralReview(props: {
   checklist: readonly ChecklistItem[];
 }) {
   return (
-    <>
-      <p className="muted">
-        Sanity checks, not an engineered design. A margin is the allowable value divided by the
+    <Stack>
+      <Text tone="muted">
+        Structural checks, not an engineered design. A margin is the allowable value divided by the
         computed one, under the assumptions listed with it. Judge each one with an experienced
         builder.
-      </p>
-      <h3>Sanity checks</h3>
-      <div className="stack">
+      </Text>
+      <h3>Structural checks</h3>
+      <Stack>
         {props.checks.map((check) => (
           <Check key={`${check.kind}/${check.subject}`} check={check} projectId={props.projectId} />
         ))}
-      </div>
+      </Stack>
 
       {props.flags.length > 0 && (
         <>
-          <h3>Ask an experienced builder</h3>
-          <ul className="plain stack">
+          <h3>Expert checks</h3>
+          <PlainList>
             {props.flags.map((flag) => (
-              <li key={flag.ask} className="card flag">
-                <strong>{FLAG_CATEGORY_LABELS[flag.category]}</strong>
-                <p>
+              <li key={flag.ask}>
+                <ExpertCheck
+                  label={`Expert check · ${FLAG_CATEGORY_LABELS[flag.category]}`}
+                  why={<Measured text={flag.why} />}
+                >
                   <Measured text={flag.ask} />
-                </p>
-                <p className="muted">
-                  <Measured text={flag.why} />
-                </p>
+                </ExpertCheck>
               </li>
             ))}
-          </ul>
+          </PlainList>
         </>
       )}
 
       <SourcesUsed checks={props.checks} />
 
       <h3>Confirmation checklist</h3>
-      <p className="muted">Not computed. Confirm each with an experienced builder.</p>
-      <ul className="plain stack">
+      <Text tone="muted">Not computed. Confirm each with an experienced builder.</Text>
+      <PlainList>
         {props.checklist.map((item) => (
-          <li key={`${item.category}/${item.element}`} className="card">
-            <span className="muted">{CHECKLIST_CATEGORY_LABELS[item.category]}</span>
-            <br />
-            <strong>{item.element}</strong>
-            <p>
-              <Measured text={item.confirm} />
-            </p>
-            <p className="muted">
-              <Measured text={item.why} />
-            </p>
-          </li>
+          <Card key={`${item.category}/${item.element}`} as="li">
+            <Stack gap="2xs">
+              <Text tone="muted" size="small">
+                {CHECKLIST_CATEGORY_LABELS[item.category]}
+              </Text>
+              <b>{item.element}</b>
+              <Text>
+                <Measured text={item.confirm} />
+              </Text>
+              <Text tone="muted">
+                <Measured text={item.why} />
+              </Text>
+            </Stack>
+          </Card>
         ))}
-      </ul>
-    </>
+      </PlainList>
+    </Stack>
   );
 }
 
 function Check(props: { check: CheckResult; projectId: string }) {
   const { check } = props;
   return (
-    <section className={`card check ${check.status}`}>
-      <h4>
-        {check.title}: {check.subject}
-      </h4>
-      <p className="muted">{check.loadCase}</p>
-      {check.status === 'computed' && (
-        <>
-          <p className="margin">{formatMargin(check.margin)} under these assumptions</p>
-          <p>
-            Computed {check.computed.label.toLowerCase()} {check.computed.symbol} ={' '}
-            <Value q={check.computed} />; allowed {check.allowable.symbol} ={' '}
-            <Value q={check.allowable} />.
-          </p>
-          <Working check={check} />
-        </>
-      )}
-      {check.status === 'input-needed' && (
-        <>
-          <p className="margin">Input needed</p>
-          <ul>
-            {check.missing.map((m) => (
-              <li key={m.key}>{m.label}</li>
-            ))}
-          </ul>
-          <a href={href({ screen: 'edit-project', id: props.projectId })}>
-            Enter structural inputs
-          </a>
-        </>
-      )}
-      {check.status === 'not-computed' && (
-        <>
-          <p className="margin">Not computed</p>
-          <p>{check.reason}</p>
-          {check.sources.length > 0 && <CitationList citations={check.sources} />}
-        </>
-      )}
-    </section>
+    <Card as="section">
+      <Stack gap="xs">
+        <h4>
+          {check.title}: {check.subject}
+        </h4>
+        <Text tone="muted">{check.loadCase}</Text>
+        {check.status === 'computed' && (
+          <>
+            <MarginLine margin={formatMargin(check.margin)} />
+            <Text>
+              Computed {check.computed.label.toLowerCase()} {check.computed.symbol} ={' '}
+              <Value q={check.computed} />; allowed {check.allowable.symbol} ={' '}
+              <Value q={check.allowable} />.
+            </Text>
+            <Working check={check} />
+          </>
+        )}
+        {check.status === 'input-needed' && (
+          <>
+            <div>
+              <InputNeeded />
+            </div>
+            <List>
+              {check.missing.map((m) => (
+                <li key={m.key}>{m.label}</li>
+              ))}
+            </List>
+            <a href={href({ screen: 'edit-project', id: props.projectId })}>
+              Enter structural inputs
+            </a>
+          </>
+        )}
+        {check.status === 'not-computed' && (
+          <>
+            <b>Not computed</b>
+            <Text>{check.reason}</Text>
+            {check.sources.length > 0 && <CitationList citations={check.sources} />}
+          </>
+        )}
+      </Stack>
+    </Card>
   );
 }
 
 function Value(props: { q: Pick<Quantity, 'value' | 'unit'> }) {
-  return <span className="nowrap">{formatQuantity(props.q)}</span>;
+  return <Length>{formatQuantity(props.q)}</Length>;
 }
 
 function Working(props: { check: Extract<CheckResult, { status: 'computed' }> }) {
   const { check } = props;
   return (
-    <details className="working">
-      <summary>Show the working</summary>
-      <h5>Inputs</h5>
-      <Quantities list={check.inputs} />
-      <h5>Formulas</h5>
-      <ol className="formulas">
-        {check.formulas.map((f) => (
-          <li key={f}>
-            <code>{f}</code>
-          </li>
-        ))}
-      </ol>
-      {check.sources.length > 0 && (
-        <>
-          <p className="muted">Formulas from:</p>
-          <CitationList citations={check.sources} />
-        </>
-      )}
-      {check.steps.length > 0 && (
-        <>
-          <h5>Steps</h5>
-          <Quantities list={check.steps} />
-        </>
-      )}
-      {check.factors.length > 0 && (
-        <>
-          <h5>Adjustment factors</h5>
-          <table className="list working-table">
-            <thead>
-              <tr>
-                <th>Factor</th>
-                <th className="number">Value</th>
-                <th>Why</th>
-              </tr>
-            </thead>
-            <tbody>
-              {check.factors.map((f) => (
-                <tr key={f.symbol}>
-                  <td data-label="Factor">
-                    <code>{f.symbol}</code> {f.name}{' '}
-                    <span className="muted">(on {f.appliesTo.join(', ')})</span>
-                  </td>
-                  <td data-label="Value" className="number">
-                    <Value q={{ value: f.value, unit: '' }} />
-                  </td>
-                  <td data-label="Why">
-                    {f.reason}
-                    <SourceToggle citations={f.sources} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      )}
-      <h5>Result</h5>
-      <Quantities list={[check.computed, check.allowable]} />
-      <p>
-        margin = {check.allowable.symbol} / {check.computed.symbol} ={' '}
-        <strong>{formatMargin(check.margin)}</strong>
-      </p>
-      <h5>Assumptions</h5>
-      <ul>
-        {check.assumptions.map((a) => (
-          <li key={a}>
-            <Measured text={a} />
-          </li>
-        ))}
-      </ul>
-    </details>
+    <Disclosure summary="Show the working">
+      <Stack>
+        <h5>Inputs</h5>
+        <Quantities caption="Inputs" list={check.inputs} />
+        <h5>Formulas</h5>
+        <List ordered>
+          {check.formulas.map((f) => (
+            <li key={f}>
+              <Code>{f}</Code>
+            </li>
+          ))}
+        </List>
+        {check.sources.length > 0 && (
+          <>
+            <Text tone="muted">Formulas from:</Text>
+            <CitationList citations={check.sources} />
+          </>
+        )}
+        {check.steps.length > 0 && (
+          <>
+            <h5>Steps</h5>
+            <Quantities caption="Steps" list={check.steps} />
+          </>
+        )}
+        {check.factors.length > 0 && (
+          <>
+            <h5>Adjustment factors</h5>
+            <MeasureTable
+              caption="Adjustment factors"
+              captionHidden
+              rows={check.factors}
+              rowKey={(f) => f.symbol}
+              columns={[
+                {
+                  key: 'factor',
+                  label: 'Factor',
+                  cell: (f) => (
+                    <>
+                      <Code>{f.symbol}</Code> {f.name}{' '}
+                      <Text tone="muted" as="span">
+                        (on {f.appliesTo.join(', ')})
+                      </Text>
+                    </>
+                  ),
+                },
+                {
+                  key: 'value',
+                  label: 'Value',
+                  numeric: true,
+                  cell: (f) => <Value q={{ value: f.value, unit: '' }} />,
+                },
+                {
+                  key: 'why',
+                  label: 'Why',
+                  cell: (f) => (
+                    <>
+                      {f.reason}
+                      <SourceToggle citations={f.sources} />
+                    </>
+                  ),
+                },
+              ]}
+            />
+          </>
+        )}
+        <h5>Result</h5>
+        <Quantities caption="Result" list={[check.computed, check.allowable]} />
+        <Text>
+          margin = {check.allowable.symbol} / {check.computed.symbol} ={' '}
+          <b>{formatMargin(check.margin)}</b>
+        </Text>
+        <h5>Assumptions</h5>
+        <List>
+          {check.assumptions.map((a) => (
+            <li key={a}>
+              <Measured text={a} />
+            </li>
+          ))}
+        </List>
+      </Stack>
+    </Disclosure>
   );
 }
 
-function Quantities(props: { list: readonly Quantity[] }) {
+function Quantities(props: { caption: string; list: readonly Quantity[] }) {
   return (
-    <table className="list working-table">
-      <tbody>
-        {props.list.map((q) => (
-          <tr key={`${q.symbol}/${q.label}`}>
-            <td data-label="Symbol">
-              <code>{q.symbol}</code>
-            </td>
-            <td data-label="What">
+    <MeasureTable
+      caption={props.caption}
+      captionHidden
+      rows={props.list}
+      rowKey={(q) => `${q.symbol}/${q.label}`}
+      columns={[
+        { key: 'symbol', label: 'Symbol', cell: (q) => <Code>{q.symbol}</Code> },
+        {
+          key: 'what',
+          label: 'What',
+          cell: (q) => (
+            <>
               {q.label}
-              {q.basis && <span className="muted"> ({q.basis})</span>}
+              {q.basis && (
+                <Text tone="muted" as="span">
+                  {' '}
+                  ({q.basis})
+                </Text>
+              )}
               <SourceToggle citations={q.sources} />
-            </td>
-            <td data-label="Value" className="number">
-              <Value q={q} />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+            </>
+          ),
+        },
+        { key: 'value', label: 'Value', numeric: true, cell: (q) => <Value q={q} /> },
+      ]}
+    />
   );
 }
 
@@ -243,9 +281,8 @@ function SourcesUsed(props: { checks: readonly CheckResult[] }) {
   const citations = citationsIn(props.checks);
   if (citations.length === 0) return null;
   return (
-    <details className="sources-used">
-      <summary>Publications these checks draw on</summary>
+    <Disclosure summary="Publications these checks draw on">
       <SourceList citations={citations} />
-    </details>
+    </Disclosure>
   );
 }

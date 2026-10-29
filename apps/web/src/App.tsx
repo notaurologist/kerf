@@ -1,12 +1,12 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Notice, Shell } from './components/Shell.tsx';
 import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
 import { LoginScreen } from './features/login/LoginScreen.tsx';
 import { ProjectScreen } from './features/project/ProjectScreen.tsx';
 import { EditProjectScreen, NewProjectScreen } from './features/project-editor/ProjectEditor.tsx';
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
-import { type Route, useRoute } from './lib/route.ts';
+import { href, type Route, useRoute } from './lib/route.ts';
+import { Button, Header, Loading, Notice, Page, Stack, Text } from './ui/index.ts';
 
 // The design system's catalog (#45), loaded only when opened: it carries the worked example's
 // snapshot for its sample values.
@@ -28,12 +28,12 @@ export function Screen(props: { route: Route }) {
       return <ProjectScreen id={props.route.id} />;
     case 'catalog':
       return (
-        <Suspense fallback={<Notice>Loading components…</Notice>}>
+        <Suspense fallback={<Loading>Loading components…</Loading>}>
           <Catalog />
         </Suspense>
       );
     case 'not-found':
-      return <Notice>There is no page here.</Notice>;
+      return <Text>There is no page here.</Text>;
   }
 }
 
@@ -63,30 +63,50 @@ export function App() {
     setSession('logged-out');
   };
 
-  if (session === 'checking') return <AppMessage>Loading…</AppMessage>;
+  if (session === 'checking') {
+    return (
+      <Page>
+        <Loading>Loading…</Loading>
+      </Page>
+    );
+  }
   if (session === 'logged-out') return <LoginScreen onLoggedIn={() => setSession('logged-in')} />;
   if (typeof session === 'object') {
     return (
-      <AppMessage>
-        {session.unreachable}{' '}
-        <button type="button" className="link" onClick={check}>
-          Try again
-        </button>
-      </AppMessage>
+      <Page>
+        <Stack>
+          <h1>Kerf</h1>
+          <Notice icon="connection">{session.unreachable}</Notice>
+          <div>
+            <Button onClick={check}>Try again</Button>
+          </div>
+        </Stack>
+      </Page>
     );
   }
+  const section =
+    route.screen === 'tools' ? 'tools' : route.screen === 'catalog' ? null : 'projects';
   return (
-    <Shell route={route} onLogout={() => void logout()}>
-      <Screen route={route} />
-    </Shell>
-  );
-}
-
-function AppMessage(props: { children: React.ReactNode }) {
-  return (
-    <main className="page">
-      <h1>Kerf</h1>
-      <p>{props.children}</p>
-    </main>
+    <>
+      <Header
+        brandHref={href({ screen: 'projects' })}
+        nav={[
+          {
+            label: 'Projects',
+            href: href({ screen: 'projects' }),
+            current: section === 'projects',
+          },
+          { label: 'Tools', href: href({ screen: 'tools' }), current: section === 'tools' },
+        ]}
+        end={
+          <Button variant="link" onClick={() => void logout()}>
+            Log out
+          </Button>
+        }
+      />
+      <Page>
+        <Screen route={route} />
+      </Page>
+    </>
   );
 }

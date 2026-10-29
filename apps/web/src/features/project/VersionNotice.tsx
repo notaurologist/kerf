@@ -2,6 +2,18 @@ import { structural } from '@kerf/core';
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import type { Project } from '../../lib/types.ts';
+import {
+  Button,
+  Card,
+  Cluster,
+  Code,
+  Disclosure,
+  ErrorText,
+  List,
+  MeasureTable,
+  Stack,
+  Text,
+} from '../../ui/index.ts';
 
 // Tells the owner when a project's template has a newer version, what regenerating would change,
 // and regenerates only when asked (decision 0008). The stored plan is never replaced otherwise.
@@ -27,10 +39,13 @@ export function VersionNotice(props: {
 
   if (report.status === 'ahead') {
     return (
-      <div className="notice" role="status">
-        This plan was made with template version {report.storedVersion}, newer than the version this
-        app has ({report.currentVersion}). It is shown as stored and cannot be regenerated here.
-      </div>
+      <Card>
+        <Text>
+          This plan was made with template version {report.storedVersion}, newer than the version
+          this app has ({report.currentVersion}). It is shown as stored and cannot be regenerated
+          here.
+        </Text>
+      </Card>
     );
   }
 
@@ -48,87 +63,82 @@ export function VersionNotice(props: {
 
   const { regenerated } = report;
   return (
-    <div className="notice version" role="status">
-      <p>
-        <strong>The template has a newer version.</strong> This plan was made with version{' '}
-        {report.storedVersion}; the current version is {report.currentVersion}. The plan below is
-        version {report.storedVersion}'s, unchanged.
-      </p>
-      {regenerated.ok ? (
-        regenerated.changes.length === 0 ? (
-          <p>Regenerating would change no values.</p>
-        ) : (
-          <details>
-            <summary>
-              Regenerating would change {regenerated.changes.length}
-              {regenerated.truncated ? ' or more' : ''} values
-            </summary>
-            <table className="list keep changes">
-              <thead>
-                <tr>
-                  <th>Value</th>
-                  <th>Now</th>
-                  <th>After regenerating</th>
-                </tr>
-              </thead>
-              <tbody>
-                {regenerated.changes.map((c) => (
-                  <tr key={c.path}>
-                    <td>
-                      <code>{c.path}</code>
-                    </td>
-                    <td>{reportValue(c.before)}</td>
-                    <td>{reportValue(c.after)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {regenerated.truncated && (
-              <p className="muted">
-                Only the first {regenerated.changes.length} changes are listed.
-              </p>
-            )}
-          </details>
-        )
-      ) : (
-        <>
-          <p>Version {report.currentVersion} cannot make a plan from this project's values:</p>
-          <ul>
-            {regenerated.issues.map((i) => (
-              <li key={`${i.code}/${i.message}`}>{i.message}</li>
-            ))}
-          </ul>
-          <p>Edit the project to change them; saving regenerates with the current version.</p>
-        </>
-      )}
-      {regenerated.ok &&
-        (confirming ? (
-          <div className="row">
-            <span>
-              Replace the stored plan with version {report.currentVersion}'s? This cannot be undone.
-            </span>
-            <button
-              type="button"
-              className="primary"
-              disabled={busy}
-              onClick={() => void regenerate()}
+    <Card as="section">
+      <Stack gap="xs">
+        <Text>
+          <b>The template has a newer version.</b> This plan was made with version{' '}
+          {report.storedVersion}; the current version is {report.currentVersion}. The plan below is
+          version {report.storedVersion}'s, unchanged.
+        </Text>
+        {regenerated.ok ? (
+          regenerated.changes.length === 0 ? (
+            <Text>Regenerating would change no values.</Text>
+          ) : (
+            <Disclosure
+              summary={`Regenerating would change ${regenerated.changes.length}${regenerated.truncated ? ' or more' : ''} values`}
             >
-              {busy ? 'Regenerating…' : 'Regenerate'}
-            </button>
-            <button type="button" disabled={busy} onClick={() => setConfirming(false)}>
-              Keep this plan
-            </button>
-          </div>
+              <MeasureTable
+                caption="Values regenerating would change"
+                captionHidden
+                rows={regenerated.changes}
+                rowKey={(c) => c.path}
+                columns={[
+                  { key: 'value', label: 'Value', cell: (c) => <Code>{c.path}</Code> },
+                  { key: 'now', label: 'Now', cell: (c) => reportValue(c.before) },
+                  { key: 'after', label: 'After regenerating', cell: (c) => reportValue(c.after) },
+                ]}
+              />
+              {regenerated.truncated && (
+                <Text tone="muted">
+                  Only the first {regenerated.changes.length} changes are listed.
+                </Text>
+              )}
+            </Disclosure>
+          )
         ) : (
-          <button type="button" onClick={() => setConfirming(true)}>
-            Regenerate with version {report.currentVersion}
-          </button>
-        ))}
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
+          <>
+            <Text>
+              Version {report.currentVersion} cannot make a plan from this project's values:
+            </Text>
+            <List>
+              {regenerated.issues.map((i) => (
+                <li key={`${i.code}/${i.message}`}>{i.message}</li>
+              ))}
+            </List>
+            <Text>
+              Edit the project to change them; saving regenerates with the current version.
+            </Text>
+          </>
+        )}
+        {regenerated.ok &&
+          (confirming ? (
+            <Stack gap="xs">
+              <Text>
+                Replace the stored plan with version {report.currentVersion}'s? This cannot be
+                undone.
+              </Text>
+              <Cluster>
+                <Button busy={busy} onClick={() => void regenerate()}>
+                  {busy ? 'Regenerating…' : 'Regenerate'}
+                </Button>
+                <Button variant="secondary" onClick={() => setConfirming(false)}>
+                  Keep this plan
+                </Button>
+              </Cluster>
+            </Stack>
+          ) : (
+            <div>
+              <Button variant="secondary" onClick={() => setConfirming(true)}>
+                Regenerate with version {report.currentVersion}
+              </Button>
+            </div>
+          ))}
+        {error && (
+          <div role="alert">
+            <ErrorText>{error}</ErrorText>
+          </div>
+        )}
+      </Stack>
+    </Card>
   );
 }

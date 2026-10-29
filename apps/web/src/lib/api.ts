@@ -127,7 +127,11 @@ export async function send<R extends ClientResponse<unknown>>(
   } catch {
     return {
       ok: false,
-      error: { kind: 'failed', status: 0, message: 'Could not reach the server.' },
+      error: {
+        kind: 'failed',
+        status: 0,
+        message: 'Kerf could not reach the server. Check your connection, then try again.',
+      },
     };
   }
   const response = res as unknown as Response;

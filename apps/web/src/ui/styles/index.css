@@ -3,8 +3,7 @@
  * specificity never decides which wins between groups. Screens write no styles of their own;
  * they are built from components (#79) and the layout primitives here.
  */
-/* legacy holds the old stylesheet until the screens are rebuilt (#80). */
-@layer reset, tokens, base, layout, legacy, components, print;
+@layer reset, tokens, base, layout, components, print;
 
 @import "./fonts.css";
 @import "./reset.css";

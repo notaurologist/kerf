@@ -27,7 +27,7 @@ describe('a new project form', () => {
   it('asks for the structural inputs, and says they may be left for later', () => {
     expect(html).toContain('Beam species and grade');
     expect(html).toContain('Swing hanger rated working load');
-    expect(html).toContain('input needed');
+    expect(html).toContain('Input needed');
   });
 });
 
@@ -75,7 +75,7 @@ describe('typing a length', () => {
 
   it('gives lengths the full keyboard, with autocorrect off, and no inch unit', () => {
     expect(html).toMatch(
-      /id="p-beamHeight" inputMode="text" autoCapitalize="off" autoCorrect="off"/,
+      /id="p-beamHeight"[^>]*inputMode="text" autoCapitalize="off" autoCorrect="off"/,
     );
     expect(html).toContain('Inches, or feet and inches.');
   });

@@ -7,12 +7,16 @@ import type { ReactNode } from 'react';
 export interface Column<Row> {
   key: string;
   label: string;
+  /** The label in full for screen readers, when `label` is shortened for a narrow column. */
+  fullLabel?: string;
   numeric?: boolean;
   cell: (row: Row) => ReactNode;
 }
 
 export function MeasureTable<Row>(props: {
+  /** Shown above the table; when the surrounding heading already names it, read only. */
   caption: ReactNode;
+  captionHidden?: boolean;
   columns: readonly Column<Row>[];
   rows: readonly Row[];
   rowKey: (row: Row) => string;
@@ -20,12 +24,21 @@ export function MeasureTable<Row>(props: {
   return (
     <div className="k-table-wrap">
       <table className="k-table">
-        <caption>{props.caption}</caption>
+        <caption className={props.captionHidden ? 'k-visually-hidden' : undefined}>
+          {props.caption}
+        </caption>
         <thead>
           <tr>
             {props.columns.map((c) => (
               <th key={c.key} scope="col" data-numeric={c.numeric ? '' : undefined}>
-                {c.label}
+                {c.fullLabel ? (
+                  <>
+                    <span aria-hidden="true">{c.label}</span>
+                    <span className="k-visually-hidden">{c.fullLabel}</span>
+                  </>
+                ) : (
+                  c.label
+                )}
               </th>
             ))}
           </tr>
@@ -35,7 +48,8 @@ export function MeasureTable<Row>(props: {
             <tr key={props.rowKey(row)}>
               {props.columns.map((c) => (
                 <td key={c.key} data-label={c.label} data-numeric={c.numeric ? '' : undefined}>
-                  {c.cell(row)}
+                  {/* One box per cell, so stacked rows keep mixed text and lengths together. */}
+                  <div>{c.cell(row)}</div>
                 </td>
               ))}
             </tr>

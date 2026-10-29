@@ -36,7 +36,7 @@ describe('the structural review, worked example with every input', () => {
   it('shows the checklist and the expert-check flags', () => {
     expect(review).toContain('Confirmation checklist');
     expect(review).toContain('Leg-to-beam bolt and gusset, each frame');
-    expect(review).toContain('Ask an experienced builder');
+    expect(review).toContain('Expert check · Load-bearing design');
     expect(review).toContain('Load-bearing design');
   });
 });

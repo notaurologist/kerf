@@ -5,7 +5,16 @@ export { Button, ButtonLink, type ButtonVariant } from './Button.tsx';
 export { DiagramFrame } from './DiagramFrame.tsx';
 export { ConfirmDialog } from './Dialog.tsx';
 export { Disclosure } from './Disclosure.tsx';
-export { type ControlProps, Field, type Option, Select, TextInput, YesNo } from './Field.tsx';
+export {
+  CompactSelect,
+  type ControlProps,
+  Field,
+  FieldGroup,
+  type Option,
+  Select,
+  TextInput,
+  YesNo,
+} from './Field.tsx';
 export {
   ErrorSummary,
   ErrorText,
@@ -18,7 +27,20 @@ export {
   type SummaryItem,
 } from './feedback.tsx';
 export { Icon, type IconName } from './Icon.tsx';
-export { Card, Center, Cluster, Page, Sidebar, type Space, Stack, Switcher } from './layout.tsx';
+export { useLeaveGuard } from './LeaveGuard.tsx';
+export {
+  Card,
+  Center,
+  Cluster,
+  Grid,
+  Page,
+  Sidebar,
+  type Space,
+  Stack,
+  Switcher,
+} from './layout.tsx';
 export { type Column, MeasureTable } from './MeasureTable.tsx';
 export { Glance, Length, MarginLine, Measured, SawSetting } from './numbers.tsx';
+export { PlanSection } from './Section.tsx';
 export { Header, ModeBar, type NavItem } from './Shell.tsx';
+export { Code, List, PlainList, Text, VisuallyHidden } from './text.tsx';
