@@ -1,3 +1,4 @@
+import { swingSetAFrame } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 
@@ -44,7 +45,13 @@ describe('/api/templates', () => {
   it('lists each template with its current version', async () => {
     const { authed } = await createTestApp();
     expect(await (await authed('/api/templates')).json()).toEqual({
-      templates: [{ id: 'swing-set-a-frame', version: 1, name: 'Two-swing A-frame swing set' }],
+      templates: [
+        {
+          id: 'swing-set-a-frame',
+          version: swingSetAFrame.definition.version,
+          name: 'Two-swing A-frame swing set',
+        },
+      ],
     });
   });
 });

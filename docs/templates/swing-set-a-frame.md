@@ -15,6 +15,8 @@ Matches the owner's earlier build (photos reviewed October 2026).
 - **Ground that slopes front to back.** The ground is level along the beam, so the beam is the same height above the ground everywhere. The front legs are downhill. The beam stays level and each A-frame stays plumb, so the front legs are longer.
 - **Feet either buried or on pads.** A burial depth of 0 means each foot sits on a level pad or footing with ground anchors. A depth greater than 0 means each leg continues that far below grade. Either way, each foot gets a level cut.
 
+Template version 2 (#36) changes no geometry or number: it adds sources to the specific gravity G, the pendulum factor 3 − 2·cos θ, and the beam's breadth and depth in the structural working. Projects made with version 1 show the version notice listing those additions.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates

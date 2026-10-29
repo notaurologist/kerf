@@ -100,7 +100,7 @@ Design values and adjustment factors come from the American Wood Council's Natio
 
 The swing set's structural model, supplied by its template to the generic checks.
 
-- **Swing load.** For a rider of weight W swinging to a maximum angle θ from vertical, the total chain tension at the bottom of the arc is W(3 - 2cos θ). At θ = 90° (swinging up to horizontal) that is 3W. Riders swinging in sync add together. This is the smooth pendulum case only: snap loads from slack chains (bouncing, jerking) exceed it, so a user-confirmed dynamic factor is applied on top. No hidden default; the value is chosen with an experienced builder and shown on every result.
+- **Swing load.** For a rider of weight W swinging to a maximum angle θ from vertical, the total chain tension at the bottom of the arc is W(3 - 2cos θ). At θ = 90° (swinging up to horizontal) that is 3W. Riders swinging in sync add together. It follows from two textbook results: released from rest at θ, the rider reaches the bottom at speed v with v² = 2gL(1 - cos θ) (conservation of energy), and the chain then carries the weight plus the centripetal force mv²/L, so T = W + 2W(1 - cos θ) (source 8). This is the smooth pendulum case only: snap loads from slack chains (bouncing, jerking) exceed it, so a user-confirmed dynamic factor is applied on top. No hidden default; the value is chosen with an experienced builder and shown on every result.
 - **Per-hanger load.** Each swing hangs from two hangers. The swing load is split between them, assumed equal for a centered rider; the split is a stated assumption on every result that uses it.
 - **Beam.** Supported at the two frame centerlines, with each hanger as a point load at its own position.
 - **Load cases.** Strength checks (bending, shear, hardware) use the swing load with the dynamic factor. Deflection uses W(3 - 2cos θ) without it, since it describes normal use, not peak snap loads.
@@ -174,5 +174,8 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 5. Southern Forest Products Association, Southern Pine Reference Design Values based on SPIB grading rules, effective June 1, 2013 (corroborates NDS Supplement Table 4B): https://www.southernpine.com/wp-content/uploads/2023/09/TABLE01_L1.pdf
 6. American Wood Council, Design Aid No. 6, Beam Design Formulas with Shear and Moment Diagrams (corroborates the beam formulas): https://awc.org/wp-content/uploads/2021/12/AWC-DA6-BeamFormulas-0710.pdf
 7. Simpson, W. T., Specific Gravity, Moisture Content, and Density Relationship for Wood, USDA Forest Products Laboratory FPL-GTR-76, 1993: https://research.fs.usda.gov/download/treesearch/5914.pdf
+8. Moebs, W., Ling, S. J., and Sanny, J., University Physics Volume 1, OpenStax, 2016: Example 8.7 (Simple Pendulum) and Section 6.3 (Centripetal Force), for the swing load: https://openstax.org/details/books/university-physics-volume-1
+
+Actual (dressed) lumber sizes come from NDS Supplement Table 1B (source 4), whose sizes conform to the American Softwood Lumber Standard, PS 20-20 (Supplement 3.1).
 
 Also relevant: CPSC Public Playground Safety Handbook (Publication 325, 2025 edition), for public playgrounds rather than home use: https://www.cpsc.gov/s3fs-public/325_PublicPlaygroundSafetyHandbook2025_7-30-25_1.pdf

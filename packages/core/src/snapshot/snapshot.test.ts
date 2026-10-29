@@ -124,10 +124,15 @@ describe('readSnapshot', () => {
   });
 });
 
-// A made-up version 2 that lengthens the first part in the cut list, to stand in for a real template change.
-const version2: TemplateDefinition = {
+// Versions relative to the template's current one, so these tests outlive real version bumps.
+const CURRENT = swingSetAFrame.version;
+const SHAPE = swingSetAFrame.snapshotVersion;
+
+// A made-up next version that lengthens the first part in the cut list, to stand in for a real
+// template change.
+const nextVersion: TemplateDefinition = {
   ...(swingSetAFrame as TemplateDefinition),
-  version: 2,
+  version: CURRENT + 1,
   generate(p, i) {
     const result = swingSetAFrame.generate(p as SwingSetParams, i as SwingSetStructuralInputs);
     if (!result.ok) return result;
@@ -143,20 +148,20 @@ const version2: TemplateDefinition = {
 };
 
 describe('compareWithCurrent', () => {
-  const v1 = snapshot(swingSetAFrame, params, inputs);
+  const made = snapshot(swingSetAFrame, params, inputs);
 
   it('reports a snapshot from the current version as current', () => {
-    expect(compareWithCurrent(swingSetAFrame as TemplateDefinition, v1)).toEqual({
+    expect(compareWithCurrent(swingSetAFrame as TemplateDefinition, made)).toEqual({
       status: 'current',
-      version: 1,
+      version: CURRENT,
     });
   });
 
   it('lists what regenerating with a newer version would change', () => {
-    expect(compareWithCurrent(version2, v1)).toEqual({
+    expect(compareWithCurrent(nextVersion, made)).toEqual({
       status: 'behind',
-      storedVersion: 1,
-      currentVersion: 2,
+      storedVersion: CURRENT,
+      currentVersion: CURRENT + 1,
       regenerated: {
         ok: true,
         changes: [{ path: 'cutList[0].length', before: '120"', after: '121"' }],
@@ -167,30 +172,31 @@ describe('compareWithCurrent', () => {
 
   it('reports when the newer version rejects the stored parameters', () => {
     const stricter: TemplateDefinition = {
-      ...version2,
+      ...nextVersion,
       params: z.object({ beamLength: z.number().max(100) }),
     };
-    const report = compareWithCurrent(stricter, v1);
+    const report = compareWithCurrent(stricter, made);
     expect(report).toMatchObject({ status: 'behind', regenerated: { ok: false } });
   });
 
   it('reports a snapshot from a newer version than the code as ahead', () => {
-    const ahead = { ...v1, templateVersion: 3 };
+    const ahead = { ...made, templateVersion: CURRENT + 2 };
     expect(compareWithCurrent(swingSetAFrame as TemplateDefinition, ahead)).toEqual({
       status: 'ahead',
-      storedVersion: 3,
-      currentVersion: 1,
+      storedVersion: CURRENT + 2,
+      currentVersion: CURRENT,
     });
   });
 });
 
-// A made-up shape 2 that renames outputs.cutList to outputs.cuts, with its upgrade.
-const shape2: TemplateDefinition = {
+// A made-up next shape that renames outputs.cutList to outputs.cuts, with its upgrade.
+const nextShape: TemplateDefinition = {
   ...(swingSetAFrame as TemplateDefinition),
-  snapshotVersion: 2,
+  snapshotVersion: SHAPE + 1,
   outputs: z.looseObject({ cuts: z.array(z.unknown()) }),
   snapshotUpgrades: {
-    1: (s) => {
+    ...swingSetAFrame.snapshotUpgrades,
+    [SHAPE]: (s) => {
       const { cutList, ...outputs } = s.outputs as { cutList: unknown };
       return { ...s, outputs: { ...outputs, cuts: cutList } };
     },
@@ -198,27 +204,31 @@ const shape2: TemplateDefinition = {
 };
 
 describe('reading a snapshot stored in an older shape', () => {
-  const stored1 = stored(snapshot(swingSetAFrame, params, inputs)) as {
+  const storedNow = stored(snapshot(swingSetAFrame, params, inputs)) as {
     outputs: { cutList: unknown };
   };
 
   it('upgrades it step by step, keeping its numbers', () => {
-    const read = readSnapshot([shape2], stored1);
-    expect(read).toMatchObject({ ok: true, upgradedFrom: 1, snapshot: { snapshotVersion: 2 } });
+    const read = readSnapshot([nextShape], storedNow);
+    expect(read).toMatchObject({
+      ok: true,
+      upgradedFrom: SHAPE,
+      snapshot: { snapshotVersion: SHAPE + 1 },
+    });
     if (!read.ok) return;
-    expect((read.snapshot.outputs as { cuts: unknown }).cuts).toEqual(stored1.outputs.cutList);
+    expect((read.snapshot.outputs as { cuts: unknown }).cuts).toEqual(storedNow.outputs.cutList);
   });
 
   it('reports a missing upgrade instead of guessing', () => {
-    const noUpgrade = { ...shape2, snapshotUpgrades: {} };
-    expect(readSnapshot([noUpgrade], stored1)).toMatchObject({
+    const noUpgrade = { ...nextShape, snapshotUpgrades: {} };
+    expect(readSnapshot([noUpgrade], storedNow)).toMatchObject({
       ok: false,
       reason: 'missing-upgrade',
     });
   });
 
   it('refuses a snapshot stored in a newer shape than the code reads', () => {
-    const newer = { ...stored1, snapshotVersion: 3 };
-    expect(readSnapshot([shape2], newer)).toMatchObject({ ok: false, reason: 'newer-snapshot' });
+    const newer = { ...storedNow, snapshotVersion: SHAPE + 2 };
+    expect(readSnapshot([nextShape], newer)).toMatchObject({ ok: false, reason: 'newer-snapshot' });
   });
 });

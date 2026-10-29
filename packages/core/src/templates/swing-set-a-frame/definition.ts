@@ -35,9 +35,10 @@ export const swingSetAFrame: TemplateDefinition<
   structuralInputs: SwingSetStructuralInputs,
   outputs: SwingSetOutputs,
   form: SWING_SET_FORM,
-  // Shape 1 is the first stored shape; snapshots/v1.json is its fixture (decision 0014).
-  snapshotVersion: 1,
-  snapshotUpgrades: {},
+  // One fixture per stored shape, snapshots/v<n>.json (decision 0014). Shape 2 adds sources to
+  // the hanger check's inputs (#36). The field was already optional, so 1 to 2 changes nothing.
+  snapshotVersion: 2,
+  snapshotUpgrades: { 1: (snapshot) => snapshot },
   examples: EXAMPLES,
   plan(outputs) {
     const review = outputs.structuralReview;
