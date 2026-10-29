@@ -8,6 +8,7 @@ import { useLoad } from '../../lib/useLoad.ts';
 import { CutList } from '../cut-list/CutList.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import { StructuralReview } from '../structural/StructuralReview.tsx';
+import { DeleteProject } from './DeleteProject.tsx';
 import { VersionNotice } from './VersionNotice.tsx';
 
 // One project, rendered from the snapshot the API returns (ARCHITECTURE.md, apps/web). The
@@ -80,6 +81,7 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
           </section>
         </>
       )}
+      <DeleteProject id={project.id} name={project.name} />
     </article>
   );
 }

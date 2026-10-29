@@ -239,6 +239,15 @@ export function createProjectService(deps: {
       if (!updated) return { ok: false, error: 'not-found' };
       return view(updated);
     },
+
+    /** Permanent: the project's history rows go with it (they cascade). */
+    async remove(id: string): Promise<Result<null>> {
+      const deleted = await db
+        .delete(projects)
+        .where(eq(projects.id, id))
+        .returning({ id: projects.id });
+      return deleted.length > 0 ? { ok: true, value: null } : { ok: false, error: 'not-found' };
+    },
   };
 }
 

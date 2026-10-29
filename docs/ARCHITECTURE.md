@@ -141,6 +141,7 @@ For each operation, `steps/` lists the methods from the knowledge base whose req
 | `GET /api/projects/:id` | The stored snapshot (upgraded to the current shape if needed, 0014), plus a version report: `current`, `ahead`, or `behind` with the changed paths regenerating would bring (or the issues that stop it) |
 | `PUT /api/projects/:id` | Update name, status, parameters, or structural inputs; changing parameters or inputs regenerates the snapshot with the current template version |
 | `POST /api/projects/:id/regenerate` | Regenerate with the current template version (explicit, never automatic) |
+| `DELETE /api/projects/:id` | Delete a project and its history rows, permanently (204) |
 
 Errors are JSON with an `error` code: 400 for a malformed request (with `issues` and their paths), 401 without a session, 404 for a missing project, 415 for a state-changing request that is not JSON, 422 when core rejects the parameters or inputs (with core's `issues`), 429 when login is rate limited. Routes call services in `services/`, the only code that touches the database.
 
