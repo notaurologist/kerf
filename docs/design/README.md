@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stages 0 to 2 are decided; stage 3 (#42) is next.
+Status: in progress. Stage 3 (#42) is waiting on the owner's choices.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -9,12 +9,26 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 0. Wireframes and the data they need | #39 | Decided October 2026 | `wireframes.html` |
 | 1. Information architecture | #40 | Decided October 2026 | `information-architecture.html` |
 | 2. Layout and grid | #41 | Decided October 2026 | `layout.html` |
-| 3. Typography | #42 | Next | |
+| 3. Typography | #42 | Waiting on the owner | `typography.html` |
 | 4. Color | #43 | Blocked by #42 | |
 | 5. Diagram language | #44 | Blocked by #43 | |
 | 6. Design system | #45 | Blocked by #44 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 3: typography (#42)
+
+`typography.html` measures each candidate typeface from its font files (digit height, tabular figures, fractions feature, weights, Latin `woff2` size) and derives its shop read and glance sizes from #41's distances. Three directions, each set in its real face at its real size, with a blur and dimming test for judging legibility:
+
+- T2: Atkinson Hyperlegible Next and Mono (Braille Institute, designed for low vision).
+- T3: B612 and B612 Mono (Airbus, designed for cockpit displays).
+- T1: the system font (SF Pro on Apple devices).
+
+It also compares fraction setting (full-size slash, diagonal, enlarged), proposes a desk type scale and shop sizes, sets rules for each kind of number, and asks permission to self-host the font files. Inter, IBM Plex, and Overpass were considered and set aside.
+
+### Choices
+
+Not yet made.
 
 ## Stage 2: layout and grid (#41)
 
