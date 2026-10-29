@@ -237,14 +237,72 @@ div.scale b { display: block; background: var(--blue); }
 </header>
 
 <section class="answers" aria-labelledby="answers-h">
-  <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
-  <p>Four choices. My suggestion is first in each. A reply like <span class="pick" style="white-space: normal">B with C's title block, distances as proposed, stacked cut list, Letter</span> is enough.</p>
+  <h2 id="answers-h" style="font-size: var(--step-1)">Decided, October 2026</h2>
+  <p>The owner took the suggestions for distances, the cut list, and paper. For the grid, the owner asked whether A's columns could be kept where they help and ignored where they do not. They can, and that is the choice: <a href="#chosen">a page column grid with content-out components</a>, with C's title block on printed pages. The choices were:</p>
   <ol>
     <li><a href="#directions">Grid</a>: <span class="pick">B</span> content-out layout with C's title block on printed pages, <span class="pick">A</span> modular columns with device breakpoints, or <span class="pick">C</span> sheets on screen and paper.</li>
     <li><a href="#distance">Viewing distances</a>: confirm the four distances in the table, or measure your own in the garage. They set the size of everything in the two modes.</li>
     <li><a href="#cutlist">Cut list on a phone</a>: <span class="pick">stacked rows</span>, a table that scrolls sideways, or priority columns.</li>
     <li><a href="#print">Paper</a>: <span class="pick">US Letter</span> portrait with landscape diagram pages, or something else your printer takes.</li>
   </ol>
+</section>
+
+<!-- ============================== CHOSEN ============================== -->
+<section id="chosen" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">The chosen grid</p>
+    <h2>Columns for the page, content-out components inside them</h2>
+    <div class="prose stack">
+      <p>A and B are not exclusive. The critique of A below blamed the columns, but the real problem was components whose layout depends on page breakpoints. Separating the two layers removes it: the page has a column grid, and each component arranges itself from the width of whatever columns it is given. Columns keep edges consistent across screens; components stay reusable. This is the common way to use CSS Grid for page layout, with named lines for content that breaks out of the column (Rachel Andrew, Josh Comeau, Ryan Mulligan).</p>
+    </div>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>1 · The page grid</b><p>One grid on the page container, with named lines. Columns: 4 below 600 px, 8 from 600, 12 from 840 (Android's window size classes). Content stops at 1200 px. Margins and gutters come from B's fluid spacing scale (<code>s</code> and <code>m</code>), so the columns flex smoothly between breakpoints.</p><p class="muted small">Where columns help: the laptop plan (contents in 3 columns, the plan in 9; key results in 3 columns each; diagrams side by side), the tablet step beside its diagram (6 and 6), and the printed page.</p></div>
+    <div class="opt"><b>2 · Components</b><p>Cards, the cut card, the board bar, flags, and the structural check are built from B's primitives and respond to their own container's width with container queries. A component never reads the page's breakpoints, so the cut card looks right in a step, a tablet pane, or the plan.</p><p class="muted small">Where columns are ignored: inside the shop modes on a phone, everything spans all four columns, so the grid does nothing there and costs nothing.</p></div>
+    <div class="opt"><b>3 · Alignment across components</b><p>Where a component's parts should sit on the page columns (the key results, the launch cards, the cut list table on a laptop), it uses <code>subgrid</code> and takes the page's tracks instead of its own. Subgrid has worked in every major browser since September 2023.</p><p class="muted small">Print: Letter, 1/2" margins, 6 columns of 100 px with 24 px gutters (C's sheet grid), each section opening with a title block.</p></div>
+  </div>
+  <div class="stack">
+    <h4>How it translates to CSS</h4>
+    <pre class="formula" style="white-space:pre; font-size:12px; line-height:1.5; padding:12px;">/* Columns: 4 on a phone, 8 from 600 px, 12 from 840 px. */
+:root { --cols: 4; }
+@media (width >= 600px) { :root { --cols: 8; } }
+@media (width >= 840px) { :root { --cols: 12; } }
+
+/* The page: side margins and a centered content area up to 1200 px,
+   with named lines so a diagram can break out to the full width. */
+.page {
+  display: grid;
+  grid-template-columns:
+    [full-start] minmax(var(--space-s), 1fr)
+    [content-start] min(100% - 2 * var(--space-s), 75rem)
+    [content-end] minmax(var(--space-s), 1fr) [full-end];
+}
+.page > * { grid-column: content; }
+.page > .full-bleed { grid-column: full; }
+
+/* The column grid inside the content area. Anything not placed spans all. */
+.columns {
+  display: grid;
+  column-gap: var(--space-m);
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+}
+.columns > * { grid-column: 1 / -1; }
+
+/* The plan on a laptop: contents in 3 columns, the plan in the other 9.
+   The plan and its key results take the page's tracks (subgrid), so the
+   three results sit on columns 4, 7, and 10. */
+@media (width >= 840px) {
+  .plan-contents { grid-column: 1 / span 3; }
+  .plan-body { grid-column: 4 / -1; display: grid; grid-template-columns: subgrid; }
+  .key-results { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; }
+  .key-results > * { grid-column: span 3; }
+}
+
+/* A component lays itself out from its own width, wherever it is placed. */
+.cut-card { container-type: inline-size; }
+@container (width >= 30rem) { .cut-card { /* ends beside the length */ } }</pre>
+    <p class="muted small">A sketch for #45, not final code. Checked in a browser at 375, 1280, and 1600 px: 16 px phone margins with no sideways scroll, full-bleed to the screen edge, and the key results on page columns 4, 7, and 10. The margins live on an outer grid with no gap, because a gap on the same grid would add a gutter beside each margin.</p>
+  </div>
 </section>
 
 <!-- ============================== DISTANCE ============================== -->
@@ -343,6 +401,8 @@ div.scale b { display: block; background: var(--blue); }
         <dd>The same component lands in different places at each breakpoint. A cut card that appears inside a step, a tablet pane, and the plan needs a rule for each. Between breakpoints the layout does not change at all, so a tablet in split view can fall into an awkward width.</dd>
         <dt>Columns and numbers</dt>
         <dd>Four columns on a phone are too narrow for a label beside a large number; most shop content spans all four, so the grid does little work there.</dd>
+        <dt>Note added after review</dt>
+        <dd>These limits come from tying components to the page's breakpoints, not from the columns themselves. The chosen grid keeps A's columns for the page and B's primitives for components.</dd>
       </dl>
     </div>
   </article>
@@ -630,6 +690,7 @@ div.scale b { display: block; background: var(--blue); }
     <div class="opt"><b>Android window size classes</b><p>Compact below 600, medium below 840, expanded from 840. Basis for A's breakpoints.</p><p class="small"><a href="https://developer.android.com/develop/ui/compose/layouts/adaptive/window-size-classes">Window size classes</a></p></div>
     <div class="opt"><b>ASME Y14.1 sheet sizes</b><p>Size A is 8-1/2" x 11"; drawing formats carry a title block, conventionally at the lower right, and zones on larger sheets. Basis for C and the printed title block.</p><p class="small"><a href="https://en.wikipedia.org/wiki/ANSI/ASME_Y14.1">ASME Y14.1 overview</a></p></div>
     <div class="opt"><b>Mobile tables</b><p>Some tables will not fit; horizontal scrolling is acceptable when it is obvious there is more; locking headers helps. Basis for the cut-list options.</p><p class="small"><a href="https://www.nngroup.com/videos/big-tables-small-screens/">NN/g: big tables on small screens</a></p></div>
+    <div class="opt"><b>Page grids with named lines, and subgrid</b><p>CSS Grid for the page with named lines so content can break out of the column, and <code>subgrid</code> so nested parts take the page's tracks (widely available since September 2023). Basis for the chosen grid.</p><p class="small"><a href="https://rachelandrew.co.uk/archives/2017/06/01/breaking-out-with-css-grid-explained/">Rachel Andrew: breaking out with CSS Grid</a> · <a href="https://ryanmulligan.dev/blog/layout-breakouts/">Ryan Mulligan: layout breakouts</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Subgrid">MDN: subgrid</a></p></div>
     <div class="opt"><b>Line length</b><p>45 to 90 characters including spaces.</p><p class="small"><a href="https://practicaltypography.com/line-length.html">Butterick's Practical Typography</a></p></div>
     <div class="opt"><b>Printing from the browser</b><p><code>@page</code> size is Baseline 2024; named pages (<code>page</code>) are Baseline since February 2023; <code>break-inside: avoid</code> since 2019. Page-margin boxes arrived in Chrome 131 and are not in Firefox or Safari.</p><p class="small"><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@page/size">MDN: size</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/page">MDN: page</a> · <a href="https://developer.chrome.com/blog/print-margins">Chrome: print margins</a> · <a href="https://caniuse.com/mdn-css_at-rules_page_top-center">caniuse</a></p></div>
   </div>
