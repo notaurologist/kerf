@@ -1,6 +1,6 @@
 # Template: two-swing A-frame swing set
 
-Status: v1, approved by the owner October 2026; template version 3 adds placements (#49)
+Status: v1, approved by the owner October 2026; template version 3 adds placements (#49); version 4 adds holes and joints and corrects the flush-cut marks (#50)
 
 This is the geometry spec for the first template (`PRODUCT.md`, First template). The template code in `packages/core/src/templates/swing-set-a-frame/` implements exactly what is written here, and its tests use the worked example below. Structural checks (M2) and hangers and site layout (a later M1 change) build on it.
 
@@ -16,6 +16,8 @@ Matches the owner's earlier build (photos reviewed October 2026).
 - **Feet either buried or on pads.** A burial depth of 0 means each foot sits on a level pad or footing with ground anchors. A depth greater than 0 means each leg continues that far below grade. Either way, each foot gets a level cut.
 
 Template version 2 (#36) changes no geometry or number: it adds sources to the specific gravity G, the pendulum factor 3 − 2·cos θ, and the beam's breadth and depth in the structural working. Projects made with version 1 show the version notice listing those additions.
+
+Template version 4 (#50) adds holes, bolt areas, the flush cut, and each end cut's reference edge as part data (Holes and joints, below), and rewrites the flush-cut note as two marks a builder can measure. The earlier note measured the start along the wrong line (Top of the leg). No dimension changes.
 
 Template version 3 (#49) adds a 3D placement for every part instance (Placements, below) for the isometric and exploded views. It changes no other output; projects made with version 2 show the version notice listing the placements as new.
 
@@ -66,7 +68,11 @@ The leg's inner face, before the flush cut, passes through the beam's lower back
 ### Top of the leg
 
 - **Level cut** at the top of the beam, z = H + bd, across the leg from the flush face to the outer face.
-- **Flush cut:** a vertical face at y = bw/2, from the beam's underside (z = H) to the top. On the leg, it starts on the inner face and runs at α to that face for a distance bd·cos α along the leg, ending at the top cut bd·sin α in from the inner face (measured square to the face).
+- **Flush cut:** a vertical face at y = bw/2, from the beam's underside (z = H) to the top. On the leg it is a straight cut through the thickness, between two marks measured from the top corner of the inner edge:
+  - on the inner edge, bd / cos α down from the corner (where the inner face meets the beam's underside);
+  - on the top cut, bd·tan α from the corner, which is bd·sin α in from the inner edge, square to it.
+
+  The cut runs at α to the inner edge. Its two ends are bd·cos α apart along the leg's axis, which is not a distance to mark: measuring that far down the edge instead starts the cut too high and leaves wood that hits the beam (corrected in template version 4, #50).
 - **Wood left at the top of the beam:** w − bd·sin α, square to the face. At the bolt (mid-depth of the beam): w − (bd/2)·sin α.
 - **Bolt:** horizontal, through both legs and the beam at mid-depth of the beam. Grip length (through all three): bw + 2·(w / cos α − (bd/2)·tan α). The leg's outer face is not square to the bolt, so the head and nut bear on a face tilted α; that goes on the confirmation checklist (washers, counterbore, or bevel washer).
 
@@ -253,6 +259,16 @@ The back legs run along (0, 0.34202, −0.93969). Fit tests place the parts this
 - the crossbar and gusset corners lie on the legs' outer faces;
 - the gusset's top is at the beam's underside;
 - the beam plies fill the beam's width.
+
+### Holes and joints
+
+| Quantity | Value |
+|---|---|
+| Flush cut marks | inner edge 5.5 / 0.93969 = 5.853 (5-7/8") down from the top corner; top cut 5.5·0.36397 = 2.002 (2") from that corner, 5.5·0.34202 = 1.881 (1-7/8") in from the edge |
+| Flush cut as written before version 4 | starting 5.168 down the edge ends 1.661 in from it, 0.22" short: the leg would hit the beam |
+| Leg bolt hole | enters the outer edge (2.75 + 3.5·0.34202) / 0.93969 = 4.200 down, at mid-thickness 1.75; 3.7246 − 1.0009 = 2.724 long |
+| Beam holes | u = 13.75 and 106.25, v = 2.75 |
+| Crossbar joint area, front end | (0, 0), (3.725, 0), (5.726, 5.5), (2.002, 5.5) |
 
 ### Swings and layout
 

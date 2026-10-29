@@ -82,7 +82,10 @@ export const FrameGeometry = z.object({
   flushCut: z.object({
     /** Depth at the top of the beam, square to the leg's face. */
     depthAtTop: z.number(),
-    /** Length along the leg's inner face. */
+    /**
+     * Distance between the flush cut's two ends along the leg's axis, bd·cos α. Not a distance
+     * to mark: the marks are the taper on the leg part (spec, Top of the leg; #50).
+     */
     lengthAlongLeg: z.number(),
     woodLeftAtTop: z.number(),
     woodLeftAtBolt: z.number(),
