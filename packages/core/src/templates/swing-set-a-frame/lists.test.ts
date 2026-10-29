@@ -116,6 +116,22 @@ describe('planLumber, worked example', () => {
     expect(plan.issues).toEqual([]);
   });
 
+  it("carries what to look for in each part's board, by part ID (#53)", () => {
+    // Legs stand in or on the ground whether buried or on pads.
+    const onPads = planLumber(
+      parts({ ...example, burialDepth: 0, hardware: { ...example.hardware, anchorsPerFoot: 2 } }),
+    );
+    for (const lumber of [plan, onPads]) {
+      expect(lumber.selection).toEqual([
+        { partId: 'beam', guides: ['structural', 'span', 'bolted'] },
+        { partId: 'leg-back', guides: ['structural', 'along-length', 'bolted', 'ground-contact'] },
+        { partId: 'leg-front', guides: ['structural', 'along-length', 'bolted', 'ground-contact'] },
+        { partId: 'crossbar', guides: ['structural', 'bolted'] },
+        { partId: 'gusset', guides: ['structural', 'bolted'] },
+      ]);
+    }
+  });
+
   it('records what comes from each board and the offcut', () => {
     const crossbarBoard = plan.boards.find((b) => b.nominal === '2x6');
     expect(crossbarBoard?.pieces.map((p) => p.partId)).toEqual(['crossbar', 'crossbar']);

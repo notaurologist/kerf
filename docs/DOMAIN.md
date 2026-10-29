@@ -10,7 +10,7 @@ Background for anyone (human or agent) working on this project. This is not auth
 - **Buyable lengths.** Lumber is sold in standard lengths (commonly 8, 10, 12, 16 feet). Shopping lists group parts into these, allowing for the saw kerf on each cut (about 1/8 inch for a typical blade, configurable) and for trimming factory ends, which are often not square or have checks.
 - **Species and treatment.** Outdoor projects need wood that resists rot and insects, either naturally (for example, cedar or redwood) or pressure-treated. [1]
 - **Moisture and movement.** Wood expands and shrinks across the grain with humidity, far more than along its length. Pressure-treated lumber is often sold wet and shrinks as it dries. Designs that rigidly restrain cross-grain movement can crack. **Expert check** for any glued or tightly fastened cross-grain joints.
-- **Grain and defects.** Board selection matters: straightness, knots (especially near edges or at joints), checks, and twist. The app should include board selection guidance for each part's role.
+- **Grain and defects.** Board selection matters: straightness, knots (especially near edges or at joints), checks, and twist. The knowledge base holds guidance by what a board does (every board that carries load, across a span, along its length, joined with bolts, in or on the ground), sourced to the Wood Handbook [9] and AWPA [10]; each template says which guides its parts need. Ground contact needs lumber treated to AWPA use category UC4A or higher, shown on the end tag [10].
 
 ## Measuring and marking
 
@@ -176,6 +176,9 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 6. American Wood Council, Design Aid No. 6, Beam Design Formulas with Shear and Moment Diagrams (corroborates the beam formulas): https://awc.org/wp-content/uploads/2021/12/AWC-DA6-BeamFormulas-0710.pdf
 7. Simpson, W. T., Specific Gravity, Moisture Content, and Density Relationship for Wood, USDA Forest Products Laboratory FPL-GTR-76, 1993: https://research.fs.usda.gov/download/treesearch/5914.pdf
 8. Moebs, W., Ling, S. J., and Sanny, J., University Physics Volume 1, OpenStax, 2016: Example 8.7 (Simple Pendulum) and Section 6.3 (Centripetal Force), for the swing load: https://openstax.org/details/books/university-physics-volume-1
+
+9. Forest Products Laboratory, Wood Handbook: Wood as an Engineering Material, FPL-GTR-282, 2021: Chapter 5 (Knots, pp. 5-27 to 5-28), Chapter 7 (Knots, Slope of Grain, Checks and Splits, Shake, Decay, pp. 7-4 to 7-5; crooks in columns, p. 7-14), Chapter 8 (pp. 8-22 to 8-23), Chapter 13 (Warp, p. 13-13): https://research.fs.usda.gov/treesearch/62200
+10. American Wood Protection Association, Information for Homeowners (use categories and end tags), read October 2026: https://awpa.com/info/technical/homeowners
 
 Actual (dressed) lumber sizes come from NDS Supplement Table 1B (source 4), whose sizes conform to the American Softwood Lumber Standard, PS 20-20 (Supplement 3.1).
 

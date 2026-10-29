@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { BoardGuideId } from '../../knowledge/boardSelection.ts';
 import { stock } from '../../lumber/stock.ts';
 import { BoltJoint } from '../../structural/boltDistances.ts';
 import { formatAngle } from '../../units/angle.ts';
@@ -37,9 +38,21 @@ import { flags, validate, validateSwings } from './validate.ts';
  * part data, and rewords the flush-cut note as two marks a builder can measure (#50). Version 5
  * letters the parts in cut-list order (#66); no number changes. Version 6 runs the crossbar and
  * gusset ends past the legs, places their bolts as holes, and reports each bolted joint's
- * distances against NDS 2024 (#93, decision 0016).
+ * distances against NDS 2024 (#93, decision 0016). Version 7 adds what to look for when choosing
+ * each part's board (#53); no number changes.
  */
-export const TEMPLATE_VERSION = 6;
+export const TEMPLATE_VERSION = 7;
+
+/**
+ * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
+ * legs stand in or on the ground whether buried or on pads, so they always get ground contact.
+ */
+const SELECTION = {
+  beam: ['structural', 'span', 'bolted'],
+  leg: ['structural', 'along-length', 'bolted', 'ground-contact'],
+  crossbar: ['structural', 'bolted'],
+  gusset: ['structural', 'bolted'],
+} as const satisfies Record<string, readonly BoardGuideId[]>;
 export const TEMPLATE_ID = 'swing-set-a-frame';
 
 export const SwingSetOutput = z.object({
@@ -104,6 +117,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       id: `leg-${side}`,
       name: legName(side, p.groundSlope),
       role: 'leg',
+      selection: [...SELECTION.leg],
       stock: stock(p.legStock),
       quantity: 2,
       length: l.overallLength,
@@ -123,6 +137,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       id: 'beam',
       name: p.beamPlies > 1 ? 'Beam ply' : 'Beam',
       role: 'beam',
+      selection: [...SELECTION.beam],
       stock: stock(p.beamStock),
       quantity: p.beamPlies,
       length: dims.L,
@@ -143,6 +158,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       id: 'crossbar',
       name: 'Crossbar',
       role: 'crossbar',
+      selection: [...SELECTION.crossbar],
       stock: stock(p.crossbarStock),
       quantity: 2,
       length: g.crossbar.bottomEdge,
@@ -159,6 +175,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       id: 'gusset',
       name: 'Gusset',
       role: 'gusset',
+      selection: [...SELECTION.gusset],
       stock: stock(p.gussetStock),
       quantity: 2,
       length: g.gusset.bottomWidth,

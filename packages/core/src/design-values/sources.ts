@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-// Publications that design values, adjustment factors, and structural formulas come from
-// (decision 0009). Every value and formula cites one of these with a locator, so the app can show
-// where a number came from and link to the source for checking.
+// Publications that design values, adjustment factors, structural formulas, and knowledge-base
+// entries come from (decision 0009). Every value and formula cites one of these with a locator, so
+// the app can show where a number came from and link to the source for checking.
 
 export const Source = z.object({
   title: z.string().min(1),
@@ -54,6 +54,20 @@ export const SOURCES = {
     edition: '2016',
     url: 'https://openstax.org/details/books/university-physics-volume-1',
     note: 'For the pendulum load: speed at the bottom of the arc and the centripetal force.',
+  },
+  'fpl-gtr-282': {
+    title: 'Wood Handbook: Wood as an Engineering Material (FPL-GTR-282)',
+    publisher: 'USDA Forest Service, Forest Products Laboratory (Robert J. Ross, editor)',
+    edition: '2021',
+    url: 'https://research.fs.usda.gov/treesearch/62200',
+    note: 'For board selection: knots, cross grain, checks, shake, decay, and warp.',
+  },
+  'awpa-homeowners': {
+    title: 'Information for Homeowners',
+    publisher: 'American Wood Protection Association',
+    edition: 'Web page, read October 2026 (undated)',
+    url: 'https://awpa.com/info/technical/homeowners',
+    note: 'For ground-contact use categories and end tags.',
   },
 } as const satisfies Record<string, Source>;
 

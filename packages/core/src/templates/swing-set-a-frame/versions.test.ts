@@ -7,6 +7,7 @@ import v2 from './snapshots/v2.json' with { type: 'json' };
 import v3 from './snapshots/v3.json' with { type: 'json' };
 import v4 from './snapshots/v4.json' with { type: 'json' };
 import v5 from './snapshots/v5.json' with { type: 'json' };
+import v6 from './snapshots/v6.json' with { type: 'json' };
 
 // What each template version changed for the worked examples, as the owner sees it in the version
 // report (decision 0008).
@@ -34,7 +35,11 @@ const VERSION_6 = [
   /^design\.(flags|boltLayout)/,
   /^lumber\./,
 ];
-const notVersion6 = (c: { path: string }) => !VERSION_6.some((r) => r.test(c.path));
+/** Version 7's additions (#53): each part's board selection guides, and the lumber plan's copy. */
+const VERSION_7 = [/^design\.parts\[\d+\]\.selection/, /^lumber\.selection/];
+const notVersion6 = (c: { path: string }) =>
+  ![...VERSION_6, ...VERSION_7].some((r) => r.test(c.path));
+const notVersion7 = (c: { path: string }) => !VERSION_7.some((r) => r.test(c.path));
 
 describe('swing-set template versions', () => {
   it('version 2 adds sources and bases to the structural working, and changes no number (#36)', () => {
@@ -153,6 +158,21 @@ describe('swing-set template versions', () => {
       }
       // Bolt areas on the legs, crossbar, and gusset become holes.
       expect(changes.some((c) => c.path === 'design.parts[3].holes[0]')).toBe(true);
+    }
+  });
+
+  it('version 7 adds board selection guides, and changes nothing else (#53)', () => {
+    for (const stored of v6) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(6);
+      const report = compareWithCurrent(template, read.snapshot);
+      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+      const { changes } = report.regenerated;
+      expect(changes.filter(notVersion7)).toEqual([]);
+      // Every change is a new field: no number or word that was there before changes.
+      expect(changes.length).toBeGreaterThan(0);
+      for (const change of changes) expect(change, change.path).not.toHaveProperty('before');
     }
   });
 });
