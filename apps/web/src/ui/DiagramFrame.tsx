@@ -5,7 +5,7 @@ import type { CSSProperties, ReactNode } from 'react';
 // which is the diagram's full text equivalent (W3C, complex images); `describedBy` points to it.
 
 export function DiagramFrame(props: {
-  /** A short description generated from the same data, such as "Cut detail for the back leg". */
+  /** A short description generated from the same data, such as "Cut detail for A, Rail". */
   label: string;
   caption?: ReactNode;
   viewBox: string;

@@ -112,7 +112,7 @@ describe('isometric view', () => {
     placements: [placed('rail', at(0, 10, 0)), placed('front', at(0, -10, 0))],
   };
   const view = isometric(-1, -1);
-  const drawing = isometricView(scene, view);
+  const drawing = isometricView(scene, view, 'Two rails, one in front of the other.');
   const fills = drawing.primitives.filter((p) => p.kind === 'polygon');
 
   it('draws only faces that face the viewer, the nearer rail last', () => {
@@ -151,6 +151,12 @@ const texts = (prims: readonly Primitive[], role: string) =>
   prims.flatMap((p) => (p.kind === 'text' && p.role === role ? [p.text] : []));
 
 describe('cut details', () => {
+  it('describes the part in a sentence, from its own data', () => {
+    expect(cutDetail(board()).description).toBe(
+      `Cut detail for A, Rail: ${formatLength(30)} overall, ends cut at ${formatAngle(20)}.`,
+    );
+  });
+
   it("writes every dimension with core's formatters, from the part's own data", () => {
     const part = board({
       holes: [
@@ -229,6 +235,7 @@ describe('plan view', () => {
       },
     ],
     [],
+    'A plan.',
   );
 
   it('dimensions in feet and inches over 6 feet, inches up to it', () => {
@@ -241,6 +248,7 @@ describe('plan view', () => {
     const small = planView(
       [{ label: 'Pad', xMin: 0, xMax: 24, yMin: 0, yMax: 12, kind: 'outline', dimensioned: true }],
       [],
+      'A plan.',
     );
     expect(texts(small.primitives, 'dimension')).toEqual([formatLength(24), formatLength(12)]);
   });
@@ -252,6 +260,7 @@ describe('plan view', () => {
         { label: 'Clear area', xMin: -72, xMax: 192, yMin: -100, yMax: 100, kind: 'zone' },
       ],
       [],
+      'A plan.',
     );
     const labels = zones.primitives.flatMap((p) =>
       p.kind === 'text' && p.role === 'label' ? [p] : [],

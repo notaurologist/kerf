@@ -2,7 +2,9 @@ import type { CutListRow, geometry } from '@kerf/core';
 import { Button, Diagram, Stack, StatusLine, Text } from '../../ui/index.ts';
 
 // The plan's drawings (#91), drawn from the primitives core made from the stored snapshot (#90).
-// Each has a short label generated from the same data; the cut list is the long description.
+// Each is labeled with core's description of it, which the template words for its own views,
+// plus the part letters or dimensions; the cut list is the long description. Nothing here knows
+// a template.
 // Tapping a part selects it here and in the cut list (#39, Q3).
 
 type Drawings = geometry.Drawings;
@@ -55,7 +57,7 @@ export function Diagrams(props: {
             {...common}
             page="landscape"
             drawing={drawings.isometric}
-            label={`Isometric view of the assembled frame. ${parts}`}
+            label={`Isometric view. ${drawings.isometric.description} ${parts}`}
           />
         </Stack>
       )}
@@ -66,29 +68,17 @@ export function Diagrams(props: {
             {...common}
             page="landscape"
             drawing={drawings.exploded}
-            label={`Exploded view: the beam lifted and the crossbars and gussets pulled out, with guidelines to where each goes. ${parts}`}
+            label={`Exploded view. ${drawings.exploded.description} ${parts}`}
           />
         </Stack>
       )}
       <h3>Cut details</h3>
-      {drawings.cutDetails.map((detail, i) => {
-        const row = rows[i];
-        return (
-          <Stack gap="xs" key={detail.title}>
-            <h4>{detail.title}</h4>
-            <Diagram
-              {...common}
-              drawing={detail}
-              minWidth={560}
-              label={
-                row
-                  ? `Cut detail for ${row.letter}, ${row.name}: ${row.length} overall. ${row.ends.join('. ')}.`
-                  : detail.title
-              }
-            />
-          </Stack>
-        );
-      })}
+      {drawings.cutDetails.map((detail) => (
+        <Stack gap="xs" key={detail.title}>
+          <h4>{detail.title}</h4>
+          <Diagram {...common} drawing={detail} minWidth={560} label={detail.description} />
+        </Stack>
+      ))}
       {drawings.siteLayout && (
         <Stack gap="xs">
           <h3>Site layout</h3>
@@ -96,7 +86,7 @@ export function Diagrams(props: {
             {...common}
             page="landscape"
             drawing={drawings.siteLayout}
-            label={`Site layout, front at the bottom: the clear area and swing zones around the frame's footprint. Dimensions ${dimensions(drawings.siteLayout).join(', ')}.`}
+            label={`${drawings.siteLayout.description} Dimensions ${dimensions(drawings.siteLayout).join(', ')}.`}
           />
         </Stack>
       )}

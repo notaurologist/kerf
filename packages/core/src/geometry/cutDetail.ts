@@ -305,8 +305,12 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   });
   prims.push({ kind: 'line', role: 'leader', points: [...loop, { x: mx, y: 0 }], part: ref });
 
+  const angles = [
+    ...new Set(part.ends.filter((e) => e.setting !== 0).map((e) => formatAngle(e.setting))),
+  ];
   return {
     title,
+    description: `Cut detail for ${part.letter}, ${part.name}: ${formatLength(part.length)} overall${angles.length > 0 ? `, ends cut at ${angles.join(' and ')}` : ', ends square'}${(part.holes ?? []).length > 0 ? `, ${(part.holes ?? []).length} holes` : ''}.`,
     bounds: boundsOf(prims, 0.3 * W),
     primitives: prims,
     notes: [

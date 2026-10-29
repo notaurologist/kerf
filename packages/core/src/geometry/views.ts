@@ -17,7 +17,7 @@ export interface Scene {
   placements: readonly Placement[];
   /** The ground plane; anything on the side away from `up` is below grade. */
   ground?: { point: Vec3; up: Vec3 };
-  /** Things not in the cut list, such as chains and seats, as 3D polylines. */
+  /** Things not in the cut list, drawn as phantom lines: 3D polylines. */
   phantoms?: readonly Vec3[][];
   /** The template axis along which faces count as ends (darkest tone). Default x. */
   endAxis?: 'x' | 'y';
@@ -193,7 +193,8 @@ function drawSolids(
       if (!ground) continue;
       // Below grade: the face's edges as hidden lines; where it meets the ground, a grade line.
       const cut = keep(whole, (p) => -above(p), 0);
-      // A face that only touches the ground, such as a leg's side on a pad, has nothing below it.
+      // A face that only touches the ground, such as a side face of a part resting on it, has
+      // nothing below it.
       const down = cut?.points.some((p) => above(p) < -1e-7) ? cut : null;
       for (let i = 0; down && i < down.points.length; i++) {
         const a = down.points[i] as Vec3;
@@ -321,11 +322,16 @@ function letters(faces: readonly Drawn[], primitives: readonly Primitive[]): Pri
   return [...column('left'), ...column('right')];
 }
 
-export function isometricView(scene: Scene, view: Isometric, title = 'Isometric view'): Drawing {
+export function isometricView(
+  scene: Scene,
+  view: Isometric,
+  description: string,
+  title = 'Isometric view',
+): Drawing {
   const solids = placedSolids(scene);
   const { primitives, faces } = drawSolids(scene, view, solids);
   const all = [...primitives, ...letters(faces, primitives)];
-  return { title, bounds: boundsOf(all, 2), primitives: all, notes: [] };
+  return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [] };
 }
 
 /**
@@ -336,6 +342,7 @@ export function explodedView(
   scene: Scene,
   view: Isometric,
   explode: readonly Explode[],
+  description: string,
   title = 'Exploded view',
 ): Drawing {
   const offsetOf = (pl: Placement) =>
@@ -357,7 +364,7 @@ export function explodedView(
     ];
   });
   const all = [...guidelines, ...primitives, ...letters(faces, primitives)];
-  return { title, bounds: boundsOf(all, 2), primitives: all, notes: [] };
+  return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [] };
 }
 
 function placedSolids(

@@ -211,4 +211,4 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 | `outputs/` | Board grouping including kerf and trim; nothing silently dropped when a part is longer than any buyable length |
 | `knowledge/`, `design-values/` | Every entry parses; every reference resolves; every design value has a source |
 | `apps/api` | Every route rejects requests without a session; login rate limiting; snapshot round trip through Postgres (PGlite, 0010) |
-| `apps/web` | Forms, rendering of snapshots, and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/` |
+| `apps/web` | Forms, rendering of snapshots, and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/`; no template's ID or words in generic code anywhere in the repository (`generic.test.ts`) |

@@ -306,6 +306,7 @@ describe('the catalog', () => {
 describe('Diagram (#91)', () => {
   const drawing = {
     title: 'Sample',
+    description: 'A sample part.',
     bounds: { x: 0, y: -10, width: 40, height: 20 },
     notes: ['Clear area: handbook, p. 2.'],
     primitives: [

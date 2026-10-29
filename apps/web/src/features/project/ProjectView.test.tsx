@@ -134,10 +134,10 @@ describe('the diagrams in the plan (#91)', () => {
 
   it('labels each drawing from the same data, and points to the cut list as its long description', () => {
     expect(html).toContain(
-      'aria-label="Isometric view of the assembled frame. Parts A to E, lettered as in the cut list."',
+      'aria-label="Isometric view. The swing set, assembled. Parts A to E, lettered as in the cut list."',
     );
     expect(html).toMatch(
-      /aria-label="Cut detail for B, Back leg \(uphill\): 131-1\/2&quot; overall\./,
+      /aria-label="Cut detail for B, Back leg \(uphill\): 131-1\/2&quot; overall, ends cut at 20\.0°, 5 holes\./,
     );
     expect(html.match(/aria-describedby="cut-list"/g)).toHaveLength(8);
   });

@@ -1,16 +1,20 @@
 import {
-  angleToEdge,
+  type CutListRow,
+  createSnapshot,
   entryEcho,
   type FormField,
-  findTemplate,
-  formatAngle,
+  formValues,
   parseLength,
   schemaProblemMessage,
   structural,
+  TEMPLATES,
   type TemplateDefinition,
 } from '@kerf/core';
+
+/** "saw at 20.0°, 70.0° to the edge" in a cut list's end text. */
+const SAW = /saw at ([\d.]+°), ([\d.]+°) to the edge/;
+
 import { type ReactNode, useState } from 'react';
-import snapshots from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v5.json';
 import { Button, ButtonLink } from './Button.tsx';
 import { Diagram } from './Diagram.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
@@ -43,66 +47,72 @@ import {
 import { Header, ModeBar } from './Shell.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
-// (#45). Every sample value is from the swing set's worked example: core's committed snapshot
-// (decision 0014) and core's formatters and messages. Nothing here is computed or made up.
+// (#45). Sample values are core's output for the first template's worked examples, formatted by
+// core, chosen by what the data holds rather than by name, so the design system knows no
+// template (ARCHITECTURE.md, principle 6). Nothing here is made up.
 
-interface Example {
-  params: { beamHeight: number; burialDepth: number; splay: { degrees: number } };
-  outputs: {
-    cutList: {
-      partId: string;
-      letter: string;
-      name: string;
-      quantity: number;
-      stock: string;
-      length: string;
-      ends: string[];
-      marks: { value: string }[];
-    }[];
-    design: { flags: { ask: string; why: string }[] };
-    structuralReview: { beam: { bending: { margin: number } } };
-  };
+const template = TEMPLATES[0] as TemplateDefinition;
+function made(index: number) {
+  const example = template.examples[index];
+  const result = createSnapshot(template, example?.params, example?.structuralInputs);
+  if (!result.ok) throw new Error(`The worked example ${index} does not generate.`);
+  const outputs = template.outputs.parse(result.output.outputs);
+  return { outputs, plan: template.plan(outputs) };
 }
-const example = (snapshots as unknown as Example[])[0] as Example;
-const cut = (id: string) => {
-  const row = example.outputs.cutList.find((r) => r.partId === id);
-  if (!row) throw new Error(`The worked example has no ${id}`);
+const first = made(0);
+const last = made(template.examples.length - 1);
+const rows = first.plan.cutList;
+/** A part with an angled end and a marked length, for the cut-card samples. */
+function samplePart(): CutListRow {
+  const row = rows.find((r) => r.marks.length > 0 && r.ends.some((e) => SAW.test(e))) ?? rows[0];
+  if (!row) throw new Error('The worked example has no parts.');
   return row;
-};
-const leg = cut('leg-back');
-const beam = cut('beam');
-const splay = example.params.splay.degrees;
-const setting = formatAngle(splay);
-const toEdge = formatAngle(angleToEdge(splay));
-const margin = structural.formatMargin(example.outputs.structuralReview.beam.bending.margin);
-const burialFlag = example.outputs.design.flags.find((f) => f.ask.includes('burial depth'));
-const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
-// The worked example's drawings, drawn by core from its stored outputs (#90), as the API does.
-const drawings = template.drawings(template.outputs.parse(example.outputs));
-const legDetail = drawings.cutDetails.find((d) => d.title.includes('Back leg'));
-const field = (path: string): FormField => {
-  const f = template.form.params.flatMap((s) => s.fields).find((x) => x.path === path);
-  if (!f) throw new Error(path);
-  return f;
-};
+}
+const part = samplePart();
+/** Another part, for the tables. */
+const other = rows.find((r) => r !== part) ?? part;
+/** The saw setting and angle to the edge, as core wrote them in the cut list. */
+const [, setting = '', toEdge = ''] = part.ends.map((e) => SAW.exec(e)).find(Boolean) ?? [];
+const computed = (plan: typeof first.plan) =>
+  plan.checks.find((c): c is Extract<typeof c, { status: 'computed' }> => c.status === 'computed');
+const check = computed(first.plan);
+const margin = check ? structural.formatMargin(check.margin) : '';
+const sampleFlag = first.plan.flags[0];
+// The worked example's drawings, drawn by core from its outputs (#90), as the API does.
+const drawings = template.drawings(first.outputs);
+const partDetail = drawings.cutDetails.find((d) => d.title.endsWith(part.name));
+/** Length fields from the template's form, for the field samples. */
+const lengths = template.form.params.flatMap((s) => s.fields).filter((f) => f.kind === 'length');
+const heightField = (lengths[1] ?? lengths[0]) as FormField;
+const otherField = (lengths[lengths.length - 1] ?? heightField) as FormField;
 /** Core's message for a value out of range, with the limits from the template's schema. */
-const rangeMessage = (path: string, text: string) =>
-  schemaProblemMessage(
-    field(path),
-    { code: 'too_big', path: [path], message: '' },
-    text,
-    template.params,
-  );
+const rangeMessage = (f: FormField, text: string) =>
+  schemaProblemMessage(f, { code: 'too_big', path: [f.path], message: '' }, text, template.params);
 
-const CUT_ROWS = [leg, beam];
+const CUT_ROWS = [part, other];
 
-// A preview against a saved plan: the two-ply beam on pads (the third example) as the preview,
-// the worked example as what was saved. Both are core's output for their parameters.
-const previewed = (snapshots as unknown as Example[])[2] as Example;
-const previewLeg = previewed.outputs.cutList.find((r) => r.partId === 'leg-back');
-const previewMargin = structural.formatMargin(
-  previewed.outputs.structuralReview.beam.bending.margin,
+/** Sample fields of each kind from the template's form, with the worked example's values. */
+const allFields = [...template.form.params, ...template.form.structuralInputs].flatMap(
+  (x) => x.fields,
 );
+const ofKind = (kind: FormField['kind']) => allFields.find((f) => f.kind === kind);
+const exampleValues = {
+  ...formValues(template.form.params, template.examples[0]?.params),
+  ...formValues(template.form.structuralInputs, template.examples[0]?.structuralInputs),
+};
+const angleField = ofKind('angle');
+const choiceField = ofKind('choice');
+const yesNoField = ofKind('yes-no');
+const numberField = template.form.structuralInputs
+  .flatMap((x) => x.fields)
+  .find((f) => f.kind === 'number');
+const readOnlyField = lengths[0];
+
+// A preview against a saved plan: the last worked example as the preview, the first as what was
+// saved. Both are core's output for their parameters.
+const previewPart = last.plan.cutList.find((r) => r.partId === part.partId);
+const lastCheck = computed(last.plan);
+const previewMargin = lastCheck ? structural.formatMargin(lastCheck.margin) : '';
 const parsedEightZero = parseLength('8 0');
 const unreadable = parsedEightZero.ok ? '' : parsedEightZero.message;
 
@@ -114,7 +124,7 @@ export function Catalog() {
           <h1>Components</h1>
           <p>
             Every component in Kerf's design system, in each state, light and dark side by side.
-            Sample values come from the swing set's worked example, formatted by core.
+            Sample values come from the first template's worked example, formatted by core.
           </p>
         </Stack>
         <Themes>{() => <Specimens />}</Themes>
@@ -187,77 +197,93 @@ function Specimens() {
 
       <Group title="Fields">
         <Field
-          label="Beam height"
+          label={heightField.label}
           hint="Inches, or feet and inches."
-          echo={entryEcho(field('beamHeight'), text)}
+          echo={entryEcho(heightField, text)}
         >
           {(c) => <TextInput {...c} value={text} onChange={setText} />}
         </Field>
-        <Field
-          id="catalog-burial"
-          label="Burial depth"
-          echo={entryEcho(field('burialDepth'), '8 0')}
-        >
+        <Field id="catalog-unread" label={otherField.label} echo={entryEcho(otherField, '8 0')}>
           {(c) => <TextInput {...c} value="8 0" onChange={() => {}} />}
         </Field>
         <Field
-          id="catalog-beam-height"
-          label="Beam height"
-          error={rangeMessage('beamHeight', "15'")}
-          echo={entryEcho(field('beamHeight'), "15'")}
+          id="catalog-range"
+          label={heightField.label}
+          error={rangeMessage(heightField, "15'")}
+          echo={entryEcho(heightField, "15'")}
         >
           {(c) => <TextInput {...c} value="15'" onChange={() => {}} />}
         </Field>
-        <Field
-          label="Deflection limit (span divided by)"
-          hint="Allowed sag is the span divided by this number."
-          needed
-        >
-          {(c) => <TextInput {...c} keyboard="decimal" value="" onChange={() => {}} />}
-        </Field>
-        <Field label="Leg angle from vertical" unit="°">
-          {(c) => <TextInput {...c} keyboard="decimal" value="20" onChange={() => {}} />}
-        </Field>
-        <Field label="Beam stock">
-          {(c) => (
-            <Select
-              {...c}
-              value={choice}
-              onChange={setChoice}
-              options={[
-                { value: '4x6', label: '4x6' },
-                { value: '4x8', label: '4x8' },
-              ]}
-            />
-          )}
-        </Field>
-        <Field label="Incised lumber">
-          {(c) => <YesNo {...c} value={yes} onChange={setYes} />}
-        </Field>
-        <Field label="Beam length">
-          {(c) => <TextInput {...c} value="120" onChange={() => {}} readOnly />}
-        </Field>
+        {numberField && (
+          <Field label={numberField.label} hint={numberField.help} needed>
+            {(c) => <TextInput {...c} keyboard="decimal" value="" onChange={() => {}} />}
+          </Field>
+        )}
+        {angleField && (
+          <Field label={angleField.label} unit="°">
+            {(c) => (
+              <TextInput
+                {...c}
+                keyboard="decimal"
+                value={exampleValues[angleField.path] ?? ''}
+                onChange={() => {}}
+              />
+            )}
+          </Field>
+        )}
+        {choiceField && (
+          <Field label={choiceField.label}>
+            {(c) => (
+              <Select
+                {...c}
+                value={choice}
+                onChange={setChoice}
+                options={(choiceField.options ?? []).map((o) => ({
+                  value: String(o.value),
+                  label: o.label,
+                }))}
+              />
+            )}
+          </Field>
+        )}
+        {yesNoField && (
+          <Field label={yesNoField.label}>
+            {(c) => <YesNo {...c} value={yes} onChange={setYes} />}
+          </Field>
+        )}
+        {readOnlyField && (
+          <Field label={readOnlyField.label}>
+            {(c) => (
+              <TextInput
+                {...c}
+                value={exampleValues[readOnlyField.path] ?? ''}
+                onChange={() => {}}
+                readOnly
+              />
+            )}
+          </Field>
+        )}
       </Group>
 
       <Group title="Errors">
         <ErrorSummary
           takeFocus={false}
           items={[
-            { field: 'catalog-burial', message: unreadable },
-            { field: 'catalog-beam-height', message: rangeMessage('beamHeight', "15'") },
+            { field: 'catalog-unread', message: unreadable },
+            { field: 'catalog-range', message: rangeMessage(heightField, "15'") },
           ]}
         />
         <ErrorText>Enter a length.</ErrorText>
       </Group>
 
       <Group title="Notices">
-        {burialFlag && (
-          <ExpertCheck why={<Measured text={burialFlag.why} />}>
-            <Measured text={burialFlag.ask} />
+        {sampleFlag && (
+          <ExpertCheck why={<Measured text={sampleFlag.why} />}>
+            <Measured text={sampleFlag.ask} />
           </ExpertCheck>
         )}
         <p>
-          Deflection limit <InputNeeded />
+          {numberField?.label ?? 'An input'} <InputNeeded />
         </p>
         <Notice icon="connection">
           <b>Not saved.</b> Kerf could not reach the server. Your changes are still here. Save again
@@ -265,22 +291,22 @@ function Specimens() {
         </Notice>
         <StatusLine>Saved. The plan was regenerated.</StatusLine>
         <p>
-          {leg.name}, 1 of {leg.quantity} cut <Pending />
+          {part.name}, 1 of {part.quantity} cut <Pending />
         </p>
         <Loading delayMs={0}>Loading project…</Loading>
       </Group>
 
       <Group title="Numbers">
         <p>
-          Each edge, top cut to foot cut: <Length>{leg.marks[0]?.value ?? ''}</Length>
+          {part.marks[0]?.label}: <Length>{part.marks[0]?.value ?? ''}</Length>
         </p>
         <MarginLine margin={margin} />
         <Card>
           <Stack gap="xs">
             <span>
-              {leg.name}, {leg.quantity}
+              {part.name}, {part.quantity}
             </span>
-            <Glance>{leg.length}</Glance>
+            <Glance>{part.length}</Glance>
             <SawSetting setting={setting} toEdge={toEdge} />
           </Stack>
         </Card>
@@ -292,8 +318,8 @@ function Specimens() {
         <MeasureTable
           caption="Cut list, previewed"
           rowKey={(r) => r.partId}
-          rows={[beam, { ...leg, length: previewLeg?.length ?? '' }]}
-          rowChanged={(r) => r.partId === 'leg-back'}
+          rows={[other, { ...part, length: previewPart?.length ?? '' }]}
+          rowChanged={(r) => r.partId === part.partId}
           columns={[
             { key: 'part', label: 'Part', cell: (r) => r.name },
             {
@@ -301,8 +327,8 @@ function Specimens() {
               label: 'Length',
               numeric: true,
               cell: (r) =>
-                r.partId === 'leg-back' ? (
-                  <Changed was={leg.length}>
+                r.partId === part.partId ? (
+                  <Changed was={part.length}>
                     <Length>{r.length}</Length>
                   </Changed>
                 ) : (
@@ -345,7 +371,7 @@ function Specimens() {
       <Group title="Disclosure">
         <Card>
           <Stack gap="xs">
-            <b>Bending, top beam 4x6</b>
+            <b>{check ? `${check.title}: ${check.subject}` : 'A check'}</b>
             <MarginLine margin={margin} />
             <Disclosure summary="Show the working">
               <p>
@@ -389,18 +415,16 @@ function Specimens() {
         {drawings.isometric && (
           <Diagram
             drawing={drawings.isometric}
-            label="Isometric view of the worked example, parts lettered A to E"
-            selected="crossbar"
+            label={`Isometric view. ${drawings.isometric.description}`}
+            selected={other.partId}
           />
         )}
-        {legDetail && (
-          <Diagram drawing={legDetail} label="Cut detail for the worked example's back leg" />
-        )}
+        {partDetail && <Diagram drawing={partDetail} label={partDetail.description} />}
       </Group>
 
       <Group title="Diagram frame">
         <DiagramFrame
-          label="Sample: a leg drawn with a visible edge, a hidden line below grade, and a dimension"
+          label="Sample: a part drawn with a visible edge, a hidden line below grade, and a dimension"
           caption="Lines take their width and dash pattern from the line tokens (#44)."
           viewBox="0 0 320 120"
         >
@@ -455,7 +479,7 @@ function Specimens() {
             fontSize="14"
             fontWeight="600"
           >
-            {leg.length}
+            {part.length}
           </text>
         </DiagramFrame>
       </Group>
@@ -469,16 +493,16 @@ function ShopSpecimens() {
       <ModeBar mode="Building" exitHref="#/catalog" />
       <Stack gap="s">
         <p>
-          {leg.name}, {leg.quantity}
+          {part.name}, {part.quantity}
         </p>
-        <Glance>{leg.length}</Glance>
+        <Glance>{part.length}</Glance>
         <SawSetting setting={setting} toEdge={toEdge} />
-        {burialFlag && (
+        {sampleFlag && (
           <ExpertCheck>
-            <Measured text={burialFlag.ask} />
+            <Measured text={sampleFlag.ask} />
           </ExpertCheck>
         )}
-        <StatusLine>{leg.name} cut</StatusLine>
+        <StatusLine>{part.name} cut</StatusLine>
         <Cluster>
           <Button>Done, next</Button>
           <Button variant="secondary">Back</Button>
