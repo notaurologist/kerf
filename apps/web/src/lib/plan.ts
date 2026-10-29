@@ -13,9 +13,14 @@ export function readPlan(project: Project): PlanResult {
       message: `The stored plan cannot be read: ${project.unreadable?.message ?? 'no reason given'}.`,
     };
   }
-  const template = findTemplate(project.templateId);
+  return planOf(project.templateId, project.snapshot.outputs);
+}
+
+/** Outputs from any snapshot the API returned, such as a preview's, as a Plan. */
+export function planOf(templateId: string, outputs: unknown): PlanResult {
+  const template = findTemplate(templateId);
   if (!template) return { ok: false, message: 'This project’s template is no longer offered.' };
-  const parsed = template.outputs.safeParse(project.snapshot.outputs);
+  const parsed = template.outputs.safeParse(outputs);
   if (!parsed.success) {
     return { ok: false, message: 'The plan the server sent does not match this template’s shape.' };
   }

@@ -23,6 +23,7 @@ export {
   Loading,
   Notice,
   Pending,
+  StateTag,
   StatusLine,
   type SummaryItem,
 } from './feedback.tsx';
@@ -40,7 +41,7 @@ export {
   Switcher,
 } from './layout.tsx';
 export { type Column, MeasureTable } from './MeasureTable.tsx';
-export { Glance, Length, MarginLine, Measured, SawSetting } from './numbers.tsx';
+export { Changed, Glance, Length, MarginLine, Measured, SawSetting } from './numbers.tsx';
 export { PlanSection } from './Section.tsx';
 export { Header, ModeBar, type NavItem } from './Shell.tsx';
 export { Code, List, PlainList, Text, VisuallyHidden } from './text.tsx';

@@ -24,12 +24,13 @@ import {
   Loading,
   Notice,
   Pending,
+  StateTag,
   StatusLine,
 } from './feedback.tsx';
 import { ICON_NAMES, Icon } from './Icon.tsx';
 import { Card, Cluster, Stack, Switcher } from './layout.tsx';
 import { MeasureTable } from './MeasureTable.tsx';
-import { Glance, Length, MarginLine, Measured, SawSetting } from './numbers.tsx';
+import { Changed, Glance, Length, MarginLine, Measured, SawSetting } from './numbers.tsx';
 import { Header, ModeBar } from './Shell.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
@@ -81,6 +82,14 @@ const rangeMessage = (path: string, text: string) =>
   );
 
 const CUT_ROWS = [leg, beam];
+
+// A preview against a saved plan: the two-ply beam on pads (the third example) as the preview,
+// the worked example as what was saved. Both are core's output for their parameters.
+const previewed = (snapshots as unknown as Example[])[2] as Example;
+const previewLeg = previewed.outputs.cutList.find((r) => r.partId === 'leg-back');
+const previewMargin = structural.formatMargin(
+  previewed.outputs.structuralReview.beam.bending.margin,
+);
 const parsedEightZero = parseLength('8 0');
 const unreadable = parsedEightZero.ok ? '' : parsedEightZero.message;
 
@@ -262,6 +271,33 @@ function Specimens() {
             <SawSetting setting={setting} toEdge={toEdge} />
           </Stack>
         </Card>
+      </Group>
+
+      <Group title="Preview changes">
+        <StateTag>Preview, not saved</StateTag>
+        <MarginLine margin={previewMargin} was={margin} />
+        <MeasureTable
+          caption="Cut list, previewed"
+          rowKey={(r) => r.partId}
+          rows={[beam, { ...leg, length: previewLeg?.length ?? '' }]}
+          rowChanged={(r) => r.partId === 'leg-back'}
+          columns={[
+            { key: 'part', label: 'Part', cell: (r) => r.name },
+            {
+              key: 'length',
+              label: 'Length',
+              numeric: true,
+              cell: (r) =>
+                r.partId === 'leg-back' ? (
+                  <Changed was={leg.length}>
+                    <Length>{r.length}</Length>
+                  </Changed>
+                ) : (
+                  <Length>{r.length}</Length>
+                ),
+            },
+          ]}
+        />
       </Group>
 
       <Group title="Measurement table">

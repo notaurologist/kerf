@@ -177,6 +177,83 @@ const nextVersion: TemplateDefinition = {
   },
 };
 
+describe('POST /api/projects/:id/preview', () => {
+  const preview = (
+    authed: Awaited<ReturnType<typeof createTestApp>>['authed'],
+    id: string,
+    body: unknown,
+  ) => authed(`/api/projects/${id}/preview`, { method: 'POST', body });
+
+  it('returns the snapshot and what it changes, saving nothing', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const res = await preview(authed, body.id, { params: { ...swingSetParams, beamLength: 132 } });
+    expect(res.status).toBe(200);
+    const result = (await res.json()) as Json;
+    expect(result.snapshot.params.beamLength).toBe(132);
+    expect(result.snapshot.outputs.cutList[0].length).toBe('132"');
+    expect(result.truncated).toBe(false);
+    expect(result.changes).toContainEqual({
+      path: 'cutList[0].length',
+      before: '120"',
+      after: '132"',
+    });
+
+    const stored = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
+    expect(stored.snapshot).toEqual(body.snapshot);
+    expect(stored.updatedAt).toBe(body.updatedAt);
+  });
+
+  it('keeps the stored inputs when only the parameters are sent, and the reverse', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const withParams = (await (
+      await preview(authed, body.id, { params: { ...swingSetParams, beamLength: 132 } })
+    ).json()) as Json;
+    expect(withParams.snapshot.structuralInputs).toEqual(swingSetInputs);
+    const withInputs = (await (
+      await preview(authed, body.id, { structuralInputs: {} })
+    ).json()) as Json;
+    expect(withInputs.snapshot.params).toEqual(swingSetParams);
+    expect(withInputs.changes).toContainEqual(
+      expect.objectContaining({
+        path: 'checks[0].status',
+        before: 'computed',
+        after: 'input-needed',
+      }),
+    );
+  });
+
+  it('answers 422 with core issues for parameters core rejects', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const res = await preview(authed, body.id, { params: { ...swingSetParams, beamLength: 10 } });
+    expect(res.status).toBe(422);
+    const result = (await res.json()) as Json;
+    expect(result.error).toBe('invalid-project');
+    expect(result.issues[0].params).toEqual(['beamLength']);
+  });
+
+  it('answers 404 for a missing project, 400 for a body that changes nothing', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const missing = '00000000-0000-4000-8000-000000000000';
+    expect((await preview(authed, missing, { name: 'x' })).status).toBe(404);
+    expect((await preview(authed, body.id, {})).status).toBe(400);
+  });
+
+  it('requires a session', async () => {
+    const { app, authed } = await createTestApp();
+    const { body } = await create(authed);
+    const res = await app.request(`/api/projects/${body.id}/preview`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ params: swingSetParams }),
+    });
+    expect(res.status).toBe(401);
+  });
+});
+
 describe('DELETE /api/projects/:id', () => {
   it('deletes the project and its history rows, then answers 404 for it', async () => {
     const { authed, client } = await createTestApp();

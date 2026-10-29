@@ -7,12 +7,14 @@ import {
   type FormValues,
   findTemplate,
   formValues,
+  type Plan,
   type TemplateDefinition,
   visibleFields,
 } from '@kerf/core';
 import { type FormEvent, useState } from 'react';
 import { api, describeError, type FieldIssue, send } from '../../lib/api.ts';
 import { setFlash } from '../../lib/flash.ts';
+import { readPlan } from '../../lib/plan.ts';
 import { href, navigate } from '../../lib/route.ts';
 import type { Project } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
@@ -28,6 +30,7 @@ import {
   Loading,
   Notice,
   Select,
+  Sidebar,
   Stack,
   type SummaryItem,
   Text,
@@ -35,6 +38,8 @@ import {
   useLeaveGuard,
 } from '../../ui/index.ts';
 import { belongsTo, type FormIssues, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
+import { PreviewPane, usePreview } from './Preview.tsx';
+import { sameJson } from './sameJson.ts';
 
 // Create or edit a project's parameters and structural inputs (PRODUCT.md, MVP features 2 and
 // 7). The template describes its form as data in core; this renders any template's form. Core's
@@ -90,21 +95,6 @@ interface EditorValues {
   name: string;
   params: FormValues;
   inputs: FormValues;
-}
-
-/** Same JSON value, whatever the key order. */
-function sameJson(a: unknown, b: unknown): boolean {
-  const canonical = (v: unknown): unknown =>
-    Array.isArray(v)
-      ? v.map(canonical)
-      : typeof v === 'object' && v !== null
-        ? Object.fromEntries(
-            Object.keys(v)
-              .sort()
-              .map((k) => [k, canonical((v as Record<string, unknown>)[k])]),
-          )
-        : v;
-  return JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
 }
 
 export function ProjectEditor(props: {
@@ -213,6 +203,65 @@ export function ProjectEditor(props: {
   ];
   const general = [...issues.params.general, ...issues.inputs.general];
 
+  // A saved project's output shows beside the form, previewed before saving (#39, L-A; #56).
+  const saved = project ? readPlan(project) : null;
+  const editing = (
+    <Stack gap="l">
+      <Field id="project-name" label="Project name" error={issues.name}>
+        {(c) => <TextInput {...c} value={name} onChange={setName} readOnly={saving} />}
+      </Field>
+
+      <h2>Dimensions and hardware</h2>
+      <FormSections
+        sections={form.params}
+        values={params}
+        issues={issues.params}
+        onChange={setParams}
+        prefix="p"
+        readOnly={saving}
+      />
+
+      <h2>Structural inputs</h2>
+      <Text tone="muted">
+        These decide the structural checks. Leave any you have not settled empty; the checks that
+        need them will say "Input needed". Nothing here is filled in for you.
+      </Text>
+      <FormSections
+        sections={form.structuralInputs}
+        values={inputs}
+        issues={issues.inputs}
+        onChange={setInputs}
+        prefix="s"
+        readOnly={saving}
+        structural
+      />
+
+      {failure &&
+        (failure.connection ? (
+          <Notice icon="connection">
+            <b>Not saved.</b> {failure.message} Your changes are still here.
+          </Notice>
+        ) : (
+          <Notice>
+            <b>Not saved.</b> {failure.message}
+          </Notice>
+        ))}
+      <Cluster>
+        <Button type="submit" busy={saving}>
+          {saving ? 'Saving…' : project ? 'Save changes' : 'Create project'}
+        </Button>
+        <ButtonLink
+          variant="secondary"
+          href={
+            project ? href({ screen: 'project', id: project.id }) : href({ screen: 'projects' })
+          }
+        >
+          Cancel
+        </ButtonLink>
+      </Cluster>
+    </Stack>
+  );
+
   return (
     <form onSubmit={submit} noValidate>
       <Stack gap="l">
@@ -231,62 +280,35 @@ export function ProjectEditor(props: {
             </Text>
           </Card>
         )}
-        <Field id="project-name" label="Project name" error={issues.name}>
-          {(c) => <TextInput {...c} value={name} onChange={setName} readOnly={saving} />}
-        </Field>
-
-        <h2>Dimensions and hardware</h2>
-        <FormSections
-          sections={form.params}
-          values={params}
-          issues={issues.params}
-          onChange={setParams}
-          prefix="p"
-          readOnly={saving}
-        />
-
-        <h2>Structural inputs</h2>
-        <Text tone="muted">
-          These decide the structural checks. Leave any you have not settled empty; the checks that
-          need them will say "Input needed". Nothing here is filled in for you.
-        </Text>
-        <FormSections
-          sections={form.structuralInputs}
-          values={inputs}
-          issues={issues.inputs}
-          onChange={setInputs}
-          prefix="s"
-          readOnly={saving}
-          structural
-        />
-
-        {failure &&
-          (failure.connection ? (
-            <Notice icon="connection">
-              <b>Not saved.</b> {failure.message} Your changes are still here.
-            </Notice>
-          ) : (
-            <Notice>
-              <b>Not saved.</b> {failure.message}
-            </Notice>
-          ))}
-        <Cluster>
-          <Button type="submit" busy={saving}>
-            {saving ? 'Saving…' : project ? 'Save changes' : 'Create project'}
-          </Button>
-          <ButtonLink
-            variant="secondary"
-            href={
-              project ? href({ screen: 'project', id: project.id }) : href({ screen: 'projects' })
-            }
-          >
-            Cancel
-          </ButtonLink>
-        </Cluster>
+        {saved?.ok && project ? (
+          <Sidebar sideWidth="24rem" gap="l">
+            {editing}
+            <EditPreview
+              template={template}
+              project={project}
+              saved={saved.plan}
+              params={params}
+              inputs={inputs}
+            />
+          </Sidebar>
+        ) : (
+          editing
+        )}
       </Stack>
       {guard.dialog}
     </form>
   );
+}
+
+function EditPreview(props: {
+  template: TemplateDefinition;
+  project: Project;
+  saved: Plan;
+  params: FormValues;
+  inputs: FormValues;
+}) {
+  const state = usePreview(props.template, props.project, props.params, props.inputs);
+  return <PreviewPane saved={props.saved} state={state} />;
 }
 
 /** A summary line that names its field, unless the message already does. */

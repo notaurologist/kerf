@@ -4,6 +4,7 @@ import { Catalog } from './Catalog.tsx';
 import { ICON_NAMES } from './Icon.tsx';
 import {
   Button,
+  Changed,
   Disclosure,
   ErrorSummary,
   ExpertCheck,
@@ -19,6 +20,7 @@ import {
   Notice,
   SawSetting,
   Select,
+  StateTag,
   StatusLine,
   TextInput,
 } from './index.ts';
@@ -170,6 +172,50 @@ describe('numbers', () => {
     expect(renderText(<MarginLine margin="margin 1.1x" />)).toBe(
       'margin 1.1x under these assumptions',
     );
+  });
+});
+
+describe('preview changes', () => {
+  it('says the saved value in words beside the new one, so the mark is not the only sign', () => {
+    const html = render(
+      <Changed was={'120"'}>
+        <Length>132"</Length>
+      </Changed>,
+    );
+    expect(html).toContain('class="k-changed"');
+    expect(renderText(<Changed was={'120"'}>132"</Changed>)).toBe('132" was 120"');
+    expect(html).toContain('<span class="k-length">120&quot;</span>');
+  });
+
+  it('says "new" for a value the saved plan did not have', () => {
+    expect(renderText(<Changed was={null}>Lag screw</Changed>)).toBe('Lag screw new');
+  });
+
+  it('gives a changed margin the saved margin', () => {
+    const html = render(<MarginLine margin="margin 1.0x" was="margin 1.1x" />);
+    expect(html).toContain('data-changed=""');
+    expect(renderText(<MarginLine margin="margin 1.0x" was="margin 1.1x" />)).toBe(
+      'margin 1.0x under these assumptions was margin 1.1x',
+    );
+    expect(render(<MarginLine margin="margin 1.0x" />)).not.toContain('data-changed');
+  });
+
+  it('labels the state of the numbers in words', () => {
+    expect(renderText(<StateTag>Preview, not saved</StateTag>)).toBe('Preview, not saved');
+  });
+
+  it('marks changed rows in a measurement table', () => {
+    const html = render(
+      <MeasureTable
+        caption="Cut list"
+        rowKey={(r) => r.part}
+        rowChanged={(_, i) => i === 1}
+        rows={[{ part: 'Beam' }, { part: 'Leg' }]}
+        columns={[{ key: 'part', label: 'Part', cell: (r) => r.part }]}
+      />,
+    );
+    expect(html.match(/<tr data-changed="">/g)).toHaveLength(1);
+    expect(html).toContain('<tr data-changed=""><td data-label="Part"><div>Leg</div>');
   });
 });
 

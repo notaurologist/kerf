@@ -3,6 +3,8 @@ import type { TemplateDefinition } from '../templates/definition.ts';
 import type { GenerateResult, Issue } from '../templates/types.ts';
 import { type Diff, diff } from './diff.ts';
 
+const asJson = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
+
 // A project snapshot: the template and version that generated it, the shape it is stored in, the
 // parameters and structural inputs used, and every generated output, as one JSON value
 // (ARCHITECTURE.md, Generation pipeline). The API stores it and reads it back with the template's
@@ -170,7 +172,6 @@ export function compareWithCurrent(
     };
   }
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
-  const asJson = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
   return {
     status: 'behind',
     storedVersion: snapshot.templateVersion,
@@ -179,4 +180,20 @@ export function compareWithCurrent(
       ? { ok: true, ...diff(asJson(snapshot.outputs), asJson(current.output.outputs)) }
       : { ok: false, issues: current.issues },
   };
+}
+
+/**
+ * What a preview changes from a saved snapshot: both read through the template's `plan`, so the
+ * paths are the ones every display shares (such as 'cutList[0].length' or 'checks[0].margin')
+ * and the template's internal design data does not crowd out what the owner sees. Both snapshots
+ * must already be read (and so in the current shape); they may come from different versions.
+ */
+export function compareSnapshots(
+  template: TemplateDefinition,
+  saved: ProjectSnapshot,
+  preview: ProjectSnapshot,
+  limit = 1000,
+): Diff {
+  const plan = (s: ProjectSnapshot) => asJson(template.plan(template.outputs.parse(s.outputs)));
+  return diff(plan(saved), plan(preview), limit);
 }

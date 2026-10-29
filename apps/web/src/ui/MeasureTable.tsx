@@ -20,6 +20,8 @@ export function MeasureTable<Row>(props: {
   columns: readonly Column<Row>[];
   rows: readonly Row[];
   rowKey: (row: Row) => string;
+  /** Rows a preview changes (#56); each changed value also says what it was, in words. */
+  rowChanged?: (row: Row, index: number) => boolean;
 }) {
   return (
     <div className="k-table-wrap">
@@ -44,8 +46,11 @@ export function MeasureTable<Row>(props: {
           </tr>
         </thead>
         <tbody>
-          {props.rows.map((row) => (
-            <tr key={props.rowKey(row)}>
+          {props.rows.map((row, index) => (
+            <tr
+              key={props.rowKey(row)}
+              data-changed={props.rowChanged?.(row, index) ? '' : undefined}
+            >
               {props.columns.map((c) => (
                 <td key={c.key} data-label={c.label} data-numeric={c.numeric ? '' : undefined}>
                   {/* One box per cell, so stacked rows keep mixed text and lengths together. */}
