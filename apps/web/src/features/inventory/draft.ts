@@ -1,72 +1,85 @@
-import { Inventory } from '@kerf/core';
+import {
+  buildFromForm,
+  capabilityForm,
+  entryProblems,
+  type FormValues,
+  findToolType,
+  formValues,
+  Inventory,
+  TOOL_TYPES,
+} from '@kerf/core';
 import type { FieldIssue } from '../../lib/api.ts';
 
-// The inventory as the form edits it. Values stay as typed until saving, when `toInventory`
-// checks them with core's schema, the same one the API uses.
-
-export type CapabilityKind = 'yes-no' | 'number' | 'text';
-
-export interface CapabilityDraft {
-  name: string;
-  kind: CapabilityKind;
-  /** 'true' or 'false' for yes/no; the typed text otherwise. */
-  value: string;
-}
+// The inventory as the form edits it. Capabilities are typed like any form field and read by
+// core's form helpers; `toInventory` then checks the whole list with core's schema, the same one
+// the API uses. An empty capability is left out, so it stays "input needed".
 
 export interface ToolDraft {
   toolTypeId: string;
-  capabilities: CapabilityDraft[];
+  /** The text typed for each capability, by capability ID. */
+  values: FormValues;
 }
 
-export function fromInventory(inventory: Inventory): ToolDraft[] {
-  return inventory.tools.map((tool) => ({
-    toolTypeId: tool.toolTypeId,
-    capabilities: Object.entries(tool.capabilities).map(([name, value]) => ({
-      name,
-      kind: typeof value === 'boolean' ? 'yes-no' : typeof value === 'number' ? 'number' : 'text',
-      value: String(value),
-    })),
-  }));
+export interface OtherDraft {
+  name: string;
+  note: string;
 }
 
-export const emptyTool = (): ToolDraft => ({ toolTypeId: '', capabilities: [] });
+export interface InventoryDraft {
+  tools: ToolDraft[];
+  other: OtherDraft[];
+}
 
-export const emptyCapability = (): CapabilityDraft => ({ name: '', kind: 'yes-no', value: 'true' });
+const ORDER: ReadonlyMap<string, number> = new Map(TOOL_TYPES.map((t, i) => [t.id, i]));
 
-/** The inventory to send, or the problems that stop it, by field (`tools.0.toolTypeId`). */
+/** Library order, so a tool lands in the same place however it was added. */
+const byLibrary = (a: ToolDraft, b: ToolDraft) =>
+  (ORDER.get(a.toolTypeId) ?? 0) - (ORDER.get(b.toolTypeId) ?? 0);
+
+export function fromInventory(inventory: Inventory): InventoryDraft {
+  return {
+    tools: inventory.tools
+      .map((tool) => {
+        const type = findToolType(tool.toolTypeId);
+        const values = type ? formValues([capabilityForm(type)], tool.capabilities) : {};
+        return { toolTypeId: tool.toolTypeId, values };
+      })
+      .sort(byLibrary),
+    other: inventory.other.map((o) => ({ ...o })),
+  };
+}
+
+export const emptyInventory = (): InventoryDraft => ({ tools: [], other: [] });
+
+/** Adds a library tool with nothing entered. */
+export function addTool(draft: InventoryDraft, toolTypeId: string): InventoryDraft {
+  if (draft.tools.some((t) => t.toolTypeId === toolTypeId)) return draft;
+  return { ...draft, tools: [...draft.tools, { toolTypeId, values: {} }].sort(byLibrary) };
+}
+
+/** The inventory to send, or the problems that stop it, by field (`tools.0.capabilities.maxBevel`). */
 export function toInventory(
-  drafts: readonly ToolDraft[],
+  draft: InventoryDraft,
 ): { ok: true; inventory: Inventory } | { ok: false; issues: FieldIssue[] } {
   const issues: FieldIssue[] = [];
-  const tools = drafts.map((draft, t) => {
-    const toolTypeId = draft.toolTypeId.trim();
-    if (drafts.slice(0, t).some((d) => d.toolTypeId.trim() === toolTypeId)) {
-      issues.push({ field: `tools.${t}.toolTypeId`, message: 'is already in the list' });
+  const tools = draft.tools.map((tool, t) => {
+    const type = findToolType(tool.toolTypeId);
+    if (!type) return { toolTypeId: tool.toolTypeId, capabilities: {} };
+    const form = [capabilityForm(type)];
+    const capabilities = buildFromForm(form, tool.values);
+    for (const p of entryProblems(form, tool.values)) {
+      issues.push({ field: `tools.${t}.capabilities.${p.field}`, message: p.message });
+      // Reported above with what to type; left out so core checks the rest.
+      delete capabilities[p.field];
     }
-    const capabilities: Record<string, boolean | number | string> = {};
-    draft.capabilities.forEach((c, i) => {
-      const at = `tools.${t}.capabilities.${i}`;
-      const name = c.name.trim();
-      if (!name) issues.push({ field: `${at}.name`, message: 'needs a name' });
-      else if (name in capabilities)
-        issues.push({ field: `${at}.name`, message: 'is listed twice' });
-      if (c.kind === 'yes-no') capabilities[name] = c.value === 'true';
-      else if (c.kind === 'number') {
-        const n = Number(c.value);
-        if (c.value.trim() === '' || !Number.isFinite(n)) {
-          issues.push({ field: `${at}.value`, message: 'must be a number' });
-        }
-        capabilities[name] = n;
-      } else capabilities[name] = c.value.trim();
-    });
-    return { toolTypeId, capabilities };
+    return { toolTypeId: tool.toolTypeId, capabilities };
   });
-  const parsed = Inventory.safeParse({ tools });
+  const other = draft.other.map((o) => ({ name: o.name.trim(), note: o.note.trim() }));
+  const parsed = Inventory.safeParse({ tools, other });
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
       const field = issue.path.map(String).join('.');
-      // Duplicates are already pointed at the second entry above.
-      if (field !== 'tools') issues.push({ field, message: issue.message });
+      issues.push({ field, message: issue.message });
     }
   }
   if (issues.length > 0 || !parsed.success) return { ok: false, issues };

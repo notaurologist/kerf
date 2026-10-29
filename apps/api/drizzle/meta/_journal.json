@@ -15,6 +15,13 @@
       "when": 1793220838445,
       "tag": "0001_snapshot_holds_params",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793309418734,
+      "tag": "0002_other_tools",
+      "breakpoints": true
     }
   ]
 }

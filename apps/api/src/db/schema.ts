@@ -19,10 +19,18 @@ const timestamps = {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 };
 
-// The owner's tool inventory: one row per tool type, with the capabilities that matter for it.
+// The owner's tool inventory: one row per library tool type, with the capabilities entered for it.
 export const tools = pgTable('tools', {
   toolTypeId: text('tool_type_id').primaryKey(),
   capabilities: jsonb('capabilities').notNull().default({}),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Tools the library does not have, in the order the owner listed them. Build steps ignore them.
+export const otherTools = pgTable('other_tools', {
+  position: integer('position').primaryKey(),
+  name: text('name').notNull(),
+  note: text('note').notNull().default(''),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

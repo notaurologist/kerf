@@ -53,7 +53,7 @@ For our backyard: two swings, used by kids (7 and 10) and adults.
 
 ## MVP features
 
-1. **Tool inventory.** A list of tool types I own (for example, circular saw, drill/driver, speed square), with relevant capabilities where they matter (for example, whether a saw bevels). Edited by hand.
+1. **Tool inventory.** A list of tool types I own (for example, circular saw, drill/driver, rafter square), picked from a library of generic tool types, with the capabilities that matter for choosing a method (for example, how far a saw bevels). Tools the library lacks are kept by name and not used for methods.
 2. **Project from template.** Choose a template, set parameters, see validation for out-of-range or contradictory values. Each project records the template version it was generated with, and shows a notice if the current template would produce different numbers.
 3. **Cut list.** Every part: name, stock (nominal and actual size), length, end cuts (miter and bevel angles), quantity. Fractions to 1/16 inch. Angles are shown as miter-saw settings (0° = square) with a small diagram of the reference face, plus the angle to the board's edge (90° minus the setting) for laying out with a protractor or sliding bevel.
 4. **Shopping list.** Lumber grouped into buyable board lengths (simple grouping, not optimization), with allowance for saw kerf on each cut and for trimming factory ends. Hardware with quantities, consumables (finish, fasteners).

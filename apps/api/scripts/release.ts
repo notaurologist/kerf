@@ -5,9 +5,11 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { LOCAL_DATABASE_URL } from '../drizzle.config.ts';
 import { createDatabase } from '../src/db/client.ts';
 import { createProjectService } from '../src/services/projects.ts';
+import { upgradeStoredInventory } from '../src/services/tools.ts';
 
 // Brings the database up to date with this code (decision 0014): applies the committed Drizzle
-// migrations, then rewrites any project snapshot stored in an older shape in the current one.
+// migrations, then rewrites any project snapshot stored in an older shape in the current one, and
+// any tool inventory stored before the tool library.
 // Safe to re-run. Vercel runs it in every production build (vercel.json); locally it is
 // `pnpm db:migrate`. Migrations use Neon's direct connection when one is set, since Neon advises
 // against schema changes through the pooler.
@@ -31,6 +33,8 @@ try {
   const projects = createProjectService({ db, templates: TEMPLATES, now: () => new Date() });
   const { upgraded, unreadable } = await projects.upgradeStoredSnapshots();
   console.log(`release: ${upgraded} project snapshots upgraded to the current shape.`);
+  const moved = await upgradeStoredInventory(db, new Date());
+  console.log(`release: ${moved} tool entries moved to other tools.`);
   if (unreadable.length > 0) {
     // Stops the deploy, so code that cannot read stored projects never goes live.
     console.error(`release: snapshots that cannot be read: ${unreadable.join(', ')}`);

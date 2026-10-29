@@ -17,7 +17,7 @@ Background for anyone (human or agent) working on this project. This is not auth
 - Measure from a consistent reference end and face.
 - Mark cut lines with the waste side indicated; the saw kerf (blade width) comes out of the waste side.
 - For repeated parts, cut one, verify it, then use it (or a stop block) to mark the rest.
-- Angles can be laid out with a speed square or protractor; for repeated angles, a jig or set tool beats re-measuring.
+- Angles can be laid out with a rafter square or protractor; for repeated angles, a jig or set tool beats re-measuring.
 
 ## Operations
 
@@ -25,8 +25,8 @@ Operations are what needs to happen to a part. Methods are how, given specific t
 
 | Operation | Example methods by tool |
 |---|---|
-| Crosscut (square) | Miter saw; circular saw with speed square or guide; hand saw |
-| Angled crosscut (miter) | Miter saw set to angle; circular saw with speed square at angle |
+| Crosscut (square) | Miter saw; circular saw with rafter square or guide; hand saw |
+| Angled crosscut (miter) | Miter saw set to angle; circular saw with rafter square at angle |
 | Bevel cut | Miter saw or circular saw with bevel; table saw with tilted blade |
 | Rip (cut along the grain) | Table saw; circular saw with straightedge guide or rip fence |
 | Bolt holes | Drill with spade or auger bit; drill guide for straight holes through thick stock |
@@ -147,7 +147,7 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 - **Hardware item:** type, size, quantity, notes, flag if structural.
 - **Operation:** type (from the operations table), part reference, parameters (angle, depth, hole size).
 - **Method:** operation type, required tool types and capabilities, skills, steps, common mistakes, flags.
-- **Tool:** type and capabilities (for example, circular saw with bevel up to 45 degrees). Inventory is a list of these.
+- **Tool:** a tool type from the library (`knowledge/tools.ts`) and the capabilities the owner entered for it (for example, circular saw with bevel up to 45 degrees). Each tool type lists the capabilities that change which method fits, with the kind and unit of each and where its value is read; none has a default, and a capability not entered is input needed. Inventory is a list of these, plus other tools by name, which methods ignore. Tool names are generic: "rafter square," since "Speed Square" is a trademark.
 - **Flag:** category (from expert-check categories), what to ask, why.
 - **Geometry:** 3D positions and orientations of parts, used for isometric and exploded projection. Each part instance has a placement: a local frame (along its length from its first end, across its width from its reference edge, through its thickness) with its origin at the first end's long point. The part's shape in that frame follows from its own data (length, width, thickness, end cuts), so a placement and the cut list together draw it.
 - **Structural check:** type (beam bending, shear, deflection, hardware), member or hardware reference, inputs with sources, formula, intermediate values, result, margin, assumptions.
@@ -159,7 +159,7 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 - Imperial throughout (US lumber, personal use). Store lengths as decimal inches; display as feet, inches, and fractions rounded to 1/16. Angles in degrees.
 - Rounding must be consistent and visible: a displayed fraction is never silently different from what other views show. Round once, at display, from the stored decimal values; never compute with rounded values. A total is rounded from the exact sum, so it can differ from the sum of rounded parts, and where that happens the display says so.
 - **Entering lengths.** A length is typed as a plan writes it and read by core's `parseLength`: a number on its own is inches (`138`, `138.4`), a fraction joins inches with a hyphen or space (`138-3/8`), and feet take `'` (`11' 6-3/8"`). Fractions are tape fractions, halves to 64ths. Ambiguous text such as `11 6` is refused with a message rather than guessed. What is typed is kept exactly; a saved length is written back into its field without rounding (`lengthForEntry`). The standard and its reasons are in `docs/design/entry.html` (#67).
-- **Angle convention.** Angles are stored and shown as miter-saw settings: 0° is a square cut, and the angle is measured from square. Each cut detail shows which face the angle is measured from. It also shows the angle between the cut line and the board's edge (90° minus the setting), which is what a protractor or sliding bevel reads against the edge. Mixing the two (for example, 15° vs. 75°) is the most likely cause of a recut. A speed square's degree scale is believed to read from square like a saw; confirm against the owner's square before the method text relies on it.
+- **Angle convention.** Angles are stored and shown as miter-saw settings: 0° is a square cut, and the angle is measured from square. Each cut detail shows which face the angle is measured from. It also shows the angle between the cut line and the board's edge (90° minus the setting), which is what a protractor or sliding bevel reads against the edge. Mixing the two (for example, 15° vs. 75°) is the most likely cause of a recut. A rafter square's degree scale is believed to read from square like a saw; confirm against the owner's square before the method text relies on it.
 
 ## Verification
 
