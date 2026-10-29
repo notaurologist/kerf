@@ -1,0 +1,954 @@
+<title>Kerf Number Entry</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+.pal-C1-light { --bg: #fbf9f5; --raised: #fff; --sunken: #f2efe9; --text: #1a1d23; --muted: #545860; --border: #d7d4ce; --border-strong: #70757c; --accent: #0e5caf; --on-accent: #fff; --focus: #1570d1; --flag-bg: #ffe8be; --flag-border: #bb7400; --flag-text: #5b3106; --input-bg: #fff; --input-border: #2e64a6; --input-text: #0e4786; --done: #0e5caf; --error: #aa295f; --error-bg: #ffebf1; --ink: #1a1d23; --dim: #0e5caf; --hidden: #6e7278; --highlight: #bfe1ff; --zone: #dbeede; --zone-line: #488055; }
+.pal-C1-dark { --bg: #111418; --raised: #1a1d23; --sunken: #0b0d12; --text: #edebe7; --muted: #aaaeb4; --border: #2f3339; --border-strong: #82868e; --accent: #70b3f7; --on-accent: #0c121a; --focus: #73bdff; --flag-bg: #3e290f; --flag-border: #dea143; --flag-text: #f7dba1; --input-bg: #1a1d23; --input-border: #6da9e7; --input-text: #97c9fd; --done: #70b3f7; --error: #ea7ca1; --error-bg: #3d1e28; --ink: #edebe7; --dim: #70b3f7; --hidden: #83868c; --highlight: #1d456b; --zone: #1e2d21; --zone-line: #75ae81; }
+
+.sheet { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+.mocks { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(343px, 100%), 1fr)); align-items: start; }
+.mock { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.mock > figcaption { font-size: 14px; line-height: 1.4; color: var(--text); }
+.pframe { width: 100%; max-width: 375px; border: 1px solid var(--border-strong); border-radius: 18px; overflow: hidden; background: var(--bg); }
+.pbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--raised); font-size: 15px; }
+.pbar span { color: var(--accent); font-weight: 600; }
+.pbody { padding: 12px 16px 16px; display: grid; gap: 14px; }
+.psec { margin: 0; font-weight: 700; font-size: 16px; }
+.desk { border: 1px solid var(--border); border-radius: 6px; background: var(--raised); padding: 14px 16px; display: grid; gap: 12px; }
+.drow.wide { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.drow { display: grid; gap: 14px 18px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.mf { display: grid; gap: 4px; min-width: 0; }
+.mf-label { font-weight: 600; font-size: 15px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.mf-hint { font-size: 14px; color: var(--muted); }
+.mf-box { display: flex; align-items: center; min-height: 44px; border: 1.5px solid var(--border-strong); border-radius: 4px; background: var(--input-bg); padding: 0 10px; font-size: 17px; font-variant-numeric: tabular-nums; color: var(--text); gap: 6px; }
+.mf-box.focus { outline: 3px solid var(--focus); outline-offset: 1px; border-color: var(--input-border); }
+.mf-text { flex: 1; white-space: pre; }
+.mf-unit { color: var(--muted); font-size: 15px; }
+.caret { display: inline-block; width: 1.5px; height: 1.1em; background: var(--text); vertical-align: -0.2em; margin-left: 1px; }
+.mf-echo { font-size: 15px; color: var(--text); font-variant-numeric: tabular-nums; }
+.mf-echo b { font-weight: 700; }
+.is-error .mf-box { border: 2px solid var(--error); }
+.mf-error { display: flex; gap: 6px; align-items: flex-start; color: var(--error); font-weight: 600; font-size: 15px; }
+.ico { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+.is-needed .mf-box { border: 2px dashed var(--accent); }
+.needed-tag { font-size: 13px; font-weight: 700; color: var(--accent); border: 1.5px dashed var(--accent); border-radius: 3px; padding: 0 5px; }
+.split { display: flex; gap: 8px; flex-wrap: wrap; }
+.sp { display: grid; gap: 2px; }
+.sp-l { font-size: 13px; color: var(--muted); }
+.mf-box.narrow { width: 64px; }
+.mf-box.select { width: 84px; }
+.chev { color: var(--muted); }
+.kbd { background: var(--sunken); border-top: 1px solid var(--border); padding: 8px 6px 10px; display: grid; gap: 6px; }
+.krow { display: flex; gap: 5px; justify-content: center; }
+.k { flex: 1; min-width: 0; text-align: center; background: var(--raised); border: 1px solid var(--border); border-radius: 5px; padding: 9px 0; font-size: 15px; }
+.k.hit { background: var(--highlight); border-color: var(--accent); font-weight: 700; }
+.k.wide { flex: 1.5; font-size: 13px; }
+.k.space { flex: 5; font-size: 13px; }
+.k.blank { visibility: hidden; }
+.kgrid3, .kgrid4 { display: grid; gap: 6px; }
+.kgrid3 { grid-template-columns: repeat(3, 1fr); }
+.kgrid4 { grid-template-columns: repeat(4, 1fr); }
+.kgrid3 .k, .kgrid4 .k { padding: 12px 0; font-size: 19px; }
+.kcap { margin: 2px 4px 0; font-size: 13px; color: var(--muted); }
+.try { margin-top: 18px; display: grid; gap: 8px; border-top: 1px solid var(--border); padding-top: 14px; }
+.try input { font: inherit; font-size: 18px; min-height: 48px; border: 1.5px solid var(--border-strong); border-radius: 4px; background: var(--input-bg); color: var(--text); padding: 0 10px; max-width: 360px; }
+.try input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.try-out { margin: 0; font-size: 16px; min-height: 1.5em; }
+.states { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); align-items: start; }
+.state > figcaption { font-size: 14px; }
+.summary { border: 2px solid var(--error); border-radius: 4px; padding: 10px 12px; display: grid; gap: 6px; background: var(--error-bg); }
+.summary b { display: flex; gap: 6px; color: var(--text); }
+.summary a { color: var(--error); font-weight: 600; }
+.btnrow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.mbtn { background: var(--accent); color: var(--on-accent); border-radius: 4px; padding: 11px 16px; font-weight: 700; }
+.mbtn.busy { opacity: 1; }
+.mbtn.ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.mlink { color: var(--accent); text-decoration: underline; }
+.status { margin: 0; display: flex; gap: 8px; align-items: baseline; }
+.tick { color: var(--done); font-weight: 800; }
+.notice { display: flex; gap: 8px; border: 1.5px solid var(--border-strong); border-radius: 4px; padding: 10px 12px; }
+.dialog { display: grid; gap: 8px; border: 1px solid var(--border-strong); border-radius: 8px; padding: 14px; background: var(--bg); box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); }
+.loading { margin: 0; color: var(--text); }
+.queued { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; }
+.queued .q { grid-column: 2; font-size: 14px; color: var(--text); }
+.direction-full > header { display: grid; gap: 4px; }
+.sugg { color: var(--blue); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px; margin: 0; position: sticky; top: 0; z-index: 2; background: var(--paper); }
+.controls legend { font-weight: 600; padding: 0 4px; }
+.controls label { display: inline-flex; gap: 6px; align-items: center; min-height: 32px; }
+table.std { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.92rem; background: var(--wf-bg); }
+table.std th, table.std td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+table.std th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.std .no { color: var(--muted); }
+table.counts { min-width: 480px; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@200..800&display=swap">
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #67</p>
+  <h1>Number entry and form states</h1>
+  <div class="prose stack">
+    <p>How a length or an angle is typed into Kerf, how Kerf shows what it understood, and what every form looks like while it loads, waits, fails, and saves.</p>
+    <p>Today the editor takes decimal inches only (<code>138.375</code>) and echoes them in feet and inches. A woodworker reads a tape as feet, inches, and sixteenths, and writes <code>138-3/8</code>. This page compares three ways to enter a length, proposes a standard for what Kerf accepts, and draws the form states every direction shares. The mockups use #42's typeface and #43's C1 colors; every echoed length on this page is a string from core's <code>formatLength</code>.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">Decided, October 2026</h2>
+  <p>The owner took the suggestion for all three: <span class="pick" style="white-space: normal">E1, errors on save, standard as written</span>. E3's keypad is kept as a possible later improvement (#74), if a way to add the marks without losing the native keyboard proves reliable. Reasons and rejected directions are in <code>docs/design/README.md</code>; the parser is #73. The choices were:</p>
+  <ol>
+    <li><a href="#directions">How a length is entered</a>: <span class="pick">E1</span> typed as written on a plan, <span class="pick">E2</span> split fields, or <span class="pick">E3</span> Kerf's own keypad on a phone.</li>
+    <li><a href="#timing">When problems are shown</a>: <span class="pick">errors on save</span>, with Kerf's reading shown while you type, or errors as soon as you leave a field.</li>
+    <li><a href="#standard">The entry standard</a>: approve what Kerf accepts and refuses, and that core does the parsing, or change it.</li>
+  </ol>
+  <p class="small">Try E1's field on your phone: it runs a prototype of the parser. The light and dark switch above the directions applies to every mockup.</p>
+</section>
+
+<!-- ============================== SHARED ============================== -->
+<section id="shared" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Common to all three</p>
+    <h2>What every direction does</h2>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Core reads, core echoes</b><p>Whatever the control, core turns the entry into decimal inches and formats it back. The echo under the field is core's reading, in feet and inches and then inches, as the plan will show it (hard rules 1 and 6).</p></div>
+    <div class="opt"><b>Exact until display</b><p>What is typed is kept exactly. If it is not a whole number of sixteenths, the echo says it is shown to the nearest 1/16 and that Kerf keeps the exact value (hard rule 4).</p></div>
+    <div class="opt"><b>No sample values</b><p>Hints describe the format, never a plausible number for that field, so nothing on the screen can pass for a default (hard rule 3). Placeholders are not used: they vanish while typing and are hard to read (GOV.UK).</p></div>
+    <div class="opt"><b>Labels carry the reference</b><p>Every length says where it is measured from ("above the ground under the beam"), and angles say what they are measured from ("from vertical"). Saw settings are never typed; they are outputs.</p></div>
+    <div class="opt"><b>Never color alone</b><p>An error has an icon, a message, and a heavier border; input needed has a dashed outline and its words (#43, rules 4 and 6).</p></div>
+    <div class="opt"><b>Text fields, not number fields</b><p><code>type="number"</code> cannot hold a fraction such as 3/8, and GOV.UK advises against it unless research shows a need. Lengths are text fields with autocorrect, capitals, and spelling checks turned off.</p></div>
+  </div>
+</section>
+
+<!-- ============================== DIRECTIONS ============================== -->
+<section id="directions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Directions</p>
+    <h2>Three ways to enter a length</h2>
+    <p class="prose">The worked example's frame: beam 120" long at 96", legs at 20° from vertical, 12" inset. The editor is used mostly on the laptop (#40: Edit opens the split screen), and planning screens are the only place parameters change. A phone is the second case.</p>
+  </div>
+
+  <fieldset class="controls">
+    <legend>View</legend>
+    <label for="theme-light"><input type="radio" name="theme" id="theme-light" value="light" checked> Light</label>
+    <label for="theme-dark"><input type="radio" name="theme" id="theme-dark" value="dark"> Dark</label>
+  </fieldset>
+
+  
+<article class="direction-full stack-lg" id="e1">
+  <header><p><span class="letter">E1</span> · Typed, as written on a plan · <b class="sugg">Chosen</b></p><h3>One field per length; type it the way a tape or a plan writes it, and Kerf shows what it read</h3></header>
+  <div class="sheet pal-C1-light">
+<div class="mocks">
+  
+<figure class="mock phone-mock"><figcaption>Phone: typing the beam height</figcaption>
+  <div class="pframe"><div class="pbar"><b>Edit · Backyard swing set</b><span>Save</span></div><div class="pbody"><p class="psec">Frame</p>
+<div class="mf">
+  <span class="mf-label">Beam length</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">10'</span></span>
+  <span class="mf-echo"><b>10' 0&quot; · 120&quot;</b></span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Beam height</span>
+  
+  
+  <span class="mf-box focus"><span class="mf-text">8'<i class="caret"></i></span></span>
+  <span class="mf-echo"><b>8' 0&quot; · 96&quot;</b></span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Crossbar height</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">40</span></span>
+  <span class="mf-echo"><b>3' 4&quot; · 40&quot;</b></span>
+  
+</div></div>
+<div class="kbd ios" role="img" aria-label="Simplified iPhone keyboard, numbers layer">
+  <div class="krow"><span class="k">1</span><span class="k">2</span><span class="k">3</span><span class="k">4</span><span class="k">5</span><span class="k">6</span><span class="k">7</span><span class="k">8</span><span class="k">9</span><span class="k">0</span></div>
+  <div class="krow"><span class="k hit">-</span><span class="k hit">/</span><span class="k">:</span><span class="k">;</span><span class="k">(</span><span class="k">)</span><span class="k">$</span><span class="k">&amp;</span><span class="k">@</span><span class="k hit">&quot;</span></div>
+  <div class="krow"><span class="k wide">#+=</span><span class="k hit">.</span><span class="k">,</span><span class="k">?</span><span class="k">!</span><span class="k hit">'</span><span class="k wide">⌫</span></div>
+  <div class="krow"><span class="k wide">ABC</span><span class="k space">space</span><span class="k wide">next</span></div>
+  <p class="kcap">iPhone's numbers layer, simplified. The marks a length needs, highlighted, are all on it. It opens on letters, so one tap to switch.</p>
+</div></div>
+</figure>
+  
+<figure class="mock desk-mock"><figcaption>Laptop: the editor's Frame section</figcaption>
+  <div class="desk"><p class="psec">Frame</p><div class="drow">
+<div class="mf">
+  <span class="mf-label">Beam length</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">120</span></span>
+  <span class="mf-echo"><b>10' 0&quot; · 120&quot;</b></span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Beam height</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">8' 0</span></span>
+  <span class="mf-echo"><b>8' 0&quot; · 96&quot;</b></span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Leg angle from vertical</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">20</span></span>
+  <span class="mf-echo"><b>20.0°</b> from vertical</span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Frame inset</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">12</span></span>
+  <span class="mf-echo"><b>1' 0&quot; · 12&quot;</b></span>
+  
+</div></div></div>
+</figure>
+</div>
+<div class="try sheet-inner">
+  <label for="try-len"><b>Try it.</b> Type a length the way you would write it.</label>
+  <input id="try-len" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-describedby="try-out">
+  <p id="try-out" class="try-out">Such as 138-3/8, 11' 6-3/8", or 138.4.</p>
+  <p class="small">Runs a prototype of the proposed parser with core's own <code>formatLength</code>, copied into this page.</p>
+</div></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>How lengths are written on plans and typed into drawing programs. CAD tools set to architectural units read a plain number as inches and take feet with an apostrophe and a hyphenated fraction (<code>3'1-5/8</code>); SketchUp's measurements box takes <code>2'6</code> or <code>3 1/4</code>. A woodworker already writes <code>138-3/8</code> on the board.</dd>
+  <dt>Principles</dt>
+  <dd>Forgiving format (Tidwell, <i>Designing Interfaces</i>): accept the forms people use and let the program do the work. GOV.UK: accept different formats "as long as it's not ambiguous", and ignore stray spaces. WCAG 3.3.2 and 3.3.3: say what is expected, and when something cannot be read, say how to fix it. The echo puts core's reading beside the text, so a slip like <code>183</code> for <code>138</code> shows as 15' 3" before it is saved.</dd>
+  <dd>Ambiguity is refused, not guessed: <code>11 6</code> could be 11' 6" or a missed key, so Kerf asks for the foot mark.</dd>
+  <dt>In use</dt>
+  <dd>Laptop, where the editor is used (#40: L-A split editor): the fastest of the three, since every mark is on the keyboard, and a length can be pasted from a plan or a note. Phone: works, but opens on letters; one tap to the numbers layer, where <code>-</code>, <code>/</code>, <code>'</code>, <code>"</code>, and <code>.</code> all sit. The field turns off autocorrect and capitals, and the parser also accepts the curly quotes a phone's smart punctuation types.</dd>
+  <dt>Measured</dt>
+  <dd>Keys to enter 138-3/8: 7 on a laptop, 8 taps on a phone (one to switch layers). 11'6-3/8: 8 keys, 9 taps.</dd>
+  <dt>Cost</dt>
+  <dd>A parser in core with hand-checked cases (about 50 already in the prototype on this page). The phone keyboard starts on letters, and the numbers layer has small keys.</dd>
+</dl>
+</div>
+</article>
+  
+<article class="direction-full stack-lg" id="e2">
+  <header><p><span class="letter">E2</span> · Split fields</p><h3>Feet, inches, and a fraction menu: nothing to parse, nothing to learn</h3></header>
+  <div class="sheet pal-C1-light">
+<div class="mocks">
+  
+<figure class="mock phone-mock"><figcaption>Phone: entering the beam height</figcaption>
+  <div class="pframe"><div class="pbar"><b>Edit · Backyard swing set</b><span>Save</span></div><div class="pbody"><p class="psec">Frame</p>
+<div class="mf">
+  <span class="mf-label">Beam length</span>
+  <span class="split">
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">10</span></span><span class="sp-l">feet</span></span>
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">0</span></span><span class="sp-l">inches</span></span>
+    <span class="sp"><span class="mf-box select"><span class="mf-text">0</span><span class="chev">▾</span></span><span class="sp-l">fraction</span></span>
+  </span>
+  <span class="mf-echo"><b>10' 0&quot; · 120&quot;</b></span>
+</div>
+<div class="mf">
+  <span class="mf-label">Beam height</span>
+  <span class="split">
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">8</span></span><span class="sp-l">feet</span></span>
+    <span class="sp"><span class="mf-box narrow focus"><span class="mf-text"><i class="caret"></i></span></span><span class="sp-l">inches</span></span>
+    <span class="sp"><span class="mf-box select"><span class="mf-text">0</span><span class="chev">▾</span></span><span class="sp-l">fraction</span></span>
+  </span>
+  <span class="mf-echo"><b>8' 0&quot; · 96&quot;</b></span>
+</div>
+<div class="mf">
+  <span class="mf-label">Crossbar height</span>
+  <span class="split">
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">3</span></span><span class="sp-l">feet</span></span>
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">4</span></span><span class="sp-l">inches</span></span>
+    <span class="sp"><span class="mf-box select"><span class="mf-text">0</span><span class="chev">▾</span></span><span class="sp-l">fraction</span></span>
+  </span>
+  <span class="mf-echo"><b>3' 4&quot; · 40&quot;</b></span>
+</div></div>
+<div class="kbd pad" role="img" aria-label="Simplified number pad">
+  <div class="kgrid3"><span class="k">1</span><span class="k">2</span><span class="k">3</span><span class="k">4</span><span class="k">5</span><span class="k">6</span><span class="k">7</span><span class="k">8</span><span class="k">9</span><span class="k blank"></span><span class="k">0</span><span class="k">⌫</span></div>
+  <p class="kcap">The number pad (<code>inputmode="numeric"</code>): digits only, large keys. The fraction is a menu.</p>
+</div></div>
+</figure>
+  
+<figure class="mock desk-mock"><figcaption>Laptop: the editor's Frame section</figcaption>
+  <div class="desk"><p class="psec">Frame</p><div class="drow wide">
+<div class="mf">
+  <span class="mf-label">Beam length</span>
+  <span class="split">
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">10</span></span><span class="sp-l">feet</span></span>
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">0</span></span><span class="sp-l">inches</span></span>
+    <span class="sp"><span class="mf-box select"><span class="mf-text">0</span><span class="chev">▾</span></span><span class="sp-l">fraction</span></span>
+  </span>
+  <span class="mf-echo"><b>10' 0&quot; · 120&quot;</b></span>
+</div>
+<div class="mf">
+  <span class="mf-label">Beam height</span>
+  <span class="split">
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">8</span></span><span class="sp-l">feet</span></span>
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">0</span></span><span class="sp-l">inches</span></span>
+    <span class="sp"><span class="mf-box select"><span class="mf-text">0</span><span class="chev">▾</span></span><span class="sp-l">fraction</span></span>
+  </span>
+  <span class="mf-echo"><b>8' 0&quot; · 96&quot;</b></span>
+</div>
+<div class="mf">
+  <span class="mf-label">Leg angle from vertical</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">20</span></span>
+  <span class="mf-echo"><b>20.0°</b> from vertical</span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Frame inset</span>
+  <span class="split">
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">1</span></span><span class="sp-l">feet</span></span>
+    <span class="sp"><span class="mf-box narrow"><span class="mf-text">0</span></span><span class="sp-l">inches</span></span>
+    <span class="sp"><span class="mf-box select"><span class="mf-text">0</span><span class="chev">▾</span></span><span class="sp-l">fraction</span></span>
+  </span>
+  <span class="mf-echo"><b>1' 0&quot; · 12&quot;</b></span>
+</div></div></div>
+</figure>
+</div></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>Structured format (Tidwell): one control per part of the value. GOV.UK asks for dates this way, as three fields for day, month, and year, because people know a date in parts. A tape is read in parts too: feet, inches, sixteenths.</dd>
+  <dt>Principles</dt>
+  <dd>Nothing to parse and nothing to learn. Each field gets the large number pad (<code>inputmode="numeric"</code>), and the fraction menu only offers sixteenths, so no fraction can be wrong.</dd>
+  <dt>In use</dt>
+  <dd>Phone: big keys, no layer switching. Laptop: slower; three controls per length, 14 lengths, so 42 stops for Tab, and choosing 3/8 from the menu by keyboard is six arrow presses. Copy and paste of a length does not work.</dd>
+  <dd>It cannot hold every length. A decimal like 138.4, or 1/32, has no place in a sixteenths menu, so editing a saved project either rounds it on the next save, which breaks hard rule 4 (exact until display), or needs a second way to enter decimals.</dd>
+  <dt>Measured</dt>
+  <dd>Keys to enter 138-3/8: about 11 on a laptop (Tab, 3 digits, Tab, 6 arrows), 7 or 8 taps on a phone (spinning the menu to 3/8 takes one or two flicks). 11'6-3/8: about 11 keys, 8 or 9 taps.</dd>
+  <dt>Cost</dt>
+  <dd>A grouped control for every length (fieldset, legend, three labels), a decimal fallback, and a form layout three times as wide per length.</dd>
+</dl>
+</div>
+</article>
+  
+<article class="direction-full stack-lg" id="e3">
+  <header><p><span class="letter">E3</span> · Kerf's keypad</p><h3>E1's typed field, with Kerf's own feet-inch-fraction keypad on a phone</h3></header>
+  <div class="sheet pal-C1-light">
+<div class="mocks">
+  
+<figure class="mock phone-mock"><figcaption>Phone: typing the beam height on Kerf's keypad</figcaption>
+  <div class="pframe"><div class="pbar"><b>Edit · Backyard swing set</b><span>Save</span></div><div class="pbody"><p class="psec">Frame</p>
+<div class="mf">
+  <span class="mf-label">Beam length</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">10'</span></span>
+  <span class="mf-echo"><b>10' 0&quot; · 120&quot;</b></span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Beam height</span>
+  
+  
+  <span class="mf-box focus"><span class="mf-text">8'<i class="caret"></i></span></span>
+  <span class="mf-echo"><b>8' 0&quot; · 96&quot;</b></span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Crossbar height</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">40</span></span>
+  <span class="mf-echo"><b>3' 4&quot; · 40&quot;</b></span>
+  
+</div></div>
+<div class="kbd shop" role="img" aria-label="Kerf's own keypad">
+  <div class="kgrid4"><span class="k">7</span><span class="k">8</span><span class="k">9</span><span class="k hit">'</span><span class="k">4</span><span class="k">5</span><span class="k">6</span><span class="k hit">&quot;</span><span class="k">1</span><span class="k">2</span><span class="k">3</span><span class="k hit">/</span><span class="k">.</span><span class="k">0</span><span class="k hit">-</span><span class="k">⌫</span></div>
+  <div class="krow"><span class="k space">Next field</span></div>
+  <p class="kcap">Kerf's own keypad, drawn by the page in place of the phone's keyboard (<code>inputmode="none"</code>), like a construction calculator's feet, inch, and fraction keys.</p>
+</div></div>
+</figure>
+  
+<figure class="mock desk-mock"><figcaption>Laptop: the same as E1 (a real keyboard has every mark)</figcaption>
+  <div class="desk"><p class="psec">Frame</p><div class="drow">
+<div class="mf">
+  <span class="mf-label">Beam length</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">120</span></span>
+  <span class="mf-echo"><b>10' 0&quot; · 120&quot;</b></span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Beam height</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">8' 0</span></span>
+  <span class="mf-echo"><b>8' 0&quot; · 96&quot;</b></span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Leg angle from vertical</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">20</span></span>
+  <span class="mf-echo"><b>20.0°</b> from vertical</span>
+  
+</div>
+<div class="mf">
+  <span class="mf-label">Frame inset</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">12</span></span>
+  <span class="mf-echo"><b>1' 0&quot; · 12&quot;</b></span>
+  
+</div></div></div>
+</figure>
+</div></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>Construction calculators have keys for feet, inches, and the fraction bar, and their manuals have you enter "largest to smallest": 5 feet 1-1/2 inch is <code>5 f 1 i 1 / 2</code>. E3 puts those keys on the phone: the page draws its own keypad and tells the phone not to show its keyboard.</dd>
+  <dt>Principles</dt>
+  <dd>The same parser and echo as E1, with each mark one tap away. Fitts's law favors the large keys of a 4-column pad over the 10-column numbers layer.</dd>
+  <dt>In use</dt>
+  <dd>Phone: the fewest taps, the largest keys. Laptop: identical to E1. Parameters are not entered at the store or in the garage, though: shop modes change progress only, never parameters (#40). The keypad speeds up a screen that is mostly used on the laptop.</dd>
+  <dd>A page-drawn keypad replaces something the phone does well: VoiceOver typing, dictation, a paired keyboard, the cursor and selection gestures, paste. Each has to keep working or be rebuilt, and #45's accessibility checks would cover a new kind of control.</dd>
+  <dt>Measured</dt>
+  <dd>Taps to enter 138-3/8: 7. 11'6-3/8: 8.</dd>
+  <dt>Cost</dt>
+  <dd>E1's parser plus a keypad component with its own focus, cursor, and screen-reader behavior, and tests for each. One tap saved per length against E1.</dd>
+</dl>
+</div>
+</article>
+
+  <div class="scroll">
+    <table class="std counts">
+      <caption class="small" style="text-align: left; padding-bottom: 6px">Keys or taps to enter two lengths, after the field has focus. Counted by hand from each layout.</caption>
+      <thead><tr><th></th><th>138-3/8 on a laptop</th><th>on a phone</th><th>11'6-3/8 on a laptop</th><th>on a phone</th></tr></thead>
+      <tbody>
+        <tr><td>E1 typed</td><td>7</td><td>8</td><td>8</td><td>9</td></tr>
+        <tr><td>E2 split</td><td>about 11</td><td>7 or 8</td><td>about 11</td><td>8 or 9</td></tr>
+        <tr><td>E3 keypad</td><td>7</td><td>7</td><td>8</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================== TIMING ============================== -->
+<section id="timing" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">When problems are shown</p>
+    <h2>Errors on save, or when you leave a field</h2>
+    <p class="prose">The two main sources disagree. GOV.UK: "Do not validate when the user moves away from a field. Wait until they try to move to the next part." NN/g: show an error once the user "has finished with the field and moved to the next field", never while typing. Both agree that typing is not the time for errors.</p>
+  </div>
+  <div class="opts">
+    <div class="opt rec"><div class="head"><b>Errors on save, reading while typing</b><span class="rec-tag">Suggested</span></div><p>While typing, the echo shows core's reading, or "Not a length yet" in the normal text color. Nothing turns crimson until Save, when every problem is marked beside its field and listed in a summary at the top that takes focus. The live echo already gives the early feedback NN/g is after, without calling a half-typed value wrong. The preview (#56) waits on fields it cannot read and names them.</p></div>
+    <div class="opt"><div class="head"><b>Errors when you leave a field</b></div><p>A field is marked as soon as focus leaves it. Quicker to notice on a long form, but tabbing past an empty required field to fill another first marks it as an error, and on the edit screen the output beside it is already changing.</p></div>
+  </div>
+</section>
+
+<!-- ============================== STATES ============================== -->
+<section id="states" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Form states</p>
+    <h2>Every state a form can be in</h2>
+    <p class="prose">Shared by all three directions, drawn with E1's field and the suggested timing. These cover the editor, the tool inventory, and login, and the one state the shop modes add (#57).</p>
+  </div>
+  <div class="sheet pal-C1-light">
+<div class="states">
+  
+<figure class="mock state"><figcaption><b>New project.</b> Every field empty; no value is filled in (hard rule 3). The hint gives the format, never a sample value that could pass for a suggestion.</figcaption><div class="desk">
+<div class="mf">
+  <span class="mf-label">Beam height</span>
+  <span class="mf-hint">Underside of the beam above the ground. Inches, or feet and inches.</span>
+  
+  <span class="mf-box"><span class="mf-text"></span></span>
+  
+  
+</div></div></figure>
+  
+<figure class="mock state"><figcaption><b>Typing.</b> Core's reading appears under the field as you type: feet and inches, then inches, as the cut list will show it.</figcaption><div class="desk">
+<div class="mf">
+  <span class="mf-label">Beam height</span>
+  
+  
+  <span class="mf-box focus"><span class="mf-text">8' 0<i class="caret"></i></span></span>
+  <span class="mf-echo"><b>8' 0&quot; · 96&quot;</b></span>
+  
+</div></div></figure>
+  
+<figure class="mock state"><figcaption><b>Not a length yet.</b> While typing, text Kerf cannot read is said plainly, in the normal text color. It is not an error until you save.</figcaption><div class="desk">
+<div class="mf is-neutral">
+  <span class="mf-label">Beam height</span>
+  
+  
+  <span class="mf-box focus"><span class="mf-text">8 0<i class="caret"></i></span></span>
+  
+  <span class="mf-echo">Not a length yet</span>
+</div></div></figure>
+  
+<figure class="mock state"><figcaption><b>Kept exactly.</b> A decimal that is not a whole number of sixteenths is kept as typed; only the display rounds (hard rule 4).</figcaption><div class="desk">
+<div class="mf">
+  <span class="mf-label">Burial depth</span>
+  
+  
+  <span class="mf-box"><span class="mf-text">24.1</span></span>
+  <span class="mf-echo"><b>2' 0-1/8&quot; · 24-1/8&quot;</b> to the nearest 1/16; Kerf keeps 24.1 exactly</span>
+  
+</div></div></figure>
+  
+<figure class="mock state"><figcaption><b>After save: cannot read.</b> The message says what to do, beside the field, in crimson with an icon (#43, rules 2 and 6).</figcaption><div class="desk">
+<div class="mf is-error">
+  <span class="mf-label">Beam height</span>
+  
+  <span class="mf-error"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4.2M8 10.6v.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Mark feet with ': such as 11' 6&quot;. A number on its own is inches.</span>
+  <span class="mf-box"><span class="mf-text">8 0</span></span>
+  
+  
+</div></div></figure>
+  
+<figure class="mock state"><figcaption><b>After save: out of range.</b> The limits come from the template's schema, written in feet and inches by core.</figcaption><div class="desk">
+<div class="mf is-error">
+  <span class="mf-label">Beam height</span>
+  
+  <span class="mf-error"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4.2M8 10.6v.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Beam height must be from 5' 0&quot; to 12' 0&quot;.</span>
+  <span class="mf-box"><span class="mf-text">15'</span></span>
+  <span class="mf-echo"><b>15' 0&quot; · 180&quot;</b></span>
+  
+</div></div></figure>
+  
+<figure class="mock state"><figcaption><b>Error summary.</b> On a failed save, a summary at the top lists each problem as a link to its field, and focus moves to it (GOV.UK).</figcaption><div class="desk"><div class="summary" role="alert"><b><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4.2M8 10.6v.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> 2 fields need fixing before this can be saved</b><a href="#states">Beam height: mark feet with '</a><a href="#states">Burial depth: must be from 0" to 4' 0"</a></div></div></figure>
+  
+<figure class="mock state"><figcaption><b>Input needed.</b> An empty structural input is a question, not a mistake: dashed accent outline and the words "Input needed" (#43, rule 4). The plan saves without it.</figcaption><div class="desk">
+<div class="mf is-needed">
+  <span class="mf-label">Deflection limit (span divided by) <span class="needed-tag">Input needed</span></span>
+  <span class="mf-hint">Allowed sag is the span divided by this number.</span>
+  
+  <span class="mf-box"><span class="mf-text"></span></span>
+  
+  
+</div></div></figure>
+  
+<figure class="mock state"><figcaption><b>Saving.</b> The button says what is happening and cannot be pressed twice. Fields become read-only, not disabled, so they keep their contrast.</figcaption><div class="desk"><div class="btnrow"><span class="mbtn busy">Saving…</span><span class="mlink">Cancel</span></div></div></figure>
+  
+<figure class="mock state"><figcaption><b>Saved.</b> The plan opens with a line that stays until the next action. No toast that disappears before it is read.</figcaption><div class="desk"><p class="status"><span class="tick">✓</span> Saved. The plan was regenerated with template version 2.</p></div></figure>
+  
+<figure class="mock state"><figcaption><b>Not saved: no connection.</b> Everything typed stays. Kerf says what happened and what to do; nothing is lost and nothing is queued, because a plan is made on the server.</figcaption><div class="desk"><div class="notice"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4.2M8 10.6v.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span><b>Not saved.</b> Kerf could not reach the server. Your changes are still here. Save again when you have a connection.</span></div></div></figure>
+  
+<figure class="mock state"><figcaption><b>Leaving with changes.</b> Leaving the editor with unsaved changes asks first, in the app and when the tab closes.</figcaption><div class="desk"><div class="dialog"><b>Leave without saving?</b><span>Changes to 3 fields will be lost.</span><div class="btnrow"><span class="mbtn">Keep editing</span><span class="mbtn ghost">Leave</span></div></div></div></figure>
+  
+<figure class="mock state"><figcaption><b>Loading.</b> Shown only after a short delay, so a fast load does not flash. The layout does not jump when the form arrives.</figcaption><div class="desk"><p class="loading">Loading project…</p></div></figure>
+  
+<figure class="mock state"><figcaption><b>Saved on this phone, not yet sent.</b> For progress in the shop modes (#57), not the editor: a done mark that has not reached the server carries a second, hollow mark and words, and the words go when it is sent.</figcaption><div class="desk"><div class="queued"><span class="tick">✓</span><span><b>Back leg, 1 of 2</b> cut</span><span class="q">◌ On this phone, not yet sent</span></div></div></figure>
+</div></div>
+</section>
+
+<!-- ============================== STANDARD ============================== -->
+<section id="standard" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Chosen</p>
+    <h2>The entry standard</h2>
+    <p class="prose">What core's parser accepts and refuses. Each row below was run through the prototype on this page, and the readings are core's <code>formatLength</code>. Refusals give the message Kerf would show.</p>
+  </div>
+  
+<div class="scroll"><table class="std">
+<thead><tr><th>Typed</th><th>Kerf reads</th><th>Why</th></tr></thead>
+<tbody><tr><td><code>138</code></td><td><b>11' 6&quot; · 138&quot;</b></td><td>A number on its own is inches (as in CAD tools)</td></tr><tr><td><code>138.375</code></td><td><b>11' 6-3/8&quot; · 138-3/8&quot;</b></td><td>Decimals</td></tr><tr><td><code>138-3/8</code></td><td><b>11' 6-3/8&quot; · 138-3/8&quot;</b></td><td>Inches and a fraction, joined by a hyphen</td></tr><tr><td><code>138 3/8</code></td><td><b>11' 6-3/8&quot; · 138-3/8&quot;</b></td><td>or a space</td></tr><tr><td><code>3/8</code></td><td><b>3/8&quot;</b></td><td>A fraction alone</td></tr><tr><td><code>11' 6-3/8&quot;</code></td><td><b>11' 6-3/8&quot; · 138-3/8&quot;</b></td><td>Feet marked with ', inches with &quot; (optional)</td></tr><tr><td><code>11'6-3/8</code></td><td><b>11' 6-3/8&quot; · 138-3/8&quot;</b></td><td>No spaces needed</td></tr><tr><td><code>11'-6&quot;</code></td><td><b>11' 6&quot; · 138&quot;</b></td><td>The drafting style, with a hyphen after feet</td></tr><tr><td><code>11 ft 6 in</code></td><td><b>11' 6&quot; · 138&quot;</b></td><td>Words for the marks</td></tr><tr><td><code>11’ 6-3/8”</code></td><td><b>11' 6-3/8&quot; · 138-3/8&quot;</b></td><td>Curly quotes from a phone's smart punctuation</td></tr><tr><td><code>11.5'</code></td><td><b>11' 6&quot; · 138&quot;</b></td><td>Decimal feet</td></tr><tr><td><code>11' 14</code></td><td><b>12' 2&quot; · 146&quot;</b></td><td>More than 12 inches after feet: read, and the echo shows it normalized</td></tr><tr><td><code>6/16</code></td><td><b>3/8&quot;</b></td><td>An unreduced fraction</td></tr><tr><td><code>1/32</code></td><td><b>1/16&quot;</b> to the nearest 1/16; Kerf keeps 0.03125 exactly</td><td>Finer than 1/16: kept exactly, shown to the nearest 1/16</td></tr><tr><td><code>138.4</code></td><td><b>11' 6-3/8&quot; · 138-3/8&quot;</b> to the nearest 1/16; Kerf keeps 138.4 exactly</td><td>Kept exactly, shown to the nearest 1/16</td></tr><tr><td><code>11 6</code></td><td><span class="no">Mark feet with ': such as 11' 6&quot;. A number on its own is inches.</span></td><td>Two numbers with no marks: feet and inches, or a typo?</td></tr><tr><td><code>138 1/3</code></td><td><span class="no">Use a fraction a tape reads: halves, quarters, eighths, sixteenths, 32nds or 64ths.</span></td><td>Not a tape fraction</td></tr><tr><td><code>138 9/8</code></td><td><span class="no">The fraction should be less than 1, such as 3/8.</span></td><td>Fraction of 1 or more</td></tr><tr><td><code>138.5 3/8</code></td><td><span class="no">Use a decimal or a fraction, not both.</span></td><td>Decimal and fraction together</td></tr><tr><td><code>3500 mm</code></td><td><span class="no">Kerf works in inches. Enter the length in inches, or feet and inches.</span></td><td>Metric</td></tr><tr><td><code>-4</code></td><td><span class="no">A length cannot be negative.</span></td><td>Negative</td></tr></tbody></table></div>
+  <div class="opts">
+    <div class="opt"><b>Where parsing lives</b><p>In core, beside the formatters: <code>parseLength</code> and <code>parseAngle</code>, used by <code>buildFromForm</code>, which already turns form text into values in core. The API keeps taking numbers, so nothing changes on the server or in stored snapshots. The messages come from core too, so a later screen or the API could reuse them.</p></div>
+    <div class="opt"><b>Round trip</b><p>When a saved project is edited, each length is written back into its field as core formats it in inches (<code>138-3/8</code>) if it is a whole number of sixteenths, and as the decimal otherwise (<code>138.4</code>). Saving without a change never rounds a value.</p></div>
+    <div class="opt"><b>Ambiguity is refused</b><p>Two numbers with no marks (<code>11 6</code>) could be feet and inches or a typo; the message asks for the foot mark. A number on its own is always inches, as in CAD tools set to architectural units.</p></div>
+    <div class="opt"><b>Tape fractions</b><p>Denominators 2, 4, 8, 16, 32, and 64. A third or a tenth is not on a tape, so it is more likely a slip than a measurement.</p></div>
+    <div class="opt"><b>Angles</b><p>Decimal degrees, with or without <code>°</code> or "deg": <code>20</code>, <code>20.5°</code>. Degrees and minutes are refused with "Enter decimal degrees, such as 20.5." The echo is core's <code>formatAngle</code> plus the field's reference ("20.0° from vertical").</p></div>
+    <div class="opt"><b>Other numbers</b><p>Weights, percentages, and factors stay decimal. A template can let a number field take fractions where people write them that way, such as the ground slope (<code>1/4</code> inch per foot).</p></div>
+    <div class="opt"><b>Ranges in the user's units</b><p>Out-of-range messages give the limits as core formats them: "Beam height must be from 5' 0" to 12' 0"." The limits stay in the template's schema.</p></div>
+    <div class="opt"><b>Metric</b><p>Refused with a message. Kerf is imperial throughout (DOMAIN.md, Units).</p></div>
+  </div>
+</section>
+
+<!-- ============================== REQUIREMENTS ============================== -->
+<section class="stack">
+  <div class="place">
+    <p class="eyebrow">New requirements</p>
+    <h2>What this stage adds</h2>
+  </div>
+  <ul class="prose stack">
+    <li>Core parses lengths and angles from text, with hand-checked tests, and <code>buildFromForm</code> uses it. Out-of-range messages give limits in feet and inches. #73, before #45 rebuilds the editor.</li>
+    <li>The editor writes saved values back into fields without rounding (the round trip above). Part of #73.</li>
+    <li>Form states as components in #45: field with echo, error, input needed, error summary, saving button, saved line, connection notice, leave-with-changes prompt, loading.</li>
+    <li>The "on this phone, not yet sent" mark for queued progress: already #57.</li>
+  </ul>
+</section>
+
+<!-- ============================== REFERENCES ============================== -->
+<section id="references" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Precedents and guidance</p>
+    <h2>Sources</h2>
+    <p class="prose">Checked in October 2026.</p>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Forms and errors</b><p>GOV.UK Design System: text inputs (no <code>type="number"</code>; <code>inputmode</code> for keypads), error messages beside the field that say how to fix it, an error summary at the top that takes focus, and validation that waits for the user to submit and accepts any unambiguous format.</p><p class="small"><a href="https://design-system.service.gov.uk/components/text-input/">Text input</a> · <a href="https://design-system.service.gov.uk/components/error-message/">Error message</a> · <a href="https://design-system.service.gov.uk/patterns/validation/">Validation</a> · <a href="https://design-system.service.gov.uk/components/date-input/">Date input</a></p></div>
+    <div class="opt"><b>Error timing</b><p>NN/g: show an error once the user has finished with a field, next to it, and not while they are still typing.</p><p class="small"><a href="https://www.nngroup.com/articles/errors-forms-design-guidelines/">10 Design Guidelines for Reporting Errors in Forms</a></p></div>
+    <div class="opt"><b>Input patterns</b><p>Tidwell, <i>Designing Interfaces</i> (O'Reilly): Forgiving Format and Structured Format, the patterns behind E1 and E2.</p><p class="small"><a href="https://ixdf.org/literature/topics/forgiving-formats">IxDF: forgiving formats</a></p></div>
+    <div class="opt"><b>How CAD tools read lengths</b><p>Architectural units: a plain number is inches, feet take an apostrophe, a fraction joins inches with a hyphen (<code>3'1-5/8</code>). SketchUp takes <code>2'6</code>, <code>3 1/4</code>, and an optional inch mark.</p><p class="small"><a href="https://academics.triton.edu/faculty/fheitzman/numbers.html">Triton College: number input conventions</a> · <a href="https://help.sketchup.com/en/using-measurements-box">SketchUp: the Measurements box</a> · <a href="https://forums.sketchup.com/t/osx-feet-and-inches-input-in-plugin-webdialogs-somehow-broken/74757">SketchUp forum: smart quotes break feet and inches</a></p></div>
+    <div class="opt"><b>Construction calculators</b><p>Feet, inch, and fraction-bar keys, entered largest to smallest: 5 feet 1-1/2 inch is <code>5 f 1 i 1 / 2</code> (Construction Master Pro Trig user's guide, "Entering Dimensions", p. 18).</p></div>
+    <div class="opt"><b>Keyboards</b><p><code>inputmode</code> picks the on-screen keyboard: <code>numeric</code> is digits only, <code>decimal</code> adds the decimal separator, <code>none</code> shows none, for a page that draws its own.</p><p class="small"><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inputmode">MDN: inputmode</a></p></div>
+    <div class="opt"><b>Accessibility</b><p>WCAG 2.2: 3.3.1 error identification, 3.3.2 labels or instructions, 3.3.3 error suggestion, and 4.1.3 status messages (the saved line and the summary are announced without taking focus; the echo is tied to its field with <code>aria-describedby</code> rather than announced on every key).</p><p class="small"><a href="https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html">Understanding 3.3.3</a> · <a href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html">Understanding 4.1.3</a></p></div>
+  </div>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Echoed lengths come from core's <code>formatLength</code> and <code>formatAngle</code>; the parser is a prototype kept with the build script, not core code. Kept at <code>docs/design/entry.html</code>; choices are recorded in <code>docs/design/README.md</code>.</p>
+</footer>
+
+</main>
+
+<script>
+  const sheets = () => document.querySelectorAll('.sheet');
+  const setTheme = (dark) => {
+    for (const s of sheets()) {
+      s.classList.toggle('pal-C1-dark', dark);
+      s.classList.toggle('pal-C1-light', !dark);
+    }
+  };
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.getElementById(prefersDark ? 'theme-dark' : 'theme-light').checked = true;
+  setTheme(prefersDark);
+  for (const r of document.querySelectorAll('input[name="theme"]')) r.addEventListener('change', () => setTheme(r.value === 'dark' && r.checked));
+</script>
+
+<script>
+(() => {
+// Lengths are decimal inches everywhere in Kerf. Rounding to 1/16 inch happens only here, for
+// display, and never feeds back into a calculation (DOMAIN.md, Units).
+
+const SIXTEENTHS_PER_INCH = 16;
+
+                                                   
+
+function assertLength(inches        )       {
+  if (!Number.isFinite(inches)) {
+    throw new RangeError(`Length must be a finite number, got ${inches}`);
+  }
+  if (inches < 0) {
+    throw new RangeError(`Length must not be negative, got ${inches}`);
+  }
+}
+
+/** Nearest whole number of sixteenths. Exact halves round up. */
+function toSixteenths(inches        )         {
+  assertLength(inches);
+  return Math.round(inches * SIXTEENTHS_PER_INCH);
+}
+
+function gcd(a        , b        )         {
+  return b === 0 ? a : gcd(b, a % b);
+}
+
+/** "3/16", "1/2", or "" for a whole number of inches. */
+function fraction(sixteenths        )         {
+  if (sixteenths === 0) return '';
+  const divisor = gcd(sixteenths, SIXTEENTHS_PER_INCH);
+  return `${sixteenths / divisor}/${SIXTEENTHS_PER_INCH / divisor}`;
+}
+
+/**
+ * Whole inches plus a fraction: "12", "3/16", "100-3/16". After a feet value, a fraction keeps
+ * its zero ("0-1/2") so `12' 0-1/2"` can't be misread.
+ */
+function inchesText(totalSixteenths        , keepZero = false)         {
+  const whole = Math.floor(totalSixteenths / SIXTEENTHS_PER_INCH);
+  const frac = fraction(totalSixteenths % SIXTEENTHS_PER_INCH);
+  if (frac === '') return `${whole}`;
+  if (whole === 0 && !keepZero) return frac;
+  return `${whole}-${frac}`;
+}
+
+/**
+ * Formats a length rounded to the nearest 1/16 inch.
+ *
+ * - `inches` (cut lists): `100-3/16"`
+ * - `feet-inches` (shopping lists, layout): `8' 4-3/16"`
+ *
+ * Rounding happens once, on the total, so 95.99 shows as `8' 0"`, never `7' 12"`.
+ */
+function formatLength(inches        , style              = 'inches')         {
+  const total = toSixteenths(inches);
+  if (style === 'inches') return `${inchesText(total)}"`;
+
+  const perFoot = 12 * SIXTEENTHS_PER_INCH;
+  const feet = Math.floor(total / perFoot);
+  if (feet === 0) return `${inchesText(total)}"`;
+  return `${feet}' ${inchesText(total % perFoot, true)}"`;
+}
+
+
+// Prototype of the proposed entry parser for #67. Plain JS so the review page can run it live.
+// Core's real version will be TypeScript with hand-checked tests; this one shows the behavior.
+
+const NUM = String.raw`(?:\d+(?:\.\d*)?|\.\d+)`;
+const INCHES = String.raw`(?:(\d+(?:\.\d*)?|\.\d+)(?:(?:\s+|\s*-\s*)(\d+)\/(\d+))?|(\d+)\/(\d+))`;
+const LENGTH = new RegExp(String.raw`^(?:(${NUM})\s*'\s*(?:-\s*)?)?(?:${INCHES})?\s*(")?$`);
+
+/** Same text with the marks people actually type turned into ' and ". */
+function normalize(text) {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[‘’′´`]/g, "'")
+    .replace(/[“”″]/g, '"')
+    .replace(/''/g, '"')
+    .replace(/\s*(?:feet|foot|ft)\.?(?![a-z])/g, "'")
+    .replace(/\s*(?:inches|inch|in)\.?(?![a-z])/g, '"')
+    .replace(/\s+/g, ' ');
+}
+
+const POWERS = [2, 4, 8, 16, 32, 64];
+
+const MESSAGES = {
+  empty: null,
+  metric: 'Kerf works in inches. Enter the length in inches, or feet and inches.',
+  negative: 'A length cannot be negative.',
+  unmarkedFeet: `Mark feet with ': such as 11' 6". A number on its own is inches.`,
+  denominator: 'Use a fraction a tape reads: halves, quarters, eighths, sixteenths, 32nds or 64ths.',
+  improper: 'The fraction should be less than 1, such as 3/8.',
+  decimalWithFraction: 'Use a decimal or a fraction, not both.',
+  unread: `Kerf cannot read this as a length. Enter inches, such as 138-3/8, or feet and inches, such as 11' 6-3/8".`,
+};
+
+/** { ok: true, inches } | { ok: false, problem } */
+function parseLength(text) {
+  const t = normalize(text);
+  if (t === '') return { ok: false, problem: 'empty' };
+  if (/\d\s*(?:mm|cm|m|meters?|metres?)$/.test(t)) return { ok: false, problem: 'metric' };
+  if (t.startsWith('-')) return { ok: false, problem: 'negative' };
+  if (/^\d+(?:\.\d+)? \d+(?:\.\d+)?"?$/.test(t)) return { ok: false, problem: 'unmarkedFeet' };
+  const m = LENGTH.exec(t);
+  if (!m) {
+    if (/^\d+\.\d+[ -]\d+\/\d+/.test(t)) return { ok: false, problem: 'decimalWithFraction' };
+    return { ok: false, problem: 'unread' };
+  }
+  const [, feet, whole, n1, d1, n2, d2] = m;
+  if (feet === undefined && whole === undefined && n2 === undefined) {
+    return { ok: false, problem: 'unread' };
+  }
+  const num = n1 ?? n2;
+  const den = d1 ?? d2;
+  if (num !== undefined) {
+    if (whole?.includes('.')) return { ok: false, problem: 'decimalWithFraction' };
+    if (!POWERS.includes(Number(den))) return { ok: false, problem: 'denominator' };
+    if (Number(num) >= Number(den)) return { ok: false, problem: 'improper' };
+  }
+  const inches =
+    (feet ? Number(feet) * 12 : 0) +
+    (whole ? Number(whole) : 0) +
+    (num !== undefined ? Number(num) / Number(den) : 0);
+  return { ok: true, inches };
+}
+
+const exactInSixteenths = (inches) => Number.isInteger(inches * 16);
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const echo = function echo(inches        )         {
+  const ft = formatLength(inches, 'feet-inches');
+  const inch = formatLength(inches);
+  const shown = ft === inch ? inch : `${ft} · ${inch}`;
+  if (exactInSixteenths(inches)) return `<b>${esc(shown)}</b>`;
+  return `<b>${esc(shown)}</b> to the nearest 1/16; Kerf keeps ${inches} exactly`;
+};
+const input = document.getElementById('try-len');
+const out = document.getElementById('try-out');
+const hint = out.textContent;
+input.addEventListener('input', () => {
+  const r = parseLength(input.value);
+  if (input.value.trim() === '') { out.textContent = hint; return; }
+  out.innerHTML = r.ok ? `Reads as ${echo(r.inches)}` : esc(MESSAGES[r.problem]);
+});
+})();
+</script>
