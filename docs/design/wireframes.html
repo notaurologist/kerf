@@ -1,0 +1,823 @@
+<title>Kerf Wireframes</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review page for issue #39. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #39</p>
+  <h1>Wireframes for planning, shopping, and building</h1>
+  <div class="prose stack">
+    <p>Three places Kerf gets used, with three directions for each, drawn low-fidelity. Every number in them is real: it comes from the worked example in <code>snapshots/v2.json</code> (beam 120", height 96", legs splayed 20°, 4x6 beam, 4x4 legs, 1" of ground slope, legs buried 24"), printed through core's own formatters. Text written <em>[like this]</em> is a placeholder for content that does not exist yet, such as build-step method text from M6.</p>
+    <p>The wireframes decide structure and behavior only. Grey boxes, the system font, and the blue notes are not visual-design choices; type and color come in #42 and #43.</p>
+    <p class="muted small">Laptop and tablet frames are wider than a phone screen. On a phone, scroll them sideways inside their box.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">Decided, October 2026</h2>
+  <p>The owner took the suggestion for all eight: <span class="pick" style="white-space: normal">L: B+A, S: A+B, G: A, Q1 a, Q2 a, Q3 a, Q4 a, Q5 a</span>. The reasons and the rejected directions are in <code>docs/design/README.md</code>. The choices were:</p>
+  <ol>
+    <li><a href="#laptop">Laptop, planning</a>: <span class="pick">B</span> for the project page and <span class="pick">A</span> for the edit screen, or one of A, B, C alone.</li>
+    <li><a href="#store">Phone at the store</a>: <span class="pick">A</span> with each lumber row opening into <span class="pick">B</span>'s board card, or A, B, C alone.</li>
+    <li><a href="#garage">Phone or tablet in the garage</a>: <span class="pick">A</span>, with cutting steps ordered board by board (C) and each piece opening a cut card (B).</li>
+    <li><a href="#q1">Live preview while editing</a>: dry-run route, core in the browser, or no preview.</li>
+    <li><a href="#q2">Saved progress in the shop</a>: on the server, on the device, or none.</li>
+    <li><a href="#q3">Linking parts across views</a>: ids on every diagram line, per-part details only, or printed callouts only.</li>
+    <li><a href="#q4">Grouping cuts</a>: by board in the shop, by part, or by saw setting.</li>
+    <li><a href="#q5">When the connection drops</a>: queue changes in memory, keep a copy on the device, or nothing beyond today.</li>
+  </ol>
+  <p class="small">Below the wireframes: <a href="#references">the precedents each direction follows</a>, and <a href="#requirements">the 21 requirements they imply</a>, each marked met or not met by today's core, snapshot, and API.</p>
+</section>
+
+<!-- ============================== LAPTOP ============================== -->
+<section id="laptop" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Place 1</p>
+    <h2>Laptop, planning</h2>
+    <div class="where"><span>Sitting down, 13" to 15" screen</span><span>Mouse and keyboard</span><span>Changing parameters and reading the consequences</span><span>Printing the plan</span></div>
+    <p class="prose">The job here is to try a design, see what it does to the cut list, the shopping list, and the margins, and settle it. Today the project page and the editor are separate screens, and the effect of an edit shows only after saving.</p>
+  </div>
+
+  <div class="wide-set">
+
+    <!-- L-A -->
+    <article class="direction">
+      <header>
+        <p><span class="letter">L-A</span> · Split editor</p>
+        <h3>Parameters on the left, output updating on the right</h3>
+      </header>
+      <p class="scroll-hint">Editing the leg angle. The right pane shows what the new value would produce before it is saved.</p>
+      <div class="scroll"><div class="wf laptop">
+        <div class="bar"><b>Backyard swing set</b><span class="tag">Planned</span><span class="grow"></span><span class="muted">2 unsaved changes</span><span class="btn">Discard</span><span class="btn solid">Save</span></div>
+        <div style="display:grid; grid-template-columns: 300px 1fr; min-height: 0;">
+          <div style="border-right:1px solid var(--wf-ink); padding:10px; display:grid; gap:8px; align-content:start;">
+            <div class="sec"><span>Frame</span><span>−</span></div>
+            <div class="field"><span>Beam length</span><span class="in n">120"</span></div>
+            <div class="field"><span>Beam height</span><span class="in n">96"</span></div>
+            <div class="field"><span>Leg splay entered as</span><span class="in">Angle of each leg from vertical</span></div>
+            <div class="field"><span>Leg angle from vertical</span><span class="in n focus">20°</span></div>
+            <div class="field"><span>Frame inset</span><span class="in n">12"</span></div>
+            <div class="sec"><span>Lumber</span><span>+</span></div>
+            <div class="sec"><span>Site</span><span>+</span></div>
+            <div class="sec"><span>Swings</span><span>+</span></div>
+            <div class="sec"><span>Hardware</span><span>+</span></div>
+            <div class="sec"><span>Beam lumber</span><span>+</span></div>
+            <div class="sec"><span>Loads</span><span>+</span></div>
+            <div class="sec"><span>Limits and ratings</span><span>+</span></div>
+          </div>
+          <div style="display:grid; grid-template-rows:auto auto 1fr; min-width:0;">
+            <div class="bar" style="gap:0"><span class="tab">Diagram</span><span class="tab on">Cut list</span><span class="tab">Shopping</span><span class="tab">Structural</span><span class="grow"></span><span class="tag" style="border-color:var(--blue); color:var(--blue)">Preview, not saved</span></div>
+            <div style="padding:6px 10px; display:flex; gap:16px; border-bottom:1px solid var(--line);"><span>Lowest margin <b class="n">1.1x</b> bending</span><span>3 flags</span><span>4 checks</span></div>
+            <div style="padding:6px 10px;">
+              <table>
+                <tr><th>Part</th><th class="r">Qty</th><th>Stock</th><th class="r">Length</th><th>Ends</th></tr>
+                <tr><td>Beam</td><td class="r n">1</td><td class="n">4x6 (3-1/2" x 5-1/2")</td><td class="r n">120"</td><td>Square, square</td></tr>
+                <tr class="hl"><td>Back leg (uphill)</td><td class="r n">2</td><td class="n">4x4 (3-1/2" x 3-1/2")</td><td class="r n">131-1/2"<br><span class="chg">[was …]</span></td><td>Level cuts, saw at <span class="n">20.0°</span>, <span class="n">70.0°</span> to the edge, parallel</td></tr>
+                <tr class="hl"><td>Front leg (downhill)</td><td class="r n">2</td><td class="n">4x4 (3-1/2" x 3-1/2")</td><td class="r n">138-3/8"<br><span class="chg">[was …]</span></td><td>Level cuts, saw at <span class="n">20.0°</span>, <span class="n">70.0°</span> to the edge, parallel</td></tr>
+                <tr class="hl"><td>Crossbar</td><td class="r n">2</td><td class="n">2x6 (1-1/2" x 5-1/2")</td><td class="r n">55-11/16"<br><span class="chg">[was …]</span></td><td>Flush with the leg, saw at <span class="n">20.0°</span>, mirrored</td></tr>
+                <tr class="hl"><td>Gusset</td><td class="r n">2</td><td class="n">2x8 (1-1/2" x 7-1/4")</td><td class="r n">16-1/4"<br><span class="chg">[was …]</span></td><td>Flush with the leg, saw at <span class="n">20.0°</span>, mirrored</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        <span class="marker" style="left:290px; top:150px">1</span>
+        <span class="marker" style="left:860px; top:46px">2</span>
+        <span class="marker" style="left:560px; top:178px">3</span>
+      </div></div>
+      <ol class="notes">
+        <li>The field being edited. Output regenerates a moment after typing stops.</li>
+        <li>An unmistakable preview state, so preview numbers are never mistaken for the saved plan.</li>
+        <li>Rows whose numbers would change are marked, with the saved value beside the new one. The <em>[was …]</em> values would come from comparing the two snapshots.</li>
+      </ol>
+      <div class="critique">
+        <dl>
+          <dt>Feedback and visibility of system status (Norman; Nielsen's first heuristic)</dt>
+          <dd>The effect of every change appears next to its cause. "What does 2° more splay do to the leg lengths and the bending margin?" is answered without leaving the field.</dd>
+          <dt>Two states of the same numbers</dt>
+          <dd>A preview and a saved plan on one screen invite confusing them. The preview label, the change marks, and Save/Discard have to make the state obvious. Hard rule 6 decides where preview numbers come from (<a href="#q1">Q1</a>).</dd>
+          <dt>Room for long content</dt>
+          <dd>The output pane is about 600 px wide. The cut list fits; the structural working (formulas, factors, sources) is cramped and reads better full width.</dd>
+          <dt>Print</dt>
+          <dd>A split screen does not print. It still needs a document view for paper.</dd>
+        </dl>
+        <p class="needs">Needs: <a href="#R12">R12</a>, <a href="#R13">R13</a>.</p>
+      </div>
+    </article>
+
+    <!-- L-B -->
+    <article class="direction">
+      <header>
+        <p><span class="letter">L-B</span> · Plan document</p>
+        <h3>The project page reads like the printed plan; editing is a separate screen</h3>
+      </header>
+      <p class="scroll-hint">The project page after saving an edit. Sections follow the order of the printed plan, with a contents list that stays in view.</p>
+      <div class="scroll"><div class="wf laptop">
+        <div class="bar"><span class="muted">Projects /</span><b>Backyard swing set</b><span class="tag">Planned</span><span class="grow"></span><span class="btn">Print</span><span class="btn solid">Edit</span></div>
+        <div style="display:grid; grid-template-columns: 170px 1fr; min-height:0;">
+          <nav style="border-right:1px solid var(--line); padding:12px 10px; display:grid; gap:8px; align-content:start;">
+            <span class="muted" style="font-size:10px; text-transform:uppercase; letter-spacing:.06em">Contents</span>
+            <span><b>Summary</b></span><span>Diagrams</span><span>Cut list</span><span>Shopping list</span><span>Structural review</span><span>Build steps</span><span class="muted">Parameters</span>
+          </nav>
+          <div style="padding:12px 16px; display:grid; gap:12px; align-content:start; min-width:0;">
+            <div style="border:1.2px solid var(--blue); padding:8px 10px; display:grid; gap:4px;">
+              <b style="color:var(--blue)">Changed by this edit</b>
+              <span class="n">Leg angle from vertical: […] → 20°</span>
+              <span>Back leg <span class="n">[…] → 131-1/2"</span> · Front leg <span class="n">[…] → 138-3/8"</span> · Crossbar <span class="n">[…] → 55-11/16"</span> · Bending <span class="n">[…] → margin 1.1x</span></span>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
+              <div style="border:1px solid var(--line); padding:8px;"><span class="muted">Beam</span><br><b class="n">120"</b> 4x6</div>
+              <div style="border:1px solid var(--line); padding:8px;"><span class="muted">Legs</span><br><b class="n">131-1/2"</b> and <b class="n">138-3/8"</b></div>
+              <div style="border:1px solid var(--line); padding:8px;"><span class="muted">End cuts</span><br>saw at <b class="n">20.0°</b></div>
+              <div style="border:1px solid var(--line); padding:8px;"><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b> bending</div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:10px;">
+              <div class="ph" style="height:150px">Isometric view (M5)</div>
+              <div class="ph" style="height:150px">Site layout (M5)<br>clear area 22' 0" x 18' 8-7/8"</div>
+            </div>
+            <div class="sec"><span>Cut list</span><span class="muted">5 parts, 9 pieces</span></div>
+            <div class="blk" style="width:90%"></div><div class="blk" style="width:84%"></div><div class="blk" style="width:88%"></div>
+          </div>
+        </div>
+        <span class="marker" style="left:196px; top:52px">1</span>
+        <span class="marker" style="left:196px; top:128px">2</span>
+        <span class="marker" style="left:150px; top:62px">3</span>
+      </div></div>
+      <ol class="notes">
+        <li>After saving, a summary lists what the edit changed, old and new. It goes away once read.</li>
+        <li>Four key results at the top: the numbers you check first, picked from the snapshot.</li>
+        <li>The contents list doubles as the print order. Parameters come last: they are the input, the rest is the plan.</li>
+      </ol>
+      <div class="critique">
+        <dl>
+          <dt>Screen and paper in one order</dt>
+          <dd>The page is the printed plan. One structure to learn, and what you print matches what you reviewed.</dd>
+          <dt>Recognition over recall (Nielsen)</dt>
+          <dd>Weaker here. While editing, the output is out of sight, so judging an edit relies on the change summary or on remembering the old numbers. Trying several splay angles takes several save-and-look loops.</dd>
+          <dt>Wayfinding in a long page</dt>
+          <dd>A swing set plan with diagrams, five parts, eleven shopping lines, four checks with full working, and seven checklist items is long. The contents list carries the navigation; its labels are the domain's own words.</dd>
+          <dt>Cost</dt>
+          <dd>Closest to today. The change summary needs the snapshot from before the save, which the page already holds.</dd>
+        </dl>
+        <p class="needs">Needs: <a href="#R11">R11</a>, <a href="#R13">R13</a>.</p>
+      </div>
+    </article>
+
+    <!-- L-C -->
+    <article class="direction">
+      <header>
+        <p><span class="letter">L-C</span> · Drawing workspace</p>
+        <h3>The diagram in the middle, parameters on one side, the selected part on the other</h3>
+      </header>
+      <p class="scroll-hint">The back leg is selected, in the drawing or in the cut list drawer. Its row, board, cut details, and flags show in the inspector.</p>
+      <div class="scroll"><div class="wf laptop">
+        <div class="bar"><b>Backyard swing set</b><span class="grow"></span><span class="tab on">Isometric</span><span class="tab">Exploded</span><span class="tab">Site</span><span class="tab">Cut details</span><span class="grow"></span><span class="btn solid">Save</span></div>
+        <div style="display:grid; grid-template-columns: 190px 1fr 240px; grid-template-rows: 1fr auto; min-height:0;">
+          <div style="border-right:1px solid var(--wf-ink); padding:8px; display:grid; gap:6px; align-content:start; grid-row: span 2;">
+            <div class="sec"><span>Frame</span><span>−</span></div>
+            <div class="field"><span>Beam length</span><span class="in n">120"</span></div>
+            <div class="field"><span>Leg angle</span><span class="in n">20°</span></div>
+            <div class="sec"><span>Lumber</span><span>+</span></div>
+            <div class="sec"><span>Site</span><span>+</span></div>
+            <div class="sec"><span>Swings</span><span>+</span></div>
+            <div class="sec"><span>Hardware</span><span>+</span></div>
+            <div class="sec"><span>Structural inputs</span><span>+</span></div>
+          </div>
+          <div style="padding:8px; display:grid; place-items:center;">
+            <svg viewBox="0 0 360 230" role="img" aria-label="Sketch of an A-frame swing set, back leg highlighted">
+              <line class="ink" x1="70" y1="40" x2="300" y2="40" stroke-width="6"/>
+              <line class="ink" x1="85" y1="40" x2="40" y2="210"/>
+              <line class="sel" x1="85" y1="40" x2="130" y2="210" stroke-width="6"/>
+              <line class="ink" x1="285" y1="40" x2="240" y2="210"/>
+              <line class="ink" x1="285" y1="40" x2="330" y2="210"/>
+              <line class="ink" x1="58" y1="140" x2="112" y2="140"/>
+              <line class="ink" x1="258" y1="140" x2="312" y2="140"/>
+              <line class="thin" x1="140" y1="40" x2="140" y2="150"/><line class="thin" x1="165" y1="40" x2="165" y2="150"/>
+              <line class="thin" x1="205" y1="40" x2="205" y2="150"/><line class="thin" x1="230" y1="40" x2="230" y2="150"/>
+              <text x="120" y="226">sketch, not to scale</text>
+            </svg>
+          </div>
+          <div style="border-left:1px solid var(--wf-ink); padding:8px; display:grid; gap:8px; align-content:start; grid-row: span 2;">
+            <b>Back leg (uphill) · 2</b>
+            <span class="n">4x4 (3-1/2" x 3-1/2")</span>
+            <span>Length <b class="n">131-1/2"</b></span>
+            <span>Top and foot: level cut, saw at <span class="n">20.0°</span>, <span class="n">70.0°</span> to the edge</span>
+            <span>Each edge, top cut to foot cut <span class="n">130-1/4"</span></span>
+            <span class="muted">From: 4x4, 12' 0", offcut <span class="n">11-3/8"</span></span>
+            <div class="flag"><span class="k">Load-bearing</span><span>Confirm the burial depth (24") and that the leg lumber is rated for ground contact.</span></div>
+          </div>
+          <div style="border-top:1px solid var(--wf-ink); padding:6px 8px;">
+            <table>
+              <tr><th>Part</th><th class="r">Qty</th><th class="r">Length</th></tr>
+              <tr><td>Beam</td><td class="r n">1</td><td class="r n">120"</td></tr>
+              <tr class="hl"><td>Back leg (uphill)</td><td class="r n">2</td><td class="r n">131-1/2"</td></tr>
+              <tr><td>Front leg (downhill)</td><td class="r n">2</td><td class="r n">138-3/8"</td></tr>
+            </table>
+          </div>
+        </div>
+        <span class="marker" style="left:330px; top:150px">1</span>
+        <span class="marker" style="left:640px; top:52px">2</span>
+      </div></div>
+      <ol class="notes">
+        <li>Selecting a part in the drawing selects its cut list row, and the other way round.</li>
+        <li>The inspector gathers everything about one part: its row, the board it comes from, and the flags that concern it.</li>
+      </ol>
+      <div class="critique">
+        <dl>
+          <dt>Mapping (Norman)</dt>
+          <dd>Geometry is spatial. Seeing the leg light up while reading 131-1/2" ties the number to the object, which is where a front/back leg mix-up would be caught.</dd>
+          <dt>Depends on M5</dt>
+          <dd>Until diagrams exist the middle is empty, and the layout needs part ids on every drawn line, part placements, and flags tied to parts. It is the most new data of the three.</dd>
+          <dt>Three panes on a laptop</dt>
+          <dd>Each pane is narrow. The structural review would need its own full-width page. The canvas does not print, so a document view is still needed for paper.</dd>
+          <dt>Scope</dt>
+          <dd>It looks like a CAD tool, which is a non-goal. It would stay parameter-driven, with no dragging of parts, but the resemblance sets expectations it will not meet.</dd>
+        </dl>
+        <p class="needs">Needs: <a href="#R5">R5</a>, <a href="#R6">R6</a>, <a href="#R9">R9</a>, <a href="#R12">R12</a>.</p>
+      </div>
+    </article>
+  </div>
+
+  <div class="verdict prose stack">
+    <h4>Suggestion</h4>
+    <p>B for the project page, so screen and paper share one order, and A for the edit screen, so edits show their effect before saving. C's part selection can be added inside B's diagrams in M5 if Q3 carries part ids. A alone loses print; C alone waits on M5 and still needs a document for print.</p>
+  </div>
+</section>
+
+<!-- ============================== STORE ============================== -->
+<section id="store" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Place 2</p>
+    <h2>Phone at the store</h2>
+    <div class="where"><span>Standing, one hand, often holding a board</span><span>Bright or harsh store light</span><span>Lumber racks and the hardware aisle are far apart</span><span>Signal can be weak inside the building</span></div>
+    <p class="prose">The job is one trip that covers everything (a success criterion), and buying boards good enough for the parts they will become. The worked example buys 4 lumber lines and 7 hardware lines.</p>
+  </div>
+
+  <div class="directions">
+    <!-- S-A -->
+    <article class="direction">
+      <header><p><span class="letter">S-A</span> · Checklist by aisle</p><h3>Check items off, grouped by where they are in the store</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:8px; align-content:start;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline;"><b style="font-size:15px">Shopping list</b><span class="muted">4 of 11</span></div>
+          <div class="sec"><span>Lumber</span><span class="muted">1 of 4</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check on">✓</span><span style="flex:1"><b class="n">1</b> × 4x6, <span class="n">12' 0"</span></span><span class="muted">›</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">4</b> × 4x4, <span class="n">12' 0"</span></span><span class="muted">›</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">1</b> × 2x6, <span class="n">10' 0"</span></span><span class="muted">›</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">1</b> × 2x8, <span class="n">8' 0"</span></span><span class="muted">›</span></div>
+          <div class="sec"><span>Bolts and fittings</span><span class="muted">3 of 5</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check on">✓</span><span style="flex:1"><b class="n">2</b> × 1/2" through-bolt, grip <span class="n">8-15/16"</span></span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check on">✓</span><span style="flex:1"><b class="n">16</b> × 1/2" through-bolt, grip <span class="n">5"</span></span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check on">✓</span><span style="flex:1"><b class="n">36</b> × 1/2" flat washers</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">18</b> × 1/2" locking nuts</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">18</b> × 1/2" bolt caps</span></div>
+          <div class="sec"><span>Swing hardware</span><span class="muted">0 of 2</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">4</b> × Swing hangers</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">2</b> × Swing seats with chain</span></div>
+        </div>
+        <div class="tabs"><span>Plan</span><span class="on">Shop</span><span>Build</span></div>
+      </div>
+      <div class="critique">
+        <dl>
+          <dt>Grouping by context (chunking, Gestalt proximity)</dt>
+          <dd>Groups match the walk through the store: lumber yard, fastener aisle, playground aisle. Counts per group show what is left in each place.</dd>
+          <dt>Target size (Fitts)</dt>
+          <dd>The whole row is the tap target, quantity first and large, so it works with one thumb while the other hand holds a board.</dd>
+          <dt>Gaps</dt>
+          <dd>Nothing says which 4x4s become which legs, or what to look for in a board. Ticks need storage somewhere (<a href="#q2">Q2</a>). The groups are not in the data: hardware lines are one list today.</dd>
+        </dl>
+        <p class="needs">Needs: <a href="#R16">R16</a>, <a href="#R19">R19</a> for groups.</p>
+      </div>
+    </article>
+
+    <!-- S-B -->
+    <article class="direction">
+      <header><p><span class="letter">S-B</span> · Board cards</p><h3>Each board to buy, with the pieces it becomes</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:12px; align-content:start;">
+          <b style="font-size:15px">Lumber, 7 boards</b>
+          <div style="border:1px solid var(--wf-ink); padding:8px; display:grid; gap:6px;">
+            <div style="display:flex; justify-content:space-between;"><b>4x4, <span class="n">12' 0"</span></b><b class="n">buy 2</b></div>
+            <div class="board"><span class="pc" style="width:96%">Front leg 138-3/8"</span><span class="off" style="width:4%"></span></div>
+            <span>Offcut <b class="n">4-1/2"</b>. Pick your two straightest boards with the cleanest ends.</span>
+            <span class="muted">[What to look for in a leg board: M6 guidance]</span>
+          </div>
+          <div style="border:1px solid var(--wf-ink); padding:8px; display:grid; gap:6px;">
+            <div style="display:flex; justify-content:space-between;"><b>4x4, <span class="n">12' 0"</span></b><b class="n">buy 2</b></div>
+            <div class="board"><span class="pc" style="width:91.3%">Back leg 131-1/2"</span><span class="off" style="width:8.7%"></span></div>
+            <span>Offcut <b class="n">11-3/8"</b></span>
+          </div>
+          <div style="border:1px solid var(--wf-ink); padding:8px; display:grid; gap:6px;">
+            <div style="display:flex; justify-content:space-between;"><b>4x6, <span class="n">12' 0"</span></b><b class="n">buy 1</b></div>
+            <div class="board"><span class="pc" style="width:83.3%">Beam 120"</span><span class="off" style="width:16.7%"></span></div>
+            <span>Offcut <b class="n">22-7/8"</b>. A <span class="n">10'</span> board works if it measures at least <span class="n">121-1/8"</span>.</span>
+          </div>
+          <div style="border:1px solid var(--wf-ink); padding:8px; display:grid; gap:6px;">
+            <div style="display:flex; justify-content:space-between;"><b>2x6, <span class="n">10' 0"</span></b><b class="n">buy 1</b></div>
+            <div class="board"><span class="pc" style="width:46.4%">Crossbar</span><span class="pc" style="width:46.4%">Crossbar</span><span class="off" style="width:7.2%"></span></div>
+          </div>
+        </div>
+        <div class="tabs"><span>Plan</span><span class="on">Shop</span><span>Build</span></div>
+      </div>
+      <div class="critique">
+        <dl>
+          <dt>Information at the point of decision</dt>
+          <dd>Choosing a board happens at the rack. The card says what the board is for and how much spare it has. The front-leg boards have only 4-1/2" to spare, so they should get the cleanest ends; the back-leg boards have 11-3/8".</dd>
+          <dt>Mapping to the physical object</dt>
+          <dd>The bar is drawn to the board's real proportions from the snapshot, so a check or knot near one end can be judged against where the cut falls.</dd>
+          <dt>Gaps</dt>
+          <dd>Seven cards fill about three screens, and hardware still needs a list. The 4x4 line of four becomes two cards of two, which reads differently from the summary line. Board guidance per part role is not in the data.</dd>
+        </dl>
+        <p class="needs">Needs: <a href="#R3">R3</a> (met), <a href="#R15">R15</a>.</p>
+      </div>
+    </article>
+
+    <!-- S-C -->
+    <article class="direction">
+      <header><p><span class="letter">S-C</span> · One screen</p><h3>The whole list on one screen, nothing to tap</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:6px; align-content:start; font-size:13px;">
+          <b style="font-size:15px">Shopping list</b>
+          <table style="font-size:13px">
+            <tr><td class="r n"><b>1</b></td><td>4x6, <span class="n">12' 0"</span></td></tr>
+            <tr><td class="r n"><b>4</b></td><td>4x4, <span class="n">12' 0"</span></td></tr>
+            <tr><td class="r n"><b>1</b></td><td>2x6, <span class="n">10' 0"</span></td></tr>
+            <tr><td class="r n"><b>1</b></td><td>2x8, <span class="n">8' 0"</span></td></tr>
+            <tr><td class="r n"><b>2</b></td><td>1/2" through-bolt, grip <span class="n">8-15/16"</span></td></tr>
+            <tr><td class="r n"><b>16</b></td><td>1/2" through-bolt, grip <span class="n">5"</span></td></tr>
+            <tr><td class="r n"><b>36</b></td><td>1/2" flat washers</td></tr>
+            <tr><td class="r n"><b>18</b></td><td>1/2" locking nuts</td></tr>
+            <tr><td class="r n"><b>18</b></td><td>1/2" bolt caps</td></tr>
+            <tr><td class="r n"><b>4</b></td><td>Swing hangers</td></tr>
+            <tr><td class="r n"><b>2</b></td><td>Swing seats with chain</td></tr>
+          </table>
+          <p class="muted" style="font-size:11px">Allows 1/8" for each saw cut and trims 1/2" off each factory end. Bolt length: at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC Pub. 324, p. 3).</p>
+        </div>
+        <div class="tabs"><span>Plan</span><span class="on">Shop</span><span>Build</span></div>
+      </div>
+      <div class="critique">
+        <dl>
+          <dt>Minimalism (Nielsen's eighth heuristic)</dt>
+          <dd>Eleven lines fit one phone screen with the notes. Nothing to tap, nothing to save, and it works with no signal once open.</dd>
+          <dt>What it leaves out</dt>
+          <dd>No record of what is in the cart, so a long list in a big store relies on memory. No help picking boards. The 10' beam option sits in a note below the fold.</dd>
+          <dt>Cost</dt>
+          <dd>Today's data, nothing new. Close to the current shopping list with the board table removed.</dd>
+        </dl>
+        <p class="needs">Needs: nothing new.</p>
+      </div>
+    </article>
+  </div>
+
+  <div class="verdict prose stack">
+    <h4>Suggestion</h4>
+    <p>A, with each lumber row opening into B's card for that line. The list stays short for walking the store, and the board detail is one tap away at the rack. C is the fallback if saved progress (Q2) is declined.</p>
+  </div>
+</section>
+
+<!-- ============================== GARAGE ============================== -->
+<section id="garage" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Place 3</p>
+    <h2>Phone or tablet in the garage</h2>
+    <div class="where"><span>Arm's length, often propped on a bench</span><span>Poor or uneven light</span><span>Gloves, sawdust, wet hands</span><span>Screen sleeps between cuts</span><span>Working with a second person</span></div>
+    <p class="prose">The job is cutting and assembling with no recuts from wrong numbers. The worst mistake the domain names is mixing the saw setting with the angle to the edge (20.0° and 70.0° here). Build steps arrive in M6 and diagrams in M5, so step text below is a placeholder.</p>
+  </div>
+
+  <div class="directions">
+    <!-- G-A -->
+    <article class="direction">
+      <header><p><span class="letter">G-A</span> · One step at a time</p><h3>A full-screen step with its numbers, sketch, and flags</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 14px; display:grid; gap:10px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;" class="muted"><span>Step [n] of [N]</span><span>Cutting</span></div>
+          <b style="font-size:18px; line-height:1.2">Cut the 2 back legs (uphill)</b>
+          <div style="display:grid; gap:2px;"><span class="muted">Length, long point to long point</span><b class="n" style="font-size:30px; line-height:1.1">131-1/2"</b></div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div style="border:1.2px solid var(--wf-ink); padding:6px;"><span class="muted">Saw at</span><br><b class="n" style="font-size:22px">20.0°</b></div>
+            <div style="border:1px solid var(--line); padding:6px;"><span class="muted">To the edge</span><br><span class="n" style="font-size:16px">70.0°</span></div>
+          </div>
+          <svg viewBox="0 0 270 60" role="img" aria-label="Sketch of a leg with parallel level cuts">
+            <polygon class="fillblk" points="20,48 238,48 258,12 40,12"/>
+            <text x="90" y="34">level cuts, parallel</text>
+            <text x="2" y="58">each edge 130-1/4"</text>
+          </svg>
+          <span>[Method for your circular saw and speed square: M6]</span>
+          <div class="flag"><span class="k">Load-bearing</span><span>Confirm the burial depth (24") and that the leg lumber is rated for ground contact.</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px; padding:8px 10px; border-top:1px solid var(--wf-ink);"><span class="btn" style="padding:12px; text-align:center">Back</span><span class="btn solid" style="padding:12px; text-align:center">Done, next</span></div>
+      </div>
+      <div class="critique">
+        <dl>
+          <dt>Cognitive load (one thing at a time)</dt>
+          <dd>This is MVP feature 9 as written. One step per screen keeps the numbers large enough to read at arm's length and leaves nothing else to scan.</dd>
+          <dt>Hierarchy of the two angles</dt>
+          <dd>The saw setting is the large, boxed number; the edge angle is smaller and labeled. The two are never the same size, which guards against the recut DOMAIN.md warns about.</dd>
+          <dt>Target size with gloves</dt>
+          <dd>Next and Back sit at the bottom edge, full width, well above WCAG 2.5.5's 44 by 44 CSS pixels. Next is wider because it is the common action.</dd>
+          <dt>Gaps</dt>
+          <dd>A sequence hides the whole: "how long was the crossbar?" needs another view. Needs build steps (M6), steps tied to parts, and somewhere to keep the current step (<a href="#q2">Q2</a>). The screen should stay awake.</dd>
+        </dl>
+        <p class="needs">Needs: <a href="#R14">R14</a>, <a href="#R9">R9</a>, <a href="#R16">R16</a>, <a href="#R21">R21</a>.</p>
+      </div>
+    </article>
+
+    <!-- G-B -->
+    <article class="direction">
+      <header><p><span class="letter">G-B</span> · Cut station</p><h3>A list of parts; each opens a full-screen cut card</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 14px; display:grid; gap:10px; align-content:start;">
+          <div class="muted">‹ Parts</div>
+          <b style="font-size:18px">Crossbar</b>
+          <span class="n">2x6 (1-1/2" x 5-1/2") · cut 2 · <b>0 of 2 done</b></span>
+          <div style="display:grid; gap:2px;"><span class="muted">Length, long point to long point</span><b class="n" style="font-size:30px; line-height:1.1">55-11/16"</b></div>
+          <svg viewBox="0 0 270 78" role="img" aria-label="Sketch of a crossbar with mirrored end cuts">
+            <polygon class="fillblk" points="12,58 258,58 238,18 32,18"/>
+            <text x="78" y="12">top edge 51-11/16"</text>
+            <text x="68" y="74">bottom edge 55-11/16"</text>
+            <text x="200" y="44">20.0°</text>
+            <text x="38" y="44">20.0°</text>
+          </svg>
+          <span>Both ends flush with the leg: saw at <b class="n">20.0°</b>, <span class="n">70.0°</span> to the edge. Ends mirror each other.</span>
+          <span class="muted">Fastened to the outside face of the legs.</span>
+          <span class="muted">From: 2x6, <span class="n">10' 0"</span>, with the other crossbar.</span>
+        </div>
+        <div style="padding:8px 10px; border-top:1px solid var(--wf-ink);"><span class="btn solid" style="display:block; padding:12px; text-align:center">Mark one cut</span></div>
+      </div>
+      <div class="critique">
+        <dl>
+          <dt>Works with today's data</dt>
+          <dd>Every value on the card is in the snapshot now. It could ship before M6, and stays useful after as the detail behind a step.</dd>
+          <dt>Batch work</dt>
+          <dd>Matches DOMAIN.md's advice for repeated parts: cut one, check it, then use it to mark the rest. The card stays up while both crossbars are cut.</dd>
+          <dt>User control (Nielsen's third heuristic), and its cost</dt>
+          <dd>You choose what to cut next. That is also the weakness: the part list is a recall task, with no order and no assembly guidance.</dd>
+          <dt>Gaps</dt>
+          <dd>The flush cut on the legs is only a sentence in the notes; drawing it needs structured numbers. Holes and bolt positions are not in the data. "0 of 2 done" needs part instances and saved progress.</dd>
+        </dl>
+        <p class="needs">Needs: <a href="#R5">R5</a>, <a href="#R7">R7</a>, <a href="#R8">R8</a>, <a href="#R16">R16</a>.</p>
+      </div>
+    </article>
+  </div>
+
+  <!-- G-C tablet -->
+  <article class="direction">
+    <header><p><span class="letter">G-C</span> · Board by board, on a tablet</p><h3>Pick up a board, cut everything it holds, then the next</h3></header>
+    <p class="scroll-hint">Tablet in landscape, propped on the bench. On a phone the left list becomes its own screen.</p>
+    <div class="scroll"><div class="wf tablet">
+      <div class="bar"><b>Cutting · board 6 of 7</b><span class="grow"></span><span class="tab">Steps</span><span class="tab on">Boards</span><span class="tab">Diagrams</span><span class="tab">Cut list</span></div>
+      <div style="display:grid; grid-template-columns: 250px 1fr; min-height:0;">
+        <div style="border-right:1px solid var(--wf-ink); padding:10px; display:grid; gap:8px; align-content:start;">
+          <div style="display:flex; gap:8px; align-items:center;"><span class="check on">✓</span><span>4x6, 12' 0": Beam</span></div>
+          <div style="display:flex; gap:8px; align-items:center;"><span class="check on">✓</span><span>4x4, 12' 0": Front leg</span></div>
+          <div style="display:flex; gap:8px; align-items:center;"><span class="check on">✓</span><span>4x4, 12' 0": Front leg</span></div>
+          <div style="display:flex; gap:8px; align-items:center;"><span class="check on">✓</span><span>4x4, 12' 0": Back leg</span></div>
+          <div style="display:flex; gap:8px; align-items:center;"><span class="check on">✓</span><span>4x4, 12' 0": Back leg</span></div>
+          <div class="hl" style="display:flex; gap:8px; align-items:center; padding:4px; margin:-4px;"><span class="check"></span><b>2x6, 10' 0": 2 Crossbars</b></div>
+          <div style="display:flex; gap:8px; align-items:center;"><span class="check"></span><span>2x8, 8' 0": 2 Gussets</span></div>
+        </div>
+        <div style="padding:14px 18px; display:grid; gap:12px; align-content:start; min-width:0;">
+          <b style="font-size:16px">2x6, <span class="n">10' 0"</span></b>
+          <div class="board" style="height:40px; font-size:12px;"><span style="width:1%"></span><span class="pc hl" style="width:46.4%"><b>1 · Crossbar 55-11/16"</b></span><span class="pc" style="width:46.4%">2 · Crossbar 55-11/16"</span><span class="off" style="width:6.2%"></span></div>
+          <div style="display:flex; gap:20px; flex-wrap:wrap;" class="muted"><span>Trim 1/2" off the factory end first</span><span>1/8" kerf per cut</span><span>Offcut <span class="n">7-5/16"</span></span></div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+            <div style="display:grid; gap:6px;">
+              <span class="muted">Cut 1: Crossbar</span>
+              <b class="n" style="font-size:30px; line-height:1.1">55-11/16"</b>
+              <span>Both ends flush with the leg: saw at <b class="n">20.0°</b>, <span class="n">70.0°</span> to the edge, mirrored.</span>
+              <span>Top edge <span class="n">51-11/16"</span> · bottom edge <span class="n">55-11/16"</span></span>
+            </div>
+            <div class="ph" style="height:140px">Cut detail for the crossbar (M5)<br>reference face marked</div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="critique">
+      <dl>
+        <dt>Matches the physical task</dt>
+        <dd>The board in your hands is the board on screen. Cutting a front leg from a board meant for a back leg is hard to do by accident, and the order of cuts on the bar is the order on the board.</dd>
+        <dt>Master and detail on a tablet</dt>
+        <dd>Landscape has room for the board list, the board drawn to scale, and the cut detail at once. A phone shows them one screen at a time.</dd>
+        <dt>Gaps</dt>
+        <dd>Covers cutting only, not assembly. Boards have no ids, so "board 6 of 7" and its tick depend on array position, which changes if the plan regenerates.</dd>
+      </dl>
+      <p class="needs">Needs: <a href="#R3">R3</a> (met), <a href="#R4">R4</a>, <a href="#R16">R16</a>.</p>
+    </div>
+  </article>
+
+  <div class="verdict prose stack">
+    <h4>Suggestion</h4>
+    <p>A as the structure, since it is the product spec and covers assembly. Cutting steps follow C's board-by-board order, and each piece in a step opens B's cut card. On a tablet, the step sits beside its diagram. B could ship early as the cut list's phone view while M6 is built.</p>
+  </div>
+</section>
+
+<!-- ============================== QUESTIONS ============================== -->
+<section id="questions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Open questions</p>
+    <h2>Five choices the wireframes depend on</h2>
+    <p class="prose">Each has a suggestion, outlined in blue, and alternatives. Options that would change a recorded decision say which one.</p>
+  </div>
+
+  <div class="q" id="q1">
+    <h3>Q1 · Live preview while editing</h3>
+    <p class="prose">L-A shows output updating before saving. The API has no route that generates without saving.</p>
+    <div class="opts">
+      <div class="opt rec"><div class="head"><b>a · Dry-run route</b><span class="rec-tag">Suggested</span></div><p>A route such as <code>POST /api/projects/:id/preview</code> runs core on the server and returns the snapshot and its differences from the saved one, without saving. Called a moment after typing stops.</p><p class="muted small">Keeps hard rule 6 and ARCHITECTURE principle 2 as they are. Costs one round trip per change, and a cold start on Vercel can make the first one slow.</p></div>
+      <div class="opt"><div class="head"><b>b · Core in the browser</b></div><p>The web app calls core's <code>generate</code> for the preview only and labels it; saving still goes through the API.</p><p class="muted small">Instant. Changes hard rule 6 and ARCHITECTURE principle 2, so it needs a decision record. A tab left open across a deploy would preview with the older template while the server saves with the newer one.</p></div>
+      <div class="opt"><div class="head"><b>c · No preview</b></div><p>Save, then see L-B's "Changed by this edit" summary.</p><p class="muted small">No new API. Each trial of a value takes a save and a look; a bad trial must be edited back.</p></div>
+    </div>
+  </div>
+
+  <div class="q" id="q2">
+    <h3>Q2 · Saved progress in the shop</h3>
+    <p class="prose">S-A ticks shopping lines; G-A, G-B, and G-C track steps, cuts, and boards. Nothing stores progress today.</p>
+    <div class="opts">
+      <div class="opt rec"><div class="head"><b>a · On the server</b><span class="rec-tag">Suggested</span></div><p>A <code>project_progress</code> table: project, kind (shopping line, board, part instance, step), key, time done. Seen on every device. When a project regenerates, entries whose key still exists with the same numbers stay; the rest clear, and the page says how many reset and why.</p><p class="muted small">New table, routes, and tests. Needs stable keys for boards, part instances, and steps (R4, R5, R14).</p></div>
+      <div class="opt"><div class="head"><b>b · On the device</b></div><p>Ticks kept in the browser's storage.</p><p class="muted small">Conflicts with decision 0005 (no browser-only storage of user data), and Safari can clear it after 7 days. The laptop and phone would disagree.</p></div>
+      <div class="opt"><div class="head"><b>c · None</b></div><p>Ticks last while the page is open.</p><p class="muted small">No new state. A reload or a sleeping tab loses the place; S-C and G-B fit this best.</p></div>
+    </div>
+  </div>
+
+  <div class="q" id="q3">
+    <h3>Q3 · Linking parts across views</h3>
+    <p class="prose">Tap a cut list row and the part lights up in a diagram (L-C), or a step names the parts it uses (G-A). The cut list and board plan already share <code>partId</code>.</p>
+    <div class="opts">
+      <div class="opt rec"><div class="head"><b>a · Ids everywhere</b><span class="rec-tag">Suggested</span></div><p>Every diagram line, hardware location, flag, and step carries the part id and instance it concerns. Views can link any way later without changing the snapshot again.</p><p class="muted small">Adding ids now costs little. Adding them after M5 costs a new snapshot shape, an upgrade, and a fixture (0014).</p></div>
+      <div class="opt"><div class="head"><b>b · Per-part details only</b></div><p>Cut details are drawn per part and linked from the cut list. The isometric and exploded views carry no ids.</p><p class="muted small">Less data. Rules out highlighting a part in the assembled views.</p></div>
+      <div class="opt"><div class="head"><b>c · Printed callouts</b></div><p>Each part gets a letter (A for the beam, B for the back legs…) shown in diagrams and the cut list. No interaction.</p><p class="muted small">Works on paper, which a and b also need. Can sit on top of a.</p></div>
+    </div>
+  </div>
+
+  <div class="q" id="q4">
+    <h3>Q4 · Grouping cuts</h3>
+    <p class="prose">The cut list is grouped by part; the board plan already says which pieces come from which board. In this design every angled cut is a 20.0° saw setting.</p>
+    <div class="opts">
+      <div class="opt rec"><div class="head"><b>a · By board in the shop, by part in the plan</b><span class="rec-tag">Suggested</span></div><p>Planning keeps today's cut list by part. Cutting steps go board by board (G-C).</p><p class="muted small">Boards need ids (R4). The board data itself is in the snapshot.</p></div>
+      <div class="opt"><div class="head"><b>b · By part everywhere</b></div><p>One grouping in every view.</p><p class="muted small">Simplest. In the shop you look up the board for each part yourself.</p></div>
+      <div class="opt"><div class="head"><b>c · By saw setting</b></div><p>All square cuts, then all 20.0° cuts, so the saw is set once per angle.</p><p class="muted small">Fewest setups. Needs operations per part (M6), and mixes boards, so you handle each board twice.</p></div>
+    </div>
+  </div>
+
+  <div class="q" id="q5">
+    <h3>Q5 · When the connection drops</h3>
+    <p class="prose">Today an open project stays readable: the project page loads one response and fetches nothing else. A reload with no connection fails (0005).</p>
+    <div class="opts">
+      <div class="opt rec"><div class="head"><b>a · Queue changes in memory</b><span class="rec-tag">Suggested</span></div><p>Keep today's model. Steps and diagrams arrive in the same project response. Ticks made offline wait in memory and retry, with "2 changes not saved yet" in view until they go through.</p><p class="muted small">No decision changes. A reload while offline still loses the queued ticks, and the page says so.</p></div>
+      <div class="opt"><div class="head"><b>b · Keep a copy on the device</b></div><p>Store the open project and queued ticks in the browser so a reload offline still works.</p><p class="muted small">This is the read-only offline mode PRODUCT.md lists after the MVP. Changes 0005.</p></div>
+      <div class="opt"><div class="head"><b>c · Nothing beyond today</b></div><p>Reading keeps working; ticks fail with an error while offline.</p><p class="muted small">Only fits if Q2 is c.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== REFERENCES ============================== -->
+<section id="references" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Precedents and guidance</p>
+    <h2>Where these directions come from</h2>
+    <p class="prose">Each direction follows a pattern that already works elsewhere. The sources were checked in October 2026; the notes say what each one supports and where it does not apply.</p>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Woodsmith plans: materials list and cutting diagram</b><p>Woodsmith's published plans ship a materials list with a cutting diagram that draws each part on the board it comes from. That is S-B and G-C. Readers note the diagrams work as a guide, since real boards vary, so the by-part cut card (G-B) stays available.</p><p class="small"><a href="https://www.woodsmith.com/article/creating-cutting-diagrams/">Creating cutting diagrams</a> · <a href="https://www.lumberjocks.com/threads/cutting-diagrams-and-material-lists.79985/">LumberJocks discussion</a></p></div>
+    <div class="opt"><b>Recipe sites' cook mode</b><p>Recipe pages offer a "Cook Mode" toggle that keeps the screen awake with the Screen Wake Lock API while you follow the steps. That is G-A's situation: hands busy, phone propped up. Safari on iOS supports the API from 16.4. Some browsers grant it only after a tap, so the shop view should turn it on from a control, not on page load.</p><p class="small"><a href="https://bootstrapped.ventures/cook-mode/">WP Recipe Maker cook mode</a> · <a href="https://developer.chrome.com/en/articles/wake-lock/">Chrome: Screen Wake Lock</a> · <a href="https://caniuse.com/wake-lock">caniuse</a></p></div>
+    <div class="opt"><b>Assembly instructions</b><p>Flat-pack instructions break assembly into small numbered steps, each one action, with exploded views and letters that tie parts on the page to parts in the box. That is G-A and Q3 c. They are also known to confuse people when a picture carries everything, which is why G-A keeps words and numbers beside the sketch.</p><p class="small"><a href="https://justinzhuang.com/posts/wordless-instructions/">Wordless instructions</a> · <a href="https://cadasio.com/post/designing-assembly-instructions-without-words">Designing assembly instructions without words</a></p></div>
+    <div class="opt"><b>Shopping lists grouped by store layout</b><p>AnyList groups a list into categories ordered to match a store's aisles, with a separate order per store. That is S-A's grouping. Kerf's two places (lumber yard, hardware aisle) are simpler, so fixed groups are enough.</p><p class="small"><a href="https://help.anylist.com/articles/category-sets/">AnyList: category sets</a></p></div>
+    <div class="opt"><b>Offline and pending changes</b><p>Google's offline and sync guidelines show sync state only near what will change, and say not to style offline as an error. Expensify's offline guide queues actions and tells the user they have not been sent yet, and never shows unsent changes as saved. That is Q5 a.</p><p class="small"><a href="https://developers.google.com/open-health-stack/design/offline-sync-guideline">Open Health Stack: offline and sync</a> · <a href="https://github.com/Expensify/App/blob/main/contributingGuides/OFFLINE_UX.md">Expensify: offline UX</a></p></div>
+    <div class="opt"><b>Usability principles named in the critiques</b><p>Nielsen's ten heuristics (1 visibility of system status, 3 user control, 6 recognition over recall, 8 minimalist design). WCAG 2.2 target sizes: 24 by 24 CSS pixels at AA (2.5.8), 44 by 44 at AAA (2.5.5). The shop views aim above AAA because of gloves.</p><p class="small"><a href="https://www.nngroup.com/articles/ten-usability-heuristics/">NN/g: 10 usability heuristics</a> · <a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html">WCAG 2.5.5</a> · <a href="https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html">WCAG 2.5.8</a></p></div>
+  </div>
+</section>
+
+<!-- ============================== REQUIREMENTS ============================== -->
+<section id="requirements" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Requirements</p>
+    <h2>What the wireframes need from core, the snapshot, and the API</h2>
+    <p class="prose">Checked against the code on <code>main</code> at 5ffc98a and the v2 fixture. "Where it goes" names the milestone; requirements that hold whichever direction you pick have issues now; the rest get issues once the choices above are made.</p>
+  </div>
+  <div class="req-wrap">
+    <table class="req">
+      <thead><tr><th>#</th><th>Requirement</th><th>Used by</th><th>Status today</th><th>Where it goes</th></tr></thead>
+      <tbody>
+        <tr id="R1"><td>R1</td><td>Each part's stock, length, both end cuts (saw setting and angle to the edge), mark lengths, and notes, formatted by core.</td><td>All</td><td><span class="st met">Met</span></td><td><code>cutList</code></td></tr>
+        <tr id="R2"><td>R2</td><td>Shopping lines in buyable lengths, with the kerf and trim allowance stated.</td><td>S-A, S-C</td><td><span class="st met">Met</span></td><td><code>lumber.lines</code>, <code>lumber.notes</code></td></tr>
+        <tr id="R3"><td>R3</td><td>Which pieces come from which board, by part id, with the offcut.</td><td>S-B, G-C</td><td><span class="st met">Met</span></td><td><code>lumber.boards</code></td></tr>
+        <tr id="R4"><td>R4</td><td>A stable id for each board, to number boards and keep a tick on one across a regenerate.</td><td>G-C, Q2, Q4</td><td><span class="st not">Not met</span></td><td>Boards are an array without ids. M7 if Q2 a and Q4 a.</td></tr>
+        <tr id="R5"><td>R5</td><td>Part instances: "back leg, 1 of 2" as its own identity.</td><td>L-C, G-B, Q2, Q3</td><td><span class="st not">Not met</span></td><td>Parts carry a quantity only. M5, <a href="https://github.com/notaurologist/kerf/issues/49">#49</a>.</td></tr>
+        <tr id="R6"><td>R6</td><td>Each part instance's position and orientation in 3D, for the isometric and exploded views.</td><td>L-B, L-C, M5</td><td><span class="st not">Not met</span></td><td>The snapshot has frame numbers (splay, leg feet, supports) but no placements. ARCHITECTURE.md's contract lists <code>placements</code>; core does not produce them yet. M5, <a href="https://github.com/notaurologist/kerf/issues/49">#49</a>.</td></tr>
+        <tr id="R7"><td>R7</td><td>Holes and bolt positions on each part, and which hardware goes where.</td><td>G-B, cut details, steps</td><td><span class="st not">Not met</span></td><td>Hardware items have ids but no location; parts have no holes. M5, <a href="https://github.com/notaurologist/kerf/issues/50">#50</a>. Changes template output, so a version bump.</td></tr>
+        <tr id="R8"><td>R8</td><td>Cut details as structured data: which face each angle is measured from, and the leg's flush cut.</td><td>G-B, cut details</td><td><span class="st partly">Partly met</span></td><td>Flush-cut numbers are in <code>design.geometry.flushCut</code> and in a note sentence; no reference face per end. M5, <a href="https://github.com/notaurologist/kerf/issues/50">#50</a>.</td></tr>
+        <tr id="R9"><td>R9</td><td>Flags and checklist items name the parts or hardware they concern.</td><td>L-C, G-A</td><td><span class="st not">Not met</span></td><td>Flags have category, ask, and why; checklist items name an element in text. M6, <a href="https://github.com/notaurologist/kerf/issues/51">#51</a>.</td></tr>
+        <tr id="R10"><td>R10</td><td>Site layout: footprint, clear area, swing zones, with sources.</td><td>L-B, M5</td><td><span class="st met">Met</span></td><td><code>design.layout</code></td></tr>
+        <tr id="R11"><td>R11</td><td>Key results for the page summary: leg lengths, saw setting, lowest margin, count of flags.</td><td>L-A, L-B</td><td><span class="st met">Met</span></td><td>Picked from the snapshot; nothing computed.</td></tr>
+        <tr id="R12"><td>R12</td><td>Generate a snapshot without saving it.</td><td>L-A, L-C</td><td><span class="st not">Not met</span></td><td>Q1. A decision issue for the owner.</td></tr>
+        <tr id="R13"><td>R13</td><td>What an edit changed, old value and new, by path.</td><td>L-A, L-B</td><td><span class="st partly">Partly met</span></td><td>Core compares a stored snapshot with the current template (the version report). Comparing two stored snapshots is untested; no route returns it. With R12.</td></tr>
+        <tr id="R14"><td>R14</td><td>Build steps, each with its operations, method, flags, and the parts it uses, in the same project response.</td><td>G-A, Q5</td><td><span class="st not">Not met</span></td><td>M6 scope. The requirement here is that steps arrive with the project, not one request per step. <a href="https://github.com/notaurologist/kerf/issues/52">#52</a>.</td></tr>
+        <tr id="R15"><td>R15</td><td>What to look for when choosing a board for each part role.</td><td>S-B</td><td><span class="st not">Not met</span></td><td>DOMAIN.md says the app should include it; only a lumber-quality checklist item for the beam and legs exists. M6, <a href="https://github.com/notaurologist/kerf/issues/53">#53</a>.</td></tr>
+        <tr id="R16"><td>R16</td><td>Saved progress per project, and a rule for progress when the project regenerates.</td><td>S-A, G-A, G-B, G-C</td><td><span class="st not">Not met</span></td><td>Q2. A decision issue in M7.</td></tr>
+        <tr id="R17"><td>R17</td><td>An open project stays readable through a brief drop.</td><td>All phone views</td><td><span class="st met">Met</span></td><td>One response per project page. Stays met only if R14 holds and progress writes queue (Q5).</td></tr>
+        <tr id="R18"><td>R18</td><td>Every displayed length, angle, and margin goes through core's formatters.</td><td>All</td><td><span class="st met">Met</span></td><td><code>formatLength</code>, <code>formatAngle</code>, <code>formatMargin</code></td></tr>
+        <tr id="R19"><td>R19</td><td>Hardware grouped by kind (bolts and fittings, swing hardware), and cuts groupable by saw setting.</td><td>S-A, Q4 c</td><td><span class="st not">Not met</span></td><td>Hardware lines are one flat list; operations do not exist yet. Grouping hardware is a small core change; cut grouping is M6.</td></tr>
+        <tr id="R20"><td>R20</td><td>Print: each diagram and the cut list on their own pages.</td><td>L-B</td><td><span class="st not">Not met</span></td><td>Already M5 scope.</td></tr>
+        <tr id="R21"><td>R21</td><td>Screen stays awake on the shop views.</td><td>G-A, G-B, G-C</td><td><span class="st not">Not met</span></td><td>Browser only, no data. M7, <a href="https://github.com/notaurologist/kerf/issues/54">#54</a>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Source for every number: <code>packages/core/src/templates/swing-set-a-frame/snapshots/v2.json</code>, example 1 ("Worked example, every input entered"), read through the template's <code>plan</code> and core's formatters. The board bars are drawn to each board's lengths from the same file.</p>
+  <p>Kept in the repository at <code>docs/design/wireframes.html</code>, with the decisions in <code>docs/design/README.md</code>.</p>
+</footer>
+
+</main>
