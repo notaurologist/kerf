@@ -1,0 +1,506 @@
+<title>Kerf Design System</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+.pal-C1-light { --bg: #fbf9f5; --raised: #fff; --sunken: #f2efe9; --text: #1a1d23; --muted: #545860; --border: #d7d4ce; --border-strong: #70757c; --accent: #0e5caf; --on-accent: #fff; --focus: #1570d1; --flag-bg: #ffe8be; --flag-border: #bb7400; --flag-text: #5b3106; --input-bg: #fff; --input-border: #2e64a6; --input-text: #0e4786; --done: #0e5caf; --error: #aa295f; --error-bg: #ffebf1; --ink: #1a1d23; --dim: #0e5caf; --hidden: #6e7278; --highlight: #bfe1ff; --zone: #dbeede; --zone-line: #488055; }
+.pal-C1-dark { --bg: #111418; --raised: #1a1d23; --sunken: #0b0d12; --text: #edebe7; --muted: #aaaeb4; --border: #2f3339; --border-strong: #82868e; --accent: #70b3f7; --on-accent: #0c121a; --focus: #73bdff; --flag-bg: #3e290f; --flag-border: #dea143; --flag-text: #f7dba1; --input-bg: #1a1d23; --input-border: #6da9e7; --input-text: #97c9fd; --done: #70b3f7; --error: #ea7ca1; --error-bg: #3d1e28; --ink: #edebe7; --dim: #70b3f7; --hidden: #83868c; --highlight: #1d456b; --zone: #1e2d21; --zone-line: #75ae81; }
+
+.sheet { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+.pv { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); align-items: start; }
+.pv-col { display: grid; gap: 16px; }
+.mf { display: grid; gap: 4px; }
+.mf-label { font-weight: 600; font-size: 17px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.mf-hint { font-size: 15px; color: var(--muted); }
+.mf-box { display: flex; align-items: center; min-height: 44px; border: 1.5px solid var(--border-strong); border-radius: 4px; background: var(--input-bg); padding: 0 10px; font-size: 17px; }
+.mf-echo { font-size: 15px; font-variant-numeric: tabular-nums; }
+.is-error .mf-box { border: 2px solid var(--error); }
+.mf-error { display: flex; gap: 6px; color: var(--error); font-weight: 600; font-size: 15px; }
+.is-needed .mf-box { border: 2px dashed var(--accent); }
+.needed-tag { font-size: 13px; font-weight: 700; color: var(--accent); border: 1.5px dashed var(--accent); border-radius: 3px; padding: 0 5px; }
+.ico { width: 16px; height: 16px; flex: none; margin-top: 3px; }
+.btnrow { display: flex; gap: 12px; flex-wrap: wrap; }
+.mbtn { background: var(--accent); color: var(--on-accent); border-radius: 4px; padding: 11px 16px; font-weight: 700; }
+.mbtn.ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.flag { display: flex; gap: 8px; background: var(--flag-bg); color: var(--flag-text); border: 1.5px solid var(--flag-border); border-radius: 4px; padding: 10px 12px; }
+.flag > div { display: grid; gap: 4px; }
+.flag .why { font-size: 15px; }
+.check { display: grid; gap: 4px; border: 1px solid var(--border); border-radius: 6px; background: var(--raised); padding: 12px 14px; }
+.check .m { font-weight: 700; font-size: 18px; }
+.check .link { color: var(--accent); text-decoration: underline; }
+.cut { display: grid; gap: 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--raised); padding: 12px 14px; }
+.cut .len { font-size: 51px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cut .lab { font-size: 15px; }
+.cut .pair { display: flex; gap: 16px; align-items: center; }
+.cut .box { border: 2px solid var(--text); border-radius: 4px; padding: 6px 10px; display: grid; }
+.cut .box b { font-size: 32px; line-height: 1.1; }
+.cut .edge { font-size: 20px; display: block; }
+.status { margin: 0; display: flex; gap: 8px; }
+.tick { color: var(--done); font-weight: 800; }
+.codes { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); align-items: start; }
+.code { margin: 0; display: grid; gap: 4px; min-width: 0; }
+.code figcaption { font-size: var(--step--1); color: var(--muted); }
+.code pre { margin: 0; background: var(--wf-bg); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; overflow-x: auto; font-size: 13px; line-height: 1.45; }
+.direction-full > header { display: grid; gap: 4px; }
+.sugg { color: var(--blue); }
+.small-list { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px; margin: 0; position: sticky; top: 0; z-index: 2; background: var(--paper); }
+.controls legend { font-weight: 600; padding: 0 4px; }
+.controls label { display: inline-flex; gap: 6px; align-items: center; min-height: 32px; }
+table.std { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.92rem; background: var(--wf-bg); }
+table.std th, table.std td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+table.std th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@200..800&display=swap">
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #45</p>
+  <h1>Design system</h1>
+  <div class="prose stack">
+    <p>Stages 0 to 5b decided what Kerf looks like and says. This stage builds it in code: tokens, layout primitives, components, and a catalog page, and then rebuilds every M4 screen from them. What the system contains is already decided; the inventory below maps each piece to the stage that decided it.</p>
+    <p>What is open is how it is built: where the code lives, how styles are written so screens cannot add one-off styles, and how the work lands. Today the web app has one 517-line stylesheet with the system font and a brown accent, and none of the stages applied.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
+  <p>Four choices. I suggest <b>DS1</b>, <b>a folder in apps/web</b>, <b>four pull requests</b>, and <b>no new test dependencies</b>; each is listed first and marked below. A reply like <span class="pick" style="white-space: normal">DS1, in apps/web, four PRs, no new dependencies</span> is enough.</p>
+  <ol>
+    <li><a href="#directions">How styles are written</a>: <span class="pick">DS1</span> layered global CSS, <span class="pick">DS2</span> CSS Modules, or <span class="pick">DS3</span> tokens in TypeScript.</li>
+    <li><a href="#where">Where it lives</a>: <span class="pick">apps/web/src/ui</span>, or its own package, <span class="pick">packages/ui</span>.</li>
+    <li><a href="#delivery">How it lands</a>: <span class="pick">four pull requests</span> under sub-issues, or one.</li>
+    <li><a href="#deps">Test dependencies</a>: <span class="pick">none</span> for now, an accessibility checker, or screenshot tests.</li>
+  </ol>
+</section>
+
+<!-- ============================== PREVIEW ============================== -->
+<section id="preview" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Common to all three</p>
+    <h2>What the system draws</h2>
+    <p class="prose">The same pieces whichever way they are built: C1 colors, Atkinson Hyperlegible Next, #41's spacing, #43's rules for color, #67's entry and states, and #68's words. Drawn here as plain HTML; the real components replace this.</p>
+  </div>
+  <fieldset class="controls">
+    <legend>View</legend>
+    <label for="theme-light"><input type="radio" name="theme" id="theme-light" value="light" checked> Light</label>
+    <label for="theme-dark"><input type="radio" name="theme" id="theme-dark" value="dark"> Dark</label>
+  </fieldset>
+  
+<div class="sheet pal-C1-light"><div class="pv">
+  <div class="pv-col">
+    <div class="mf"><span class="mf-label">Beam height</span><span class="mf-hint">Underside of the beam above the ground. Inches, or feet and inches.</span><span class="mf-box">8' 0</span><span class="mf-echo"><b>8' 0" · 96"</b></span></div>
+    <div class="mf is-error"><span class="mf-label">Burial depth</span><span class="mf-error"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5v4.2M8 10.6v.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Burial depth must be from 0" to 4' 0".</span><span class="mf-box">5'</span></div>
+    <div class="mf is-needed"><span class="mf-label">Deflection limit (span divided by) <span class="needed-tag">Input needed</span></span><span class="mf-box"></span></div>
+    <div class="btnrow"><span class="mbtn">Save changes</span><span class="mbtn ghost">Cancel</span></div>
+  </div>
+  <div class="pv-col">
+    <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><b>Expert check</b><span>Confirm the burial depth (24") and that the leg lumber is rated for ground contact.</span><span class="why">Why: Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line.</span></div></div>
+    <div class="check"><span><b>Bending</b>, top beam 4x6</span><span class="m">margin 1.1x under these assumptions</span><span class="link">Show the working</span></div>
+    <div class="cut"><span class="lab">Back leg (uphill), 2</span><b class="len">131-1/2"</b><div class="pair"><div class="box"><span class="lab">Saw at</span><b>20.0°</b></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div></div>
+    <p class="status"><span class="tick">✓</span> Saved. The plan was regenerated with template version 2.</p>
+  </div>
+</div></div>
+</section>
+
+<!-- ============================== INVENTORY ============================== -->
+<section id="inventory" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Already decided</p>
+    <h2>What the system contains</h2>
+  </div>
+  <div class="scroll">
+    <table class="std">
+      <thead><tr><th>Piece</th><th>What it is</th><th>Decided in</th></tr></thead>
+      <tbody>
+        <tr><td><b>Color tokens</b></td><td>C1 roles in light and dark (text, surfaces, accent, focus, flag, error, input, done) and diagram ink (ink, dimension, hidden, highlight, zone), plus D2's three face tones. A test checks every recorded contrast ratio.</td><td>#43, #44</td></tr>
+        <tr><td><b>Type tokens</b></td><td>Atkinson Hyperlegible Next and Mono, self-hosted <code>woff2</code>. Desk scale 14, 17, 20, 24, 29 px; shop read 20 px, glance 51 px bold, saw setting 32 px bold; print 10.5 pt. Tabular figures in tables; lengths never break.</td><td>#42, 0015</td></tr>
+        <tr><td><b>Space tokens</b></td><td>Fluid scale 3xs to xl (4 to 72 px), times 1.5 in shop density; controls at least 56 px tall in shop density.</td><td>#41</td></tr>
+        <tr><td><b>Line tokens</b></td><td>Diagram line roles: visible, hidden, center, phantom, dimension, extension, leader, guideline, break, grade, zone, with screen and print widths.</td><td>#44</td></tr>
+        <tr><td><b>Layout</b></td><td>Page grid (4, 8, 12 columns, content to 1200 px), Stack, Sidebar, Switcher, Cluster, Center; components respond to their own width with container queries.</td><td>#41</td></tr>
+        <tr><td><b>Shell</b></td><td>Header with Projects and Tools; plan contents sidebar on laptop; mode bar with Exit for Shopping and Building (M7).</td><td>#40</td></tr>
+        <tr><td><b>Numbers</b></td><td>Length, angle, and saw setting (boxed, larger) with the angle to the edge (smaller, labeled); margin line; measurement tables that stack into rows on a phone.</td><td>#41, #42</td></tr>
+        <tr><td><b>Notices</b></td><td>Expert check (amber, flag icon, label), Input needed (dashed accent), error (crimson, icon, beside fields only), status line, connection notice.</td><td>#43, #67, #68</td></tr>
+        <tr><td><b>Forms</b></td><td>Field with label, hint, echo, and error; select; yes/no; error summary; buttons (primary, secondary, destructive); saving state; leave-with-changes prompt.</td><td>#67, #68</td></tr>
+        <tr><td><b>Disclosure</b></td><td>Expandable working for structural checks; open in print.</td><td>#39, #41</td></tr>
+        <tr><td><b>Diagram frame</b></td><td>SVG container drawn for its own width, with a text label and the line roles above. The diagrams themselves are M5.</td><td>#44</td></tr>
+        <tr><td><b>Icons</b></td><td>Flag, error, done, and the few the M4 screens need, drawn in the repo at the diagram line weights.</td><td>#45</td></tr>
+        <tr><td><b>Catalog</b></td><td>A page in the app showing every component in every state, in light and dark.</td><td>#45</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================== DIRECTIONS ============================== -->
+<section id="directions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Directions</p>
+    <h2>Three ways to write the styles</h2>
+    <p class="prose">Each shows the same component, a length field with its echo and error, and how the editor uses it. None needs a new dependency. In all three, screens are built only from components and layout primitives; the difference is how that is enforced and where each rule lives.</p>
+  </div>
+  
+<article class="direction-full stack-lg" id="ds1">
+  <header><p><span class="letter">DS1</span> · Layered global CSS · <b class="sugg">Suggested</b></p><h3>Tokens and layout primitives as global CSS in cascade layers, component blocks with a k- prefix, states as data attributes</h3></header>
+  <div class="codes"><figure class="code"><figcaption><code>ui/styles/index.css</code></figcaption><pre><code>@layer reset, tokens, base, layout, components, print;
+@import "./tokens.css" layer(tokens);     /* C1, type, space, lines */
+@import "./layout.css" layer(layout);     /* stack, sidebar, switcher, cluster, center */</code></pre></figure><figure class="code"><figcaption><code>ui/field/field.css</code></figcaption><pre><code>@layer components {
+  .k-field { display: grid; gap: var(--space-3xs); }
+  .k-field__input {
+    min-block-size: 44px;
+    border: 1.5px solid var(--border-strong);
+  }
+  .k-field[data-state="error"] .k-field__input { border: 2px solid var(--error); }
+  .k-field__echo { font-variant-numeric: tabular-nums; }
+}</code></pre></figure><figure class="code"><figcaption><code>ui/field/LengthField.tsx</code></figcaption><pre><code>export function LengthField(props: FieldProps) {
+  const id = useId();
+  const echo = entryEcho(props.field, props.text);   // core
+  return (
+    &lt;div className="k-field" data-state={props.error ? 'error' : undefined}&gt;
+      &lt;label htmlFor={id}&gt;{props.field.label}&lt;/label&gt;
+      {props.error &amp;&amp; &lt;ErrorText&gt;{props.error}&lt;/ErrorText&gt;}
+      &lt;input id={id} className="k-field__input" inputMode="text" … /&gt;
+      {echo &amp;&amp; &lt;p className="k-field__echo"&gt;{echo}&lt;/p&gt;}
+    &lt;/div&gt;
+  );
+}</code></pre></figure><figure class="code"><figcaption><code>features/project-editor/ProjectEditor.tsx</code></figcaption><pre><code>&lt;Stack&gt;
+  {fields.map((f) =&gt; &lt;LengthField key={f.path} field={f} … /&gt;)}
+&lt;/Stack&gt;</code></pre></figure><figure class="code"><figcaption><code>ui/screens.test.ts</code></figcaption><pre><code>// Screens are built only from ui/: no className or style outside it.
+it.each(screenFiles)('%s writes no styles', (file) =&gt; {
+  expect(read(file)).not.toMatch(/\b(className|style)=/);
+});</code></pre></figure></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>CUBE CSS and Every Layout: work with the cascade rather than against it, compose pages from a few global layout primitives, and keep component ("block") styles small. #41 already chose those primitives (Stack, Sidebar, Switcher, Cluster, Center), which are global by nature. Cascade layers (<code>@layer</code>, in every current browser since March 2022) fix the order of reset, tokens, base, layout, components, and print, so specificity never decides which rule wins.</dd>
+  <dt>Principles</dt>
+  <dd>One stylesheet per concern, in a fixed order. Tokens are custom properties, so shop density and dark mode are a change of tokens on a container, not new rules. Print rules sit in one layer, which suits #41's section-order print.</dd>
+  <dt>In use</dt>
+  <dd>Screens never write styles: a test fails if any file outside <code>ui/</code> passes <code>className</code> or <code>style</code>. Components set states with data attributes (<code>data-state="error"</code>), which the catalog page can show one by one.</dd>
+  <dt>Cost</dt>
+  <dd>Class names share one namespace, so blocks carry a <code>k-</code> prefix. No tooling to add: Vite bundles plain CSS, and render tests see the real class names.</dd>
+</dl>
+</div>
+</article>
+  
+<article class="direction-full stack-lg" id="ds2">
+  <header><p><span class="letter">DS2</span> · CSS Modules</p><h3>Each component's styles in its own module, renamed at build so nothing outside can reach them</h3></header>
+  <div class="codes"><figure class="code"><figcaption><code>ui/field/Field.module.css</code></figcaption><pre><code>.root { display: grid; gap: var(--space-3xs); }
+.input { min-block-size: 44px; border: 1.5px solid var(--border-strong); }
+.root[data-state="error"] .input { border: 2px solid var(--error); }
+.echo { font-variant-numeric: tabular-nums; }
+@media print { .echo { display: none; } }</code></pre></figure><figure class="code"><figcaption><code>ui/field/LengthField.tsx</code></figcaption><pre><code>import s from './Field.module.css';
+
+export function LengthField(props: FieldProps) {
+  …
+  return (
+    &lt;div className={s.root} data-state={props.error ? 'error' : undefined}&gt;
+      &lt;input id={id} className={s.input} … /&gt;
+      {echo &amp;&amp; &lt;p className={s.echo}&gt;{echo}&lt;/p&gt;}
+    &lt;/div&gt;
+  );
+}</code></pre></figure><figure class="code"><figcaption><code>vitest.config.ts</code></figcaption><pre><code>// CSS Modules are skipped in tests unless included.
+test: { css: { include: [/\.module\.css$/] } }</code></pre></figure><figure class="code"><figcaption><code>ui/styles/global.css</code></figcaption><pre><code>/* Still global: tokens, base, and the layout primitives. */
+@import "./tokens.css";
+@import "./layout.css";</code></pre></figure></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>Component-scoped styles, as many React design systems write them: each component has a <code>.module.css</code> file beside it, and the build renames its classes so nothing outside can reach them. Vite treats any <code>*.module.css</code> file this way with no extra install.</dd>
+  <dt>Principles</dt>
+  <dd>The no-one-off-styles rule is built in, since a screen cannot target a component's classes. Each component's styles, including its print rules, live next to it.</dd>
+  <dt>In use</dt>
+  <dd>Layout primitives and tokens still need a global stylesheet, so there are two kinds of CSS. Print rules for the whole plan (section order, page breaks) are spread across modules. Vitest skips CSS Modules by default and returns placeholder class names, so render tests need it switched on to check states by class.</dd>
+  <dt>Cost</dt>
+  <dd>One more convention and a test-config change. No dependency.</dd>
+</dl>
+</div>
+</article>
+  
+<article class="direction-full stack-lg" id="ds3">
+  <header><p><span class="letter">DS3</span> · Tokens in TypeScript</p><h3>One TypeScript token file for everything, written out as CSS variables, applied through typed style props</h3></header>
+  <div class="codes"><figure class="code"><figcaption><code>ui/tokens.ts</code></figcaption><pre><code>export const color = {
+  error: { light: '#aa295f', dark: '#ea7ca1' },
+  'border-strong': { light: '#70757c', dark: '#82868e' },
+  …
+} as const;
+export const v = (name: keyof typeof color) =&gt; `var(--color-${name})`;</code></pre></figure><figure class="code"><figcaption><code>scripts/write-tokens.ts</code></figcaption><pre><code>// Writes ui/tokens.css from tokens.ts; run before dev and build.</code></pre></figure><figure class="code"><figcaption><code>ui/field/LengthField.tsx</code></figcaption><pre><code>&lt;input
+  style={{
+    minBlockSize: 44,
+    border: `${props.error ? 2 : 1.5}px solid ${v(props.error ? 'error' : 'border-strong')}`,
+  }}
+/&gt;
+{/* Focus rings, container queries, and print still need a stylesheet. */}</code></pre></figure></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>Tokens as TypeScript, the single source for everything: a small build script writes them out as CSS custom properties, the contrast test reads them directly, and components apply them through typed style props. The Design Tokens Community Group's format (first stable version 2025.10) is the standard shape for such a file.</dd>
+  <dt>Principles</dt>
+  <dd>The type checker catches a misspelled token, and the diagrams' SVG, the screens, and the test share one file.</dd>
+  <dt>In use</dt>
+  <dd>Inline styles cannot express hover, focus, container queries, or print, which Kerf needs everywhere (#41's components respond to their own width, and the plan prints). Those would still need CSS, so there would be two systems. It is half of a CSS-in-JS library, written by hand.</dd>
+  <dt>Cost</dt>
+  <dd>A build step, a generated file to keep in sync, and the most code to maintain.</dd>
+</dl>
+</div>
+</article>
+</section>
+
+<!-- ============================== WHERE ============================== -->
+<section id="where" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Where it lives</p>
+    <h2>A folder or a package</h2>
+  </div>
+  <div class="opts">
+    <div class="opt rec"><div class="head"><b>apps/web/src/ui</b><span class="rec-tag">Suggested</span></div><p>Tokens, primitives, components, and icons in one folder of the only app that uses them. Screens import from <code>ui/</code>; nothing in <code>ui/</code> imports a screen. The review pages in <code>docs/design/</code> stay standalone HTML.</p></div>
+    <div class="opt"><div class="head"><b>packages/ui</b></div><p>Its own workspace package, as if a second app might use it. A package boundary, build, and version for one consumer; worth it only if a second app is planned, and none is.</p></div>
+  </div>
+</section>
+
+<!-- ============================== DELIVERY ============================== -->
+<section id="delivery" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">How it lands</p>
+    <h2>Four pull requests, or one</h2>
+    <p class="prose">AGENTS.md asks for small, focused changes. #45 touches every screen, so one pull request would be the largest in the project and the hardest to review on a phone.</p>
+  </div>
+  <div class="opts">
+    <div class="opt rec"><div class="head"><b>Four pull requests</b><span class="rec-tag">Suggested</span></div><p>Each a sub-issue of #45, in order:</p><ol class="small-list"><li><b>Foundations:</b> self-hosted fonts, tokens, base styles and layers, layout primitives, the contrast test.</li><li><b>Components and catalog:</b> every component above with its states, icons, the catalog page, and accessibility tests.</li><li><b>Screens:</b> login, projects, tools, the editor (#67's states, #68's strings), and the plan (cut list, shopping list, structural review), with the old stylesheet removed.</li><li><b>Guidance:</b> usage guidance in <code>docs/design/</code>, ARCHITECTURE.md, and the check against #45's "Done when". Then #69, the garage check.</li></ol><p>Each leaves the app working and is checked in a Vercel preview.</p></div>
+    <div class="opt"><div class="head"><b>One pull request</b></div><p>Everything at once. Nothing is half-switched at any point, but the review is long and a problem found late holds up all of it.</p></div>
+  </div>
+</section>
+
+<!-- ============================== DEPS ============================== -->
+<section id="deps" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Test dependencies</p>
+    <h2>What checks the system</h2>
+    <p class="prose">Without new dependencies, the system is checked by: the contrast test (WCAG's formula, written in the repo), render tests of each component's states and accessible names, a test that screens pass no <code>className</code> or <code>style</code>, the catalog page, and the garage check (#69).</p>
+  </div>
+  <div class="opts">
+    <div class="opt rec"><div class="head"><b>None for now</b><span class="rec-tag">Suggested</span></div><p>Start with the checks above. Revisit after the garage check, when it is clearer what slips through.</p></div>
+    <div class="opt"><div class="head"><b>An accessibility checker</b></div><p>An automated rule checker run against each rendered component in the tests. Catches missing labels and roles; needs a browser-like test environment, so two development dependencies.</p></div>
+    <div class="opt"><div class="head"><b>Screenshot tests</b></div><p>A headless browser takes pictures of the catalog and key screens and compares them with stored ones. Catches visual drift; one large development dependency and stored images to update with every intended change.</p></div>
+  </div>
+</section>
+
+<!-- ============================== REFERENCES ============================== -->
+<section id="references" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Precedents and guidance</p>
+    <h2>Sources</h2>
+    <p class="prose">Checked in October 2026.</p>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>CUBE CSS</b><p>Composition, utility, block, exception: a methodology that works with the cascade.</p><p class="small"><a href="https://cube.fyi/">cube.fyi</a></p></div>
+    <div class="opt"><b>Every Layout</b><p>Layout primitives (Stack, Sidebar, Switcher, Cluster, Center, and others) that let the browser work out the layout from the space available. Basis for #41's primitives.</p><p class="small"><a href="https://every-layout.dev/layouts/">Every Layout: layouts</a></p></div>
+    <div class="opt"><b>Cascade layers</b><p><code>@layer</code> fixes the order in which groups of rules apply, so a later layer wins whatever the specificity. Widely available since March 2022.</p><p class="small"><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@layer">MDN: @layer</a></p></div>
+    <div class="opt"><b>CSS Modules</b><p>Vite treats any <code>*.module.css</code> file as a CSS module. Vitest skips CSS Modules processing by default.</p><p class="small"><a href="https://vite.dev/guide/features">Vite: features</a> · <a href="https://vitest.dev/config/css">Vitest: css</a></p></div>
+    <div class="opt"><b>Design tokens</b><p>The Design Tokens Community Group format reached its first stable version, 2025.10, as a community group report.</p><p class="small"><a href="https://www.designtokens.org/tr/2025.10/">Design Tokens Technical Reports 2025.10</a></p></div>
+    <div class="opt"><b>Earlier stages</b><p>Every token and component traces to a recorded choice.</p><p class="small"><code>docs/design/README.md</code>, Stages 0 to 5b</p></div>
+  </div>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Kept at <code>docs/design/system.html</code>; choices are recorded in <code>docs/design/README.md</code>.</p>
+</footer>
+
+</main>
+
+<script>
+  const sheets = () => document.querySelectorAll('.sheet');
+  const setTheme = (dark) => {
+    for (const s of sheets()) {
+      s.classList.toggle('pal-C1-dark', dark);
+      s.classList.toggle('pal-C1-light', !dark);
+    }
+  };
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.getElementById(prefersDark ? 'theme-dark' : 'theme-light').checked = true;
+  setTheme(prefersDark);
+  for (const r of document.querySelectorAll('input[name="theme"]')) r.addEventListener('change', () => setTheme(r.value === 'dark' && r.checked));
+</script>

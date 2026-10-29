@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. The design system (#45) is next, after the parser (#73).
+Status: in progress. Stage 6 (#45) is waiting on the owner's choices about how the system is built.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -14,10 +14,24 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 5. Diagram language | #44 | Decided October 2026 | `diagrams.html` |
 | 5a. Number entry and form states | #67 | Decided October 2026 | `entry.html` |
 | 5b. Words | #68 | Decided October 2026 | `words.html`, `content.md` |
-| 6. Design system | #45 | Blocked by #73 | |
+| 6. Design system | #45 | Waiting on the owner | `system.html` |
 | 7. A repeatable garage check | #69 | Blocked by #45 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 6: design system (#45)
+
+What the system contains was decided in Stages 0 to 5b; `system.html` maps each token group and component to its stage, previews them together in C1, and asks how the system is built:
+
+- DS1: layered global CSS. Tokens and #41's layout primitives in cascade layers, component blocks with a `k-` prefix, states as data attributes, and a test that screens write no styles.
+- DS2: CSS Modules. Each component's styles in a module beside it; tokens and layout still global.
+- DS3: tokens in TypeScript, written out as CSS variables and applied through typed style props.
+
+It also asks where the code lives (a folder in `apps/web` or its own package), whether the work lands as four pull requests or one, and whether to add test dependencies (an accessibility checker or screenshot tests). None of the directions needs a new dependency.
+
+### Choices
+
+Not yet made.
 
 ## Stage 5b: words (#68)
 
