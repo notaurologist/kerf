@@ -2,6 +2,7 @@
 // layout primitives; they write no classes or styles of their own.
 
 export { Button, ButtonLink, type ButtonVariant } from './Button.tsx';
+export { Diagram } from './Diagram.tsx';
 export { DiagramFrame } from './DiagramFrame.tsx';
 export { ConfirmDialog } from './Dialog.tsx';
 export { Disclosure } from './Disclosure.tsx';

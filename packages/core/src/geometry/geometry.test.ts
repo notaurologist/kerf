@@ -245,6 +245,21 @@ describe('plan view', () => {
     expect(texts(small.primitives, 'dimension')).toEqual([formatLength(24), formatLength(12)]);
   });
 
+  it('labels a tall, narrow area along its length, so neighbors do not collide', () => {
+    const zones = planView(
+      [
+        { label: 'Left swing zone', xMin: 30, xMax: 50, yMin: -192, yMax: 192, kind: 'zone' },
+        { label: 'Clear area', xMin: -72, xMax: 192, yMin: -100, yMax: 100, kind: 'zone' },
+      ],
+      [],
+    );
+    const labels = zones.primitives.flatMap((p) =>
+      p.kind === 'text' && p.role === 'label' ? [p] : [],
+    );
+    expect(labels[0]).toMatchObject({ text: 'Left swing zone', rotate: -90 });
+    expect(labels[1]?.rotate).toBeUndefined();
+  });
+
   it('puts the front at the bottom, zones under outlines, and each source under the drawing', () => {
     const polygons = drawing.primitives.filter((p) => p.kind === 'polygon');
     expect(polygons.map((p) => p.kind === 'polygon' && p.fill)).toEqual(['zone', 'none']);

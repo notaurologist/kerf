@@ -1,3 +1,4 @@
+import { createSnapshot, findTemplate, type TemplateDefinition } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { setFlash } from '../../lib/flash.ts';
 import { readPlan } from '../../lib/plan.ts';
@@ -90,11 +91,12 @@ describe('ProjectView, when the plan cannot be shown', () => {
 describe('ProjectView, as a document (#40, #41)', () => {
   const project = projectFrom(workedExample);
 
-  it('reads in section order A: structural review, cut list, shopping list', () => {
+  it('reads in section order A: diagrams, structural review, cut list, shopping list', () => {
     const text = renderText(<ProjectView project={project} />);
     const at = (s: string) => text.indexOf(`${s} ${s}`);
     // Each section's printed title block names it, then its heading does.
-    expect(at('Structural review')).toBeGreaterThan(0);
+    expect(at('Diagrams')).toBeGreaterThan(0);
+    expect(at('Diagrams')).toBeLessThan(at('Structural review'));
     expect(at('Structural review')).toBeLessThan(at('Cut list'));
     expect(at('Cut list')).toBeLessThan(at('Shopping list'));
   });
@@ -108,5 +110,58 @@ describe('ProjectView, as a document (#40, #41)', () => {
     setFlash('Saved.');
     expect(renderText(<ProjectView project={project} />)).toContain('Saved.');
     expect(renderText(<ProjectView project={project} />)).not.toContain('Saved.');
+  });
+});
+
+describe('the diagrams in the plan (#91)', () => {
+  // A plan made now, with placements; the stored fixture predates them.
+  const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
+  const example = template.examples[0];
+  const made = createSnapshot(template, example?.params, example?.structuralInputs);
+  if (!made.ok) throw new Error('worked example should generate');
+  const project = projectFrom(JSON.parse(JSON.stringify(made.output)));
+  const html = render(<ProjectView project={project} />);
+  const text = renderText(<ProjectView project={project} />);
+
+  it('draws the assembled and exploded views, a cut detail per part, and the site layout', () => {
+    expect(text).toContain('Assembled');
+    expect(text).toContain('Exploded');
+    for (const row of outputs.cutList) expect(text).toContain(row.name);
+    expect(text).toContain('Site layout');
+    // Five cut details, three views.
+    expect(html.match(/<svg[^>]*role="img"/g)).toHaveLength(8);
+  });
+
+  it('labels each drawing from the same data, and points to the cut list as its long description', () => {
+    expect(html).toContain(
+      'aria-label="Isometric view of the assembled frame. Parts A to E, lettered as in the cut list."',
+    );
+    expect(html).toMatch(
+      /aria-label="Cut detail for B, Back leg \(uphill\): 131-1\/2&quot; overall\./,
+    );
+    expect(html.match(/aria-describedby="cut-list"/g)).toHaveLength(8);
+  });
+
+  it('prints the three views on landscape pages', () => {
+    expect(html.match(/data-page="landscape"/g)).toHaveLength(3);
+  });
+
+  it('makes each cut-list part a toggle that selects it in the drawings', () => {
+    expect(html).toMatch(
+      /<button[^>]*aria-pressed="false"[^>]*><span class="k-part-letter">A<\/span><b>Beam<\/b><\/button>/,
+    );
+  });
+
+  it('shows a plan made before placements with its cut details and site layout only', () => {
+    const old = render(<ProjectView project={projectFrom(workedExample)} />);
+    expect(old.match(/<svg[^>]*role="img"/g)).toHaveLength(6);
+    expect(old).not.toContain('Isometric view');
+  });
+
+  it('shows no diagrams section when the API sent no drawings', () => {
+    const none = renderText(
+      <ProjectView project={projectFrom(workedExample, { drawings: null })} />,
+    );
+    expect(none).not.toContain('Diagrams Diagrams');
   });
 });

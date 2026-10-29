@@ -12,6 +12,7 @@ import {
 import { type ReactNode, useState } from 'react';
 import snapshots from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v5.json';
 import { Button, ButtonLink } from './Button.tsx';
+import { Diagram } from './Diagram.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
 import { ConfirmDialog } from './Dialog.tsx';
 import { Disclosure } from './Disclosure.tsx';
@@ -76,6 +77,9 @@ const toEdge = formatAngle(angleToEdge(splay));
 const margin = structural.formatMargin(example.outputs.structuralReview.beam.bending.margin);
 const burialFlag = example.outputs.design.flags.find((f) => f.ask.includes('burial depth'));
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
+// The worked example's drawings, drawn by core from its stored outputs (#90), as the API does.
+const drawings = template.drawings(template.outputs.parse(example.outputs));
+const legDetail = drawings.cutDetails.find((d) => d.title.includes('Back leg'));
 const field = (path: string): FormField => {
   const f = template.form.params.flatMap((s) => s.fields).find((x) => x.path === path);
   if (!f) throw new Error(path);
@@ -379,6 +383,19 @@ function Specimens() {
             </span>
           ))}
         </Cluster>
+      </Group>
+
+      <Group title="Drawings">
+        {drawings.isometric && (
+          <Diagram
+            drawing={drawings.isometric}
+            label="Isometric view of the worked example, parts lettered A to E"
+            selected="crossbar"
+          />
+        )}
+        {legDetail && (
+          <Diagram drawing={legDetail} label="Cut detail for the worked example's back leg" />
+        )}
       </Group>
 
       <Group title="Diagram frame">

@@ -2,6 +2,7 @@ import type { CutListRow } from '@kerf/core';
 import type { ReactNode } from 'react';
 import { type Changes, marked as mark, NO_CHANGES } from '../../lib/changes.tsx';
 import {
+  Button,
   Length,
   List,
   Measured,
@@ -15,7 +16,13 @@ import {
 // cut list, which formats them with the shared formatters; nothing is rounded here. In a preview
 // (#56), `changes` marks each value that differs from the saved plan with the saved one.
 
-export function CutList(props: { rows: readonly CutListRow[]; changes?: Changes }) {
+export function CutList(props: {
+  rows: readonly CutListRow[];
+  changes?: Changes;
+  /** The part selected in the drawings (#91); its name becomes a button that selects it. */
+  selected?: string | null;
+  onSelect?: (partId: string) => void;
+}) {
   const changes = props.changes ?? NO_CHANGES;
   const path = (row: CutListRow) => `cutList[${props.rows.indexOf(row)}]`;
   const marked = (at: string, value: ReactNode) => mark(changes, at, value);
@@ -28,19 +35,35 @@ export function CutList(props: { rows: readonly CutListRow[]; changes?: Changes 
         rows={props.rows}
         rowKey={(row) => row.partId}
         rowChanged={(row) => changes.under(path(row))}
+        rowSelected={(row) => props.selected === row.partId}
         columns={[
           {
             key: 'part',
             label: 'Part',
             // The letter first, as magazine plans list parts, then the name (#66).
-            cell: (row) =>
-              marked(
-                path(row),
+            cell: (row) => {
+              const name = (
                 <>
                   <PartLetter>{row.letter}</PartLetter>
                   <b>{row.name}</b>
-                </>,
-              ),
+                </>
+              );
+              const onSelect = props.onSelect;
+              return marked(
+                path(row),
+                onSelect ? (
+                  <Button
+                    variant="link"
+                    pressed={props.selected === row.partId}
+                    onClick={() => onSelect(row.partId)}
+                  >
+                    {name}
+                  </Button>
+                ) : (
+                  name
+                ),
+              );
+            },
           },
           {
             key: 'qty',

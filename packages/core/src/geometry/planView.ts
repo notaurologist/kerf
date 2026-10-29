@@ -58,14 +58,28 @@ export function planView(
   // Labels at each area's top left, inside it.
   const span = Math.max(...areas.map((a) => a.xMax - a.xMin), 1);
   const inset = span * 0.015;
+  // An area much taller than wide, such as a swing zone, is labeled along its length, reading
+  // upward from its bottom, so neighbors' labels do not run into each other.
   for (const a of areas) {
-    prims.push({
-      kind: 'text',
-      role: 'label',
-      at: { x: a.xMin + inset, y: -a.yMax + 3 * inset },
-      text: a.label,
-      anchor: 'start',
-    });
+    const tall = a.yMax - a.yMin > 4 * (a.xMax - a.xMin);
+    prims.push(
+      tall
+        ? {
+            kind: 'text',
+            role: 'label',
+            at: { x: (a.xMin + a.xMax) / 2, y: -a.yMin - 3 * inset },
+            text: a.label,
+            anchor: 'start',
+            rotate: -90,
+          }
+        : {
+            kind: 'text',
+            role: 'label',
+            at: { x: a.xMin + inset, y: -a.yMax + 3 * inset },
+            text: a.label,
+            anchor: 'start',
+          },
+    );
   }
   // Width below and depth to the right of each dimensioned area, stepping outward.
   let below = Math.max(...areas.map((a) => -a.yMin));

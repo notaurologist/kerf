@@ -266,29 +266,39 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       end: Math.max(end.square, end.cut),
       part: ref,
     });
-    const mid = ray((end.square + end.cut) / 2, r + 0.45 * W);
+    // The setting and the angle to the edge, beside the end, outside the part.
+    const first = end.at === a;
+    const x = first ? xOf(left) - 0.35 * W : xOf(right) + 0.35 * W;
+    const anchor = first ? ('end' as const) : ('start' as const);
     prims.push({
       kind: 'text',
       role: 'dimension',
-      at: mid,
+      at: { x, y: -0.65 * W },
       text: `Saw at ${formatAngle(end.setting)}`,
-      anchor: 'middle',
+      anchor,
       part: ref,
     });
     prims.push({
       kind: 'text',
       role: 'note',
-      at: { x: mid.x, y: mid.y + (end.square === 270 ? -0.4 : 0.4) * W },
+      at: { x, y: -0.25 * W },
       text: `${formatAngle(angleToEdge(end.setting))} to the edge`,
-      anchor: 'middle',
+      anchor,
       part: ref,
     });
   }
 
-  // The reference face mark: a loop on the face, its tail to the reference edge, in the middle
-  // of the widest piece drawn.
-  const widest = ws.reduce((a, b) => (b.u1 - b.u0 > a.u1 - a.u0 ? b : a));
-  const mx = widest.x + (widest.u1 - widest.u0) / 2;
+  // The reference face mark: a loop on the face, its tail to the reference edge, clear of holes
+  // and tapers: the first of each piece's middle and quarter points that is at least a width
+  // from both.
+  const busy = [
+    ...(part.holes ?? []).map((h) => h.entry.u),
+    ...(part.tapers ?? []).flatMap((t) => [t.start.u, t.end.u, 0]),
+  ];
+  const candidates = ws.flatMap((w) => [0.5, 0.25, 0.75].map((f) => w.u0 + f * (w.u1 - w.u0)));
+  const clear =
+    candidates.find((u) => busy.every((b) => Math.abs(b - u) >= W)) ?? candidates[0] ?? 0;
+  const mx = xOf(clear);
   const loop: Point2[] = Array.from({ length: 13 }, (_, i) => {
     const t = (i / 12) * 2 * Math.PI;
     return { x: mx + 0.12 * W * Math.sin(t), y: -0.55 * W - 0.18 * W * Math.cos(t) };
