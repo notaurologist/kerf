@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stages 5a (#67) and 5b (#68) are next; the design system (#45) builds on them.
+Status: in progress. Stage 5a (#67) is waiting on the owner's choices; 5b (#68) is next, and the design system (#45) builds on both.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -12,12 +12,26 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 3. Typography | #42 | Decided October 2026 | `typography.html` |
 | 4. Color | #43 | Decided October 2026 | `color.html` |
 | 5. Diagram language | #44 | Decided October 2026 | `diagrams.html` |
-| 5a. Number entry and form states | #67 | Next | |
+| 5a. Number entry and form states | #67 | Waiting on the owner | `entry.html` |
 | 5b. Words | #68 | Next | |
 | 6. Design system | #45 | Blocked by #67 and #68 | |
 | 7. A repeatable garage check | #69 | Blocked by #45 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 5a: number entry and form states (#67)
+
+`entry.html` compares three ways to enter a length, each drawn on a phone and in the laptop editor:
+
+- E1: typed as written on a plan (`138-3/8`, `11' 6-3/8"`), read by core and echoed back in core's format. The forgiving format; CAD tools in architectural units read lengths the same way.
+- E2: split fields for feet, inches, and a sixteenths menu. The structured format, as GOV.UK asks for dates.
+- E3: E1's field with Kerf's own feet-inch-fraction keypad on a phone, after construction calculators.
+
+It also asks when problems are shown (on save, or on leaving a field), draws every form state (new, typing, not a length yet, kept exactly, errors, error summary, input needed, saving, saved, no connection, leaving with changes, loading, and the shop modes' "not yet sent" mark), and proposes an entry standard: what the parser accepts and refuses, with the message for each refusal, the round trip for saved values, angles, and where parsing lives (core). The page includes a working prototype of the parser, using core's `formatLength`; the prototype stays in the scratch build, and core's version comes with hand-checked tests.
+
+### Choices
+
+Not yet made.
 
 ## Stage 5: diagram language (#44)
 
