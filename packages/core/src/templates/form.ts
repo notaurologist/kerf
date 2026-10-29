@@ -2,10 +2,24 @@
 // (ARCHITECTURE.md, principle 6). Generic: a template lists its fields; nothing here knows what
 // they describe. The template's Zod schemas stay the source of truth for what is valid.
 
+import type { z } from 'zod';
+import { formatAngle } from '../units/angle.ts';
+import { formatLength } from '../units/length.ts';
+import {
+  describeLength,
+  lengthForEntry,
+  type Parsed,
+  parseAngle,
+  parseFractionalNumber,
+  parseLength,
+} from '../units/parse.ts';
+
 /**
- * - `length`: decimal inches, shown back through `formatLength`.
- * - `angle`: degrees.
- * - `number`, `integer`: any other quantity, with `unit`.
+ * - `length`: inches, typed as a plan writes them (`138-3/8`, `11' 6-3/8"`) and read by
+ *   `parseLength`; stored as decimal inches.
+ * - `angle`: decimal degrees, read by `parseAngle`.
+ * - `number`, `integer`: any other quantity, with `unit`. A `number` with `fractions` also
+ *   takes tape fractions such as `1/4`.
  * - `choice`: one of `options`, stored as the option's value.
  * - `yes-no`: a boolean, chosen explicitly (there is no unchecked default).
  */
@@ -23,6 +37,8 @@ export interface FormField {
   kind: FieldKind;
   /** For `number` and `integer`, such as 'lb' or '%'. Lengths are inches, angles degrees. */
   unit?: string;
+  /** For `number`: also read fractions such as `1/4`, for quantities people write that way. */
+  fractions?: boolean;
   help?: string;
   options?: readonly FieldOption[];
   /**
@@ -64,15 +80,20 @@ function readPath(object: unknown, path: string): unknown {
   return at;
 }
 
-/** Form text for a stored parameters or inputs object; fields it does not hold stay empty. */
+/**
+ * Form text for a stored parameters or inputs object; fields it does not hold stay empty.
+ * Lengths are written so that saving them again changes nothing (`lengthForEntry`).
+ */
 export function formValues(sections: readonly FormSection[], object: unknown): FormValues {
   const values: Record<string, string> = {};
   for (const field of sections.flatMap((s) => s.fields)) {
     const value = readPath(object, field.path);
     values[field.path] =
-      typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean'
-        ? String(value)
-        : '';
+      field.kind === 'length' && typeof value === 'number'
+        ? lengthForEntry(value)
+        : typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean'
+          ? String(value)
+          : '';
   }
   return values;
 }
@@ -85,9 +106,12 @@ function fieldValue(field: FormField, text: string): unknown {
       const option = field.options?.find((o) => String(o.value) === text);
       return option ? option.value : text;
     }
-    default:
-      // Text that is not a number goes through as NaN, which the schema reports.
-      return Number(text.trim());
+    default: {
+      // Text that cannot be read goes through as NaN, which the schema also reports;
+      // `entryProblems` says what to type instead.
+      const parsed = read(field, text);
+      return parsed?.ok ? parsed.value : Number(text.trim());
+    }
   }
 }
 
@@ -118,4 +142,170 @@ export function buildFromForm(
     });
   }
   return root;
+}
+
+/** The field's parser, for kinds typed as more than a plain number. */
+function read(field: FormField, text: string): Parsed | undefined {
+  if (field.kind === 'length') return parseLength(text);
+  if (field.kind === 'angle') return parseAngle(text);
+  if (field.kind === 'number' && field.fractions) return parseFractionalNumber(text);
+  return undefined;
+}
+
+export interface EntryProblem {
+  /** The field's path. */
+  field: string;
+  message: string;
+}
+
+/**
+ * Entered text Kerf cannot read, with a message saying what to type, for each visible field.
+ * Empty fields are left to the schema, which knows which are required.
+ */
+export function entryProblems(
+  sections: readonly FormSection[],
+  values: FormValues,
+): EntryProblem[] {
+  const problems: EntryProblem[] = [];
+  for (const field of visibleFields(sections, values)) {
+    const text = values[field.path] ?? '';
+    if (text.trim() === '') continue;
+    const parsed = read(field, text);
+    if (parsed && !parsed.ok) problems.push({ field: field.path, message: parsed.message });
+    else if (
+      !parsed &&
+      (field.kind === 'number' || field.kind === 'integer') &&
+      !Number.isFinite(Number(text.trim()))
+    ) {
+      problems.push({ field: field.path, message: 'Enter a number.' });
+    }
+  }
+  return problems;
+}
+
+/**
+ * What a length field's text reads as, for the line under it while typing: core's reading, or
+ * "Not a length yet". Null for an empty field or a field that is not a length.
+ */
+export function entryEcho(field: FormField, text: string): string | null {
+  if (field.kind !== 'length' || text.trim() === '') return null;
+  const parsed = parseLength(text);
+  return parsed.ok ? describeLength(parsed.value) : 'Not a length yet';
+}
+
+/** A number written the way the field is entered: lengths in feet and inches, angles in degrees. */
+function inFieldUnits(field: FormField, n: number): string {
+  if (field.kind === 'length' && n >= 0) return formatLength(n, 'feet-inches');
+  if (field.kind === 'angle') return formatAngle(n);
+  const unit = field.unit ?? '';
+  return unit === '' ? String(n) : unit === '%' ? `${n}%` : `${n} ${unit}`;
+}
+
+/** A schema problem, in the shape Zod reports it. */
+export interface SchemaProblem {
+  code: string;
+  path: readonly PropertyKey[];
+  message: string;
+  minimum?: number | bigint;
+  maximum?: number | bigint;
+  inclusive?: boolean;
+  expected?: string;
+}
+
+/**
+ * Plain words for a schema problem with a field, following the content guide
+ * (docs/design/content.md): say what to enter, with limits in the field's own units. When the
+ * schema sets both limits on the number, both are given ("must be from 5' 0" to 12' 0"").
+ */
+export function schemaProblemMessage(
+  field: FormField,
+  problem: SchemaProblem,
+  text: string,
+  schema?: z.ZodType,
+): string {
+  if (text.trim() === '') {
+    if (field.kind === 'choice' || field.kind === 'yes-no') return 'Choose one of the options.';
+    return field.kind === 'length'
+      ? 'Enter a length.'
+      : field.kind === 'angle'
+        ? 'Enter an angle.'
+        : 'Enter a number.';
+  }
+  const bounds = schema ? numberBounds(schema, problem.path) : undefined;
+  if ((problem.code === 'too_small' || problem.code === 'too_big') && bounds) {
+    return `${field.label} must be from ${inFieldUnits(field, bounds.min)} to ${inFieldUnits(field, bounds.max)}.`;
+  }
+  switch (problem.code) {
+    case 'invalid_type':
+      if (problem.expected === 'int') return 'Enter a whole number.';
+      return field.kind === 'length'
+        ? 'Enter a length.'
+        : field.kind === 'angle'
+          ? 'Enter an angle.'
+          : 'Enter a number.';
+    case 'too_small':
+      return `${field.label} must be ${problem.inclusive === false ? 'more than' : 'at least'} ${inFieldUnits(field, Number(problem.minimum))}.`;
+    case 'too_big':
+      return `${field.label} must be ${problem.inclusive === false ? 'less than' : 'at most'} ${inFieldUnits(field, Number(problem.maximum))}.`;
+    case 'invalid_value':
+    case 'invalid_union':
+      return 'Choose one of the options.';
+    default:
+      return problem.message;
+  }
+}
+
+interface ZodDef {
+  type: string;
+  shape?: Record<string, z.ZodType>;
+  items?: z.ZodType[];
+  innerType?: z.ZodType;
+  options?: z.ZodType[];
+  checks?: { _zod: { def: { check: string; value?: unknown; inclusive?: boolean } } }[];
+}
+// Zod 4 keeps a schema's structure on `_zod.def`; reading it is how core finds a number's limits
+// without repeating them beside the schema.
+const defOf = (schema: z.ZodType) => (schema as unknown as { _zod: { def: ZodDef } })._zod.def;
+
+/**
+ * The minimum and maximum a schema sets on the number at `path`, when both are set and
+ * inclusive. Follows objects, tuples, optional values, and unions.
+ */
+function numberBounds(
+  schema: z.ZodType,
+  path: readonly PropertyKey[],
+): { min: number; max: number } | undefined {
+  const def = defOf(schema);
+  if (def.type === 'optional' || def.type === 'nullable') {
+    return def.innerType && numberBounds(def.innerType, path);
+  }
+  if (def.type === 'union') {
+    for (const option of def.options ?? []) {
+      const found = numberBounds(option, path);
+      if (found) return found;
+    }
+    return undefined;
+  }
+  if (path.length === 0) {
+    if (def.type !== 'number') return undefined;
+    let min: number | undefined;
+    let max: number | undefined;
+    for (const check of def.checks ?? []) {
+      const { check: kind, value, inclusive } = check._zod.def;
+      if (typeof value !== 'number' || inclusive !== true) continue;
+      if (kind === 'greater_than') min = value;
+      if (kind === 'less_than') max = value;
+    }
+    return min !== undefined && max !== undefined ? { min, max } : undefined;
+  }
+  const [key, ...rest] = path;
+  if (def.type === 'object' && typeof key === 'string') {
+    const child = def.shape?.[key];
+    return child && numberBounds(child, rest);
+  }
+  if (def.type === 'tuple' && typeof key === 'number') {
+    const child = def.items?.[key];
+    return child && numberBounds(child, rest);
+  }
+  return undefined;
 }

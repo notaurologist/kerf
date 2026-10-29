@@ -111,6 +111,7 @@ export const SWING_SET_FORM: TemplateForm = {
           label: 'Ground slope',
           kind: 'number',
           unit: 'in per ft',
+          fractions: true,
           help: 'Inches the ground falls per foot toward the front. 0 for level ground; negative if the front is uphill.',
         },
         {

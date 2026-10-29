@@ -1,10 +1,11 @@
 import {
   buildFromForm,
+  entryEcho,
+  entryProblems,
   type FormField,
   type FormSection,
   type FormValues,
   findTemplate,
-  formatLength,
   formValues,
   type TemplateDefinition,
   visibleFields,
@@ -132,9 +133,20 @@ export function ProjectEditor(props: {
     const p = template.params.safeParse(builtParams);
     const i = template.structuralInputs.safeParse(builtInputs);
     const nameIssue = name.trim() ? undefined : 'Give the project a name.';
+    // Text Kerf cannot read says what to type; the schema's problems cover the rest.
+    const unread = [
+      ...entryProblems(form.params, params),
+      ...entryProblems(form.structuralInputs, inputs),
+    ];
+    const unreadFields = new Set(unread.map((u) => u.field));
     const found = [
-      ...(p.success ? [] : schemaIssues(p.error, params)),
-      ...(i.success ? [] : schemaIssues(i.error, inputs)),
+      ...unread,
+      ...[
+        ...(p.success ? [] : schemaIssues(p.error, params, form.params, template.params)),
+        ...(i.success
+          ? []
+          : schemaIssues(i.error, inputs, form.structuralInputs, template.structuralInputs)),
+      ].filter((issue) => !unreadFields.has(issue.field)),
     ];
     show(found, nameIssue);
     if (found.length > 0 || nameIssue) {
@@ -300,15 +312,19 @@ export function FormSections(props: {
   );
 }
 
-/** What a typed length reads as, through core's formatter, so 96 shows as 8' 0". */
-export function lengthEcho(text: string): string | null {
-  if (text.trim() === '') return null;
-  const n = Number(text);
-  if (!Number.isFinite(n) || n < 0) return null;
-  return formatLength(n, 'feet-inches');
-}
+// Lengths carry no unit after the field: they can be typed in feet and inches, and the line
+// under the field says how Kerf read them.
+const UNITS: Partial<Record<FormField['kind'], string>> = { angle: '°' };
 
-const UNITS: Partial<Record<FormField['kind'], string>> = { length: 'in', angle: '°' };
+/** The format a length is typed in, shown with its help (content guide: hints give the format, never a sample value). */
+const LENGTH_HINT = 'Inches, or feet and inches.';
+
+/** Which on-screen keyboard to show. Lengths and fractions need ', ", /, and -. */
+function keyboard(field: FormField): 'numeric' | 'decimal' | 'text' {
+  if (field.kind === 'integer') return 'numeric';
+  if (field.kind === 'length' || (field.kind === 'number' && field.fractions)) return 'text';
+  return 'decimal';
+}
 
 export function FieldInput(props: {
   id: string;
@@ -320,7 +336,10 @@ export function FieldInput(props: {
   const { field, text, issue } = props;
   const unit = field.unit ?? UNITS[field.kind];
   const describedBy = `${props.id}-help`;
-  const echo = field.kind === 'length' ? lengthEcho(text) : null;
+  const echo = entryEcho(field, text);
+  const help =
+    field.kind === 'length' ? [field.help, LENGTH_HINT].filter(Boolean).join(' ') : field.help;
+  const typed = keyboard(field) === 'text';
   const control =
     field.kind === 'choice' || field.kind === 'yes-no' ? (
       <select
@@ -348,7 +367,10 @@ export function FieldInput(props: {
         <input
           id={props.id}
           value={text}
-          inputMode={field.kind === 'integer' ? 'numeric' : 'decimal'}
+          inputMode={keyboard(field)}
+          autoCapitalize={typed ? 'off' : undefined}
+          autoCorrect={typed ? 'off' : undefined}
+          spellCheck={typed ? false : undefined}
           onChange={(e) => props.onChange(e.target.value)}
           aria-invalid={issue ? true : undefined}
           aria-describedby={describedBy}
@@ -364,8 +386,8 @@ export function FieldInput(props: {
       {control}
       <small id={describedBy}>
         {echo && <strong className="echo">{echo}</strong>}
-        {echo && field.help ? ' · ' : ''}
-        {field.help}
+        {echo && help ? ' · ' : ''}
+        {help}
       </small>
       {issue && <span className="error">{issue}</span>}
     </div>

@@ -1,5 +1,5 @@
 import type { FormField, FormSection, FormValues, TemplateDefinition } from '@kerf/core';
-import { visibleFields } from '@kerf/core';
+import { schemaProblemMessage, visibleFields } from '@kerf/core';
 import type { FieldIssue } from '../../lib/api.ts';
 
 // Problems with a form, pointed at the field they concern. Zod issues from core's schemas carry
@@ -52,16 +52,10 @@ export function belongsTo(sections: readonly FormSection[], path: string): boole
   return fieldFor(all, path) !== undefined;
 }
 
-/** Plain words for a schema problem, given what was typed. */
+/** Plain words for a schema problem with no single field, given what was typed. */
 function message(issue: SchemaIssue, text: string): string {
   if (text.trim() === '') return 'Enter a value.';
   switch (issue.code) {
-    case 'invalid_type':
-      return issue.expected === 'number' ? 'Enter a number.' : issue.message;
-    case 'too_small':
-      return `Must be ${issue.inclusive === false ? 'more than' : 'at least'} ${String(issue.minimum)}.`;
-    case 'too_big':
-      return `Must be ${issue.inclusive === false ? 'less than' : 'at most'} ${String(issue.maximum)}.`;
     case 'invalid_value':
     case 'invalid_union':
       return 'Choose one of the options.';
@@ -70,10 +64,24 @@ function message(issue: SchemaIssue, text: string): string {
   }
 }
 
-/** Issues from parsing a built form with its schema, by dotted path. */
-export function schemaIssues(error: SchemaError, values: FormValues): FieldIssue[] {
+/**
+ * Issues from parsing a built form with its schema, by dotted path. Core words each one for its
+ * field (content guide: say what to enter, with limits in the field's units).
+ */
+export function schemaIssues(
+  error: SchemaError,
+  values: FormValues,
+  sections: readonly FormSection[],
+  schema: TemplateDefinition['params'] | TemplateDefinition['structuralInputs'],
+): FieldIssue[] {
+  const fields = sections.flatMap((s) => s.fields);
   return error.issues.map((issue) => {
-    const field = issue.path.map(String).join('.');
-    return { field, message: message(issue, values[field] ?? '') };
+    const path = issue.path.map(String).join('.');
+    const text = values[path] ?? '';
+    const field = fields.find((f) => f.path === path);
+    return {
+      field: path,
+      message: field ? schemaProblemMessage(field, issue, text, schema) : message(issue, text),
+    };
   });
 }
