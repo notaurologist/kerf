@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stage 3 (#42) is waiting on the owner's choices.
+Status: in progress. Stages 0 to 3 are decided; stage 4 (#43) is next.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -9,8 +9,8 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 0. Wireframes and the data they need | #39 | Decided October 2026 | `wireframes.html` |
 | 1. Information architecture | #40 | Decided October 2026 | `information-architecture.html` |
 | 2. Layout and grid | #41 | Decided October 2026 | `layout.html` |
-| 3. Typography | #42 | Waiting on the owner | `typography.html` |
-| 4. Color | #43 | Blocked by #42 | |
+| 3. Typography | #42 | Decided October 2026 | `typography.html` |
+| 4. Color | #43 | Next | |
 | 5. Diagram language | #44 | Blocked by #43 | |
 | 6. Design system | #45 | Blocked by #44 | |
 
@@ -28,7 +28,39 @@ It also compares fraction setting (full-size slash, diagonal, enlarged), propose
 
 ### Choices
 
-Not yet made.
+The owner took the suggested option for each (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Typeface | T2: Atkinson Hyperlegible Next for text and numbers, with tabular figures where numbers align; Atkinson Hyperlegible Mono for formulas. Recorded in decision 0015. | T3, B612: the tallest digits and an instrument-like voice, but only two weights, so hierarchy would rest on size alone, and wide letters make method text long. The close second. T1, the system font: Apple's license keeps SF Pro to Apple devices, so print would change face by computer, and it is the generic choice. |
+| Fractions | Full-size slash, as core formats them (138-3/8"). | Diagonal fractions: digits about half height, about 10 arc-minutes at glance distance and about 6 px in a desk table, so 3/8 and 5/8 blur together. Enlarged fractions: still under the 16-minute minimum at glance distance, and core would have to return a length's parts, a snapshot shape change. |
+| Font hosting | Self-host the two variable fonts, subset to Latin, as `woff2` in `apps/web` with the OFL license (about 45 KB). Files land with #45. | An npm package: a dependency for two static files. A Google Fonts link: a third-party request on every load, and no font if it fails. |
+| Margin sign | Keep "margin 1.1x", matching AGENTS.md, the tests, and core's `formatMargin`. | The multiplication sign: typographically correct, but changes established wording for no gain in clarity. |
+
+Sizes, from the face's measured digit height (0.694):
+
+| Role | Size |
+|---|---|
+| Desk scale (ratio 1.2 from 17 px) | 14, 17, 20, 24, 29 px |
+| Shop read (16 arc-minutes at 0.5 m) | 20 px |
+| Shop glance, the length to cut to (20 arc-minutes at 1.0 m) | 51 px bold |
+| Saw setting, boxed | 32 px bold |
+| Edge angle, labeled "to the edge" | 20 px |
+| Print body | 10.5 pt, 8 pt minimum |
+
+Line height 1.5 for running text, 1.3 in tables, 1.1 for headings, 1.0 for glance numbers.
+
+Rules for numbers:
+
+- Every length and angle comes from core's formatters, unchanged.
+- Tabular figures in tables, steps, and lists; proportional in sentences.
+- Straight inch and foot marks, as core outputs them.
+- A length never breaks across lines. Browsers break at the hyphen, which splits 138 from 3/8, so displayed lengths are unbreakable.
+- The saw setting and the angle to the edge are never the same size: the setting larger, bold, and boxed; the edge angle smaller and labeled.
+- Columns of lengths are right-aligned, so inch marks line up.
+- Formulas in the Mono, never wrapped.
+
+No new requirements for core, the snapshot, or the API.
 
 ## Stage 2: layout and grid (#41)
 
