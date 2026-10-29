@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stage 5b (#68) is next; the design system (#45) builds on 5a, 5b, and the parser (#73).
+Status: in progress. The design system (#45) is next, after the parser (#73).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -13,11 +13,31 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 4. Color | #43 | Decided October 2026 | `color.html` |
 | 5. Diagram language | #44 | Decided October 2026 | `diagrams.html` |
 | 5a. Number entry and form states | #67 | Decided October 2026 | `entry.html` |
-| 5b. Words | #68 | Next | |
-| 6. Design system | #45 | Blocked by #68 and #73 | |
+| 5b. Words | #68 | Decided October 2026 | `words.html`, `content.md` |
+| 6. Design system | #45 | Blocked by #73 | |
 | 7. A repeatable garage check | #69 | Blocked by #45 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 5b: words (#68)
+
+`words.html` writes the same four pieces of real Kerf text (a method for cutting the back legs, the burial-depth flag, an out-of-range beam height, and the bending margin) in three voices:
+
+- V1: shop voice. Plain and direct: "you", the active voice, the verb first, then the number, then why.
+- V2: report voice. Impersonal and exact, like an engineering memo; the register the structural working already uses.
+- V3: mentor voice. Warm and encouraging, with contractions and exclamation marks.
+
+It also asked whether to rename "sanity checks" to "structural checks", proposes a content guide (one pattern for each kind of text) and a word list, and audits every string on the M4 screens and the text core generates for the worked example against the guide: 15 proposed changes. Every number in the samples is a string from the snapshot or core's formatters.
+
+### Choices
+
+The owner took the suggested option for each (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Voice | V1, shop voice: "you", the active voice, the verb first, then the number, then why. Everything a person acts on uses it; the structural working keeps its exact, impersonal register. The guide is `content.md`. | V2, report voice: exact, but the reader has to turn labels into actions with a saw in hand, "Invalid input" reads as blame (NN/g), and "Expert review" and "required" lean toward a verdict. Kept only for the working. V3, mentor voice: friendlier, but its reassurance becomes verdicts ("perfectly level", "a little headroom"), which hard rule 2 forbids, and cheer wears thin when repeated (NN/g). |
+| "Sanity checks" | Renamed "structural checks" in PRODUCT.md, AGENTS.md, DOMAIN.md, ARCHITECTURE.md, and MILESTONES.md in this change, and in the app in #45. Decision 0001 keeps its wording. | Keeping "sanity checks": familiar, and the word warns that the checks are rough, but it is vague about what is checked, and the review already says "not an engineered design". |
+| Guide, word list, and audit | As written. The audit's 15 changes (in `words.html`) are made in #45; the change to core's hardware note waits for the next template version bump (0008). | None proposed. |
 
 ## Stage 5a: number entry and form states (#67)
 
