@@ -4,6 +4,7 @@ import { HardwareLine, hardwareList } from '../../outputs/hardwareList.ts';
 import { LumberPlan, planLumber } from '../../outputs/shoppingList.ts';
 import type { SnapshotUpgrade, TemplateDefinition } from '../definition.ts';
 import { withLetters } from '../letters.ts';
+import { drawings } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';
 import { SwingSetParams } from './params.ts';
@@ -83,6 +84,7 @@ export const swingSetAFrame: TemplateDefinition<
       boltLayout: outputs.design.boltLayout ?? [],
     };
   },
+  drawings,
   generate(params, structuralInputs) {
     const design = generate(params);
     if (!design.ok) return design;
