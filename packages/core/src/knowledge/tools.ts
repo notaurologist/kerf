@@ -91,9 +91,9 @@ const BEVEL = (tool: string): CapabilityField => ({
 });
 
 /**
- * Every tool the swing set's work could use, and the common alternatives, checked against the
- * work listed in its spec (docs/templates/swing-set-a-frame.md, Tools for the work). In group
- * order, then in the order a shop would reach for them.
+ * Every tool the templates' work could use, and the common alternatives, checked against the work
+ * each template lists in its spec (docs/templates/, Tools for the work). In group order, then in
+ * the order a shop would reach for them.
  */
 export const TOOL_TYPES = [
   // Measuring and marking
@@ -260,7 +260,7 @@ export const TOOL_TYPES = [
         id: 'maxOpening',
         label: 'Widest opening',
         kind: 'length',
-        help: 'Decides whether a clamp reaches across an assembly, such as a leg, beam, and leg together.',
+        help: 'Decides whether a clamp reaches across an assembly, such as three boards bolted together.',
         readFrom: 'Measure your largest clamp, opened fully.',
         min: SIXTEENTH,
         max: 72,
