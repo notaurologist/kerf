@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stage 4 (#43) is waiting on the owner's choices.
+Status: in progress. Stage 5 (#44) is next.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -10,8 +10,8 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 1. Information architecture | #40 | Decided October 2026 | `information-architecture.html` |
 | 2. Layout and grid | #41 | Decided October 2026 | `layout.html` |
 | 3. Typography | #42 | Decided October 2026 | `typography.html` |
-| 4. Color | #43 | Waiting on the owner | `color.html` |
-| 5. Diagram language | #44 | Blocked by #43 | |
+| 4. Color | #43 | Decided October 2026 | `color.html` |
+| 5. Diagram language | #44 | Next | |
 | 6. Design system | #45 | Blocked by #44 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
@@ -28,7 +28,15 @@ Each is shown in light and dark on the plan, a shop step, and a diagram sketch, 
 
 ### Choices
 
-Not yet made.
+The owner took the suggested option for each (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Palette | C1, graphite and chalk line: warm paper, graphite text, one chalk-line blue accent, amber flags, crimson errors beside form fields only. It keeps the screen calm so the few things that need attention stand out, and both themes hold up under glare and in grayscale. | C2, layout blue: the most evocative dark theme, a blueprint, but the weakest in grayscale and its accent is too close to its text. C3, high-visibility: the highest contrast and the most resistant to glare, but yellow and black is the ANSI caution sign, so every flag would look like a hazard warning, which pushes toward a verdict; orange for "done" borrows a hazard color; and pure white on near-black halos for people with astigmatism. Its glare lesson is kept as rule 5. |
+| Light and dark | Follow the device's own setting, including its sunset schedule. Print is always light. | Always dark in the shop modes: works against the research for small text (NN/g), and the garage is not always dim. A switch in the app: a per-device setting would need storing on the server (0005), a new requirement for little gain. |
+| Rules for color | The six rules as written: margins have no color; no red or green near structural results; flags amber with an icon and the label "Expert check"; input needed is a dashed accent outline, not an error; no secondary text in the shop modes; never color alone. | None proposed. |
+
+The C1 values, in OKLCH, are in `color.html` (the `pal-C1-light` and `pal-C1-dark` classes) with every pairing measured. #45 turns them into tokens and adds a contrast test, so the measured ratios stay checked in code. Diagram ink roles (part, highlighted part, hidden line, dimension, clearance zone) carry into #44.
 
 ## Stage 3: typography (#42)
 
