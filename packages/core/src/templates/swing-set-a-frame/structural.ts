@@ -58,7 +58,8 @@ export const SwingSetStructuralInputs = z
 
 export type SwingSetStructuralInputs = z.infer<typeof SwingSetStructuralInputs>;
 
-const LABELS = {
+/** What each structural input is called, in forms and in "input needed" lists. */
+export const STRUCTURAL_INPUT_LABELS = {
   beamSpeciesGrade: 'Beam species and grade',
   beamIncised: 'Whether the beam lumber is incised',
   beamMoistureContent: 'Beam moisture content',
@@ -77,7 +78,7 @@ function need<K extends Key>(
 ): Needed<{ [P in K]: NonNullable<SwingSetStructuralInputs[P]> }> {
   const missing: MissingInput[] = keys
     .filter((k) => inputs[k] === undefined)
-    .map((k) => ({ key: k, label: LABELS[k] }));
+    .map((k) => ({ key: k, label: STRUCTURAL_INPUT_LABELS[k] }));
   if (missing.length > 0) return { missing };
   return { value: inputs as { [P in K]: NonNullable<SwingSetStructuralInputs[P]> } };
 }

@@ -88,6 +88,7 @@ interface Template<P> {
   version: number;              // bumped when output for the same parameters changes (0008)
   params: z.ZodType<P>;         // types, ranges, defaults
   validate(p: P): Issue[];      // combinations: contradictory or out-of-range values
+  form: TemplateForm;           // how parameters and structural inputs are entered (data)
   generate(p: P): TemplateOutput;
 }
 
@@ -114,6 +115,8 @@ parameters ─► template.generate ─► TemplateOutput
 ```
 
 The result of the whole pipeline is a **project snapshot**: one JSON-serializable object with a Zod schema, containing the template ID and version, the parameters and inputs used, and every generated output. Structural checks with missing inputs appear in the snapshot as "input needed," never computed with a stand-in value.
+
+Each template also describes its editor form as data (`templates/form.ts`): fields by path with a label, kind (length, angle, number, choice, yes/no), unit, help, and when the field applies. The web app renders any template's form from it, so only the template's folder knows its fields. Every field starts empty; the template's schemas decide what is valid.
 
 Every type that appears in a snapshot is a Zod schema with its TypeScript type inferred from it, so one definition both types the code and parses a stored snapshot. Each template exports a `TemplateDefinition` (ID, version, name, schemas for parameters, structural inputs, and outputs, and a pure `generate`), and `templates/index.ts` lists them; generic code finds a template there and never imports one directly.
 
