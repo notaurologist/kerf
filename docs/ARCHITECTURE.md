@@ -178,7 +178,8 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 
 ## apps/web
 
-- Talks only to `/api/*` on its own origin, through the Hono typed client.
+- Talks only to `/api/*` on its own origin, through the Hono typed client (`src/lib/api.ts`). One function, `send`, turns responses into results the UI shows; a 401 sends the owner to the login screen.
+- Screens are chosen from the URL hash (`#/projects`, `#/projects/<id>`, `#/projects/<id>/edit`, `#/projects/new?template=<id>`, `#/tools`), so links, reload, and back work without a router library. Data is loaded per screen with plain `fetch` through the client; there is no client-side cache library.
 - Uses core's parameter schemas to show validation before submitting; the API validates again.
 - Uses core's display helpers for every length and angle so all views round the same way.
 - Diagrams render core's 2D primitives as SVG. Print styles give each diagram and the cut list its own page.

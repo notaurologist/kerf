@@ -10,7 +10,9 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@kerf/api": "workspace:*",
     "@kerf/core": "workspace:*",
+    "hono": "4.13.13",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
