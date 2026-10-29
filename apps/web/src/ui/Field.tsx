@@ -174,7 +174,7 @@ export function YesNo(props: ControlProps & { value: string; onChange: (value: s
   );
 }
 
-/** Related fields under one heading, such as "Frame" or "Loads", with optional help. */
+/** Related fields under one heading, such as "Dimensions" or "Loads", with optional help. */
 export function FieldGroup(props: { legend: string; help?: ReactNode; children: ReactNode }) {
   return (
     <fieldset className="k-fieldset">

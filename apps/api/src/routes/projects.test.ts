@@ -92,6 +92,20 @@ describe('POST /api/projects', () => {
   });
 });
 
+describe('GET /api/projects/:id drawings', () => {
+  it("returns the plan's drawings, drawn by core from the stored snapshot", async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const project = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
+    const expected = swingSetAFrame.definition.drawings(
+      swingSetAFrame.definition.outputs.parse(project.snapshot.outputs),
+    );
+    expect(project.drawings).toEqual(JSON.parse(JSON.stringify(expected)));
+    expect(project.drawings.isometric.title).toBe('Isometric view');
+    expect(project.drawings.cutDetails).toHaveLength(project.snapshot.outputs.cutList.length);
+  });
+});
+
 describe('GET /api/projects', () => {
   it('lists projects, most recently updated first, without snapshots', async () => {
     const { authed, clock } = await createTestApp();

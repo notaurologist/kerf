@@ -10,6 +10,8 @@ export function Button(props: {
   type?: 'button' | 'submit';
   /** While true, the button says what is happening (its children should) and ignores presses. */
   busy?: boolean;
+  /** For a toggle, such as selecting a part: whether it is on. */
+  pressed?: boolean;
   onClick?: () => void;
 }) {
   const click = (e: MouseEvent) => {
@@ -25,6 +27,7 @@ export function Button(props: {
       className="k-button"
       data-variant={props.variant ?? 'primary'}
       aria-disabled={props.busy ? true : undefined}
+      aria-pressed={props.pressed}
       onClick={click}
     >
       {props.children}

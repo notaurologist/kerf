@@ -96,7 +96,7 @@ export const BoltArea = z.object({
 export type BoltArea = z.infer<typeof BoltArea>;
 
 /**
- * A straight cut along a part rather than across it, such as a leg's flush cut. It runs through
+ * A straight cut along a part rather than across it, such as a taper on a post. It runs through
  * the thickness, from `start` on the reference edge to `end` on the first end cut, and removes
  * the wood between that line and the corner where those two meet.
  */
@@ -114,7 +114,7 @@ export const Part = z.object({
   /** Names the part in the cut list and every drawing, assigned in cut-list order (#66). */
   letter: z.string(),
   name: z.string(),
-  /** What the part does in its template, such as 'leg'. Set by the template. */
+  /** What the part does in its template, such as 'post'. Set by the template. */
   role: z.string(),
   stock: Stock,
   quantity: z.number().int(),
@@ -124,8 +124,8 @@ export const Part = z.object({
   markLengths: z.array(z.object({ label: z.string(), value: z.number() })),
   ends: z.tuple([EndCut, EndCut]),
   /**
-   * True when the two end cuts are parallel (the part is a parallelogram, like a leg with level
-   * cuts at both ends); false when they angle in opposite directions (a trapezoid).
+   * True when the two end cuts are parallel (the part is a parallelogram, like a sloped post
+   * with level cuts at both ends); false when they angle in opposite directions (a trapezoid).
    */
   endsParallel: z.boolean(),
   notes: z.array(z.string()),
@@ -216,7 +216,7 @@ export const CHECKLIST_CATEGORY_LABELS: Record<ChecklistCategory, string> = {
 /** Something to confirm with an experienced builder, tied to one element of the design. */
 export const ChecklistItem = z.object({
   category: ChecklistCategory,
-  /** The specific design element, such as 'Leg-to-beam bolt, each frame'. */
+  /** The specific design element, such as 'Post-to-beam bolt, each end'. */
   element: z.string(),
   confirm: z.string(),
   why: z.string(),

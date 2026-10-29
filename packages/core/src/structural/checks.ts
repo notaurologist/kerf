@@ -484,7 +484,7 @@ function deflectionCheck(
 }
 
 export interface HardwareCheckInput {
-  /** Named by the template, such as 'Joist hanger'. */
+  /** Named by the template, such as 'Rated connector'. */
   subject: string;
   loadCase: string;
   /** The load on one piece of hardware, with its working. */

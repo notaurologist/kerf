@@ -22,6 +22,8 @@ export function MeasureTable<Row>(props: {
   rowKey: (row: Row) => string;
   /** Rows a preview changes (#56); each changed value also says what it was, in words. */
   rowChanged?: (row: Row, index: number) => boolean;
+  /** The row selected in a linked drawing (#91), highlighted as the drawing highlights its part. */
+  rowSelected?: (row: Row) => boolean;
 }) {
   return (
     <div className="k-table-wrap">
@@ -50,6 +52,7 @@ export function MeasureTable<Row>(props: {
             <tr
               key={props.rowKey(row)}
               data-changed={props.rowChanged?.(row, index) ? '' : undefined}
+              data-selected={props.rowSelected?.(row) ? '' : undefined}
             >
               {props.columns.map((c) => (
                 <td key={c.key} data-label={c.label} data-numeric={c.numeric ? '' : undefined}>

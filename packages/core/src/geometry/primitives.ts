@@ -105,6 +105,11 @@ export type Primitive = z.infer<typeof Primitive>;
 export const Drawing = z.object({
   /** Such as "Isometric view". */
   title: z.string(),
+  /**
+   * What the drawing shows, in a sentence, for assistive technology (W3C, complex images). The
+   * template words it for its own views; a display may add the part letters or dimensions.
+   */
+  description: z.string(),
   /** Bounds of every primitive, for a viewBox. */
   bounds: z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() }),
   primitives: z.array(Primitive),

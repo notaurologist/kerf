@@ -142,7 +142,7 @@ For each operation, `steps/` lists the methods from the knowledge base whose req
 | `GET /api/templates` | Templates with their current version and name |
 | `GET/PUT /api/tools` | Tool inventory; `PUT` replaces the whole list |
 | `GET /api/projects`, `POST /api/projects` | List (summaries, no snapshots) and create |
-| `GET /api/projects/:id` | The stored snapshot (upgraded to the current shape if needed, 0014), plus a version report: `current`, `ahead`, or `behind` with the changed paths regenerating would bring (or the issues that stop it) |
+| `GET /api/projects/:id` | The stored snapshot (upgraded to the current shape if needed, 0014), plus a version report: `current`, `ahead`, or `behind` with the changed paths regenerating would bring (or the issues that stop it), and the plan's drawings, drawn by core from the stored snapshot on each read (#91) |
 | `PUT /api/projects/:id` | Update name, status, parameters, or structural inputs; changing parameters or inputs regenerates the snapshot with the current template version |
 | `POST /api/projects/:id/preview` | Dry run for the edit screen (#56): takes the same body as `PUT`, generates the snapshot with the current template version, and returns it with the changed paths against the stored snapshot. Saves nothing; 422 with core's issues like `PUT` |
 | `POST /api/projects/:id/regenerate` | Regenerate with the current template version (explicit, never automatic) |
@@ -198,7 +198,7 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
   - **Styles:** plain CSS in cascade layers, in the order `reset, tokens, base, layout, components, print`. Tokens are custom properties; colors are `light-dark()` pairs that follow the device.
   - **Fonts:** Atkinson Hyperlegible Next and Mono, self-hosted (decision 0015).
   - **Screens:** built only from `ui/` components and layout primitives. They write no `className` or `style` and import no stylesheet, which `ui/screens.test.ts` enforces. A screen that needs something new gets a new component in `ui/`, with tests and a place on the catalog page.
-- Diagrams render core's 2D primitives as SVG inside `DiagramFrame`, with strokes from the line tokens. In print, each section of the plan starts a page with a title block, and expandable working opens.
+- Diagrams render core's 2D primitives, which the API sends with the project, as SVG through `Diagram` inside `DiagramFrame` (#91). Each primitive's role maps to the line and diagram tokens; strokes do not scale, and text, arrowheads, and part letters are sized in pixels for the width shown. Tapping a part selects it in the drawings and the cut list, whose part names are the keyboard path. In print, each section of the plan starts a page with a title block, the isometric, exploded, and site views take landscape pages, cut details do not split, zones are hatched, and expandable working opens.
 - Phone and tablet layouts are first-class: large text and one build step at a time (`PRODUCT.md`, MVP feature 9).
 
 ## Testing
@@ -211,4 +211,4 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 | `outputs/` | Board grouping including kerf and trim; nothing silently dropped when a part is longer than any buyable length |
 | `knowledge/`, `design-values/` | Every entry parses; every reference resolves; every design value has a source |
 | `apps/api` | Every route rejects requests without a session; login rate limiting; snapshot round trip through Postgres (PGlite, 0010) |
-| `apps/web` | Forms, rendering of snapshots, and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/` |
+| `apps/web` | Forms, rendering of snapshots, and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/`; no template's ID or words in generic code anywhere in the repository (`generic.test.ts`) |

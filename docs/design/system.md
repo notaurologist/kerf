@@ -51,7 +51,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Formulas and IDs | `Code` | The Mono, never wrapped; scrolls within its line. |
 | Secondary text | `Text tone="muted"` | Desk screens only. Shop modes use the text color for every word (#43, rule 5). |
 | Leaving with changes | `useLeaveGuard(dirty)` | Render its `dialog`; it asks before any in-app link and when the tab closes. |
-| A diagram | `DiagramFrame` | A short label for assistive technology; the cut list is the long description (#44). Strokes take the line tokens. |
+| A diagram | `Diagram`, inside `DiagramFrame` | `Diagram` draws core's primitives (#90, #91): roles to the line and diagram tokens, text at least 13 px, part letters in columns (one column when narrow), and `selected` and `onSelect` to link a part with the cut list. Give it a short `label` generated from the data and `describedBy` the cut list's id; `page="landscape"` for views that print on their own landscape page. |
 | Shop modes | `ModeBar`, `data-density="shop"` | The mode's name and Exit; space times 1.5, controls at least 56 px tall. |
 
 ## Tokens

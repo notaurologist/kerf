@@ -1,4 +1,4 @@
-import { readSnapshot, TEMPLATES } from '@kerf/core';
+import { findTemplate, readSnapshot, TEMPLATES } from '@kerf/core';
 import fixtures from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v1.json';
 import type { Project } from '../lib/types.ts';
 
@@ -27,6 +27,15 @@ export function projectFrom(
     updatedAt: '2026-10-28T12:00:00.000Z',
     snapshot,
     version: { status: 'current', version: 1 },
+    // As the API sends them: drawn by core from the stored snapshot.
+    drawings: snapshot ? drawingsFor(snapshot) : null,
     ...overrides,
   } as Project;
+}
+
+function drawingsFor(snapshot: NonNullable<Project['snapshot']>) {
+  const template = findTemplate(snapshot.templateId);
+  if (!template) return null;
+  const outputs = template.outputs.safeParse(snapshot.outputs);
+  return outputs.success ? JSON.parse(JSON.stringify(template.drawings(outputs.data))) : null;
 }
