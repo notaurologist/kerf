@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stage 6 (#45) is built (#78 to #81) and waiting on the owner's review of the key screens on a phone, the laptop, and paper.
+Status: Stages 0 to 6 are decided and built. Still open in the design milestone: the repeatable garage check (#69) and the device accessibility pass (#87).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -14,7 +14,7 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 5. Diagram language | #44 | Decided October 2026 | `diagrams.html` |
 | 5a. Number entry and form states | #67 | Decided October 2026 | `entry.html` |
 | 5b. Words | #68 | Decided October 2026 | `words.html`, `content.md` |
-| 6. Design system | #45 | Decided October 2026; building in #78 to #81 | `system.html` |
+| 6. Design system | #45 | Built October 2026 (#78 to #81) | `system.html`, `system.md` |
 | 7. A repeatable garage check | #69 | Blocked by #45 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
@@ -88,7 +88,7 @@ How to use the system, including which component for which job, the tokens, the 
 | Icons in one style at the diagram line weights | Met for the M4 screens (#79). Tool icons are #86; shop-mode icons come with the shop screens (#61). |
 | Accessibility beyond contrast | Partly met: keyboard, focus, roles and names, and reflow at 360 px and 640 px are checked. VoiceOver, 320 px, and reduced motion in effect are #87. Text equivalents for diagrams are built into `DiagramFrame`; the diagrams themselves are M5. |
 | A catalog page showing every component in every state, light and dark | Met (#79): `#/catalog`. No screenshot tests (the owner chose no new test dependencies). |
-| The owner is proud of the key screens on a phone in the garage, on the laptop, and printed | Waiting on the owner's review. The written, repeatable garage check follows in #69. |
+| The owner is proud of the key screens on a phone in the garage, on the laptop, and printed | Met: the owner reviewed the screens in production and signed off (October 2026). Anything found later becomes an issue; the written, repeatable garage check follows in #69. |
 
 ## Stage 5b: words (#68)
 
