@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stage 6 (#45): foundations, components, and screens are built (#78 to #80); guidance and the owner's review remain (#81).
+Status: in progress. Stage 6 (#45) is built (#78 to #81) and waiting on the owner's review of the key screens on a phone, the laptop, and paper.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -70,6 +70,25 @@ Every M4 screen is built from `apps/web/src/ui` only: login, projects, tools, th
 - The 14 screen strings from #68's audit are changed. The core hardware note waits for the next template version bump (0008).
 
 Checked in the browser with the worked example's stored snapshot served in place of the API, at 375 px and about 820 px, in light and dark: the plan, the editor's failed save and leave prompt, and the tools screen. No page scrolls sideways, and long formulas scroll within their own line. Print was not checked in a browser; it is worth checking on paper in #81.
+
+### Guidance and the check against "Done when" (#81)
+
+How to use the system, including which component for which job, the tokens, the layers, and how to add a component, is in `system.md`. `ARCHITECTURE.md` describes where it lives and the rule that screens write no styles.
+
+#45's "Done when", item by item (October 2026):
+
+| Item | Status |
+|---|---|
+| Tokens and components in code, with usage guidance in `docs/design/` | Met: `apps/web/src/ui`, `system.md`. |
+| Every M4 screen built from the system, with no one-off styles | Met (#80); `ui/screens.test.ts` enforces it. |
+| `ARCHITECTURE.md` describes where the system lives and how new screens use it | Met. |
+| C1 colors and D2 face tones as tokens, with a test of every recorded contrast ratio | Met (#78, #79). |
+| Atkinson Hyperlegible Next and Mono self-hosted with the OFL license | Met (#78). |
+| Forms follow #67's entry standard and states; strings follow #68's guide | Met (#73, #80). The core hardware note waits for the next template version bump. |
+| Icons in one style at the diagram line weights | Met for the M4 screens (#79). Tool icons are #86; shop-mode icons come with the shop screens (#61). |
+| Accessibility beyond contrast | Partly met: keyboard, focus, roles and names, and reflow at 360 px and 640 px are checked. VoiceOver, 320 px, and reduced motion in effect are #87. Text equivalents for diagrams are built into `DiagramFrame`; the diagrams themselves are M5. |
+| A catalog page showing every component in every state, light and dark | Met (#79): `#/catalog`. No screenshot tests (the owner chose no new test dependencies). |
+| The owner is proud of the key screens on a phone in the garage, on the laptop, and printed | Waiting on the owner's review. The written, repeatable garage check follows in #69. |
 
 ## Stage 5b: words (#68)
 
