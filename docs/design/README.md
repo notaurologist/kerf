@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stages 0 and 1 are decided; stage 2 (#41) is next.
+Status: in progress. Stages 0 to 2 are decided; stage 3 (#42) is next.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -8,13 +8,39 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 |---|---|---|---|
 | 0. Wireframes and the data they need | #39 | Decided October 2026 | `wireframes.html` |
 | 1. Information architecture | #40 | Decided October 2026 | `information-architecture.html` |
-| 2. Layout and grid | #41 | Next | |
-| 3. Typography | #42 | Blocked by #41 | |
+| 2. Layout and grid | #41 | Decided October 2026 | `layout.html` |
+| 3. Typography | #42 | Next | |
 | 4. Color | #43 | Blocked by #42 | |
 | 5. Diagram language | #44 | Blocked by #43 | |
 | 6. Design system | #45 | Blocked by #44 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 2: layout and grid (#41)
+
+`layout.html` starts from a measurement: the character height needed at each viewing distance, from display legibility guidance (16 arc-minutes minimum, 20 optimal). It proposes a read distance (0.5 m) and a glance distance (1.0 m) for the shop modes, and two densities chosen by mode: desk and shop.
+
+Three spatial systems, each drawn on the laptop plan and a phone build step:
+
+- A: modular columns (4, 8, 12) with breakpoints at 600, 840, and 1280.
+- B: content-out layout primitives (Stack, Sidebar, Switcher, Cluster, Center) with a fluid spacing scale.
+- C: drawing sheets (US Letter, 6 columns, a title block) on screen and paper.
+
+It also covers the cut list on a phone (stacked rows, a sideways-scrolling table, or priority columns), the structural working, diagrams, and paper size. No new requirements for core, the snapshot, or the API.
+
+### Choices
+
+The owner took the suggestions for distances, the cut list, and paper (October 2026). For the grid, the owner asked whether A's columns could be kept where they help and ignored where they do not; they can, so the choice combines A and B.
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Grid | A page column grid with content-out components. The page container is a CSS grid with named lines: 4 columns below 600 px, 8 from 600, 12 from 840, content up to 1200 px, margins and gutters from the fluid spacing scale. Components are built from layout primitives (Stack, Sidebar, Switcher, Cluster, Center) and respond to their own width with container queries, never to page breakpoints. Components that should align to the page columns use `subgrid`. Printed pages use C's 6-column sheet grid and open each section with a title block. | A alone: components tied to page breakpoints need a rule for every place they appear. B alone: no shared columns, so consistency would rest on spacing alone. C on screen: page-sized sheets do not suit a scrolling phone, and browsers cannot paginate content to fixed sheets. |
+| Viewing distances | Read distance 0.5 m (phone in hand) for instructions and notes; glance distance 1.0 m (propped across the bench) for the numbers you cut to. Character height 16 arc-minutes for reading, 20 for glancing. The tablet on a sawhorse (1.5 m) is a tablet-only case. | The 0.75 m case remains in the table for reference. |
+| Density | Two densities chosen by mode: desk for the plan and editor, shop inside Shopping and Building, with controls at least 56 px tall in shop density. | Density by screen width: a phone reading the plan on the couch would get shop sizes. |
+| Cut list on a phone | Stacked rows, every value visible, the length largest; a table from about 640 px of container width. Building mode uses the cut card instead. | A sideways-scrolling table hides the end cuts behind an easy accidental gesture. Priority columns hide the angle, the value most likely to cause a recut. |
+| Paper | US Letter portrait with 1/2" margins; landscape Letter pages for the isometric, exploded, and site layout views (named pages). Checks, cut details, and steps do not split across pages when they fit on one. Everything expanded in print. | Tabloid and A4 remain possible later; only page size and diagram scale would change. |
+
+Sizes in the distance table assume a digit is 0.7 of the font size; #42 redoes them for the chosen typeface.
 
 ## Stage 1: information architecture (#40)
 
