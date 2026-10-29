@@ -1,0 +1,512 @@
+/*
+ * Component blocks (Stage 6, DS1). Each block has a k- prefix; states are data attributes, so the
+ * catalog can show them one by one. Colors follow #43's rules: errors crimson beside fields
+ * only, flags amber with an icon and a label, input needed a dashed accent outline, and never
+ * color alone.
+ */
+@layer components {
+  /* ---------- Icons ---------- */
+  .k-icon {
+    display: inline-block;
+    inline-size: 1em;
+    block-size: 1em;
+    flex: none;
+    vertical-align: -0.125em;
+  }
+
+  /* ---------- Buttons ---------- */
+  .k-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2xs);
+    min-block-size: var(--control-min);
+    padding-inline: var(--space-s);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .k-button[data-variant="secondary"] {
+    background: transparent;
+    color: var(--accent);
+  }
+
+  /* A destructive button is named for what it destroys (#68) and drawn in the text color, with
+     no red near structural results (#43, rule 2). */
+  .k-button[data-variant="destructive"] {
+    background: transparent;
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .k-button[data-variant="link"] {
+    min-block-size: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font-weight: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  /* Busy: says what is happening and cannot be pressed twice, without the faded look of
+     disabled (#67). */
+  .k-button[aria-disabled="true"] {
+    cursor: progress;
+  }
+
+  /* ---------- Fields (#67) ---------- */
+  .k-field {
+    display: grid;
+    gap: var(--space-3xs);
+    min-inline-size: 0;
+  }
+
+  .k-field__label {
+    font-weight: 600;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2xs);
+  }
+
+  .k-field__hint {
+    color: var(--muted);
+    font-size: var(--size--1);
+  }
+
+  .k-field__input {
+    inline-size: 100%;
+    min-block-size: var(--control-min);
+    padding-inline: var(--space-xs);
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--input-bg);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .k-field__input:focus-visible {
+    border-color: var(--input-border);
+  }
+
+  .k-field__echo {
+    font-size: var(--size--1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .k-field__echo b {
+    font-weight: 700;
+  }
+
+  .k-field[data-state="error"] .k-field__input {
+    border: 2px solid var(--error);
+  }
+
+  .k-field[data-state="needed"] .k-field__input {
+    border: 2px dashed var(--accent);
+  }
+
+  .k-field__unit {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+  }
+
+  .k-field__unit > span {
+    color: var(--muted);
+  }
+
+  .k-field__input[readonly] {
+    background: var(--sunken);
+  }
+
+  /* ---------- Error text and summary ---------- */
+  .k-error-text {
+    display: flex;
+    gap: var(--space-2xs);
+    align-items: flex-start;
+    color: var(--error);
+    font-weight: 600;
+  }
+
+  .k-error-text .k-icon {
+    margin-block-start: 0.2em;
+  }
+
+  .k-error-summary {
+    display: grid;
+    gap: var(--space-2xs);
+    padding: var(--space-s);
+    border: 2px solid var(--error);
+    border-radius: var(--radius);
+    background: var(--error-bg);
+  }
+
+  .k-error-summary h2 {
+    display: flex;
+    gap: var(--space-2xs);
+    font-size: var(--size-1);
+    color: var(--text);
+  }
+
+  .k-error-summary ul {
+    margin: 0;
+    padding-inline-start: 1.2em;
+  }
+
+  .k-error-summary a {
+    color: var(--error);
+    font-weight: 600;
+  }
+
+  /* ---------- Input needed (#43, rule 4) ---------- */
+  .k-needed {
+    display: inline-block;
+    padding-inline: var(--space-3xs);
+    border: 1.5px dashed var(--accent);
+    border-radius: 3px;
+    color: var(--accent);
+    font-size: var(--size--1);
+    font-weight: 700;
+  }
+
+  /* ---------- Expert check (#43, rule 3) ---------- */
+  .k-flag {
+    display: flex;
+    gap: var(--space-2xs);
+    padding: var(--space-xs) var(--space-s);
+    border: 1.5px solid var(--flag-border);
+    border-radius: var(--radius);
+    background: var(--flag-bg);
+    color: var(--flag-text);
+  }
+
+  .k-flag .k-icon {
+    margin-block-start: 0.25em;
+  }
+
+  .k-flag__body {
+    display: grid;
+    gap: var(--space-3xs);
+  }
+
+  .k-flag__label {
+    font-weight: 700;
+  }
+
+  /* ---------- Notices and status ---------- */
+  .k-notice {
+    display: flex;
+    gap: var(--space-2xs);
+    padding: var(--space-xs) var(--space-s);
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius);
+  }
+
+  .k-notice .k-icon {
+    margin-block-start: 0.2em;
+  }
+
+  .k-status {
+    display: flex;
+    gap: var(--space-2xs);
+    align-items: baseline;
+  }
+
+  .k-status .k-icon {
+    color: var(--done);
+  }
+
+  /* Progress saved on this phone and not yet sent (#57): a second, hollow mark and words. */
+  .k-pending {
+    display: inline-flex;
+    gap: var(--space-3xs);
+    align-items: center;
+    font-size: var(--size--1);
+  }
+
+  .k-loading {
+    color: var(--text);
+  }
+
+  /* ---------- Numbers (#42) ---------- */
+  .k-glance {
+    font-size: var(--size-glance);
+    line-height: var(--leading-glance);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .k-saw {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs) var(--space-s);
+  }
+
+  .k-saw__setting {
+    display: grid;
+    padding: var(--space-3xs) var(--space-xs);
+    border: 2px solid var(--text);
+    border-radius: var(--radius);
+  }
+
+  .k-saw__setting b {
+    font-size: var(--size-saw);
+    line-height: var(--leading-heading);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .k-saw__edge {
+    display: grid;
+  }
+
+  .k-saw__edge span:last-child {
+    font-size: var(--size-edge);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .k-saw__label {
+    font-size: var(--size--1);
+  }
+
+  /* Margins have no color (#43, rule 1). */
+  .k-margin {
+    font-weight: 700;
+    font-size: var(--size-1);
+  }
+
+  /* ---------- Measurement table (#41): rows stack on a narrow container ---------- */
+  .k-table-wrap {
+    container-type: inline-size;
+  }
+
+  .k-table {
+    inline-size: 100%;
+    border-collapse: collapse;
+  }
+
+  .k-table caption {
+    text-align: start;
+    font-weight: 700;
+    padding-block-end: var(--space-2xs);
+  }
+
+  .k-table th,
+  .k-table td {
+    text-align: start;
+    vertical-align: top;
+    padding: var(--space-2xs) var(--space-xs);
+    border-block-end: 1px solid var(--border);
+  }
+
+  .k-table th {
+    font-size: var(--size--1);
+    font-weight: 600;
+  }
+
+  .k-table [data-numeric] {
+    text-align: end;
+    white-space: nowrap;
+  }
+
+  @container (width < 40rem) {
+    .k-table thead {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .k-table tr {
+      display: grid;
+      gap: var(--space-3xs);
+      padding-block: var(--space-xs);
+      border-block-end: 1px solid var(--border);
+    }
+
+    .k-table td {
+      display: grid;
+      grid-template-columns: 8rem 1fr;
+      gap: var(--space-xs);
+      padding: 0;
+      border: 0;
+    }
+
+    .k-table td::before {
+      content: attr(data-label);
+      font-size: var(--size--1);
+      font-weight: 600;
+    }
+
+    .k-table [data-numeric] {
+      text-align: start;
+    }
+
+    /* The row's first cell names it, so it needs no label. */
+    .k-table td:first-child {
+      grid-template-columns: 1fr;
+      font-weight: 700;
+    }
+
+    .k-table td:first-child::before {
+      content: none;
+    }
+  }
+
+  /* ---------- Disclosure (expandable working) ---------- */
+  .k-disclosure > summary {
+    display: flex;
+    gap: var(--space-2xs);
+    align-items: center;
+    min-block-size: var(--control-min);
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .k-disclosure > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .k-disclosure > summary .k-icon {
+    transition: transform 0.15s;
+  }
+
+  .k-disclosure[open] > summary .k-icon {
+    transform: rotate(180deg);
+  }
+
+  .k-disclosure__body {
+    padding-block-start: var(--space-xs);
+  }
+
+  /* ---------- Card ---------- */
+  .k-card {
+    padding: var(--space-s);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--raised);
+  }
+
+  /* ---------- Shell (#40) ---------- */
+  .k-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-s);
+    padding: var(--space-xs) var(--space-s);
+    border-block-end: 1px solid var(--border);
+    background: var(--raised);
+  }
+
+  .k-header__brand {
+    font-weight: 700;
+    font-size: var(--size-1);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .k-header nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+  }
+
+  .k-header nav a {
+    text-decoration: none;
+  }
+
+  .k-header nav a[aria-current="page"] {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .k-modebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: var(--space-xs) var(--space-s);
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  .k-modebar .k-button {
+    border-color: var(--bg);
+    color: var(--bg);
+    background: transparent;
+  }
+
+  /* ---------- Dialog ---------- */
+  .k-dialog {
+    max-inline-size: min(28rem, 100% - 2 * var(--space-s));
+    padding: var(--space-m);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .k-dialog::backdrop {
+    background: rgb(0 0 0 / 0.4);
+  }
+
+  /* ---------- Catalog ---------- */
+  .k-catalog__panel {
+    padding: var(--space-m);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* ---------- Diagram frame (#44) ---------- */
+  .k-diagram {
+    container-type: inline-size;
+    display: grid;
+    gap: var(--space-2xs);
+  }
+
+  .k-diagram svg {
+    inline-size: 100%;
+    block-size: auto;
+  }
+
+  .k-diagram svg * {
+    vector-effect: non-scaling-stroke;
+  }
+
+  .k-diagram figcaption {
+    font-size: var(--size--1);
+  }
+}
+
+@layer print {
+  @media print {
+    .k-disclosure > summary .k-icon {
+      display: none;
+    }
+
+    .k-button,
+    .k-header nav,
+    .k-modebar {
+      display: none;
+    }
+  }
+}

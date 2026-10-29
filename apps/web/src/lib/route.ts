@@ -9,6 +9,7 @@ export type Route =
   | { screen: 'project'; id: string }
   | { screen: 'edit-project'; id: string }
   | { screen: 'tools' }
+  | { screen: 'catalog' }
   | { screen: 'not-found' };
 
 export function parseRoute(hash: string): Route {
@@ -17,6 +18,7 @@ export function parseRoute(hash: string): Route {
   const [first, second, third] = parts;
   if (parts.length === 0) return { screen: 'projects' };
   if (first === 'tools' && parts.length === 1) return { screen: 'tools' };
+  if (first === 'catalog' && parts.length === 1) return { screen: 'catalog' };
   if (first !== 'projects' || parts.length > 3) return { screen: 'not-found' };
   if (second === undefined) return { screen: 'projects' };
   if (second === 'new' && parts.length === 2) {
@@ -40,6 +42,8 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
       return `#/projects/${encodeURIComponent(route.id)}/edit`;
     case 'tools':
       return '#/tools';
+    case 'catalog':
+      return '#/catalog';
   }
 }
 

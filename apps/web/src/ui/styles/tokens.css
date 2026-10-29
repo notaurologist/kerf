@@ -8,43 +8,43 @@
   :root {
     color-scheme: light dark;
 
-    /* C1, light: surfaces and text. */
-    --bg: #fbf9f5;
-    --raised: #ffffff;
-    --sunken: #f2efe9;
-    --text: #1a1d23;
-    --muted: #545860;
-    --border: #d7d4ce;
-    --border-strong: #70757c;
-    --accent: #0e5caf;
-    --on-accent: #ffffff;
-    --focus: #1570d1;
-    --flag-bg: #ffe8be;
-    --flag-border: #bb7400;
-    --flag-text: #5b3106;
-    --input-bg: #ffffff;
-    --input-border: #2e64a6;
-    --input-text: #0e4786;
-    --done: #0e5caf;
-    --error: #aa295f;
-    --error-bg: #ffebf1;
+    /* C1: surfaces and text. */
+    --bg: light-dark(#fbf9f5, #111418);
+    --raised: light-dark(#ffffff, #1a1d23);
+    --sunken: light-dark(#f2efe9, #0b0d12);
+    --text: light-dark(#1a1d23, #edebe7);
+    --muted: light-dark(#545860, #aaaeb4);
+    --border: light-dark(#d7d4ce, #2f3339);
+    --border-strong: light-dark(#70757c, #82868e);
+    --accent: light-dark(#0e5caf, #70b3f7);
+    --on-accent: light-dark(#ffffff, #0c121a);
+    --focus: light-dark(#1570d1, #73bdff);
+    --flag-bg: light-dark(#ffe8be, #3e290f);
+    --flag-border: light-dark(#bb7400, #dea143);
+    --flag-text: light-dark(#5b3106, #f7dba1);
+    --input-bg: light-dark(#ffffff, #1a1d23);
+    --input-border: light-dark(#2e64a6, #6da9e7);
+    --input-text: light-dark(#0e4786, #97c9fd);
+    --done: light-dark(#0e5caf, #70b3f7);
+    --error: light-dark(#aa295f, #ea7ca1);
+    --error-bg: light-dark(#ffebf1, #3d1e28);
 
-    /* C1, light: diagram ink (#44). */
-    --ink: #1a1d23;
-    --dim: #0e5caf;
-    --hidden: #6e7278;
-    --highlight: #bfe1ff;
-    --zone: #dbeede;
-    --zone-line: #488055;
+    /* C1: diagram ink (#44). */
+    --ink: light-dark(#1a1d23, #edebe7);
+    --dim: light-dark(#0e5caf, #70b3f7);
+    --hidden: light-dark(#6e7278, #83868c);
+    --highlight: light-dark(#bfe1ff, #1d456b);
+    --zone: light-dark(#dbeede, #1e2d21);
+    --zone-line: light-dark(#488055, #75ae81);
 
     /* D2 face tones: top, sides, ends. The selected part uses the highlight in the same steps.
        Mixed in OKLCH from --raised toward --ink by 0%, 13%, and 27%. */
-    --tone-1: #ffffff;
-    --tone-2: #dddedf;
-    --tone-3: #babbbd;
-    --highlight-1: #bfe1ff;
-    --highlight-2: #a8c4df;
-    --highlight-3: #8fa6be;
+    --tone-1: light-dark(#ffffff, #474f51);
+    --tone-2: light-dark(#dddedf, #2e3439);
+    --tone-3: light-dark(#babbbd, #1a1d23);
+    --highlight-1: light-dark(#bfe1ff, #1d456b);
+    --highlight-2: light-dark(#a8c4df, #255e75);
+    --highlight-3: light-dark(#8fa6be, #3f777d);
 
     /* Type (#42). Desk scale, ratio 1.2 from 17 px. */
     --font-text: "Atkinson Hyperlegible Next", system-ui, sans-serif;
@@ -111,49 +111,22 @@
     --control-min: 3.5rem;
   }
 
-  /* Follow the device (#43). Print is always light, so dark applies to screens only. */
-  @media screen and (prefers-color-scheme: dark) {
-    :root {
-      --bg: #111418;
-      --raised: #1a1d23;
-      --sunken: #0b0d12;
-      --text: #edebe7;
-      --muted: #aaaeb4;
-      --border: #2f3339;
-      --border-strong: #82868e;
-      --accent: #70b3f7;
-      --on-accent: #0c121a;
-      --focus: #73bdff;
-      --flag-bg: #3e290f;
-      --flag-border: #dea143;
-      --flag-text: #f7dba1;
-      --input-bg: #1a1d23;
-      --input-border: #6da9e7;
-      --input-text: #97c9fd;
-      --done: #70b3f7;
-      --error: #ea7ca1;
-      --error-bg: #3d1e28;
-
-      --ink: #edebe7;
-      --dim: #70b3f7;
-      --hidden: #83868c;
-      --highlight: #1d456b;
-      --zone: #1e2d21;
-      --zone-line: #75ae81;
-
-      /* In dark, mixing toward the ink lightens, so the order flips: the face toward the light
-         stays lightest. */
-      --tone-1: #474f51;
-      --tone-2: #2e3439;
-      --tone-3: #1a1d23;
-      --highlight-1: #1d456b;
-      --highlight-2: #255e75;
-      --highlight-3: #3f777d;
-    }
+  /* Colors follow the device (#43): each is light-dark(light value, dark value), picked by the
+     element's color-scheme. A panel can force one with data-theme, as the catalog does. In
+     dark, mixing toward the ink lightens, so D2's tone order flips: the face toward the light
+     stays lightest. */
+  [data-theme="light"] {
+    color-scheme: light;
   }
 
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  /* Print is always light. */
   @media print {
-    :root {
+    :root,
+    [data-theme] {
       color-scheme: light;
       /* Print widths: ASME Y14.2's two weights, thick about twice thin (#44). */
       --line-visible: 0.5mm;
