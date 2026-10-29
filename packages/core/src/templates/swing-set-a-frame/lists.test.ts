@@ -52,8 +52,9 @@ describe('cutList', () => {
       length: '131-1/2"',
     });
     expect(row('leg-front')?.length).toBe('138-3/8"');
-    expect(row('crossbar')?.length).toBe('55-11/16"');
-    expect(row('gusset')?.length).toBe('16-1/4"');
+    // 58.993 and 19.502 to the nearest 1/16 (spec, Bolt layout).
+    expect(row('crossbar')?.length).toBe('59"');
+    expect(row('gusset')?.length).toBe('19-1/2"');
   });
 
   // Hand-written from the spec's cut-list order (#66): beam, back legs, front legs, crossbars,
@@ -93,8 +94,8 @@ describe('cutList', () => {
 
   it('formats mark lengths through the same formatter', () => {
     expect(row('crossbar')?.marks).toEqual([
-      { label: 'Top edge', value: '51-11/16"' },
-      { label: 'Bottom edge', value: '55-11/16"' },
+      { label: 'Top edge', value: '55"' },
+      { label: 'Bottom edge', value: '59"' },
     ]);
   });
 });
@@ -102,7 +103,7 @@ describe('cutList', () => {
 describe('planLumber, worked example', () => {
   // Hand-checked with 1/8" kerf per piece and 1/2" trim at each end (1" per board):
   // beam 120 + 0.125 + 1 = 121.125 -> 12'; legs 139.479 and 132.635 each -> 12', one per board;
-  // crossbars 1 + 2 x (55.7176 + 0.125) = 112.685 -> 10'; gussets 1 + 2 x 16.352 = 33.704 -> 8'.
+  // crossbars 1 + 2 x (58.993 + 0.125) = 119.236 -> 10'; gussets 1 + 2 x 19.627 = 40.254 -> 8'.
   const plan = planLumber(parts(example));
 
   it('lists boards to buy', () => {
@@ -118,7 +119,7 @@ describe('planLumber, worked example', () => {
   it('records what comes from each board and the offcut', () => {
     const crossbarBoard = plan.boards.find((b) => b.nominal === '2x6');
     expect(crossbarBoard?.pieces.map((p) => p.partId)).toEqual(['crossbar', 'crossbar']);
-    expect(crossbarBoard?.offcut).toBeCloseTo(7.315, 3);
+    expect(crossbarBoard?.offcut).toBeCloseTo(120 - 119.236, 3);
     const legBoards = plan.boards.filter((b) => b.nominal === '4x4');
     expect(legBoards.map((b) => b.offcut)).toEqual([
       expect.closeTo(144 - 139.479, 3),
@@ -136,8 +137,8 @@ describe('planLumber, worked example', () => {
 });
 
 describe('planLumber, built-up beam', () => {
-  // Two 2x6 plies (120) and two crossbars (55.218 with the narrower beam) share 2x6 boards:
-  // 120 + 55.218 + 2 kerf + 1 trim = 176.468, so two 16' boards, each with one ply and one crossbar.
+  // Two 2x6 plies (120) and two crossbars (58.493 with the narrower beam) share 2x6 boards:
+  // 120 + 58.493 + 2 kerf + 1 trim = 179.743, so two 16' boards, each with one ply and one crossbar.
   const plan = planLumber(
     parts({
       ...example,
@@ -153,7 +154,7 @@ describe('planLumber, built-up beam', () => {
       [16, ['beam', 'crossbar']],
       [16, ['beam', 'crossbar']],
     ]);
-    expect(twoBySix[0]?.offcut).toBeCloseTo(192 - 176.468, 3);
+    expect(twoBySix[0]?.offcut).toBeCloseTo(192 - 179.743, 3);
   });
 });
 

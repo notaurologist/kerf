@@ -73,6 +73,7 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
               checks={plan.plan.checks}
               flags={plan.plan.flags}
               checklist={plan.plan.checklist}
+              boltLayout={plan.plan.boltLayout}
             />
           </PlanSection>
           <PlanSection id="cut-list" title="Cut list" project={project.name}>
