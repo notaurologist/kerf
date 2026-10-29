@@ -283,8 +283,8 @@ table.counts { min-width: 480px; }
 </header>
 
 <section class="answers" aria-labelledby="answers-h">
-  <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
-  <p>Three choices. I suggest <b>E1</b>, <b>errors on save</b>, and <b>the standard as written</b>; each is listed first and marked "Suggested" below. A reply like <span class="pick" style="white-space: normal">E1, errors on save, standard as written</span> is enough.</p>
+  <h2 id="answers-h" style="font-size: var(--step-1)">Decided, October 2026</h2>
+  <p>The owner took the suggestion for all three: <span class="pick" style="white-space: normal">E1, errors on save, standard as written</span>. E3's keypad is kept as a possible later improvement (#74), if a way to add the marks without losing the native keyboard proves reliable. Reasons and rejected directions are in <code>docs/design/README.md</code>; the parser is #73. The choices were:</p>
   <ol>
     <li><a href="#directions">How a length is entered</a>: <span class="pick">E1</span> typed as written on a plan, <span class="pick">E2</span> split fields, or <span class="pick">E3</span> Kerf's own keypad on a phone.</li>
     <li><a href="#timing">When problems are shown</a>: <span class="pick">errors on save</span>, with Kerf's reading shown while you type, or errors as soon as you leave a field.</li>
@@ -325,7 +325,7 @@ table.counts { min-width: 480px; }
 
   
 <article class="direction-full stack-lg" id="e1">
-  <header><p><span class="letter">E1</span> · Typed, as written on a plan · <b class="sugg">Suggested</b></p><h3>One field per length; type it the way a tape or a plan writes it, and Kerf shows what it read</h3></header>
+  <header><p><span class="letter">E1</span> · Typed, as written on a plan · <b class="sugg">Chosen</b></p><h3>One field per length; type it the way a tape or a plan writes it, and Kerf shows what it read</h3></header>
   <div class="sheet pal-C1-light">
 <div class="mocks">
   
@@ -732,7 +732,7 @@ table.counts { min-width: 480px; }
 <!-- ============================== STANDARD ============================== -->
 <section id="standard" class="stack-lg">
   <div class="place">
-    <p class="eyebrow">If the suggestions are taken</p>
+    <p class="eyebrow">Chosen</p>
     <h2>The entry standard</h2>
     <p class="prose">What core's parser accepts and refuses. Each row below was run through the prototype on this page, and the readings are core's <code>formatLength</code>. Refusals give the message Kerf would show.</p>
   </div>
@@ -759,8 +759,8 @@ table.counts { min-width: 480px; }
     <h2>What this stage adds</h2>
   </div>
   <ul class="prose stack">
-    <li>Core parses lengths and angles from text, with hand-checked tests, and <code>buildFromForm</code> uses it. Out-of-range messages give limits in feet and inches. A new issue, needed before #45 rebuilds the editor.</li>
-    <li>The editor writes saved values back into fields without rounding (the round trip above). Part of the same issue.</li>
+    <li>Core parses lengths and angles from text, with hand-checked tests, and <code>buildFromForm</code> uses it. Out-of-range messages give limits in feet and inches. #73, before #45 rebuilds the editor.</li>
+    <li>The editor writes saved values back into fields without rounding (the round trip above). Part of #73.</li>
     <li>Form states as components in #45: field with echo, error, input needed, error summary, saving button, saved line, connection notice, leave-with-changes prompt, loading.</li>
     <li>The "on this phone, not yet sent" mark for queued progress: already #57.</li>
   </ul>
