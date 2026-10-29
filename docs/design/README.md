@@ -1,13 +1,13 @@
 # Design
 
-Status: in progress. Stage 0 (#39) is decided; stage 1 (#40) is next.
+Status: in progress. Stage 1 (#40) is waiting on the owner's choices.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
 | Stage | Issue | Status | Review page |
 |---|---|---|---|
 | 0. Wireframes and the data they need | #39 | Decided October 2026 | `wireframes.html` |
-| 1. Information architecture | #40 | Next | |
+| 1. Information architecture | #40 | Waiting on the owner | `information-architecture.html` |
 | 2. Layout and grid | #41 | Blocked by #40 | |
 | 3. Typography | #42 | Blocked by #41 | |
 | 4. Color | #43 | Blocked by #42 | |
@@ -15,6 +15,20 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 6. Design system | #45 | Blocked by #44 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 1: information architecture (#40)
+
+`information-architecture.html` sets out three structures, each with a site map and navigation for phone, tablet, laptop, and print:
+
+- IA-1: Plan, Shop, and Build as tabs inside each project.
+- IA-2: the project is the plan document; Shopping and Building are full-screen modes launched from it, with a Resume card on the projects list.
+- IA-3: Plan, Shop, Build, and Tools as the app's top level, working on a current project.
+
+It also proposes two section orders for the plan (A, structural review near the top; B, build order with the review as an appendix), a common layout for cutting and assembly steps, and requirements R22 to R27, which get issues once the choices are made.
+
+### Choices
+
+Not yet made.
 
 ## Stage 0: wireframes (#39)
 
