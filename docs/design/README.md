@@ -1,20 +1,58 @@
 # Design
 
-Status: in progress. Stage 0 (#39) is decided; stage 1 (#40) is next.
+Status: in progress. Stages 0 and 1 are decided; stage 2 (#41) is next.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
 | Stage | Issue | Status | Review page |
 |---|---|---|---|
 | 0. Wireframes and the data they need | #39 | Decided October 2026 | `wireframes.html` |
-| 1. Information architecture | #40 | Next | |
-| 2. Layout and grid | #41 | Blocked by #40 | |
+| 1. Information architecture | #40 | Decided October 2026 | `information-architecture.html` |
+| 2. Layout and grid | #41 | Next | |
 | 3. Typography | #42 | Blocked by #41 | |
 | 4. Color | #43 | Blocked by #42 | |
 | 5. Diagram language | #44 | Blocked by #43 | |
 | 6. Design system | #45 | Blocked by #44 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 1: information architecture (#40)
+
+`information-architecture.html` sets out three structures, each with a site map and navigation for phone, tablet, laptop, and print:
+
+- IA-1: Plan, Shop, and Build as tabs inside each project.
+- IA-2: the project is the plan document; Shopping and Building are full-screen modes launched from it, with a Resume card on the projects list.
+- IA-3: Plan, Shop, Build, and Tools as the app's top level, working on a current project.
+
+It also proposes two section orders for the plan (A, structural review near the top; B, build order with the review as an appendix), a common layout for cutting and assembly steps, and requirements R22 to R27. Its last section redraws the key #39 screens on the chosen structure.
+
+### Choices
+
+The owner took the suggested option for each (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Structure | IA-2: the project is the plan document. Shopping and Building are full-screen modes launched from cards in its summary, each under a bar with the mode's name and Exit. A Resume card on the projects list goes straight to the current step. | IA-1, tabs inside the project: two layers of navigation on the phone, three unequal tasks shown as peers, and a Build tab that looks like the others, so its mode is easy to forget. Kept as the fallback if full-screen modes feel heavy once built. IA-3, activities at the top level: Shop and Build depend on a "current project" set elsewhere, a hidden state that invites mode slips, and planning, the laptop's main job, sits a level down. |
+| Section order | A: summary, diagrams, structural review, cut list, boards, shopping list, build steps, parameters and inputs. This is also the print order and the contents list. | B, build order with the structural review as an appendix: margins and the checklist become easy to skip, and the summary would carry the flags alone. |
+| Build step | One layout for every step: where you are, what to do, the numbers, the drawing, the method, the flags, then Back and Done. A cutting step is one board; an assembly step is one joint or subassembly. Steps have phases for the step list. | None proposed. |
+
+Rules that hold across the structure:
+
+- Planning screens change parameters only; shop modes change progress only.
+- Status follows progress: In progress when shopping or building starts, Built when the last step is done.
+- Regenerating a project with saved progress says how much would reset before it runs.
+- Printing any view of a project prints the plan in section order A.
+
+Navigation by device:
+
+| Device | Navigation |
+|---|---|
+| Phone | Slim header with Projects and Tools. A mode fills the screen and has only Exit and its own step controls. |
+| Tablet | The plan with a contents sidebar. Building in landscape puts the step beside its diagram. |
+| Laptop | Header with Projects and Tools; the plan with a contents sidebar; Edit opens the split screen. |
+| Print | The plan document. |
+
+Issues: #61 (the modes, their routes, the Resume card, and status, R22, R25, R26, M7). R23 (step phases) was added to #52 and R24 (the regenerate warning) to #57. R27 (a stored current project) is not needed with IA-2.
 
 ## Stage 0: wireframes (#39)
 

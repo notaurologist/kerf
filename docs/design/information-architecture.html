@@ -1,0 +1,713 @@
+<title>Kerf Information Architecture</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+/* Additions for the information-architecture page: site maps and the navigation table. */
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree ul { padding-left: 18px; border-left: 1.5px solid var(--line); margin-left: 6px; display: grid; gap: 4px; padding-block: 4px; }
+.tree { display: grid; gap: 4px; font-size: 0.92rem; }
+.tree li > span { display: inline-block; }
+.tree .node { font-weight: 600; }
+.tree .route { font-family: var(--mono); font-size: var(--step--1); color: var(--muted); margin-left: 6px; }
+.tree .mode { border: 1.5px solid var(--ink); border-radius: 3px; padding: 0 6px; font-weight: 600; }
+.tree .new { color: var(--blue); font-size: var(--step--1); margin-left: 6px; }
+.navtable { border-collapse: collapse; width: 100%; font-size: 0.9rem; background: var(--wf-bg); }
+.navtable th, .navtable td { text-align: left; vertical-align: top; padding: 7px 9px; border-bottom: 1px solid var(--line); }
+.navtable th { width: 6.5em; font-weight: 600; color: var(--muted); font-size: var(--step--1); }
+.frames { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+.frames .phone { margin-inline: 0; }
+.laptop.short { min-height: 0; }
+.order { margin: 0; padding-left: 1.6em; display: grid; gap: 6px; }
+.order li::marker { font-family: var(--mono); color: var(--blue); font-weight: 700; }
+.modebar { background: var(--wf-ink); color: var(--wf-bg); display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-weight: 650; }
+.modebar .grow { flex: 1; }
+.modebar .btn { border-color: var(--wf-bg); color: var(--wf-bg); }
+.launch { border: 1.5px solid var(--wf-ink); border-radius: 4px; padding: 8px 10px; display: flex; align-items: center; gap: 10px; }
+.launch .grow { flex: 1; display: grid; }
+</style>
+
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #40</p>
+  <h1>Information architecture</h1>
+  <div class="prose stack">
+    <p>What lives where, and how you move between planning on the laptop, shopping on the phone, and building in the garage. This builds on the choices from #39: the project page reads like the printed plan, editing is a split screen with live output, the store view is a checklist by aisle with board cards, and the garage view is one step at a time with cutting done board by board.</p>
+    <p>Three directions for the overall structure follow, each with a site map, how navigation works on each device and on paper, and phone and laptop sketches. Two smaller choices sit below them: the order of a project's sections, and what a build step shows. Numbers in the sketches come from the worked example, as in #39.</p>
+    <p class="muted small">Laptop frames are wider than a phone. On a phone, scroll them sideways inside their box.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">Decided, October 2026</h2>
+  <p>The owner took the suggestion for all three: <span class="pick" style="white-space: normal">IA-2, order A, steps as shown</span>. The key screens redrawn on that structure are under <a href="#revised">Revised key screens</a>; reasons and rejected directions are in <code>docs/design/README.md</code>. The choices were:</p>
+  <ol>
+    <li><a href="#directions">Structure</a>: <span class="pick">IA-2</span> one plan with Shop and Build launched from it, <span class="pick">IA-1</span> Plan, Shop, Build as tabs inside each project, or <span class="pick">IA-3</span> Plan, Shop, Build as the app's top level.</li>
+    <li><a href="#order">Order of a project's sections</a>: <span class="pick">A</span> decide first (structural review near the top), or <span class="pick">B</span> build order (structural review as an appendix).</li>
+    <li><a href="#steps">What a build step shows</a>: the cutting and assembly step layouts as drawn, or changes.</li>
+  </ol>
+</section>
+
+<!-- ============================== COMMON ============================== -->
+<section class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Common to every direction</p>
+    <h2>What stays the same whichever structure you pick</h2>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Two global places</b><p>Projects and Tools. Tools (the inventory) is shared by every project, since methods are chosen from it. Log out sits with them. Login is outside the app.</p></div>
+    <div class="opt"><b>Planning never changes progress; shop views never change the plan</b><p>Reading and editing the plan touch parameters only. Ticking a shopping line or finishing a step touches progress only (#57). Each screen does one or the other, so a mis-tap in the garage cannot edit the design.</p></div>
+    <div class="opt"><b>Status follows what you do</b><p>A project is Planned until you start shopping or building, then In progress, then Built when you mark the last step done (PRODUCT.md, feature 8). You can still set it by hand.</p></div>
+    <div class="opt"><b>Regenerating warns once progress exists</b><p>Fitbod locks a workout once you tap Start Workout, so it is not regenerated under you. Kerf already regenerates only on request (0008); once you have ticked anything, the request says how much progress would reset before you confirm.</p></div>
+    <div class="opt"><b>One project response</b><p>Every view of a project renders from the same response, so a brief drop leaves all of them readable (Q5 in #39).</p></div>
+    <div class="opt"><b>Print is the plan</b><p>Printing any view of a project prints the plan document in its section order, each diagram and the cut list on its own page (M5). Shop and Build views print as the plan too; their state is for the screen.</p></div>
+  </div>
+</section>
+
+<!-- ============================== DIRECTIONS ============================== -->
+<section id="directions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Structure</p>
+    <h2>Three ways to organize planning, shopping, and building</h2>
+    <p class="prose">The question is whether Shop and Build are peers of the plan, tasks you launch from it, or the app's own top level.</p>
+  </div>
+
+  <!-- IA-1 -->
+  <article class="direction stack-lg">
+    <header><p><span class="letter">IA-1</span> · Tabs inside the project</p><h3>Plan, Shop, and Build are three views of each project, always one tap apart</h3></header>
+    <div class="directions">
+      <div class="stack">
+        <h4>Site map</h4>
+        <ul class="tree">
+          <li><span class="node">Projects</span><span class="route">#/projects</span>
+            <ul>
+              <li><span>New project</span><span class="route">/new?template=</span></li>
+              <li><span class="node">Project</span><span class="route">/:id</span>
+                <ul>
+                  <li><span class="node">Plan</span><span class="route">/plan</span><ul><li><span>Edit (split screen)</span><span class="route">/edit</span></li></ul></li>
+                  <li><span class="node">Shop</span><span class="route">/shop</span><span class="new">new</span></li>
+                  <li><span class="node">Build</span><span class="route">/build</span><span class="new">new</span><ul><li><span>Step</span><span class="route">/build/:step</span></li><li><span>Cut card</span><span class="route">/build/:step/:part</span></li></ul></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><span class="node">Tools</span><span class="route">#/tools</span></li>
+        </ul>
+      </div>
+      <div class="stack">
+        <h4>Navigation by device</h4>
+        <table class="navtable">
+          <tr><th>Phone</th><td>Bottom tab bar inside a project: Plan · Shop · Build. A project opens on the tab you used last. Projects and Tools from a back link in the header.</td></tr>
+          <tr><th>Tablet</th><td>The same tabs at the bottom. Build shows the step beside its diagram in landscape.</td></tr>
+          <tr><th>Laptop</th><td>Projects and Tools in the header. Inside a project, Plan · Shop · Build as a segmented control under the title; Plan has the contents sidebar.</td></tr>
+          <tr><th>Print</th><td>The plan document from any tab.</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:10px; align-content:start;">
+          <div class="muted">‹ Projects</div>
+          <b style="font-size:17px">Backyard swing set</b>
+          <span class="muted">In progress · Two-swing A-frame swing set, version 2</span>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div style="border:1px solid var(--line); padding:6px;"><span class="muted">Legs</span><br><b class="n">131-1/2"</b>, <b class="n">138-3/8"</b></div>
+            <div style="border:1px solid var(--line); padding:6px;"><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b></div>
+          </div>
+          <div class="sec"><span>Contents</span><span></span></div>
+          <span>Diagrams</span><span>Structural review</span><span>Cut list</span><span>Boards</span><span>Shopping list</span><span>Build steps</span><span class="muted">Parameters</span>
+        </div>
+        <div class="tabs"><span class="on">Plan</span><span>Shop</span><span>Build</span></div>
+      </div>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:10px; align-content:start;">
+          <div class="muted">‹ Projects · Backyard swing set</div>
+          <div style="display:flex; justify-content:space-between;" class="muted"><span>Step [n] of [N]</span><span>Cutting</span></div>
+          <b style="font-size:17px">Cut board 2: 4x4, 12' 0"</b>
+          <span>Trim 1/2" off the factory end, then:</span>
+          <div class="launch"><span class="grow"><b>Front leg (downhill)</b><span class="n">138-3/8" · saw at 20.0°</span></span><span>›</span></div>
+          <span class="muted">Offcut <span class="n">4-1/2"</span></span>
+        </div>
+        <div class="tabs"><span>Plan</span><span>Shop</span><span class="on">Build</span></div>
+      </div>
+    </div>
+    <div class="critique">
+      <dl>
+        <dt>Platform convention (Apple HIG tab bars; NN/g mobile navigation)</dt>
+        <dd>A tab bar is the standard way to move between a few peer sections, and three fits well inside the usual limit of five. It stays visible, so Shop and Build are always one tap away.</dd>
+        <dt>Two layers of navigation</dt>
+        <dd>The tab bar belongs to a project, and Projects and Tools sit above it in the header. That is two systems on one small screen, and the tabs vanish when you leave the project.</dd>
+        <dt>Peers that are not peers</dt>
+        <dd>On the laptop, Shop and Build are rarely used but always shown. On the phone in the garage, Plan is rarely used but always shown. The tabs treat three unequal tasks as equal.</dd>
+        <dt>Mode signal</dt>
+        <dd>Build looks like the other tabs apart from the underline, so it is easy to forget that taps there change progress. NN/g advises at least two signals for a mode.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <!-- IA-2 -->
+  <article class="direction stack-lg">
+    <header><p><span class="letter">IA-2</span> · One plan, with Shop and Build launched from it</p><h3>The project is the plan document; shopping and building are full-screen modes you enter and leave</h3></header>
+    <div class="directions">
+      <div class="stack">
+        <h4>Site map</h4>
+        <ul class="tree">
+          <li><span class="node">Projects</span><span class="route">#/projects</span><span class="new">Resume card for an in-progress project</span>
+            <ul>
+              <li><span>New project</span><span class="route">/new?template=</span></li>
+              <li><span class="node">Plan</span><span class="route">/:id</span>
+                <ul>
+                  <li><span>Edit (split screen)</span><span class="route">/edit</span></li>
+                  <li><span class="mode">Shopping</span><span class="route">/shop</span><span class="new">new</span></li>
+                  <li><span class="mode">Building</span><span class="route">/build</span><span class="new">new</span><ul><li><span>Step</span><span class="route">/build/:step</span></li><li><span>Cut card</span><span class="route">/build/:step/:part</span></li><li><span>All steps</span><span class="route">/build/steps</span></li></ul></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><span class="node">Tools</span><span class="route">#/tools</span></li>
+        </ul>
+      </div>
+      <div class="stack">
+        <h4>Navigation by device</h4>
+        <table class="navtable">
+          <tr><th>Phone</th><td>Projects and Tools in a slim header. The plan opens with two launch cards at the top, Shopping and Building, each showing progress. A mode fills the screen under a dark bar with its name and Exit; it has no other navigation. Reload or reopening returns to the same mode and step.</td></tr>
+          <tr><th>Tablet</th><td>The plan uses a contents sidebar (Apple's advice for iPad). Building in landscape puts the step beside its diagram.</td></tr>
+          <tr><th>Laptop</th><td>Header with Projects and Tools; the plan with its contents sidebar; Edit opens the split screen. The launch cards sit in the summary, so the modes are there if you want them.</td></tr>
+          <tr><th>Print</th><td>The plan document. A mode prints the plan as well.</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:10px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;" class="muted"><span>‹ Projects</span><span>Tools</span></div>
+          <b style="font-size:17px">Backyard swing set</b>
+          <span class="muted">In progress · Two-swing A-frame swing set, version 2</span>
+          <div class="launch"><span class="grow"><b>Resume building</b><span class="muted">Step [n] of [N] · Cutting</span></span><span class="btn solid">Go</span></div>
+          <div class="launch"><span class="grow"><b>Shopping list</b><span class="muted">4 of 11 bought</span></span><span class="btn">Open</span></div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div style="border:1px solid var(--line); padding:6px;"><span class="muted">Legs</span><br><b class="n">131-1/2"</b>, <b class="n">138-3/8"</b></div>
+            <div style="border:1px solid var(--line); padding:6px;"><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b></div>
+          </div>
+          <div class="sec"><span>Contents</span><span></span></div>
+          <span>Diagrams</span><span>Structural review</span><span>Cut list</span><span>Boards</span>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+      <div class="wf phone">
+        <div class="modebar"><span>Building</span><span class="grow"></span><span class="btn">Exit</span></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:10px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;" class="muted"><span>Step [n] of [N] · Cutting</span><span>All steps</span></div>
+          <b style="font-size:17px">Cut board 2: 4x4, 12' 0"</b>
+          <span>Trim 1/2" off the factory end, then:</span>
+          <div class="launch"><span class="grow"><b>Front leg (downhill)</b><span class="n">138-3/8" · saw at 20.0°</span></span><span>›</span></div>
+          <span class="muted">Offcut <span class="n">4-1/2"</span></span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px; padding:8px 10px; border-top:1px solid var(--wf-ink);"><span class="btn" style="padding:12px; text-align:center">Back</span><span class="btn solid" style="padding:12px; text-align:center">Done, next</span></div>
+      </div>
+    </div>
+    <div class="critique">
+      <dl>
+        <dt>Precedent: a recipe page and its cook mode; Fitbod's Start Workout</dt>
+        <dd>Recipe sites keep one page for the recipe and offer a cook mode for following it at the stove. Fitbod plans a workout, then you start it and log sets in a focused view. Planning and doing are different tasks with different screens, and the doing screen is entered on purpose.</dd>
+        <dt>Modes done the way NN/g advises</dt>
+        <dd>A mode is clearly named, entered deliberately, and signalled two ways: the dark bar with its name, and the absence of other navigation. It is also safe by construction, since a mode can change progress but never the plan.</dd>
+        <dt>Hub and spoke for task sessions (NN/g)</dt>
+        <dd>A trip to the store or an evening in the garage is one task per session, which is where NN/g says a hub works. The hub is the plan, and the Resume card on the projects list skips it when you are mid-build.</dd>
+        <dt>Cost</dt>
+        <dd>Moving from Shopping to Building means going back through the plan; that is rare. Reopening into the same mode needs the URL to carry the mode and step, which hash routes already allow.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <!-- IA-3 -->
+  <article class="direction stack-lg">
+    <header><p><span class="letter">IA-3</span> · Activities at the top</p><h3>Plan, Shop, Build, and Tools are the app's tabs, all working on the current project</h3></header>
+    <div class="directions">
+      <div class="stack">
+        <h4>Site map</h4>
+        <ul class="tree">
+          <li><span class="node">Plan</span><span class="route">#/plan</span>
+            <ul>
+              <li><span>Projects (pick the current one)</span><span class="route">/projects</span></li>
+              <li><span>New project</span><span class="route">/new?template=</span></li>
+              <li><span>The current project's plan</span><span class="route">/:id</span><ul><li><span>Edit (split screen)</span><span class="route">/edit</span></li></ul></li>
+            </ul>
+          </li>
+          <li><span class="node">Shop</span><span class="route">#/shop</span><span class="new">current project</span></li>
+          <li><span class="node">Build</span><span class="route">#/build</span><span class="new">current project</span><ul><li><span>Step, cut card</span></li></ul></li>
+          <li><span class="node">Tools</span><span class="route">#/tools</span></li>
+        </ul>
+      </div>
+      <div class="stack">
+        <h4>Navigation by device</h4>
+        <table class="navtable">
+          <tr><th>Phone</th><td>Bottom tab bar on every screen: Plan · Shop · Build · Tools. Shop and Build show the current project, named at the top with a way to switch.</td></tr>
+          <tr><th>Tablet</th><td>A sidebar with the same four entries.</td></tr>
+          <tr><th>Laptop</th><td>A left rail with the four entries; Plan holds the project list and the plan document.</td></tr>
+          <tr><th>Print</th><td>The current project's plan.</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:10px; align-content:start;">
+          <div class="launch" style="padding:6px 8px"><span class="grow"><span class="muted">Current project</span><b>Backyard swing set</b></span><span>▾</span></div>
+          <div style="display:flex; justify-content:space-between;" class="muted"><span>Step [n] of [N]</span><span>Cutting</span></div>
+          <b style="font-size:17px">Cut board 2: 4x4, 12' 0"</b>
+          <span>Trim 1/2" off the factory end, then:</span>
+          <div class="launch"><span class="grow"><b>Front leg (downhill)</b><span class="n">138-3/8" · saw at 20.0°</span></span><span>›</span></div>
+          <span class="muted">Offcut <span class="n">4-1/2"</span></span>
+        </div>
+        <div class="tabs"><span>Plan</span><span>Shop</span><span class="on">Build</span><span>Tools</span></div>
+      </div>
+    </div>
+    <div class="critique">
+      <dl>
+        <dt>Fastest in the garage</dt>
+        <dd>Opening the app on the phone and tapping Build lands on the step, with no project to pick. Paprika and Fitbod put their activities (grocery list, workout) at the top level the same way.</dd>
+        <dt>A hidden piece of state</dt>
+        <dd>"Current project" decides what Shop and Build show, and it is set somewhere else. With two projects in flight, the store list may be for the wrong one. That is the mode slip NN/g warns about, and it needs new stored state (a setting on the server).</dd>
+        <dt>The plan loses its place</dt>
+        <dd>Projects and the plan share one tab, so the laptop's main task sits one level down. The structure favors the phone over the laptop, where most planning happens.</dd>
+        <dt>Where it leads</dt>
+        <dd>It suits one shopping list across several projects, as Paprika merges recipes into one list. That is out of scope for the MVP.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <div class="verdict prose stack">
+    <h4>Suggestion</h4>
+    <p>IA-2. It keeps one structure, the plan, that matches the printed page and the laptop's main job, and it gives the store and the garage focused screens you enter on purpose. The Resume card covers IA-3's speed in the garage without a hidden current project. IA-1 is the conventional fallback if full-screen modes feel heavy once built.</p>
+  </div>
+</section>
+
+<!-- ============================== ORDER ============================== -->
+<section id="order" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Order of a project's sections</p>
+    <h2>One order for the screen and the printed plan</h2>
+    <p class="prose">The plan document (L-B in #39) needs a fixed section order, which is also the print order and the contents list. Woodsmith's published plans put the drawings first, then the materials list and cutting diagram, then the steps. The open question is where the structural review goes.</p>
+  </div>
+  <div class="opts">
+    <div class="opt rec">
+      <div class="head"><b>A · Decide first</b><span class="rec-tag">Suggested</span></div>
+      <ol class="order">
+        <li>Summary: key results, flags, version notice</li>
+        <li>Diagrams: isometric, exploded, site layout</li>
+        <li>Structural review: inputs needed, margins, checklist, flags</li>
+        <li>Cut list, by part, with cut details</li>
+        <li>Boards: which pieces come from which board</li>
+        <li>Shopping list</li>
+        <li>Build steps</li>
+        <li>Parameters and inputs</li>
+      </ol>
+      <p class="muted small">The review decides whether the design is ready to buy for, and it is what an experienced builder reads first on paper. Flags stay prominent (PRODUCT.md, principle 3). Buying and building follow in the order you do them.</p>
+    </div>
+    <div class="opt">
+      <div class="head"><b>B · Build order</b></div>
+      <ol class="order">
+        <li>Summary</li>
+        <li>Diagrams</li>
+        <li>Shopping list</li>
+        <li>Cut list and boards</li>
+        <li>Build steps</li>
+        <li>Structural review</li>
+        <li>Parameters and inputs</li>
+      </ol>
+      <p class="muted small">Follows the project's life from store to garage, as a published plan does. The review becomes an appendix, so margins and the checklist are easier to skip, and the summary has to carry the flags alone.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== STEPS ============================== -->
+<section id="steps" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">What a build step shows</p>
+    <h2>Two kinds of step, in one order of parts</h2>
+    <p class="prose">Every step reads top to bottom in the same order: where you are, what to do, the numbers, the drawing, how (the method for your tools), what to ask about (flags), then Back and Done. Cutting steps follow the board plan (Q4 in #39); assembly steps follow them.</p>
+  </div>
+  <div class="frames">
+    <div class="wf phone">
+      <div class="modebar"><span>Building</span><span class="grow"></span><span class="btn">Exit</span></div>
+      <div class="screen" style="padding:10px 12px; display:grid; gap:9px; align-content:start;">
+        <div style="display:flex; justify-content:space-between;" class="muted"><span>Step [n] of [N] · Cutting</span><span>All steps</span></div>
+        <b style="font-size:17px">Cut board 6: 2x6, 10' 0"</b>
+        <div class="board" style="height:30px"><span style="width:1%"></span><span class="pc" style="width:46.4%">1 · Crossbar</span><span class="pc" style="width:46.4%">2 · Crossbar</span><span class="off" style="width:6.2%"></span></div>
+        <span>Trim 1/2" off the factory end. Each cut takes 1/8".</span>
+        <div class="launch"><span class="grow"><b>1 · Crossbar</b><span class="n">55-11/16" · saw at 20.0°, mirrored</span></span><span class="check"></span></div>
+        <div class="launch"><span class="grow"><b>2 · Crossbar</b><span class="n">55-11/16" · saw at 20.0°, mirrored</span></span><span class="check"></span></div>
+        <span class="muted">Offcut <span class="n">7-5/16"</span>. Tap a piece for its cut card.</span>
+        <span>[Method for your saw: M6]</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px; padding:8px 10px; border-top:1px solid var(--wf-ink);"><span class="btn" style="padding:12px; text-align:center">Back</span><span class="btn solid" style="padding:12px; text-align:center">Done, next</span></div>
+    </div>
+    <div class="wf phone">
+      <div class="modebar"><span>Building</span><span class="grow"></span><span class="btn">Exit</span></div>
+      <div class="screen" style="padding:10px 12px; display:grid; gap:9px; align-content:start;">
+        <div style="display:flex; justify-content:space-between;" class="muted"><span>Step [n] of [N] · Assembly</span><span>All steps</span></div>
+        <b style="font-size:17px">[Bolt each leg pair to the beam: M6]</b>
+        <div class="ph" style="height:120px">Exploded view of this joint (M5),<br>parts labeled by id</div>
+        <div class="sec"><span>Parts</span><span></span></div>
+        <span>Beam · Back leg (uphill) · Front leg (downhill) · Gusset</span>
+        <div class="sec"><span>Hardware</span><span></span></div>
+        <span class="n">1/2" through-bolt, grip 8-15/16" · [count per joint: #50]</span>
+        <span>[Method: M6]</span>
+        <div class="flag"><span class="k">Load-bearing</span><span>Confirm the bolt size for the leg-to-beam bolt (8-15/16" of wood)…</span></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px; padding:8px 10px; border-top:1px solid var(--wf-ink);"><span class="btn" style="padding:12px; text-align:center">Back</span><span class="btn solid" style="padding:12px; text-align:center">Done, next</span></div>
+    </div>
+  </div>
+  <div class="critique prose">
+    <dl>
+      <dt>Same skeleton for every step (Nielsen's fourth heuristic, consistency)</dt>
+      <dd>The eye learns where the numbers, the drawing, and the flag sit, and finds them at arm's length without reading the whole screen.</dd>
+      <dt>Small steps, each one action</dt>
+      <dd>Assembly instructions work by keeping each step to one action with its parts and hardware listed. A cutting step is one board; an assembly step is one joint or one subassembly.</dd>
+      <dt>All steps</dt>
+      <dd>The step list groups steps into phases (cutting, drilling, assembly, finishing) so you can see where you are and jump. That needs a phase on each step (new requirement below).</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ============================== REVISED ============================== -->
+<section id="revised" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Revised key screens</p>
+    <h2>The #39 screens on the chosen structure</h2>
+    <p class="prose">IA-2 with section order A. These replace the #39 sketches as the starting point for layout (#41). The edit screen is unchanged from L-A.</p>
+  </div>
+
+  <article class="direction">
+    <header><p><span class="letter">Laptop</span> · The plan</p><h3>Order A in the contents list, the two modes in the summary</h3></header>
+    <div class="scroll"><div class="wf laptop">
+      <div class="bar"><b>Kerf</b><span>Projects</span><span>Tools</span><span class="grow"></span><span class="muted">Log out</span></div>
+      <div style="display:grid; grid-template-columns: 180px 1fr; min-height:0;">
+        <nav style="border-right:1px solid var(--line); padding:12px 10px; display:grid; gap:8px; align-content:start;">
+          <span class="muted" style="font-size:10px; text-transform:uppercase; letter-spacing:.06em">Contents</span>
+          <span><b>Summary</b></span><span>Diagrams</span><span>Structural review</span><span>Cut list</span><span>Boards</span><span>Shopping list</span><span>Build steps</span><span class="muted">Parameters and inputs</span>
+        </nav>
+        <div style="padding:12px 16px; display:grid; gap:12px; align-content:start; min-width:0;">
+          <div style="display:flex; align-items:baseline; gap:10px;"><b style="font-size:16px">Backyard swing set</b><span class="tag">Planned</span><span class="muted">Two-swing A-frame swing set, version 2</span><span class="grow" style="flex:1"></span><span class="btn">Print</span><span class="btn solid">Edit</span></div>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
+            <div style="border:1px solid var(--line); padding:8px;"><span class="muted">Beam</span><br><b class="n">120"</b> 4x6</div>
+            <div style="border:1px solid var(--line); padding:8px;"><span class="muted">Legs</span><br><b class="n">131-1/2"</b> and <b class="n">138-3/8"</b></div>
+            <div style="border:1px solid var(--line); padding:8px;"><span class="muted">End cuts</span><br>saw at <b class="n">20.0°</b></div>
+            <div style="border:1px solid var(--line); padding:8px;"><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b> bending</div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="launch"><span class="grow"><b>Shopping</b><span class="muted">11 lines, none bought</span></span><span class="btn">Start</span></div>
+            <div class="launch"><span class="grow"><b>Building</b><span class="muted">[N] steps, not started</span></span><span class="btn">Start</span></div>
+          </div>
+          <div class="flag"><span class="k">3 flags · load-bearing</span><span>Leg-to-beam bolt and gusset; frame on sloped ground; burial depth and ground-contact lumber.</span></div>
+          <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:10px;">
+            <div class="ph" style="height:110px">Isometric view (M5)</div>
+            <div class="ph" style="height:110px">Site layout (M5)</div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </article>
+
+  <div class="directions">
+    <article class="direction">
+      <header><p><span class="letter">Phone</span> · Projects</p><h3>The Resume card skips the plan mid-build</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:10px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;"><b style="font-size:17px">Projects</b><span class="muted">Tools</span></div>
+          <div class="launch"><span class="grow"><b>Resume building</b><span>Backyard swing set</span><span class="muted">Step [n] of [N] · Cutting</span></span><span class="btn solid">Go</span></div>
+          <div class="sec"><span>In progress</span><span></span></div>
+          <div class="launch"><span class="grow"><b>Backyard swing set</b><span class="muted">Shopping 4 of 11 · Building step [n] of [N]</span></span><span>›</span></div>
+          <div class="sec"><span>Planned</span><span></span></div>
+          <div class="blk" style="width:70%"></div>
+          <div class="sec"><span>Built</span><span></span></div>
+          <div class="blk" style="width:55%"></div>
+          <span class="btn" style="text-align:center; padding:10px">New project</span>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+    <article class="direction">
+      <header><p><span class="letter">Phone</span> · Shopping mode</p><h3>S-A's checklist under the mode bar; a lumber row opens its board card</h3></header>
+      <div class="wf phone">
+        <div class="modebar"><span>Shopping</span><span class="grow"></span><span class="btn">Exit</span></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:8px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;" class="muted"><span>Backyard swing set</span><span>4 of 11</span></div>
+          <div class="sec"><span>Lumber</span><span class="muted">1 of 4</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check on">✓</span><span style="flex:1"><b class="n">1</b> × 4x6, <span class="n">12' 0"</span></span><span class="muted">›</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">4</b> × 4x4, <span class="n">12' 0"</span></span><span class="muted">⌄</span></div>
+          <div style="border:1px solid var(--wf-ink); padding:8px; display:grid; gap:6px; margin-left:32px;">
+            <span><b>2</b> for the front legs</span>
+            <div class="board"><span class="pc" style="width:96%">Front leg 138-3/8"</span><span class="off" style="width:4%"></span></div>
+            <span><b>2</b> for the back legs</span>
+            <div class="board"><span class="pc" style="width:91.3%">Back leg 131-1/2"</span><span class="off" style="width:8.7%"></span></div>
+            <span class="muted">[What to look for: #53]</span>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">1</b> × 2x6, <span class="n">10' 0"</span></span><span class="muted">›</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">1</b> × 2x8, <span class="n">8' 0"</span></span><span class="muted">›</span></div>
+          <div class="sec"><span>Bolts and fittings</span><span class="muted">3 of 5</span></div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+  </div>
+
+  <article class="direction">
+    <header><p><span class="letter">Tablet</span> · Building mode, landscape</p><h3>The step beside its diagram</h3></header>
+    <div class="scroll"><div class="wf tablet" style="height:440px">
+      <div class="modebar"><span>Building · Backyard swing set</span><span class="grow"></span><span style="font-weight:400">Step [n] of [N] · Cutting</span><span class="btn">All steps</span><span class="btn">Exit</span></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; min-height:0;">
+        <div style="padding:14px 18px; display:grid; gap:10px; align-content:start; border-right:1px solid var(--wf-ink);">
+          <b style="font-size:17px">Cut board 6: 2x6, 10' 0"</b>
+          <span>Trim 1/2" off the factory end. Each cut takes 1/8".</span>
+          <div class="launch"><span class="grow"><b>1 · Crossbar</b><span class="n">55-11/16" · saw at 20.0°, mirrored</span></span><span class="check"></span></div>
+          <div class="launch"><span class="grow"><b>2 · Crossbar</b><span class="n">55-11/16" · saw at 20.0°, mirrored</span></span><span class="check"></span></div>
+          <span class="muted">Offcut <span class="n">7-5/16"</span></span>
+          <span>[Method for your saw: M6]</span>
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px;"><span class="btn" style="padding:12px; text-align:center">Back</span><span class="btn solid" style="padding:12px; text-align:center">Done, next</span></div>
+        </div>
+        <div style="padding:14px; display:grid; gap:10px; align-content:start;">
+          <div class="board" style="height:34px"><span style="width:1%"></span><span class="pc hl" style="width:46.4%">1 · Crossbar</span><span class="pc" style="width:46.4%">2 · Crossbar</span><span class="off" style="width:6.2%"></span></div>
+          <div class="ph" style="height:200px">Cut detail for the crossbar (M5): top edge 51-11/16", bottom edge 55-11/16", 20.0° at both ends, reference face marked</div>
+        </div>
+      </div>
+    </div></div>
+  </article>
+</section>
+
+<!-- ============================== REFERENCES ============================== -->
+<section id="references" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Precedents and guidance</p>
+    <h2>Sources behind these directions</h2>
+    <p class="prose">Checked in October 2026. Where a primary page could not be loaded, the note says so.</p>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>NN/g: Basic Patterns for Mobile Navigation</b><p>Tab bars suit a few main sections, about five at most, and stay visible. A hub suits task-based apps where people do one task per session, at the cost of a step back to the hub. Basis for IA-1 and IA-2.</p><p class="small"><a href="https://www.nngroup.com/articles/mobile-navigation-patterns/">Budiu, 2015</a></p></div>
+    <div class="opt"><b>NN/g: Modes in User Interfaces</b><p>Modes help when one input must mean several things, and hurt when a slip causes harm. Signal the mode at least two ways, name it clearly, and prefer separate controls where a mix-up matters. Basis for IA-2's mode bar and for keeping plan and progress on separate screens.</p><p class="small"><a href="https://www.nngroup.com/articles/modes/">Laubheimer, 2019</a></p></div>
+    <div class="opt"><b>Apple HIG: tab bars and sidebars</b><p>Tab bars are for navigation, not actions, and stay visible except inside a modal task; on iPad, consider a sidebar. I could not load Apple's page directly; this is from summaries that quote it.</p><p class="small"><a href="https://developer.apple.com/design/human-interface-guidelines/tab-bars">Tab bars</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/sidebars">Sidebars</a></p></div>
+    <div class="opt"><b>Material 3: navigation bar and rail</b><p>A bar for compact windows, a rail from medium windows up, three to seven destinations in a rail. From Android's adaptive navigation guide; the Material site did not load.</p><p class="small"><a href="https://developer.android.com/develop/adaptive-apps/guides/build-adaptive-navigation">Build adaptive navigation</a></p></div>
+    <div class="opt"><b>Fitbod: Start Workout</b><p>Once a workout is started it is not regenerated. Kerf's version is the warning before regenerating a project with progress.</p><p class="small"><a href="https://help.fitbod.me/hc/en-us/articles/42333470514455-Why-did-my-workout-change-Understanding-workout-refreshes">Fitbod help: workout refreshes</a></p></div>
+    <div class="opt"><b>Recipe cook modes and Paprika</b><p>A recipe page with a cook mode for following it (IA-2). Paprika puts recipes, meal plans, and grocery lists side by side as top-level areas, and merges ingredients into one list (IA-3); a competitor's review says moving between those areas takes several taps.</p><p class="small"><a href="https://bootstrapped.ventures/cook-mode/">Cook mode</a> · <a href="https://paprikaapp.com/">Paprika</a> · <a href="https://plantoeat.com/?p=38013">Plan to Eat review</a></p></div>
+    <div class="opt"><b>Woodsmith plans</b><p>Published plans list "materials list and cutting diagram" as standard contents, after the drawings. Basis for order B, and for the Boards section in both orders.</p><p class="small"><a href="https://www.woodsmith.com/article/creating-cutting-diagrams/">Creating cutting diagrams</a></p></div>
+  </div>
+</section>
+
+<!-- ============================== REQUIREMENTS ============================== -->
+<section id="requirements" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">New requirements</p>
+    <h2>What this stage adds</h2>
+    <p class="prose">Issues are filed once the choices are made, in the milestone shown.</p>
+  </div>
+  <div class="req-wrap">
+    <table class="req">
+      <thead><tr><th>#</th><th>Requirement</th><th>Directions</th><th>Status today</th><th>Where it goes</th></tr></thead>
+      <tbody>
+        <tr><td>R22</td><td>Routes carry the view, mode, and step, so a reload or a link reopens the same place.</td><td>All</td><td><span class="st not">Not met</span></td><td>Web only. M7, with the shop views.</td></tr>
+        <tr><td>R23</td><td>Each build step has a phase (cutting, drilling, assembly, finishing) for the step list.</td><td>All</td><td><span class="st not">Not met</span></td><td>M6, with #52.</td></tr>
+        <tr><td>R24</td><td>Before regenerating, say how much saved progress would reset.</td><td>All</td><td><span class="st not">Not met</span></td><td>M7, added to #57.</td></tr>
+        <tr><td>R25</td><td>Status moves to In progress when shopping or building starts, and to Built when the last step is done.</td><td>All</td><td><span class="st partly">Partly met</span></td><td>Status exists and can be set by hand (<code>PUT</code>); nothing sets it from progress. M7, with #57.</td></tr>
+        <tr><td>R26</td><td>Progress summary per project in the project list (for the Resume card).</td><td>IA-2, IA-3</td><td><span class="st not">Not met</span></td><td>M7, with #57. The list returns summaries without snapshots today.</td></tr>
+        <tr><td>R27</td><td>A stored "current project" setting.</td><td>IA-3 only</td><td><span class="st not">Not met</span></td><td>Only if IA-3 is chosen.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Numbers come from <code>packages/core/src/templates/swing-set-a-frame/snapshots/v2.json</code>, example 1, through core's formatters. Kept at <code>docs/design/information-architecture.html</code>; choices are recorded in <code>docs/design/README.md</code>.</p>
+</footer>
+
+</main>
