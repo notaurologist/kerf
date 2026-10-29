@@ -1,0 +1,650 @@
+<title>Kerf Layout and Grid</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+/* Additions for the layout page: grid overlays, sheets, and the distance table. */
+.frames { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: flex-start; }
+.frames .phone { margin-inline: 0; }
+.modebar { background: var(--wf-ink); color: var(--wf-bg); display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-weight: 650; }
+.modebar .grow { flex: 1; }
+.modebar .btn { border-color: var(--wf-bg); color: var(--wf-bg); }
+.launch { border: 1.5px solid var(--wf-ink); border-radius: 4px; padding: 8px 10px; display: flex; align-items: center; gap: 10px; }
+.launch .grow { flex: 1; display: grid; }
+.ov { position: absolute; pointer-events: none; display: grid; }
+.ov > i { background: rgba(31, 111, 174, 0.12); border-inline: 1px solid rgba(31, 111, 174, 0.35); }
+.prim { outline: 1.5px dashed var(--blue); outline-offset: 2px; position: relative; }
+.prim > .lab { position: absolute; top: -9px; right: 4px; background: var(--wf-bg); color: var(--blue); font: 600 9px/1 var(--mono); padding: 1px 3px; }
+.sheet { width: 612px; height: 792px; background: var(--wf-bg); border: 1.5px solid var(--wf-ink); position: relative; display: grid; grid-template-rows: 1fr auto; padding: 36px; font-size: 10px; }
+.sheet .inner { border: 1.5px solid var(--wf-ink); display: grid; grid-template-rows: 1fr auto; min-height: 0; }
+.sheet .tb { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; border-top: 1.5px solid var(--wf-ink); }
+.sheet .tb > span { border-left: 1px solid var(--wf-ink); padding: 3px 6px; display: grid; gap: 1px; }
+.sheet .tb > span:first-child { border-left: 0; }
+.sheet .tb small { font-size: 7px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.zone { position: absolute; font: 600 9px/1 var(--mono); color: var(--muted); }
+table.dist { border-collapse: collapse; width: 100%; min-width: 620px; background: var(--wf-bg); font-size: 0.9rem; }
+table.dist th, table.dist td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+table.dist th:first-child, table.dist td:first-child { text-align: left; }
+table.dist th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.dist tr.key td { background: var(--blue-soft); }
+.spec { border-collapse: collapse; width: 100%; font-size: 0.88rem; background: var(--wf-bg); }
+/* biome-ignore lint/style/noDescendingSpecificity: page-local tables and swatches; no rule above targets these elements inside them. */
+table.spec th, table.spec td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+table.spec th { color: var(--muted); font-weight: 600; font-size: var(--step--1); }
+table.spec td.n, table.spec th.n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.scale { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-size: var(--step--1); color: var(--muted); }
+/* biome-ignore lint/style/noDescendingSpecificity: page-local tables and swatches; no rule above targets these elements inside them. */
+div.scale span { display: grid; justify-items: center; gap: 4px; }
+div.scale b { display: block; background: var(--blue); }
+.formula { font-family: var(--mono); font-size: 11px; background: var(--wf-soft); padding: 6px; overflow-x: auto; white-space: nowrap; }
+</style>
+
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #41</p>
+  <h1>Layout and grid</h1>
+  <div class="prose stack">
+    <p>The spatial system: grid, spacing, and breakpoints for phone, tablet, laptop, and paper. It builds on #40: the plan document in section order A, the split edit screen, and Shopping and Building as full-screen modes.</p>
+    <p>Three directions follow, each drawn on the laptop plan and a phone build step. Before them is the measurement everything else rests on: how big text has to be to read at the distances Kerf is used from. After them are the three hard cases the issue names (the cut list on a phone, the structural working, diagrams) and the printed page.</p>
+    <p class="muted small">Wide frames scroll sideways inside their box on a phone. Blue stripes and dashed outlines are the grid, drawn over the sketch.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
+  <p>Four choices. My suggestion is first in each. A reply like <span class="pick" style="white-space: normal">B with C's title block, distances as proposed, stacked cut list, Letter</span> is enough.</p>
+  <ol>
+    <li><a href="#directions">Grid</a>: <span class="pick">B</span> content-out layout with C's title block on printed pages, <span class="pick">A</span> modular columns with device breakpoints, or <span class="pick">C</span> sheets on screen and paper.</li>
+    <li><a href="#distance">Viewing distances</a>: confirm the four distances in the table, or measure your own in the garage. They set the size of everything in the two modes.</li>
+    <li><a href="#cutlist">Cut list on a phone</a>: <span class="pick">stacked rows</span>, a table that scrolls sideways, or priority columns.</li>
+    <li><a href="#print">Paper</a>: <span class="pick">US Letter</span> portrait with landscape diagram pages, or something else your printer takes.</li>
+  </ol>
+</section>
+
+<!-- ============================== DISTANCE ============================== -->
+<section id="distance" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">The measurement underneath</p>
+    <h2>How big text must be at each distance</h2>
+    <p class="prose">Legibility depends on the angle a character takes up at the eye, not on its size in pixels. Display guidance for control rooms puts the minimum easily readable character height at 16 minutes of arc and the optimal at 20 (Activu, citing MIL-DTL-87268D; human-factors texts give 20 to 22). Height is distance × tan(angle). The table turns that into CSS pixels for a phone and a tablet.</p>
+  </div>
+  <div class="req-wrap">
+    <table class="dist">
+      <thead>
+        <tr><th>Where the screen is</th><th>Distance</th><th>Digit height at 16′</th><th>at 20′</th><th>Phone font size, 16′ / 20′</th><th>Tablet font size, 16′ / 20′</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Phone in your hand</td><td>0.5 m</td><td>2.3 mm</td><td>2.9 mm</td><td>20 / 25 px</td><td>17 / 22 px</td></tr>
+        <tr class="key"><td>On the bench beside you</td><td>0.75 m</td><td>3.5 mm</td><td>4.4 mm</td><td>30 / 38 px</td><td>26 / 32 px</td></tr>
+        <tr class="key"><td>Propped up across the bench</td><td>1.0 m</td><td>4.7 mm</td><td>5.8 mm</td><td>40 / 50 px</td><td>35 / 43 px</td></tr>
+        <tr><td>Tablet on a sawhorse</td><td>1.5 m</td><td>7.0 mm</td><td>8.7 mm</td><td>60 / 75 px</td><td>52 / 65 px</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose stack small muted">
+    <p>Assumptions: a phone CSS pixel is about 0.166 mm (460 pixels per inch at 3x) and a tablet's about 0.192 mm (264 per inch at 2x). A digit is about 0.7 of the font size; the real ratio depends on the typeface chosen in #42, which will redo this table with its own figures.</p>
+  </div>
+  <div class="opts">
+    <div class="opt rec"><div class="head"><b>Proposed: two distances in every mode</b><span class="rec-tag">Suggested</span></div><p><b>Read distance, 0.5 m.</b> Instructions, notes, and method text are read with the phone in your hand: about 20 px on a phone, which is a normal reading size.</p><p><b>Glance distance, 1.0 m.</b> The numbers you cut to (length, saw setting) are read from across the bench with your hands on the board: about 50 px for a length on a phone, at 20′.</p><p class="muted small">A length like 138-3/8" at 50 px is about 230 px wide in tabular figures, which fits a 375 px phone with room to spare. At 1.5 m it would not, so the sawhorse distance is for the tablet only.</p></div>
+    <div class="opt"><div class="head"><b>Two densities, chosen by context</b></div><p><b>Desk density</b> for the plan and the edit screen: conventional sizes, read at 0.5 to 0.6 m on a laptop.</p><p><b>Shop density</b> inside Shopping and Building: the read and glance sizes above, and controls at least 56 px tall for gloved hands, above WCAG's 44 px enhanced target.</p><p class="muted small">Density follows the mode, not the screen width, so a phone on the couch reading the plan gets desk density.</p></div>
+  </div>
+</section>
+
+<!-- ============================== DIRECTIONS ============================== -->
+<section id="directions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Grid</p>
+    <h2>Three spatial systems</h2>
+    <p class="prose">All three use a 4 px base unit and keep running text to 45 to 90 characters a line (Butterick's range). They differ in what the layout is measured from: the device, the content, or the sheet of paper.</p>
+  </div>
+
+  <!-- A -->
+  <article class="direction stack-lg">
+    <header><p><span class="letter">A</span> · Modular columns</p><h3>A column grid that changes at fixed device widths</h3></header>
+    <div class="directions">
+      <table class="spec">
+        <tr><th>Width</th><th>Typical</th><th class="n">Cols</th><th class="n">Margin</th><th class="n">Gutter</th></tr>
+        <tr><td>under 600</td><td>phone</td><td class="n">4</td><td class="n">16</td><td class="n">16</td></tr>
+        <tr><td>600 to 839</td><td>tablet portrait</td><td class="n">8</td><td class="n">24</td><td class="n">24</td></tr>
+        <tr><td>840 to 1279</td><td>tablet landscape, small laptop</td><td class="n">12</td><td class="n">32</td><td class="n">24</td></tr>
+        <tr><td>1280 and up</td><td>laptop</td><td class="n">12</td><td class="n">auto</td><td class="n">24</td></tr>
+      </table>
+      <div class="stack small">
+        <p>Breakpoints at 600 and 840 follow Android's window size classes (compact, medium, expanded). Content stops at 1200 px. The plan's contents sidebar takes 3 of 12 columns from 840 up.</p>
+        <p>Spacing in fixed steps of the base unit:</p>
+        <div class="scale"><span><b style="width:4px;height:4px"></b>4</span><span><b style="width:8px;height:8px"></b>8</span><span><b style="width:12px;height:12px"></b>12</span><span><b style="width:16px;height:16px"></b>16</span><span><b style="width:24px;height:24px"></b>24</span><span><b style="width:32px;height:32px"></b>32</span><span><b style="width:48px;height:48px"></b>48</span><span><b style="width:64px;height:64px"></b>64</span></div>
+        <p>Print: Letter, 1/2" margins, 12 columns across 7-1/2".</p>
+      </div>
+    </div>
+    <div class="scroll"><div class="frames" style="justify-content:flex-start; flex-wrap:nowrap;">
+      <div class="wf laptop" style="min-height:420px; width:900px;">
+        <div class="bar"><b>Kerf</b><span>Projects</span><span>Tools</span><span class="grow"></span></div>
+        <div style="display:grid; grid-template-columns: repeat(12, 1fr); column-gap:24px; padding:16px 32px; align-content:start; position:relative;">
+          <div class="ov" style="inset:0 32px; grid-template-columns: repeat(12, 1fr); column-gap:24px;"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <nav style="grid-column: span 3; display:grid; gap:8px; align-content:start;"><span class="muted" style="font-size:10px">CONTENTS</span><b>Summary</b><span>Diagrams</span><span>Structural review</span><span>Cut list</span><span>Boards</span><span>Shopping list</span><span>Build steps</span></nav>
+          <div style="grid-column: span 9; display:grid; grid-template-columns: repeat(9, 1fr); column-gap:24px; row-gap:16px; align-content:start;">
+            <b style="grid-column: 1 / -1; font-size:16px">Backyard swing set</b>
+            <div style="grid-column: span 3; border:1px solid var(--line); padding:8px;"><span class="muted">Legs</span><br><b class="n">131-1/2"</b>, <b class="n">138-3/8"</b></div>
+            <div style="grid-column: span 3; border:1px solid var(--line); padding:8px;"><span class="muted">End cuts</span><br>saw at <b class="n">20.0°</b></div>
+            <div style="grid-column: span 3; border:1px solid var(--line); padding:8px;"><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b></div>
+            <div class="launch" style="grid-column: span 4;"><span class="grow"><b>Shopping</b><span class="muted">11 lines</span></span><span class="btn">Start</span></div>
+            <div class="launch" style="grid-column: span 5;"><span class="grow"><b>Building</b><span class="muted">[N] steps</span></span><span class="btn">Start</span></div>
+            <div class="ph" style="grid-column: span 6; height:150px">Isometric view</div>
+            <div class="ph" style="grid-column: span 3; height:150px">Site layout</div>
+          </div>
+        </div>
+      </div>
+      <div class="wf phone">
+        <div class="modebar"><span>Building</span><span class="grow"></span><span class="btn">Exit</span></div>
+        <div class="screen" style="padding:12px 16px; display:grid; grid-template-columns: repeat(4,1fr); column-gap:16px; row-gap:10px; align-content:start; position:relative;">
+          <div class="ov" style="inset:0 16px; grid-template-columns: repeat(4,1fr); column-gap:16px;"><i></i><i></i><i></i><i></i></div>
+          <span class="muted" style="grid-column:1/-1">Step [n] of [N] · Cutting</span>
+          <b style="grid-column:1/-1; font-size:17px">Cut the 2 back legs</b>
+          <b class="n" style="grid-column:1/-1; font-size:40px; line-height:1">131-1/2"</b>
+          <div style="grid-column: span 2; border:1.5px solid var(--wf-ink); padding:6px;"><span class="muted">Saw at</span><br><b class="n" style="font-size:24px">20.0°</b></div>
+          <div style="grid-column: span 2; border:1px solid var(--line); padding:6px;"><span class="muted">To the edge</span><br><span class="n" style="font-size:16px">70.0°</span></div>
+          <span style="grid-column:1/-1">Each edge, top cut to foot cut <span class="n">130-1/4"</span></span>
+          <span style="grid-column:1/-1">[Method: M6]</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px; padding:8px 16px; border-top:1px solid var(--wf-ink);"><span class="btn" style="padding:16px; text-align:center">Back</span><span class="btn solid" style="padding:16px; text-align:center">Done, next</span></div>
+      </div>
+    </div></div>
+    <div class="critique">
+      <dl>
+        <dt>Predictable and well documented</dt>
+        <dd>Fixed columns make alignment easy to check by eye and easy to hand to M5, M6, and M7: "the cut card spans 4 columns". Android's window size classes and most published grids work this way.</dd>
+        <dt>Built around devices, not content</dt>
+        <dd>The same component lands in different places at each breakpoint. A cut card that appears inside a step, a tablet pane, and the plan needs a rule for each. Between breakpoints the layout does not change at all, so a tablet in split view can fall into an awkward width.</dd>
+        <dt>Columns and numbers</dt>
+        <dd>Four columns on a phone are too narrow for a label beside a large number; most shop content spans all four, so the grid does little work there.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <!-- B -->
+  <article class="direction stack-lg">
+    <header><p><span class="letter">B</span> · Content-out</p><h3>Layout primitives that respond to the space they are given, with a fluid spacing scale</h3></header>
+    <div class="directions">
+      <div class="stack small">
+        <p>No page-wide columns. Every screen is built from a handful of primitives, each deciding its own arrangement from its container's width (Every Layout):</p>
+        <ul class="notes" style="color:var(--ink)">
+          <li><b>Stack</b>: vertical flow with one spacing value. Steps, cards, sections.</li>
+          <li><b>Sidebar</b>: a narrow and a wide part side by side, stacking when the wide part would drop below a minimum. Contents beside the plan; step beside its diagram on a tablet.</li>
+          <li><b>Switcher</b>: a row that becomes a column below a set width. The summary's key results; the two launch cards.</li>
+          <li><b>Cluster</b>: items that wrap like words. Tags, flags, button groups.</li>
+          <li><b>Center</b>: caps running text at 65 characters.</li>
+        </ul>
+      </div>
+      <div class="stack small">
+        <p>Spacing is fluid between a 360 px and a 1280 px viewport, each step a <code>clamp()</code> (Utopia):</p>
+        <table class="spec">
+          <tr><th>Step</th><th class="n">at 360</th><th class="n">at 1280</th><th>Used for</th></tr>
+          <tr><td>3xs</td><td class="n">4</td><td class="n">4</td><td>inside a number and its unit</td></tr>
+          <tr><td>2xs</td><td class="n">8</td><td class="n">8</td><td>label to value</td></tr>
+          <tr><td>xs</td><td class="n">12</td><td class="n">14</td><td>rows in a list</td></tr>
+          <tr><td>s</td><td class="n">16</td><td class="n">20</td><td>side gutter, items in a card</td></tr>
+          <tr><td>m</td><td class="n">24</td><td class="n">32</td><td>between cards</td></tr>
+          <tr><td>l</td><td class="n">32</td><td class="n">48</td><td>between sections</td></tr>
+          <tr><td>xl</td><td class="n">48</td><td class="n">72</td><td>page top and bottom</td></tr>
+        </table>
+        <p>Shop density multiplies the scale by 1.5. Print: Letter, 1/2" margins, the same primitives at a fixed 720 px.</p>
+      </div>
+    </div>
+    <div class="scroll"><div class="frames" style="justify-content:flex-start; flex-wrap:nowrap;">
+      <div class="wf laptop" style="min-height:420px; width:900px;">
+        <div class="bar"><b>Kerf</b><span>Projects</span><span>Tools</span><span class="grow"></span></div>
+        <div class="prim" style="margin:18px 24px; display:grid; grid-template-columns: 170px 1fr; gap:32px;"><span class="lab">Sidebar</span>
+          <nav style="display:grid; gap:8px; align-content:start;"><span class="muted" style="font-size:10px">CONTENTS</span><b>Summary</b><span>Diagrams</span><span>Structural review</span><span>Cut list</span><span>Boards</span><span>Shopping list</span><span>Build steps</span></nav>
+          <div class="prim" style="display:grid; gap:16px; align-content:start;"><span class="lab">Stack</span>
+            <b style="font-size:16px">Backyard swing set</b>
+            <div class="prim" style="display:flex; gap:12px;"><span class="lab">Switcher</span>
+              <div style="flex:1; border:1px solid var(--line); padding:8px;"><span class="muted">Legs</span><br><b class="n">131-1/2"</b>, <b class="n">138-3/8"</b></div>
+              <div style="flex:1; border:1px solid var(--line); padding:8px;"><span class="muted">End cuts</span><br>saw at <b class="n">20.0°</b></div>
+              <div style="flex:1; border:1px solid var(--line); padding:8px;"><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b></div>
+            </div>
+            <div class="prim" style="display:flex; gap:12px;"><span class="lab">Switcher</span>
+              <div class="launch" style="flex:1"><span class="grow"><b>Shopping</b><span class="muted">11 lines</span></span><span class="btn">Start</span></div>
+              <div class="launch" style="flex:1"><span class="grow"><b>Building</b><span class="muted">[N] steps</span></span><span class="btn">Start</span></div>
+            </div>
+            <div class="prim" style="display:grid; grid-template-columns:2fr 1fr; gap:12px;"><span class="lab">Sidebar</span><div class="ph" style="height:140px">Isometric view</div><div class="ph" style="height:140px">Site layout</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="wf phone">
+        <div class="modebar"><span>Building</span><span class="grow"></span><span class="btn">Exit</span></div>
+        <div class="screen" style="padding:14px 16px;">
+          <div class="prim" style="display:grid; gap:14px;"><span class="lab">Stack</span>
+            <span class="muted">Step [n] of [N] · Cutting</span>
+            <b style="font-size:19px">Cut the 2 back legs</b>
+            <b class="n" style="font-size:44px; line-height:1">131-1/2"</b>
+            <div class="prim" style="display:flex; gap:10px;"><span class="lab">Switcher</span>
+              <div style="flex:1; border:1.5px solid var(--wf-ink); padding:8px;"><span class="muted">Saw at</span><br><b class="n" style="font-size:28px">20.0°</b></div>
+              <div style="flex:1; border:1px solid var(--line); padding:8px;"><span class="muted">To the edge</span><br><span class="n" style="font-size:17px">70.0°</span></div>
+            </div>
+            <span style="font-size:15px">Each edge <span class="n">130-1/4"</span></span>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px; padding:8px 16px; border-top:1px solid var(--wf-ink);"><span class="btn" style="padding:16px; text-align:center">Back</span><span class="btn solid" style="padding:16px; text-align:center">Done, next</span></div>
+      </div>
+    </div></div>
+    <div class="critique">
+      <dl>
+        <dt>Components work wherever they are placed</dt>
+        <dd>The cut card behaves the same inside a step, in a tablet pane, or in the plan, because it responds to its own width. That matters here: #40 puts the same pieces (cut card, board bar, flag) in several places.</dd>
+        <dt>No in-between widths to fall into</dt>
+        <dd>Split-screen tablets and narrow laptop windows get a sensible layout without a breakpoint for each. Container queries are widely supported, so primitives can respond to their container rather than the viewport.</dd>
+        <dt>Harder to see the grid</dt>
+        <dd>There are no columns to point at, so alignment comes from consistent spacing and shared edges rather than a visible structure. Review needs to look at a range of widths, not four.</dd>
+        <dt>Fluid sizes and exact numbers</dt>
+        <dd>Spacing changes smoothly with width; type for numbers should not, so the shop sizes from the distance table stay fixed and only spacing flows.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <!-- C -->
+  <article class="direction stack-lg">
+    <header><p><span class="letter">C</span> · Sheets</p><h3>Every view is composed as drawing sheets, the same on screen and on paper</h3></header>
+    <div class="directions">
+      <div class="stack small">
+        <p>The plan is a set of sheets, the size of US Letter (ANSI A in ASME Y14.1, 8-1/2" x 11"). Each has a border and a title block across the bottom: project, sheet title, sheet number, template version, and date. Inside the border, a 6-column grid: six 100 px columns with 24 px gutters fill the 720 px between 1/2" margins.</p>
+        <p>On a laptop the sheets sit one below another at their real proportion. On a phone a sheet becomes one column and its title block becomes the header; the sheet number stays, so "sheet 4" means the same thing on paper and on screen.</p>
+      </div>
+      <div class="stack small">
+        <p>Sheets in the worked example:</p>
+        <ol class="notes" style="color:var(--ink)"><li>Summary and isometric view</li><li>Exploded view</li><li>Site layout (landscape)</li><li>Structural review (as many sheets as the working needs)</li><li>Cut list</li><li>Cut details, a part or two per sheet</li><li>Boards and shopping list</li><li>Build steps</li><li>Parameters and inputs</li></ol>
+        <p>The modes are not sheets; they use the same 6 columns at shop density.</p>
+      </div>
+    </div>
+    <div class="scroll"><div class="frames" style="justify-content:flex-start; flex-wrap:nowrap;">
+      <div class="sheet">
+        <span class="zone" style="top:14px; left:120px">1</span><span class="zone" style="top:14px; left:300px">2</span><span class="zone" style="top:14px; left:480px">3</span>
+        <span class="zone" style="left:14px; top:200px">A</span><span class="zone" style="left:14px; top:420px">B</span><span class="zone" style="left:14px; top:640px">C</span>
+        <div class="inner">
+          <div style="padding:16px; display:grid; grid-template-columns: repeat(6, 1fr); column-gap:16px; row-gap:12px; align-content:start; position:relative;">
+            <div class="ov" style="inset:0 16px; grid-template-columns: repeat(6,1fr); column-gap:16px;"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <b style="grid-column:1/-1; font-size:14px">Summary</b>
+            <div style="grid-column: span 2; border:1px solid var(--line); padding:6px;"><span class="muted">Legs</span><br><b class="n">131-1/2"</b>, <b class="n">138-3/8"</b></div>
+            <div style="grid-column: span 2; border:1px solid var(--line); padding:6px;"><span class="muted">End cuts</span><br>saw at <b class="n">20.0°</b></div>
+            <div style="grid-column: span 2; border:1px solid var(--line); padding:6px;"><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b></div>
+            <div class="flag" style="grid-column:1/-1"><span class="k">3 flags · load-bearing</span><span>Leg-to-beam bolt and gusset; frame on sloped ground; burial depth.</span></div>
+            <div class="ph" style="grid-column:1/-1; height:390px">Isometric view, assembled (M5)</div>
+          </div>
+          <div class="tb">
+            <span><small>Project</small><b>Backyard swing set</b></span>
+            <span><small>Sheet</small>1 of 9 · Summary</span>
+            <span><small>Template</small>version 2</span>
+            <span><small>Printed</small>[date]</span>
+          </div>
+        </div>
+      </div>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:0; display:grid; align-content:start;">
+          <div style="border-bottom:1.5px solid var(--wf-ink); padding:6px 12px; display:flex; justify-content:space-between;"><b>Sheet 5 of 9 · Cut list</b><span class="muted">v2</span></div>
+          <div style="padding:10px 12px; display:grid; gap:10px;">
+            <div style="border:1px solid var(--wf-ink); padding:8px; display:grid; gap:4px;"><b>Back leg (uphill) · 2</b><span class="n">4x4 (3-1/2" x 3-1/2")</span><b class="n" style="font-size:20px">131-1/2"</b><span>Level cuts, saw at <span class="n">20.0°</span>, <span class="n">70.0°</span> to the edge, parallel</span></div>
+            <div style="border:1px solid var(--wf-ink); padding:8px; display:grid; gap:4px;"><b>Front leg (downhill) · 2</b><span class="n">4x4 (3-1/2" x 3-1/2")</span><b class="n" style="font-size:20px">138-3/8"</b><span>Level cuts, saw at <span class="n">20.0°</span>, <span class="n">70.0°</span> to the edge, parallel</span></div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:10px 12px; border-top:1px solid var(--wf-ink);"><span>‹ Sheet 4</span><span>Sheet 6 ›</span></div>
+      </div>
+    </div></div>
+    <div class="critique">
+      <dl>
+        <dt>Native to the subject</dt>
+        <dd>Plans are drawn on sheets with title blocks. The title block carries what a printed plan needs and the screen hides: which project, which template version, which sheet, printed when. Sheet numbers give you and an experienced builder a shared way to point ("sheet 6, the crossbar").</dd>
+        <dt>Strongest print parity</dt>
+        <dd>Paper and screen paginate the same way. Named pages let the site layout print in landscape on its own sheet, and every major browser supports them.</dd>
+        <dt>Sheets fight the phone</dt>
+        <dd>A page-sized chunk is the wrong unit for a scrolling screen. Long content (the structural working runs to several sheets) has to split at sheet boundaries that mean nothing on a phone.</dd>
+        <dt>Browsers paginate poorly</dt>
+        <dd>CSS can avoid breaks inside a block, but cannot measure what fits on a sheet before printing. Fixed sheets on screen need content split by hand or by script. Running content in the page margins works only in Chrome (131 and later), not in Safari or Firefox, so a title block on every printed page has to be part of the content.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <div class="verdict prose stack">
+    <h4>Suggestion</h4>
+    <p>B for every screen, because Kerf reuses the same pieces in different places and on widths no breakpoint list anticipates. Take C's title block for printed pages only: each printed section starts with a block naming the project, section, template version, and print date, and diagrams print on their own landscape pages. A is the conventional choice, and gives nothing here that B lacks except visible columns.</p>
+  </div>
+</section>
+
+<!-- ============================== CUT LIST ============================== -->
+<section id="cutlist" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Hard case 1</p>
+    <h2>The cut list on a phone</h2>
+    <p class="prose">Five parts, each with name, quantity, stock, length, two end cuts, mark lengths, and notes. On a laptop it is a table. NN/g's guidance on mobile tables: some tables will not fit; scrolling sideways is acceptable if it is obvious there is more; and records read one at a time suit stacked rows.</p>
+  </div>
+  <div class="frames">
+    <div class="stack" style="width:min(300px,100%)">
+      <h4>Stacked rows <span class="muted small">(suggested)</span></h4>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:10px; align-content:start;">
+          <b style="font-size:15px">Cut list</b>
+          <div style="border-top:1.5px solid var(--wf-ink); padding-top:6px; display:grid; gap:3px;"><div style="display:flex; justify-content:space-between;"><b>Beam</b><span class="n">× 1</span></div><b class="n" style="font-size:20px">120"</b><span class="n muted">4x6 (3-1/2" x 5-1/2")</span><span>Square, square</span></div>
+          <div style="border-top:1.5px solid var(--wf-ink); padding-top:6px; display:grid; gap:3px;"><div style="display:flex; justify-content:space-between;"><b>Back leg (uphill)</b><span class="n">× 2</span></div><b class="n" style="font-size:20px">131-1/2"</b><span class="n muted">4x4 (3-1/2" x 3-1/2")</span><span>Level cuts, saw at <span class="n">20.0°</span>, <span class="n">70.0°</span> to the edge, parallel</span><span class="muted">Each edge <span class="n">130-1/4"</span></span></div>
+          <div style="border-top:1.5px solid var(--wf-ink); padding-top:6px; display:grid; gap:3px;"><div style="display:flex; justify-content:space-between;"><b>Front leg (downhill)</b><span class="n">× 2</span></div><b class="n" style="font-size:20px">138-3/8"</b><span class="n muted">4x4 (3-1/2" x 3-1/2")</span></div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+      <p class="small">Every value visible without a tap. The length is the largest thing in each record. About two and a half parts per screen.</p>
+    </div>
+    <div class="stack" style="width:min(300px,100%)">
+      <h4>Table that scrolls sideways</h4>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 0 10px 12px; display:grid; gap:10px; align-content:start;">
+          <b style="font-size:15px">Cut list</b>
+          <div style="display:grid; grid-template-columns: 92px 1fr; font-size:11px;">
+            <div style="border-right:1.5px solid var(--wf-ink); display:grid;"><span class="muted" style="padding:4px; border-bottom:1px solid var(--line)">Part</span><b style="padding:6px 4px; border-bottom:1px solid var(--line)">Beam</b><b style="padding:6px 4px; border-bottom:1px solid var(--line)">Back leg</b><b style="padding:6px 4px; border-bottom:1px solid var(--line)">Front leg</b><b style="padding:6px 4px; border-bottom:1px solid var(--line)">Crossbar</b><b style="padding:6px 4px; border-bottom:1px solid var(--line)">Gusset</b></div>
+            <div style="overflow:hidden; display:grid; grid-template-columns: 30px 70px 90px; white-space:nowrap;">
+              <span class="muted" style="padding:4px; border-bottom:1px solid var(--line)">Qty</span><span class="muted" style="padding:4px; border-bottom:1px solid var(--line)">Length</span><span class="muted" style="padding:4px; border-bottom:1px solid var(--line)">Stock →</span>
+              <span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">1</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">120"</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">4x6 (3-1/2"…</span>
+              <span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">2</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">131-1/2"</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">4x4 (3-1/2"…</span>
+              <span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">2</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">138-3/8"</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">4x4 (3-1/2"…</span>
+              <span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">2</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">55-11/16"</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">2x6 (1-1/2"…</span>
+              <span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">2</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">16-1/4"</span><span class="n" style="padding:6px 4px; border-bottom:1px solid var(--line)">2x8 (1-1/2"…</span>
+            </div>
+          </div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+      <p class="small">All five parts on one screen for comparing lengths. Ends, marks, and notes are off to the right, behind a sideways scroll that sawdusty thumbs trigger by accident.</p>
+    </div>
+    <div class="stack" style="width:min(300px,100%)">
+      <h4>Priority columns</h4>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:8px; align-content:start;">
+          <b style="font-size:15px">Cut list</b>
+          <table style="font-size:12px">
+            <tr><th>Part</th><th class="r">Qty</th><th class="r">Length</th></tr>
+            <tr><td>Beam</td><td class="r n">1</td><td class="r n">120"</td></tr>
+            <tr class="hl"><td>Back leg (uphill) ⌄</td><td class="r n">2</td><td class="r n">131-1/2"</td></tr>
+            <tr class="hl"><td colspan="3" style="font-size:11px">4x4 (3-1/2" x 3-1/2") · level cuts, saw at 20.0°, 70.0° to the edge, parallel · each edge 130-1/4"</td></tr>
+            <tr><td>Front leg (downhill)</td><td class="r n">2</td><td class="r n">138-3/8"</td></tr>
+            <tr><td>Crossbar</td><td class="r n">2</td><td class="r n">55-11/16"</td></tr>
+            <tr><td>Gusset</td><td class="r n">2</td><td class="r n">16-1/4"</td></tr>
+          </table>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+      <p class="small">Compact overview, details one tap away. The angle, the part most likely to cause a recut, is hidden until tapped.</p>
+    </div>
+  </div>
+  <p class="prose">Suggestion: stacked rows on a phone and in narrow containers, a full table from about 640 px. In Building mode the cut card (G-B) is used instead, so this is the phone view of the plan.</p>
+</section>
+
+<!-- ============================== LONG ============================== -->
+<section class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Hard case 2</p>
+    <h2>The structural working</h2>
+    <p class="prose">The bending check alone carries 28 inputs, 6 formulas, 10 steps, 8 adjustment factors, 8 assumptions, and 4 sources. Every direction lays it out the same way.</p>
+  </div>
+  <div class="frames">
+    <div class="wf phone">
+      <div class="status"></div>
+      <div class="screen" style="padding:10px 12px; display:grid; gap:8px; align-content:start;">
+        <b style="font-size:15px">Structural review</b>
+        <div style="border:1px solid var(--wf-ink); padding:8px; display:grid; gap:4px;"><div style="display:flex; justify-content:space-between;"><b>Bending</b><b class="n">margin 1.1x</b></div><span class="muted">Top beam, 4x6 · Strength: swing load times the dynamic factor</span><span><span class="n">918.9 psi</span> against <span class="n">992.1 psi</span></span><span class="small" style="color:var(--blue)">Show the working ⌄</span></div>
+        <div style="display:grid; gap:6px; padding-left:8px; border-left:2px solid var(--line);">
+          <span class="muted" style="font-size:10px">FORMULAS</span>
+          <div class="formula">R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2</div>
+          <div class="formula">f_b = M / S</div>
+          <div class="formula">Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r</div>
+          <span class="muted" style="font-size:10px">INPUTS (28) ⌄ · STEPS (10) ⌄ · FACTORS (8) ⌄ · ASSUMPTIONS (8) ⌄ · SOURCES (4) ⌄</span>
+        </div>
+        <div style="border:1px solid var(--wf-ink); padding:8px; display:flex; justify-content:space-between;"><b>Shear</b><b class="n">margin 3.5x</b></div>
+        <div style="border:1px solid var(--wf-ink); padding:8px; display:flex; justify-content:space-between;"><b>Deflection</b><b class="n">margin 3.1x</b></div>
+      </div>
+      <div style="height:12px"></div>
+    </div>
+    <div class="critique prose" style="max-width:52ch">
+      <dl>
+        <dt>Summary before detail (progressive disclosure)</dt>
+        <dd>Each check opens to its margin and the two values compared. The working sits under it, each part collapsible, so a phone shows the four margins on one screen and a laptop can open everything.</dd>
+        <dt>Formulas never wrap</dt>
+        <dd>A wrapped formula is easy to misread. Each formula sits in its own sideways-scrolling block; the page itself never scrolls sideways.</dd>
+        <dt>Measure</dt>
+        <dd>Assumptions and notes are capped at 65 characters a line on a laptop; tables of inputs use the full width.</dd>
+        <dt>Print</dt>
+        <dd>Everything is expanded when printed, and a check never breaks across pages if it fits on one.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== DIAGRAMS & PRINT ============================== -->
+<section id="print" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Hard case 3, and paper</p>
+    <h2>Diagrams and the printed page</h2>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Diagrams on screen</b><p>A diagram takes the full width of its container, never less than the content column, with its aspect ratio kept. On a phone the site layout rotates to fit portrait if that makes it larger; dimension text keeps a minimum size and the diagram scrolls inside its box rather than shrinking text below it. Pinch-zoom is left to the browser.</p></div>
+    <div class="opt rec"><div class="head"><b>Paper: US Letter</b><span class="rec-tag">Suggested</span></div><p>Portrait Letter with 1/2" margins for text sections; landscape Letter for the isometric, exploded, and site layout views, using named pages. Each section starts on a new page with a title block: project, section, template version, print date. Checks, cut details, and steps never split across pages when they fit on one.</p><p class="muted small">Named pages are supported in every major browser since 2023. Running headers in the page margins are Chrome-only, so the title block is part of each section, not a running header.</p></div>
+    <div class="opt"><b>Paper: the alternatives</b><p>Tabloid (11" x 17", ANSI B) gives diagrams twice the area, if your printer takes it. A4 if you print elsewhere. The layout works on any of them; only the page size and diagram scale change.</p></div>
+  </div>
+</section>
+
+<!-- ============================== REFERENCES ============================== -->
+<section id="references" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Precedents and guidance</p>
+    <h2>Sources</h2>
+    <p class="prose">Checked in October 2026.</p>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Character height and viewing distance</b><p>Minimum easily readable 16 arc-minutes, optimal 20 (Activu white paper, citing MIL-DTL-87268D). Human-factors references give 20 to 22 for assured legibility. The basis for the distance table.</p><p class="small"><a href="https://activu.com/uploads/Optimal-Font-Size.pdf">Activu: Optimal Font Size</a> · <a href="https://www.taylorfrancis.com/books/e/9781315098128/chapters/10.1201/b22361-52">Taylor &amp; Francis chapter</a></p></div>
+    <div class="opt"><b>Every Layout</b><p>Layout primitives (Stack, Sidebar, Switcher, Cluster, Center) that respond to available space instead of device breakpoints. Basis for direction B.</p><p class="small"><a href="https://every-layout.dev/layouts/">every-layout.dev</a></p></div>
+    <div class="opt"><b>Utopia</b><p>Fluid type and space scales as <code>clamp()</code> values between a minimum and maximum viewport, with space pairs for larger jumps. Basis for B's spacing scale.</p><p class="small"><a href="https://utopia.fyi/">utopia.fyi</a> · <a href="https://www.smashingmagazine.com/2021/04/designing-developing-fluid-type-space-scales/">Smashing introduction</a></p></div>
+    <div class="opt"><b>Android window size classes</b><p>Compact below 600, medium below 840, expanded from 840. Basis for A's breakpoints.</p><p class="small"><a href="https://developer.android.com/develop/ui/compose/layouts/adaptive/window-size-classes">Window size classes</a></p></div>
+    <div class="opt"><b>ASME Y14.1 sheet sizes</b><p>Size A is 8-1/2" x 11"; drawing formats carry a title block, conventionally at the lower right, and zones on larger sheets. Basis for C and the printed title block.</p><p class="small"><a href="https://en.wikipedia.org/wiki/ANSI/ASME_Y14.1">ASME Y14.1 overview</a></p></div>
+    <div class="opt"><b>Mobile tables</b><p>Some tables will not fit; horizontal scrolling is acceptable when it is obvious there is more; locking headers helps. Basis for the cut-list options.</p><p class="small"><a href="https://www.nngroup.com/videos/big-tables-small-screens/">NN/g: big tables on small screens</a></p></div>
+    <div class="opt"><b>Line length</b><p>45 to 90 characters including spaces.</p><p class="small"><a href="https://practicaltypography.com/line-length.html">Butterick's Practical Typography</a></p></div>
+    <div class="opt"><b>Printing from the browser</b><p><code>@page</code> size is Baseline 2024; named pages (<code>page</code>) are Baseline since February 2023; <code>break-inside: avoid</code> since 2019. Page-margin boxes arrived in Chrome 131 and are not in Firefox or Safari.</p><p class="small"><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@page/size">MDN: size</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/page">MDN: page</a> · <a href="https://developer.chrome.com/blog/print-margins">Chrome: print margins</a> · <a href="https://caniuse.com/mdn-css_at-rules_page_top-center">caniuse</a></p></div>
+  </div>
+</section>
+
+<section class="stack">
+  <div class="place">
+    <p class="eyebrow">New requirements</p>
+    <h2>What this stage adds</h2>
+  </div>
+  <p class="prose">None for core, the snapshot, or the API. Layout lives in <code>apps/web</code>. The printed title block needs the template version (in the snapshot) and the print date (the browser's clock at print time, which is display, not a stored value).</p>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Numbers come from <code>packages/core/src/templates/swing-set-a-frame/snapshots/v2.json</code>, example 1, through core's formatters, including the bending check's 918.9 psi and 992.1 psi. Kept at <code>docs/design/layout.html</code>; choices are recorded in <code>docs/design/README.md</code>.</p>
+</footer>
+
+</main>
