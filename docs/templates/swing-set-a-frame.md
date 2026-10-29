@@ -239,6 +239,8 @@ Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 
 
 With d = 0 (pads), the same inputs give back legs of 105.970 (106") and front legs of 112.814 (112-13/16"). Tests cover both.
 
+Part letters (template version 5, #66) follow the cut list's order: A beam (or beam ply), B back legs, C front legs, D crossbars, E gussets. Each pair shares one letter, as it shares one cut-list row. The cut list and every drawing take the letter from the part.
+
 ### Placements
 
 Origins (x, y, z) for the worked example, with tan α = 0.36397:

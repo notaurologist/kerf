@@ -42,6 +42,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | A value a preview changes | `Changed`, and `rowChanged` on `MeasureTable` | The new value with "was" and the saved value under it, and a bar beside the row (#56). `was={null}` says "new". |
 | The state of the numbers shown | `StateTag` | Words in an outlined box, such as "Preview, not saved". |
 | The length you cut to | `Glance` | 51 px bold: readable across the bench (#42). |
+| A part's letter | `PartLetter` | Core's letter in a dark rounded square, before the part's name, as the drawings show it (#66). Prints with its square. |
 | A saw setting | `SawSetting` | The setting boxed and larger, the angle to the edge smaller and labeled. |
 | A list of measurements | `MeasureTable` | A table from about 640 px of its own width, labeled rows below it. Put the name of each row in the first column. Mark number columns `numeric`; give shortened headers a `fullLabel`. |
 | Working, sources, detail | `Disclosure` | Closed on screen, open in print. `size="small"` for a "Source" toggle. |

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { stock } from '../../lumber/stock.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
+import { withLetters } from '../letters.ts';
 import { Flag, type GenerateResult, HardwareItem, type Issue, Part, Placement } from '../types.ts';
 import { features, flushCutNote } from './features.ts';
 import {
@@ -24,9 +25,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * G, the pendulum factor, and the beam's breadth and depth in the structural working (#36); no
  * number changes. Version 3 adds a 3D placement for every part instance (#49); no other output
  * changes. Version 4 adds holes, bolt areas, the flush cut, and each end cut's reference edge as
- * part data, and rewords the flush-cut note as two marks a builder can measure (#50).
+ * part data, and rewords the flush-cut note as two marks a builder can measure (#50). Version 5
+ * letters the parts in cut-list order (#66); no number changes.
  */
-export const TEMPLATE_VERSION = 4;
+export const TEMPLATE_VERSION = 5;
 export const TEMPLATE_ID = 'swing-set-a-frame';
 
 export const SwingSetOutput = z.object({
@@ -60,7 +62,8 @@ function legName(side: 'back' | 'front', groundSlope: number): string {
   return `${name} (${uphill ? 'uphill' : 'downhill'})`;
 }
 
-function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
+/** The parts in cut-list order, which sets their letters (#66). */
+function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part, 'letter'>[] {
   const angle = formatAngle(g.splay);
   const f = features(p, dims, g);
   // Every end cut on the swing set is a miter: drawn on the face, from the reference edge.
@@ -76,7 +79,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
   };
   const square = { setting: 0, description: 'Square', measuredFrom: 'reference-edge' as const };
   const flushCut = f.leg.tapers[0];
-  const leg = (side: 'back' | 'front'): Part => {
+  const leg = (side: 'back' | 'front'): Omit<Part, 'letter'> => {
     const l = g[side];
     return {
       id: `leg-${side}`,
@@ -205,7 +208,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       geometry: g,
       swings,
       layout: siteLayout(p, g, swings),
-      parts: parts(p, dims, g),
+      parts: withLetters(parts(p, dims, g)),
       placements: placements(dims, g),
       hardware: hardware(p, dims, g),
       hardwareNotes: HARDWARE_NOTES,

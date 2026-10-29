@@ -3,6 +3,7 @@ import { cutList } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { planLumber } from '../../outputs/shoppingList.ts';
 import type { Part } from '../types.ts';
+import { EXAMPLES } from './examples.ts';
 import type { SwingSetParams } from './params.ts';
 import { generate } from './template.ts';
 
@@ -53,6 +54,33 @@ describe('cutList', () => {
     expect(row('leg-front')?.length).toBe('138-3/8"');
     expect(row('crossbar')?.length).toBe('55-11/16"');
     expect(row('gusset')?.length).toBe('16-1/4"');
+  });
+
+  // Hand-written from the spec's cut-list order (#66): beam, back legs, front legs, crossbars,
+  // gussets. Each pair shares one letter, since a pair is one row.
+  it('letters the parts A to E in cut-list order, the same letters as the parts', () => {
+    expect(rows.map((r) => [r.letter, r.name])).toEqual([
+      ['A', 'Beam'],
+      ['B', 'Back leg (uphill)'],
+      ['C', 'Front leg (downhill)'],
+      ['D', 'Crossbar'],
+      ['E', 'Gusset'],
+    ]);
+    expect(parts(example).map((p) => p.letter)).toEqual(['A', 'B', 'C', 'D', 'E']);
+  });
+
+  it('gives every part of every worked example a unique letter, and every placement a lettered part', () => {
+    for (const e of EXAMPLES) {
+      const design = output(e.params);
+      const letters = design.parts.map((p) => p.letter);
+      expect(letters.every((l) => /^[A-Z]+$/.test(l))).toBe(true);
+      expect(new Set(letters).size).toBe(letters.length);
+      const placements = design.placements ?? [];
+      expect(placements.length).toBeGreaterThan(0);
+      for (const placement of placements) {
+        expect(design.parts.find((p) => p.id === placement.partId)?.letter).toBeDefined();
+      }
+    }
   });
 
   it('labels every angled end with the saw setting and the angle to the edge', () => {

@@ -39,6 +39,14 @@ export function Measured(props: { text: string }) {
   );
 }
 
+/**
+ * A part's letter, as the cut list and every drawing show it (#44, #66): a dark rounded square
+ * with the letter in the page color. The letter comes from core; it is read out as written.
+ */
+export function PartLetter(props: { children: string }) {
+  return <span className="k-part-letter">{props.children}</span>;
+}
+
 /** The length you cut to, readable from across the bench: 51 px bold (#42, glance distance). */
 export function Glance(props: { children: string }) {
   return <span className="k-glance">{props.children}</span>;

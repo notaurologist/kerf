@@ -5,6 +5,7 @@ import { swingSetAFrame } from './definition.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
 import v2 from './snapshots/v2.json' with { type: 'json' };
 import v3 from './snapshots/v3.json' with { type: 'json' };
+import v4 from './snapshots/v4.json' with { type: 'json' };
 
 // What each template version changed for the worked examples, as the owner sees it in the version
 // report (decision 0008).
@@ -86,6 +87,26 @@ describe('swing-set template versions', () => {
           );
         }
       }
+    }
+  });
+
+  it('version 5 letters the parts (#66); a stored plan gets the same letters by upgrade', () => {
+    for (const stored of v4) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(4);
+      const report = compareWithCurrent(template, read.snapshot);
+      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+      // The upgrade letters stored parts in their order, which is what regenerating does, and
+      // version 5 changes nothing else.
+      expect(report.regenerated.changes).toEqual([]);
+      const outputs = read.snapshot.outputs as {
+        design: { parts: { letter: string }[] };
+        cutList: { letter: string }[];
+      };
+      expect(outputs.cutList.map((r) => r.letter)).toEqual(
+        outputs.design.parts.map((p) => p.letter),
+      );
     }
   });
 });

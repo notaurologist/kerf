@@ -111,6 +111,8 @@ export type Taper = z.infer<typeof Taper>;
 
 export const Part = z.object({
   id: z.string(),
+  /** Names the part in the cut list and every drawing, assigned in cut-list order (#66). */
+  letter: z.string(),
   name: z.string(),
   /** What the part does in its template, such as 'leg'. Set by the template. */
   role: z.string(),

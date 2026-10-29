@@ -8,6 +8,8 @@ import { formatLength } from '../units/length.ts';
 
 export const CutListRow = z.object({
   partId: z.string(),
+  /** The part's letter, the same one its drawings show (#66). */
+  letter: z.string(),
   name: z.string(),
   quantity: z.number().int(),
   /** Nominal name for buying, actual size for cutting: `4x4 (3-1/2" x 3-1/2")`. */
@@ -31,6 +33,7 @@ function endText(setting: number, description: string): string {
 export function cutList(parts: readonly Part[]): CutListRow[] {
   return parts.map((part) => ({
     partId: part.id,
+    letter: part.letter,
     name: part.name,
     quantity: part.quantity,
     stock: `${part.stock.nominal} (${formatLength(part.stock.thickness)} x ${formatLength(part.stock.width)})`,

@@ -18,6 +18,7 @@ import {
   Measured,
   MeasureTable,
   Notice,
+  PartLetter,
   SawSetting,
   Select,
   StateTag,
@@ -172,6 +173,12 @@ describe('numbers', () => {
     expect(renderText(<MarginLine margin="margin 1.1x" />)).toBe(
       'margin 1.1x under these assumptions',
     );
+  });
+});
+
+describe('PartLetter', () => {
+  it('shows the letter as written, so a screen reader reads it with the part name', () => {
+    expect(render(<PartLetter>A</PartLetter>)).toBe('<span class="k-part-letter">A</span>');
   });
 });
 

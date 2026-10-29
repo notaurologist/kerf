@@ -14,5 +14,10 @@
     body {
       background: #ffffff;
     }
+
+    /* Browsers leave out backgrounds when printing; a part letter is its dark square (#66). */
+    .k-part-letter {
+      print-color-adjust: exact;
+    }
   }
 }
