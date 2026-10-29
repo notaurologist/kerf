@@ -258,6 +258,7 @@ table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
 .queued { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; }
 .queued .q { grid-column: 2; font-size: 14px; color: var(--text); }
 .direction-full > header { display: grid; gap: 4px; }
+.sugg { color: var(--blue); }
 .controls { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px; margin: 0; position: sticky; top: 0; z-index: 2; background: var(--paper); }
 .controls legend { font-weight: 600; padding: 0 4px; }
 .controls label { display: inline-flex; gap: 6px; align-items: center; min-height: 32px; }
@@ -283,7 +284,7 @@ table.counts { min-width: 480px; }
 
 <section class="answers" aria-labelledby="answers-h">
   <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
-  <p>Three choices. My suggestion is first in each. A reply like <span class="pick" style="white-space: normal">E1, errors on save, standard as written</span> is enough.</p>
+  <p>Three choices. I suggest <b>E1</b>, <b>errors on save</b>, and <b>the standard as written</b>; each is listed first and marked "Suggested" below. A reply like <span class="pick" style="white-space: normal">E1, errors on save, standard as written</span> is enough.</p>
   <ol>
     <li><a href="#directions">How a length is entered</a>: <span class="pick">E1</span> typed as written on a plan, <span class="pick">E2</span> split fields, or <span class="pick">E3</span> Kerf's own keypad on a phone.</li>
     <li><a href="#timing">When problems are shown</a>: <span class="pick">errors on save</span>, with Kerf's reading shown while you type, or errors as soon as you leave a field.</li>
@@ -324,7 +325,7 @@ table.counts { min-width: 480px; }
 
   
 <article class="direction-full stack-lg" id="e1">
-  <header><p><span class="letter">E1</span> · Typed, as written on a plan</p><h3>One field per length; type it the way a tape or a plan writes it, and Kerf shows what it read</h3></header>
+  <header><p><span class="letter">E1</span> · Typed, as written on a plan · <b class="sugg">Suggested</b></p><h3>One field per length; type it the way a tape or a plan writes it, and Kerf shows what it read</h3></header>
   <div class="sheet pal-C1-light">
 <div class="mocks">
   
