@@ -251,8 +251,8 @@ table.std th { font-size: var(--step--1); color: var(--muted); font-weight: 600;
 </header>
 
 <section class="answers" aria-labelledby="answers-h">
-  <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
-  <p>Four choices. I suggest <b>DS1</b>, <b>a folder in apps/web</b>, <b>four pull requests</b>, and <b>no new test dependencies</b>; each is listed first and marked below. A reply like <span class="pick" style="white-space: normal">DS1, in apps/web, four PRs, no new dependencies</span> is enough.</p>
+  <h2 id="answers-h" style="font-size: var(--step-1)">Decided, October 2026</h2>
+  <p>The owner took the suggestion for all four: <span class="pick" style="white-space: normal">DS1, in apps/web, four PRs, no new dependencies</span>. The build is #78 (foundations), #79 (components and catalog), #80 (screens), and #81 (guidance). Reasons and rejected directions are in <code>docs/design/README.md</code>. The choices were:</p>
   <ol>
     <li><a href="#directions">How styles are written</a>: <span class="pick">DS1</span> layered global CSS, <span class="pick">DS2</span> CSS Modules, or <span class="pick">DS3</span> tokens in TypeScript.</li>
     <li><a href="#where">Where it lives</a>: <span class="pick">apps/web/src/ui</span>, or its own package, <span class="pick">packages/ui</span>.</li>
@@ -327,7 +327,7 @@ table.std th { font-size: var(--step--1); color: var(--muted); font-weight: 600;
   </div>
   
 <article class="direction-full stack-lg" id="ds1">
-  <header><p><span class="letter">DS1</span> · Layered global CSS · <b class="sugg">Suggested</b></p><h3>Tokens and layout primitives as global CSS in cascade layers, component blocks with a k- prefix, states as data attributes</h3></header>
+  <header><p><span class="letter">DS1</span> · Layered global CSS · <b class="sugg">Chosen</b></p><h3>Tokens and layout primitives as global CSS in cascade layers, component blocks with a k- prefix, states as data attributes</h3></header>
   <div class="codes"><figure class="code"><figcaption><code>ui/styles/index.css</code></figcaption><pre><code>@layer reset, tokens, base, layout, components, print;
 @import "./tokens.css" layer(tokens);     /* C1, type, space, lines */
 @import "./layout.css" layer(layout);     /* stack, sidebar, switcher, cluster, center */</code></pre></figure><figure class="code"><figcaption><code>ui/field/field.css</code></figcaption><pre><code>@layer components {

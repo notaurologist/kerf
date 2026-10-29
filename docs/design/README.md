@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stage 6 (#45) is waiting on the owner's choices about how the system is built.
+Status: in progress. Stage 6 (#45) is being built in four parts, #78 to #81.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -14,7 +14,7 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 5. Diagram language | #44 | Decided October 2026 | `diagrams.html` |
 | 5a. Number entry and form states | #67 | Decided October 2026 | `entry.html` |
 | 5b. Words | #68 | Decided October 2026 | `words.html`, `content.md` |
-| 6. Design system | #45 | Waiting on the owner | `system.html` |
+| 6. Design system | #45 | Decided October 2026; building in #78 to #81 | `system.html` |
 | 7. A repeatable garage check | #69 | Blocked by #45 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
@@ -31,7 +31,14 @@ It also asks where the code lives (a folder in `apps/web` or its own package), w
 
 ### Choices
 
-Not yet made.
+The owner took the suggested option for each (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| How styles are written | DS1, layered global CSS. Cascade layers in the order reset, tokens, base, layout, components, print. Tokens are CSS custom properties; #41's layout primitives are global classes; components are `k-` blocks with states as data attributes. Screens write no styles: a test fails if a file outside `ui/` passes `className` or `style`. | DS2, CSS Modules: the no-one-off-styles rule comes built in, but tokens and layout primitives still need global CSS, print rules spread across modules, and Vitest needs CSS Modules switched on. DS3, tokens in TypeScript: catches misspelled tokens, but inline styles cannot express focus, container queries, or print, so a stylesheet would still be needed beside a build step and a generated file. |
+| Where it lives | `apps/web/src/ui`, a folder of the only app that uses it. | `packages/ui`: a package boundary, build, and version for one consumer. |
+| How it lands | Four pull requests, each a sub-issue of #45: #78 fonts, tokens, layers, layout primitives, and the contrast test; #79 components, icons, and the catalog page; #80 the M4 screens rebuilt; #81 usage guidance and ARCHITECTURE.md. Each leaves the app working and is checked in a Vercel preview. | One pull request: nothing half-switched, but the largest review in the project, and a late problem holds up all of it. |
+| Test dependencies | None for now. Checks: the contrast test, render tests of states and accessible names, the no-styles-in-screens test, the catalog page, accessibility checked by hand, and the garage check (#69). Revisit after #69. | An accessibility checker (two development dependencies) and screenshot tests (one large dependency and stored images); either can be added later if the garage check shows a gap. |
 
 ## Stage 5b: words (#68)
 
