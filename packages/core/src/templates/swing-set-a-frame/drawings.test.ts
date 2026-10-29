@@ -5,6 +5,7 @@ import { solid } from '../../geometry/solid.ts';
 import { dot } from '../../geometry/vec.ts';
 import { formatLength } from '../../units/length.ts';
 import { swingSetAFrame } from './definition.ts';
+import { explodeOffsets } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 
 // The swing set's drawings (#90) for each worked example.
@@ -61,49 +62,78 @@ describe.each(EXAMPLES.map((e, i) => [e.name, i] as const))('%s', (_, i) => {
     }
   });
 
-  // Ray casting: at points across the drawing, the face painted last is the nearest one there.
-  it('paints the nearest face last at every point where faces overlap', () => {
+  // Ray casting from the solids themselves, independent of how the drawing was painted: at every
+  // point of a 400 × 400 grid, the nearest face above ground is found from the 3D solids, and the
+  // face painted on top there must be that face, on the same part instance. Where the solids show
+  // nothing, nothing is painted.
+  it.each([
+    ['isometric', () => []],
+    ['exploded', () => explodeOffsets(placements)],
+  ] as const)('paints exactly the nearest face at every point (%s view)', (name, offsets) => {
     const view = isometric(-1, -1);
+    const drawing = name === 'isometric' ? iso : drawings.exploded;
+    if (!drawing) throw new Error(name);
+    const moved = offsets();
+    const k = outputs.design.params.groundSlope / 12;
+    const aboveGround = (p: { y: number; z: number }) => p.z - k * p.y >= -1e-6;
     const faces = placements.flatMap((pl) => {
       const part = parts.find((p) => p.id === pl.partId);
       if (!part) return [];
-      return solid(part, pl)
+      const offset = moved.find(
+        (m) => m.partId === pl.partId && m.instance === pl.instance,
+      )?.offset;
+      return solid(part, pl, offset)
         .faces.filter((f) => dot(f.normal, view.toViewer) > 1e-9)
         .map((f) => ({ f, pl, page: f.points.map((q) => project(view, q)) }));
     });
-    const polys = fills(iso.primitives);
-    const planes = polys.map((poly) => {
-      const c = {
-        x: poly.points.reduce((s, q) => s + q.x, 0) / poly.points.length,
-        y: poly.points.reduce((s, q) => s + q.y, 0) / poly.points.length,
-      };
-      return faces.find(
-        ({ pl, page }) =>
-          pl.partId === poly.part?.partId && pl.instance === poly.part?.instance && inside(c, page),
-      )?.f;
-    });
-    expect(planes.every(Boolean)).toBe(true);
-    const b = iso.bounds;
-    let checked = 0;
-    for (let k = 0; k < 40000; k++) {
+    const polys = fills(drawing.primitives);
+    const b = drawing.bounds;
+    const N = 400;
+    let covered = 0;
+    for (let i = 0; i < N * N; i++) {
       const pt = {
-        x: b.x + (((k % 200) + 0.37) / 200) * b.width,
-        y: b.y + ((Math.floor(k / 200) + 0.61) / 200) * b.height,
+        x: b.x + (((i % N) + 0.37) / N) * b.width,
+        y: b.y + ((Math.floor(i / N) + 0.61) / N) * b.height,
       };
-      const covering = polys
-        .map((_, idx) => idx)
-        .filter((idx) => inside(pt, (polys[idx] as { points: Point2[] }).points));
-      if (covering.length < 2) continue;
-      checked++;
-      const d = (idx: number) => {
-        const f = planes[idx];
-        return f ? depthOnPlane(view, pt, f.points[0] as never, f.normal) : -Infinity;
-      };
-      const top = covering[covering.length - 1] as number;
-      const nearest = Math.max(...covering.map(d));
-      expect(nearest - d(top)).toBeLessThan(1e-6);
+      // The truth: the nearest face whose point under pt is above ground.
+      let best: (typeof faces)[number] | undefined;
+      let bestDepth = -Infinity;
+      for (const face of faces) {
+        if (!inside(pt, face.page)) continue;
+        const d = depthOnPlane(view, pt, face.f.points[0] as never, face.f.normal);
+        const at = {
+          x: pt.x * view.right.x - pt.y * view.up.x + d * view.toViewer.x,
+          y: pt.x * view.right.y - pt.y * view.up.y + d * view.toViewer.y,
+          z: pt.x * view.right.z - pt.y * view.up.z + d * view.toViewer.z,
+        };
+        if (!aboveGround(at)) continue;
+        if (d > bestDepth) {
+          bestDepth = d;
+          best = face;
+        }
+      }
+      // The drawing: the last polygon painted under pt.
+      let top: (typeof polys)[number] | undefined;
+      for (const poly of polys) if (inside(pt, poly.points)) top = poly;
+      if (!best) {
+        expect(top, `paint where no face is, at ${pt.x}, ${pt.y}`).toBeUndefined();
+        continue;
+      }
+      covered++;
+      expect(top, `nothing painted over ${best.pl.partId} at ${pt.x}, ${pt.y}`).toBeDefined();
+      expect(`${top?.part?.partId}/${top?.part?.instance}`).toBe(
+        `${best.pl.partId}/${best.pl.instance}`,
+      );
+      // And a face pointing the same way: its tone follows the true face's direction (up 1,
+      // along the beam 3, front and back 2).
+      const n = best.f.normal;
+      const ax = Math.abs(n.x);
+      const ay = Math.abs(n.y);
+      const az = Math.abs(n.z);
+      const tone = az >= ax && az >= ay ? 1 : ax > ay ? 3 : 2;
+      expect(top?.fill).toBe(tone);
     }
-    expect(checked).toBeGreaterThan(200);
+    expect(covered).toBeGreaterThan(1000);
   });
 
   it('pulls the beam, crossbars, and gussets out in the exploded view, with a guideline each', () => {

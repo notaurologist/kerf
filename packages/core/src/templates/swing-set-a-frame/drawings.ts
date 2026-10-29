@@ -9,6 +9,7 @@ import {
   planView,
   type Scene,
 } from '../../geometry/index.ts';
+import type { Placement } from '../types.ts';
 import type { SwingSetOutputs } from './definition.ts';
 
 // The swing set's drawings (#90): what the generic views need from this template, as data. The
@@ -20,6 +21,19 @@ const VIEW = isometric(-1, -1);
 
 /** How far the exploded view pulls parts out: the beam up, crossbars and gussets outward. */
 const PULL = { beam: 30, board: 24 };
+
+/** The exploded view's offsets: the beam up, each crossbar and gusset outward along the beam. */
+export function explodeOffsets(placements: readonly Placement[]): Explode[] {
+  return placements.flatMap((pl): Explode[] => {
+    const { partId, instance } = pl;
+    if (partId === 'beam') return [{ partId, instance, offset: { x: 0, y: 0, z: PULL.beam } }];
+    if (partId === 'crossbar' || partId === 'gusset') {
+      const x = instance === 0 ? -PULL.board : PULL.board;
+      return [{ partId, instance, offset: { x, y: 0, z: 0 } }];
+    }
+    return [];
+  });
+}
 
 export function drawings(outputs: SwingSetOutputs): Drawings {
   const { design } = outputs;
@@ -45,15 +59,7 @@ export function drawings(outputs: SwingSetOutputs): Drawings {
       ]),
     ],
   };
-  const explode: Explode[] = placements.flatMap((pl): Explode[] => {
-    const { partId, instance } = pl;
-    if (partId === 'beam') return [{ partId, instance, offset: { x: 0, y: 0, z: PULL.beam } }];
-    if (partId === 'crossbar' || partId === 'gusset') {
-      const x = instance === 0 ? -PULL.board : PULL.board;
-      return [{ partId, instance, offset: { x, y: 0, z: 0 } }];
-    }
-    return [];
-  });
+  const explode = explodeOffsets(placements);
   const has3d = placements.length > 0;
   const { footprint, clearArea, swingZones } = design.layout;
   const areas: PlanArea[] = [
