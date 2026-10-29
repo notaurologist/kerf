@@ -8,21 +8,22 @@ import { useLoad } from '../../lib/useLoad.ts';
 import { CutList } from '../cut-list/CutList.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import { StructuralReview } from '../structural/StructuralReview.tsx';
+import { VersionNotice } from './VersionNotice.tsx';
 
 // One project, rendered from the snapshot the API returns (ARCHITECTURE.md, apps/web). The
 // stored plan is shown as stored; the web app computes none of its numbers.
 
 export function ProjectScreen(props: { id: string }) {
-  const { loaded } = useLoad(
+  const { loaded, set } = useLoad(
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
   );
   if (loaded.state === 'loading') return <Notice>Loading project…</Notice>;
   if (loaded.state === 'error') return <Notice tone="error">{describeError(loaded.error)}</Notice>;
-  return <ProjectView project={loaded.value} />;
+  return <ProjectView project={loaded.value} onChange={set} />;
 }
 
-export function ProjectView(props: { project: Project }) {
+export function ProjectView(props: { project: Project; onChange?: (project: Project) => void }) {
   const { project } = props;
   const template = findTemplate(project.templateId);
   const plan = readPlan(project);
@@ -36,6 +37,7 @@ export function ProjectView(props: { project: Project }) {
           {plan.ok && <a href={href({ screen: 'edit-project', id: project.id })}>Edit</a>}
         </p>
       </header>
+      <VersionNotice project={project} onRegenerated={(p) => props.onChange?.(p)} />
       {!plan.ok ? (
         <Notice tone="error">{plan.message}</Notice>
       ) : (

@@ -495,3 +495,12 @@ details.source summary {
 details.sources-used {
   margin: 1rem 0;
 }
+
+.notice.version p {
+  margin: 0 0 0.5rem;
+}
+
+.changes code {
+  font-size: 0.8rem;
+  word-break: break-all;
+}
