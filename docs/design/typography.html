@@ -1,0 +1,529 @@
+<title>Kerf Typography</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@200..800&family=Atkinson+Hyperlegible+Next:wght@200..800&family=B612+Mono:wght@400;700&family=B612:wght@400;700&display=swap">
+<style>
+/* Additions for the typography page. Specimens are set in each candidate at its real size. */
+.t1 { --face: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --mono-face: ui-monospace, "SF Mono", Menlo, monospace; --read: 19px; --glance: 48px; }
+.t2 { --face: "Atkinson Hyperlegible Next", system-ui, sans-serif; --mono-face: "Atkinson Hyperlegible Mono", ui-monospace, monospace; --read: 20px; --glance: 51px; }
+.t3 { --face: "B612", system-ui, sans-serif; --mono-face: "B612 Mono", ui-monospace, monospace; --read: 18px; --glance: 46px; }
+.spec-card { font-family: var(--face); background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); border-radius: 6px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.spec-card .len { white-space: nowrap; }
+.spec-card .num { font-family: var(--face); font-variant-numeric: tabular-nums; font-size: inherit; }
+.spec-card .mono { font-family: var(--mono-face); }
+.spec-card .read { font-size: var(--read); line-height: 1.35; }
+.spec-card .glance { font-size: var(--glance); line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.spec-card .lab { font-size: 14px; color: var(--muted); }
+.spec-card .pair { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; }
+.spec-card .pair > div { border: 1px solid var(--line); padding: 8px 10px; display: grid; gap: 2px; }
+.spec-card .pair > div.box { border: 2px solid var(--wf-ink); }
+.spec-card .saw { font-size: calc(var(--glance) * 0.62); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.05; }
+.spec-card .edge { font-size: var(--read); font-variant-numeric: tabular-nums; }
+.spec-card table { border-collapse: collapse; width: 100%; font-size: 16px; font-variant-numeric: tabular-nums; }
+.spec-card td { padding: 5px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.spec-card td.r { text-align: right; white-space: nowrap; }
+.spec-card .body { font-size: 17px; line-height: 1.5; }
+.spec-card .conf { font-size: 26px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.spec-card .formula { font-family: var(--mono-face); font-size: 14px; }
+.spec-card h4 { font-family: var(--face); font-size: 24px; font-weight: 700; }
+.blur-target { filter: var(--test-filter, none); }
+.test { margin: 0; border: 0; border-bottom: 1px solid var(--line); min-width: 0; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--paper); padding-inline: 0; padding-block: 10px; display: grid; gap: 8px; }
+.test .row { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.test label { display: flex; gap: 8px; align-items: center; font-size: var(--step--1); }
+.test input[type="range"] { width: 140px; }
+.facts { border-collapse: collapse; width: 100%; min-width: 700px; background: var(--wf-bg); font-size: 0.88rem; }
+.facts th, .facts td { padding: 7px 9px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+.facts th:first-child, .facts td:first-child { text-align: left; }
+.facts th { color: var(--muted); font-size: var(--step--1); font-weight: 600; background: var(--paper); }
+.fracs { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+.fracs .opt .big { font-size: 51px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.fracs .opt .dfrac { font-variant-numeric: tabular-nums diagonal-fractions; }
+.fracs .opt .efrac { font-size: 0.7em; }
+.rules { border-collapse: collapse; width: 100%; min-width: 640px; background: var(--wf-bg); font-size: 0.9rem; }
+.rules th, .rules td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.rules th { color: var(--muted); font-size: var(--step--1); font-weight: 600; background: var(--paper); }
+.rules td:nth-child(2) { font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; }
+</style>
+
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #42</p>
+  <h1>Typography</h1>
+  <div class="prose stack">
+    <p>Numbers are most of what Kerf shows, so this stage is mostly about numbers: which typeface, how big at each distance, how fractions to 1/16 are set, and how lengths, angles, and margins line up. It builds on #41's two densities: desk for the plan, and shop inside Shopping and Building, with a read size for 0.5 m and a glance size for 1.0 m.</p>
+    <p>Each direction below is set in its real typeface at its real size. The sizes come from measuring each font's digits, not from a rule of thumb.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">Decided, October 2026</h2>
+  <p>The owner took the suggestion for all four: <span class="pick" style="white-space: normal">T2, slash fractions, add the font, x</span>. Reasons and rejected directions are in <code>docs/design/README.md</code>; the font is recorded in decision 0015. The choices were:</p>
+  <ol>
+    <li><a href="#directions">Typeface</a>: <span class="pick">T2</span> Atkinson Hyperlegible, <span class="pick">T3</span> B612, or <span class="pick">T1</span> the system font.</li>
+    <li><a href="#fractions">Fractions</a>: <span class="pick">full-size slash</span> (<span style="white-space:nowrap">138-3/8"</span>), built-in diagonal fractions, or enlarged fractions.</li>
+    <li><a href="#dependency">Adding the font</a>: T2 and T3 are web fonts, which is a new dependency. May I self-host the font files in <code>apps/web</code>?</li>
+    <li><a href="#rules">The margin sign</a>: keep <span class="pick">margin 1.1x</span> as AGENTS.md writes it, or use the multiplication sign, margin 1.1×.</li>
+  </ol>
+  <p class="small">Best judged in the garage: open this page on your phone, prop it where you would, and use the blur and dimming controls on the specimens.</p>
+</section>
+
+<!-- ============================== MEASUREMENTS ============================== -->
+<section class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Measured, not assumed</p>
+    <h2>What each candidate's digits measure</h2>
+    <p class="prose">Measured from each font's own files with fontTools. "Digit height" is the height of an 8 as a share of the font size: the larger it is, the smaller the font size needed for the same legibility. The glance and read sizes put a digit at 20 arc-minutes from 1.0 m and 16 arc-minutes from 0.5 m on a phone (#41).</p>
+  </div>
+  <div class="req-wrap">
+    <table class="facts">
+      <thead><tr><th>Typeface</th><th>Digit height</th><th>Read size</th><th>Glance size</th><th>55-11/16" at glance</th><th>Tabular digits</th><th>Fractions feature</th><th>Weights</th><th>Latin woff2</th><th>License</th></tr></thead>
+      <tbody>
+        <tr><td>Atkinson Hyperlegible Next</td><td>0.694</td><td>20 px</td><td>51 px</td><td>250 px</td><td>on request</td><td>yes</td><td>200 to 800</td><td>30 KB</td><td>OFL</td></tr>
+        <tr><td>Atkinson Hyperlegible Mono</td><td>0.694</td><td>20 px</td><td>51 px</td><td>288 px</td><td>always</td><td>yes</td><td>200 to 800</td><td>15 KB</td><td>OFL</td></tr>
+        <tr><td>B612</td><td>0.767</td><td>18 px</td><td>46 px</td><td>243 px</td><td>always</td><td>no</td><td>400, 700</td><td>32 KB</td><td>OFL</td></tr>
+        <tr><td>B612 Mono</td><td>0.767</td><td>18 px</td><td>46 px</td><td>268 px</td><td>always</td><td>no</td><td>400, 700</td><td>18 KB</td><td>OFL</td></tr>
+        <tr><td>SF Pro (system font on Apple devices)</td><td>0.728</td><td>19 px</td><td>48 px</td><td>229 px</td><td>on request</td><td>yes</td><td>all</td><td>none</td><td>Apple devices only</td></tr>
+        <tr><td>IBM Plex Sans (considered)</td><td>0.722</td><td>19 px</td><td>49 px</td><td>234 px</td><td>always</td><td>yes</td><td>100 to 700</td><td></td><td>OFL</td></tr>
+        <tr><td>Inter (considered)</td><td>0.747</td><td></td><td></td><td></td><td>on request</td><td>yes</td><td>100 to 900</td><td></td><td>OFL</td></tr>
+        <tr><td>Overpass (considered)</td><td>0.724</td><td></td><td></td><td></td><td>on request</td><td>yes</td><td>100 to 900</td><td></td><td>OFL</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="prose small muted">Every candidate fits the longest length in the worked example, 55-11/16", on a phone's 343 px content width at glance size. Not pursued: Inter, because it is the generic default and offers nothing specific to this use; IBM Plex, because it is a corporate identity with no legibility research behind it; Overpass, because the open version of the road-sign letters has not been tested for distance.</p>
+</section>
+
+<!-- ============================== DIRECTIONS ============================== -->
+<section id="directions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Typeface</p>
+    <h2>Three directions</h2>
+  </div>
+
+  <fieldset class="test">
+    <legend class="small"><b>Legibility test</b></legend>
+    <div class="row">
+      <label for="blur">Blur <input id="blur" type="range" min="0" max="3" step="0.25" value="0"> <span id="blur-out" class="mono">0 px</span></label>
+      <label for="dim">Dim <input id="dim" type="range" min="0" max="70" step="5" value="0"> <span id="dim-out" class="mono">0%</span></label>
+      <button type="button" id="reset" class="pick" style="cursor:pointer">Reset</button>
+    </div>
+    <p class="small muted">Blur stands in for distance, a dusty screen, or reading without glasses; dimming stands in for a dark garage. Apply both and see which numbers you can still read.</p>
+  </fieldset>
+
+  <div class="directions">
+    <article class="direction">
+      <header><p><span class="letter">T2</span> · Atkinson Hyperlegible</p><h3>Built for low vision: every character made distinct</h3></header>
+      <div class="spec-card t2 blur-target">
+        <span class="read">Cut the 2 back legs (uphill)</span>
+        <div><span class="lab">Length, long point to long point</span><br><span class="glance">131-1/2"</span></div>
+        <div class="pair"><div class="box"><span class="lab">Saw at</span><span class="saw">20.0°</span></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div>
+        <span class="read">Each edge, top cut to foot cut <span class="len">130-1/4"</span></span>
+        <span class="conf">1 l I · 0 O · 3/8 5/8 · 6 8 9</span>
+        <table>
+          <tr><td>Back leg (uphill)</td><td class="r">2</td><td class="r">131-1/2"</td></tr>
+          <tr><td>Front leg (downhill)</td><td class="r">2</td><td class="r">138-3/8"</td></tr>
+          <tr><td>Crossbar</td><td class="r">2</td><td class="r">55-11/16"</td></tr>
+          <tr><td>Gusset</td><td class="r">2</td><td class="r">16-1/4"</td></tr>
+        </table>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:17px;"><b>Bending · Top beam, 4x6</b><b class="num">margin 1.1x</b></div>
+        <p class="body">Flush cut on the inside face at the top: starts on the inner edge <span class="len">5-3/16"</span> below the top cut and runs at 20.0° to that edge, ending <span class="len">1-7/8"</span> in from it at the top.</p>
+        <span class="formula">Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r</span>
+      </div>
+      <div class="critique">
+        <dl>
+          <dt>Evidence for the use</dt>
+          <dd>Designed by Applied Design Works with the Braille Institute, with low-vision specialists, so that every character is as distinct as possible: I has serifs, 1 and l differ, F and E differ, shapes are exaggerated. Poor light and a dusty screen are a mild version of low vision.</dd>
+          <dt>Hierarchy</dt>
+          <dd>A variable font from 200 to 800, so labels, body, and numbers can each take their own weight. Tabular figures and fractions on request; a matching Mono for formulas.</dd>
+          <dt>Cost</dt>
+          <dd>The smallest digits of the three for a given size (0.694), so glance numbers need 51 px. Its open, rounded shapes read as friendly rather than technical.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="direction">
+      <header><p><span class="letter">T3</span> · B612</p><h3>Drawn for aircraft cockpit displays</h3></header>
+      <div class="spec-card t3 blur-target">
+        <span class="read">Cut the 2 back legs (uphill)</span>
+        <div><span class="lab">Length, long point to long point</span><br><span class="glance">131-1/2"</span></div>
+        <div class="pair"><div class="box"><span class="lab">Saw at</span><span class="saw">20.0°</span></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div>
+        <span class="read">Each edge, top cut to foot cut <span class="len">130-1/4"</span></span>
+        <span class="conf">1 l I · 0 O · 3/8 5/8 · 6 8 9</span>
+        <table>
+          <tr><td>Back leg (uphill)</td><td class="r">2</td><td class="r">131-1/2"</td></tr>
+          <tr><td>Front leg (downhill)</td><td class="r">2</td><td class="r">138-3/8"</td></tr>
+          <tr><td>Crossbar</td><td class="r">2</td><td class="r">55-11/16"</td></tr>
+          <tr><td>Gusset</td><td class="r">2</td><td class="r">16-1/4"</td></tr>
+        </table>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:17px;"><b>Bending · Top beam, 4x6</b><b class="num">margin 1.1x</b></div>
+        <p class="body">Flush cut on the inside face at the top: starts on the inner edge <span class="len">5-3/16"</span> below the top cut and runs at 20.0° to that edge, ending <span class="len">1-7/8"</span> in from it at the top.</p>
+        <span class="formula">Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r</span>
+      </div>
+      <div class="critique">
+        <dl>
+          <dt>Evidence for the use</dt>
+          <dd>Commissioned by Airbus from Intactile Design, with research by ENAC and the University of Toulouse, for cockpit screens in degraded conditions: vibration, glare, fatigue. Released as open source in 2017.</dd>
+          <dt>Numbers</dt>
+          <dd>The tallest digits of the candidates (0.767), so glance numbers need only 46 px, and digits are tabular by default. It reads like an instrument, which suits a tool that measures.</dd>
+          <dt>Cost</dt>
+          <dd>Two weights only, so hierarchy rests on size. No fractions feature, which does not matter with slash fractions. Wide letters make long text, such as method steps, take more lines.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="direction">
+      <header><p><span class="letter">T1</span> · System font</p><h3>Whatever the device provides: SF Pro on Apple, Roboto on Android</h3></header>
+      <div class="spec-card t1 blur-target">
+        <span class="read">Cut the 2 back legs (uphill)</span>
+        <div><span class="lab">Length, long point to long point</span><br><span class="glance">131-1/2"</span></div>
+        <div class="pair"><div class="box"><span class="lab">Saw at</span><span class="saw">20.0°</span></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div>
+        <span class="read">Each edge, top cut to foot cut <span class="len">130-1/4"</span></span>
+        <span class="conf">1 l I · 0 O · 3/8 5/8 · 6 8 9</span>
+        <table>
+          <tr><td>Back leg (uphill)</td><td class="r">2</td><td class="r">131-1/2"</td></tr>
+          <tr><td>Front leg (downhill)</td><td class="r">2</td><td class="r">138-3/8"</td></tr>
+          <tr><td>Crossbar</td><td class="r">2</td><td class="r">55-11/16"</td></tr>
+          <tr><td>Gusset</td><td class="r">2</td><td class="r">16-1/4"</td></tr>
+        </table>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:17px;"><b>Bending · Top beam, 4x6</b><b class="num">margin 1.1x</b></div>
+        <p class="body">Flush cut on the inside face at the top: starts on the inner edge <span class="len">5-3/16"</span> below the top cut and runs at 20.0° to that edge, ending <span class="len">1-7/8"</span> in from it at the top.</p>
+        <span class="formula">Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r</span>
+      </div>
+      <div class="critique">
+        <dl>
+          <dt>No dependency, best rendering</dt>
+          <dd>Nothing to download, and on your Apple devices it is SF Pro, tuned for those screens. Tabular figures and fractions on request.</dd>
+          <dt>Not yours to control</dt>
+          <dd>Apple's license limits SF Pro to Apple devices, so on another computer the plan prints in a different face with different widths. It is the face every app uses, which works against the owner's wish for a design that is not generic.</dd>
+          <dt>Legibility</dt>
+          <dd>Good, but not designed for distinctness: in the test line, l and I are near twins.</dd>
+        </dl>
+      </div>
+    </article>
+  </div>
+
+  <div class="verdict prose stack">
+    <h4>Suggestion</h4>
+    <p>T2, Atkinson Hyperlegible Next for everything, with tabular figures for numbers and the Mono for formulas. The research behind it matches the garage (reading in poor conditions), its range of weights gives the hierarchy that the plan document needs, and it costs 45 KB. B612 is the close second and the better choice if you want the numbers to read like an instrument; run the blur test on both before deciding.</p>
+  </div>
+</section>
+
+<!-- ============================== FRACTIONS ============================== -->
+<section id="fractions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Fractions</p>
+    <h2>How <span style="white-space:nowrap">138-3/8"</span> is set</h2>
+    <p class="prose">Fractions to 1/16 are where a misread costs a board. The question is whether they keep full-size digits. Measured in SF Pro and IBM Plex, the digits inside a built-in diagonal fraction are about half the height of a full digit.</p>
+  </div>
+  <div class="fracs">
+    <div class="opt rec"><div class="head"><b>Full-size slash</b><span class="rec-tag">Suggested</span></div><div class="big">138-3/8"</div><p class="small">As core formats it today. Every digit is full size: at glance size about 20 arc-minutes from 1.0 m. Fits a phone at the glance size in every candidate.</p></div>
+    <div class="opt"><div class="head"><b>Diagonal fraction (OpenType)</b></div><div class="big dfrac">138 3/8"</div><p class="small">Typographically traditional, and compact. Fraction digits are about half height: about 10 arc-minutes at glance size, under the 16-minute minimum, and about 6 px tall in a 17 px table. 3/8 and 5/8 become hard to tell apart.</p></div>
+    <div class="opt"><div class="head"><b>Enlarged fraction</b></div><div class="big">138 <span class="efrac">3/8</span>"</div><p class="small">The whole number stands out from the fraction, which helps scanning. Fraction digits at 70% are about 14 arc-minutes at glance size, still under the minimum. Needs core to return the parts of a length rather than one string.</p></div>
+  </div>
+</section>
+
+<!-- ============================== SCALE & RULES ============================== -->
+<section id="rules" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Scale and rules</p>
+    <h2>Sizes, and how each kind of number is set</h2>
+  </div>
+  <div class="directions">
+    <div class="stack">
+      <h4>Desk scale</h4>
+      <p class="small">Ratio 1.2 from a 17 px body, rounded to whole pixels. Line height 1.5 for running text, 1.3 in tables, 1.1 for headings.</p>
+      <table class="rules" style="min-width:0">
+        <tr><th>Step</th><th>Size</th><th>Used for</th></tr>
+        <tr><td>−1</td><td>14 px</td><td>labels, captions, sources</td></tr>
+        <tr><td>0</td><td>17 px</td><td>body, tables</td></tr>
+        <tr><td>1</td><td>20 px</td><td>card titles, key results</td></tr>
+        <tr><td>2</td><td>24 px</td><td>section headings</td></tr>
+        <tr><td>3</td><td>29 px</td><td>project name</td></tr>
+      </table>
+    </div>
+    <div class="stack">
+      <h4>Shop sizes</h4>
+      <p class="small">Fixed, not fluid, and set by the typeface's measured digit height.</p>
+      <table class="rules" style="min-width:0">
+        <tr><th>Role</th><th>T2</th><th>Used for</th></tr>
+        <tr><td>Read</td><td>20 px</td><td>step text, notes, method</td></tr>
+        <tr><td>Glance</td><td>51 px bold</td><td>the length to cut to</td></tr>
+        <tr><td>Saw setting</td><td>32 px bold, boxed</td><td>the angle you set</td></tr>
+        <tr><td>Edge angle</td><td>20 px, labeled</td><td>the protractor angle</td></tr>
+        <tr><td>Print body</td><td>10.5 pt</td><td>8 pt minimum</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="req-wrap">
+    <table class="rules">
+      <thead><tr><th>Kind of number</th><th>Set as</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td>Length</td><td>138-3/8"</td><td>Core's formatter, unchanged. Tabular figures. Straight inch and foot marks, as Butterick recommends; core already outputs them. A length never breaks across lines: browsers break at the hyphen, which splits 138 from 3/8, so every displayed length is set unbreakable.</td></tr>
+        <tr><td>Board length</td><td>12' 0"</td><td>Core's feet-and-inches formatter.</td></tr>
+        <tr><td>Saw setting and edge angle</td><td>20.0° · 70.0°</td><td>Never the same size. The saw setting is larger, bold, and boxed; the edge angle is smaller and always labeled "to the edge" (DOMAIN.md, Units).</td></tr>
+        <tr><td>Margin</td><td>margin 1.1x</td><td>Always with "margin" and "under these assumptions" nearby (hard rule 2). The choice is whether to use the multiplication sign, ×, which is the typographically correct mark but changes the wording AGENTS.md and the tests use.</td></tr>
+        <tr><td>Quantity</td><td>× 2</td><td>Tabular, right-aligned in tables; "2 back legs" in sentences.</td></tr>
+        <tr><td>Columns of lengths</td><td>right-aligned</td><td>Inch marks line up. Aligning whole numbers on the hyphen would need core to return a length's parts; not proposed.</td></tr>
+        <tr><td>Structural values</td><td>918.9 psi</td><td>Core's quantity formatter; unit after a space.</td></tr>
+        <tr><td>Formulas</td><td>Fb' = Fb · C_D …</td><td>The Mono, never wrapped (#41).</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================== DEPENDENCY ============================== -->
+<section id="dependency" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Dependency</p>
+    <h2>Adding the font</h2>
+    <p class="prose">AGENTS.md asks for permission before any dependency. For T2 the proposal is:</p>
+  </div>
+  <div class="opts">
+    <div class="opt rec"><div class="head"><b>Self-host two files</b><span class="rec-tag">Suggested</span></div><p>Atkinson Hyperlegible Next (variable, 30 KB) and Mono (15 KB), Latin subset, as <code>woff2</code> in <code>apps/web</code>, with the OFL license file beside them. No package and no request to Google, so nothing leaves the owner's devices and the font is there whenever the app is. Version and source recorded in a decision record.</p></div>
+    <div class="opt"><div class="head"><b>A package</b></div><p>An npm package such as Fontsource's. Easier to update, but a package dependency for two static files.</p></div>
+    <div class="opt"><div class="head"><b>Google Fonts link</b></div><p>Simplest, but every page load asks a third party for the font, and the font is missing if that request fails.</p></div>
+  </div>
+</section>
+
+<!-- ============================== REFERENCES ============================== -->
+<section id="references" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Precedents and guidance</p>
+    <h2>Sources</h2>
+    <p class="prose">Checked in October 2026.</p>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Atkinson Hyperlegible</b><p>Braille Institute with Applied Design Works, from 2019; Next and Mono released in February 2025 with seven weights and a variable version.</p><p class="small"><a href="https://en.wikipedia.org/wiki/Atkinson_Hyperlegible">Overview</a> · <a href="https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next">Google Fonts</a></p></div>
+    <div class="opt"><b>B612</b><p>Airbus, Intactile Design, ENAC, and the University of Toulouse; open-sourced through Eclipse Polarsys in 2017.</p><p class="small"><a href="https://github.com/polarsys/b612">Repository</a> · <a href="https://fonts.google.com/specimen/B612">Google Fonts</a></p></div>
+    <div class="opt"><b>SF Pro license</b><p>Apple's fonts may not be embedded or used for website content; the system font is available only through the device.</p><p class="small"><a href="https://developer.apple.com/fonts/">Apple fonts</a></p></div>
+    <div class="opt"><b>Figures and marks</b><p>Tabular figures for aligned columns, proportional in running text; straight quotes for foot and inch marks.</p><p class="small"><a href="https://practicaltypography.com/alternate-figures.html">Butterick: alternate figures</a> · <a href="https://practicaltypography.com/foot-and-inch-marks.html">Butterick: foot and inch marks</a></p></div>
+    <div class="opt"><b>Character height</b><p>16 arc-minutes minimum, 20 optimal (#41's sources). Digit heights here are measured from each font file with fontTools.</p><p class="small"><a href="https://activu.com/uploads/Optimal-Font-Size.pdf">Activu: Optimal Font Size</a> · <a href="https://fonttools.readthedocs.io/">fontTools</a></p></div>
+    <div class="opt"><b>Overpass and Highway Gothic</b><p>Overpass interprets the FHWA's Highway Gothic, which was designed for reading at road distances; no distance testing of Overpass itself was found.</p><p class="small"><a href="https://fonts.google.com/specimen/Overpass/about">Overpass</a> · <a href="https://en.wikipedia.org/wiki/Highway_Gothic">Highway Gothic</a></p></div>
+  </div>
+</section>
+
+<section class="stack">
+  <div class="place">
+    <p class="eyebrow">New requirements</p>
+    <h2>What this stage adds</h2>
+  </div>
+  <p class="prose">None with the suggested choices: core's formatters already produce full-size slash fractions and straight marks. Enlarged fractions or hyphen-aligned columns would need core to return a length's parts, and the cut list stores formatted strings in the snapshot, so either would mean a snapshot shape change (0014).</p>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Numbers come from <code>packages/core/src/templates/swing-set-a-frame/snapshots/v2.json</code>, example 1, through core's formatters. Kept at <code>docs/design/typography.html</code>; choices are recorded in <code>docs/design/README.md</code>. The specimens load the candidate fonts from Google Fonts for review only.</p>
+</footer>
+
+</main>
+
+<script>
+{
+  const blur = document.getElementById('blur');
+  const dim = document.getElementById('dim');
+  const blurOut = document.getElementById('blur-out');
+  const dimOut = document.getElementById('dim-out');
+  const apply = () => {
+    const b = Number(blur.value);
+    const d = Number(dim.value) / 100;
+    const filter = `blur(${b}px) brightness(${1 - d * 0.6}) contrast(${1 - d * 0.7})`;
+    document.documentElement.style.setProperty('--test-filter', b === 0 && d === 0 ? 'none' : filter);
+    blurOut.textContent = `${b} px`;
+    dimOut.textContent = `${Math.round(d * 100)}%`;
+  };
+  blur.addEventListener('input', apply);
+  dim.addEventListener('input', apply);
+  document.getElementById('reset').addEventListener('click', () => {
+    blur.value = '0';
+    dim.value = '0';
+    apply();
+  });
+}
+</script>
