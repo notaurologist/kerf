@@ -3,6 +3,7 @@ import { stock } from '../../lumber/stock.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
 import { Flag, type GenerateResult, HardwareItem, type Issue, Part, Placement } from '../types.ts';
+import { features, flushCutNote } from './features.ts';
 import {
   type Dimensions,
   dimensions,
@@ -22,9 +23,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 1 matches docs/templates/swing-set-a-frame.md, status v1. Version 2 adds sources to
  * G, the pendulum factor, and the beam's breadth and depth in the structural working (#36); no
  * number changes. Version 3 adds a 3D placement for every part instance (#49); no other output
- * changes.
+ * changes. Version 4 adds holes, bolt areas, the flush cut, and each end cut's reference edge as
+ * part data, and rewords the flush-cut note as two marks a builder can measure (#50).
  */
-export const TEMPLATE_VERSION = 3;
+export const TEMPLATE_VERSION = 4;
 export const TEMPLATE_ID = 'swing-set-a-frame';
 
 export const SwingSetOutput = z.object({
@@ -60,10 +62,20 @@ function legName(side: 'back' | 'front', groundSlope: number): string {
 
 function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
   const angle = formatAngle(g.splay);
+  const f = features(p, dims, g);
+  // Every end cut on the swing set is a miter: drawn on the face, from the reference edge.
   const levelCut = (where: string) => ({
     setting: g.splay,
     description: `${where}: level cut`,
+    measuredFrom: 'reference-edge' as const,
   });
+  const flushWithLeg = {
+    setting: g.splay,
+    description: 'Flush with the leg',
+    measuredFrom: 'reference-edge' as const,
+  };
+  const square = { setting: 0, description: 'Square', measuredFrom: 'reference-edge' as const };
+  const flushCut = f.leg.tapers[0];
   const leg = (side: 'back' | 'front'): Part => {
     const l = g[side];
     return {
@@ -77,9 +89,10 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
       ends: [levelCut('Top'), levelCut('Foot')],
       endsParallel: true,
       notes: [
-        `Flush cut on the inside face at the top: starts on the inner edge ${formatLength(g.flushCut.lengthAlongLeg)} below the top cut and runs at ${angle} to that edge, ending ${formatLength(g.flushCut.depthAtTop)} in from it at the top.`,
+        ...(flushCut ? [flushCutNote(flushCut, angle, g.flushCut.depthAtTop)] : []),
         ...(dims.d > 0 ? [`${formatLength(l.belowGrade)} of this leg is below grade.`] : []),
       ],
+      ...f.leg,
     };
   };
 
@@ -92,10 +105,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
       quantity: p.beamPlies,
       length: dims.L,
       markLengths: [],
-      ends: [
-        { setting: 0, description: 'Square' },
-        { setting: 0, description: 'Square' },
-      ],
+      ends: [square, square],
       endsParallel: true,
       notes:
         p.beamPlies > 1
@@ -103,6 +113,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
               `${p.beamPlies} plies fastened face to face make one ${formatLength(dims.bw)} wide beam.`,
             ]
           : [],
+      ...f.beam,
     },
     leg('back'),
     leg('front'),
@@ -117,12 +128,10 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
         { label: 'Top edge', value: g.crossbar.topEdge },
         { label: 'Bottom edge', value: g.crossbar.bottomEdge },
       ],
-      ends: [
-        { setting: g.splay, description: 'Flush with the leg' },
-        { setting: g.splay, description: 'Flush with the leg' },
-      ],
+      ends: [flushWithLeg, flushWithLeg],
       endsParallel: false,
       notes: ['Fastened to the outside face of the legs.'],
+      ...f.crossbar,
     },
     {
       id: 'gusset',
@@ -135,12 +144,10 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Part[] {
         { label: 'Top edge (against the beam)', value: g.gusset.topWidth },
         { label: 'Bottom edge', value: g.gusset.bottomWidth },
       ],
-      ends: [
-        { setting: g.splay, description: 'Flush with the leg' },
-        { setting: g.splay, description: 'Flush with the leg' },
-      ],
+      ends: [flushWithLeg, flushWithLeg],
       endsParallel: false,
       notes: ["On the outside face of the frame, top edge against the beam's underside."],
+      ...f.gusset,
     },
   ];
 }
