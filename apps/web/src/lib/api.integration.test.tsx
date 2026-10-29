@@ -2,8 +2,10 @@ import { swingSetAFrame, type TemplateDefinition } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp, TEST_PASSWORD } from '../../../api/test/app.ts';
 import { VersionNotice } from '../features/project/VersionNotice.tsx';
+import { PreviewPane, previewState } from '../features/project-editor/Preview.tsx';
 import { renderText } from '../test/render.tsx';
 import { createClient, send } from './api.ts';
+import { readPlan } from './plan.ts';
 
 // The web client against the real API app on PGlite: the request shapes the screens send, the
 // session cookie, and the JSON content type the API requires on every state-changing request.
@@ -93,5 +95,41 @@ describe('the web client against the API', () => {
     expect((await send(v2.api.logout.$post())).ok).toBe(true);
     const afterLogout = await send(v2.api.projects.$get());
     expect(afterLogout).toEqual({ ok: false, error: { kind: 'login-required' } });
+  }, 30_000);
+
+  it('previews an edit without saving it, and the edit screen marks what changed', async () => {
+    const { app } = await createTestApp();
+    const client = browser(app);
+    await send(client.api.login.$post({ json: { password: TEST_PASSWORD } }));
+    const created = await send(
+      client.api.projects.$post({
+        json: {
+          name: 'Backyard swing set',
+          templateId: base.id,
+          params: example.params,
+          structuralInputs: example.structuralInputs,
+        },
+      }),
+    );
+    if (!created.ok) throw new Error(JSON.stringify(created.error));
+    const id = created.value.id;
+
+    const result = await send(
+      client.api.projects[':id'].preview.$post({
+        param: { id },
+        json: { params: { ...(example.params as object), beamLength: 132 } },
+      }),
+    );
+    const state = previewState(base.id, result);
+    expect(state.kind).toBe('ready');
+    const saved = readPlan(created.value);
+    if (!saved.ok) throw new Error(saved.message);
+    const text = renderText(<PreviewPane saved={saved.plan} state={state} />);
+    expect(text).toContain('Preview, not saved');
+    expect(text).toContain('132" was 120"');
+
+    const read = await send(client.api.projects[':id'].$get({ param: { id } }));
+    if (!read.ok) throw new Error(JSON.stringify(read.error));
+    expect(read.value.snapshot).toEqual(created.value.snapshot);
   }, 30_000);
 });

@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 
 // Numbers as #42 sets them. Every value here is a string core formatted (hard rule 1); these
 // components only decide how it is shown.
@@ -63,7 +63,37 @@ export function SawSetting(props: { setting: string; toEdge: string }) {
   );
 }
 
-/** A structural margin: "margin 1.1x under these assumptions", in the text color (#43, rule 1). */
-export function MarginLine(props: { margin: string }) {
-  return <p className="k-margin">{props.margin} under these assumptions</p>;
+/**
+ * A structural margin: "margin 1.1x under these assumptions", in the text color (#43, rule 1).
+ * In a preview, `was` is the saved plan's margin, or its words when it had none (#56).
+ */
+export function MarginLine(props: { margin: string; was?: string }) {
+  return (
+    <p className="k-margin" data-changed={props.was !== undefined ? '' : undefined}>
+      {props.margin} under these assumptions
+      {props.was !== undefined && <Was text={props.was} />}
+    </p>
+  );
+}
+
+/**
+ * A value in a preview that differs from the saved plan (#56), with the saved value under it in
+ * words, so the change never rests on the mark alone. `was` is null for a value the saved plan
+ * did not have.
+ */
+export function Changed(props: { was: string | null; children: ReactNode }) {
+  return (
+    <span className="k-changed">
+      {props.children}
+      {props.was === null ? <span className="k-was">new</span> : <Was text={props.was} />}
+    </span>
+  );
+}
+
+function Was(props: { text: string }) {
+  return (
+    <span className="k-was">
+      was <Measured text={props.text} />
+    </span>
+  );
 }

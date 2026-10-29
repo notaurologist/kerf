@@ -1,4 +1,6 @@
 import {
+  type Change,
+  compareSnapshots,
   compareWithCurrent,
   createSnapshot,
   type Issue,
@@ -60,6 +62,14 @@ export interface Project extends ProjectSummary {
   snapshot: ProjectSnapshot | null;
   unreadable?: { reason: string; message: string };
   version: VersionReport | null;
+}
+
+/** A snapshot generated from proposed changes and not saved, with what it changes. */
+export interface Preview {
+  snapshot: ProjectSnapshot;
+  /** Paths in the template's plan whose values differ from the stored snapshot's. */
+  changes: Change[];
+  truncated: boolean;
 }
 
 export type Result<T> =
@@ -217,6 +227,33 @@ export function createProjectService(deps: {
         .returning();
       if (!updated) return { ok: false, error: 'not-found' };
       return view(updated);
+    },
+
+    /**
+     * What saving these changes would produce, compared with the stored snapshot, without saving
+     * anything (#56). Takes the same changes as `update`; a name or status change alone previews
+     * the stored parameters and inputs with the current template version.
+     */
+    async preview(id: string, changes: ProjectChanges): Promise<Result<Preview>> {
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      const template = findTemplate(row.templateId);
+      if (!template) return { ok: false, error: 'unknown-template' };
+      const stored = read(row);
+      if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+      const generated = generate(
+        row.templateId,
+        changes.params ?? stored.snapshot.params,
+        changes.structuralInputs ?? stored.snapshot.structuralInputs,
+      );
+      if (!generated.ok) return generated;
+      return {
+        ok: true,
+        value: {
+          snapshot: generated.snapshot,
+          ...compareSnapshots(template, stored.snapshot, generated.snapshot),
+        },
+      };
     },
 
     /** Regenerates from the stored parameters and inputs with the current template version. */

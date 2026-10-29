@@ -1,82 +1,102 @@
 import type { CutListRow } from '@kerf/core';
+import type { ReactNode } from 'react';
+import { type Changes, marked as mark, NO_CHANGES } from '../../lib/changes.tsx';
 import { Length, List, Measured, MeasureTable, PlainList, Text } from '../../ui/index.ts';
 
 // The cut list (PRODUCT.md, MVP feature 3). Every length and angle arrives as text from core's
-// cut list, which formats them with the shared formatters; nothing is rounded here.
+// cut list, which formats them with the shared formatters; nothing is rounded here. In a preview
+// (#56), `changes` marks each value that differs from the saved plan with the saved one.
 
-export function CutList(props: { rows: readonly CutListRow[] }) {
+export function CutList(props: { rows: readonly CutListRow[]; changes?: Changes }) {
+  const changes = props.changes ?? NO_CHANGES;
+  const path = (row: CutListRow) => `cutList[${props.rows.indexOf(row)}]`;
+  const marked = (at: string, value: ReactNode) => mark(changes, at, value);
+  const removed = changes.removed('cutList') as CutListRow[];
   return (
-    <MeasureTable
-      caption="Cut list"
-      captionHidden
-      rows={props.rows}
-      rowKey={(row) => row.partId}
-      columns={[
-        { key: 'part', label: 'Part', cell: (row) => <b>{row.name}</b> },
-        {
-          key: 'qty',
-          label: 'Qty',
-          fullLabel: 'Quantity',
-          numeric: true,
-          cell: (row) => row.quantity,
-        },
-        { key: 'stock', label: 'Stock', cell: (row) => <Measured text={row.stock} /> },
-        {
-          key: 'length',
-          label: 'Length',
-          numeric: true,
-          cell: (row) => (
-            <b>
-              <Length>{row.length}</Length>
-            </b>
-          ),
-        },
-        {
-          key: 'ends',
-          label: 'End cuts',
-          cell: (row) => (
-            <>
-              <List ordered>
-                {row.ends.map((end, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: the two ends are positional.
-                  <li key={i}>
-                    <Measured text={end} />
-                  </li>
-                ))}
-              </List>
-              <Text tone="muted" size="small">
-                {row.endsParallel ? 'Ends parallel.' : 'Ends mirror each other.'}
-              </Text>
-            </>
-          ),
-        },
-        {
-          key: 'marks',
-          label: 'Marks and notes',
-          cell: (row) =>
-            row.marks.length === 0 && row.notes.length === 0 ? (
-              <Text tone="muted" as="span">
-                None
-              </Text>
-            ) : (
-              <PlainList gap="xs">
-                {row.marks.map((m) => (
-                  <li key={m.label}>
-                    {m.label}:{' '}
-                    <b>
-                      <Length>{m.value}</Length>
-                    </b>
-                  </li>
-                ))}
-                {row.notes.map((n) => (
-                  <li key={n}>
-                    <Measured text={n} />
-                  </li>
-                ))}
-              </PlainList>
+    <>
+      <MeasureTable
+        caption="Cut list"
+        captionHidden
+        rows={props.rows}
+        rowKey={(row) => row.partId}
+        rowChanged={(row) => changes.under(path(row))}
+        columns={[
+          { key: 'part', label: 'Part', cell: (row) => marked(path(row), <b>{row.name}</b>) },
+          {
+            key: 'qty',
+            label: 'Qty',
+            fullLabel: 'Quantity',
+            numeric: true,
+            cell: (row) => marked(`${path(row)}.quantity`, row.quantity),
+          },
+          {
+            key: 'stock',
+            label: 'Stock',
+            cell: (row) => marked(`${path(row)}.stock`, <Measured text={row.stock} />),
+          },
+          {
+            key: 'length',
+            label: 'Length',
+            numeric: true,
+            cell: (row) =>
+              marked(
+                `${path(row)}.length`,
+                <b>
+                  <Length>{row.length}</Length>
+                </b>,
+              ),
+          },
+          {
+            key: 'ends',
+            label: 'End cuts',
+            cell: (row) => (
+              <>
+                <List ordered>
+                  {row.ends.map((end, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: the two ends are positional.
+                    <li key={i}>{marked(`${path(row)}.ends[${i}]`, <Measured text={end} />)}</li>
+                  ))}
+                </List>
+                <Text tone="muted" size="small">
+                  {row.endsParallel ? 'Ends parallel.' : 'Ends mirror each other.'}
+                </Text>
+              </>
             ),
-        },
-      ]}
-    />
+          },
+          {
+            key: 'marks',
+            label: 'Marks and notes',
+            cell: (row) =>
+              row.marks.length === 0 && row.notes.length === 0 ? (
+                <Text tone="muted" as="span">
+                  None
+                </Text>
+              ) : (
+                <PlainList gap="xs">
+                  {row.marks.map((m, i) => (
+                    <li key={m.label}>
+                      {m.label}:{' '}
+                      {marked(
+                        `${path(row)}.marks[${i}].value`,
+                        <b>
+                          <Length>{m.value}</Length>
+                        </b>,
+                      )}
+                    </li>
+                  ))}
+                  {row.notes.map((n) => (
+                    <li key={n}>
+                      <Measured text={n} />
+                    </li>
+                  ))}
+                </PlainList>
+              ),
+          },
+        ]}
+      />
+      {removed.length > 0 && (
+        <Text>No longer in the plan: {removed.map((row) => row.name).join(', ')}.</Text>
+      )}
+    </>
   );
 }

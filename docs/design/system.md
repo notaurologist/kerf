@@ -38,7 +38,9 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | A question for an experienced builder | `ExpertCheck` | Amber, with the flag icon and "Expert check" (#43, rule 3). |
 | What just happened | `StatusLine` | Stays until the next action. Use `setFlash` (`lib/flash.ts`) to carry it to the next screen. |
 | Progress not yet sent | `Pending` | Shop modes (#57). |
-| A margin | `MarginLine` | Core's `formatMargin`, then "under these assumptions", in the text color. |
+| A margin | `MarginLine` | Core's `formatMargin`, then "under these assumptions", in the text color. In a preview, `was` gives the saved margin. |
+| A value a preview changes | `Changed`, and `rowChanged` on `MeasureTable` | The new value with "was" and the saved value under it, and a bar beside the row (#56). `was={null}` says "new". |
+| The state of the numbers shown | `StateTag` | Words in an outlined box, such as "Preview, not saved". |
 | The length you cut to | `Glance` | 51 px bold: readable across the bench (#42). |
 | A saw setting | `SawSetting` | The setting boxed and larger, the angle to the edge smaller and labeled. |
 | A list of measurements | `MeasureTable` | A table from about 640 px of its own width, labeled rows below it. Put the name of each row in the first column. Mark number columns `numeric`; give shortened headers a `fullLabel`. |

@@ -1,5 +1,6 @@
 import { formatLength, type HardwareLine, type LumberPlan } from '@kerf/core';
 import { Fragment } from 'react';
+import { type Changes, marked, NO_CHANGES } from '../../lib/changes.tsx';
 import {
   Disclosure,
   ErrorText,
@@ -13,7 +14,8 @@ import {
 
 // The shopping list (PRODUCT.md, MVP feature 4): boards to buy, how the parts fit on them, and
 // hardware. Board and piece lengths are stored in inches or feet and shown through core's
-// formatLength, so they round the same way as the cut list.
+// formatLength, so they round the same way as the cut list. In a preview (#56), `changes` marks
+// each line that differs from the saved plan with the saved value.
 
 /** A board length in feet, shown as feet and inches. */
 const feet = (f: number) => formatLength(f * 12, 'feet-inches');
@@ -22,8 +24,13 @@ export function ShoppingList(props: {
   lumber: LumberPlan;
   hardware: readonly HardwareLine[];
   hardwareNotes: readonly string[];
+  changes?: Changes;
 }) {
   const { lumber } = props;
+  const changes = props.changes ?? NO_CHANGES;
+  const line = (l: object, list: readonly object[], name: string) => `${name}[${list.indexOf(l)}]`;
+  const removedLumber = changes.removed('lumber.lines') as LumberPlan['lines'];
+  const removedHardware = changes.removed('hardware') as HardwareLine[];
   return (
     <Stack>
       <h3>Lumber</h3>
@@ -38,18 +45,48 @@ export function ShoppingList(props: {
         caption="Lumber to buy"
         captionHidden
         rows={lumber.lines}
-        rowKey={(line) => `${line.nominal}/${line.feet}`}
+        rowKey={(l) => `${l.nominal}/${l.feet}`}
+        rowChanged={(l) => changes.under(line(l, lumber.lines, 'lumber.lines'))}
         columns={[
-          { key: 'stock', label: 'Stock', cell: (line) => <b>{line.nominal}</b> },
+          {
+            key: 'stock',
+            label: 'Stock',
+            cell: (l) =>
+              marked(
+                changes,
+                `${line(l, lumber.lines, 'lumber.lines')}.nominal`,
+                <b>{l.nominal}</b>,
+              ),
+          },
           {
             key: 'length',
             label: 'Board length',
             numeric: true,
-            cell: (line) => <Length>{feet(line.feet)}</Length>,
+            cell: (l) =>
+              marked(
+                changes,
+                `${line(l, lumber.lines, 'lumber.lines')}.feet`,
+                <Length>{feet(l.feet)}</Length>,
+                (before) => feet(before as number),
+              ),
           },
-          { key: 'buy', label: 'Buy', numeric: true, cell: (line) => line.count },
+          {
+            key: 'buy',
+            label: 'Buy',
+            numeric: true,
+            cell: (l) => marked(changes, `${line(l, lumber.lines, 'lumber.lines')}.count`, l.count),
+          },
         ]}
       />
+      {removedLumber.length > 0 && (
+        <Text>
+          No longer bought:{' '}
+          <Measured
+            text={removedLumber.map((l) => `${l.count} x ${l.nominal}, ${feet(l.feet)}`).join('; ')}
+          />
+          .
+        </Text>
+      )}
       <List>
         {lumber.notes.map((n) => (
           <li key={n}>
@@ -87,18 +124,38 @@ export function ShoppingList(props: {
         caption="Hardware to buy"
         captionHidden
         rows={props.hardware}
-        rowKey={(line) => line.description}
+        rowKey={(h) => h.description}
+        rowChanged={(h) => changes.under(line(h, props.hardware, 'hardware'))}
         columns={[
-          { key: 'item', label: 'Item', cell: (line) => <Measured text={line.description} /> },
+          {
+            key: 'item',
+            label: 'Item',
+            cell: (h) =>
+              marked(
+                changes,
+                `${line(h, props.hardware, 'hardware')}.description`,
+                <Measured text={h.description} />,
+              ),
+          },
           {
             key: 'qty',
             label: 'Qty',
             fullLabel: 'Quantity',
             numeric: true,
-            cell: (line) => line.quantity,
+            cell: (h) =>
+              marked(changes, `${line(h, props.hardware, 'hardware')}.quantity`, h.quantity),
           },
         ]}
       />
+      {removedHardware.length > 0 && (
+        <Text>
+          No longer bought:{' '}
+          <Measured
+            text={removedHardware.map((h) => `${h.quantity} x ${h.description}`).join('; ')}
+          />
+          .
+        </Text>
+      )}
       <List>
         {props.hardwareNotes.map((n) => (
           <li key={n}>

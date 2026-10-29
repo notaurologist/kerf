@@ -5,6 +5,7 @@ import { swingSetAFrame } from '../templates/swing-set-a-frame/definition.ts';
 import type { SwingSetParams } from '../templates/swing-set-a-frame/params.ts';
 import type { SwingSetStructuralInputs } from '../templates/swing-set-a-frame/structural.ts';
 import {
+  compareSnapshots,
   compareWithCurrent,
   createSnapshot,
   type ProjectSnapshot,
@@ -186,6 +187,38 @@ describe('compareWithCurrent', () => {
       storedVersion: CURRENT + 2,
       currentVersion: CURRENT,
     });
+  });
+});
+
+describe('compareSnapshots', () => {
+  const saved = snapshot(swingSetAFrame, params, inputs);
+  const t = swingSetAFrame as TemplateDefinition;
+
+  it('finds nothing between a snapshot and itself', () => {
+    expect(compareSnapshots(t, saved, saved)).toEqual({ changes: [], truncated: false });
+  });
+
+  // Hand check: the beam is alone on a 12' (144") 4x6. Offcut = 144 - 2 x 1/2" trim - length -
+  // 1/8" kerf: 144 - 1 - 120 - 0.125 = 22.875 before, 144 - 1 - 132 - 0.125 = 10.875 after.
+  // A 10' board no longer fits either way, so the note saying why it was listed as 12' goes.
+  // Moving both swings by 6" keeps them 46" from each end, so no other part or board changes.
+  it('lists what different parameters change, by the paths every display shares', () => {
+    const preview = snapshot(
+      swingSetAFrame,
+      { ...params, beamLength: 132, swings: { ...params.swings, centers: [46, 86] } },
+      inputs,
+    );
+    const { changes, truncated } = compareSnapshots(t, saved, preview);
+    expect(truncated).toBe(false);
+    expect(changes.filter((c) => !c.path.startsWith('checks'))).toEqual([
+      { path: 'cutList[0].length', before: '120"', after: '132"' },
+      { path: 'lumber.boards[0].pieces[0].length', before: 120, after: 132 },
+      { path: 'lumber.boards[0].offcut', before: 22.875, after: 10.875 },
+      { path: 'lumber.notes[1]', before: expect.stringContaining("Beam: listed as 12'") },
+    ]);
+    // A longer span between the same loads raises the bending moment, so the margin drops.
+    const bending = changes.find((c) => c.path === 'checks[0].margin');
+    expect(bending?.after).toBeLessThan(bending?.before as number);
   });
 });
 

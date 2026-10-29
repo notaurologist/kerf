@@ -110,6 +110,14 @@ export function StatusLine(props: { children: ReactNode }) {
   );
 }
 
+/**
+ * What state the numbers beside it are in, such as "Preview, not saved" (#56), so a preview is
+ * never mistaken for the saved plan. Words in an outlined box; no meaning rests on color.
+ */
+export function StateTag(props: { children: ReactNode }) {
+  return <span className="k-state-tag">{props.children}</span>;
+}
+
 /** Progress saved on this device and not yet sent (#57). */
 export function Pending() {
   return (

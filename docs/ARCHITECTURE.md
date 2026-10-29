@@ -122,7 +122,7 @@ Each template also describes its editor form as data (`templates/form.ts`): fiel
 
 Every type that appears in a snapshot is a Zod schema with its TypeScript type inferred from it, so one definition both types the code and parses a stored snapshot. Each template exports a `TemplateDefinition` (ID, version, name, schemas for parameters, structural inputs, and outputs, and a pure `generate`), and `templates/index.ts` lists them; generic code finds a template there and never imports one directly.
 
-`snapshot/` creates a snapshot with a template's current version, reads one back, and compares a stored snapshot with what the current version would produce from the same parameters and inputs, as a list of changed paths with their values before and after. A snapshot records two versions: the template version whose numbers it holds (0008) and the shape it is stored in. Reading a snapshot stored in an older shape upgrades it step by step first, without recomputing, so old projects stay readable with their original numbers (0014).
+`snapshot/` creates a snapshot with a template's current version, reads one back, and compares a stored snapshot with what the current version would produce from the same parameters and inputs, as a list of changed paths with their values before and after. It also compares two snapshots of one project, such as the saved one and an edit's preview, through the template's `plan`, so the paths are the ones every display shares (`cutList[0].length`, `checks[0].margin`). A snapshot records two versions: the template version whose numbers it holds (0008) and the shape it is stored in. Reading a snapshot stored in an older shape upgrades it step by step first, without recomputing, so old projects stay readable with their original numbers (0014).
 
 ### Method selection
 
@@ -141,6 +141,7 @@ For each operation, `steps/` lists the methods from the knowledge base whose req
 | `GET /api/projects`, `POST /api/projects` | List (summaries, no snapshots) and create |
 | `GET /api/projects/:id` | The stored snapshot (upgraded to the current shape if needed, 0014), plus a version report: `current`, `ahead`, or `behind` with the changed paths regenerating would bring (or the issues that stop it) |
 | `PUT /api/projects/:id` | Update name, status, parameters, or structural inputs; changing parameters or inputs regenerates the snapshot with the current template version |
+| `POST /api/projects/:id/preview` | Dry run for the edit screen (#56): takes the same body as `PUT`, generates the snapshot with the current template version, and returns it with the changed paths against the stored snapshot. Saves nothing; 422 with core's issues like `PUT` |
 | `POST /api/projects/:id/regenerate` | Regenerate with the current template version (explicit, never automatic) |
 | `DELETE /api/projects/:id` | Delete a project and its history rows, permanently (204) |
 
@@ -188,6 +189,7 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 - Talks only to `/api/*` on its own origin, through the Hono typed client (`src/lib/api.ts`). One function, `send`, turns responses into results the UI shows; a 401 sends the owner to the login screen.
 - Screens are chosen from the URL hash (`#/projects`, `#/projects/<id>`, `#/projects/<id>/edit`, `#/projects/new?template=<id>`, `#/tools`, and `#/catalog` for the design system's catalog), so links, reload, and back work without a router library. Data is loaded per screen with plain `fetch` through the client; there is no client-side cache library.
 - Uses core's parameter schemas to show validation before submitting; the API validates again.
+- The edit screen shows the project's output beside the form (#39, L-A). A moment after typing stops, it asks the preview route for the snapshot the form would produce, labels it "Preview, not saved", and marks each changed value with the saved one, from the paths the route returns.
 - Uses core's display helpers for every length and angle so all views round the same way. A project's outputs are parsed with the template's schema and read through its `plan`, so screens know no template.
 - **The design system lives in `src/ui`** (`docs/design/README.md`, Stage 6; usage in `docs/design/system.md`).
   - **Styles:** plain CSS in cascade layers, in the order `reset, tokens, base, layout, components, print`. Tokens are custom properties; colors are `light-dark()` pairs that follow the device.

@@ -365,6 +365,34 @@
     font-size: var(--size-1);
   }
 
+  /* ---------- Preview changes (#56): a bar beside the change, and the saved value in words ---------- */
+  .k-changed {
+    display: inline-block;
+  }
+
+  .k-was {
+    display: block;
+    color: var(--muted);
+    font-size: var(--size--1);
+    font-weight: 400;
+  }
+
+  .k-margin[data-changed],
+  .k-table tr[data-changed] > :first-child {
+    box-shadow: inset 3px 0 0 var(--accent);
+    padding-inline-start: var(--space-xs);
+  }
+
+  .k-state-tag {
+    display: inline-block;
+    padding: var(--space-3xs) var(--space-2xs);
+    border: 1.5px solid var(--accent);
+    border-radius: 3px;
+    color: var(--accent);
+    font-size: var(--size--1);
+    font-weight: 700;
+  }
+
   /* ---------- Measurement table (#41): rows stack on a narrow container ---------- */
   .k-table-wrap {
     container-type: inline-size;
@@ -422,6 +450,17 @@
       gap: var(--space-xs);
       padding: 0;
       border: 0;
+    }
+
+    /* Stacked, the whole row carries the bar. */
+    .k-table tr[data-changed] {
+      box-shadow: inset 3px 0 0 var(--accent);
+      padding-inline-start: var(--space-xs);
+    }
+
+    .k-table tr[data-changed] > :first-child {
+      box-shadow: none;
+      padding-inline-start: 0;
     }
 
     .k-table td::before {
