@@ -1,5 +1,6 @@
 import type { BoltJoint } from '../structural/boltDistances.ts';
 import type { CheckResult } from '../structural/types.ts';
+import type { Operation } from '../templates/operations.ts';
 import type { ChecklistItem, Flag } from '../templates/types.ts';
 import type { CutListRow } from './cutList.ts';
 import type { HardwareLine } from './hardwareList.ts';
@@ -23,4 +24,6 @@ export interface Plan {
   checklist: ChecklistItem[];
   /** Each bolted joint's distances against NDS 2024 (#93). Empty for plans made before it. */
   boltLayout: BoltJoint[];
+  /** What needs doing to each part and on the site (#103). Empty for plans made before it. */
+  operations: Operation[];
 }

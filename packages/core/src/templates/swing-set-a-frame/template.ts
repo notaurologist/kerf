@@ -5,6 +5,7 @@ import { BoltJoint } from '../../structural/boltDistances.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
 import { withLetters } from '../letters.ts';
+import { cutAndDrillOperations, Operation } from '../operations.ts';
 import { Flag, type GenerateResult, HardwareItem, type Issue, Part, Placement } from '../types.ts';
 import {
   type BoardBolts,
@@ -39,9 +40,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * letters the parts in cut-list order (#66); no number changes. Version 6 runs the crossbar and
  * gusset ends past the legs, places their bolts as holes, and reports each bolted joint's
  * distances against NDS 2024 (#93, decision 0016). Version 7 adds what to look for when choosing
- * each part's board (#53); no number changes.
+ * each part's board (#53); no number changes. Version 8 adds the operations each part and the site
+ * need (#103); no number changes.
  */
-export const TEMPLATE_VERSION = 7;
+export const TEMPLATE_VERSION = 8;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
@@ -69,6 +71,8 @@ export const SwingSetOutput = z.object({
   flags: z.array(Flag),
   /** Each bolted joint's distances against NDS 2024 (#93). Plans made before version 6 have none. */
   boltLayout: z.array(BoltJoint).optional(),
+  /** What needs doing to each part, and on the site (#103). Plans made before version 8 have none. */
+  operations: z.array(Operation).optional(),
 });
 export type SwingSetOutput = z.infer<typeof SwingSetOutput>;
 
@@ -241,6 +245,8 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
   if (issues.length > 0) return { ok: false, issues };
 
   const joints = boltJoints(p, dims, g);
+  const madeParts = withLetters(parts(p, dims, g));
+  const madeHardware = hardware(p, dims, g);
   return {
     ok: true,
     output: {
@@ -248,12 +254,40 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       geometry: g,
       swings,
       layout: siteLayout(p, g, swings),
-      parts: withLetters(parts(p, dims, g)),
+      parts: madeParts,
       placements: placements(dims, g),
-      hardware: hardware(p, dims, g),
+      hardware: madeHardware,
       hardwareNotes: HARDWARE_NOTES,
       flags: [...flags(dims, g), ...boltFlags(joints), ...projectionFlags(boardBolts(p, dims, g))],
       boltLayout: joints,
+      operations: operations(madeParts, madeHardware, dims.d),
     },
   };
+}
+
+/**
+ * The spec's operations (Operations): every cut and bolt hole, from the parts and hardware; easing
+ * the edges of every part, since children touch every surface (DOMAIN.md, Lumber and finish); and
+ * the legs' holes (buried) or pads (d = 0).
+ */
+function operations(madeParts: readonly Part[], items: readonly HardwareItem[], d: number) {
+  const legs = madeParts
+    .filter((part) => part.role === 'leg')
+    .reduce((n, part) => n + part.quantity, 0);
+  const site: Operation =
+    d > 0
+      ? { id: 'site/dig-holes', type: 'dig-holes', count: legs, depth: d }
+      : { id: 'site/level-pads', type: 'level-pads', count: legs };
+  return [
+    ...cutAndDrillOperations(madeParts, items),
+    ...madeParts.map(
+      (part): Operation => ({
+        id: `${part.id}/ease-edges`,
+        type: 'ease-edges',
+        partId: part.id,
+        count: part.quantity,
+      }),
+    ),
+    site,
+  ];
 }

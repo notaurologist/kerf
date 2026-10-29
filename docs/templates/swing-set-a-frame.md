@@ -27,6 +27,8 @@ Template version 6 (#93, decision 0016) runs the crossbar and gusset ends past t
 
 Template version 7 (#53) adds what to look for when choosing each part's board (Board selection, below). No number changes.
 
+Template version 8 (#103) adds the operations each part and the site need (Operations, below). No number changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -223,6 +225,21 @@ The tool-type library (`packages/core/src/knowledge/tools.ts`, #85) is checked a
 | Ease edges and splinters | all | sander, block plane |
 | Lay out the footprint and set the frames level and plumb | site | tape measure, string line, level |
 | Dig for buried legs, or level pads | site | post-hole digger, tamper |
+
+### Operations
+
+What needs doing, before any choice of how (`DOMAIN.md`, Operations; methods are #104). Generic code makes the cuts and bolt holes from the parts and hardware, so their numbers are the cut list's own; the template adds the rest.
+
+| Operation | Parts | From |
+|---|---|---|
+| Crosscut (square) | beam, both ends | each end cut with setting 0 |
+| Miter at the splay angle | legs (top and foot), crossbars and gussets (both ends) | each angled end cut |
+| Taper: the flush cut | each leg | the leg's taper; it runs the beam's depth bd at α to the edge |
+| Bolt holes | leg to beam (through leg, beam, leg); crossbar and gusset to legs | each through-bolt item: its quantity, diameter, and grip as the depth |
+| Ease edges | every part | CPSC: kids touch every surface (`DOMAIN.md`, Lumber and finish) |
+| Dig holes (d > 0), or level pads (d = 0) | one per leg | burial depth d |
+
+Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep. Four holes 24 deep.
 
 ### Board selection
 
