@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { stock } from '../../lumber/stock.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
-import { Flag, type GenerateResult, HardwareItem, type Issue, Part } from '../types.ts';
+import { Flag, type GenerateResult, HardwareItem, type Issue, Part, Placement } from '../types.ts';
 import {
   type Dimensions,
   dimensions,
@@ -14,15 +14,17 @@ import {
 import { HARDWARE_NOTES, hardware, validateHardware } from './hardware.ts';
 import { SiteLayout, SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
+import { placements } from './placements.ts';
 import { flags, validate, validateSwings } from './validate.ts';
 
 /**
  * Bump whenever output for the same parameters would change (decision 0008).
  * Version 1 matches docs/templates/swing-set-a-frame.md, status v1. Version 2 adds sources to
  * G, the pendulum factor, and the beam's breadth and depth in the structural working (#36); no
- * number changes.
+ * number changes. Version 3 adds a 3D placement for every part instance (#49); no other output
+ * changes.
  */
-export const TEMPLATE_VERSION = 2;
+export const TEMPLATE_VERSION = 3;
 export const TEMPLATE_ID = 'swing-set-a-frame';
 
 export const SwingSetOutput = z.object({
@@ -31,6 +33,8 @@ export const SwingSetOutput = z.object({
   swings: SwingGeometry,
   layout: SiteLayout,
   parts: z.array(Part),
+  /** Where each part instance sits in 3D. Plans made before version 3 have none (decision 0014). */
+  placements: z.array(Placement).optional(),
   hardware: z.array(HardwareItem),
   /** Notes to show with the hardware shopping list. */
   hardwareNotes: z.array(z.string()).readonly(),
@@ -195,6 +199,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       swings,
       layout: siteLayout(p, g, swings),
       parts: parts(p, dims, g),
+      placements: placements(dims, g),
       hardware: hardware(p, dims, g),
       hardwareNotes: HARDWARE_NOTES,
       flags: flags(dims, g),

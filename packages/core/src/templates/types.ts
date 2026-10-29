@@ -74,6 +74,37 @@ export const Part = z.object({
 });
 export type Part = z.infer<typeof Part>;
 
+/** A point or direction in a template's 3D coordinates, in decimal inches. */
+export const Vec3 = z.object({ x: z.number(), y: z.number(), z: z.number() });
+export type Vec3 = z.infer<typeof Vec3>;
+
+/**
+ * Where one instance of a part sits in 3D (DOMAIN.md, Geometry). Each part has a local frame:
+ *
+ * - `along` runs the part's length, from its first end to its second (the order of `ends`).
+ * - `across` runs its width (the stock's width), from its reference edge: the edge on which the
+ *   first end cut has its long point.
+ * - `through` runs its thickness, so that along × across = through (right-handed).
+ * - `origin` is the corner where the first end meets the reference edge, on the face where
+ *   `through` starts.
+ *
+ * With that frame, the part's shape follows from its own data. A point (u, v, n) with
+ * 0 ≤ v ≤ width and 0 ≤ n ≤ thickness is in the part when u is between its end cuts: the first
+ * at u = v·tan(setting₁), the second at u = length − (width − v)·tan(setting₂) when the ends are
+ * parallel, or u = length − v·tan(setting₂) when they are not. The world point is
+ * origin + u·along + v·across + n·through. The three axes are unit vectors.
+ */
+export const Placement = z.object({
+  partId: z.string(),
+  /** Which of the part's `quantity` pieces this is, from 0. */
+  instance: z.number().int().nonnegative(),
+  origin: Vec3,
+  along: Vec3,
+  across: Vec3,
+  through: Vec3,
+});
+export type Placement = z.infer<typeof Placement>;
+
 export const HardwareItem = z.object({
   id: z.string(),
   name: z.string(),
