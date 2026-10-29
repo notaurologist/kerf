@@ -318,6 +318,21 @@
   }
 
   /* ---------- Numbers (#42) ---------- */
+  /* A part letter (#44): the drawing standard's dark rounded square, letter in the page color. */
+  .k-part-letter {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 1.75em;
+    block-size: 1.75em;
+    padding-inline: var(--space-3xs);
+    margin-inline-end: var(--space-2xs);
+    border-radius: 4px;
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 700;
+    line-height: 1;
+  }
+
   .k-glance {
     font-size: var(--size-glance);
     line-height: var(--leading-glance);

@@ -1,7 +1,15 @@
 import type { CutListRow } from '@kerf/core';
 import type { ReactNode } from 'react';
 import { type Changes, marked as mark, NO_CHANGES } from '../../lib/changes.tsx';
-import { Length, List, Measured, MeasureTable, PlainList, Text } from '../../ui/index.ts';
+import {
+  Length,
+  List,
+  Measured,
+  MeasureTable,
+  PartLetter,
+  PlainList,
+  Text,
+} from '../../ui/index.ts';
 
 // The cut list (PRODUCT.md, MVP feature 3). Every length and angle arrives as text from core's
 // cut list, which formats them with the shared formatters; nothing is rounded here. In a preview
@@ -21,7 +29,19 @@ export function CutList(props: { rows: readonly CutListRow[]; changes?: Changes 
         rowKey={(row) => row.partId}
         rowChanged={(row) => changes.under(path(row))}
         columns={[
-          { key: 'part', label: 'Part', cell: (row) => marked(path(row), <b>{row.name}</b>) },
+          {
+            key: 'part',
+            label: 'Part',
+            // The letter first, as magazine plans list parts, then the name (#66).
+            cell: (row) =>
+              marked(
+                path(row),
+                <>
+                  <PartLetter>{row.letter}</PartLetter>
+                  <b>{row.name}</b>
+                </>,
+              ),
+          },
           {
             key: 'qty',
             label: 'Qty',

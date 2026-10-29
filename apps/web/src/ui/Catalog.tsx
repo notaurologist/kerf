@@ -10,7 +10,7 @@ import {
   type TemplateDefinition,
 } from '@kerf/core';
 import { type ReactNode, useState } from 'react';
-import snapshots from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v2.json';
+import snapshots from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v5.json';
 import { Button, ButtonLink } from './Button.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
 import { ConfirmDialog } from './Dialog.tsx';
@@ -30,7 +30,15 @@ import {
 import { ICON_NAMES, Icon } from './Icon.tsx';
 import { Card, Cluster, Stack, Switcher } from './layout.tsx';
 import { MeasureTable } from './MeasureTable.tsx';
-import { Changed, Glance, Length, MarginLine, Measured, SawSetting } from './numbers.tsx';
+import {
+  Changed,
+  Glance,
+  Length,
+  MarginLine,
+  Measured,
+  PartLetter,
+  SawSetting,
+} from './numbers.tsx';
 import { Header, ModeBar } from './Shell.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
@@ -42,6 +50,7 @@ interface Example {
   outputs: {
     cutList: {
       partId: string;
+      letter: string;
       name: string;
       quantity: number;
       stock: string;
@@ -306,7 +315,16 @@ function Specimens() {
           rowKey={(r) => r.partId}
           rows={CUT_ROWS}
           columns={[
-            { key: 'part', label: 'Part', cell: (r) => r.name },
+            {
+              key: 'part',
+              label: 'Part',
+              cell: (r) => (
+                <>
+                  <PartLetter>{r.letter}</PartLetter>
+                  {r.name}
+                </>
+              ),
+            },
             { key: 'qty', label: 'Qty', numeric: true, cell: (r) => r.quantity },
             { key: 'stock', label: 'Stock', cell: (r) => r.stock },
             {

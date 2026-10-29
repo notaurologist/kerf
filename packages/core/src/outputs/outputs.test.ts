@@ -11,6 +11,7 @@ import { planLumber } from './shoppingList.ts';
 describe('cutList', () => {
   const part: Part = {
     id: 'rail',
+    letter: 'A',
     name: 'Rail',
     role: 'crossbar',
     stock: stock('2x4'),
@@ -29,6 +30,7 @@ describe('cutList', () => {
     expect(cutList([part])).toEqual([
       {
         partId: 'rail',
+        letter: 'A',
         name: 'Rail',
         quantity: 3,
         stock: '2x4 (1-1/2" x 3-1/2")',
@@ -45,6 +47,7 @@ describe('cutList', () => {
 describe('planLumber, edge cases', () => {
   const piece = (length: number, quantity = 1): Part => ({
     id: 'test',
+    letter: 'A',
     name: 'Test piece',
     role: 'leg',
     stock: stock('2x4'),

@@ -1,10 +1,16 @@
+import { readSnapshot, TEMPLATES } from '@kerf/core';
 import fixtures from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v1.json';
 import type { Project } from '../lib/types.ts';
 
-// Stored snapshots from core's committed fixture (decision 0014), wrapped as the API returns a
-// project: the worked example with every input, the same with none, and a two-ply beam on pads.
+// Stored snapshots from core's committed fixture (decision 0014), upgraded to the current shape
+// and wrapped as the API returns a project: the worked example with every input, the same with
+// none, and a two-ply beam on pads.
 
-export const storedSnapshots = fixtures as unknown as NonNullable<Project['snapshot']>[];
+export const storedSnapshots = fixtures.map((stored) => {
+  const read = readSnapshot(TEMPLATES, stored);
+  if (!read.ok) throw new Error(read.message);
+  return read.snapshot as NonNullable<Project['snapshot']>;
+});
 
 export function projectFrom(
   snapshot: Project['snapshot'],

@@ -143,7 +143,7 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 
 - **Template:** parameters with types, ranges, and defaults; a pure function deriving parts, hardware, operations, and geometry; validation rules; a version that changes whenever outputs for the same parameters would change.
 - **Project:** template and template version, parameter values, status (planned, in progress, built), structural check inputs, and the operations, methods, and skills used. Later projects use this history to refer back to earlier work.
-- **Part:** name, role, stock (nominal and actual), length, end cuts (miter and bevel per end, in the angle convention under Units), holes, quantity, board selection notes.
+- **Part:** letter (A, B, C in cut-list order, the name drawings use), name, role, stock (nominal and actual), length, end cuts (miter and bevel per end, in the angle convention under Units), holes, quantity, board selection notes.
 - **Hardware item:** type, size, quantity, notes, flag if structural.
 - **Operation:** type (from the operations table), part reference, parameters (angle, depth, hole size).
 - **Method:** operation type, required tool types and capabilities, skills, steps, common mistakes, flags.

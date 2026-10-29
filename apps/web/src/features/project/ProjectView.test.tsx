@@ -28,6 +28,16 @@ describe('ProjectView, from a stored snapshot', () => {
     expect(text).toContain('120"');
   });
 
+  // The fixture was stored before letters (shape 1); reading it upgrades it, as the API does.
+  it("puts each part's letter from core first in its cut-list row (#66)", () => {
+    expect(text).toContain('A Beam');
+    expect(text).toContain('B Back leg (uphill)');
+    expect(text).toContain('E Gusset');
+    expect(render(<ProjectView project={projectFrom(workedExample)} />)).toContain(
+      '<span class="k-part-letter">A</span>',
+    );
+  });
+
   it('shows the shopping list, with board lengths and pieces through formatLength', () => {
     expect(text).toContain(`4x4 12' 0" 4`);
     expect(text).toContain(`4x6, 12' 0": Beam 120". Offcut about 22-7/8".`);
