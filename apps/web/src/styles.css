@@ -225,8 +225,8 @@ ul.plain {
   margin: 0;
 }
 
-/* Tables read as rows on a laptop and as stacked cards on a phone. Each cell carries its column
-   name in data-label for the stacked layout. */
+/* Tables read as rows on a laptop and as stacked cards on a phone, except short ones marked
+   .keep. Each cell carries its column name in data-label for the stacked layout. */
 table.list {
   width: 100%;
   border-collapse: collapse;
@@ -248,35 +248,35 @@ table.list th.number {
 }
 
 @media (max-width: 600px) {
-  table.list thead {
+  table.list:not(.keep) thead {
     display: none;
   }
 
-  table.list,
-  table.list tbody,
-  table.list tr,
-  table.list td {
+  table.list:not(.keep),
+  table.list:not(.keep) tbody,
+  table.list:not(.keep) tr,
+  table.list:not(.keep) td {
     display: block;
     width: 100%;
   }
 
-  table.list tr {
+  table.list:not(.keep) tr {
     border: 1px solid var(--line);
     border-radius: var(--radius);
     margin-bottom: 0.75rem;
     padding: 0.25rem 0;
   }
 
-  table.list td {
+  table.list:not(.keep) td {
     border: none;
     padding: 0.25rem 0.75rem;
   }
 
-  table.list td.number {
+  table.list:not(.keep) td.number {
     text-align: left;
   }
 
-  table.list td[data-label]::before {
+  table.list:not(.keep) td[data-label]::before {
     content: attr(data-label) ": ";
     font-weight: 600;
   }
@@ -387,4 +387,50 @@ label.inline select {
 
 .actions {
   margin-top: 1rem;
+}
+
+.project-header p {
+  margin-top: -0.5rem;
+}
+
+.jump {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.5rem 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.project section {
+  scroll-margin-top: 3rem;
+}
+
+.length {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+ol.ends {
+  margin: 0 0 0.25rem;
+  padding-left: 1.25rem;
+}
+
+ul.notes {
+  color: var(--muted);
+  padding-left: 1.25rem;
+}
+
+details.boards {
+  margin: 0.5rem 0 1rem;
+}
+
+details summary {
+  cursor: pointer;
+  color: var(--accent);
+  min-height: 2rem;
+}
+
+.nowrap {
+  white-space: nowrap;
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Notice, Shell } from './components/Shell.tsx';
 import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
 import { LoginScreen } from './features/login/LoginScreen.tsx';
+import { ProjectScreen } from './features/project/ProjectScreen.tsx';
 import { EditProjectScreen, NewProjectScreen } from './features/project-editor/ProjectEditor.tsx';
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
@@ -20,7 +21,7 @@ export function Screen(props: { route: Route }) {
     case 'edit-project':
       return <EditProjectScreen id={props.route.id} />;
     case 'project':
-      return <h1>Project</h1>;
+      return <ProjectScreen id={props.route.id} />;
     case 'not-found':
       return <Notice>There is no page here.</Notice>;
   }
