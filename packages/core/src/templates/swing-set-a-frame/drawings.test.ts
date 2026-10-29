@@ -164,12 +164,42 @@ describe('the worked example, by hand', () => {
     expect(roles).toContain('grade');
   });
 
-  it('draws the chains and seats as phantom lines', () => {
+  it('draws the chains and seats as phantom lines, hidden where a part is in front', () => {
     const phantoms = (iso?.primitives ?? []).filter(
       (p) => p.kind === 'line' && p.role === 'phantom',
     );
-    // Four chains and two seats.
-    expect(phantoms).toHaveLength(6);
+    // Four chains and two seats, at least one broken where a part passes in front of it.
+    expect(phantoms.length).toBeGreaterThan(6);
+    // Chains and seats hang in the plane y = 0. At the middle of every step of every phantom
+    // line, no face facing the viewer and covering that point on the page is nearer than it.
+    const view = isometric(-1, -1);
+    const { outputs } = run(0);
+    const faces = (outputs.design.placements ?? []).flatMap((pl) => {
+      const part = outputs.design.parts.find((p) => p.id === pl.partId);
+      if (!part) return [];
+      return solid(part, pl).faces.filter((f) => dot(f.normal, view.toViewer) > 1e-9);
+    });
+    for (const line of phantoms) {
+      if (line.kind !== 'line') continue;
+      for (let k = 0; k + 1 < line.points.length; k++) {
+        const a = line.points[k] as Point2;
+        const b = line.points[k + 1] as Point2;
+        const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        const d = depthOnPlane(view, mid, { x: 0, y: 0, z: 0 }, { x: 0, y: 1, z: 0 });
+        for (const f of faces) {
+          if (
+            !inside(
+              mid,
+              f.points.map((q) => project(view, q)),
+            )
+          )
+            continue;
+          expect(depthOnPlane(view, mid, f.points[0] as never, f.normal)).toBeLessThanOrEqual(
+            d + 1e-6,
+          );
+        }
+      }
+    }
   });
 });
 

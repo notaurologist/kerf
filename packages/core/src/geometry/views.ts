@@ -2,9 +2,9 @@ import type { Part, Placement } from '../templates/types.ts';
 import { signedArea2 } from './clip.ts';
 import type { Drawing, PartRef, Point2, Primitive, Tone } from './primitives.ts';
 import { boundsOf } from './primitives.ts';
-import { type Isometric, project } from './projection.ts';
+import { depth, depthOnPlane, type Isometric, project } from './projection.ts';
 import { type Solid, solid, solidCentroid } from './solid.ts';
-import { add, dot, sub, type Vec3 } from './vec.ts';
+import { add, dot, length, sub, type Vec3 } from './vec.ts';
 
 // The isometric and exploded views (#90): every part instance as a solid, faces facing the viewer
 // drawn in depth order and toned by which way they point (D2), edges below grade hidden, and part
@@ -232,13 +232,7 @@ function drawSolids(
   }
   primitives.push(
     ...lines,
-    ...(scene.phantoms ?? []).map(
-      (line): Primitive => ({
-        kind: 'line',
-        role: 'phantom',
-        points: line.map((p) => project(view, p)),
-      }),
-    ),
+    ...(scene.phantoms ?? []).flatMap((line) => visibleRuns(line, ordered, view)),
   );
   const faces = ordered.map((p) => ({
     points: p.points.map((q) => project(view, q)),
@@ -246,6 +240,50 @@ function drawSolids(
     solid: p.solid,
   }));
   return { primitives, faces };
+}
+
+/** How finely phantom lines are checked for parts in front of them, in inches. */
+const PHANTOM_STEP = 0.25;
+
+/**
+ * The stretches of a 3D polyline that no part hides, as phantom lines. Each short step is hidden
+ * when a painted piece covers its middle on the page and is nearer there.
+ */
+function visibleRuns(
+  line: readonly Vec3[],
+  pieces: readonly Piece[],
+  view: Isometric,
+): Primitive[] {
+  const page = pieces.map((p) => p.points.map((q) => project(view, q)));
+  const hidden = (p: Vec3) => {
+    const at = project(view, p);
+    const d = depth(view, p);
+    return pieces.some(
+      (piece, i) =>
+        inside(at, page[i] as Point2[]) &&
+        depthOnPlane(view, at, piece.points[0] as Vec3, piece.normal) > d + 1e-6,
+    );
+  };
+  const runs: Point2[][] = [];
+  let run: Point2[] = [];
+  for (let i = 0; i + 1 < line.length; i++) {
+    const a = line[i] as Vec3;
+    const b = line[i + 1] as Vec3;
+    const steps = Math.max(1, Math.ceil(length(sub(b, a)) / PHANTOM_STEP));
+    for (let k = 0; k < steps; k++) {
+      const p0 = lerp3(a, b, k / steps);
+      const p1 = lerp3(a, b, (k + 1) / steps);
+      if (hidden(lerp3(p0, p1, 0.5))) {
+        if (run.length >= 2) runs.push(run);
+        run = [];
+        continue;
+      }
+      if (run.length === 0) run.push(project(view, p0));
+      run.push(project(view, p1));
+    }
+  }
+  if (run.length >= 2) runs.push(run);
+  return runs.map((points) => ({ kind: 'line', role: 'phantom', points }));
 }
 
 /**
