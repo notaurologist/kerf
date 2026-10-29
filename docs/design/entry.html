@@ -354,7 +354,7 @@ table.counts { min-width: 480px; }
   <span class="mf-echo"><b>3' 4&quot; · 40&quot;</b></span>
   
 </div></div>
-<div class="kbd ios" aria-label="Simplified iPhone keyboard, numbers layer">
+<div class="kbd ios" role="img" aria-label="Simplified iPhone keyboard, numbers layer">
   <div class="krow"><span class="k">1</span><span class="k">2</span><span class="k">3</span><span class="k">4</span><span class="k">5</span><span class="k">6</span><span class="k">7</span><span class="k">8</span><span class="k">9</span><span class="k">0</span></div>
   <div class="krow"><span class="k hit">-</span><span class="k hit">/</span><span class="k">:</span><span class="k">;</span><span class="k">(</span><span class="k">)</span><span class="k">$</span><span class="k">&amp;</span><span class="k">@</span><span class="k hit">&quot;</span></div>
   <div class="krow"><span class="k wide">#+=</span><span class="k hit">.</span><span class="k">,</span><span class="k">?</span><span class="k">!</span><span class="k hit">'</span><span class="k wide">⌫</span></div>
@@ -455,7 +455,7 @@ table.counts { min-width: 480px; }
   </span>
   <span class="mf-echo"><b>3' 4&quot; · 40&quot;</b></span>
 </div></div>
-<div class="kbd pad" aria-label="Simplified number pad">
+<div class="kbd pad" role="img" aria-label="Simplified number pad">
   <div class="kgrid3"><span class="k">1</span><span class="k">2</span><span class="k">3</span><span class="k">4</span><span class="k">5</span><span class="k">6</span><span class="k">7</span><span class="k">8</span><span class="k">9</span><span class="k blank"></span><span class="k">0</span><span class="k">⌫</span></div>
   <p class="kcap">The number pad (<code>inputmode="numeric"</code>): digits only, large keys. The fraction is a menu.</p>
 </div></div>
@@ -547,7 +547,7 @@ table.counts { min-width: 480px; }
   <span class="mf-echo"><b>3' 4&quot; · 40&quot;</b></span>
   
 </div></div>
-<div class="kbd shop" aria-label="Kerf's own keypad">
+<div class="kbd shop" role="img" aria-label="Kerf's own keypad">
   <div class="kgrid4"><span class="k">7</span><span class="k">8</span><span class="k">9</span><span class="k hit">'</span><span class="k">4</span><span class="k">5</span><span class="k">6</span><span class="k hit">&quot;</span><span class="k">1</span><span class="k">2</span><span class="k">3</span><span class="k hit">/</span><span class="k">.</span><span class="k">0</span><span class="k hit">-</span><span class="k">⌫</span></div>
   <div class="krow"><span class="k space">Next field</span></div>
   <p class="kcap">Kerf's own keypad, drawn by the page in place of the phone's keyboard (<code>inputmode="none"</code>), like a construction calculator's feet, inch, and fraction keys.</p>
@@ -868,33 +868,6 @@ function formatLength(inches        , style              = 'inches')         {
   return `${feet}' ${inchesText(total % perFoot, true)}"`;
 }
 
-                             
-                                                                   
-                          
-                                                             
-                                      
-                                                              
-                   
- 
-
-/**
- * Compares a rounded total with the sum of its rounded parts. A total is always rounded from the
- * exact sum; when that differs from adding up the displayed parts, the display has to say so
- * rather than show numbers that silently disagree (DOMAIN.md, Units).
- */
-function compareRoundedSum(parts                   )             {
-  const exact = parts.reduce((sum, part) => {
-    assertLength(part);
-    return sum + part;
-  }, 0);
-  const totalSixteenths = toSixteenths(exact);
-  const sumOfRoundedPartsSixteenths = parts.reduce((sum, part) => sum + toSixteenths(part), 0);
-  return {
-    totalSixteenths,
-    sumOfRoundedPartsSixteenths,
-    differs: totalSixteenths !== sumOfRoundedPartsSixteenths,
-  };
-}
 
 // Prototype of the proposed entry parser for #67. Plain JS so the review page can run it live.
 // Core's real version will be TypeScript with hand-checked tests; this one shows the behavior.
@@ -959,26 +932,7 @@ function parseLength(text) {
   return { ok: true, inches };
 }
 
-const ANGLE = new RegExp(String.raw`^(-?${NUM})\s*(?:°|º|deg|degrees?)?$`);
-
-const ANGLE_MESSAGES = {
-  empty: null,
-  minutes: 'Enter decimal degrees, such as 20.5.',
-  unread: 'Kerf cannot read this as an angle. Enter degrees, such as 20 or 20.5.',
-};
-
-function parseAngle(text) {
-  const t = text.trim().toLowerCase();
-  if (t === '') return { ok: false, problem: 'empty' };
-  if (/['’′"]/.test(t)) return { ok: false, problem: 'minutes' };
-  const m = ANGLE.exec(t);
-  if (!m) return { ok: false, problem: 'unread' };
-  return { ok: true, degrees: Number(m[1]) };
-}
-
-/** True when a length is a whole number of sixteenths, so the display shows it exactly. */
 const exactInSixteenths = (inches) => Number.isInteger(inches * 16);
-
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const echo = function echo(inches        )         {
   const ft = formatLength(inches, 'feet-inches');
@@ -993,7 +947,7 @@ const hint = out.textContent;
 input.addEventListener('input', () => {
   const r = parseLength(input.value);
   if (input.value.trim() === '') { out.textContent = hint; return; }
-  out.innerHTML = r.ok ? 'Reads as ' + echo(r.inches) : esc(MESSAGES[r.problem]);
+  out.innerHTML = r.ok ? `Reads as ${echo(r.inches)}` : esc(MESSAGES[r.problem]);
 });
 })();
 </script>
