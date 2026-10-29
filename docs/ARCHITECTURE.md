@@ -57,8 +57,9 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │       └── src/
 │           ├── features/     # inventory/, project-editor/, cut-list/, shopping-list/,
 │           │                 # diagrams/, build-steps/, structural/, login/
-│           ├── components/   # Shared UI
-│           ├── lib/          # API client, display helpers
+│           ├── ui/           # The design system: tokens, layout primitives, components,
+│           │                 # icons, fonts, and the catalog page (docs/design/system.md)
+│           ├── lib/          # API client, routes, display helpers
 │           └── main.tsx
 ├── packages/
 │   └── core/
@@ -185,10 +186,14 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 ## apps/web
 
 - Talks only to `/api/*` on its own origin, through the Hono typed client (`src/lib/api.ts`). One function, `send`, turns responses into results the UI shows; a 401 sends the owner to the login screen.
-- Screens are chosen from the URL hash (`#/projects`, `#/projects/<id>`, `#/projects/<id>/edit`, `#/projects/new?template=<id>`, `#/tools`), so links, reload, and back work without a router library. Data is loaded per screen with plain `fetch` through the client; there is no client-side cache library.
+- Screens are chosen from the URL hash (`#/projects`, `#/projects/<id>`, `#/projects/<id>/edit`, `#/projects/new?template=<id>`, `#/tools`, and `#/catalog` for the design system's catalog), so links, reload, and back work without a router library. Data is loaded per screen with plain `fetch` through the client; there is no client-side cache library.
 - Uses core's parameter schemas to show validation before submitting; the API validates again.
 - Uses core's display helpers for every length and angle so all views round the same way. A project's outputs are parsed with the template's schema and read through its `plan`, so screens know no template.
-- Diagrams render core's 2D primitives as SVG. Print styles give each diagram and the cut list its own page.
+- **The design system lives in `src/ui`** (`docs/design/README.md`, Stage 6; usage in `docs/design/system.md`).
+  - **Styles:** plain CSS in cascade layers, in the order `reset, tokens, base, layout, components, print`. Tokens are custom properties; colors are `light-dark()` pairs that follow the device.
+  - **Fonts:** Atkinson Hyperlegible Next and Mono, self-hosted (decision 0015).
+  - **Screens:** built only from `ui/` components and layout primitives. They write no `className` or `style` and import no stylesheet, which `ui/screens.test.ts` enforces. A screen that needs something new gets a new component in `ui/`, with tests and a place on the catalog page.
+- Diagrams render core's 2D primitives as SVG inside `DiagramFrame`, with strokes from the line tokens. In print, each section of the plan starts a page with a title block, and expandable working opens.
 - Phone and tablet layouts are first-class: large text and one build step at a time (`PRODUCT.md`, MVP feature 9).
 
 ## Testing
@@ -201,4 +206,4 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 | `outputs/` | Board grouping including kerf and trim; nothing silently dropped when a part is longer than any buyable length |
 | `knowledge/`, `design-values/` | Every entry parses; every reference resolves; every design value has a source |
 | `apps/api` | Every route rejects requests without a session; login rate limiting; snapshot round trip through Postgres (PGlite, 0010) |
-| `apps/web` | Forms, rendering of snapshots, and that displayed values use core's formatters |
+| `apps/web` | Forms, rendering of snapshots, and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/` |
