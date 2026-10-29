@@ -179,6 +179,17 @@ button.primary {
   font-weight: 600;
 }
 
+button.danger {
+  background: var(--error);
+  border-color: var(--error);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.delete-project {
+  margin-top: 3rem;
+}
+
 button.link {
   border: none;
   background: none;

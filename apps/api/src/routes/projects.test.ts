@@ -173,6 +173,35 @@ const version2: TemplateDefinition = {
   },
 };
 
+describe('DELETE /api/projects/:id', () => {
+  it('deletes the project and its history rows, then answers 404 for it', async () => {
+    const { authed, client } = await createTestApp();
+    const { body } = await create(authed);
+    const other = await create(authed, { ...newProject, name: 'Kept' });
+    await client.query(
+      `insert into project_history (project_id, operation, method_id) values ($1, 'crosscut', 'circular-saw')`,
+      [body.id],
+    );
+
+    const res = await authed(`/api/projects/${body.id}`, { method: 'DELETE', body: {} });
+    expect(res.status).toBe(204);
+    expect(await res.text()).toBe('');
+
+    expect((await authed(`/api/projects/${body.id}`)).status).toBe(404);
+    const history = await client.query('select count(*)::int as n from project_history');
+    expect(history.rows).toEqual([{ n: 0 }]);
+    const list = (await (await authed('/api/projects')).json()) as Json;
+    expect(list.projects.map((p: Json) => p.id)).toEqual([other.body.id]);
+  });
+
+  it('answers 404 for a project that does not exist, and 400 for a malformed ID', async () => {
+    const { authed } = await createTestApp();
+    const missing = '/api/projects/00000000-0000-4000-8000-000000000000';
+    expect((await authed(missing, { method: 'DELETE', body: {} })).status).toBe(404);
+    expect((await authed('/api/projects/nope', { method: 'DELETE', body: {} })).status).toBe(400);
+  });
+});
+
 describe('a project whose template version is behind', () => {
   it('reports what regenerating would change, and regenerates only when asked', async () => {
     const before = await createTestApp();

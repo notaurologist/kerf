@@ -43,5 +43,9 @@ export function projectRoutes(projects: ProjectService) {
     .post('/projects/:id/regenerate', valid('param', ById), async (c) => {
       const result = await projects.regenerate(c.req.valid('param').id);
       return result.ok ? c.json(result.value, 200) : failure(c, result);
+    })
+    .delete('/projects/:id', valid('param', ById), async (c) => {
+      const result = await projects.remove(c.req.valid('param').id);
+      return result.ok ? c.body(null, 204) : failure(c, result);
     });
 }

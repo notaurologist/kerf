@@ -47,7 +47,7 @@ const version2: TemplateDefinition = {
 };
 
 describe('the web client against the API', () => {
-  it('logs in, creates the worked example, and regenerates it only when asked after a template change', async () => {
+  it('logs in, creates the worked example, regenerates it only when asked after a template change, and deletes it', async () => {
     const before = await createTestApp();
     const v1 = browser(before.app);
     expect((await send(v1.api.tools.$get())).ok).toBe(false);
@@ -80,6 +80,14 @@ describe('the web client against the API', () => {
     const regenerated = await send(v2.api.projects[':id'].regenerate.$post({ param: { id } }));
     if (!regenerated.ok) throw new Error(JSON.stringify(regenerated.error));
     expect(regenerated.value.version).toEqual({ status: 'current', version: 2 });
+
+    // Delete also sends no body; afterwards the project is gone.
+    expect(await send(v2.api.projects[':id'].$delete({ param: { id } }))).toEqual({
+      ok: true,
+      value: null,
+    });
+    const deleted = await send(v2.api.projects[':id'].$get({ param: { id } }));
+    expect(deleted).toMatchObject({ ok: false, error: { kind: 'not-found' } });
 
     // Logout ends the session for later requests.
     expect((await send(v2.api.logout.$post())).ok).toBe(true);
