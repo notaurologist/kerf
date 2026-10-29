@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stage 5 (#44) is waiting on the owner's choices.
+Status: in progress. Stage 6 (#45), the design system, is next.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -11,8 +11,8 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 2. Layout and grid | #41 | Decided October 2026 | `layout.html` |
 | 3. Typography | #42 | Decided October 2026 | `typography.html` |
 | 4. Color | #43 | Decided October 2026 | `color.html` |
-| 5. Diagram language | #44 | Waiting on the owner | `diagrams.html` |
-| 6. Design system | #45 | Blocked by #44 | |
+| 5. Diagram language | #44 | Decided October 2026 | `diagrams.html` |
+| 6. Design system | #45 | Next | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
 
@@ -28,7 +28,15 @@ It also sets what all three share (numbers only from core, drawn for the width s
 
 ### Choices
 
-Not yet made.
+The owner took the suggested option for each (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Diagram language | D2, shop plan: faces toned by which way they point (three steps, about 12 in lightness), parts lettered as in the cut list, dimensions in the dimension color with arrows and extension lines, on D1's ASME line conventions (hidden, center, phantom, break). The most readable at a glance on the laptop, the solid faces hold up at arm's length in the garage, and the tones print as grays. Ink on the darkest face tone measures 8.8:1 light and 7.0:1 dark. | D1, drafting: the clearest on paper, but thin lines fade under glare, white faces give no sense of which side of a leg is showing, a woodworker does not read a datum triangle, and it looks like the CAD output #39 turned down (L-C). Its line conventions are kept. D3, action: the best for a single build step, which is why it becomes Building mode's drawing, but weak as the plan's reference drawings (no dimensions on the assembled view, a whole leg drawn as a sliver), and its light context line falls to 3.0:1 light and 1.9:1 dark under 20% glare. |
+| How drawings name parts | Letters matching the cut list (A to E for the swing set), one per part, shared by both instances of a pair, in the cut list's first column and on every drawing. Core assigns them (#66). | Item numbers in balloons: numbers sit beside lengths and quantities everywhere in Kerf, so "2" could read as a count. Names written out: "Back leg" takes about 70 px, a third of a phone drawing's width. |
+| Drawings in Building mode | Action steps in D2's language: only what the step adds, pulled away from where it goes with a motion arrow; everything already built in D2's face tones and ink, not a light line, so it holds up under glare; the step's part tinted and outlined heavily. Agrawala et al. (2003) found people assembled faster and with fewer errors from action diagrams. Needs each step's parts (#52). | The exploded view with the step's parts highlighted: nothing new to build, but every step shows every part and the reader has to work out what changed. |
+
+The drawing standard M5 builds to (line roles, screen and print widths, patterns, color roles, face tones, text sizes, letters, reference face marks, cut details, site layout) is the "Chosen" section of `diagrams.html`. Drawing primitives carry a line role, not a color or width (#49). The ASME print widths come from published summaries and should be checked against the standard before M5 fixes them. The D2 face tones in dark mode need their own values, since mixing toward the ink lightens instead of darkening; #45 sets them as tokens with the rest of C1.
 
 ## Stage 4: color (#43)
 

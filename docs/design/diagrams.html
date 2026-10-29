@@ -326,8 +326,8 @@ table.std th { font-size: var(--step--1); color: var(--muted); font-weight: 600;
 </header>
 
 <section class="answers" aria-labelledby="answers-h">
-  <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
-  <p>Three choices. My suggestion is first in each. A reply like <span class="pick" style="white-space: normal">D2, letters, action steps</span> is enough.</p>
+  <h2 id="answers-h" style="font-size: var(--step-1)">Decided, October 2026</h2>
+  <p>The owner took the suggestion for all three: <span class="pick" style="white-space: normal">D2, letters, action steps</span>. Reasons and rejected directions are in <code>docs/design/README.md</code>. The choices were:</p>
   <ol>
     <li><a href="#directions">Diagram language for the plan</a>: <span class="pick">D2</span> shop plan, <span class="pick">D1</span> drafting, or <span class="pick">D3</span> action.</li>
     <li><a href="#key">How drawings name parts</a>: <span class="pick">letters</span> matching the cut list (A to E), item numbers in balloons, or names written out.</li>
@@ -478,7 +478,7 @@ table.std th { font-size: var(--step--1); color: var(--muted); font-weight: 600;
 <!-- ============================== STANDARD ============================== -->
 <section id="standard" class="stack-lg">
   <div class="place">
-    <p class="eyebrow">If the suggestions are taken</p>
+    <p class="eyebrow">Chosen</p>
     <h2>The drawing standard</h2>
     <p class="prose">What M5 builds to. Screen widths are CSS pixels and do not scale with the drawing; print widths follow ASME Y14.2's two weights, thick about twice thin. Colors are C1 roles (#43).</p>
   </div>
@@ -516,7 +516,7 @@ table.std th { font-size: var(--step--1); color: var(--muted); font-weight: 600;
     <h2>What this stage adds</h2>
   </div>
   <ul class="prose stack">
-    <li>Part letters assigned in core, in the cut list and on drawing primitives, stable within a template version. New issue for M5 if letters are chosen.</li>
+    <li>Part letters assigned in core, in the cut list and on drawing primitives, stable within a template version. #66 in M5.</li>
     <li>Drawing primitives in core (0004) carry a line role (visible, hidden, center, phantom, dimension, extension, leader, guideline, break, grade, zone), not a color or width, so each surface styles them. Added to #49.</li>
     <li>Reference faces and bolt positions as part data: already #50. The bolt axis here is drawn at the middle of the leg until then.</li>
     <li>Each build step names the parts it adds: already in #52.</li>
