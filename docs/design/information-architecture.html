@@ -225,8 +225,8 @@ table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
 </header>
 
 <section class="answers" aria-labelledby="answers-h">
-  <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
-  <p>Three choices. My suggestion is first in each. A reply like <span class="pick" style="white-space: normal">IA-2, order A, steps as shown</span> is enough, or tell me what to change.</p>
+  <h2 id="answers-h" style="font-size: var(--step-1)">Decided, October 2026</h2>
+  <p>The owner took the suggestion for all three: <span class="pick" style="white-space: normal">IA-2, order A, steps as shown</span>. The key screens redrawn on that structure are under <a href="#revised">Revised key screens</a>; reasons and rejected directions are in <code>docs/design/README.md</code>. The choices were:</p>
   <ol>
     <li><a href="#directions">Structure</a>: <span class="pick">IA-2</span> one plan with Shop and Build launched from it, <span class="pick">IA-1</span> Plan, Shop, Build as tabs inside each project, or <span class="pick">IA-3</span> Plan, Shop, Build as the app's top level.</li>
     <li><a href="#order">Order of a project's sections</a>: <span class="pick">A</span> decide first (structural review near the top), or <span class="pick">B</span> build order (structural review as an appendix).</li>
@@ -558,6 +558,112 @@ table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
       <dd>The step list groups steps into phases (cutting, drilling, assembly, finishing) so you can see where you are and jump. That needs a phase on each step (new requirement below).</dd>
     </dl>
   </div>
+</section>
+
+<!-- ============================== REVISED ============================== -->
+<section id="revised" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Revised key screens</p>
+    <h2>The #39 screens on the chosen structure</h2>
+    <p class="prose">IA-2 with section order A. These replace the #39 sketches as the starting point for layout (#41). The edit screen is unchanged from L-A.</p>
+  </div>
+
+  <article class="direction">
+    <header><p><span class="letter">Laptop</span> · The plan</p><h3>Order A in the contents list, the two modes in the summary</h3></header>
+    <div class="scroll"><div class="wf laptop">
+      <div class="bar"><b>Kerf</b><span>Projects</span><span>Tools</span><span class="grow"></span><span class="muted">Log out</span></div>
+      <div style="display:grid; grid-template-columns: 180px 1fr; min-height:0;">
+        <nav style="border-right:1px solid var(--line); padding:12px 10px; display:grid; gap:8px; align-content:start;">
+          <span class="muted" style="font-size:10px; text-transform:uppercase; letter-spacing:.06em">Contents</span>
+          <span><b>Summary</b></span><span>Diagrams</span><span>Structural review</span><span>Cut list</span><span>Boards</span><span>Shopping list</span><span>Build steps</span><span class="muted">Parameters and inputs</span>
+        </nav>
+        <div style="padding:12px 16px; display:grid; gap:12px; align-content:start; min-width:0;">
+          <div style="display:flex; align-items:baseline; gap:10px;"><b style="font-size:16px">Backyard swing set</b><span class="tag">Planned</span><span class="muted">Two-swing A-frame swing set, version 2</span><span class="grow" style="flex:1"></span><span class="btn">Print</span><span class="btn solid">Edit</span></div>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
+            <div style="border:1px solid var(--line); padding:8px;"><span class="muted">Beam</span><br><b class="n">120"</b> 4x6</div>
+            <div style="border:1px solid var(--line); padding:8px;"><span class="muted">Legs</span><br><b class="n">131-1/2"</b> and <b class="n">138-3/8"</b></div>
+            <div style="border:1px solid var(--line); padding:8px;"><span class="muted">End cuts</span><br>saw at <b class="n">20.0°</b></div>
+            <div style="border:1px solid var(--line); padding:8px;"><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b> bending</div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="launch"><span class="grow"><b>Shopping</b><span class="muted">11 lines, none bought</span></span><span class="btn">Start</span></div>
+            <div class="launch"><span class="grow"><b>Building</b><span class="muted">[N] steps, not started</span></span><span class="btn">Start</span></div>
+          </div>
+          <div class="flag"><span class="k">3 flags · load-bearing</span><span>Leg-to-beam bolt and gusset; frame on sloped ground; burial depth and ground-contact lumber.</span></div>
+          <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:10px;">
+            <div class="ph" style="height:110px">Isometric view (M5)</div>
+            <div class="ph" style="height:110px">Site layout (M5)</div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </article>
+
+  <div class="directions">
+    <article class="direction">
+      <header><p><span class="letter">Phone</span> · Projects</p><h3>The Resume card skips the plan mid-build</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:10px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;"><b style="font-size:17px">Projects</b><span class="muted">Tools</span></div>
+          <div class="launch"><span class="grow"><b>Resume building</b><span>Backyard swing set</span><span class="muted">Step [n] of [N] · Cutting</span></span><span class="btn solid">Go</span></div>
+          <div class="sec"><span>In progress</span><span></span></div>
+          <div class="launch"><span class="grow"><b>Backyard swing set</b><span class="muted">Shopping 4 of 11 · Building step [n] of [N]</span></span><span>›</span></div>
+          <div class="sec"><span>Planned</span><span></span></div>
+          <div class="blk" style="width:70%"></div>
+          <div class="sec"><span>Built</span><span></span></div>
+          <div class="blk" style="width:55%"></div>
+          <span class="btn" style="text-align:center; padding:10px">New project</span>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+    <article class="direction">
+      <header><p><span class="letter">Phone</span> · Shopping mode</p><h3>S-A's checklist under the mode bar; a lumber row opens its board card</h3></header>
+      <div class="wf phone">
+        <div class="modebar"><span>Shopping</span><span class="grow"></span><span class="btn">Exit</span></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:8px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;" class="muted"><span>Backyard swing set</span><span>4 of 11</span></div>
+          <div class="sec"><span>Lumber</span><span class="muted">1 of 4</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check on">✓</span><span style="flex:1"><b class="n">1</b> × 4x6, <span class="n">12' 0"</span></span><span class="muted">›</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">4</b> × 4x4, <span class="n">12' 0"</span></span><span class="muted">⌄</span></div>
+          <div style="border:1px solid var(--wf-ink); padding:8px; display:grid; gap:6px; margin-left:32px;">
+            <span><b>2</b> for the front legs</span>
+            <div class="board"><span class="pc" style="width:96%">Front leg 138-3/8"</span><span class="off" style="width:4%"></span></div>
+            <span><b>2</b> for the back legs</span>
+            <div class="board"><span class="pc" style="width:91.3%">Back leg 131-1/2"</span><span class="off" style="width:8.7%"></span></div>
+            <span class="muted">[What to look for: #53]</span>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">1</b> × 2x6, <span class="n">10' 0"</span></span><span class="muted">›</span></div>
+          <div style="display:flex; gap:10px; align-items:center;"><span class="check"></span><span style="flex:1"><b class="n">1</b> × 2x8, <span class="n">8' 0"</span></span><span class="muted">›</span></div>
+          <div class="sec"><span>Bolts and fittings</span><span class="muted">3 of 5</span></div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+  </div>
+
+  <article class="direction">
+    <header><p><span class="letter">Tablet</span> · Building mode, landscape</p><h3>The step beside its diagram</h3></header>
+    <div class="scroll"><div class="wf tablet" style="height:440px">
+      <div class="modebar"><span>Building · Backyard swing set</span><span class="grow"></span><span style="font-weight:400">Step [n] of [N] · Cutting</span><span class="btn">All steps</span><span class="btn">Exit</span></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; min-height:0;">
+        <div style="padding:14px 18px; display:grid; gap:10px; align-content:start; border-right:1px solid var(--wf-ink);">
+          <b style="font-size:17px">Cut board 6: 2x6, 10' 0"</b>
+          <span>Trim 1/2" off the factory end. Each cut takes 1/8".</span>
+          <div class="launch"><span class="grow"><b>1 · Crossbar</b><span class="n">55-11/16" · saw at 20.0°, mirrored</span></span><span class="check"></span></div>
+          <div class="launch"><span class="grow"><b>2 · Crossbar</b><span class="n">55-11/16" · saw at 20.0°, mirrored</span></span><span class="check"></span></div>
+          <span class="muted">Offcut <span class="n">7-5/16"</span></span>
+          <span>[Method for your saw: M6]</span>
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px;"><span class="btn" style="padding:12px; text-align:center">Back</span><span class="btn solid" style="padding:12px; text-align:center">Done, next</span></div>
+        </div>
+        <div style="padding:14px; display:grid; gap:10px; align-content:start;">
+          <div class="board" style="height:34px"><span style="width:1%"></span><span class="pc hl" style="width:46.4%">1 · Crossbar</span><span class="pc" style="width:46.4%">2 · Crossbar</span><span class="off" style="width:6.2%"></span></div>
+          <div class="ph" style="height:200px">Cut detail for the crossbar (M5): top edge 51-11/16", bottom edge 55-11/16", 20.0° at both ends, reference face marked</div>
+        </div>
+      </div>
+    </div></div>
+  </article>
 </section>
 
 <!-- ============================== REFERENCES ============================== -->
