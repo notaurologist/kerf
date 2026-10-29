@@ -21,7 +21,7 @@ Background for anyone (human or agent) working on this project. This is not auth
 
 ## Operations
 
-Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods.
+Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods. Operation types in code (`templates/operations.ts`) cover what templates use: crosscut, miter, taper, bolt holes, ease edges, dig holes, and level pads.
 
 | Operation | Example methods by tool |
 |---|---|
@@ -29,9 +29,11 @@ Operations are what needs to happen to a part. Methods are how, given specific t
 | Angled crosscut (miter) | Miter saw set to angle; circular saw with rafter square at angle |
 | Bevel cut | Miter saw or circular saw with bevel; table saw with tilted blade |
 | Rip (cut along the grain) | Table saw; circular saw with straightedge guide or rip fence |
+| Taper (a straight cut along a part, partway across it, such as a flush cut) | Circular saw, jigsaw, or hand saw along a marked line; chisel or block plane to clean up |
 | Bolt holes | Drill with spade or auger bit; drill guide for straight holes through thick stock |
 | Counterbore (recess a bolt head or nut) | Forstner or spade bit, drilled before the through hole |
 | Ease edges and splinters | Sander; block plane; router with roundover bit |
+| Dig holes, or level pads (site work for parts set in or on the ground) | Post-hole digger and tamper; level |
 
 Each method in the knowledge base records: required tools, skills used, setup steps, technique steps, common mistakes, and any flags.
 
@@ -145,7 +147,7 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 - **Project:** template and template version, parameter values, status (planned, in progress, built), structural check inputs, and the operations, methods, and skills used. Later projects use this history to refer back to earlier work.
 - **Part:** letter (A, B, C in cut-list order, the name drawings use), name, role, stock (nominal and actual), length, end cuts (miter and bevel per end, in the angle convention under Units), holes, quantity, board selection notes.
 - **Hardware item:** type, size, quantity, notes, flag if structural.
-- **Operation:** type (from the operations table), part reference, parameters (angle, depth, hole size).
+- **Operation:** an ID, type (from the operations table), part reference, how many times, and parameters (angle, depth, bolt diameter).
 - **Method:** operation type, required tool types and capabilities, skills, steps, common mistakes, flags.
 - **Tool:** a tool type from the library (`knowledge/tools.ts`) and the capabilities the owner entered for it (for example, circular saw with bevel up to 45 degrees). Each tool type lists the capabilities that change which method fits, with the kind and unit of each and where its value is read; none has a default, and a capability not entered is input needed. Inventory is a list of these, plus other tools by name, which methods ignore. Tool names are generic: "rafter square," since "Speed Square" is a trademark.
 - **Flag:** category (from expert-check categories), what to ask, why.

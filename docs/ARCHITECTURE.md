@@ -98,7 +98,7 @@ interface Template<P> {
 interface TemplateOutput {
   parts: Part[];                // DOMAIN.md data model
   hardware: HardwareItem[];
-  operations: Operation[];      // per part: cuts, holes, counterbores, easing
+  operations: Operation[];      // cuts and bolt holes made generically from parts and hardware (templates/operations.ts); easing, site work
   placements: Placement[];      // each part instance's local frame in 3D: origin and axes (DOMAIN.md, Geometry)
   structuralModel: StructuralModel; // members, supports, loads, load cases, checklist items
   layout: SiteLayout;           // footprint and clearance zones

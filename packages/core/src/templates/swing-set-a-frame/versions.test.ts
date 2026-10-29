@@ -35,8 +35,16 @@ const VERSION_6 = [
   /^design\.(flags|boltLayout)/,
   /^lumber\./,
 ];
-/** Version 7's additions (#53): each part's board selection guides, and the lumber plan's copy. */
-const VERSION_7 = [/^design\.parts\[\d+\]\.selection/, /^lumber\.selection/];
+/**
+ * Version 7's additions (#53): each part's board selection guides, and the lumber plan's copy.
+ * Version 8 adds operations (#103). Both only add fields, so their test shares the list.
+ */
+const VERSION_7 = [
+  /^design\.parts\[\d+\]\.selection/,
+  /^lumber\.selection/,
+  // Version 8 (#103), also only additions.
+  /^design\.operations/,
+];
 const notVersion6 = (c: { path: string }) =>
   ![...VERSION_6, ...VERSION_7].some((r) => r.test(c.path));
 const notVersion7 = (c: { path: string }) => !VERSION_7.some((r) => r.test(c.path));
@@ -161,7 +169,7 @@ describe('swing-set template versions', () => {
     }
   });
 
-  it('version 7 adds board selection guides, and changes nothing else (#53)', () => {
+  it('versions 7 and 8 add board selection guides and operations, and change nothing else (#53, #103)', () => {
     for (const stored of v6) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
