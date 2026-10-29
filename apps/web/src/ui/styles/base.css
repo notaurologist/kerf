@@ -1,0 +1,67 @@
+/* Elements before any component: text, headings, links, focus, numbers (#42, #43). */
+@layer base {
+  html {
+    font-family: var(--font-text);
+    font-size: 100%;
+    line-height: var(--leading-text);
+    color: var(--text);
+    background: var(--bg);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-size: var(--size-0);
+    background: var(--bg);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: var(--leading-heading);
+    font-weight: 700;
+  }
+
+  h1 {
+    font-size: var(--size-3);
+  }
+
+  h2 {
+    font-size: var(--size-2);
+  }
+
+  h3 {
+    font-size: var(--size-1);
+  }
+
+  a {
+    color: var(--accent);
+    text-underline-offset: 0.15em;
+  }
+
+  /* One focus ring everywhere, in the focus color, outside the element (#43). */
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+  }
+
+  table {
+    font-variant-numeric: tabular-nums;
+    line-height: var(--leading-table);
+  }
+
+  /* A displayed length never breaks across lines: browsers break at the hyphen in 138-3/8
+     (#42). Components wrap every length and angle in this. */
+  .k-length {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+}
