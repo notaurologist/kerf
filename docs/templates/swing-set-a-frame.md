@@ -206,6 +206,17 @@ Every structural connection is a through-bolt with a flat washer at each end and
 - **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
 
+### Drawings
+
+The drawings (#90) are drawn from the stored outputs; no number in them is new.
+
+- **Isometric and exploded views:** true isometric, the viewer above the front-left corner (toward −x, −y). The ground is the plane z = k·y through the point under the beam; leg faces below it are drawn as hidden lines, with a grade line where they meet it. The chains (from each hanger at the beam's underside down to the seat height) and the seats are phantom lines.
+- **Exploded view:** the beam pulled up 30, each crossbar and gusset pulled 24 outward along the beam (−x for the left frame, +x for the right), each with a guideline from where it goes. The legs stay.
+- **Cut details:** one per part, from its cut-list data, holes, and taper.
+- **Site layout:** the clear area and swing zones as zones with their CPSC sources, the frame footprint as an outline, the beam, and the seats.
+
+Hand check, worked example: the beam's top front corner at its left end, (0, −1.75, 101.5), projects to page (1.75/√2, −(−1.75 + 2·101.5)/√6) = (1.237, −82.160), with page y down.
+
 ## Validation
 
 Rejected combinations, each with a message saying which values conflict:

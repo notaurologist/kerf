@@ -91,6 +91,7 @@ interface Template<P> {
   validate(p: P): Issue[];      // combinations: contradictory or out-of-range values
   form: TemplateForm;           // how parameters and structural inputs are entered (data)
   plan(o: Outputs): Plan;       // outputs in the shape every display shares; picks, never computes
+  drawings(o: Outputs): Drawings; // 2D primitives drawn from stored outputs; not stored (#90)
   generate(p: P): TemplateOutput;
 }
 
@@ -117,6 +118,8 @@ parameters ─► template.generate ─► TemplateOutput
 ```
 
 The result of the whole pipeline is a **project snapshot**: one JSON-serializable object with a Zod schema, containing the template ID and version, the parameters and inputs used, and every generated output. Structural checks with missing inputs appear in the snapshot as "input needed," never computed with a stand-in value.
+
+Drawings (`geometry/`, #90) are drawn from a snapshot's stored outputs, not stored with them: the isometric and exploded views, a cut detail per part, and the site layout, as 2D primitives (lines, polygons, arcs, circles, text, part letters) in drawing coordinates. Each primitive carries a line or text role from the drawing standard (`docs/design/diagrams.html`), never a color or width, and the part ID, instance, and letter it belongs to. Every number in a label comes from core's formatters, and a plan's drawings show the numbers it was made with. Generic code draws solids from parts and placements, orders faces with a BSP tree, and lays out cut details and plans; the template supplies the viewpoint, the ground, phantom lines such as chains, how the exploded view pulls parts apart, and the site plan's areas, as data. Where the drawings are produced for the web app is #91's choice.
 
 Each template also describes its editor form as data (`templates/form.ts`): fields by path with a label, kind (length, angle, number, choice, yes/no), unit, help, and when the field applies. The web app renders any template's form from it, so only the template's folder knows its fields. Every field starts empty; the template's schemas decide what is valid.
 

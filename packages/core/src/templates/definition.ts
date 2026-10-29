@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import type { Drawings } from '../geometry/index.ts';
 import type { Plan } from '../outputs/plan.ts';
 import type { TemplateForm } from './form.ts';
 import type { GenerateResult } from './types.ts';
@@ -25,6 +26,11 @@ export interface TemplateDefinition<Params = unknown, Inputs = unknown, Outputs 
   outputs: z.ZodType<Outputs>;
   /** The outputs in the shape every display shares. Picks values out; never computes. */
   plan(outputs: Outputs): Plan;
+  /**
+   * The plan's drawings (#90), drawn from stored outputs: a view of the numbers already there,
+   * so they are not stored and a plan's drawings show the numbers it was made with.
+   */
+  drawings(outputs: Outputs): Drawings;
   /** Pure: the same parameters and inputs always give the same outputs. */
   generate(params: Params, structuralInputs: Inputs): GenerateResult<Outputs>;
   /**
