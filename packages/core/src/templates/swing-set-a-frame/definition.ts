@@ -62,13 +62,16 @@ export const swingSetAFrame: TemplateDefinition<
   // optional, so plans stored before them read as they are and keep their numbers. Shape 5 adds
   // part letters (#66), derived from the stored order of the parts, which is the cut-list order.
   // Shape 6 adds the bolt layout and each board's distance past the legs (#93); both optional.
-  snapshotVersion: 6,
+  // Shape 7 adds each part's board selection guides and the lumber plan's copy of them (#53);
+  // both optional.
+  snapshotVersion: 7,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
     3: (snapshot) => snapshot,
     4: addPartLetters,
     5: (snapshot) => snapshot,
+    6: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   plan(outputs) {

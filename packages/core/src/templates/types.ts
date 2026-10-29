@@ -129,6 +129,11 @@ export const Part = z.object({
    */
   endsParallel: z.boolean(),
   notes: z.array(z.string()),
+  /**
+   * What to look for when choosing its board: IDs of guides in the knowledge base
+   * (knowledge/boardSelection.ts), most general first. Absent in plans made before #53.
+   */
+  selection: z.array(z.string()).optional(),
   /** The edge `across` starts from (Placement), in words, such as "inner edge, against the beam". */
   referenceEdge: z.string().optional(),
   holes: z.array(Hole).optional(),

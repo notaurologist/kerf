@@ -9,10 +9,19 @@ import v3 from './snapshots/v3.json' with { type: 'json' };
 import v4 from './snapshots/v4.json' with { type: 'json' };
 import v5 from './snapshots/v5.json' with { type: 'json' };
 import v6 from './snapshots/v6.json' with { type: 'json' };
+import v7 from './snapshots/v7.json' with { type: 'json' };
 
 // Stored swing-set projects stay readable (decision 0014). Each fixture holds the worked examples
 // as they were stored in one snapshot shape. Fixtures are never rewritten.
-const FIXTURES: Record<number, readonly unknown[]> = { 1: v1, 2: v2, 3: v3, 4: v4, 5: v5, 6: v6 };
+const FIXTURES: Record<number, readonly unknown[]> = {
+  1: v1,
+  2: v2,
+  3: v3,
+  4: v4,
+  5: v5,
+  6: v6,
+  7: v7,
+};
 
 const template = swingSetAFrame as TemplateDefinition;
 const templates = [template];

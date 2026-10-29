@@ -25,6 +25,8 @@ Template version 5 (#66) letters the parts in cut-list order. No dimension chang
 
 Template version 6 (#93, decision 0016) runs the crossbar and gusset ends past the legs, far enough for 7D of end distance at every bolt, and places those bolts as holes in the boards and legs (Bolt layout, below). The crossbar and gusset get longer; the cut list, shopping list, placements, and expert checks change with them. Each bolted joint's distances are reported against NDS 2024.
 
+Template version 7 (#53) adds what to look for when choosing each part's board (Board selection, below). No number changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -221,6 +223,16 @@ The tool-type library (`packages/core/src/knowledge/tools.ts`, #85) is checked a
 | Ease edges and splinters | all | sander, block plane |
 | Lay out the footprint and set the frames level and plumb | site | tape measure, string line, level |
 | Dig for buried legs, or level pads | site | post-hole digger, tamper |
+
+### Board selection
+
+Each part lists the board selection guides that apply to it, from the knowledge base (`packages/core/src/knowledge/boardSelection.ts`), and the shopping list carries them by part ID.
+
+| Part | Guides | Why |
+|---|---|---|
+| Beam | every board that carries load; across a span; joined with bolts | It spans between the frames and is bolted to the legs. |
+| Legs | every board that carries load; along its length; joined with bolts; in or on the ground | They carry the beam down to the ground and are bolted at the top. A leg stands in or on the ground whether it is buried or on a pad, so it always gets the ground-contact guide. |
+| Crossbars, gussets | every board that carries load; joined with bolts | They are bolted across the legs. |
 
 ### Drawings
 

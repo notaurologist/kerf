@@ -54,6 +54,11 @@ export const LumberPlan = z.object({
   notes: z.array(z.string()),
   /** Parts that fit no buyable board. They are never dropped silently. */
   issues: z.array(Issue),
+  /**
+   * What to look for when choosing each part's board, by part ID: guide IDs from the knowledge
+   * base, as the part lists them. Absent in plans made before #53.
+   */
+  selection: z.array(z.object({ partId: z.string(), guides: z.array(z.string()) })).optional(),
 });
 export type LumberPlan = z.infer<typeof LumberPlan>;
 
@@ -129,5 +134,8 @@ export function planLumber(
     counts.set(key, line);
   }
 
-  return { boards, lines: [...counts.values()], notes, issues };
+  const selection = parts
+    .filter((p) => p.selection && p.selection.length > 0)
+    .map((p) => ({ partId: p.id, guides: [...(p.selection ?? [])] }));
+  return { boards, lines: [...counts.values()], notes, issues, selection };
 }

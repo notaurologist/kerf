@@ -155,11 +155,13 @@ export type VersionReport =
 
 /**
  * Compares a snapshot, already read (and so in the current shape), with what the template's
- * current version produces from the same parameters and inputs.
+ * current version produces from the same parameters and inputs. The limit matches
+ * `compareSnapshots`: a plan several versions behind can differ in more than a hundred places.
  */
 export function compareWithCurrent(
   template: TemplateDefinition,
   snapshot: ProjectSnapshot,
+  limit = 1000,
 ): VersionReport {
   if (snapshot.templateVersion === template.version) {
     return { status: 'current', version: template.version };
@@ -177,7 +179,7 @@ export function compareWithCurrent(
     storedVersion: snapshot.templateVersion,
     currentVersion: template.version,
     regenerated: current.ok
-      ? { ok: true, ...diff(asJson(snapshot.outputs), asJson(current.output.outputs)) }
+      ? { ok: true, ...diff(asJson(snapshot.outputs), asJson(current.output.outputs), limit) }
       : { ok: false, issues: current.issues },
   };
 }

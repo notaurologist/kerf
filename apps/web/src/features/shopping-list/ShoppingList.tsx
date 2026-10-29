@@ -11,6 +11,7 @@ import {
   Stack,
   Text,
 } from '../../ui/index.ts';
+import { BoardSelection } from './BoardSelection.tsx';
 
 // The shopping list (PRODUCT.md, MVP feature 4): boards to buy, how the parts fit on them, and
 // hardware. Board and piece lengths are stored in inches or feet and shown through core's
@@ -118,6 +119,7 @@ export function ShoppingList(props: {
           ))}
         </List>
       </Disclosure>
+      <BoardSelection lumber={lumber} />
 
       <h3>Hardware</h3>
       <MeasureTable
