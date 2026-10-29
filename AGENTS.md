@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Kerf is a personal planning tool for woodworking projects. Pick a template, set its parameters, and it generates a cut list, shopping list, diagrams, build steps adapted to the owner's tools, and structural sanity checks. The first template is a two-swing A-frame swing set. One user; no accounts.
+Kerf is a personal planning tool for woodworking projects. Pick a template, set its parameters, and it generates a cut list, shopping list, diagrams, build steps adapted to the owner's tools, and structural checks. The first template is a two-swing A-frame swing set. One user; no accounts.
 
 ## Read before working
 

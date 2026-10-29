@@ -109,7 +109,7 @@ interface TemplateOutput {
 parameters ─► template.generate ─► TemplateOutput
                                      │
           tool inventory ───────────►├─► steps/       build steps, methods, flags, tool suggestions
-          structural inputs ────────►├─► structural/  sanity checks and confirmation checklist
+          structural inputs ────────►├─► structural/  structural checks and confirmation checklist
                                      ├─► outputs/     cut list, shopping list
                                      └─► geometry/    isometric, exploded, cut details, site layout
                                                       (2D drawing primitives)

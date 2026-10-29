@@ -54,7 +54,7 @@ Kerf computes a limited set of well-understood checks and lists everything else 
 
 The checks are generic: they work on members, supports, and loads, and know nothing about a particular project. Each template supplies its structural model (which members, where they are supported, which loads act on them, and which load cases to check) and its own checklist items. The swing set's loads are under Swing set specifics, Loads.
 
-### Computed (sanity checks)
+### Computed (structural checks)
 
 - **Beam model.** A simply supported span L between two supports, with any number of point loads at any positions and, optionally, a uniform load over the span (such as the member's own weight). Results come from superposition of the single-load cases (AWC Design Aid 6, Figures 1 and 8). Symmetric two-load formulas are kept as hand-check cases for the tests. Loads on overhangs beyond the supports are not checked.
 - **Beam bending.** Maximum moment occurs where the shear changes sign: under a point load, or with a uniform load, between point loads where the shear crosses zero. Compute the moment at each such position from the support reactions and take the largest. Symmetric hand check: two equal loads P, each a distance a from its nearest support, M = P·a. Bending stress f_b = M / S (S = section modulus of the actual cross section), compared against the adjusted allowable bending stress for the species and grade.

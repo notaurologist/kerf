@@ -50,7 +50,7 @@ Geometry and structural math come before any UI because they decide the success 
 
 - Login screen, tool inventory editor, project list with status.
 - Project editor with validation from core's schemas; structural inputs entered with no defaults.
-- Cut list, shopping list, sanity checks with expandable working, and confirmation checklist, all rendered from the snapshot.
+- Cut list, shopping list, structural checks with expandable working, and confirmation checklist, all rendered from the snapshot.
 - Notice when the template version is behind, with an explicit regenerate action.
 
 **Accept when:** the owner can create the swing-set project on the laptop and see the same cut list, shopping list, and structural review on a phone; every length and angle on screen comes from core's formatters.
