@@ -11,7 +11,7 @@ The model is Fitbod for woodworking: it knows my inventory and the projects I've
 
 ## Audience
 
-Me (Jason), for the foreseeable future. I have some experience building rudimentary projects, and access to experienced amateur and professional woodworkers for specific questions. Not designed for other users: no accounts, onboarding, sharing, or polish beyond what I need.
+Me (Jason), for the foreseeable future. I have some experience building rudimentary projects, and access to experienced amateur and professional woodworkers for specific questions. Not designed for other users: no accounts, onboarding, or sharing.
 
 ## Core principles
 
@@ -20,6 +20,7 @@ Me (Jason), for the foreseeable future. I have some experience building rudiment
 3. **Flag what warrants an expert check.** Steps and design choices in known risk categories (see `DOMAIN.md`) carry a visible flag saying what to ask about and why.
 4. **Plans adapt to my tools.** Each operation (for example, an angled crosscut) can be done several ways. The app picks methods my inventory supports and explains them.
 5. **Tool suggestions are generic.** "A miter saw would make these angle cuts faster and more repeatable," not specific products or brands.
+6. **Designed with care.** The interface is held to the same standard as the numbers. Information architecture, layout, typography, color, and how diagrams are drawn are deliberate decisions, explored and recorded, not defaults. Those decisions become a design system that the whole app is built from, so screens stay consistent and new ones are quicker to build. Being a personal tool can justify a specific exception where an inclusive pattern doesn't work for me, recorded with its reason; it never lowers the bar.
 
 ## Engineering approach
 

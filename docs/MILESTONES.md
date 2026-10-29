@@ -55,9 +55,22 @@ Geometry and structural math come before any UI because they decide the success 
 
 **Accept when:** the owner can create the swing-set project on the laptop and see the same cut list, shopping list, and structural review on a phone; every length and angle on screen comes from core's formatters.
 
+## Design: information architecture, visual design, and design system
+
+A phase, not a single task. It starts from the wireframes and data requirements in #39 and ends with a design system the rest of the app is built from (`PRODUCT.md`, principle 6). Each stage explores several directions, critiques them against principles of good design, and records the choice and its reasons before the next stage builds on it.
+
+1. **Information architecture.** What lives where, and how I move between planning on the laptop, shopping on the phone, and building in the garage.
+2. **Layout and grid.** The spatial system for phone, tablet, laptop, and print.
+3. **Typography.** Typefaces, scale, and how numbers, fractions, and angles are set, since numbers are most of the content.
+4. **Color.** A palette with defined roles (text, surfaces, flags, margins, diagram ink), in light and dark.
+5. **Diagram language.** Line weights, dimension and angle labels, hatching, and clearance zones, consistent with the rest of the system.
+6. **Design system.** Tokens, components, and usage guidance built in code, with the M4 screens rebuilt on it.
+
+**Accept when:** I'm proud of the key screens, checked on a real phone in the garage, on the laptop, and on a printed page; each stage's decision is recorded; and every M4 screen is built from the design system. "It works" is not the bar.
+
 ## M5: Diagrams
 
-- Isometric assembled view, exploded view, per-part cut details with angles and reference faces, and the site layout with clearance zones, from core's 2D primitives (0004).
+- Isometric assembled view, exploded view, per-part cut details with angles and reference faces, and the site layout with clearance zones, from core's 2D primitives (0004), drawn in the diagram language from the Design phase.
 - Print styles: each diagram and the cut list print on their own pages.
 
 **Accept when:** projection functions have unit tests; the diagrams for the M1 worked examples are checked by eye against hand sketches; diagrams are readable on a phone and print cleanly.
@@ -72,7 +85,7 @@ Geometry and structural math come before any UI because they decide the success 
 
 ## M7: Shop use and the build
 
-- Phone and tablet layout for build steps, one step at a time, large text.
+- Phone and tablet layout for build steps, one step at a time, large text, built from the design system.
 - Review the plans with an experienced builder; record changes as issues.
 - Build the swing set.
 
