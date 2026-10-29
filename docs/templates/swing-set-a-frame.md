@@ -206,6 +206,22 @@ Every structural connection is a through-bolt with a flat washer at each end and
 - **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
 
+### Tools for the work
+
+The tool-type library (`packages/core/src/knowledge/tools.ts`, #85) is checked against this table: every tool here is in the library, and the library has nothing this work could not use. Operations as data are #103; methods, which choose among these tools, are #104.
+
+| Work | Parts | Tools that could do it |
+|---|---|---|
+| Measure and mark lengths, end cuts, and the flush-cut marks | all | tape measure, combination square, rafter square, sliding bevel (angles to the edge), chalk line (the flush cut along a leg) |
+| Square crosscuts | beam | miter saw, circular saw, hand saw |
+| Angled crosscuts at the splay angle | legs (top and foot), crossbars, gussets | miter saw, circular saw, hand saw; laid out with a rafter square or sliding bevel |
+| The flush cut along the inside of each leg's top | legs | circular saw, jigsaw, or hand saw to cut; chisel or block plane to clean up |
+| Bolt holes through thick stock (leg, beam, leg; boards and legs) | all bolted parts | drill/driver with auger or spade bits, drilled from one side or both depending on reach; clamps hold the parts while drilling |
+| Tighten bolts and locking nuts | all bolted parts | socket wrench, impact driver |
+| Ease edges and splinters | all | sander, block plane |
+| Lay out the footprint and set the frames level and plumb | site | tape measure, string line, level |
+| Dig for buried legs, or level pads | site | post-hole digger, tamper |
+
 ### Drawings
 
 The drawings (#90) are drawn from the stored outputs; no number in them is new.

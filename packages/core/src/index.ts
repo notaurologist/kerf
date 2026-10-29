@@ -1,6 +1,7 @@
 export * as designValues from './design-values/index.ts';
 export * as geometry from './geometry/index.ts';
 export * from './inventory/tools.ts';
+export * from './knowledge/index.ts';
 export * from './lumber/stock.ts';
 export * from './outputs/index.ts';
 export * from './snapshot/index.ts';

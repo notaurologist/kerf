@@ -1,68 +1,77 @@
 import type { Inventory } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { emptyTool, fromInventory, toInventory } from './draft.ts';
+import { addTool, emptyInventory, fromInventory, toInventory } from './draft.ts';
 
 describe('inventory drafts', () => {
   const inventory: Inventory = {
     tools: [
-      { toolTypeId: 'circular-saw', capabilities: { bevels: true, maxBevel: 56, blade: '7-1/4' } },
+      { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375, maxBevel: 50 } },
       { toolTypeId: 'drill-driver', capabilities: {} },
     ],
+    other: [{ name: 'Table saw', note: 'Tilts to 45' }],
   };
 
-  it('round-trips an inventory, keeping each capability its kind', () => {
-    const drafts = fromInventory(inventory);
-    expect(drafts[0]?.capabilities.map((c) => c.kind)).toEqual(['yes-no', 'number', 'text']);
-    expect(toInventory(drafts)).toEqual({ ok: true, inventory });
+  it('round-trips an inventory, writing lengths as a plan does', () => {
+    const draft = fromInventory(inventory);
+    expect(draft.tools[0]?.values).toEqual({ depthOfCut: '2-7/16', maxBevel: '50' });
+    expect(draft.tools[1]?.values).toEqual({ chuckSize: '' });
+    expect(toInventory(draft)).toEqual({ ok: true, inventory });
   });
 
-  it('trims IDs and names before checking them', () => {
-    const result = toInventory([
-      { toolTypeId: ' speed-square ', capabilities: [{ name: ' x ', kind: 'text', value: 'a' }] },
+  it('adds a tool once, in library order, with nothing entered', () => {
+    let draft = addTool(emptyInventory(), 'drill-driver');
+    draft = addTool(draft, 'tape-measure');
+    draft = addTool(draft, 'drill-driver');
+    expect(draft.tools).toEqual([
+      { toolTypeId: 'tape-measure', values: {} },
+      { toolTypeId: 'drill-driver', values: {} },
     ]);
-    expect(result).toEqual({
+    // Nothing entered is left out: input needed, not a stand-in value.
+    expect(toInventory(draft)).toEqual({
       ok: true,
-      inventory: { tools: [{ toolTypeId: 'speed-square', capabilities: { x: 'a' } }] },
+      inventory: {
+        tools: [
+          { toolTypeId: 'tape-measure', capabilities: {} },
+          { toolTypeId: 'drill-driver', capabilities: {} },
+        ],
+        other: [],
+      },
     });
   });
 
-  it("uses core's rule for tool type IDs", () => {
-    const result = toInventory([{ toolTypeId: 'Miter Saw', capabilities: [] }]);
+  it('says what to type for text it cannot read, and reports ranges from core', () => {
+    const result = toInventory({
+      tools: [
+        { toolTypeId: 'circular-saw', values: { depthOfCut: 'deep', maxBevel: '75' } },
+        { toolTypeId: 'clamps', values: { count: '2.5' } },
+      ],
+      other: [],
+    });
     expect(result).toEqual({
       ok: false,
-      issues: [{ field: 'tools.0.toolTypeId', message: 'must be a lowercase ID like miter-saw' }],
+      issues: [
+        {
+          field: 'tools.0.capabilities.depthOfCut',
+          message: expect.stringContaining('Kerf cannot read this as a length'),
+        },
+        {
+          field: 'tools.0.capabilities.maxBevel',
+          message: 'Largest bevel must be from 0.0° to 60.0°.',
+        },
+        { field: 'tools.1.capabilities.count', message: 'Enter a whole number.' },
+      ],
     });
   });
 
-  it('points a duplicate at the second tool, and a blank ID at its own', () => {
-    const result = toInventory([
-      { toolTypeId: 'drill-driver', capabilities: [] },
-      { toolTypeId: 'drill-driver', capabilities: [] },
-      emptyTool(),
-    ]);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.issues.map((i) => i.field)).toEqual(['tools.1.toolTypeId', 'tools.2.toolTypeId']);
-  });
-
-  it('rejects unnamed, repeated, and non-numeric capabilities', () => {
-    const result = toInventory([
-      {
-        toolTypeId: 'table-saw',
-        capabilities: [
-          { name: '', kind: 'yes-no', value: 'true' },
-          { name: 'tilt', kind: 'number', value: 'lots' },
-          { name: 'tilt', kind: 'number', value: '' },
+  it('trims other tools and asks for a name', () => {
+    expect(
+      toInventory({
+        tools: [],
+        other: [
+          { name: ' Router ', note: ' ' },
+          { name: ' ', note: 'x' },
         ],
-      },
-    ]);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.issues).toEqual([
-      { field: 'tools.0.capabilities.0.name', message: 'needs a name' },
-      { field: 'tools.0.capabilities.1.value', message: 'must be a number' },
-      { field: 'tools.0.capabilities.2.name', message: 'is listed twice' },
-      { field: 'tools.0.capabilities.2.value', message: 'must be a number' },
-    ]);
+      }),
+    ).toEqual({ ok: false, issues: [{ field: 'other.1.name', message: 'Enter a name.' }] });
   });
 });

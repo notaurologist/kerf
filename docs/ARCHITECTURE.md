@@ -65,7 +65,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │   └── core/
 │       └── src/
 │           ├── units/          # Inches, fractions to 1/16, feet-inches display, angle convention
-│           ├── inventory/      # Tool inventory schema, shared by the API and the web form
+│           ├── inventory/      # Tool inventory schema, checked against the tool library (knowledge/)
 │           ├── geometry/       # 3D vectors, part placement, projection to 2D drawing primitives
 │           ├── templates/      # One folder per template; swing-set-a-frame/ first
 │           ├── outputs/        # Cut list, shopping list (board grouping with kerf and trim)
@@ -140,7 +140,7 @@ For each operation, `steps/` lists the methods from the knowledge base whose req
 | `GET /api/health` | Deploy and uptime check; no session, no data |
 | `POST /api/login`, `POST /api/logout`, `GET /api/session` | Login and session (0007) |
 | `GET /api/templates` | Templates with their current version and name |
-| `GET/PUT /api/tools` | Tool inventory; `PUT` replaces the whole list |
+| `GET/PUT /api/tools` | Tool inventory: library tools with their capabilities, and other tools by name; `PUT` replaces the whole list |
 | `GET /api/projects`, `POST /api/projects` | List (summaries, no snapshots) and create |
 | `GET /api/projects/:id` | The stored snapshot (upgraded to the current shape if needed, 0014), plus a version report: `current`, `ahead`, or `behind` with the changed paths regenerating would bring (or the issues that stop it) |
 | `PUT /api/projects/:id` | Update name, status, parameters, or structural inputs; changing parameters or inputs regenerates the snapshot with the current template version |
@@ -162,7 +162,8 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 
 | Table | Contents |
 |---|---|
-| `tools` | Tool type ID and capabilities |
+| `tools` | Library tool type ID and the capabilities entered. Rows from before the library are read through core's `readStoredTools`, which moves what the library lacks to `other_tools`; the release step rewrites them |
+| `other_tools` | Tools the library does not have: position, name, note |
 | `projects` | Name, status, template ID, template version, snapshot (JSON, holding the parameters and structural inputs), timestamps |
 | `project_history` | One row per operation in a project: operation type, method ID, skills. Written when the snapshot is saved; used later for references to past projects |
 | `sessions` | Session ID, created, expires |
@@ -175,7 +176,7 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 - `vercel.json` defines two services in one Vercel project: the web build at `/` and the API at `/api/*`, entered through `apps/api/src/vercel.ts`. The API's routes already start with `/api`, so the same paths work in development and production.
 - The API connects to Neon's pooled connection string with prepared statements off (`POOLED_CONNECTION` in `bootstrap.ts`).
 - Secrets live only in Vercel's environment settings and a local `.env`: `DATABASE_URL` and `PASSWORD_HASH` (see `.env.example`). The API refuses to start if either is missing or malformed, naming the variable but never printing its value.
-- Every production build runs `pnpm db:migrate` for the API service (`vercel.json`): the Drizzle migrations, then the snapshot backfill (0014). It connects through `DATABASE_URL_UNPOOLED` (Neon's direct connection) when set. Preview builds skip it. Locally, `pnpm db:migrate` does the same against `.env` or the Docker database.
+- Every production build runs `pnpm db:migrate` for the API service (`vercel.json`): the Drizzle migrations, then the snapshot backfill (0014) and the tool-inventory backfill. It connects through `DATABASE_URL_UNPOOLED` (Neon's direct connection) when set. Preview builds skip it. Locally, `pnpm db:migrate` does the same against `.env` or the Docker database.
 - Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, redeploy, and delete the rows in `sessions` (0007).
 
 #### First deploy (the owner's steps; they need accounts)
