@@ -64,6 +64,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │   └── core/
 │       └── src/
 │           ├── units/          # Inches, fractions to 1/16, feet-inches display, angle convention
+│           ├── inventory/      # Tool inventory schema, shared by the API and the web form
 │           ├── geometry/       # 3D vectors, part placement, projection to 2D drawing primitives
 │           ├── templates/      # One folder per template; swing-set-a-frame/ first
 │           ├── outputs/        # Cut list, shopping list (board grouping with kerf and trim)

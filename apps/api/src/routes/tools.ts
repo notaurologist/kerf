@@ -1,6 +1,7 @@
+import { Inventory } from '@kerf/core';
 import { Hono } from 'hono';
 import type { Database } from '../db/client.ts';
-import { getInventory, Inventory, replaceInventory } from '../services/tools.ts';
+import { getInventory, replaceInventory } from '../services/tools.ts';
 import { valid } from './validate.ts';
 
 export function toolRoutes(deps: { db: Database; now: () => Date }) {

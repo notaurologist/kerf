@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Notice, Shell } from './components/Shell.tsx';
+import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
 import { LoginScreen } from './features/login/LoginScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
 import { type Route, useRoute } from './lib/route.ts';
@@ -11,7 +12,7 @@ export function Screen(props: { route: Route }) {
     case 'projects':
       return <h1>Projects</h1>;
     case 'tools':
-      return <h1>Tools</h1>;
+      return <ToolsScreen />;
     case 'new-project':
     case 'project':
     case 'edit-project':
