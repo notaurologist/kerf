@@ -98,7 +98,7 @@ interface TemplateOutput {
   parts: Part[];                // DOMAIN.md data model
   hardware: HardwareItem[];
   operations: Operation[];      // per part: cuts, holes, counterbores, easing
-  placements: Placement[];      // 3D position and orientation of each part instance
+  placements: Placement[];      // each part instance's local frame in 3D: origin and axes (DOMAIN.md, Geometry)
   structuralModel: StructuralModel; // members, supports, loads, load cases, checklist items
   layout: SiteLayout;           // footprint and clearance zones
 }

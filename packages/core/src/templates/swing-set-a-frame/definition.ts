@@ -36,9 +36,10 @@ export const swingSetAFrame: TemplateDefinition<
   outputs: SwingSetOutputs,
   form: SWING_SET_FORM,
   // One fixture per stored shape, snapshots/v<n>.json (decision 0014). Shape 2 adds sources to
-  // the hanger check's inputs (#36). The field was already optional, so 1 to 2 changes nothing.
-  snapshotVersion: 2,
-  snapshotUpgrades: { 1: (snapshot) => snapshot },
+  // the hanger check's inputs (#36). Shape 3 adds part placements (#49). Both fields are
+  // optional, so plans stored before them read as they are and keep their numbers.
+  snapshotVersion: 3,
+  snapshotUpgrades: { 1: (snapshot) => snapshot, 2: (snapshot) => snapshot },
   examples: EXAMPLES,
   plan(outputs) {
     const review = outputs.structuralReview;

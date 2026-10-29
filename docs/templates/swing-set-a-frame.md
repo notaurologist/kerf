@@ -1,6 +1,6 @@
 # Template: two-swing A-frame swing set
 
-Status: v1, approved by the owner October 2026
+Status: v1, approved by the owner October 2026; template version 3 adds placements (#49)
 
 This is the geometry spec for the first template (`PRODUCT.md`, First template). The template code in `packages/core/src/templates/swing-set-a-frame/` implements exactly what is written here, and its tests use the worked example below. Structural checks (M2) and hangers and site layout (a later M1 change) build on it.
 
@@ -16,6 +16,8 @@ Matches the owner's earlier build (photos reviewed October 2026).
 - **Feet either buried or on pads.** A burial depth of 0 means each foot sits on a level pad or footing with ground anchors. A depth greater than 0 means each leg continues that far below grade. Either way, each foot gets a level cut.
 
 Template version 2 (#36) changes no geometry or number: it adds sources to the specific gravity G, the pendulum factor 3 − 2·cos θ, and the beam's breadth and depth in the structural working. Projects made with version 1 show the version notice listing those additions.
+
+Template version 3 (#49) adds a 3D placement for every part instance (Placements, below) for the isometric and exploded views. It changes no other output; projects made with version 2 show the version notice listing the placements as new.
 
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
@@ -128,7 +130,31 @@ A trapezoid with its top edge against the beam's underside (z = H) and its sides
 - **Seat edges:** x_i ± s_w/2.
 - **Chain length to set:** H − h_s, from the hanger's pivot to the seat's underside. The hanger hardware's own drop comes out of this; measure it before cutting or adjusting chain.
 
-### Site layout
+### Placements
+
+Where each part instance sits in 3D, for drawing (template version 3). Each part has a local frame (`DOMAIN.md`, Geometry; `Placement` in `templates/types.ts`):
+
+- **along**: the part's length, from its first end to its second (the cut list's end order);
+- **across**: its width, from its reference edge (the edge on which the first end cut has its long point);
+- **through**: its thickness, so the frame is right-handed;
+- **origin**: the corner where the first end meets the reference edge, on the face where *through* starts.
+
+The part's outline follows from its own data: the first end cut runs u = v·tan(setting), the second u = length − (width − v)·tan(setting) for parallel ends or u = length − v·tan(setting) otherwise.
+
+| Part | First end, reference edge | Origin | along, across, through |
+|---|---|---|---|
+| Beam, ply i (from 0) | Left end, bottom edge | (0, bw/2 − i·bw/n, H) | +x, +z, −y |
+| Back leg | Top, inner edge | (x_f, bw/2 − bd·tan α, H + bd) | (0, sin α, −cos α), (0, cos α, sin α), +x |
+| Front leg | Top, inner edge | (x_f + t, −(bw/2 − bd·tan α), H + bd) | (0, −sin α, −cos α), (0, −cos α, sin α), −x |
+| Crossbar | Front end, bottom edge | (x_o, −y_out(zc − cw), zc − cw) | +y, +z, +x |
+| Gusset | Front end, bottom edge | (x_o, −y_out(H − gh), H − gh) | +y, +z, +x |
+
+- **Instances:** instance 0 is the left frame and instance 1 the right.
+- **Legs:** x_f = e for the left frame and L − e − t for the right. The front leg's thickness runs toward −x so its frame stays right-handed.
+- **Crossbar and gusset:** they sit on each frame's outside face, so x_o = e − thickness for the left frame and L − e for the right.
+- **Inner face at the top:** the legs' inner face at the top cut, bw/2 − bd·tan α, is inside the beam; the flush cut removes that wood. The placement is of the blank before the flush cut, which #50 adds as part data.
+
+
 
 Plan view, values from the CPSC home handbook (`DOMAIN.md`, Layout and clearances), each shown with its source:
 
@@ -206,6 +232,27 @@ Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 
 | Cut settings | Leg top, leg foot, crossbar ends, and gusset sides 20.0°; flush cut a taper at 20.0° to the face |
 
 With d = 0 (pads), the same inputs give back legs of 105.970 (106") and front legs of 112.814 (112-13/16"). Tests cover both.
+
+### Placements
+
+Origins (x, y, z) for the worked example, with tan α = 0.36397:
+
+| Part | Instance 0 (left frame) | Instance 1 (right frame) |
+|---|---|---|
+| Beam | (0, 1.75, 96) | |
+| Back leg | (12, 1.75 − 5.5·0.36397 = −0.252, 101.5) | (120 − 12 − 3.5 = 104.5, −0.252, 101.5) |
+| Front leg | (15.5, 0.252, 101.5) | (108, 0.252, 101.5) |
+| Crossbar | (12 − 1.5 = 10.5, −55.718 / 2 = −27.859, 40 − 5.5 = 34.5) | (108, −27.859, 34.5) |
+| Gusset | (10.5, −16.227 / 2 = −8.113, 96 − 7.25 = 88.75) | (108, −8.113, 88.75) |
+
+The back legs run along (0, 0.34202, −0.93969). Fit tests place the parts this way for this example, its version on pads, the edge of range, and a three-ply beam on level ground, and check:
+- each leg's top cut is level with the top of the beam;
+- each leg's inner face passes the beam's lower corner;
+- each leg's outer face meets the ground at the footprint;
+- each leg's foot cut is at z_b on both edges;
+- the crossbar and gusset corners lie on the legs' outer faces;
+- the gusset's top is at the beam's underside;
+- the beam plies fill the beam's width.
 
 ### Swings and layout
 

@@ -149,7 +149,7 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 - **Method:** operation type, required tool types and capabilities, skills, steps, common mistakes, flags.
 - **Tool:** type and capabilities (for example, circular saw with bevel up to 45 degrees). Inventory is a list of these.
 - **Flag:** category (from expert-check categories), what to ask, why.
-- **Geometry:** 3D positions and orientations of parts, used for isometric and exploded projection.
+- **Geometry:** 3D positions and orientations of parts, used for isometric and exploded projection. Each part instance has a placement: a local frame (along its length from its first end, across its width from its reference edge, through its thickness) with its origin at the first end's long point. The part's shape in that frame follows from its own data (length, width, thickness, end cuts), so a placement and the cut list together draw it.
 - **Structural check:** type (beam bending, shear, deflection, hardware), member or hardware reference, inputs with sources, formula, intermediate values, result, margin, assumptions.
 - **Checklist item:** category, the specific design element it refers to, what to confirm, why.
 - **Design values:** species, grade, size class, allowable stresses, modulus of elasticity, adjustment factors, source and edition.
