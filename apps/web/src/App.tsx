@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Notice, Shell } from './components/Shell.tsx';
 import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
 import { LoginScreen } from './features/login/LoginScreen.tsx';
+import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
 import { type Route, useRoute } from './lib/route.ts';
 
@@ -10,7 +11,7 @@ type Session = 'checking' | 'logged-out' | 'logged-in' | { unreachable: string }
 export function Screen(props: { route: Route }) {
   switch (props.route.screen) {
     case 'projects':
-      return <h1>Projects</h1>;
+      return <ProjectsScreen />;
     case 'tools':
       return <ToolsScreen />;
     case 'new-project':
