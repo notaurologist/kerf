@@ -64,7 +64,10 @@ A phase, not a single task. It starts from the wireframes and data requirements 
 3. **Typography.** Typefaces, scale, and how numbers, fractions, and angles are set, since numbers are most of the content.
 4. **Color.** A palette with defined roles (text, surfaces, flags, margins, diagram ink), in light and dark.
 5. **Diagram language.** Line weights, dimension and angle labels, hatching, and clearance zones, consistent with the rest of the system.
+5a. **Number entry and form states.** How lengths and angles are typed and echoed back, and the states of every form (#67).
+5b. **Words.** A content guide for method text, flags, errors, and labels (#68).
 6. **Design system.** Tokens, components, and usage guidance built in code, with the M4 screens rebuilt on it.
+7. **A repeatable garage check.** A written protocol for checking the design on a phone in the garage, on the laptop, and in print, run once on the system's screens and again in M7 (#69).
 
 **Accept when:** I'm proud of the key screens, checked on a real phone in the garage, on the laptop, and on a printed page; each stage's decision is recorded; and every M4 screen is built from the design system. "It works" is not the bar.
 
