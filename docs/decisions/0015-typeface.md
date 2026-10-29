@@ -14,5 +14,5 @@ Numbers are most of what Kerf shows, and the shop modes are read at arm's length
 
 ## Consequences
 - Updating the font is a manual step: download the new version, subset it the same way, record the new version here.
-- The subset keeps the features Kerf uses (`kern`, `liga`, `calt`, `tnum`, `frac`, `zero`, `case`) and the characters it prints, including primes, the degree sign, and the multiplication sign. Characters outside the subset fall back to the system font.
+- The subset keeps the layout features the fonts have and Kerf uses: `kern` and `tnum` (Next), `zero` (Mono), and `frac` and `case` (both). Neither font has `liga` or `calt`. It keeps the characters Kerf prints, including the degree sign and the multiplication sign. Neither font has prime marks (′ ″); Kerf prints straight foot and inch marks, as core formats them, so none are needed. Characters outside the subset fall back to the system font. (Corrected October 2026, when the files were made in #78; the earlier text listed features and primes the fonts do not have.)
 - Shop sizes are set from this face's measured digit height (0.694 of the font size): read 20 px, glance 51 px on a phone. Changing the typeface means redoing them.
