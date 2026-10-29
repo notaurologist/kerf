@@ -1,0 +1,42 @@
+import type { MouseEvent, ReactNode } from 'react';
+
+// Buttons say what they do: a verb and the thing it acts on (docs/design/content.md).
+
+export type ButtonVariant = 'primary' | 'secondary' | 'destructive' | 'link';
+
+export function Button(props: {
+  children: ReactNode;
+  variant?: ButtonVariant;
+  type?: 'button' | 'submit';
+  /** While true, the button says what is happening (its children should) and ignores presses. */
+  busy?: boolean;
+  onClick?: () => void;
+}) {
+  const click = (e: MouseEvent) => {
+    if (props.busy) {
+      e.preventDefault();
+      return;
+    }
+    props.onClick?.();
+  };
+  return (
+    <button
+      type={props.type ?? 'button'}
+      className="k-button"
+      data-variant={props.variant ?? 'primary'}
+      aria-disabled={props.busy ? true : undefined}
+      onClick={click}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+/** A link that looks like a button, for actions that go to another screen. */
+export function ButtonLink(props: { children: ReactNode; href: string; variant?: ButtonVariant }) {
+  return (
+    <a className="k-button" data-variant={props.variant ?? 'primary'} href={props.href}>
+      {props.children}
+    </a>
+  );
+}

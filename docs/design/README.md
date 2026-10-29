@@ -40,6 +40,20 @@ The owner took the suggested option for each (October 2026).
 | How it lands | Four pull requests, each a sub-issue of #45: #78 fonts, tokens, layers, layout primitives, and the contrast test; #79 components, icons, and the catalog page; #80 the M4 screens rebuilt; #81 usage guidance and ARCHITECTURE.md. Each leaves the app working and is checked in a Vercel preview. | One pull request: nothing half-switched, but the largest review in the project, and a late problem holds up all of it. |
 | Test dependencies | None for now. Checks: the contrast test, render tests of states and accessible names, the no-styles-in-screens test, the catalog page, accessibility checked by hand, and the garage check (#69). Revisit after #69. | An accessibility checker (two development dependencies) and screenshot tests (one large dependency and stored images); either can be added later if the garage check shows a gap. |
 
+### Components (#79)
+
+The components are in `apps/web/src/ui`, and every one is shown, in each state, on the catalog page at `#/catalog` (signed in): light and dark side by side, and shop density. The catalog's sample values come from the worked example's committed snapshot and core's formatters and messages. Render tests cover each state and what assistive technology is told: labels tied to inputs, errors and hints tied by `aria-describedby`, `aria-invalid` only on errors, status and alert roles, icons hidden, table cells labeled for stacked rows, and the word list.
+
+Checked by hand in the catalog, October 2026:
+
+| Check | Result |
+|---|---|
+| Keyboard | Every control in the catalog is reachable with Tab and has a name; every input and select has a label. The disclosure opens with Enter. The dialog focuses the safe choice ("Keep editing"), closes with Escape, and returns focus to the button that opened it. |
+| Visible focus | A 3 px ring in the focus color, 2 px outside, on every control. |
+| Reflow (WCAG 1.4.10) | No sideways scrolling at 360 px or at 640 px (a 1280 px window at 200%); the measurement table stacks into labeled rows. The browser pane used could not go below 360 px, so 320 px itself was not tested. |
+| Reduced motion | The rule is in the reset layer and outranks every later layer. The only motion is the disclosure arrow's 0.15 s turn. The preference could not be switched on in the browser used, so the rule was confirmed, not seen in effect. |
+| Screen reader | Not tested with VoiceOver; covered by the render tests' roles and names. Worth a pass in #81. |
+
 ## Stage 5b: words (#68)
 
 `words.html` writes the same four pieces of real Kerf text (a method for cutting the back legs, the burial-depth flag, an out-of-range beam height, and the bending margin) in three voices:

@@ -7,21 +7,14 @@ import { describe, expect, it } from 'vitest';
 
 const css = readFileSync(new URL('./tokens.css', import.meta.url), 'utf8');
 
-/** Hex colors declared in the first rule block after `marker`. */
-function colors(marker: string): Record<string, string> {
-  const at = css.indexOf(marker);
-  if (at < 0) throw new Error(`tokens.css has no ${marker}`);
-  const open = css.indexOf('{', css.indexOf(':root', at));
-  const block = css.slice(open, css.indexOf('}', open));
-  return Object.fromEntries(
-    [...block.matchAll(/--([a-z0-9-]+):\s*(#[0-9a-f]{6})\b/g)].map((m) => [m[1], m[2]]),
-  );
-}
-
+/** Each color token as `light-dark(light, dark)`, split into the two themes. */
+const pairsOf = [
+  ...css.matchAll(/--([a-z0-9-]+):\s*light-dark\((#[0-9a-f]{6}),\s*(#[0-9a-f]{6})\)/g),
+];
 const themes = {
-  light: colors('@layer tokens'),
-  dark: colors('prefers-color-scheme: dark'),
-};
+  light: Object.fromEntries(pairsOf.map((m) => [m[1], m[2]])),
+  dark: Object.fromEntries(pairsOf.map((m) => [m[1], m[3]])),
+} as Record<'light' | 'dark', Record<string, string>>;
 
 /** WCAG 2.2 relative luminance of an sRGB hex color. */
 function luminance(hex: string): number {

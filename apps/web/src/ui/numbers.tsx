@@ -1,0 +1,69 @@
+import { Fragment } from 'react';
+
+// Numbers as #42 sets them. Every value here is a string core formatted (hard rule 1); these
+// components only decide how it is shown.
+
+/** A length or angle that never breaks across lines: browsers break at the hyphen in 138-3/8. */
+export function Length(props: { children: string }) {
+  return <span className="k-length">{props.children}</span>;
+}
+
+const MEASURE = /\d+' \d+(?:-\d+\/\d+)?"|\d+(?:-\d+\/\d+)?"|\d+\/\d+"|\d+(?:\.\d+)?°/g;
+
+/**
+ * Text from core with lengths and angles in it, such as `Each edge: 130-1/4"`, shown exactly as
+ * core formatted it, with each length and angle kept on one line.
+ */
+export function Measured(props: { text: string }) {
+  const parts: (string | { measure: string })[] = [];
+  let last = 0;
+  for (const match of props.text.matchAll(MEASURE)) {
+    const at = match.index ?? 0;
+    if (at > last) parts.push(props.text.slice(last, at));
+    parts.push({ measure: match[0] });
+    last = at + match[0].length;
+  }
+  if (last < props.text.length) parts.push(props.text.slice(last));
+  return (
+    <>
+      {parts.map((part, i) =>
+        typeof part === 'string' ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: parts of one fixed string, in order.
+          <Fragment key={i}>{part}</Fragment>
+        ) : (
+          // biome-ignore lint/suspicious/noArrayIndexKey: parts of one fixed string, in order.
+          <Length key={i}>{part.measure}</Length>
+        ),
+      )}
+    </>
+  );
+}
+
+/** The length you cut to, readable from across the bench: 51 px bold (#42, glance distance). */
+export function Glance(props: { children: string }) {
+  return <span className="k-glance">{props.children}</span>;
+}
+
+/**
+ * A saw setting with the angle to the edge (#42, DOMAIN.md, Units): never the same size. The
+ * setting is larger, bold, and boxed; the edge angle smaller and labeled.
+ */
+export function SawSetting(props: { setting: string; toEdge: string }) {
+  return (
+    <div className="k-saw">
+      <div className="k-saw__setting">
+        <span className="k-saw__label">Saw at</span>
+        <b>{props.setting}</b>
+      </div>
+      <div className="k-saw__edge">
+        <span className="k-saw__label">To the edge</span>
+        <span>{props.toEdge}</span>
+      </div>
+    </div>
+  );
+}
+
+/** A structural margin: "margin 1.1x under these assumptions", in the text color (#43, rule 1). */
+export function MarginLine(props: { margin: string }) {
+  return <p className="k-margin">{props.margin} under these assumptions</p>;
+}

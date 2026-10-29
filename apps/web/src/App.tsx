@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Notice, Shell } from './components/Shell.tsx';
 import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
 import { LoginScreen } from './features/login/LoginScreen.tsx';
@@ -7,6 +7,10 @@ import { EditProjectScreen, NewProjectScreen } from './features/project-editor/P
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
 import { type Route, useRoute } from './lib/route.ts';
+
+// The design system's catalog (#45), loaded only when opened: it carries the worked example's
+// snapshot for its sample values.
+const Catalog = lazy(() => import('./ui/Catalog.tsx').then((m) => ({ default: m.Catalog })));
 
 type Session = 'checking' | 'logged-out' | 'logged-in' | { unreachable: string };
 
@@ -22,6 +26,12 @@ export function Screen(props: { route: Route }) {
       return <EditProjectScreen id={props.route.id} />;
     case 'project':
       return <ProjectScreen id={props.route.id} />;
+    case 'catalog':
+      return (
+        <Suspense fallback={<Notice>Loading components…</Notice>}>
+          <Catalog />
+        </Suspense>
+      );
     case 'not-found':
       return <Notice>There is no page here.</Notice>;
   }

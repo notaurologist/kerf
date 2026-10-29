@@ -7,6 +7,8 @@ describe('parseRoute', () => {
     ['#/', { screen: 'projects' }],
     ['#/projects', { screen: 'projects' }],
     ['#/tools', { screen: 'tools' }],
+    ['#/catalog', { screen: 'catalog' }],
+    ['#/catalog/x', { screen: 'not-found' }],
     ['#/projects/abc', { screen: 'project', id: 'abc' }],
     ['#/projects/abc/edit', { screen: 'edit-project', id: 'abc' }],
     [
@@ -24,6 +26,7 @@ describe('parseRoute', () => {
     const routes: Exclude<Route, { screen: 'not-found' }>[] = [
       { screen: 'projects' },
       { screen: 'tools' },
+      { screen: 'catalog' },
       { screen: 'project', id: '6f1c2a3e-0000-4000-8000-000000000000' },
       { screen: 'edit-project', id: 'x y' },
       { screen: 'new-project', templateId: 'swing-set-a-frame' },
