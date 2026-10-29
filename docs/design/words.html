@@ -1,0 +1,434 @@
+<title>Kerf Words</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+.pal-C1-light { --bg: #fbf9f5; --raised: #fff; --sunken: #f2efe9; --text: #1a1d23; --muted: #545860; --border: #d7d4ce; --border-strong: #70757c; --accent: #0e5caf; --on-accent: #fff; --focus: #1570d1; --flag-bg: #ffe8be; --flag-border: #bb7400; --flag-text: #5b3106; --input-bg: #fff; --input-border: #2e64a6; --input-text: #0e4786; --done: #0e5caf; --error: #aa295f; --error-bg: #ffebf1; --ink: #1a1d23; --dim: #0e5caf; --hidden: #6e7278; --highlight: #bfe1ff; --zone: #dbeede; --zone-line: #488055; }
+.pal-C1-dark { --bg: #111418; --raised: #1a1d23; --sunken: #0b0d12; --text: #edebe7; --muted: #aaaeb4; --border: #2f3339; --border-strong: #82868e; --accent: #70b3f7; --on-accent: #0c121a; --focus: #73bdff; --flag-bg: #3e290f; --flag-border: #dea143; --flag-text: #f7dba1; --input-bg: #1a1d23; --input-border: #6da9e7; --input-text: #97c9fd; --done: #70b3f7; --error: #ea7ca1; --error-bg: #3d1e28; --ink: #edebe7; --dim: #70b3f7; --hidden: #83868c; --highlight: #1d456b; --zone: #1e2d21; --zone-line: #75ae81; }
+
+.sheet { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+.samples { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); align-items: start; }
+.sample { margin: 0; display: grid; gap: 6px; min-width: 0; }
+.sample figcaption { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text); display: flex; justify-content: space-between; gap: 8px; }
+.sample .wc { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.card { border: 1px solid var(--border); border-radius: 6px; background: var(--raised); padding: 12px 14px; display: grid; gap: 8px; font-size: 16px; line-height: 1.45; }
+.card p, .card ol { margin: 0; }
+.card ol { padding-left: 1.3em; display: grid; gap: 4px; }
+.card .t { font-weight: 700; font-size: 17px; }
+.card .why, .card .small-t { font-size: 15px; }
+.card .flag { border-left: 4px solid var(--flag-border); background: var(--flag-bg); color: var(--flag-text); padding: 8px 10px; border-radius: 3px; }
+.card .flag b { display: block; }
+.card .err { color: var(--error); font-weight: 600; }
+.card .m { font-weight: 700; font-size: 18px; }
+.direction-full > header { display: grid; gap: 4px; }
+.sugg { color: var(--blue); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px; margin: 0; position: sticky; top: 0; z-index: 2; background: var(--paper); }
+.controls legend { font-weight: 600; padding: 0 4px; }
+.controls label { display: inline-flex; gap: 6px; align-items: center; min-height: 32px; }
+table.std { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 0.92rem; background: var(--wf-bg); }
+table.std th, table.std td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+table.std th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.audit td:nth-child(2) { color: var(--muted); }
+.guide { display: grid; gap: 12px; }
+.guide .rule { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; }
+.guide .rule p { margin: 0; }
+.guide .ex { font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif; border-left: 3px solid var(--blue); padding-left: 10px; }
+.wl { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@200..800&display=swap">
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #68</p>
+  <h1>Words</h1>
+  <div class="prose stack">
+    <p>How Kerf talks: the voice of method text, flags, errors, margins, buttons, and empty screens, and the words it uses and avoids. M6 adds most of Kerf's text (methods, common mistakes, flag explanations), so the guide comes first.</p>
+    <p>Three voices, each writing the same four pieces of real Kerf text: a method for cutting the back legs, the burial-depth flag, an out-of-range beam height, and the beam's bending margin. Every number in them is a string from the worked example's snapshot or core's formatters. Then a proposed guide and word list, and an audit of every string on the M4 screens against it.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
+  <p>Three choices. I suggest <b>V1</b>, <b>"structural checks"</b>, and <b>the guide and audit as written</b>; each is listed first and marked below. A reply like <span class="pick" style="white-space: normal">V1, structural checks, guide as written</span> is enough.</p>
+  <ol>
+    <li><a href="#directions">Voice</a>: <span class="pick">V1</span> shop voice, <span class="pick">V2</span> report voice, or <span class="pick">V3</span> mentor voice.</li>
+    <li><a href="#rename">"Sanity checks"</a>: rename to <span class="pick">structural checks</span> in the app and the docs, or keep it.</li>
+    <li><a href="#guide">The guide, word list, and audit</a>: approve them as written, or change them. The audit's changes are made in #45.</li>
+  </ol>
+</section>
+
+<!-- ============================== SHARED ============================== -->
+<section id="shared" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Common to all three</p>
+    <h2>What no voice changes</h2>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Numbers come from core</b><p>Text never contains a number core did not produce, and never rounds or rewrites one (hard rules 1 and 4). Words around a number, not the number, carry the voice.</p></div>
+    <div class="opt"><b>Margins, not verdicts</b><p>"Margin 1.1x under these assumptions", never safe, unsafe, pass, fail, or an adjective that judges (hard rule 2).</p></div>
+    <div class="opt"><b>Nothing filled in</b><p>Text never suggests a value for a structural input or calls one a default (hard rule 3).</p></div>
+    <div class="opt"><b>Generic tools</b><p>Tool types, never brands or products (hard rule 11).</p></div>
+    <div class="opt"><b>Angles with their reference</b><p>"Saw at 20.0°" or "20.0° to the edge", never a bare "20° cut" (DOMAIN.md, Units).</p></div>
+    <div class="opt"><b>Sources stay</b><p>Safety-relevant text keeps its source and page, such as "(CPSC Pub. 324, p. 3)" (hard rule 5).</p></div>
+  </div>
+</section>
+
+<!-- ============================== DIRECTIONS ============================== -->
+<section id="directions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Directions</p>
+    <h2>Three voices, the same four texts</h2>
+    <p class="prose">Shown in the C1 colors with #42's type, the way each would appear in the app. The method is written for illustration; real method text and step order come from M6 (#52). Word counts include the numbers.</p>
+  </div>
+
+  <fieldset class="controls">
+    <legend>View</legend>
+    <label for="theme-light"><input type="radio" name="theme" id="theme-light" value="light" checked> Light</label>
+    <label for="theme-dark"><input type="radio" name="theme" id="theme-dark" value="dark"> Dark</label>
+  </fieldset>
+
+  
+<article class="direction-full stack-lg" id="v1">
+  <header><p><span class="letter">V1</span> · Shop voice · <b class="sugg">Suggested</b></p><h3>Plain and direct: the verb first, the number, then why</h3><p class="small muted">Tone (NN/g's four dimensions): casual-leaning neutral, serious, respectful, matter-of-fact.</p></header>
+  <div class="sheet pal-C1-light">
+<div class="samples"><figure class="sample"><figcaption>Method <span class="wc">50 words</span></figcaption><div class="card"><p class="t">Cut the back legs (2)</p><ol><li>Set the miter saw to 20.0°.</li><li>Cut the top end.</li><li>From the top cut, mark 130-1/4" along each edge.</li><li>Cut the foot through both marks, with the saw still at 20.0°.</li></ol><p class="why">Why: at 20.0° both ends sit level when the leg leans 20.0° from vertical.</p></div></figure><figure class="sample"><figcaption>Expert check <span class="wc">42 words</span></figcaption><div class="card"><p class="flag"><b>Expert check</b> Ask an experienced builder whether 24" is deep enough for your soil, and whether the leg lumber is rated for ground contact.</p><p class="why">Why: buried legs keep the frame from lifting and walking, and wood decays fastest at the ground line.</p></div></figure><figure class="sample"><figcaption>Error <span class="wc">14 words</span></figcaption><div class="card"><p class="err">Beam height must be from 5' 0" to 12' 0".</p><p class="small-t">You entered 15' 0".</p></div></figure><figure class="sample"><figcaption>Margin <span class="wc">27 words</span></figcaption><div class="card"><p><b>Bending</b>, top beam 4x6</p><p class="m">margin 1.1x under these assumptions</p><p class="small-t">A margin is the adjusted design value divided by the computed stress. Judge it with an experienced builder.</p></div></figure></div></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>How good shop instructions and safety handbooks talk to someone with a tool in hand: a verb first, one action, the number. The CPSC home playground handbook writes to parents this way: "Check nuts and bolts twice a month and tighten as needed."</dd>
+  <dt>Principles</dt>
+  <dd>Plain language: active voice "makes it clear who should do what" (digital.gov), and "you" for the reader. GOV.UK: error messages say what happened and how to fix it. NN/g: errors are precise and constructive, with no blame. Each kind of text has one sentence pattern, so a reader learns where the number and the why will be.</dd>
+  <dt>In use</dt>
+  <dd>Garage: the verb and the number come first, so a step reads at arm's length in one look. Laptop: the explanation of a margin is one sentence, once. Print: reads the same. The flag tells the reader what to ask and why, without saying the answer.</dd>
+  <dd>The risk is terseness that drops the reason. The guide below requires a "why" on every flag and checklist item, and on any step whose reason is not obvious.</dd>
+  <dt>Cost</dt>
+  <dd>Close to what Kerf already says: the audit below proposes 15 changes to the M4 screens, most of them small. The structural working (assumptions, formulas, steps) keeps the exact, impersonal register it has now, because it is a record of a calculation, not an instruction.</dd>
+</dl>
+</div>
+</article>
+  
+<article class="direction-full stack-lg" id="v2">
+  <header><p><span class="letter">V2</span> · Report voice</p><h3>Impersonal and exact, like an engineering memo</h3><p class="small muted">Tone: formal, serious, respectful, matter-of-fact.</p></header>
+  <div class="sheet pal-C1-light">
+<div class="samples"><figure class="sample"><figcaption>Method <span class="wc">37 words</span></figcaption><div class="card"><p class="t">Back leg (uphill), qty 2</p><p>Stock: 4x4. End cuts: top and foot, level, saw setting 20.0° (70.0° to the edge), parallel. Edge length, top cut to foot cut: 130-1/4". Overall length, long point to long point: 131-1/2".</p></div></figure><figure class="sample"><figcaption>Expert check <span class="wc">27 words</span></figcaption><div class="card"><p class="flag"><b>Expert review</b> Burial depth (24") and ground-contact rating of the leg lumber.</p><p class="why">Basis: burial resists uplift and lateral displacement; decay rates are highest at the ground line.</p></div></figure><figure class="sample"><figcaption>Error <span class="wc">11 words</span></figcaption><div class="card"><p class="err">Invalid input: beam height out of range (60 to 144 in).</p></div></figure><figure class="sample"><figcaption>Margin <span class="wc">14 words</span></figcaption><div class="card"><p><b>Bending</b> (top beam, 4x6)</p><p class="m">Fb′ / f<sub>b</sub> = margin 1.1x</p><p class="small-t">Subject to the listed assumptions.</p></div></figure></div></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>Engineering reports and drawing notes: labeled fields, nouns, the passive voice, nothing addressed to the reader. Kerf's structural working already reads this way ("Supported at the two frame centerlines...").</dd>
+  <dt>Principles</dt>
+  <dd>Exact and compact on a laptop, and it never sounds like advice. But plain-language guidance warns that the passive voice "obscures who handles what", and runs of nouns ("ground-contact rating of the leg lumber") take longer to read than the verb they hide.</dd>
+  <dt>In use</dt>
+  <dd>Garage: the reader has to turn labels into an action ("End cuts: top and foot, level...") with a saw in hand. Errors read as blame ("Invalid input"), which NN/g advises against, and a raw range in decimal inches does not match the plan. "Expert review" and "required" lean toward a verdict on the design.</dd>
+  <dt>Cost</dt>
+  <dd>None for the working, which keeps it in any case. Everything a person acts on would need a translation step in their head.</dd>
+</dl>
+</div>
+</article>
+  
+<article class="direction-full stack-lg" id="v3">
+  <header><p><span class="letter">V3</span> · Mentor voice</p><h3>Warm and encouraging, like a friend in the shop</h3><p class="small muted">Tone: casual, light, respectful, enthusiastic.</p></header>
+  <div class="sheet pal-C1-light">
+<div class="samples"><figure class="sample"><figcaption>Method <span class="wc">45 words</span></figcaption><div class="card"><p class="t">Let's cut the two back legs!</p><p>Set your miter saw to 20.0° and trim the top end. Then measure 130-1/4" down each edge, mark it, and cut the foot the same way. Nice work: both ends will sit perfectly level once the legs are up.</p></div></figure><figure class="sample"><figcaption>Expert check <span class="wc">36 words</span></figcaption><div class="card"><p class="flag"><b>Heads up!</b> Before you dig, it's a good idea to check with someone experienced that 24" is deep enough where you live.</p><p class="why">Wood rots fastest right at the ground, so ground-contact lumber is your friend here.</p></div></figure><figure class="sample"><figcaption>Error <span class="wc">21 words</span></figcaption><div class="card"><p class="err">Whoa, 15' 0" is a tall one! This template tops out at 12' 0", so try something from 5' 0" up.</p></div></figure><figure class="sample"><figcaption>Margin <span class="wc">19 words</span></figcaption><div class="card"><p><b>Bending</b>: margin 1.1x under these assumptions.</p><p class="small-t">That's a little headroom, so it's worth a second look with a builder.</p></div></figure></div></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>Friendly consumer apps and maker blogs: contractions, exclamation marks, encouragement, a sense of someone beside you.</dd>
+  <dt>Principles</dt>
+  <dd>NN/g found a casual, enthusiastic tone changes how friendly a product feels. Their error guidelines also warn that humor wears thin when the same message appears again and again.</dd>
+  <dt>In use</dt>
+  <dd>Reassurance slides into verdicts, which hard rule 2 forbids: "perfectly level", "a little headroom", "your friend here" all judge the design. Encouragement is longer to read at arm's length and adds nothing a second time. The flag no longer names the person to ask in the same words as the checklist. One owner, building one swing set, does not need cheering on; they need the number.</dd>
+  <dt>Cost</dt>
+  <dd>Every string would be rewritten, and each needs checking against hard rule 2 by hand.</dd>
+</dl>
+</div>
+</article>
+</section>
+
+<!-- ============================== RENAME ============================== -->
+<section id="rename" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">One word</p>
+    <h2>"Sanity checks"</h2>
+    <p class="prose">PRODUCT.md, AGENTS.md, DOMAIN.md, decision 0001, and the structural review call Kerf's checks "sanity checks". The phrase says the checks are rough, which is the right warning, but it is vague about what is checked, and Google's developer style guide drops it ("Don't use", suggesting "quick check" or "confidence check"). The structural review section already says "not an engineered design", which carries the warning in plain words.</p>
+  </div>
+  <div class="opts">
+    <div class="opt rec"><div class="head"><b>Structural checks</b><span class="rec-tag">Suggested</span></div><p>Says what is checked, matches the "Structural review" section and "structural inputs", and leaves the warning to the sentence that already gives it. Changed in the app (in #45), and in PRODUCT.md, AGENTS.md, DOMAIN.md, ARCHITECTURE.md, and MILESTONES.md when this stage is recorded. Decision 0001 keeps its wording, since decision records are history. Code comments follow as they are touched.</p></div>
+    <div class="opt"><div class="head"><b>Keep "sanity checks"</b></div><p>Familiar to engineers, and the word itself warns that the checks are rough. No change to the docs.</p></div>
+  </div>
+</section>
+
+<!-- ============================== GUIDE ============================== -->
+<section id="guide" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">If V1 is chosen</p>
+    <h2>The content guide</h2>
+    <p class="prose">One pattern for each kind of text. On a decision this moves to <code>docs/design/content.md</code>, where M6's method and flag text is written against it.</p>
+  </div>
+  <div class="guide">
+    <div class="rule"><b>Voice</b><p>Write to the reader as "you", in the active voice, with the verb first in instructions. Kerf is "Kerf" when it says what it did ("Kerf could not reach the server"), never "we" or "I". Write "cannot", not "can't". Sentence case everywhere, including buttons and headings.</p></div>
+    <div class="rule"><b>Two registers</b><p>Everything a person acts on (steps, methods, flags, checklist items, errors, buttons) is in the shop voice. The structural working (assumptions, formulas, intermediate steps, factor reasons) keeps the exact, impersonal register it has now, because it is a record of a calculation.</p></div>
+    <div class="rule"><b>Method steps</b><p>One action per step: the verb, then the number, then the reference ("from the top cut", "on the outside face"). A reason, if the step needs one, follows in its own sentence.</p><p class="ex">Set the miter saw to 20.0°.</p></div>
+    <div class="rule"><b>Common mistakes</b><p>The mistake as it happens, then how to avoid it, in two sentences.</p><p class="ex">Marking the overall length, 131-1/2", along an edge leaves the leg too long. Mark 130-1/4" along each edge from the top cut.</p></div>
+    <div class="rule"><b>Expert checks</b><p>The label "Expert check", then what to ask an experienced builder, as "Ask whether..." or "Confirm...", naming the numbers involved. Then "Why:" and one sentence on what the element does. Never the answer, never "make sure it is fine".</p></div>
+    <div class="rule"><b>Checklist items</b><p>The element, then what to confirm, then why: the same three parts core already produces.</p></div>
+    <div class="rule"><b>Margins</b><p>"margin 1.1x under these assumptions", with no adjective, no color (#43, rule 1), and no comparison word such as "only" or "plenty". The page says once what a margin is.</p></div>
+    <div class="rule"><b>Input needed</b><p>"Input needed", then the input's name, then what it decides.</p><p class="ex">Input needed: deflection limit. It decides the deflection check.</p></div>
+    <div class="rule"><b>Errors</b><p>Say what to enter, not what went wrong; name the field; give the limit in the plan's own format (#67). Empty required field: "Enter..." Out of range: "Beam height must be from 5' 0" to 12' 0"." Not readable: the format, with an example. Never "invalid", "error", or "oops", and no blame (NN/g).</p></div>
+    <div class="rule"><b>Connection and server problems</b><p>What happened, from Kerf's side, and what to do next. Say what is kept.</p><p class="ex">Not saved. Kerf could not reach the server. Your changes are still here.</p></div>
+    <div class="rule"><b>Empty screens</b><p>What is missing, then how to start.</p><p class="ex">No projects yet. Start one with a New button above.</p></div>
+    <div class="rule"><b>Buttons and links</b><p>A verb and the thing it acts on, the same words for the same action everywhere: "Save changes", "Delete project", "Start building". A destructive button names what it destroys.</p></div>
+    <div class="rule"><b>Status</b><p>Short, present or past tense, saying what happened: "Saving…", "Saved.", "Loading project…". The ellipsis is one character.</p></div>
+    <div class="rule"><b>Headings</b><p>Nouns for what the section holds: "Cut list", "Structural review", "Dimensions and hardware".</p></div>
+  </div>
+
+  <div class="place">
+    <h3>Word list</h3>
+  </div>
+  <div class="wl">
+    <div class="opt"><b>Use</b><p>DOMAIN.md's terms, the same way every time: part, stock, board, offcut, end cut, saw at (setting), angle to the edge, long point, grip, method, tool type, build step, plan, template, regenerate, margin, Expert check, Input needed, structural check (if chosen).</p></div>
+    <div class="opt"><b>Never: safe, unsafe, pass, fail</b><p>Or "OK", "good", "fine", "strong enough", "adequate", "plenty", "only" about a structural result. Hard rule 2: margins, not verdicts.</p></div>
+    <div class="opt"><b>Never: approved, certified, code-compliant, engineered, guaranteed</b><p>Kerf is not an engineer and does not check codes. "Not an engineered design" is the one use of "engineered".</p></div>
+    <div class="opt"><b>Never: warning, danger, caution as labels</b><p>They are the signal words of ANSI Z535 hazard signs (#43). A flag is a question for an experienced builder, labeled "Expert check".</p></div>
+    <div class="opt"><b>Never: default, suggested value</b><p>For a structural input (hard rule 3). Nothing is filled in.</p></div>
+    <div class="opt"><b>Never: invalid, error, oops</b><p>In messages to the reader. Say what to enter (NN/g, GOV.UK).</p></div>
+    <div class="opt"><b>Never: simply, just, easy, obviously, please</b><p>Filler, and what is easy for one person is not for another (Google developer style guide). Instructions are instructions; "please" adds nothing.</p></div>
+    <div class="opt"><b>Never: sanity check</b><p>If structural checks is chosen (Google developer style guide).</p></div>
+    <div class="opt"><b>Never: brand or product names</b><p>Hard rule 11.</p></div>
+    <div class="opt"><b>"About" only where core says so</b><p>Approximation words appear only where core marks a value as approximate, such as the offcut after saw cuts.</p></div>
+  </div>
+</section>
+
+<!-- ============================== AUDIT ============================== -->
+<section id="audit" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">The M4 screens</p>
+    <h2>Audit against the guide</h2>
+    <p class="prose">Every string on the login, projects, editor, plan, version notice, delete, cut list, shopping list, structural review, and tools screens, plus the text core generates for the worked example, was read against V1's guide. These are the ones that would change. The rest already follow it: the plan's section names, the version notice, the cut-list intro, login messages, and core's flags, checklist, and notes (apart from the hardware note below). Changes to the screens are made in #45; changes to core's text alter template output, so they wait for the next template version bump (0008).</p>
+  </div>
+  
+<div class="scroll"><table class="std audit">
+<thead><tr><th>Where</th><th>Now</th><th>Proposed</th><th>Why</th></tr></thead>
+<tbody><tr><td>Structural review, heading</td><td>Sanity checks</td><td>Structural checks</td><td>Word list: "sanity check" is vague, and Google's style guide drops it. Matches the section it sits in.</td></tr><tr><td>Structural review, intro</td><td>Sanity checks, not an engineered design. A margin is the allowable value divided by the computed one, under the assumptions listed with it. Judge each one with an experienced builder.</td><td>Structural checks, not an engineered design. A margin is the allowable value divided by the computed one, under the assumptions listed with it. Judge each one with an experienced builder.</td><td>The rename only.</td></tr><tr><td>Structural review, flags</td><td>Ask an experienced builder</td><td>Expert check</td><td>#43 rule 3 fixed the flag label as "Expert check"; one name for one thing.</td></tr><tr><td>Editor, structural inputs help</td><td>These decide the sanity checks. Leave any you have not settled empty; the checks that need them will say "input needed". Nothing here is filled in for you.</td><td>These decide the structural checks. Leave any you have not settled empty; the checks that need them will say "Input needed". Nothing here is filled in for you.</td><td>The rename, and "Input needed" written as it appears on screen.</td></tr><tr><td>Editor, empty name</td><td>Give the project a name.</td><td>Enter a project name.</td><td>Error pattern: "Enter" plus the field, as for every empty required field.</td></tr><tr><td>Editor, failed save</td><td>Fix the marked fields, then save again.</td><td>An error summary: "2 fields need fixing before this can be saved", then one link per field.</td><td>#67, timing: the summary names each problem and takes focus.</td></tr><tr><td>Editor, section heading</td><td>Design</td><td>Dimensions and hardware</td><td>Says what the section holds; "Design" is also the name of the whole milestone and of the plan's output.</td></tr><tr><td>Projects, empty</td><td>No projects yet.</td><td>No projects yet. Start one with a New button above.</td><td>Empty state pattern: what is missing, then how to start.</td></tr><tr><td>Tools, intro</td><td>Build steps will check these against the knowledge base once it exists.</td><td>Build steps will use these to choose a method for each cut and joint.</td><td>"Knowledge base" is the code's name for it, not the reader's; say what the tools are for. Describe what exists when M6 lands.</td></tr><tr><td>Tools, empty</td><td>No tools yet.</td><td>No tools yet. Add the tool types you own.</td><td>Empty state pattern.</td></tr><tr><td>Delete, explanation</td><td>The project, its plan, and its history are removed permanently. This cannot be undone.</td><td>This deletes the project, its plan, and its history. It cannot be undone.</td><td>Active voice: say what the button does.</td></tr><tr><td>Delete, button</td><td>Delete permanently</td><td>Delete project</td><td>Button pattern: verb plus the thing, the same words as the heading. The explanation already says it is permanent.</td></tr><tr><td>Connection error</td><td>Could not reach the server.</td><td>Kerf could not reach the server. Check your connection, then try again.</td><td>Error pattern: what happened, then what to do (NN/g).</td></tr><tr><td>Cut list, Qty column</td><td>Qty</td><td>Qty (kept), with the full word for screen readers</td><td>Narrow phone column; the abbreviation stays on screen, and the header carries "Quantity" for assistive technology.</td></tr><tr><td>Hardware notes (core)</td><td>1/2" through-bolt, at least 8-15/16" plus two washers and a locking nut long, ending no more than 1/2" past the nut.</td><td>1/2" through-bolt. Length: at least 8-15/16" plus two washers and a locking nut, and no more than 1/2" past the nut.</td><td>The length was split around its subject. Core text: changes with the next template version bump (0008), with #49 or #50.</td></tr></tbody>
+</table></div>
+</section>
+
+<!-- ============================== REFERENCES ============================== -->
+<section id="references" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Precedents and guidance</p>
+    <h2>Sources</h2>
+    <p class="prose">Checked in October 2026.</p>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Plain language</b><p>Active voice makes clear who does what; address the reader directly; short words and short sections.</p><p class="small"><a href="https://digital.gov/guides/plain-language/writing">digital.gov: Writing for understanding</a> (formerly plainlanguage.gov)</p></div>
+    <div class="opt"><b>Error messages</b><p>GOV.UK: say what happened and how to fix it, with a different message for each problem. NN/g: precise, constructive, no blame, no humor, no jargon or codes.</p><p class="small"><a href="https://design-system.service.gov.uk/components/error-message/">GOV.UK: Error message</a> · <a href="https://www.nngroup.com/articles/error-message-guidelines/">NN/g: Error-message guidelines</a></p></div>
+    <div class="opt"><b>Tone</b><p>NN/g's four dimensions: formal or casual, serious or funny, respectful or irreverent, matter-of-fact or enthusiastic. Changing only the tone changed how friendly and formal people rated a site.</p><p class="small"><a href="https://www.nngroup.com/articles/tone-of-voice-dimensions/">NN/g: The four dimensions of tone of voice</a></p></div>
+    <div class="opt"><b>Word list</b><p>Google's developer documentation style guide: avoid "just", "easy", "please" in instructions, and do not use "sanity check".</p><p class="small"><a href="https://developers.google.com/style/word-list">Google developer documentation style guide: word list</a></p></div>
+    <div class="opt"><b>Writing to a builder</b><p>The CPSC home playground handbook gives parents short imperative checks, verb first, with how often.</p><p class="small"><a href="https://www.cpsc.gov/s3fs-public/324.pdf">CPSC Outdoor Home Playground Safety Handbook</a>, p. 5</p></div>
+    <div class="opt"><b>Hazard signal words</b><p>DANGER, WARNING, and CAUTION are the ANSI Z535 signal words for hazards; #43 kept them out of flags.</p><p class="small"><code>docs/design/README.md</code>, Stage 4</p></div>
+  </div>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Numbers come from <code>packages/core/src/templates/swing-set-a-frame/snapshots/v2.json</code> (the first example) and core's formatters. Kept at <code>docs/design/words.html</code>; choices are recorded in <code>docs/design/README.md</code>.</p>
+</footer>
+
+</main>
+
+<script>
+  const sheets = () => document.querySelectorAll('.sheet');
+  const setTheme = (dark) => {
+    for (const s of sheets()) {
+      s.classList.toggle('pal-C1-dark', dark);
+      s.classList.toggle('pal-C1-light', !dark);
+    }
+  };
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.getElementById(prefersDark ? 'theme-dark' : 'theme-light').checked = true;
+  setTheme(prefersDark);
+  for (const r of document.querySelectorAll('input[name="theme"]')) r.addEventListener('change', () => setTheme(r.value === 'dark' && r.checked));
+</script>
