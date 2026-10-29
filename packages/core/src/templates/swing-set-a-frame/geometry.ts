@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { stock } from '../../lumber/stock.ts';
+import { fullValueEndDistance } from '../../structural/boltDistances.ts';
 import type { SwingSetParams } from './params.ts';
 
 // Geometry for template version 1. Every formula here is written out, with a hand-checked worked
@@ -29,6 +30,9 @@ export interface Dimensions {
   /** Gusset height below the beam, and thickness. */
   gh: number;
   gt: number;
+  /** Bolt diameters at the crossbar and gusset joints. */
+  cD: number;
+  gD: number;
   e: number;
   /** Ground slope as rise per run toward the back: g / 12. */
   k: number;
@@ -54,6 +58,8 @@ export function dimensions(p: SwingSetParams): Dimensions {
     zc: p.crossbarHeight,
     gh: gusset.width,
     gt: gusset.thickness,
+    cD: p.hardware.crossbarBolts.diameter,
+    gD: p.hardware.gussetBolts.diameter,
     e: p.frameInset,
     k: p.groundSlope / 12,
     d: p.burialDepth,
@@ -95,8 +101,21 @@ export const FrameGeometry = z.object({
   back: LegGeometry,
   front: LegGeometry,
   footprintDepth: z.number(),
-  crossbar: z.object({ topEdge: z.number(), bottomEdge: z.number() }),
-  gusset: z.object({ topWidth: z.number(), bottomWidth: z.number(), height: z.number() }),
+  /**
+   * `pastLeg`: how far each end runs past the legs' outer faces, along the board (spec, Bolt
+   * layout; template version 6). Optional so plans made before it read as they are.
+   */
+  crossbar: z.object({
+    topEdge: z.number(),
+    bottomEdge: z.number(),
+    pastLeg: z.number().optional(),
+  }),
+  gusset: z.object({
+    topWidth: z.number(),
+    bottomWidth: z.number(),
+    height: z.number(),
+    pastLeg: z.number().optional(),
+  }),
   /** Frame centerlines along the beam: the supports for the structural checks. */
   supportsX: z.tuple([z.number(), z.number()]),
 });
@@ -106,6 +125,17 @@ export type FrameGeometry = z.infer<typeof FrameGeometry>;
 function outerFaceY(dims: Dimensions, splay: number, z: number): number {
   const a = splay * RAD;
   return dims.bw / 2 + (dims.H - z) * Math.tan(a) + dims.w / Math.cos(a);
+}
+
+/**
+ * How far a board's end runs past the leg's outer face, along the board (spec, Bolt layout). The
+ * bolts sit on the leg's centerline, w / (2·cos α) along the board from the outer face; the end
+ * goes far enough past it for the full-value end distance whichever way the bolt bears (NDS 2024
+ * Table 12.5.1A, softwood: 7D). Never less than flush.
+ */
+export function pastLeg(dims: Dimensions, splay: number, diameter: number): number {
+  const a = splay * RAD;
+  return Math.max(0, fullValueEndDistance(diameter, 'softwood') - dims.w / (2 * Math.cos(a)));
 }
 
 /** One leg, given the ground slope seen from its side: k for the back leg, −k for the front. */
@@ -152,6 +182,8 @@ export function frameGeometry(dims: Dimensions, splay: number): FrameGeometry {
   const back = leg(dims, splay, dims.k);
   const front = leg(dims, splay, -dims.k);
   const depthAtTop = dims.bd * sin;
+  const crossbarPast = pastLeg(dims, splay, dims.cD);
+  const gussetPast = pastLeg(dims, splay, dims.gD);
   return {
     splay,
     flushCut: {
@@ -165,13 +197,15 @@ export function frameGeometry(dims: Dimensions, splay: number): FrameGeometry {
     front,
     footprintDepth: back.outerAtGrade + front.outerAtGrade,
     crossbar: {
-      topEdge: 2 * outerFaceY(dims, splay, dims.zc),
-      bottomEdge: 2 * outerFaceY(dims, splay, dims.zc - dims.cw),
+      topEdge: 2 * (outerFaceY(dims, splay, dims.zc) + crossbarPast),
+      bottomEdge: 2 * (outerFaceY(dims, splay, dims.zc - dims.cw) + crossbarPast),
+      pastLeg: crossbarPast,
     },
     gusset: {
-      topWidth: 2 * outerFaceY(dims, splay, dims.H),
-      bottomWidth: 2 * outerFaceY(dims, splay, dims.H - dims.gh),
+      topWidth: 2 * (outerFaceY(dims, splay, dims.H) + gussetPast),
+      bottomWidth: 2 * (outerFaceY(dims, splay, dims.H - dims.gh) + gussetPast),
       height: dims.gh,
+      pastLeg: gussetPast,
     },
     supportsX: [dims.e + dims.t / 2, dims.L - dims.e - dims.t / 2],
   };

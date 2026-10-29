@@ -1,3 +1,4 @@
+import type { BoltJoint } from '../structural/boltDistances.ts';
 import type { CheckResult } from '../structural/types.ts';
 import type { ChecklistItem, Flag } from '../templates/types.ts';
 import type { CutListRow } from './cutList.ts';
@@ -20,4 +21,6 @@ export interface Plan {
   /** Sanity checks, in the order to show them. */
   checks: CheckResult[];
   checklist: ChecklistItem[];
+  /** Each bolted joint's distances against NDS 2024 (#93). Empty for plans made before it. */
+  boltLayout: BoltJoint[];
 }

@@ -1,10 +1,19 @@
 import { z } from 'zod';
 import { stock } from '../../lumber/stock.ts';
+import { BoltJoint } from '../../structural/boltDistances.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
 import { withLetters } from '../letters.ts';
 import { Flag, type GenerateResult, HardwareItem, type Issue, Part, Placement } from '../types.ts';
-import { features, flushCutNote } from './features.ts';
+import {
+  type BoardBolts,
+  boardBolts,
+  boltFlags,
+  boltJoints,
+  features,
+  flushCutNote,
+  projectionFlags,
+} from './features.ts';
 import {
   type Dimensions,
   dimensions,
@@ -26,9 +35,11 @@ import { flags, validate, validateSwings } from './validate.ts';
  * number changes. Version 3 adds a 3D placement for every part instance (#49); no other output
  * changes. Version 4 adds holes, bolt areas, the flush cut, and each end cut's reference edge as
  * part data, and rewords the flush-cut note as two marks a builder can measure (#50). Version 5
- * letters the parts in cut-list order (#66); no number changes.
+ * letters the parts in cut-list order (#66); no number changes. Version 6 runs the crossbar and
+ * gusset ends past the legs, places their bolts as holes, and reports each bolted joint's
+ * distances against NDS 2024 (#93, decision 0016).
  */
-export const TEMPLATE_VERSION = 5;
+export const TEMPLATE_VERSION = 6;
 export const TEMPLATE_ID = 'swing-set-a-frame';
 
 export const SwingSetOutput = z.object({
@@ -43,6 +54,8 @@ export const SwingSetOutput = z.object({
   /** Notes to show with the hardware shopping list. */
   hardwareNotes: z.array(z.string()).readonly(),
   flags: z.array(Flag),
+  /** Each bolted joint's distances against NDS 2024 (#93). Plans made before version 6 have none. */
+  boltLayout: z.array(BoltJoint).optional(),
 });
 export type SwingSetOutput = z.infer<typeof SwingSetOutput>;
 
@@ -72,11 +85,17 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
     description: `${where}: level cut`,
     measuredFrom: 'reference-edge' as const,
   });
-  const flushWithLeg = {
+  // Crossbar and gusset ends run past the leg, parallel to it, for the bolts' end distance (spec,
+  // Bolt layout). Flush only when the leg alone is wide enough.
+  const boardEnd = (past: number) => ({
     setting: g.splay,
-    description: 'Flush with the leg',
+    description:
+      past > 0 ? `${formatLength(past)} past the leg, parallel to it` : 'Flush with the leg',
     measuredFrom: 'reference-edge' as const,
-  };
+  });
+  const bolts = boardBolts(p, dims, g);
+  const drilling = (b: BoardBolts) =>
+    `Bolt holes, ${b.vs.length} at each end: on a line parallel to the end cut, ${formatLength(b.toBoltLine)} from it, ${b.vs.map((v) => formatLength(v)).join(' and ')} up from the bottom edge. Clamp it in place and drill through it and the leg together.`;
   const square = { setting: 0, description: 'Square', measuredFrom: 'reference-edge' as const };
   const flushCut = f.leg.tapers[0];
   const leg = (side: 'back' | 'front'): Omit<Part, 'letter'> => {
@@ -131,9 +150,9 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
         { label: 'Top edge', value: g.crossbar.topEdge },
         { label: 'Bottom edge', value: g.crossbar.bottomEdge },
       ],
-      ends: [flushWithLeg, flushWithLeg],
+      ends: [boardEnd(bolts.crossbar.pastLeg), boardEnd(bolts.crossbar.pastLeg)],
       endsParallel: false,
-      notes: ['Fastened to the outside face of the legs.'],
+      notes: ['Fastened to the outside face of the legs.', drilling(bolts.crossbar)],
       ...f.crossbar,
     },
     {
@@ -147,9 +166,12 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
         { label: 'Top edge (against the beam)', value: g.gusset.topWidth },
         { label: 'Bottom edge', value: g.gusset.bottomWidth },
       ],
-      ends: [flushWithLeg, flushWithLeg],
+      ends: [boardEnd(bolts.gusset.pastLeg), boardEnd(bolts.gusset.pastLeg)],
       endsParallel: false,
-      notes: ["On the outside face of the frame, top edge against the beam's underside."],
+      notes: [
+        "On the outside face of the frame, top edge against the beam's underside.",
+        drilling(bolts.gusset),
+      ],
       ...f.gusset,
     },
   ];
@@ -201,6 +223,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
   const issues = [...validate(dims, g), ...validateSwings(dims, swings), ...validateHardware(p)];
   if (issues.length > 0) return { ok: false, issues };
 
+  const joints = boltJoints(p, dims, g);
   return {
     ok: true,
     output: {
@@ -212,7 +235,8 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       placements: placements(dims, g),
       hardware: hardware(p, dims, g),
       hardwareNotes: HARDWARE_NOTES,
-      flags: flags(dims, g),
+      flags: [...flags(dims, g), ...boltFlags(joints), ...projectionFlags(boardBolts(p, dims, g))],
+      boltLayout: joints,
     },
   };
 }

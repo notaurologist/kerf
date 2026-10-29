@@ -108,12 +108,13 @@ describe('placements in the worked example (spec, Placements)', () => {
     ['leg-back', 1, 104.5, -0.252, 101.5],
     ['leg-front', 1, 108, 0.252, 101.5],
     // Crossbar and gusset: front end of the bottom edge, on the outside face of each frame.
-    // Crossbar bottom at z = 40 − 5.5 = 34.5, half its bottom edge 55.718 / 2 = 27.859.
-    ['crossbar', 0, 10.5, -27.859, 34.5],
-    ['crossbar', 1, 108, -27.859, 34.5],
-    // Gusset bottom at z = 96 − 7.25 = 88.75, half its bottom width 16.227 / 2 = 8.113.
-    ['gusset', 0, 10.5, -8.113, 88.75],
-    ['gusset', 1, 108, -8.113, 88.75],
+    // Crossbar bottom at z = 40 − 5.5 = 34.5, half its bottom edge 58.993 / 2 = 29.496 (the
+    // leg's outer face at 27.859, plus 1.638 past it; spec, Bolt layout).
+    ['crossbar', 0, 10.5, -29.496, 34.5],
+    ['crossbar', 1, 108, -29.496, 34.5],
+    // Gusset bottom at z = 96 − 7.25 = 88.75, half its bottom width 19.502 / 2 = 9.751.
+    ['gusset', 0, 10.5, -9.751, 88.75],
+    ['gusset', 1, 108, -9.751, 88.75],
   ] as const)('%s %i starts at (%s, %s, %s)', (id, instance, x, y, z) => {
     const { origin } = find(id, instance);
     expect(origin.x).toBeCloseTo(x, 3);
@@ -222,7 +223,9 @@ describe.each(Object.entries(designs))('placements fit together: %s', (_, params
     const width = board.stock.width;
     const s = tan(g.splay);
 
-    it("ends flush with the legs' outer faces, at its bottom and top edges", () => {
+    it("ends the same distance past the legs' outer faces, at its bottom and top edges", () => {
+      const past = g[id].pastLeg ?? 0;
+      const beyond = { 'leg-front': -past, 'leg-back': past };
       for (const pl of of(id)) {
         const corners = [
           [at(pl, 0, 0), 'leg-front'],
@@ -231,7 +234,7 @@ describe.each(Object.entries(designs))('placements fit together: %s', (_, params
           [at(pl, board.length - width * s, width), 'leg-back'],
         ] as const;
         for (const [corner, side] of corners) {
-          expect(corner.y).toBeCloseTo(outerFaceY(pl.instance, side, corner.z), 9);
+          expect(corner.y).toBeCloseTo(outerFaceY(pl.instance, side, corner.z) + beyond[side], 9);
         }
       }
     });

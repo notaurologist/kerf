@@ -60,12 +60,14 @@ export const swingSetAFrame: TemplateDefinition<
   // bolt areas, tapers, reference edges, and each end cut's reference (#50). Those fields are
   // optional, so plans stored before them read as they are and keep their numbers. Shape 5 adds
   // part letters (#66), derived from the stored order of the parts, which is the cut-list order.
-  snapshotVersion: 5,
+  // Shape 6 adds the bolt layout and each board's distance past the legs (#93); both optional.
+  snapshotVersion: 6,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
     3: (snapshot) => snapshot,
     4: addPartLetters,
+    5: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   plan(outputs) {
@@ -78,6 +80,7 @@ export const swingSetAFrame: TemplateDefinition<
       flags: outputs.design.flags,
       checks: [review.beam.bending, review.beam.shear, review.beam.deflection, review.hanger],
       checklist: review.checklist,
+      boltLayout: outputs.design.boltLayout ?? [],
     };
   },
   generate(params, structuralInputs) {

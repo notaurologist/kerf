@@ -11,7 +11,7 @@ Matches the owner's earlier build (photos reviewed October 2026).
 - A top beam held by two A-frames, one near each end. The beam overhangs the frames. It is one solid member, or two or three 2x plies fastened face to face (decision 0012); the owner's earlier build used two 2x6s.
 - **Legs cut flush to the beam.** The two legs of each A-frame rise alongside the beam, one against its front face and one against its back face. The inside of each leg's top is cut with a vertical face so it sits flush against the beam, and each leg's top is cut off level with the top of the beam. One bolt passes through the front leg, the beam, and the back leg.
 - **A board under the beam** (a gusset) is fastened across both legs on the outside face of the frame, with its level top edge against the beam's underside. The beam rests on it and is also held by the bolt.
-- **One crossbar per A-frame**, horizontal, fastened to the outside face of the legs (the face away from the swings). Its ends are cut at the splay angle, flush with the legs' outer faces.
+- **One crossbar per A-frame**, horizontal, fastened to the outside face of the legs (the face away from the swings). Its ends are cut at the splay angle, parallel to the legs' outer faces: flush with them before version 6, past them from version 6.
 - **Ground that slopes front to back.** The ground is level along the beam, so the beam is the same height above the ground everywhere. The front legs are downhill. The beam stays level and each A-frame stays plumb, so the front legs are longer.
 - **Feet either buried or on pads.** A burial depth of 0 means each foot sits on a level pad or footing with ground anchors. A depth greater than 0 means each leg continues that far below grade. Either way, each foot gets a level cut.
 
@@ -20,6 +20,10 @@ Template version 2 (#36) changes no geometry or number: it adds sources to the s
 Template version 4 (#50) adds holes, bolt areas, the flush cut, and each end cut's reference edge as part data (Holes and joints, below), and rewrites the flush-cut note as two marks a builder can measure. The earlier note measured the start along the wrong line (Top of the leg). No dimension changes.
 
 Template version 3 (#49) adds a 3D placement for every part instance (Placements, below) for the isometric and exploded views. It changes no other output; projects made with version 2 show the version notice listing the placements as new.
+
+Template version 5 (#66) letters the parts in cut-list order. No dimension changes.
+
+Template version 6 (#93, decision 0016) runs the crossbar and gusset ends past the legs, far enough for 7D of end distance at every bolt, and places those bolts as holes in the boards and legs (Bolt layout, below). The crossbar and gusset get longer; the cut list, shopping list, placements, and expert checks change with them. Each bolted joint's distances are reported against NDS 2024.
 
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
@@ -113,16 +117,31 @@ The flush cut is a taper along the leg, not a crosscut, so it has no miter setti
 
 ### Crossbar
 
-Horizontal, on the outside face of the legs, ends flush with the legs' outer faces.
+Horizontal, on the outside face of the legs. Each end runs p_c past the leg's outer face, parallel to it (template version 6; Bolt layout below). Before version 6 the ends were flush (p_c = 0).
 
-- Top edge: 2·y_out(zc). Bottom edge (overall, stock needed): 2·y_out(zc − cw).
+- Top edge: 2·(y_out(zc) + p_c). Bottom edge (overall, stock needed): 2·(y_out(zc − cw) + p_c).
 
 ### Gusset
 
-A trapezoid with its top edge against the beam's underside (z = H) and its sides flush with the legs' outer faces.
+A trapezoid with its top edge against the beam's underside (z = H) and its sides p_g past the legs' outer faces, parallel to them (template version 6).
 
-- Top width: 2·y_out(H). Bottom width: 2·y_out(H − gh). Height: gh.
+- Top width: 2·(y_out(H) + p_g). Bottom width: 2·(y_out(H − gh) + p_g). Height: gh.
 - One per frame, on the outside face.
+
+### Bolt layout
+
+Where the crossbar and gusset bolts go, and their distances against NDS 2024 (template version 6; #93, decision 0016). D is the bolt diameter at that joint and n the bolts per joint, both entered.
+
+- **Bolt line:** the leg's centerline. Along a board it is w / (2·cos α) from the leg's outer face.
+- **Past the leg:** p = max(0, 7D − w / (2·cos α)), so every bolt is 7D from the board's end along its grain, the full-value end distance whichever way the bolt bears (NDS 2024 Table 12.5.1A, softwood). The end cut stays parallel to the leg.
+- **Across the board:** bolt i (from 0) at v = (i + 1/2)·width / n from the bottom edge: one in the middle of each equal strip.
+- **In the board:** u = v·tan α + p + w / (2·cos α) from the first end; mirrored from the second.
+- **In the leg:** v = w/2, u = (H + bd + (w/2)·sin α − z) / cos α, where z is the bolt's height (the board's bottom plus its v).
+- **Distances reported** for each joint, each against the NDS 2024 rows that could apply (Tables 12.5.1A to 12.5.1D and 12.5.1.3), with the table and page: the board's end distance (along the grain on the bolt's line), edge distance, spacing between rows, and the spread of the outermost bolts across the grain; the leg's edge distance and the spacing between its bolts along the grain. For the leg-to-beam bolt, the beam's end and edge distances; in the leg that bolt runs through the leg's width at an angle, which the tables do not describe.
+- **Loads assumed** for choosing rows: along each board's grain, across the leg's grain, and across the beam's grain. Load direction can reverse, so end distances list both directions and the leg's edge distance lists both a loaded and an unloaded edge. Softwood lumber.
+- **Expert check:** one per joint with a distance under a row's value, naming the distance and the rows.
+
+Worked example (1/2" bolts, two per joint): p = 1.638; crossbar bolts 1.375 and 4.125 up, 2.75 apart, 3.5 (7.0D) from each end; gusset bolts 1.8125 and 5.4375 up, 3.625 apart; the leg's edge distance is 1.75 (3.5D) to each edge, under the 4D (2") NDS gives for an edge the load pushes toward, so both joints carry an expert check. The bolts in the leg are 2.75 / 0.93969 = 2.926 apart along it. The leg-to-beam bolt is 13.75 from the beam's end and 2.75 from each edge.
 
 ### Positions along the beam
 
@@ -152,8 +171,8 @@ The part's outline follows from its own data: the first end cut runs u = v·tan(
 | Beam, ply i (from 0) | Left end, bottom edge | (0, bw/2 − i·bw/n, H) | +x, +z, −y |
 | Back leg | Top, inner edge | (x_f, bw/2 − bd·tan α, H + bd) | (0, sin α, −cos α), (0, cos α, sin α), +x |
 | Front leg | Top, inner edge | (x_f + t, −(bw/2 − bd·tan α), H + bd) | (0, −sin α, −cos α), (0, −cos α, sin α), −x |
-| Crossbar | Front end, bottom edge | (x_o, −y_out(zc − cw), zc − cw) | +y, +z, +x |
-| Gusset | Front end, bottom edge | (x_o, −y_out(H − gh), H − gh) | +y, +z, +x |
+| Crossbar | Front end, bottom edge | (x_o, −(y_out(zc − cw) + p_c), zc − cw) | +y, +z, +x |
+| Gusset | Front end, bottom edge | (x_o, −(y_out(H − gh) + p_g), H − gh) | +y, +z, +x |
 
 - **Instances:** instance 0 is the left frame and instance 1 the right.
 - **Legs:** x_f = e for the left frame and L − e − t for the right. The front leg's thickness runs toward −x so its frame stays right-handed.
@@ -233,8 +252,9 @@ Inputs: L = 120, H = 96, α = 20°, beam 4x6 on edge (bw = 3.5, bd = 5.5), legs 
 | Front leg overall length | 138.354 (138-3/8") |
 | Leg length below grade | 24 / 0.93969 = 25.540 |
 | Footprint at grade | 39.226 + 41.680 = 80.906 |
-| Crossbar top edge, bottom edge | 51.714, 55.718 |
-| Gusset top, bottom, height | 10.949, 16.227, 7.25 (one per frame) |
+| Past each leg, crossbar and gusset (p_c = p_g, 1/2" bolts) | 7·0.5 − 3.5 / (2·0.93969) = 3.5 − 1.862 = 1.638 |
+| Crossbar top edge, bottom edge | 51.714 + 2·1.638 = 54.989, 55.718 + 2·1.638 = 58.993 (59") |
+| Gusset top, bottom, height | 14.225, 19.502 (19-1/2"), 7.25 (one per frame) |
 | Cut settings | Leg top, leg foot, crossbar ends, and gusset sides 20.0°; flush cut a taper at 20.0° to the face |
 
 With d = 0 (pads), the same inputs give back legs of 105.970 (106") and front legs of 112.814 (112-13/16"). Tests cover both.
@@ -250,8 +270,8 @@ Origins (x, y, z) for the worked example, with tan α = 0.36397:
 | Beam | (0, 1.75, 96) | |
 | Back leg | (12, 1.75 − 5.5·0.36397 = −0.252, 101.5) | (120 − 12 − 3.5 = 104.5, −0.252, 101.5) |
 | Front leg | (15.5, 0.252, 101.5) | (108, 0.252, 101.5) |
-| Crossbar | (12 − 1.5 = 10.5, −55.718 / 2 = −27.859, 40 − 5.5 = 34.5) | (108, −27.859, 34.5) |
-| Gusset | (10.5, −16.227 / 2 = −8.113, 96 − 7.25 = 88.75) | (108, −8.113, 88.75) |
+| Crossbar | (12 − 1.5 = 10.5, −58.993 / 2 = −29.496, 40 − 5.5 = 34.5) | (108, −29.496, 34.5) |
+| Gusset | (10.5, −19.502 / 2 = −9.751, 96 − 7.25 = 88.75) | (108, −9.751, 88.75) |
 
 The back legs run along (0, 0.34202, −0.93969). Fit tests place the parts this way for this example, its version on pads, the edge of range, and a three-ply beam on level ground, and check:
 - each leg's top cut is level with the top of the beam;
@@ -270,7 +290,9 @@ The back legs run along (0, 0.34202, −0.93969). Fit tests place the parts this
 | Flush cut as written before version 4 | starting 5.168 down the edge ends 1.661 in from it, 0.22" short: the leg would hit the beam |
 | Leg bolt hole | enters the outer edge (2.75 + 3.5·0.34202) / 0.93969 = 4.200 down, at mid-thickness 1.75; 3.7246 − 1.0009 = 2.724 long |
 | Beam holes | u = 13.75 and 106.25, v = 2.75 |
-| Crossbar joint area, front end | (0, 0), (3.725, 0), (5.726, 5.5), (2.002, 5.5) |
+| Crossbar bolt holes (Bolt layout) | v = 1.375 and 4.125; u = v·0.36397 + 3.5 = 4.000 and 5.001 from the front end, 58.993 − v·0.36397 − 3.5 = 54.993 and 53.992 from the back |
+| Leg holes for the crossbar bolts | v = 1.75; u = (101.5 + 1.75·0.34202 − z) / 0.93969 at z = 35.875 and 38.625: 70.474 and 67.547 |
+| Leg holes for the gusset bolts | at z = 90.5625 and 94.1875: 12.276 and 8.419 |
 
 ### Swings and layout
 
@@ -316,8 +338,9 @@ Every range at or near its limit: L = 240, H = 144 (maximum), α = 35° (maximum
 | Front (now uphill) leg: meets ground, foot cut | z_g = 22.226, z_b = −25.774 |
 | Front leg overall length | 216.421 |
 | Footprint at grade | 129.223 + 90.722 = 219.945 |
-| Crossbar top edge, bottom edge | 73.164, 80.866 |
-| Gusset top, bottom | 11.545, 21.698 |
+| Past each leg | 3.5 − 3.5 / (2·cos 35°) = 1.364 |
+| Crossbar top edge, bottom edge | 75.891, 83.593 |
+| Gusset top, bottom | 14.273, 24.426 |
 
 The back legs are longer than a 16 ft board; the shopping list reports that as an issue instead of dropping them.
 
@@ -333,8 +356,8 @@ The same inputs with the beam as two 2x6 plies (bw = 3.0, bd = 5.5). The flush c
 | Back leg overall length | 131.531 |
 | Front leg overall length | 138.331 |
 | Footprint at grade | 38.983 + 41.422 = 80.405 |
-| Crossbar top edge, bottom edge | 51.214, 55.218 |
-| Gusset top, bottom | 10.449, 15.727 |
+| Crossbar top edge, bottom edge | 54.489, 58.493 |
+| Gusset top, bottom | 13.725, 19.002 |
 
 Tests compare template output with these values to within 0.001 inch and 0.01°.
 

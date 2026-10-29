@@ -69,7 +69,7 @@ The checks are generic: they work on members, supports, and loads, and know noth
 
 Generic categories; each template lists the specific items for its design.
 
-- Bolted connections: bolt size, spacing, edge and end distances, washers, load direction relative to grain.
+- Bolted connections: bolt size, spacing, edge and end distances, washers, load direction relative to grain. Kerf places bolts by a stated rule and reports each distance against NDS 2024 Tables 12.5.1A to 12.5.1D (decision 0016); it does not compute a connection's capacity.
 - Racking: whether the structure resists sideways forces.
 - Tipping and anchoring: whether the structure can lift, tip, or walk, and what anchors are needed.
 - Long-term condition: decay, checking, loosening hardware, inspection schedule.

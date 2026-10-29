@@ -104,19 +104,81 @@ describe('the worked example (spec, Holes and joints)', () => {
     ]);
   });
 
-  it('gives each crossbar joint its bolt count and the area it shares with the leg', () => {
-    // From the end cut: w / cos α = 3.725 along the bottom edge; up 5.5, the end cut is
-    // 5.5·tan α = 2.002 in, so the area's top runs from 2.002 to 5.726.
-    const [front] = part(out, 'crossbar').boltAreas ?? [];
-    expect(front?.count).toBe(2);
-    expect(front?.withPart).toBe('leg-front');
-    const outline = front?.outline.map(({ u, v }) => [u.toFixed(3), v.toFixed(3)]);
-    expect(outline).toEqual([
-      ['0.000', '0.000'],
-      ['3.725', '0.000'],
-      ['5.726', '5.500'],
-      ['2.002', '5.500'],
+  // Spec, Bolt layout. The bolt line is the leg's centerline, w / (2·cos α) = 3.5 / 1.87939 =
+  // 1.862 along the board from the leg's outer face; the board runs 7D − 1.862 = 3.5 − 1.862 =
+  // 1.638 past it, so the bolt line is 3.5 from the end cut. Two bolts at 1/4 and 3/4 of the
+  // board's width.
+  it('runs the crossbar 1.638 past each leg and drills it 3.5 from each end cut', () => {
+    expect(out.geometry.crossbar.pastLeg).toBeCloseTo(1.638, 3);
+    const holes = (part(out, 'crossbar').holes ?? []).map((h) => [
+      h.entry.u.toFixed(3),
+      h.entry.v.toFixed(3),
     ]);
+    // u = v·tan α + 3.5 from the first end; from the second, 58.993 − v·tan α − 3.5.
+    expect(holes).toEqual([
+      ['4.000', '1.375'],
+      ['54.993', '1.375'],
+      ['5.001', '4.125'],
+      ['53.992', '4.125'],
+    ]);
+  });
+
+  it('drills the leg for the crossbar and gusset bolts on its centerline', () => {
+    // u = (top + (w/2)·sin α − z) / cos α, top = 101.5: crossbar bolts at z = 34.5 + 1.375 and
+    // 34.5 + 4.125, gusset bolts at z = 88.75 + 1.8125 and 88.75 + 5.4375.
+    const holes = (leg.holes ?? [])
+      .filter((h) => h.hardwareId !== 'leg-beam-bolts')
+      .map((h) => [h.hardwareId, h.entry.u.toFixed(3), h.entry.v]);
+    expect(holes).toEqual([
+      ['crossbar-bolts', '70.474', 1.75],
+      ['crossbar-bolts', '67.547', 1.75],
+      ['gusset-bolts', '12.276', 1.75],
+      ['gusset-bolts', '8.419', 1.75],
+    ]);
+    expect(leg.boltAreas).toEqual([]);
+  });
+
+  it("states each joint's distances against NDS 2024, and flags the leg's edge distance", () => {
+    const [crossbar, gusset, legToBeam] = out.boltLayout ?? [];
+    const values = (j: typeof crossbar) =>
+      j?.distances.map((d) => [d.member, d.label.split(',')[0], Number(d.value.toFixed(4))]);
+    expect(values(crossbar)).toEqual([
+      ['Crossbar', 'End distance', 3.5],
+      ['Crossbar', 'Edge distance', 1.375],
+      ['Crossbar', 'Spacing between rows', 2.75],
+      ['Crossbar', 'Between the outermost bolts', 2.75],
+      ['Leg', 'Edge distance', 1.75],
+      // 2.75 / cos α along the leg.
+      ['Leg', 'Spacing between bolts in a row', 2.9265],
+    ]);
+    expect(values(gusset)?.[0]).toEqual(['Gusset', 'End distance', 3.5]);
+    expect(values(legToBeam)).toEqual([
+      ['Beam', 'End distance', 13.75],
+      ['Beam', 'Edge distance', 2.75],
+    ]);
+    // The leg is 3.5 wide: 1.75 to each edge, under 4D = 2 for an edge the load pushes toward.
+    const boltFlags = out.flags.filter((f) => f.ask.includes('bolts:'));
+    expect(boltFlags.map((f) => f.ask.split(',')[0])).toEqual(['Crossbar to leg', 'Gusset to leg']);
+    expect(boltFlags[0]?.ask).toContain('leg edge distance 1-3/4" (3.5D): under 4D (2")');
+  });
+
+  it('asks about the projecting ends, with how far and how high', () => {
+    const flag = out.flags.find((f) => f.ask.includes('project past the legs'));
+    // Crossbar 34.5 to 40 above the ground, gusset 88.75 to 96.
+    expect(flag?.ask).toBe(
+      'For the bolts\' end distance, the crossbar ends 1-5/8", 2\' 10-1/2" to 3\' 4" above the ground, and the gusset ends 1-5/8", 7\' 4-3/4" to 8\' 0" above the ground project past the legs. Confirm the projecting ends are acceptable where children play, with their edges and corners eased.',
+    );
+  });
+
+  it("says how far past the leg each board's ends run, and where to drill", () => {
+    const crossbar = part(out, 'crossbar');
+    expect(crossbar.ends.map((e) => e.description)).toEqual([
+      '1-5/8" past the leg, parallel to it',
+      '1-5/8" past the leg, parallel to it',
+    ]);
+    expect(crossbar.notes[1]).toBe(
+      'Bolt holes, 2 at each end: on a line parallel to the end cut, 3-1/2" from it, 1-3/8" and 4-1/8" up from the bottom edge. Clamp it in place and drill through it and the leg together.',
+    );
   });
 
   it('says every end cut is a miter, measured from the reference edge', () => {
@@ -188,43 +250,48 @@ describe.each(Object.entries(designs))('features fit together: %s', (_, params) 
     expect(beam.boltAreas?.[0]?.count).toBe(p.hardware.plyBolts?.count);
   });
 
-  describe.each([
-    ['crossbar', p.crossbarHeight - part(out, 'crossbar').stock.width, p.crossbarHeight],
-    ['gusset', H - part(out, 'gusset').stock.width, H],
-  ] as const)('%s', (id, z0, z1) => {
+  describe.each(['crossbar', 'gusset'] as const)('%s', (id) => {
     const board = part(out, id);
 
-    it("outlines each joint where the board and the leg overlap, at the leg's faces", () => {
+    it('lines every hole up with a hole in a leg, through the board and into the leg', () => {
       for (const pl of placed(out, id)) {
-        for (const area of board.boltAreas ?? []) {
-          const legPl = placed(out, area.withPart).find((x) => x.instance === pl.instance);
-          if (!legPl) throw new Error(area.withPart);
-          const s = Math.sign(legPl.across.y);
-          const w = part(out, area.withPart).stock.width;
-          for (const corner of area.outline) {
-            const at = world(pl, corner);
-            // Every corner is within the board's height and between the leg's two faces.
-            expect(at.z).toBeGreaterThanOrEqual(z0 - 1e-9);
-            expect(at.z).toBeLessThanOrEqual(z1 + 1e-9);
-            const inner = world(legPl, { u: (legPl.origin.z - at.z) / -legPl.along.z, v: 0 }).y;
-            const outer = world(legPl, {
-              u: (legPl.origin.z + legPl.across.z * w - at.z) / -legPl.along.z,
-              v: w,
-            }).y;
-            expect(s * at.y).toBeGreaterThanOrEqual(s * inner - 1e-9);
-            expect(s * at.y).toBeLessThanOrEqual(s * outer + 1e-9);
-          }
+        const legs = (['leg-front', 'leg-back'] as const).flatMap((legId) =>
+          placed(out, legId)
+            .filter((x) => x.instance === pl.instance)
+            .flatMap((legPl) =>
+              (part(out, legId).holes ?? [])
+                .filter((h) => h.hardwareId === `${id}-bolts`)
+                .map((h) => ({ at: world(legPl, h.entry), dir: turn(legPl, h.direction) })),
+            ),
+        );
+        const holes = board.holes ?? [];
+        expect(holes).toHaveLength(
+          2 *
+            (id === 'crossbar'
+              ? p.hardware.crossbarBolts.perJoint
+              : p.hardware.gussetBolts.perJoint),
+        );
+        for (const hole of holes) {
+          const at = world(pl, hole.entry);
+          // Square to the frame, so it runs along x into the leg beside the board.
+          expect(Math.abs(turn(pl, hole.direction).x)).toBeCloseTo(1, 9);
+          const match = legs.find(
+            (l) => Math.abs(l.at.y - at.y) < 1e-9 && Math.abs(l.at.z - at.z) < 1e-9,
+          );
+          expect(match, `${id} hole at ${hole.entry.u}, ${hole.entry.v}`).toBeDefined();
+          expect(Math.abs(match?.dir.x ?? 0)).toBeCloseTo(1, 9);
         }
       }
     });
 
-    it("outlines the same joint on the leg, across the leg between the board's edges", () => {
-      const legArea = part(out, 'leg-back').boltAreas?.find((a) => a.withPart === id);
-      if (!legArea) throw new Error(id);
-      for (const pl of placed(out, 'leg-back')) {
-        const zs = legArea.outline.map((c) => world(pl, c).z).sort((a, b) => a - b);
-        expect(zs[0]).toBeCloseTo(z0, 9);
-        expect(zs[zs.length - 1]).toBeCloseTo(z1, 9);
+    it('keeps 7D of end distance to each end cut, on every bolt line', () => {
+      const D =
+        id === 'crossbar' ? p.hardware.crossbarBolts.diameter : p.hardware.gussetBolts.diameter;
+      const tan = Math.tan((out.geometry.splay * Math.PI) / 180);
+      for (const hole of board.holes ?? []) {
+        const { u, v } = hole.entry;
+        const toEnd = Math.min(u - v * tan, board.length - v * tan - u);
+        expect(toEnd).toBeGreaterThanOrEqual(7 * D - 1e-9);
       }
     });
   });

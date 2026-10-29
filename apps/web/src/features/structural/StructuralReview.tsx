@@ -21,6 +21,7 @@ import {
   Stack,
   Text,
 } from '../../ui/index.ts';
+import { BoltLayout } from './BoltLayout.tsx';
 import { CitationList, SourceList, SourceToggle } from './Citation.tsx';
 
 // The structural review (PRODUCT.md, MVP feature 7): structural checks with their full working,
@@ -36,6 +37,7 @@ export function StructuralReview(props: {
   checks: readonly CheckResult[];
   flags: readonly Flag[];
   checklist: readonly ChecklistItem[];
+  boltLayout?: readonly structural.BoltJoint[];
 }) {
   return (
     <Stack>
@@ -50,6 +52,8 @@ export function StructuralReview(props: {
           <Check key={`${check.kind}/${check.subject}`} check={check} projectId={props.projectId} />
         ))}
       </Stack>
+
+      <BoltLayout joints={props.boltLayout ?? []} />
 
       {props.flags.length > 0 && (
         <>

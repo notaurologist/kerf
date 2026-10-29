@@ -9,6 +9,21 @@ export {
   type SpanLoads,
 } from './beam.ts';
 export {
+  BoltDistance,
+  BoltJoint,
+  DistanceRequirement,
+  edgeDistance,
+  endDistance,
+  formatDiameters,
+  fullValueEndDistance,
+  type Loading,
+  shortfalls,
+  spacingBetweenRows,
+  spacingInRow,
+  spreadAcrossGrain,
+  type Wood,
+} from './boltDistances.ts';
+export {
   type BeamCheckInput,
   BeamChecks,
   type BeamLoads,

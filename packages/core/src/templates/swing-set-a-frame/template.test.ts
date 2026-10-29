@@ -80,10 +80,12 @@ describe('worked example, buried legs', () => {
     expect(g.back.outerAtGrade).toBeCloseTo(39.226, 3);
     expect(g.front.outerAtGrade).toBeCloseTo(41.68, 3);
     expect(g.footprintDepth).toBeCloseTo(80.906, 3);
-    expect(g.crossbar.topEdge).toBeCloseTo(51.714, 3);
-    expect(g.crossbar.bottomEdge).toBeCloseTo(55.718, 3);
-    expect(g.gusset.topWidth).toBeCloseTo(10.949, 3);
-    expect(g.gusset.bottomWidth).toBeCloseTo(16.227, 3);
+    // Each board runs 7D − w / (2·cos α) = 3.5 − 1.862 = 1.638 past each leg (spec, Bolt layout).
+    expect(g.crossbar.pastLeg).toBeCloseTo(1.638, 3);
+    expect(g.crossbar.topEdge).toBeCloseTo(54.989, 3);
+    expect(g.crossbar.bottomEdge).toBeCloseTo(58.993, 3);
+    expect(g.gusset.topWidth).toBeCloseTo(14.225, 3);
+    expect(g.gusset.bottomWidth).toBeCloseTo(19.502, 3);
     expect(g.gusset.height).toBe(7.25);
   });
 
@@ -176,19 +178,22 @@ describe('fit', () => {
     }
   }
 
-  it("crossbar and gusset ends land on the legs' outer faces", () => {
+  it("crossbar and gusset ends run the same distance past the legs' outer faces", () => {
     const output = run(example);
     const leg = placedLeg(output, 'back');
     const outerAt = (z: number) => {
       const s = (leg.outerTop.z - z) / -leg.down.z;
       return leg.outerTop.y + leg.down.y * s;
     };
+    const past = output.geometry.crossbar.pastLeg ?? 0;
+    expect(past).toBeGreaterThan(0);
+    expect(output.geometry.gusset.pastLeg).toBe(past);
     const crossbar = part(output, 'crossbar');
-    expect(crossbar.length).toBeCloseTo(2 * outerAt(40 - 5.5), 9);
-    expect(crossbar.markLengths[0]?.value).toBeCloseTo(2 * outerAt(40), 9);
+    expect(crossbar.length).toBeCloseTo(2 * (outerAt(40 - 5.5) + past), 9);
+    expect(crossbar.markLengths[0]?.value).toBeCloseTo(2 * (outerAt(40) + past), 9);
     const gusset = part(output, 'gusset');
-    expect(gusset.markLengths[0]?.value).toBeCloseTo(2 * outerAt(H), 9);
-    expect(gusset.length).toBeCloseTo(2 * outerAt(H - 7.25), 9);
+    expect(gusset.markLengths[0]?.value).toBeCloseTo(2 * (outerAt(H) + past), 9);
+    expect(gusset.length).toBeCloseTo(2 * (outerAt(H - 7.25) + past), 9);
   });
 });
 
@@ -334,10 +339,12 @@ describe('edge of range', () => {
     expect(g.front.footZ).toBeCloseTo(-25.774, 3);
     expect(g.front.overallLength).toBeCloseTo(216.421, 3);
     expect(g.footprintDepth).toBeCloseTo(219.945, 3);
-    expect(g.crossbar.topEdge).toBeCloseTo(73.164, 3);
-    expect(g.crossbar.bottomEdge).toBeCloseTo(80.866, 3);
-    expect(g.gusset.topWidth).toBeCloseTo(11.545, 3);
-    expect(g.gusset.bottomWidth).toBeCloseTo(21.698, 3);
+    // At 35°, 3.5 − 3.5 / (2·cos 35°) = 1.364 past each leg.
+    expect(g.crossbar.pastLeg).toBeCloseTo(1.364, 3);
+    expect(g.crossbar.topEdge).toBeCloseTo(75.891, 3);
+    expect(g.crossbar.bottomEdge).toBeCloseTo(83.593, 3);
+    expect(g.gusset.topWidth).toBeCloseTo(14.273, 3);
+    expect(g.gusset.bottomWidth).toBeCloseTo(24.426, 3);
   });
 
   it('names legs by which way the ground actually slopes', () => {
@@ -369,10 +376,10 @@ describe('built-up beam', () => {
     expect(g.back.overallLength).toBeCloseTo(131.531, 3);
     expect(g.front.overallLength).toBeCloseTo(138.331, 3);
     expect(g.footprintDepth).toBeCloseTo(80.405, 3);
-    expect(g.crossbar.topEdge).toBeCloseTo(51.214, 3);
-    expect(g.crossbar.bottomEdge).toBeCloseTo(55.218, 3);
-    expect(g.gusset.topWidth).toBeCloseTo(10.449, 3);
-    expect(g.gusset.bottomWidth).toBeCloseTo(15.727, 3);
+    expect(g.crossbar.topEdge).toBeCloseTo(54.489, 3);
+    expect(g.crossbar.bottomEdge).toBeCloseTo(58.493, 3);
+    expect(g.gusset.topWidth).toBeCloseTo(13.725, 3);
+    expect(g.gusset.bottomWidth).toBeCloseTo(19.002, 3);
   });
 
   it('leaves the flush cut unchanged, since it depends only on the beam depth', () => {

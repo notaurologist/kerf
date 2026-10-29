@@ -69,15 +69,20 @@ export function placements(dims: Dimensions, g: FrameGeometry): Placement[] {
   ]);
 
   // Crossbars and gussets: first end at the front, reference edge the bottom (the long edge),
-  // ends flush with the legs' outer faces, on the frame's outside face. Through runs +x, so the
-  // origin is on the face with the smaller x.
-  const boards = (partId: 'crossbar' | 'gusset', bottom: number, thickness: number): Placement[] =>
+  // ends `past` beyond the legs' outer faces (spec, Bolt layout), on the frame's outside face.
+  // Through runs +x, so the origin is on the face with the smaller x.
+  const boards = (
+    partId: 'crossbar' | 'gusset',
+    bottom: number,
+    thickness: number,
+    past: number,
+  ): Placement[] =>
     frames.map((frame, i) => ({
       partId,
       instance: i,
       origin: {
         x: frame.outward < 0 ? frame.outside - thickness : frame.outside,
-        y: -outerFace(dims, g.splay, bottom),
+        y: -(outerFace(dims, g.splay, bottom) + past),
         z: bottom,
       },
       along: Y,
@@ -88,7 +93,7 @@ export function placements(dims: Dimensions, g: FrameGeometry): Placement[] {
   return [
     ...beam,
     ...legs,
-    ...boards('crossbar', dims.zc - dims.cw, dims.ct),
-    ...boards('gusset', dims.H - dims.gh, dims.gt),
+    ...boards('crossbar', dims.zc - dims.cw, dims.ct, g.crossbar.pastLeg ?? 0),
+    ...boards('gusset', dims.H - dims.gh, dims.gt, g.gusset.pastLeg ?? 0),
   ];
 }
