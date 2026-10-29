@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { STOCK_SIZE_SOURCES } from '../lumber/stock.ts';
 import {
   deflectionTimesEIAt,
   maxDeflectionTimesEI,
@@ -100,6 +101,7 @@ function rail(overrides: Partial<BeamCheckInput['member']> = {}): BeamCheckInput
       plies: 1,
       plyBreadth: 3.5,
       depth: 5.5,
+      sizeSources: STOCK_SIZE_SOURCES,
       supportsX: [10, 106],
       unbracedLength: 96,
       ...overrides,

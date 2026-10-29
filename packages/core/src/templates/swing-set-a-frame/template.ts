@@ -18,9 +18,11 @@ import { flags, validate, validateSwings } from './validate.ts';
 
 /**
  * Bump whenever output for the same parameters would change (decision 0008).
- * Version 1 matches docs/templates/swing-set-a-frame.md, status v1.
+ * Version 1 matches docs/templates/swing-set-a-frame.md, status v1. Version 2 adds sources to
+ * G, the pendulum factor, and the beam's breadth and depth in the structural working (#36); no
+ * number changes.
  */
-export const TEMPLATE_VERSION = 1;
+export const TEMPLATE_VERSION = 2;
 export const TEMPLATE_ID = 'swing-set-a-frame';
 
 export const SwingSetOutput = z.object({

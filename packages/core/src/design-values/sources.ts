@@ -48,6 +48,13 @@ export const SOURCES = {
     edition: '2007',
     url: 'https://awc.org/wp-content/uploads/2021/12/AWC-DA6-BeamFormulas-0710.pdf',
   },
+  'openstax-university-physics-1': {
+    title: 'University Physics Volume 1',
+    publisher: 'OpenStax, Rice University (William Moebs, Samuel J. Ling, Jeff Sanny)',
+    edition: '2016',
+    url: 'https://openstax.org/details/books/university-physics-volume-1',
+    note: 'For the pendulum load: speed at the bottom of the arc and the centripetal force.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

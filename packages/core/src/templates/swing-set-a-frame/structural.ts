@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { DENSITY_SOURCES, woodDensity } from '../../design-values/density.ts';
-import { referenceRow, SPECIES_GRADE_IDS } from '../../design-values/sawnLumber.ts';
-import { stock } from '../../lumber/stock.ts';
+import { referenceRow, SPECIES_GRADE_IDS, speciesGrade } from '../../design-values/sawnLumber.ts';
+import type { Citation } from '../../design-values/sources.ts';
+import { STOCK_SIZE_SOURCES, stock } from '../../lumber/stock.ts';
 import {
   BeamChecks,
   beamChecks,
@@ -103,6 +104,24 @@ const SWING_ASSUMPTIONS = [
   "Each swing's load is split equally between its two hangers (a centered rider).",
 ];
 
+/**
+ * The pendulum load: released from rest at θ, a rider reaches the bottom with v² = 2gL(1 − cos θ)
+ * (Example 8.7), and the chain then carries the weight plus the centripetal force mv²/L (6.3):
+ * T = W + 2W(1 − cos θ) = W(3 − 2·cos θ).
+ */
+const PENDULUM_SOURCES = [
+  {
+    source: 'openstax-university-physics-1',
+    locator: '8.3, Example 8.7, Simple Pendulum',
+    url: 'https://openstax.org/books/university-physics-volume-1/pages/8-3-conservation-of-energy',
+  },
+  {
+    source: 'openstax-university-physics-1',
+    locator: '6.3, Centripetal Force',
+    url: 'https://openstax.org/books/university-physics-volume-1/pages/6-3-centripetal-force',
+  },
+] satisfies Citation[];
+
 /** Chain tension factor at the bottom of the arc: 3 − 2·cos θ. */
 export function pendulumFactor(maxSwingAngle: number): number {
   return 3 - 2 * Math.cos((maxSwingAngle * Math.PI) / 180);
@@ -141,7 +160,14 @@ function swingLoads(riderWeights: [number, number], maxSwingAngle: number): Swin
         unit: '°',
         basis: 'Entered',
       },
-      { symbol: '3 − 2·cos θ', label: 'Chain tension per pound of rider', value: k, unit: '' },
+      {
+        symbol: '3 − 2·cos θ',
+        label: 'Chain tension per pound of rider',
+        value: k,
+        unit: '',
+        basis: 'Smooth pendulum, from conservation of energy and the centripetal force',
+        sources: PENDULUM_SOURCES,
+      },
       { symbol: 'T1', label: 'Left swing chain tension, W1·(3 − 2·cos θ)', value: T1, unit: 'lb' },
       { symbol: 'T2', label: 'Right swing chain tension, W2·(3 − 2·cos θ)', value: T2, unit: 'lb' },
     ],
@@ -262,6 +288,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
         value: row.values.G,
         unit: '',
         basis: `Table 4B, ${row.label}`,
+        sources: speciesGrade(v.beamSpeciesGrade).sources,
       },
       {
         symbol: 'ρ',
@@ -314,6 +341,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
       plies: p.beamPlies,
       plyBreadth: beam.thickness,
       depth: beam.width,
+      sizeSources: STOCK_SIZE_SOURCES,
       supportsX: [x0, x1],
       unbracedLength: x1 - x0,
     },

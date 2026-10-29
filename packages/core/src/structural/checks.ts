@@ -52,6 +52,8 @@ export interface BeamMember {
   /** Actual size of one ply: breadth (horizontal) and depth (vertical), inches. */
   plyBreadth: number;
   depth: number;
+  /** Where the actual sizes come from, such as a table of dressed sizes. */
+  sizeSources: Citation[];
   /** Support positions in the same coordinates as the loads. */
   supportsX: [number, number];
   /** Distance between points of lateral support that prevent rotation (NDS 3.3.3.4). */
@@ -152,8 +154,17 @@ function prepare(member: BeamMember, { points: loads, uniform }: BeamLoads): Pre
       label: n > 1 ? 'Breadth of one ply' : 'Breadth',
       value: member.plyBreadth,
       unit: 'in',
+      basis: `Dressed size of ${member.nominal}`,
+      sources: member.sizeSources,
     },
-    { symbol: 'd', label: 'Depth', value: member.depth, unit: 'in' },
+    {
+      symbol: 'd',
+      label: 'Depth',
+      value: member.depth,
+      unit: 'in',
+      basis: `Dressed size of ${member.nominal}`,
+      sources: member.sizeSources,
+    },
     ...(n > 1 ? [{ symbol: 'n', label: 'Plies', value: n, unit: '' }] : []),
     ...(uniform
       ? [{ symbol: 'w', label: `${uniform.label}, over the span`, value: uniform.w, unit: 'lb/in' }]

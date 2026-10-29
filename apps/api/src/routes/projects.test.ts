@@ -12,6 +12,10 @@ const newProject: Record<string, unknown> = {
   structuralInputs: swingSetInputs,
 };
 
+// Versions relative to the template's current ones, so these tests outlive real bumps.
+const CURRENT = swingSetAFrame.definition.version;
+const SHAPE = swingSetAFrame.definition.snapshotVersion;
+
 // biome-ignore lint/suspicious/noExplicitAny: test reads deep into JSON responses.
 type Json = any;
 
@@ -52,9 +56,9 @@ describe('POST /api/projects', () => {
       name: 'Backyard swing set',
       status: 'planned',
       templateId: 'swing-set-a-frame',
-      templateVersion: 1,
+      templateVersion: CURRENT,
       templateBehind: false,
-      version: { status: 'current', version: 1 },
+      version: { status: 'current', version: CURRENT },
     });
     // The structural review is in the snapshot: the worked example's bending margin is 1.08.
     expect(project.snapshot.outputs.structuralReview.beam.bending.margin).toBeCloseTo(1.08, 2);
@@ -156,11 +160,11 @@ describe('PUT /api/projects/:id', () => {
   });
 });
 
-// A made-up version 2 of the swing set that changes the first cut-list length, standing in for a
-// real template change (decision 0008).
-const version2: TemplateDefinition = {
+// A made-up next version of the swing set that changes the first cut-list length, standing in
+// for a real template change (decision 0008).
+const nextVersion: TemplateDefinition = {
   ...(swingSetAFrame.definition as TemplateDefinition),
-  version: 2,
+  version: CURRENT + 1,
   generate(params, inputs) {
     const result = (swingSetAFrame.definition as TemplateDefinition).generate(params, inputs);
     if (!result.ok) return result;
@@ -178,33 +182,33 @@ describe('a project whose template version is behind', () => {
     const before = await createTestApp();
     const { body } = await create(before.authed);
 
-    // The same database, served by code whose template is now at version 2.
-    const after = await createTestApp({ database: before, templates: [version2] });
+    // The same database, served by code whose template is now at the next version.
+    const after = await createTestApp({ database: before, templates: [nextVersion] });
     const get = async (path: string, method = 'GET') =>
       (await (await after.authed(path, { method })).json()) as Json;
 
     const list = await get('/api/projects');
-    expect(list.projects[0]).toMatchObject({ templateVersion: 1, templateBehind: true });
+    expect(list.projects[0]).toMatchObject({ templateVersion: CURRENT, templateBehind: true });
 
     const project = await get(`/api/projects/${body.id}`);
     expect(project.version).toEqual({
       status: 'behind',
-      storedVersion: 1,
-      currentVersion: 2,
+      storedVersion: CURRENT,
+      currentVersion: CURRENT + 1,
       regenerated: {
         ok: true,
         changes: [{ path: 'cutList[0].length', before: '120"', after: '121"' }],
         truncated: false,
       },
     });
-    // The stored plan is still version 1's.
+    // The stored plan is still the earlier version's.
     expect(project.snapshot.outputs.cutList[0].length).toBe('120"');
 
     const regenerated = await get(`/api/projects/${body.id}/regenerate`, 'POST');
     expect(regenerated).toMatchObject({
-      templateVersion: 2,
+      templateVersion: CURRENT + 1,
       templateBehind: false,
-      version: { status: 'current', version: 2 },
+      version: { status: 'current', version: CURRENT + 1 },
     });
     expect(regenerated.snapshot.outputs.cutList[0].length).toBe('121"');
   });
@@ -226,14 +230,15 @@ describe('a project whose template version is behind', () => {
   });
 });
 
-// A made-up shape 2 of the swing-set snapshot that renames outputs.cutList to outputs.cuts, with
-// its upgrade (decision 0014).
-const shape2: TemplateDefinition = {
+// A made-up next shape of the swing-set snapshot that renames outputs.cutList to outputs.cuts,
+// with its upgrade (decision 0014).
+const nextShape: TemplateDefinition = {
   ...(swingSetAFrame.definition as TemplateDefinition),
-  snapshotVersion: 2,
+  snapshotVersion: SHAPE + 1,
   outputs: z.looseObject({ cuts: z.array(z.object({ length: z.string() }).loose()) }),
   snapshotUpgrades: {
-    1: (s) => {
+    ...swingSetAFrame.definition.snapshotUpgrades,
+    [SHAPE]: (s) => {
       const { cutList, ...outputs } = s.outputs as { cutList: unknown };
       return { ...s, outputs: { ...outputs, cuts: cutList } };
     },
@@ -244,11 +249,11 @@ describe('a project stored in an older snapshot shape', () => {
   it('reads through the upgrade, keeping the stored numbers', async () => {
     const before = await createTestApp();
     const { body } = await create(before.authed);
-    const after = await createTestApp({ database: before, templates: [shape2] });
+    const after = await createTestApp({ database: before, templates: [nextShape] });
     const project = (await (await after.authed(`/api/projects/${body.id}`)).json()) as Json;
-    expect(project.snapshot.snapshotVersion).toBe(2);
+    expect(project.snapshot.snapshotVersion).toBe(SHAPE + 1);
     expect(project.snapshot.outputs.cuts[0].length).toBe('120"');
-    expect(project.version).toEqual({ status: 'current', version: 1 });
+    expect(project.version).toEqual({ status: 'current', version: CURRENT });
   });
 
   it('is rewritten in the current shape by the release backfill, numbers and dates unchanged', async () => {
@@ -256,7 +261,7 @@ describe('a project stored in an older snapshot shape', () => {
     const { body } = await create(before.authed);
     const service = createProjectService({
       db: before.db,
-      templates: [shape2],
+      templates: [nextShape],
       now: () => new Date('2030-01-01T00:00:00Z'),
     });
     expect(await service.upgradeStoredSnapshots()).toEqual({ upgraded: 1, unreadable: [] });
@@ -265,7 +270,7 @@ describe('a project stored in an older snapshot shape', () => {
     const { rows } = await before.client.query<{ snapshot: Json; updated_at: Date }>(
       'select snapshot, updated_at from projects',
     );
-    expect(rows[0]?.snapshot.snapshotVersion).toBe(2);
+    expect(rows[0]?.snapshot.snapshotVersion).toBe(SHAPE + 1);
     expect(rows[0]?.snapshot.outputs.cuts[0].length).toBe('120"');
     expect(rows[0]?.snapshot.outputs).not.toHaveProperty('cutList');
     expect(rows[0]?.updated_at.toISOString()).toBe(body.updatedAt);

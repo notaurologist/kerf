@@ -30,10 +30,10 @@ const base = swingSetAFrame.definition as TemplateDefinition;
 const example = base.examples[0];
 if (!example) throw new Error('needs a worked example');
 
-/** A made-up version 2 that changes the first cut-list length, standing in for a real change. */
-const version2: TemplateDefinition = {
+/** A made-up next version that changes the first cut-list length, standing in for a real change. */
+const nextVersion: TemplateDefinition = {
   ...base,
-  version: 2,
+  version: base.version + 1,
   generate(params, inputs) {
     const result = base.generate(params, inputs);
     if (!result.ok) return result;
@@ -66,8 +66,8 @@ describe('the web client against the API', () => {
     if (!created.ok) throw new Error(JSON.stringify(created.error));
     const id = created.value.id;
 
-    // The same database, served by code whose template is now at version 2.
-    const after = await createTestApp({ database: before, templates: [version2] });
+    // The same database, served by code whose template is now at the next version.
+    const after = await createTestApp({ database: before, templates: [nextVersion] });
     const v2 = browser(after.app);
     await send(v2.api.login.$post({ json: { password: TEST_PASSWORD } }));
     const read = await send(v2.api.projects[':id'].$get({ param: { id } }));
@@ -79,7 +79,7 @@ describe('the web client against the API', () => {
     // Regenerate sends no body; the client still sends JSON, so the API accepts it.
     const regenerated = await send(v2.api.projects[':id'].regenerate.$post({ param: { id } }));
     if (!regenerated.ok) throw new Error(JSON.stringify(regenerated.error));
-    expect(regenerated.value.version).toEqual({ status: 'current', version: 2 });
+    expect(regenerated.value.version).toEqual({ status: 'current', version: base.version + 1 });
 
     // Logout ends the session for later requests.
     expect((await send(v2.api.logout.$post())).ok).toBe(true);
