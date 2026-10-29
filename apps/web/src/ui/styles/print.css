@@ -1,0 +1,18 @@
+/* Print (#41): US Letter portrait with 1/2" margins, always light, 10.5 pt body. Page breaks by
+   section and title blocks come with the screens (#80). */
+@layer print {
+  @media print {
+    @page {
+      size: letter portrait;
+      margin: 0.5in;
+    }
+
+    html {
+      font-size: 10.5pt;
+    }
+
+    body {
+      background: #ffffff;
+    }
+  }
+}

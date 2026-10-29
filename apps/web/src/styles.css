@@ -1,38 +1,19 @@
-/* Phone first: large text, full-width controls, no horizontal scroll (PRODUCT.md, MVP 9). */
+/* Phone first: large text, full-width controls, no horizontal scroll (PRODUCT.md, MVP 9).
+   Unlayered, so it still wins over the design system's layers until #80 replaces it. */
 
 :root {
-  --text: #1d1d1b;
-  --muted: #5f5f5a;
-  --bg: #fbfaf7;
-  --surface: #ffffff;
-  --line: #d9d6cf;
-  --accent: #8a4b14;
-  --accent-text: #ffffff;
-  --error: #a3261a;
-  --error-bg: #fbeae7;
-  --notice-bg: #fff4d6;
+  /* The old stylesheet's names, pointed at the design system's tokens (ui/styles/tokens.css).
+     This file goes when the screens are rebuilt from components (#80). */
+  --surface: var(--raised);
+  --line: var(--border);
+  --accent-text: var(--on-accent);
+  --notice-bg: var(--flag-bg);
   --radius: 6px;
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-text);
   font-size: 18px;
   line-height: 1.45;
   color: var(--text);
   background: var(--bg);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #ecebe6;
-    --muted: #a9a79f;
-    --bg: #181816;
-    --surface: #222220;
-    --line: #3d3c38;
-    --accent: #e09a5b;
-    --accent-text: #181816;
-    --error: #ff9c8f;
-    --error-bg: #3a1d19;
-    --notice-bg: #3a3218;
-  }
 }
 
 * {

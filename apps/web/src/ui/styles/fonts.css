@@ -1,0 +1,19 @@
+/*
+ * Atkinson Hyperlegible Next and Mono, self-hosted (decision 0015). Latin subsets of the
+ * variable fonts; see ../fonts/README.md for the source and how they were made.
+ */
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  src: url("../fonts/AtkinsonHyperlegibleNext-Latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible Mono";
+  src: url("../fonts/AtkinsonHyperlegibleMono-Latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}

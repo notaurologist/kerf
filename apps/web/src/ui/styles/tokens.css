@@ -1,0 +1,171 @@
+/*
+ * Design tokens. Every value traces to a recorded choice in docs/design/README.md:
+ * colors to Stage 4 (#43, C1, measured in color.html), diagram tones and lines to Stage 5 (#44),
+ * type to Stage 3 (#42, decision 0015), space and density to Stage 2 (#41).
+ * tokens.test.ts checks every recorded contrast ratio against these values.
+ */
+@layer tokens {
+  :root {
+    color-scheme: light dark;
+
+    /* C1, light: surfaces and text. */
+    --bg: #fbf9f5;
+    --raised: #ffffff;
+    --sunken: #f2efe9;
+    --text: #1a1d23;
+    --muted: #545860;
+    --border: #d7d4ce;
+    --border-strong: #70757c;
+    --accent: #0e5caf;
+    --on-accent: #ffffff;
+    --focus: #1570d1;
+    --flag-bg: #ffe8be;
+    --flag-border: #bb7400;
+    --flag-text: #5b3106;
+    --input-bg: #ffffff;
+    --input-border: #2e64a6;
+    --input-text: #0e4786;
+    --done: #0e5caf;
+    --error: #aa295f;
+    --error-bg: #ffebf1;
+
+    /* C1, light: diagram ink (#44). */
+    --ink: #1a1d23;
+    --dim: #0e5caf;
+    --hidden: #6e7278;
+    --highlight: #bfe1ff;
+    --zone: #dbeede;
+    --zone-line: #488055;
+
+    /* D2 face tones: top, sides, ends. The selected part uses the highlight in the same steps.
+       Mixed in OKLCH from --raised toward --ink by 0%, 13%, and 27%. */
+    --tone-1: #ffffff;
+    --tone-2: #dddedf;
+    --tone-3: #babbbd;
+    --highlight-1: #bfe1ff;
+    --highlight-2: #a8c4df;
+    --highlight-3: #8fa6be;
+
+    /* Type (#42). Desk scale, ratio 1.2 from 17 px. */
+    --font-text: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+    --font-mono: "Atkinson Hyperlegible Mono", ui-monospace, monospace;
+    --size--1: 0.875rem; /* 14 px */
+    --size-0: 1.0625rem; /* 17 px */
+    --size-1: 1.25rem; /* 20 px */
+    --size-2: 1.5rem; /* 24 px */
+    --size-3: 1.8125rem; /* 29 px */
+    /* Shop sizes, from the face's digit height (0.694) at 0.5 m and 1.0 m. */
+    --size-read: 1.25rem; /* 20 px */
+    --size-glance: 3.1875rem; /* 51 px, bold */
+    --size-saw: 2rem; /* 32 px, bold, boxed */
+    --size-edge: 1.25rem; /* 20 px, labeled */
+    --leading-text: 1.5;
+    --leading-table: 1.3;
+    --leading-heading: 1.1;
+    --leading-glance: 1;
+
+    /* Space (#41): fluid between a 360 px and a 1280 px viewport (Utopia), times the density.
+       Shop density (Shopping and Building) sets --density: 1.5. */
+    --density: 1;
+    --space-3xs-base: 0.25rem;
+    --space-2xs-base: 0.5rem;
+    --space-xs-base: clamp(0.75rem, 0.7011rem + 0.2174vw, 0.875rem);
+    --space-s-base: clamp(1rem, 0.9022rem + 0.4348vw, 1.25rem);
+    --space-m-base: clamp(1.5rem, 1.3043rem + 0.8696vw, 2rem);
+    --space-l-base: clamp(2rem, 1.6087rem + 1.7391vw, 3rem);
+    --space-xl-base: clamp(3rem, 2.413rem + 2.6087vw, 4.5rem);
+    --space-3xs: calc(var(--density) * var(--space-3xs-base));
+    --space-2xs: calc(var(--density) * var(--space-2xs-base));
+    --space-xs: calc(var(--density) * var(--space-xs-base));
+    --space-s: calc(var(--density) * var(--space-s-base));
+    --space-m: calc(var(--density) * var(--space-m-base));
+    --space-l: calc(var(--density) * var(--space-l-base));
+    --space-xl: calc(var(--density) * var(--space-xl-base));
+    --control-min: 2.75rem; /* 44 px */
+    --content-max: 75rem; /* 1200 px */
+    --measure: 68ch;
+    --radius: 4px;
+
+    /* Diagram lines (#44): screen widths in CSS px, never scaled with the drawing. */
+    --line-visible: 1.3px;
+    --line-selected: 2.4px;
+    --line-hidden: 1px;
+    --line-center: 0.9px;
+    --line-phantom: 1px;
+    --line-dimension: 0.9px;
+    --line-leader: 0.9px;
+    --line-guideline: 0.9px;
+    --line-break: 1px;
+    --line-grade: 2px;
+    --line-zone: 1.5px;
+    --dash-hidden: 5 3;
+    --dash-center: 16 3 4 3;
+    --dash-phantom: 16 3 3 3 3 3;
+    --dash-guideline: 3 3;
+    --dash-zone: 8 4;
+  }
+
+  /* Shopping and Building (#41): larger space and controls at least 56 px tall. */
+  [data-density="shop"] {
+    --density: 1.5;
+    --control-min: 3.5rem;
+  }
+
+  /* Follow the device (#43). Print is always light, so dark applies to screens only. */
+  @media screen and (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111418;
+      --raised: #1a1d23;
+      --sunken: #0b0d12;
+      --text: #edebe7;
+      --muted: #aaaeb4;
+      --border: #2f3339;
+      --border-strong: #82868e;
+      --accent: #70b3f7;
+      --on-accent: #0c121a;
+      --focus: #73bdff;
+      --flag-bg: #3e290f;
+      --flag-border: #dea143;
+      --flag-text: #f7dba1;
+      --input-bg: #1a1d23;
+      --input-border: #6da9e7;
+      --input-text: #97c9fd;
+      --done: #70b3f7;
+      --error: #ea7ca1;
+      --error-bg: #3d1e28;
+
+      --ink: #edebe7;
+      --dim: #70b3f7;
+      --hidden: #83868c;
+      --highlight: #1d456b;
+      --zone: #1e2d21;
+      --zone-line: #75ae81;
+
+      /* In dark, mixing toward the ink lightens, so the order flips: the face toward the light
+         stays lightest. */
+      --tone-1: #474f51;
+      --tone-2: #2e3439;
+      --tone-3: #1a1d23;
+      --highlight-1: #1d456b;
+      --highlight-2: #255e75;
+      --highlight-3: #3f777d;
+    }
+  }
+
+  @media print {
+    :root {
+      color-scheme: light;
+      /* Print widths: ASME Y14.2's two weights, thick about twice thin (#44). */
+      --line-visible: 0.5mm;
+      --line-hidden: 0.35mm;
+      --line-center: 0.25mm;
+      --line-phantom: 0.25mm;
+      --line-dimension: 0.25mm;
+      --line-leader: 0.25mm;
+      --line-guideline: 0.25mm;
+      --line-break: 0.25mm;
+      --line-grade: 0.5mm;
+      --line-zone: 0.35mm;
+    }
+  }
+}
