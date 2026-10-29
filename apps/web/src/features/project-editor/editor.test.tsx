@@ -2,7 +2,7 @@ import { buildFromForm, findTemplate, formValues, type TemplateDefinition } from
 import { describe, expect, it } from 'vitest';
 import { render } from '../../test/render.tsx';
 import { placeIssues, schemaIssues } from './issues.ts';
-import { changesFor, lengthEcho, ProjectEditor } from './ProjectEditor.tsx';
+import { changesFor, ProjectEditor } from './ProjectEditor.tsx';
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const { params: sections } = template.form;
@@ -52,13 +52,32 @@ describe('an existing project in the form', () => {
   });
 });
 
-describe('lengthEcho', () => {
-  it("reads a typed length back through core's formatter", () => {
-    expect(lengthEcho('96')).toBe(`8' 0"`);
-    expect(lengthEcho('100.1875')).toBe(`8' 4-3/16"`);
-    expect(lengthEcho('')).toBeNull();
-    expect(lengthEcho('-2')).toBeNull();
-    expect(lengthEcho('abc')).toBeNull();
+describe('typing a length', () => {
+  const html = render(
+    <ProjectEditor
+      template={template}
+      initial={{
+        name: '',
+        params: { ...formValues(template.form.params, {}), beamHeight: "8'", beamLength: '11 6' },
+        inputs: formValues(template.form.structuralInputs, {}),
+      }}
+    />,
+  );
+
+  it("echoes core's reading under the field: feet and inches, then inches", () => {
+    expect(html).toContain('8&#x27; 0&quot; · 96&quot;');
+  });
+
+  it('says plainly when the text is not a length yet, without marking it as an error', () => {
+    expect(html).toContain('Not a length yet');
+    expect(html).not.toMatch(/id="p-beamLength"[^>]*aria-invalid/);
+  });
+
+  it('gives lengths the full keyboard, with autocorrect off, and no inch unit', () => {
+    expect(html).toMatch(
+      /id="p-beamHeight" inputMode="text" autoCapitalize="off" autoCorrect="off"/,
+    );
+    expect(html).toContain('Inches, or feet and inches.');
   });
 });
 
@@ -68,11 +87,15 @@ describe('issues', () => {
     const parsed = template.params.safeParse(buildFromForm(sections, values));
     if (parsed.success) throw new Error('should not parse');
     const byField = Object.fromEntries(
-      schemaIssues(parsed.error, values).map((i) => [i.field, i.message]),
+      schemaIssues(parsed.error, values, sections, template.params).map((i) => [
+        i.field,
+        i.message,
+      ]),
     );
-    expect(byField.beamLength).toBe('Must be at least 48.');
-    expect(byField.beamHeight).toBe('Enter a value.');
-    expect(byField['swings.seatWidth']).toBe('Enter a number.');
+    // The schema allows a beam length of 48" to 240": 4' 0" to 20' 0".
+    expect(byField.beamLength).toBe(`Beam length must be from 4' 0" to 20' 0".`);
+    expect(byField.beamHeight).toBe('Enter a length.');
+    expect(byField['swings.seatWidth']).toBe('Enter a length.');
   });
 
   it("places the API's top-level issues on the first visible field they name", () => {
