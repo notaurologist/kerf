@@ -37,7 +37,7 @@ export type BoltDistance = z.infer<typeof BoltDistance>;
 
 /** One bolted joint as laid out: its bolts and every distance that NDS 12.5.1 sets. */
 export const BoltJoint = z.object({
-  /** Such as "Crossbar to leg". */
+  /** Named by the template, such as "Rail to post". */
   title: z.string(),
   bolts: z.number().int().positive(),
   diameter: z.number(),
@@ -76,8 +76,8 @@ function row(
 }
 
 /**
- * Table 12.5.1A. The load can reverse at a swing set's joints, so both directions are listed
- * when the load is parallel to grain.
+ * Table 12.5.1A. A joint's load can reverse, so both directions are listed when the load is
+ * parallel to grain.
  */
 export function endDistance(
   member: string,

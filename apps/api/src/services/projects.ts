@@ -3,6 +3,7 @@ import {
   compareSnapshots,
   compareWithCurrent,
   createSnapshot,
+  type geometry,
   type Issue,
   type ProjectSnapshot,
   readSnapshot,
@@ -62,6 +63,11 @@ export interface Project extends ProjectSummary {
   snapshot: ProjectSnapshot | null;
   unreadable?: { reason: string; message: string };
   version: VersionReport | null;
+  /**
+   * The plan's drawings (#90, #91), drawn by core from the stored snapshot on each read. Not
+   * stored: a view of the numbers the snapshot holds. Null when the snapshot cannot be read.
+   */
+  drawings: geometry.Drawings | null;
 }
 
 /** A snapshot generated from proposed changes and not saved, with what it changes. */
@@ -78,6 +84,11 @@ export type Result<T> =
   | { ok: false; error: 'invalid-project'; issues: Issue[] };
 
 type Row = typeof projects.$inferSelect;
+
+/** A snapshot's drawings, from its template; read already, so its outputs parse. */
+function drawingsOf(template: TemplateDefinition, snapshot: ProjectSnapshot) {
+  return template.drawings(template.outputs.parse(snapshot.outputs));
+}
 
 export function createProjectService(deps: {
   db: Database;
@@ -116,6 +127,7 @@ export function createProjectService(deps: {
           snapshot: null,
           unreadable: { reason: result.reason, message: result.message },
           version: null,
+          drawings: null,
         },
       };
     }
@@ -125,6 +137,7 @@ export function createProjectService(deps: {
         ...summary(row),
         snapshot: result.snapshot,
         version: compareWithCurrent(template, result.snapshot),
+        drawings: drawingsOf(template, result.snapshot),
       },
     };
   }

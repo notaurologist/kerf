@@ -7,6 +7,42 @@
       margin: 0.5in;
     }
 
+    /* The isometric, exploded, and site views each take a landscape page (#41). */
+    @page landscape {
+      size: letter landscape;
+    }
+
+    .k-diagram-wrap[data-page="landscape"] {
+      page: landscape;
+      break-before: page;
+      break-after: page;
+    }
+
+    /* On paper a drawing takes the page's width, up to its height. */
+    .k-diagram svg {
+      inline-size: 100%;
+      max-block-size: 7in;
+    }
+
+    /* Cut details do not split across pages. */
+    .k-diagram-wrap {
+      break-inside: avoid;
+    }
+
+    .k-diagram-wrap .k-hatch {
+      display: inline;
+    }
+
+    .k-diagram-wrap .k-shape[data-fill="zone"] {
+      fill: none;
+    }
+
+    .k-diagram-wrap .k-shape,
+    .k-diagram-wrap .k-letter__box,
+    .k-diagram-wrap .k-arrow {
+      print-color-adjust: exact;
+    }
+
     html {
       font-size: 10.5pt;
     }

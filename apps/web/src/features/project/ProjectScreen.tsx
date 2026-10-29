@@ -2,7 +2,7 @@ import { findTemplate } from '@kerf/core';
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { takeFlash } from '../../lib/flash.ts';
-import { readPlan } from '../../lib/plan.ts';
+import { readDrawings, readPlan } from '../../lib/plan.ts';
 import { href } from '../../lib/route.ts';
 import { type Project, STATUS_LABELS } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
@@ -17,6 +17,7 @@ import {
   Text,
 } from '../../ui/index.ts';
 import { CutList } from '../cut-list/CutList.tsx';
+import { Diagrams } from '../diagrams/Diagrams.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import { StructuralReview } from '../structural/StructuralReview.tsx';
 import { DeleteProject } from './DeleteProject.tsx';
@@ -39,6 +40,10 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
   const { project } = props;
   const template = findTemplate(project.templateId);
   const plan = readPlan(project);
+  const drawings = readDrawings(project);
+  // The part selected in a drawing or the cut list (#39, Q3); selecting it again clears it.
+  const [selected, setSelected] = useState<string | null>(null);
+  const select = (partId: string) => setSelected((s) => (s === partId ? null : partId));
   // "Saved." from the editor stays until the next action (#67), not a toast that disappears.
   const [flash] = useState(takeFlash);
   return (
@@ -67,6 +72,17 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
             </Cluster>
           </nav>
           {/* Section order A (#40): the same reading order on screen and on paper. */}
+          {drawings && (
+            <PlanSection id="diagrams" title="Diagrams" project={project.name}>
+              <Diagrams
+                drawings={drawings}
+                rows={plan.plan.cutList}
+                describedBy="cut-list"
+                selected={selected}
+                onSelect={select}
+              />
+            </PlanSection>
+          )}
           <PlanSection id="structural-review" title="Structural review" project={project.name}>
             <StructuralReview
               projectId={project.id}
@@ -81,7 +97,7 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
               Lengths are long point to long point, rounded to 1/16". Angles are miter-saw settings
               (0° is square), with the angle to the board's edge for a protractor or sliding bevel.
             </Text>
-            <CutList rows={plan.plan.cutList} />
+            <CutList rows={plan.plan.cutList} selected={selected} onSelect={select} />
           </PlanSection>
           <PlanSection id="shopping-list" title="Shopping list" project={project.name}>
             <ShoppingList
@@ -98,6 +114,7 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
 }
 
 const SECTIONS = [
+  { id: 'diagrams', title: 'Diagrams' },
   { id: 'structural-review', title: 'Structural review' },
   { id: 'cut-list', title: 'Cut list' },
   { id: 'shopping-list', title: 'Shopping list' },

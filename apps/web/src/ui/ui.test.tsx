@@ -5,6 +5,7 @@ import { ICON_NAMES } from './Icon.tsx';
 import {
   Button,
   Changed,
+  Diagram,
   Disclosure,
   ErrorSummary,
   ExpertCheck,
@@ -299,5 +300,122 @@ describe('the catalog', () => {
 
   it('follows the word list (docs/design/content.md)', () => {
     expect(text).not.toMatch(/\b(safe|unsafe|pass|fail|invalid|oops|please|just|simply|sanity)\b/i);
+  });
+});
+
+describe('Diagram (#91)', () => {
+  const drawing = {
+    title: 'Sample',
+    description: 'A sample part.',
+    bounds: { x: 0, y: -10, width: 40, height: 20 },
+    notes: ['Clear area: handbook, p. 2.'],
+    primitives: [
+      {
+        kind: 'polygon' as const,
+        role: 'visible' as const,
+        points: [
+          { x: 0, y: 0 },
+          { x: 30, y: 0 },
+          { x: 30, y: -5 },
+        ],
+        fill: 2 as const,
+        outline: false,
+        part: { partId: 'leg', instance: 0, letter: 'B' },
+      },
+      {
+        kind: 'line' as const,
+        role: 'hidden' as const,
+        points: [
+          { x: 0, y: 2 },
+          { x: 30, y: 2 },
+        ],
+      },
+      {
+        kind: 'line' as const,
+        role: 'dimension' as const,
+        points: [
+          { x: 0, y: 6 },
+          { x: 30, y: 6 },
+        ],
+        arrows: true,
+      },
+      {
+        kind: 'text' as const,
+        role: 'dimension' as const,
+        at: { x: 15, y: 7 },
+        text: '30"',
+        anchor: 'middle' as const,
+      },
+      {
+        kind: 'polygon' as const,
+        role: 'zone' as const,
+        points: [
+          { x: 0, y: -10 },
+          { x: 40, y: -10 },
+          { x: 40, y: -8 },
+        ],
+        fill: 'zone' as const,
+      },
+      {
+        kind: 'letter' as const,
+        at: { x: 45, y: -2 },
+        target: { x: 20, y: -2 },
+        letter: 'B',
+        part: { partId: 'leg', instance: 0, letter: 'B' },
+      },
+    ],
+  };
+  const html = render(
+    <Diagram drawing={drawing} label="Sample drawing" describedBy="cut-list" assumedWidth={400} />,
+  );
+
+  it('is one image with a short label and a long description', () => {
+    expect(html).toContain('role="img"');
+    expect(html).toContain('aria-label="Sample drawing"');
+    expect(html).toContain('aria-describedby="cut-list"');
+  });
+
+  it('gives each shape its role and tone, for the line and diagram tokens', () => {
+    expect(html).toContain('data-role="hidden"');
+    expect(html).toContain('data-fill="2"');
+    expect(html).toContain('data-outline="none"');
+    expect(html).toContain('data-part="leg"');
+    // Zones are tinted on screen and hatched on paper.
+    expect(html).toContain('class="k-hatch"');
+  });
+
+  it('draws arrowheads on dimension lines, and keeps text at least 13 px wide drawings or narrow', () => {
+    expect(html.match(/class="k-arrow"/g)).toHaveLength(2);
+    // 400 px for 40 units: 0.1 unit per px, so 14 px text is 1.4 units.
+    expect(html).toMatch(/font-size="1.4(000000000000001)?"/);
+  });
+
+  it('highlights the selected part, and leaves others alone', () => {
+    const selected = render(
+      <Diagram drawing={drawing} label="Sample" selected="leg" assumedWidth={400} />,
+    );
+    expect(selected.match(/data-selected=""/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(html).not.toContain('data-selected');
+  });
+
+  it('puts part letters in one column on the left in a narrow container (the phone layout)', () => {
+    const wide = render(<Diagram drawing={drawing} label="Sample" assumedWidth={600} />);
+    const narrow = render(<Diagram drawing={drawing} label="Sample" assumedWidth={320} />);
+    const letterX = (h: string) => Number(/<rect class="k-letter__box" x="([-\d.]+)"/.exec(h)?.[1]);
+    expect(letterX(wide)).toBeGreaterThan(40);
+    expect(letterX(narrow)).toBeLessThan(0);
+  });
+
+  it('keeps a long drawing at its minimum width on a phone, to scroll sideways', () => {
+    const phone = render(
+      <Diagram drawing={drawing} label="Sample" assumedWidth={343} minWidth={560} />,
+    );
+    expect(phone).toContain('--diagram-width:560px');
+  });
+
+  it('lists the notes, such as sources, under the drawing', () => {
+    expect(renderText(<Diagram drawing={drawing} label="Sample" />)).toContain(
+      'Clear area: handbook, p. 2.',
+    );
   });
 });

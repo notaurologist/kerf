@@ -392,6 +392,11 @@
     font-weight: 400;
   }
 
+  /* The part selected in a drawing (#91): the drawing's highlight color, and the pressed button. */
+  .k-table tr[data-selected] {
+    background: var(--highlight);
+  }
+
   .k-margin[data-changed],
   .k-table tr[data-changed] > :first-child {
     box-shadow: inset 3px 0 0 var(--accent);
@@ -624,8 +629,14 @@
   }
 
   .k-diagram svg {
-    inline-size: 100%;
+    inline-size: var(--diagram-width, 100%);
+    max-inline-size: none;
     block-size: auto;
+  }
+
+  /* A drawing kept wider than a phone scrolls sideways within its own box. */
+  .k-diagram-wrap {
+    overflow-x: auto;
   }
 
   .k-diagram svg * {
@@ -634,6 +645,157 @@
 
   .k-diagram figcaption {
     font-size: var(--size--1);
+  }
+
+  /* ---------- Drawings (#91): roles to tokens, from the drawing standard (#44) ---------- */
+  .k-diagram svg {
+    font-family: var(--font-text);
+  }
+
+  .k-shape {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: var(--line-visible);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .k-shape[data-fill="1"] {
+    fill: var(--tone-1);
+  }
+
+  .k-shape[data-fill="2"] {
+    fill: var(--tone-2);
+  }
+
+  .k-shape[data-fill="3"] {
+    fill: var(--tone-3);
+  }
+
+  .k-shape[data-fill="1"][data-selected] {
+    fill: var(--highlight-1);
+  }
+
+  .k-shape[data-fill="2"][data-selected] {
+    fill: var(--highlight-2);
+  }
+
+  .k-shape[data-fill="3"][data-selected] {
+    fill: var(--highlight-3);
+  }
+
+  .k-shape[data-fill="zone"] {
+    fill: var(--zone);
+  }
+
+  .k-shape[data-outline="none"] {
+    stroke: none;
+  }
+
+  .k-shape[data-role="visible"][data-selected] {
+    stroke-width: var(--line-selected);
+  }
+
+  .k-shape[data-part] {
+    cursor: pointer;
+  }
+
+  .k-shape[data-role="hidden"] {
+    stroke: var(--hidden);
+    stroke-width: var(--line-hidden);
+    stroke-dasharray: var(--dash-hidden);
+  }
+
+  .k-shape[data-role="center"] {
+    stroke-width: var(--line-center);
+    stroke-dasharray: var(--dash-center);
+  }
+
+  .k-shape[data-role="phantom"] {
+    stroke: var(--hidden);
+    stroke-width: var(--line-phantom);
+    stroke-dasharray: var(--dash-phantom);
+  }
+
+  .k-shape[data-role="dimension"],
+  .k-shape[data-role="extension"] {
+    stroke: var(--dim);
+    stroke-width: var(--line-dimension);
+  }
+
+  .k-shape[data-role="leader"] {
+    stroke-width: var(--line-leader);
+  }
+
+  .k-shape[data-role="guideline"] {
+    stroke: var(--hidden);
+    stroke-width: var(--line-guideline);
+    stroke-dasharray: var(--dash-guideline);
+  }
+
+  .k-shape[data-role="break"] {
+    stroke-width: var(--line-break);
+  }
+
+  .k-shape[data-role="grade"] {
+    stroke-width: var(--line-grade);
+  }
+
+  .k-shape[data-role="zone"] {
+    stroke: var(--zone-line);
+    stroke-width: var(--line-zone);
+    stroke-dasharray: var(--dash-zone);
+  }
+
+  .k-arrow {
+    fill: var(--dim);
+  }
+
+  /* Text in the page color's halo, so lines never cross it. */
+  .k-text {
+    fill: var(--ink);
+    paint-order: stroke;
+    stroke: var(--bg);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+
+  .k-text[data-role="dimension"] {
+    fill: var(--dim);
+    font-weight: 600;
+  }
+
+  .k-letter {
+    cursor: pointer;
+  }
+
+  .k-letter__dot,
+  .k-letter__box {
+    fill: var(--ink);
+  }
+
+  .k-letter[data-selected] .k-letter__box {
+    fill: var(--dim);
+  }
+
+  .k-letter__text {
+    fill: var(--bg);
+    font-weight: 700;
+  }
+
+  /* Zones are tinted on screen and hatched on paper. */
+  .k-hatch {
+    display: none;
+  }
+
+  .k-hatch__line {
+    stroke: var(--zone-line);
+    stroke-width: 1px;
+  }
+
+  .k-diagram__notes {
+    font-size: var(--size--1);
+    padding-inline-start: var(--space-m);
   }
 }
 

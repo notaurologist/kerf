@@ -1,4 +1,4 @@
-import { findTemplate, type Plan } from '@kerf/core';
+import { findTemplate, geometry, type Plan } from '@kerf/core';
 import type { Project } from './types.ts';
 
 // A stored project's outputs as a Plan, parsed with its template's schema (hard rule 8). The
@@ -25,4 +25,13 @@ export function planOf(templateId: string, outputs: unknown): PlanResult {
     return { ok: false, message: 'The plan the server sent does not match this template’s shape.' };
   }
   return { ok: true, plan: template.plan(parsed.data) };
+}
+
+/**
+ * The plan's drawings from the API (#91), parsed with core's schema (hard rule 8). Null when
+ * the API sent none, as for a plan whose snapshot cannot be read.
+ */
+export function readDrawings(project: Project): geometry.Drawings | null {
+  const parsed = geometry.Drawings.safeParse(project.drawings);
+  return parsed.success ? parsed.data : null;
 }

@@ -71,31 +71,42 @@ export function drawings(outputs: SwingSetOutputs): Drawings {
   const beam = design.parts.find((x) => x.id === 'beam');
   const beamWidth = (beam?.stock.thickness ?? 0) * (beam?.quantity ?? 1);
   return {
-    isometric: has3d ? isometricView(scene, VIEW) : null,
-    exploded: has3d ? explodedView(scene, VIEW, explode) : null,
+    isometric: has3d ? isometricView(scene, VIEW, 'The swing set, assembled.') : null,
+    exploded: has3d
+      ? explodedView(
+          scene,
+          VIEW,
+          explode,
+          'The beam lifted, and the crossbars and gussets pulled out along the beam, with guidelines to where each goes.',
+        )
+      : null,
     cutDetails: design.parts.map((part) => cutDetail(part)),
-    siteLayout: planView(areas, [
-      {
-        role: 'visible',
-        points: [
-          { x: 0, y: beamWidth / 2 },
-          { x: p.beamLength, y: beamWidth / 2 },
-        ],
-      },
-      {
-        role: 'visible',
-        points: [
-          { x: 0, y: -beamWidth / 2 },
-          { x: p.beamLength, y: -beamWidth / 2 },
-        ],
-      },
-      ...design.swings.seats.map((s) => ({
-        role: 'phantom' as const,
-        points: [
-          { x: s.xMin, y: 0 },
-          { x: s.xMax, y: 0 },
-        ],
-      })),
-    ]),
+    siteLayout: planView(
+      areas,
+      [
+        {
+          role: 'visible',
+          points: [
+            { x: 0, y: beamWidth / 2 },
+            { x: p.beamLength, y: beamWidth / 2 },
+          ],
+        },
+        {
+          role: 'visible',
+          points: [
+            { x: 0, y: -beamWidth / 2 },
+            { x: p.beamLength, y: -beamWidth / 2 },
+          ],
+        },
+        ...design.swings.seats.map((s) => ({
+          role: 'phantom' as const,
+          points: [
+            { x: s.xMin, y: 0 },
+            { x: s.xMax, y: 0 },
+          ],
+        })),
+      ],
+      "Site plan, front at the bottom: the clear area and swing zones around the frame's footprint.",
+    ),
   };
 }

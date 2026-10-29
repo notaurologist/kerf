@@ -19,7 +19,7 @@ export interface PlanArea {
   dimensioned?: boolean;
 }
 
-/** Template-space lines to add, such as the beam (visible) or seats (phantom). */
+/** Template-space lines to add: parts seen from above (visible) or things not built (phantom). */
 export interface PlanLine {
   role: 'visible' | 'phantom';
   points: { x: number; y: number }[];
@@ -33,6 +33,7 @@ const distance = (inches: number) =>
 export function planView(
   areas: readonly PlanArea[],
   lines: readonly PlanLine[],
+  description: string,
   title = 'Site layout',
 ): Drawing {
   const page = (x: number, y: number): Point2 => ({ x, y: -y });
@@ -58,14 +59,28 @@ export function planView(
   // Labels at each area's top left, inside it.
   const span = Math.max(...areas.map((a) => a.xMax - a.xMin), 1);
   const inset = span * 0.015;
+  // An area much taller than wide is labeled along its length, reading
+  // upward from its bottom, so neighbors' labels do not run into each other.
   for (const a of areas) {
-    prims.push({
-      kind: 'text',
-      role: 'label',
-      at: { x: a.xMin + inset, y: -a.yMax + 3 * inset },
-      text: a.label,
-      anchor: 'start',
-    });
+    const tall = a.yMax - a.yMin > 4 * (a.xMax - a.xMin);
+    prims.push(
+      tall
+        ? {
+            kind: 'text',
+            role: 'label',
+            at: { x: (a.xMin + a.xMax) / 2, y: -a.yMin - 3 * inset },
+            text: a.label,
+            anchor: 'start',
+            rotate: -90,
+          }
+        : {
+            kind: 'text',
+            role: 'label',
+            at: { x: a.xMin + inset, y: -a.yMax + 3 * inset },
+            text: a.label,
+            anchor: 'start',
+          },
+    );
   }
   // Width below and depth to the right of each dimensioned area, stepping outward.
   let below = Math.max(...areas.map((a) => -a.yMin));
@@ -139,5 +154,11 @@ export function planView(
   const sources = [
     ...new Set(areas.flatMap((a) => (a.source ? [`${a.label}: ${a.source}.`] : []))),
   ];
-  return { title, bounds: boundsOf(prims, 6 * inset), primitives: prims, notes: sources };
+  return {
+    title,
+    description,
+    bounds: boundsOf(prims, 6 * inset),
+    primitives: prims,
+    notes: sources,
+  };
 }
