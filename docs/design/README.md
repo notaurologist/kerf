@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stage 6 (#45), the design system, is next.
+Status: in progress. Stages 5a (#67) and 5b (#68) are next; the design system (#45) builds on them.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -12,7 +12,10 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 3. Typography | #42 | Decided October 2026 | `typography.html` |
 | 4. Color | #43 | Decided October 2026 | `color.html` |
 | 5. Diagram language | #44 | Decided October 2026 | `diagrams.html` |
-| 6. Design system | #45 | Next | |
+| 5a. Number entry and form states | #67 | Next | |
+| 5b. Words | #68 | Next | |
+| 6. Design system | #45 | Blocked by #67 and #68 | |
+| 7. A repeatable garage check | #69 | Blocked by #45 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
 
