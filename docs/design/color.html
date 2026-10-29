@@ -1,0 +1,725 @@
+<title>Kerf Color</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+.pal-C1-light { --bg: #fbf9f5; --raised: #fff; --sunken: #f2efe9; --text: #1a1d23; --muted: #545860; --border: #d7d4ce; --border-strong: #70757c; --accent: #0e5caf; --on-accent: #fff; --focus: #1570d1; --flag-bg: #ffe8be; --flag-border: #bb7400; --flag-text: #5b3106; --input-bg: #fff; --input-border: #2e64a6; --input-text: #0e4786; --done: #0e5caf; --error: #aa295f; --error-bg: #ffebf1; --ink: #1a1d23; --dim: #0e5caf; --hidden: #6e7278; --highlight: #bfe1ff; --zone: #dbeede; --zone-line: #488055; }
+.pal-C1-dark { --bg: #111418; --raised: #1a1d23; --sunken: #0b0d12; --text: #edebe7; --muted: #aaaeb4; --border: #2f3339; --border-strong: #82868e; --accent: #70b3f7; --on-accent: #0c121a; --focus: #73bdff; --flag-bg: #3e290f; --flag-border: #dea143; --flag-text: #f7dba1; --input-bg: #1a1d23; --input-border: #6da9e7; --input-text: #97c9fd; --done: #70b3f7; --error: #ea7ca1; --error-bg: #3d1e28; --ink: #edebe7; --dim: #70b3f7; --hidden: #83868c; --highlight: #1d456b; --zone: #1e2d21; --zone-line: #75ae81; }
+.pal-C2-light { --bg: #f2f7fd; --raised: #fff; --sunken: #e4ecf5; --text: #141f32; --muted: #49596e; --border: #c5d3e1; --border-strong: #5a7394; --accent: #0e49bc; --on-accent: #fff; --focus: #2867e4; --flag-bg: #ffe3cc; --flag-border: #da6600; --flag-text: #762f06; --input-bg: #fff; --input-border: #0e49bc; --input-text: #1043a8; --done: #0e49bc; --error: #ad215f; --error-bg: #ffebf1; --ink: #141f32; --dim: #0e49bc; --hidden: #6b7c92; --highlight: #c2dcff; --zone: #d7eaff; --zone-line: #497eb3; }
+.pal-C2-dark { --bg: #0c2352; --raised: #122d62; --sunken: #061a42; --text: #f0f6fc; --muted: #b1c7de; --border: #2c4678; --border-strong: #8ca7ca; --accent: #9be4fc; --on-accent: #071e4c; --focus: #87f2f8; --flag-bg: #5e2f11; --flag-border: #ffa659; --flag-text: #ffe2bd; --input-bg: #122d62; --input-border: #91dbf2; --input-text: #aaeafe; --done: #9be4fc; --error: #fb93b4; --error-bg: #522434; --ink: #f0f6fc; --dim: #9be4fc; --hidden: #90a7c4; --highlight: #2e5297; --zone: #033761; --zone-line: #8ac9dd; }
+.pal-C3-light { --bg: #fff; --raised: #fff; --sunken: #f0f0f0; --text: #0b0b0b; --muted: #424242; --border: #bebebe; --border-strong: #2e2e2e; --accent: #0b0b0b; --on-accent: #fff; --focus: #f76400; --flag-bg: #fcde3d; --flag-border: #0b0b0b; --flag-text: #0b0b0b; --input-bg: #fff; --input-border: #e34d00; --input-text: #a33000; --done: #e34d00; --error: #a90959; --error-bg: #ffebf1; --ink: #0b0b0b; --dim: #c73800; --hidden: #717171; --highlight: #ffc894; --zone: #ebebeb; --zone-line: #555; }
+.pal-C3-dark { --bg: #070707; --raised: #121212; --sunken: #030303; --text: #f8f8f8; --muted: #bebebe; --border: #333; --border-strong: #b7b7b7; --accent: #f8f8f8; --on-accent: #070707; --focus: #ff862e; --flag-bg: #f4ce23; --flag-border: #f4ce23; --flag-text: #070707; --input-bg: #121212; --input-border: #ff893b; --input-text: #ffa460; --done: #ff893b; --error: #f275a0; --error-bg: #401b28; --ink: #f8f8f8; --dim: #ff9b50; --hidden: #868686; --highlight: #6f3600; --zone: #1b1b1b; --zone-line: #a4a4a4; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@200..800&display=swap">
+<style>
+/* Specimens take every color from their palette's tokens (.pal-ID-MODE); nothing here is page chrome. */
+.pairs { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(330px, 100%), 1fr)); }
+.spec { font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif; background: var(--bg); color: var(--text); border-radius: 8px; padding: 14px; display: grid; gap: 14px; border: 1px solid var(--border); min-width: 0; font-size: 16px; line-height: 1.35; }
+.spec .spec-mode { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.spec .len { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.spec .lab { display: block; font-size: 14px; color: var(--muted); }
+.spec .card { background: var(--raised); border: 1px solid var(--border); border-radius: 6px; padding: 12px; display: grid; gap: 10px; }
+.spec .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.spec .title { font-size: 20px; }
+.spec .tag { border: 1px solid var(--border-strong); border-radius: 10px; padding: 0 8px; font-size: 13px; color: var(--muted); }
+.spec .keys { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.spec .keys > div { background: var(--sunken); border-radius: 4px; padding: 8px; }
+.spec .flag { display: flex; gap: 8px; align-items: flex-start; background: var(--flag-bg); color: var(--flag-text); border: 2px solid var(--flag-border); border-radius: 4px; padding: 8px 10px; }
+.spec .flag > div { display: grid; gap: 2px; }
+.spec .flag .k { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+.spec .ico { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.spec .check { display: grid; gap: 2px; border-top: 1px solid var(--border); padding-top: 8px; }
+.spec .check a { color: var(--accent); font-size: 14px; }
+.spec .needed { display: grid; gap: 2px; border: 2px dashed var(--input-border); background: var(--input-bg); color: var(--input-text); border-radius: 4px; padding: 8px 10px; }
+.spec .needed .k { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+.spec .flab { display: block; }
+.spec .field { display: grid; gap: 3px; font-size: 14px; }
+.spec .in { height: 30px; border: 1.5px solid var(--border-strong); border-radius: 4px; background: var(--raised); }
+.spec .in.bad { border: 2px solid var(--error); }
+.spec .err { color: var(--error); font-weight: 600; }
+.spec .err::before { content: "! "; }
+.spec .btn { justify-self: start; background: var(--accent); color: var(--on-accent); border-radius: 6px; padding: 8px 14px; font-weight: 700; outline: 2px solid var(--focus); outline-offset: 2px; }
+.spec .btn.wide { justify-self: stretch; text-align: center; padding: 14px; outline: 0; }
+.spec .step { border-radius: 6px; overflow: hidden; border: 1px solid var(--border); background: var(--raised); }
+.spec .modebar { background: var(--text); color: var(--bg); display: flex; justify-content: space-between; padding: 8px 12px; }
+.spec .stepbody { padding: 12px; display: grid; gap: 10px; }
+.spec .read { font-size: 20px; }
+.spec .glance { font-size: 51px; line-height: 1; }
+.spec .pair { display: grid; grid-template-columns: 1.2fr 1fr; gap: 8px; }
+.spec .pair > div { border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; }
+.spec .pair > div.box { border: 2px solid var(--text); }
+.spec .saw { font-size: 32px; font-variant-numeric: tabular-nums; }
+.spec .edge { font-size: 20px; font-variant-numeric: tabular-nums; }
+.spec .done { display: flex; gap: 8px; align-items: center; color: var(--text); }
+.spec .tick { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 4px; background: var(--done); color: var(--on-accent); font-weight: 700; }
+.spec .diagram { background: var(--raised); border: 1px solid var(--border); border-radius: 6px; width: 100%; height: auto; }
+.spec .diagram .part { fill: none; stroke: var(--ink); stroke-width: 2; }
+.spec .diagram .hl { fill: var(--highlight); stroke: var(--ink); stroke-width: 2.5; }
+.spec .diagram .hid { stroke: var(--hidden); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.spec .diagram .dimline { stroke: var(--dim); stroke-width: 1.2; }
+.spec .diagram .dimtext { fill: var(--dim); font: 600 12px "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+.spec .diagram .zonefill { fill: var(--zone); }
+.spec .diagram .zoneedge { stroke: var(--zone-line); stroke-width: 1.5; stroke-dasharray: 8 4; }
+.spec .diagram .zonetext { fill: var(--zone-line); font: 600 11px "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+.spec .diagram .note { fill: var(--muted); font: 11px "Atkinson Hyperlegible Next", system-ui, sans-serif; }
+.swatches { display: grid; gap: 6px; }
+.sw-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: stretch; }
+.sw-mode { width: 3.2em; font-size: var(--step--1); color: var(--muted); align-self: center; }
+.sw { width: 30px; height: 30px; border-radius: 4px; border: 1px solid var(--line); position: relative; }
+.sw i { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.sims { position: relative; }
+.sims .pairs { position: relative; }
+.sims.gray .pairs { filter: grayscale(1); }
+.sims.deutan .pairs { filter: url(#deutan); }
+.sims.protan .pairs { filter: url(#protan); }
+.sims .pairs::after { content: ""; position: absolute; inset: 0; background: rgb(255 255 255 / var(--glare, 0)); pointer-events: none; border-radius: 8px; }
+.ctab { border-collapse: collapse; width: 100%; min-width: 620px; background: var(--wf-bg); font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+.ctab th, .ctab td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; }
+.ctab th:first-child, .ctab td:first-child { text-align: left; }
+.ctab th { color: var(--muted); font-size: var(--step--1); font-weight: 600; background: var(--paper); }
+.ctab td.low { color: var(--notmet); font-weight: 700; }
+.ctab .apca { display: block; font-size: 0.75rem; color: var(--muted); }
+details summary { cursor: pointer; color: var(--blue); font-size: var(--step--1); }
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--paper); border: 0; border-bottom: 1px solid var(--line); margin: 0; padding-inline: 0; padding-block: 10px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; min-width: 0; }
+.controls legend { float: left; font-size: var(--step--1); font-weight: 700; margin-right: 8px; }
+.controls label { display: flex; gap: 6px; align-items: center; font-size: var(--step--1); }
+.rolestab { border-collapse: collapse; width: 100%; min-width: 600px; background: var(--wf-bg); font-size: 0.9rem; }
+.rolestab th, .rolestab td { padding: 7px 9px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.rolestab th { color: var(--muted); font-size: var(--step--1); font-weight: 600; background: var(--paper); }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="deutan"><feColorMatrix type="matrix" values="0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.011820 0.042940 0.968881 0 0  0 0 0 1 0"/></filter>
+  <filter id="protan"><feColorMatrix type="matrix" values="0.152286 1.052583 -0.204868 0 0  0.114503 0.786281 0.099216 0 0  -0.003882 -0.048116 1.051998 0 0  0 0 0 1 0"/></filter>
+</svg>
+
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #43</p>
+  <h1>Color</h1>
+  <div class="prose stack">
+    <p>A palette with named roles, in light and dark, for text, surfaces, controls, flags, margins, input-needed states, and diagram ink. Every pairing is measured. Each direction is shown on the plan, a shop step, and a diagram, in Atkinson Hyperlegible (#42).</p>
+    <p>Kerf has a rule that shapes all of this: results are margins, never verdicts (hard rule 2). Red and green read as fail and pass, and red is the conventional color of danger, so neither appears near a structural result.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">What I need from you</h2>
+  <p>Three choices. My suggestion is first in each. A reply like <span class="pick" style="white-space: normal">C1, follow the device, rules as written</span> is enough.</p>
+  <ol>
+    <li><a href="#directions">Palette</a>: <span class="pick">C1</span> graphite and chalk line, <span class="pick">C2</span> layout blue, or <span class="pick">C3</span> high-visibility.</li>
+    <li><a href="#theme">Light and dark</a>: <span class="pick">follow the device</span>, always dark in the shop modes, or a switch in the app (which needs a stored setting).</li>
+    <li><a href="#rules">Rules for color</a>: approve the six rules, or change them.</li>
+  </ol>
+  <p class="small">Best checked on your phone in the garage, and once printed on a black-and-white printer. The controls above the directions simulate grayscale print, the two common forms of red-green color blindness, and glare.</p>
+</section>
+
+<!-- ============================== RULES ============================== -->
+<section id="rules" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Rules</p>
+    <h2>What color may and may not say</h2>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>1 · Margins have no color</b><p>A margin is shown in the text color, always with "under these assumptions". Coloring 1.1x differently from 3.5x would draw a line between acceptable and not, which is a verdict Kerf does not make.</p></div>
+    <div class="opt"><b>2 · No red or green near structural results</b><p>Red is the color of danger in safety signage (ANSI Z535), and red and green read as fail and pass. Errors are crimson and appear only beside form fields; progress uses the accent, not green.</p></div>
+    <div class="opt"><b>3 · Flags are amber, with an icon and a label</b><p>A flag means "ask an experienced builder", so it gets an attention color in the caution family, never danger red. It always carries a flag icon, a border, and the words "Expert check", so it reads in grayscale and to color-blind eyes.</p></div>
+    <div class="opt"><b>4 · Input needed is not an error</b><p>A missing structural input is a question, not a mistake: a dashed accent outline and the words "Input needed". Errors are reserved for values that cannot be used.</p></div>
+    <div class="opt"><b>5 · No secondary text in the shop modes</b><p>Measured under 20% glare, gray secondary text falls to 2.6 to 3.5:1 in C1 and C2. In Shopping and Building every word uses the main text color; hierarchy comes from size and weight.</p></div>
+    <div class="opt"><b>6 · Never color alone</b><p>Every state has a second signal: flags an icon and label, errors an icon and message, input needed a dashed outline and label, done a check mark, the selected part a heavier outline as well as a fill, and clearance zones a dashed edge and label (hatching in print, #44).</p></div>
+  </div>
+</section>
+
+<!-- ============================== DIRECTIONS ============================== -->
+<section id="directions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Palette</p>
+    <h2>Three directions, light and dark</h2>
+    <p class="prose">Built in OKLCH, so equal steps in lightness look equal, then mapped into sRGB so screens and printers show the same colors. All three meet WCAG 2.2 AA for every pairing listed, in both themes.</p>
+  </div>
+
+  <fieldset class="controls">
+    <legend>Simulate</legend>
+    <label for="sim-none"><input type="radio" name="sim" id="sim-none" value="" checked> Normal</label>
+    <label for="sim-gray"><input type="radio" name="sim" id="sim-gray" value="gray"> Grayscale print</label>
+    <label for="sim-deutan"><input type="radio" name="sim" id="sim-deutan" value="deutan"> Deuteranopia</label>
+    <label for="sim-protan"><input type="radio" name="sim" id="sim-protan" value="protan"> Protanopia</label>
+    <label for="glare">Glare <input id="glare" type="range" min="0" max="0.4" step="0.05" value="0"></label>
+  </fieldset>
+
+  <div class="sims" id="sims">
+    <div class="stack-lg">
+
+<article class="direction stack-lg" id="C1">
+  <header><p><span class="letter">C1</span> · Graphite and chalk line</p><h3>Warm paper, graphite text, one chalk-line blue</h3></header>
+  <div class="swatches"><div class="sw-row"><span class="sw-mode">Light</span><span class="sw" title="Page #fbf9f5" style="background:#fbf9f5"><i>Page</i></span><span class="sw" title="Card #fff" style="background:#fff"><i>Card</i></span><span class="sw" title="Text #1a1d23" style="background:#1a1d23"><i>Text</i></span><span class="sw" title="Secondary text #545860" style="background:#545860"><i>Secondary text</i></span><span class="sw" title="Accent #0e5caf" style="background:#0e5caf"><i>Accent</i></span><span class="sw" title="Flag fill #ffe8be" style="background:#ffe8be"><i>Flag fill</i></span><span class="sw" title="Flag edge #bb7400" style="background:#bb7400"><i>Flag edge</i></span><span class="sw" title="Input-needed edge #2e64a6" style="background:#2e64a6"><i>Input-needed edge</i></span><span class="sw" title="Error #aa295f" style="background:#aa295f"><i>Error</i></span><span class="sw" title="Zone fill #dbeede" style="background:#dbeede"><i>Zone fill</i></span><span class="sw" title="Selected part #bfe1ff" style="background:#bfe1ff"><i>Selected part</i></span></div><div class="sw-row"><span class="sw-mode">Dark</span><span class="sw" title="Page #111418" style="background:#111418"><i>Page</i></span><span class="sw" title="Card #1a1d23" style="background:#1a1d23"><i>Card</i></span><span class="sw" title="Text #edebe7" style="background:#edebe7"><i>Text</i></span><span class="sw" title="Secondary text #aaaeb4" style="background:#aaaeb4"><i>Secondary text</i></span><span class="sw" title="Accent #70b3f7" style="background:#70b3f7"><i>Accent</i></span><span class="sw" title="Flag fill #3e290f" style="background:#3e290f"><i>Flag fill</i></span><span class="sw" title="Flag edge #dea143" style="background:#dea143"><i>Flag edge</i></span><span class="sw" title="Input-needed edge #6da9e7" style="background:#6da9e7"><i>Input-needed edge</i></span><span class="sw" title="Error #ea7ca1" style="background:#ea7ca1"><i>Error</i></span><span class="sw" title="Zone fill #1e2d21" style="background:#1e2d21"><i>Zone fill</i></span><span class="sw" title="Selected part #1d456b" style="background:#1d456b"><i>Selected part</i></span></div></div>
+  <div class="pairs">
+<div class="spec pal-C1-light">
+  <p class="spec-mode">Light</p>
+  <div class="card">
+    <div class="row"><b class="title">Backyard swing set</b><span class="tag">Planned</span></div>
+    <div class="keys">
+      <div><span class="lab">Legs</span><b class="len">131-1/2"</b>, <b class="len">138-3/8"</b></div>
+      <div><span class="lab">Lowest margin</span><b>margin 1.1x</b></div>
+    </div>
+    <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check · Load-bearing</span><span>Confirm the burial depth (24") and that the leg lumber is rated for ground contact.</span></div></div>
+    <div class="check"><span><b>Bending</b> · Top beam, 4x6</span><span><b>margin 1.1x</b> under these assumptions</span><a href="#C1">Show the working</a></div>
+    <div class="needed"><span class="k">Input needed</span><span>Deflection limit (span divided by)</span></div>
+    <div class="field"><span class="flab">Beam length</span><span class="in bad"></span><span class="err">Enter the beam length.</span></div>
+    <span class="btn">Start building</span>
+  </div>
+  <div class="step">
+    <div class="modebar"><b>Building</b><span>Exit</span></div>
+    <div class="stepbody">
+      <span class="read">Cut the 2 back legs (uphill)</span>
+      <b class="glance len">131-1/2"</b>
+      <div class="pair"><div class="box"><span class="lab">Saw at</span><b class="saw">20.0°</b></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div>
+      <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check</span><span>Ground-contact lumber, 24" burial.</span></div></div>
+      <div class="done"><span class="tick">✓</span>Board 4 of 7 done</div>
+      <span class="btn wide">Done, next</span>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 300 190" role="img" aria-label="Sketch of a frame end view with a highlighted leg, a dimension, a hidden line, and a clearance zone">
+    <rect class="zonefill" x="8" y="150" width="284" height="34"/>
+    <line class="zoneedge" x1="8" y1="150" x2="292" y2="150"/>
+    <text class="zonetext" x="14" y="176">Clear area</text>
+    <polygon class="hl" points="148,30 156,30 222,150 214,150"/>
+    <polygon class="part" points="144,30 152,30 86,150 78,150"/>
+    <rect class="part" x="128" y="20" width="44" height="12"/>
+    <line class="hid" x1="104" y1="104" x2="196" y2="104"/>
+    <line class="dimline" x1="232" y1="30" x2="276" y2="150"/>
+    <line class="dimline" x1="226" y1="33" x2="238" y2="27"/>
+    <line class="dimline" x1="270" y1="153" x2="282" y2="147"/>
+    <text class="dimtext" x="256" y="84">131-1/2"</text>
+    <text class="note" x="10" y="16">sketch, not to scale</text>
+  </svg>
+</div>
+<div class="spec pal-C1-dark">
+  <p class="spec-mode">Dark</p>
+  <div class="card">
+    <div class="row"><b class="title">Backyard swing set</b><span class="tag">Planned</span></div>
+    <div class="keys">
+      <div><span class="lab">Legs</span><b class="len">131-1/2"</b>, <b class="len">138-3/8"</b></div>
+      <div><span class="lab">Lowest margin</span><b>margin 1.1x</b></div>
+    </div>
+    <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check · Load-bearing</span><span>Confirm the burial depth (24") and that the leg lumber is rated for ground contact.</span></div></div>
+    <div class="check"><span><b>Bending</b> · Top beam, 4x6</span><span><b>margin 1.1x</b> under these assumptions</span><a href="#C1">Show the working</a></div>
+    <div class="needed"><span class="k">Input needed</span><span>Deflection limit (span divided by)</span></div>
+    <div class="field"><span class="flab">Beam length</span><span class="in bad"></span><span class="err">Enter the beam length.</span></div>
+    <span class="btn">Start building</span>
+  </div>
+  <div class="step">
+    <div class="modebar"><b>Building</b><span>Exit</span></div>
+    <div class="stepbody">
+      <span class="read">Cut the 2 back legs (uphill)</span>
+      <b class="glance len">131-1/2"</b>
+      <div class="pair"><div class="box"><span class="lab">Saw at</span><b class="saw">20.0°</b></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div>
+      <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check</span><span>Ground-contact lumber, 24" burial.</span></div></div>
+      <div class="done"><span class="tick">✓</span>Board 4 of 7 done</div>
+      <span class="btn wide">Done, next</span>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 300 190" role="img" aria-label="Sketch of a frame end view with a highlighted leg, a dimension, a hidden line, and a clearance zone">
+    <rect class="zonefill" x="8" y="150" width="284" height="34"/>
+    <line class="zoneedge" x1="8" y1="150" x2="292" y2="150"/>
+    <text class="zonetext" x="14" y="176">Clear area</text>
+    <polygon class="hl" points="148,30 156,30 222,150 214,150"/>
+    <polygon class="part" points="144,30 152,30 86,150 78,150"/>
+    <rect class="part" x="128" y="20" width="44" height="12"/>
+    <line class="hid" x1="104" y1="104" x2="196" y2="104"/>
+    <line class="dimline" x1="232" y1="30" x2="276" y2="150"/>
+    <line class="dimline" x1="226" y1="33" x2="238" y2="27"/>
+    <line class="dimline" x1="270" y1="153" x2="282" y2="147"/>
+    <text class="dimtext" x="256" y="84">131-1/2"</text>
+    <text class="note" x="10" y="16">sketch, not to scale</text>
+  </svg>
+</div></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>A warm, faintly wood-toned paper, text the color of graphite, and one blue taken from a chalk line: the marks a woodworker already makes on a board. Amber flags and sage clearance zones are the only other hues.</dd>
+  <dt>Measured</dt>
+  <dd>Text on page 16.0:1 light and 15.5:1 dark; the lowest text pairing 5.6:1. Under 20% glare, text holds 4.6:1 (light) and 4.2:1 (dark); secondary text drops to 3.5 and 2.6, which is why rule 5 keeps it out of the shop modes.</dd>
+  <dt>Grayscale and color blindness</dt>
+  <dd>The accent sits clearly apart from text in lightness, so links survive a black-and-white printer. The flag's fill is close to the card in gray, so in print the flag relies on its border, icon, and label (rule 6). With deuteranopia the flag and accent stay far apart; the error and flag colors are the closest pair, and they never appear together.</dd>
+  <dt>Cost</dt>
+  <dd>Restrained. The character comes from type and layout more than color.</dd>
+</dl>
+</div>
+  <details><summary>Contrast for every pair, light and dark, with glare</summary><div class="req-wrap"><table class="ctab"><thead><tr><th>Foreground on background</th><th>Needs</th><th>Light</th><th>Dark</th><th>Light, 20% glare</th><th>Dark, 20% glare</th></tr></thead><tbody><tr><td>Text on page</td><td>4.5</td><td class="">16.04<span class="apca">Lc 100</span></td><td class="">15.49<span class="apca">Lc 94</span></td><td class="">4.57</td><td class="low">4.21</td></tr><tr><td>Text on card</td><td>4.5</td><td class="">16.89<span class="apca">Lc 104</span></td><td class="">14.16<span class="apca">Lc 93</span></td><td class="">4.77</td><td class="low">4.12</td></tr><tr><td>Text on inset</td><td>4.5</td><td class="">14.68<span class="apca">Lc 94</span></td><td class="">16.28<span class="apca">Lc 95</span></td><td class="low">4.24</td><td class="low">4.25</td></tr><tr><td>Secondary text on page</td><td>4.5</td><td class="">6.76<span class="apca">Lc 81</span></td><td class="">8.30<span class="apca">Lc 58</span></td><td class="low">3.45</td><td class="low">2.62</td></tr><tr><td>Secondary text on card</td><td>4.5</td><td class="">7.12<span class="apca">Lc 85</span></td><td class="">7.59<span class="apca">Lc 57</span></td><td class="low">3.60</td><td class="low">2.56</td></tr><tr><td>Accent on page</td><td>4.5</td><td class="">6.28<span class="apca">Lc 79</span></td><td class="">8.35<span class="apca">Lc 58</span></td><td class="low">3.34</td><td class="low">2.63</td></tr><tr><td>Accent on card</td><td>4.5</td><td class="">6.62<span class="apca">Lc 82</span></td><td class="">7.63<span class="apca">Lc 57</span></td><td class="low">3.49</td><td class="low">2.57</td></tr><tr><td>Text on accent on accent</td><td>4.5</td><td class="">6.62<span class="apca">Lc 87</span></td><td class="">8.50<span class="apca">Lc 60</span></td><td class="low">3.49</td><td class="low">2.64</td></tr><tr><td>Flag text on flag fill</td><td>4.5</td><td class="">9.26<span class="apca">Lc 83</span></td><td class="">10.18<span class="apca">Lc 82</span></td><td class="low">3.65</td><td class="low">3.54</td></tr><tr><td>Flag edge on page</td><td>3</td><td class="">3.56<span class="apca">Lc 61</span></td><td class="">8.15<span class="apca">Lc 57</span></td><td class="low">2.49</td><td class="low">2.58</td></tr><tr><td>Flag edge on card</td><td>3</td><td class="">3.75<span class="apca">Lc 65</span></td><td class="">7.45<span class="apca">Lc 56</span></td><td class="low">2.60</td><td class="low">2.53</td></tr><tr><td>Input-needed text on input-needed fill</td><td>4.5</td><td class="">9.29<span class="apca">Lc 91</span></td><td class="">9.73<span class="apca">Lc 70</span></td><td class="low">3.99</td><td class="low">3.07</td></tr><tr><td>Input-needed edge on page</td><td>3</td><td class="">5.72<span class="apca">Lc 76</span></td><td class="">7.49<span class="apca">Lc 53</span></td><td class="">3.20</td><td class="low">2.44</td></tr><tr><td>Error on page</td><td>4.5</td><td class="">6.27<span class="apca">Lc 78</span></td><td class="">6.96<span class="apca">Lc 50</span></td><td class="low">3.33</td><td class="low">2.32</td></tr><tr><td>Error on error fill</td><td>4.5</td><td class="">5.80<span class="apca">Lc 73</span></td><td class="">5.62<span class="apca">Lc 47</span></td><td class="low">3.12</td><td class="low">2.20</td></tr><tr><td>Done on card</td><td>3</td><td class="">6.62<span class="apca">Lc 82</span></td><td class="">7.63<span class="apca">Lc 57</span></td><td class="">3.49</td><td class="low">2.57</td></tr><tr><td>Focus ring on page</td><td>3</td><td class="">4.67<span class="apca">Lc 70</span></td><td class="">9.18<span class="apca">Lc 63</span></td><td class="low">2.89</td><td class="low">2.81</td></tr><tr><td>Focus ring on card</td><td>3</td><td class="">4.92<span class="apca">Lc 73</span></td><td class="">8.40<span class="apca">Lc 62</span></td><td class="">3.02</td><td class="low">2.75</td></tr><tr><td>Control edge on page</td><td>3</td><td class="">4.42<span class="apca">Lc 69</span></td><td class="">5.07<span class="apca">Lc 37</span></td><td class="low">2.81</td><td class="low">1.90</td></tr><tr><td>Control edge on card</td><td>3</td><td class="">4.65<span class="apca">Lc 72</span></td><td class="">4.64<span class="apca">Lc 36</span></td><td class="low">2.94</td><td class="low">1.86</td></tr><tr><td>Diagram ink on card</td><td>4.5</td><td class="">16.89<span class="apca">Lc 104</span></td><td class="">14.16<span class="apca">Lc 93</span></td><td class="">4.77</td><td class="low">4.12</td></tr><tr><td>Dimension on card</td><td>4.5</td><td class="">6.62<span class="apca">Lc 82</span></td><td class="">7.63<span class="apca">Lc 57</span></td><td class="low">3.49</td><td class="low">2.57</td></tr><tr><td>Hidden line on card</td><td>3</td><td class="">4.85<span class="apca">Lc 74</span></td><td class="">4.64<span class="apca">Lc 36</span></td><td class="">3.00</td><td class="low">1.86</td></tr><tr><td>Diagram ink on selected part</td><td>4.5</td><td class="">12.42<span class="apca">Lc 84</span></td><td class="">8.38<span class="apca">Lc 84</span></td><td class="low">3.71</td><td class="low">3.54</td></tr><tr><td>Zone edge on card</td><td>3</td><td class="">4.65<span class="apca">Lc 72</span></td><td class="">6.56<span class="apca">Lc 50</span></td><td class="low">2.94</td><td class="low">2.32</td></tr><tr><td>Diagram ink on zone fill</td><td>4.5</td><td class="">13.89<span class="apca">Lc 91</span></td><td class="">12.10<span class="apca">Lc 91</span></td><td class="low">4.06</td><td class="low">3.96</td></tr></tbody></table></div><p class="small muted">WCAG 2.2 contrast ratio, with the APCA lightness contrast (Lc) for reference. Red cells fall under the minimum. "20% glare" adds a veil of 20% of white luminance to both colors, as reflected light on the screen does.</p></details>
+</article>
+
+<article class="direction stack-lg" id="C2">
+  <header><p><span class="letter">C2</span> · Layout blue</p><h3>Cool blue throughout; a blueprint at night</h3></header>
+  <div class="swatches"><div class="sw-row"><span class="sw-mode">Light</span><span class="sw" title="Page #f2f7fd" style="background:#f2f7fd"><i>Page</i></span><span class="sw" title="Card #fff" style="background:#fff"><i>Card</i></span><span class="sw" title="Text #141f32" style="background:#141f32"><i>Text</i></span><span class="sw" title="Secondary text #49596e" style="background:#49596e"><i>Secondary text</i></span><span class="sw" title="Accent #0e49bc" style="background:#0e49bc"><i>Accent</i></span><span class="sw" title="Flag fill #ffe3cc" style="background:#ffe3cc"><i>Flag fill</i></span><span class="sw" title="Flag edge #da6600" style="background:#da6600"><i>Flag edge</i></span><span class="sw" title="Input-needed edge #0e49bc" style="background:#0e49bc"><i>Input-needed edge</i></span><span class="sw" title="Error #ad215f" style="background:#ad215f"><i>Error</i></span><span class="sw" title="Zone fill #d7eaff" style="background:#d7eaff"><i>Zone fill</i></span><span class="sw" title="Selected part #c2dcff" style="background:#c2dcff"><i>Selected part</i></span></div><div class="sw-row"><span class="sw-mode">Dark</span><span class="sw" title="Page #0c2352" style="background:#0c2352"><i>Page</i></span><span class="sw" title="Card #122d62" style="background:#122d62"><i>Card</i></span><span class="sw" title="Text #f0f6fc" style="background:#f0f6fc"><i>Text</i></span><span class="sw" title="Secondary text #b1c7de" style="background:#b1c7de"><i>Secondary text</i></span><span class="sw" title="Accent #9be4fc" style="background:#9be4fc"><i>Accent</i></span><span class="sw" title="Flag fill #5e2f11" style="background:#5e2f11"><i>Flag fill</i></span><span class="sw" title="Flag edge #ffa659" style="background:#ffa659"><i>Flag edge</i></span><span class="sw" title="Input-needed edge #91dbf2" style="background:#91dbf2"><i>Input-needed edge</i></span><span class="sw" title="Error #fb93b4" style="background:#fb93b4"><i>Error</i></span><span class="sw" title="Zone fill #033761" style="background:#033761"><i>Zone fill</i></span><span class="sw" title="Selected part #2e5297" style="background:#2e5297"><i>Selected part</i></span></div></div>
+  <div class="pairs">
+<div class="spec pal-C2-light">
+  <p class="spec-mode">Light</p>
+  <div class="card">
+    <div class="row"><b class="title">Backyard swing set</b><span class="tag">Planned</span></div>
+    <div class="keys">
+      <div><span class="lab">Legs</span><b class="len">131-1/2"</b>, <b class="len">138-3/8"</b></div>
+      <div><span class="lab">Lowest margin</span><b>margin 1.1x</b></div>
+    </div>
+    <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check · Load-bearing</span><span>Confirm the burial depth (24") and that the leg lumber is rated for ground contact.</span></div></div>
+    <div class="check"><span><b>Bending</b> · Top beam, 4x6</span><span><b>margin 1.1x</b> under these assumptions</span><a href="#C2">Show the working</a></div>
+    <div class="needed"><span class="k">Input needed</span><span>Deflection limit (span divided by)</span></div>
+    <div class="field"><span class="flab">Beam length</span><span class="in bad"></span><span class="err">Enter the beam length.</span></div>
+    <span class="btn">Start building</span>
+  </div>
+  <div class="step">
+    <div class="modebar"><b>Building</b><span>Exit</span></div>
+    <div class="stepbody">
+      <span class="read">Cut the 2 back legs (uphill)</span>
+      <b class="glance len">131-1/2"</b>
+      <div class="pair"><div class="box"><span class="lab">Saw at</span><b class="saw">20.0°</b></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div>
+      <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check</span><span>Ground-contact lumber, 24" burial.</span></div></div>
+      <div class="done"><span class="tick">✓</span>Board 4 of 7 done</div>
+      <span class="btn wide">Done, next</span>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 300 190" role="img" aria-label="Sketch of a frame end view with a highlighted leg, a dimension, a hidden line, and a clearance zone">
+    <rect class="zonefill" x="8" y="150" width="284" height="34"/>
+    <line class="zoneedge" x1="8" y1="150" x2="292" y2="150"/>
+    <text class="zonetext" x="14" y="176">Clear area</text>
+    <polygon class="hl" points="148,30 156,30 222,150 214,150"/>
+    <polygon class="part" points="144,30 152,30 86,150 78,150"/>
+    <rect class="part" x="128" y="20" width="44" height="12"/>
+    <line class="hid" x1="104" y1="104" x2="196" y2="104"/>
+    <line class="dimline" x1="232" y1="30" x2="276" y2="150"/>
+    <line class="dimline" x1="226" y1="33" x2="238" y2="27"/>
+    <line class="dimline" x1="270" y1="153" x2="282" y2="147"/>
+    <text class="dimtext" x="256" y="84">131-1/2"</text>
+    <text class="note" x="10" y="16">sketch, not to scale</text>
+  </svg>
+</div>
+<div class="spec pal-C2-dark">
+  <p class="spec-mode">Dark</p>
+  <div class="card">
+    <div class="row"><b class="title">Backyard swing set</b><span class="tag">Planned</span></div>
+    <div class="keys">
+      <div><span class="lab">Legs</span><b class="len">131-1/2"</b>, <b class="len">138-3/8"</b></div>
+      <div><span class="lab">Lowest margin</span><b>margin 1.1x</b></div>
+    </div>
+    <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check · Load-bearing</span><span>Confirm the burial depth (24") and that the leg lumber is rated for ground contact.</span></div></div>
+    <div class="check"><span><b>Bending</b> · Top beam, 4x6</span><span><b>margin 1.1x</b> under these assumptions</span><a href="#C2">Show the working</a></div>
+    <div class="needed"><span class="k">Input needed</span><span>Deflection limit (span divided by)</span></div>
+    <div class="field"><span class="flab">Beam length</span><span class="in bad"></span><span class="err">Enter the beam length.</span></div>
+    <span class="btn">Start building</span>
+  </div>
+  <div class="step">
+    <div class="modebar"><b>Building</b><span>Exit</span></div>
+    <div class="stepbody">
+      <span class="read">Cut the 2 back legs (uphill)</span>
+      <b class="glance len">131-1/2"</b>
+      <div class="pair"><div class="box"><span class="lab">Saw at</span><b class="saw">20.0°</b></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div>
+      <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check</span><span>Ground-contact lumber, 24" burial.</span></div></div>
+      <div class="done"><span class="tick">✓</span>Board 4 of 7 done</div>
+      <span class="btn wide">Done, next</span>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 300 190" role="img" aria-label="Sketch of a frame end view with a highlighted leg, a dimension, a hidden line, and a clearance zone">
+    <rect class="zonefill" x="8" y="150" width="284" height="34"/>
+    <line class="zoneedge" x1="8" y1="150" x2="292" y2="150"/>
+    <text class="zonetext" x="14" y="176">Clear area</text>
+    <polygon class="hl" points="148,30 156,30 222,150 214,150"/>
+    <polygon class="part" points="144,30 152,30 86,150 78,150"/>
+    <rect class="part" x="128" y="20" width="44" height="12"/>
+    <line class="hid" x1="104" y1="104" x2="196" y2="104"/>
+    <line class="dimline" x1="232" y1="30" x2="276" y2="150"/>
+    <line class="dimline" x1="226" y1="33" x2="238" y2="27"/>
+    <line class="dimline" x1="270" y1="153" x2="282" y2="147"/>
+    <text class="dimtext" x="256" y="84">131-1/2"</text>
+    <text class="note" x="10" y="16">sketch, not to scale</text>
+  </svg>
+</div></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>The deep blue of machinists' layout fluid and of blueprints. In dark, the whole screen becomes a blueprint: white lines on blue, with orange flags as the complement.</dd>
+  <dt>Measured</dt>
+  <dd>Text on page 15.3:1 light and 14.0:1 dark; the lowest text pairing 5.8:1. Under 20% glare text holds 4.5:1 and 4.3:1.</dd>
+  <dt>Grayscale and color blindness</dt>
+  <dd>The weakest of the three in dark: the accent is only slightly lighter than the text, so in gray links and buttons merge with text, and clearance zones almost vanish against the card. With deuteranopia, the error and flag colors come closest of any palette.</dd>
+  <dt>Cost</dt>
+  <dd>A saturated blue background is tiring for long reading, and the light theme reads as generic corporate blue.</dd>
+</dl>
+</div>
+  <details><summary>Contrast for every pair, light and dark, with glare</summary><div class="req-wrap"><table class="ctab"><thead><tr><th>Foreground on background</th><th>Needs</th><th>Light</th><th>Dark</th><th>Light, 20% glare</th><th>Dark, 20% glare</th></tr></thead><tbody><tr><td>Text on page</td><td>4.5</td><td class="">15.34<span class="apca">Lc 98</span></td><td class="">13.98<span class="apca">Lc 98</span></td><td class="low">4.47</td><td class="low">4.33</td></tr><tr><td>Text on card</td><td>4.5</td><td class="">16.47<span class="apca">Lc 103</span></td><td class="">12.24<span class="apca">Lc 96</span></td><td class="">4.74</td><td class="low">4.17</td></tr><tr><td>Text on inset</td><td>4.5</td><td class="">13.83<span class="apca">Lc 92</span></td><td class="">15.63<span class="apca">Lc 100</span></td><td class="low">4.10</td><td class="low">4.45</td></tr><tr><td>Secondary text on page</td><td>4.5</td><td class="">6.62<span class="apca">Lc 80</span></td><td class="">8.76<span class="apca">Lc 68</span></td><td class="low">3.39</td><td class="low">2.99</td></tr><tr><td>Secondary text on card</td><td>4.5</td><td class="">7.11<span class="apca">Lc 85</span></td><td class="">7.67<span class="apca">Lc 66</span></td><td class="low">3.60</td><td class="low">2.88</td></tr><tr><td>Accent on page</td><td>4.5</td><td class="">7.24<span class="apca">Lc 81</span></td><td class="">10.84<span class="apca">Lc 81</span></td><td class="low">3.52</td><td class="low">3.52</td></tr><tr><td>Accent on card</td><td>4.5</td><td class="">7.78<span class="apca">Lc 86</span></td><td class="">9.49<span class="apca">Lc 79</span></td><td class="low">3.73</td><td class="low">3.40</td></tr><tr><td>Text on accent on accent</td><td>4.5</td><td class="">7.78<span class="apca">Lc 91</span></td><td class="">11.51<span class="apca">Lc 81</span></td><td class="low">3.73</td><td class="low">3.58</td></tr><tr><td>Flag text on flag fill</td><td>4.5</td><td class="">7.86<span class="apca">Lc 78</span></td><td class="">8.96<span class="apca">Lc 83</span></td><td class="low">3.42</td><td class="low">3.54</td></tr><tr><td>Flag edge on page</td><td>3</td><td class="">3.33<span class="apca">Lc 58</span></td><td class="">7.89<span class="apca">Lc 62</span></td><td class="low">2.39</td><td class="low">2.77</td></tr><tr><td>Flag edge on card</td><td>3</td><td class="">3.58<span class="apca">Lc 63</span></td><td class="">6.91<span class="apca">Lc 61</span></td><td class="low">2.53</td><td class="low">2.67</td></tr><tr><td>Input-needed text on input-needed fill</td><td>4.5</td><td class="">8.78<span class="apca">Lc 89</span></td><td class="">10.08<span class="apca">Lc 83</span></td><td class="low">3.91</td><td class="low">3.56</td></tr><tr><td>Input-needed edge on page</td><td>3</td><td class="">7.24<span class="apca">Lc 81</span></td><td class="">9.85<span class="apca">Lc 75</span></td><td class="">3.52</td><td class="">3.27</td></tr><tr><td>Error on page</td><td>4.5</td><td class="">6.18<span class="apca">Lc 76</span></td><td class="">7.18<span class="apca">Lc 58</span></td><td class="low">3.29</td><td class="low">2.58</td></tr><tr><td>Error on error fill</td><td>4.5</td><td class="">5.83<span class="apca">Lc 72</span></td><td class="">5.96<span class="apca">Lc 55</span></td><td class="low">3.13</td><td class="low">2.45</td></tr><tr><td>Done on card</td><td>3</td><td class="">7.78<span class="apca">Lc 86</span></td><td class="">9.49<span class="apca">Lc 79</span></td><td class="">3.73</td><td class="">3.40</td></tr><tr><td>Focus ring on page</td><td>3</td><td class="">4.69<span class="apca">Lc 69</span></td><td class="">11.71<span class="apca">Lc 86</span></td><td class="low">2.88</td><td class="">3.74</td></tr><tr><td>Focus ring on card</td><td>3</td><td class="">5.04<span class="apca">Lc 74</span></td><td class="">10.25<span class="apca">Lc 84</span></td><td class="">3.06</td><td class="">3.61</td></tr><tr><td>Control edge on page</td><td>3</td><td class="">4.51<span class="apca">Lc 69</span></td><td class="">6.16<span class="apca">Lc 50</span></td><td class="low">2.83</td><td class="low">2.32</td></tr><tr><td>Control edge on card</td><td>3</td><td class="">4.84<span class="apca">Lc 74</span></td><td class="">5.39<span class="apca">Lc 48</span></td><td class="">3.00</td><td class="low">2.24</td></tr><tr><td>Diagram ink on card</td><td>4.5</td><td class="">16.47<span class="apca">Lc 103</span></td><td class="">12.24<span class="apca">Lc 96</span></td><td class="">4.74</td><td class="low">4.17</td></tr><tr><td>Dimension on card</td><td>4.5</td><td class="">7.78<span class="apca">Lc 86</span></td><td class="">9.49<span class="apca">Lc 79</span></td><td class="low">3.73</td><td class="low">3.40</td></tr><tr><td>Hidden line on card</td><td>3</td><td class="">4.27<span class="apca">Lc 70</span></td><td class="">5.39<span class="apca">Lc 48</span></td><td class="low">2.81</td><td class="low">2.24</td></tr><tr><td>Diagram ink on selected part</td><td>4.5</td><td class="">11.72<span class="apca">Lc 81</span></td><td class="">6.93<span class="apca">Lc 84</span></td><td class="low">3.59</td><td class="low">3.43</td></tr><tr><td>Zone edge on card</td><td>3</td><td class="">4.26<span class="apca">Lc 69</span></td><td class="">7.29<span class="apca">Lc 63</span></td><td class="low">2.80</td><td class="low">2.77</td></tr><tr><td>Diagram ink on zone fill</td><td>4.5</td><td class="">13.44<span class="apca">Lc 90</span></td><td class="">11.21<span class="apca">Lc 94</span></td><td class="low">4.01</td><td class="low">4.07</td></tr></tbody></table></div><p class="small muted">WCAG 2.2 contrast ratio, with the APCA lightness contrast (Lc) for reference. Red cells fall under the minimum. "20% glare" adds a veil of 20% of white luminance to both colors, as reflected light on the screen does.</p></details>
+</article>
+
+<article class="direction stack-lg" id="C3">
+  <header><p><span class="letter">C3</span> · High-visibility</p><h3>Black and white, with safety orange and caution yellow</h3></header>
+  <div class="swatches"><div class="sw-row"><span class="sw-mode">Light</span><span class="sw" title="Page #fff" style="background:#fff"><i>Page</i></span><span class="sw" title="Card #fff" style="background:#fff"><i>Card</i></span><span class="sw" title="Text #0b0b0b" style="background:#0b0b0b"><i>Text</i></span><span class="sw" title="Secondary text #424242" style="background:#424242"><i>Secondary text</i></span><span class="sw" title="Accent #0b0b0b" style="background:#0b0b0b"><i>Accent</i></span><span class="sw" title="Flag fill #fcde3d" style="background:#fcde3d"><i>Flag fill</i></span><span class="sw" title="Flag edge #0b0b0b" style="background:#0b0b0b"><i>Flag edge</i></span><span class="sw" title="Input-needed edge #e34d00" style="background:#e34d00"><i>Input-needed edge</i></span><span class="sw" title="Error #a90959" style="background:#a90959"><i>Error</i></span><span class="sw" title="Zone fill #ebebeb" style="background:#ebebeb"><i>Zone fill</i></span><span class="sw" title="Selected part #ffc894" style="background:#ffc894"><i>Selected part</i></span></div><div class="sw-row"><span class="sw-mode">Dark</span><span class="sw" title="Page #070707" style="background:#070707"><i>Page</i></span><span class="sw" title="Card #121212" style="background:#121212"><i>Card</i></span><span class="sw" title="Text #f8f8f8" style="background:#f8f8f8"><i>Text</i></span><span class="sw" title="Secondary text #bebebe" style="background:#bebebe"><i>Secondary text</i></span><span class="sw" title="Accent #f8f8f8" style="background:#f8f8f8"><i>Accent</i></span><span class="sw" title="Flag fill #f4ce23" style="background:#f4ce23"><i>Flag fill</i></span><span class="sw" title="Flag edge #f4ce23" style="background:#f4ce23"><i>Flag edge</i></span><span class="sw" title="Input-needed edge #ff893b" style="background:#ff893b"><i>Input-needed edge</i></span><span class="sw" title="Error #f275a0" style="background:#f275a0"><i>Error</i></span><span class="sw" title="Zone fill #1b1b1b" style="background:#1b1b1b"><i>Zone fill</i></span><span class="sw" title="Selected part #6f3600" style="background:#6f3600"><i>Selected part</i></span></div></div>
+  <div class="pairs">
+<div class="spec pal-C3-light">
+  <p class="spec-mode">Light</p>
+  <div class="card">
+    <div class="row"><b class="title">Backyard swing set</b><span class="tag">Planned</span></div>
+    <div class="keys">
+      <div><span class="lab">Legs</span><b class="len">131-1/2"</b>, <b class="len">138-3/8"</b></div>
+      <div><span class="lab">Lowest margin</span><b>margin 1.1x</b></div>
+    </div>
+    <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check · Load-bearing</span><span>Confirm the burial depth (24") and that the leg lumber is rated for ground contact.</span></div></div>
+    <div class="check"><span><b>Bending</b> · Top beam, 4x6</span><span><b>margin 1.1x</b> under these assumptions</span><a href="#C3">Show the working</a></div>
+    <div class="needed"><span class="k">Input needed</span><span>Deflection limit (span divided by)</span></div>
+    <div class="field"><span class="flab">Beam length</span><span class="in bad"></span><span class="err">Enter the beam length.</span></div>
+    <span class="btn">Start building</span>
+  </div>
+  <div class="step">
+    <div class="modebar"><b>Building</b><span>Exit</span></div>
+    <div class="stepbody">
+      <span class="read">Cut the 2 back legs (uphill)</span>
+      <b class="glance len">131-1/2"</b>
+      <div class="pair"><div class="box"><span class="lab">Saw at</span><b class="saw">20.0°</b></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div>
+      <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check</span><span>Ground-contact lumber, 24" burial.</span></div></div>
+      <div class="done"><span class="tick">✓</span>Board 4 of 7 done</div>
+      <span class="btn wide">Done, next</span>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 300 190" role="img" aria-label="Sketch of a frame end view with a highlighted leg, a dimension, a hidden line, and a clearance zone">
+    <rect class="zonefill" x="8" y="150" width="284" height="34"/>
+    <line class="zoneedge" x1="8" y1="150" x2="292" y2="150"/>
+    <text class="zonetext" x="14" y="176">Clear area</text>
+    <polygon class="hl" points="148,30 156,30 222,150 214,150"/>
+    <polygon class="part" points="144,30 152,30 86,150 78,150"/>
+    <rect class="part" x="128" y="20" width="44" height="12"/>
+    <line class="hid" x1="104" y1="104" x2="196" y2="104"/>
+    <line class="dimline" x1="232" y1="30" x2="276" y2="150"/>
+    <line class="dimline" x1="226" y1="33" x2="238" y2="27"/>
+    <line class="dimline" x1="270" y1="153" x2="282" y2="147"/>
+    <text class="dimtext" x="256" y="84">131-1/2"</text>
+    <text class="note" x="10" y="16">sketch, not to scale</text>
+  </svg>
+</div>
+<div class="spec pal-C3-dark">
+  <p class="spec-mode">Dark</p>
+  <div class="card">
+    <div class="row"><b class="title">Backyard swing set</b><span class="tag">Planned</span></div>
+    <div class="keys">
+      <div><span class="lab">Legs</span><b class="len">131-1/2"</b>, <b class="len">138-3/8"</b></div>
+      <div><span class="lab">Lowest margin</span><b>margin 1.1x</b></div>
+    </div>
+    <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check · Load-bearing</span><span>Confirm the burial depth (24") and that the leg lumber is rated for ground contact.</span></div></div>
+    <div class="check"><span><b>Bending</b> · Top beam, 4x6</span><span><b>margin 1.1x</b> under these assumptions</span><a href="#C3">Show the working</a></div>
+    <div class="needed"><span class="k">Input needed</span><span>Deflection limit (span divided by)</span></div>
+    <div class="field"><span class="flab">Beam length</span><span class="in bad"></span><span class="err">Enter the beam length.</span></div>
+    <span class="btn">Start building</span>
+  </div>
+  <div class="step">
+    <div class="modebar"><b>Building</b><span>Exit</span></div>
+    <div class="stepbody">
+      <span class="read">Cut the 2 back legs (uphill)</span>
+      <b class="glance len">131-1/2"</b>
+      <div class="pair"><div class="box"><span class="lab">Saw at</span><b class="saw">20.0°</b></div><div><span class="lab">To the edge</span><span class="edge">70.0°</span></div></div>
+      <div class="flag"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1v14M3 2h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><span class="k">Expert check</span><span>Ground-contact lumber, 24" burial.</span></div></div>
+      <div class="done"><span class="tick">✓</span>Board 4 of 7 done</div>
+      <span class="btn wide">Done, next</span>
+    </div>
+  </div>
+  <svg class="diagram" viewBox="0 0 300 190" role="img" aria-label="Sketch of a frame end view with a highlighted leg, a dimension, a hidden line, and a clearance zone">
+    <rect class="zonefill" x="8" y="150" width="284" height="34"/>
+    <line class="zoneedge" x1="8" y1="150" x2="292" y2="150"/>
+    <text class="zonetext" x="14" y="176">Clear area</text>
+    <polygon class="hl" points="148,30 156,30 222,150 214,150"/>
+    <polygon class="part" points="144,30 152,30 86,150 78,150"/>
+    <rect class="part" x="128" y="20" width="44" height="12"/>
+    <line class="hid" x1="104" y1="104" x2="196" y2="104"/>
+    <line class="dimline" x1="232" y1="30" x2="276" y2="150"/>
+    <line class="dimline" x1="226" y1="33" x2="238" y2="27"/>
+    <line class="dimline" x1="270" y1="153" x2="282" y2="147"/>
+    <text class="dimtext" x="256" y="84">131-1/2"</text>
+    <text class="note" x="10" y="16">sketch, not to scale</text>
+  </svg>
+</div></div>
+  <div class="critique"><dl>
+  <dt>From the subject</dt>
+  <dd>Black and white with safety orange for actions and progress, and caution yellow with black for flags: the language of shop signs and machine guards.</dd>
+  <dt>Measured</dt>
+  <dd>The highest contrast: text on page 19.7:1 light and 19.0:1 dark. The most glare-resistant: under 20% glare text holds 4.9:1 and secondary text 4.1:1 in light.</dd>
+  <dt>Grayscale and color blindness</dt>
+  <dd>Flags stand out in gray in dark mode. But the accent is the text color, so links and buttons rely on underline and shape alone.</dd>
+  <dt>Cost</dt>
+  <dd>Yellow and black is the ANSI caution sign, so every flag looks like a hazard warning, which pushes toward a verdict. Orange for "done" borrows safety orange's meaning for something that is not a hazard. Pure white on near-black is harsh, and halos for people with astigmatism.</dd>
+</dl>
+</div>
+  <details><summary>Contrast for every pair, light and dark, with glare</summary><div class="req-wrap"><table class="ctab"><thead><tr><th>Foreground on background</th><th>Needs</th><th>Light</th><th>Dark</th><th>Light, 20% glare</th><th>Dark, 20% glare</th></tr></thead><tbody><tr><td>Text on page</td><td>4.5</td><td class="">19.67<span class="apca">Lc 106</span></td><td class="">18.99<span class="apca">Lc 103</span></td><td class="">4.93</td><td class="">4.72</td></tr><tr><td>Text on card</td><td>4.5</td><td class="">19.67<span class="apca">Lc 106</span></td><td class="">17.75<span class="apca">Lc 103</span></td><td class="">4.93</td><td class="">4.66</td></tr><tr><td>Text on inset</td><td>4.5</td><td class="">17.25<span class="apca">Lc 97</span></td><td class="">19.44<span class="apca">Lc 103</span></td><td class="low">4.42</td><td class="">4.75</td></tr><tr><td>Secondary text on page</td><td>4.5</td><td class="">10.01<span class="apca">Lc 93</span></td><td class="">10.77<span class="apca">Lc 67</span></td><td class="low">4.10</td><td class="low">3.02</td></tr><tr><td>Secondary text on card</td><td>4.5</td><td class="">10.01<span class="apca">Lc 93</span></td><td class="">10.07<span class="apca">Lc 67</span></td><td class="low">4.10</td><td class="low">2.98</td></tr><tr><td>Accent on page</td><td>4.5</td><td class="">19.67<span class="apca">Lc 106</span></td><td class="">18.99<span class="apca">Lc 103</span></td><td class="">4.93</td><td class="">4.72</td></tr><tr><td>Accent on card</td><td>4.5</td><td class="">19.67<span class="apca">Lc 106</span></td><td class="">17.75<span class="apca">Lc 103</span></td><td class="">4.93</td><td class="">4.66</td></tr><tr><td>Text on accent on accent</td><td>4.5</td><td class="">19.67<span class="apca">Lc 108</span></td><td class="">18.99<span class="apca">Lc 102</span></td><td class="">4.93</td><td class="">4.72</td></tr><tr><td>Flag text on flag fill</td><td>4.5</td><td class="">14.68<span class="apca">Lc 87</span></td><td class="">13.17<span class="apca">Lc 79</span></td><td class="low">3.88</td><td class="low">3.52</td></tr><tr><td>Flag edge on page</td><td>3</td><td class="">19.67<span class="apca">Lc 106</span></td><td class="">13.17<span class="apca">Lc 79</span></td><td class="">4.93</td><td class="">3.52</td></tr><tr><td>Flag edge on card</td><td>3</td><td class="">19.67<span class="apca">Lc 106</span></td><td class="">12.31<span class="apca">Lc 78</span></td><td class="">4.93</td><td class="">3.47</td></tr><tr><td>Input-needed text on input-needed fill</td><td>4.5</td><td class="">7.03<span class="apca">Lc 83</span></td><td class="">9.59<span class="apca">Lc 64</span></td><td class="low">3.58</td><td class="low">2.88</td></tr><tr><td>Input-needed edge on page</td><td>3</td><td class="">3.95<span class="apca">Lc 66</span></td><td class="">8.50<span class="apca">Lc 56</span></td><td class="low">2.68</td><td class="low">2.55</td></tr><tr><td>Error on page</td><td>4.5</td><td class="">7.28<span class="apca">Lc 83</span></td><td class="">7.51<span class="apca">Lc 50</span></td><td class="low">3.63</td><td class="low">2.35</td></tr><tr><td>Error on error fill</td><td>4.5</td><td class="">6.39<span class="apca">Lc 74</span></td><td class="">5.58<span class="apca">Lc 47</span></td><td class="low">3.26</td><td class="low">2.19</td></tr><tr><td>Done on card</td><td>3</td><td class="">3.95<span class="apca">Lc 66</span></td><td class="">7.95<span class="apca">Lc 55</span></td><td class="low">2.68</td><td class="low">2.52</td></tr><tr><td>Focus ring on page</td><td>3</td><td class="">3.11<span class="apca">Lc 57</span></td><td class="">8.31<span class="apca">Lc 55</span></td><td class="low">2.32</td><td class="low">2.51</td></tr><tr><td>Focus ring on card</td><td>3</td><td class="">3.11<span class="apca">Lc 57</span></td><td class="">7.77<span class="apca">Lc 54</span></td><td class="low">2.32</td><td class="low">2.48</td></tr><tr><td>Control edge on page</td><td>3</td><td class="">13.64<span class="apca">Lc 100</span></td><td class="">10.05<span class="apca">Lc 64</span></td><td class="">4.51</td><td class="low">2.87</td></tr><tr><td>Control edge on card</td><td>3</td><td class="">13.64<span class="apca">Lc 100</span></td><td class="">9.40<span class="apca">Lc 63</span></td><td class="">4.51</td><td class="low">2.83</td></tr><tr><td>Diagram ink on card</td><td>4.5</td><td class="">19.67<span class="apca">Lc 106</span></td><td class="">17.75<span class="apca">Lc 103</span></td><td class="">4.93</td><td class="">4.66</td></tr><tr><td>Dimension on card</td><td>4.5</td><td class="">5.27<span class="apca">Lc 75</span></td><td class="">9.00<span class="apca">Lc 61</span></td><td class="low">3.13</td><td class="low">2.75</td></tr><tr><td>Hidden line on card</td><td>3</td><td class="">4.85<span class="apca">Lc 74</span></td><td class="">5.16<span class="apca">Lc 37</span></td><td class="">3.00</td><td class="low">1.91</td></tr><tr><td>Diagram ink on selected part</td><td>4.5</td><td class="">13.08<span class="apca">Lc 80</span></td><td class="">9.00<span class="apca">Lc 91</span></td><td class="low">3.54</td><td class="low">3.84</td></tr><tr><td>Zone edge on card</td><td>3</td><td class="">7.44<span class="apca">Lc 86</span></td><td class="">7.58<span class="apca">Lc 53</span></td><td class="">3.66</td><td class="low">2.44</td></tr><tr><td>Diagram ink on zone fill</td><td>4.5</td><td class="">16.50<span class="apca">Lc 94</span></td><td class="">16.34<span class="apca">Lc 102</span></td><td class="low">4.26</td><td class="">4.57</td></tr></tbody></table></div><p class="small muted">WCAG 2.2 contrast ratio, with the APCA lightness contrast (Lc) for reference. Red cells fall under the minimum. "20% glare" adds a veil of 20% of white luminance to both colors, as reflected light on the screen does.</p></details>
+</article>
+    </div>
+  </div>
+
+  <div class="verdict prose stack">
+    <h4>Suggestion</h4>
+    <p>C1. It keeps the screen calm (warm paper, graphite text, one blue), so the few things that need attention stand out, and both themes hold up under glare and in grayscale. C2's dark theme is the most evocative, a blueprint, but it is the weakest in grayscale and its accent is too close to its text. C3 resists glare best; take its lesson as rule 5 rather than its colors.</p>
+  </div>
+</section>
+
+<!-- ============================== THEME ============================== -->
+<section id="theme" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Light and dark</p>
+    <h2>Which theme, when</h2>
+    <p class="prose">NN/g's review of the research: for people with normal vision, dark text on a light background reads better, and the advantage grows as text gets smaller and at night; in bright daylight the difference disappears. Its advice is to default to light, always offer dark, and use the operating system's setting.</p>
+  </div>
+  <div class="opts">
+    <div class="opt rec"><div class="head"><b>Follow the device</b><span class="rec-tag">Suggested</span></div><p>Light or dark comes from the phone's or laptop's own setting, including its sunset schedule. Nothing to store. Print is always light.</p></div>
+    <div class="opt"><div class="head"><b>Always dark in the shop modes</b></div><p>Less glare from a bright screen in a dim garage. Works against the research for small text, and the garage is not always dim.</p></div>
+    <div class="opt"><div class="head"><b>A switch in the app</b></div><p>Light, dark, or follow the device, set in Kerf. A setting kept for every device needs storing on the server (0005), which is a new requirement.</p></div>
+  </div>
+</section>
+
+<!-- ============================== ROLES ============================== -->
+<section class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Roles</p>
+    <h2>What each color is for</h2>
+    <p class="prose">The same roles in every direction. #45 turns them into tokens.</p>
+  </div>
+  <div class="req-wrap">
+    <table class="rolestab">
+      <thead><tr><th>Role</th><th>Used for</th><th>Paired with</th></tr></thead>
+      <tbody>
+        <tr><td>Page, card, inset</td><td>Surfaces: the page, cards and the plan's sections, formulas and key results</td><td>Text, secondary text</td></tr>
+        <tr><td>Text, secondary text</td><td>Everything read; secondary for labels and sources, never in the shop modes</td><td>All surfaces</td></tr>
+        <tr><td>Hairline, control edge</td><td>Dividers; the edges of inputs and controls (3:1)</td><td>Page, card</td></tr>
+        <tr><td>Accent, text on accent, focus ring</td><td>Links, primary buttons, done marks, the focus ring (3:1)</td><td>Page, card</td></tr>
+        <tr><td>Flag fill, edge, text</td><td>Expert-check flags, with icon and label</td><td>Its own fill</td></tr>
+        <tr><td>Input-needed fill, edge, text</td><td>Structural inputs not yet entered, with a dashed edge and label</td><td>Its own fill</td></tr>
+        <tr><td>Error, error fill</td><td>Form values that cannot be used, beside the field only</td><td>Page, error fill</td></tr>
+        <tr><td>Diagram ink, dimension, hidden line</td><td>Part outlines, dimension lines and figures, hidden edges (dashed)</td><td>Card</td></tr>
+        <tr><td>Selected part, zone fill, zone edge</td><td>The highlighted part; clearance and swing zones (dashed edge, label)</td><td>Card, diagram ink</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================== REFERENCES ============================== -->
+<section id="references" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Precedents and guidance</p>
+    <h2>Sources</h2>
+    <p class="prose">Checked in October 2026. Contrast measured with Color.js; color blindness simulated with the Machado, Oliveira, and Fernandes (2009) matrices at full severity.</p>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>WCAG 2.2 contrast</b><p>4.5:1 for text, 3:1 for large text (24 px, or 18.5 px bold) and for the edges of controls and graphics. Still the enforceable standard. APCA was removed from the WCAG 3 draft in 2023 and the WCAG 3 algorithm is undecided, so Lc values here are for reference.</p><p class="small"><a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html">WCAG 1.4.3</a> · <a href="https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html">WCAG 1.4.11</a> · <a href="https://adrianroselli.com/2026/04/wcag3-contrast-as-of-april-2026.html">Roselli: WCAG 3 contrast, April 2026</a></p></div>
+    <div class="opt"><b>Light and dark</b><p>Light mode performs better for normal vision, more so for small text and at night; offer dark mode through the system setting.</p><p class="small"><a href="https://www.nngroup.com/articles/dark-mode/">NN/g: Dark Mode vs. Light Mode</a></p></div>
+    <div class="opt"><b>Dim light</b><p>As light fades, reds darken first and blue-greens hold up (the Purkinje effect). A red signal is the first to disappear in a dark garage, especially on paper.</p><p class="small"><a href="https://en.wikipedia.org/wiki/Purkinje_effect">Purkinje effect</a> · <a href="https://www.britannica.com/topic/Purkinje-effect">Britannica</a></p></div>
+    <div class="opt"><b>Safety colors</b><p>ANSI Z535: red for danger, orange for warning, yellow for caution, blue for notice. Kerf's flags borrow the caution family and never the danger red.</p><p class="small"><a href="https://incompliancemag.com/ansi-z535-1-safety-colors-in-focus/">ANSI Z535.1 overview</a></p></div>
+    <div class="opt"><b>Color vision</b><p>Red-green color blindness affects up to about 8% of men and 0.5% of women of Northern European ancestry; rates vary by population.</p><p class="small"><a href="https://www.nei.nih.gov/eye-health-information/eye-conditions-and-diseases/color-blindness">National Eye Institute</a></p></div>
+    <div class="opt"><b>Tools</b><p>Color.js for conversion, gamut mapping, and contrast; OKLCH, widely supported in CSS.</p><p class="small"><a href="https://colorjs.io/">Color.js</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/oklch">MDN: oklch()</a></p></div>
+  </div>
+</section>
+
+<section class="stack">
+  <div class="place">
+    <p class="eyebrow">New requirements</p>
+    <h2>What this stage adds</h2>
+  </div>
+  <p class="prose">None with the suggested choices. A switch for light and dark inside Kerf would need a stored setting on the server.</p>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Numbers come from <code>packages/core/src/templates/swing-set-a-frame/snapshots/v2.json</code>, example 1. Kept at <code>docs/design/color.html</code>; choices are recorded in <code>docs/design/README.md</code>.</p>
+</footer>
+
+</main>
+
+<script>
+{
+  const sims = document.getElementById('sims');
+  for (const input of document.querySelectorAll('input[name="sim"]')) {
+    input.addEventListener('change', () => {
+      sims.classList.remove('gray', 'deutan', 'protan');
+      if (input.value) sims.classList.add(input.value);
+    });
+  }
+  const glare = document.getElementById('glare');
+  glare.addEventListener('input', () => sims.style.setProperty('--glare', glare.value));
+}
+</script>

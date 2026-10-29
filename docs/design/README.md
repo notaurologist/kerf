@@ -1,6 +1,6 @@
 # Design
 
-Status: in progress. Stages 0 to 3 are decided; stage 4 (#43) is next.
+Status: in progress. Stage 4 (#43) is waiting on the owner's choices.
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -10,11 +10,25 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 1. Information architecture | #40 | Decided October 2026 | `information-architecture.html` |
 | 2. Layout and grid | #41 | Decided October 2026 | `layout.html` |
 | 3. Typography | #42 | Decided October 2026 | `typography.html` |
-| 4. Color | #43 | Next | |
+| 4. Color | #43 | Waiting on the owner | `color.html` |
 | 5. Diagram language | #44 | Blocked by #43 | |
 | 6. Design system | #45 | Blocked by #44 | |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 4: color (#43)
+
+`color.html` proposes six rules for what color may say (margins have no color; no red or green near structural results; flags amber with icon and label; input needed is not an error; no secondary text in the shop modes; never color alone), and three palettes built in OKLCH and mapped into sRGB:
+
+- C1: graphite and chalk line (warm paper, graphite text, one blue).
+- C2: layout blue (cool blue; a blueprint in dark).
+- C3: high-visibility (black and white, safety orange, caution yellow).
+
+Each is shown in light and dark on the plan, a shop step, and a diagram sketch, with every pairing measured (WCAG 2.2 ratio, APCA for reference, and contrast under 20% glare), grayscale lightness differences, and color-blindness separation (Machado 2009 matrices). All three meet AA for every pairing in both themes. The page simulates grayscale print, deuteranopia, protanopia, and glare. It also asks how light and dark are chosen. Contrast was measured with Color.js in a scratch folder; the measured values are the CSS in `color.html`, and #45 will add a contrast test for the chosen tokens.
+
+### Choices
+
+Not yet made.
 
 ## Stage 3: typography (#42)
 
