@@ -35,11 +35,11 @@ Operations are what needs to happen to a part. Methods are how, given specific t
 | Ease edges and splinters | Sander; block plane; router with roundover bit |
 | Dig holes, or level pads (site work for parts set in or on the ground) | Post-hole digger and tamper; level |
 
-Each method in the knowledge base records: required tools, skills used, setup steps, technique steps, common mistakes, and any flags.
+Each method in the knowledge base (`knowledge/methods.ts`) records: required tools, skills used, setup steps, technique steps, common mistakes, safety notes with their sources, and any flags. A required tool can be any of several tool types (a square to mark a line: combination or rafter), and can need a capability that covers a number from the operation, such as a miter saw's cut depth at least the stock's thickness, or a bit's reach at least half the hole's depth when the method drills from both sides. Method text names the operation's numbers as `{name}` and core fills them in, so the text holds no numbers of its own. Skills are in `knowledge/skills.ts`.
 
 ## Expert-check categories
 
-The app flags steps and design choices in these categories:
+The app flags steps and design choices in these categories. They are data in `knowledge/categories.ts`, each with what to ask an experienced builder, why, and the source for the hazard; templates' flags and methods' flags use the same list.
 
 - **Table saw operations,** especially ripping, dadoes, kickback risk, and anything involving the blade guard or riving knife.
 - **Router technique:** feed direction, bit choice, table vs. handheld.
@@ -148,7 +148,7 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 - **Part:** letter (A, B, C in cut-list order, the name drawings use), name, role, stock (nominal and actual), length, end cuts (miter and bevel per end, in the angle convention under Units), holes, quantity, board selection notes.
 - **Hardware item:** type, size, quantity, notes, flag if structural.
 - **Operation:** an ID, type (from the operations table), part reference, how many times, and parameters (angle, depth, bolt diameter).
-- **Method:** operation type, required tool types and capabilities, skills, steps, common mistakes, flags.
+- **Method:** operation type, required tool types and capabilities, skills, steps, common mistakes, safety notes, flags, and which other methods for the same operation it is easier or more accurate than.
 - **Tool:** a tool type from the library (`knowledge/tools.ts`) and the capabilities the owner entered for it (for example, circular saw with bevel up to 45 degrees). Each tool type lists the capabilities that change which method fits, with the kind and unit of each and where its value is read; none has a default, and a capability not entered is input needed. Inventory is a list of these, plus other tools by name, which methods ignore. Tool names are generic: "rafter square," since "Speed Square" is a trademark.
 - **Flag:** category (from expert-check categories), what to ask, why.
 - **Geometry:** 3D positions and orientations of parts, used for isometric and exploded projection. Each part instance has a placement: a local frame (along its length from its first end, across its width from its reference edge, through its thickness) with its origin at the first end's long point. The part's shape in that frame follows from its own data (length, width, thickness, end cuts), so a placement and the cut list together draw it.
@@ -161,7 +161,7 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 - Imperial throughout (US lumber, personal use). Store lengths as decimal inches; display as feet, inches, and fractions rounded to 1/16. Angles in degrees.
 - Rounding must be consistent and visible: a displayed fraction is never silently different from what other views show. Round once, at display, from the stored decimal values; never compute with rounded values. A total is rounded from the exact sum, so it can differ from the sum of rounded parts, and where that happens the display says so.
 - **Entering lengths.** A length is typed as a plan writes it and read by core's `parseLength`: a number on its own is inches (`138`, `138.4`), a fraction joins inches with a hyphen or space (`138-3/8`), and feet take `'` (`11' 6-3/8"`). Fractions are tape fractions, halves to 64ths. Ambiguous text such as `11 6` is refused with a message rather than guessed. What is typed is kept exactly; a saved length is written back into its field without rounding (`lengthForEntry`). The standard and its reasons are in `docs/design/entry.html` (#67).
-- **Angle convention.** Angles are stored and shown as miter-saw settings: 0° is a square cut, and the angle is measured from square. Each cut detail shows which face the angle is measured from. It also shows the angle between the cut line and the board's edge (90° minus the setting), which is what a protractor or sliding bevel reads against the edge. Mixing the two (for example, 15° vs. 75°) is the most likely cause of a recut. A rafter square's degree scale is believed to read from square like a saw; confirm against the owner's square before the method text relies on it.
+- **Angle convention.** Angles are stored and shown as miter-saw settings: 0° is a square cut, and the angle is measured from square. Each cut detail shows which face the angle is measured from. It also shows the angle between the cut line and the board's edge (90° minus the setting), which is what a protractor or sliding bevel reads against the edge. Mixing the two (for example, 15° vs. 75°) is the most likely cause of a recut. Methods lay out an angled line from two measured marks, never from a tool's angle scale: square a line across from the long point, then measure along the far edge to the short point, width · tan(setting) from that line. Whether a rafter square's degree scale reads from square like a saw is not confirmed (the owner has none to check), so no method text relies on it.
 
 ## Verification
 
@@ -181,6 +181,11 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 
 9. Forest Products Laboratory, Wood Handbook: Wood as an Engineering Material, FPL-GTR-282, 2021: Chapter 5 (Knots, pp. 5-27 to 5-28), Chapter 7 (Knots, Slope of Grain, Checks and Splits, Shake, Decay, pp. 7-4 to 7-5; crooks in columns, p. 7-14), Chapter 8 (pp. 8-22 to 8-23), Chapter 13 (Warp, p. 13-13): https://research.fs.usda.gov/treesearch/62200
 10. American Wood Protection Association, Information for Homeowners (use categories and end tags), read October 2026: https://awpa.com/info/technical/homeowners
+11. OSHA, Hand and Power Tools (OSHA 3080), 2002 (revised): guards (p. 5), and clamping the work and unplugging to change a blade or bit (p. 4): https://www.osha.gov/sites/default/files/publications/osha3080.pdf
+12. OSHA, Woodworking eTool, read October 2026: handheld circular saws (kickback, supporting the work), table saws, routers, and jointers: https://www.osha.gov/etools/woodworking
+13. OSHA, Wood Dust: Overview, read October 2026: https://www.osha.gov/wood-dust
+14. U.S. Fire Administration, Pictograph: Store Oily and Solvent-Wet Rags in a Metal Container, last reviewed January 9, 2022: https://www.usfa.fema.gov/gallery/pictographs/pictograph98.html
+15. Common Ground Alliance, 811 Before You Dig, read October 2026: https://811beforeyoudig.com/
 
 Actual (dressed) lumber sizes come from NDS Supplement Table 1B (source 4), whose sizes conform to the American Softwood Lumber Standard, PS 20-20 (Supplement 3.1).
 

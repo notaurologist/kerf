@@ -131,6 +131,8 @@ Every type that appears in a snapshot is a Zod schema with its TypeScript type i
 
 For each operation, `steps/` lists the methods from the knowledge base whose required tool types and capabilities the inventory satisfies, and picks one by a fixed, documented preference order per operation. If no method fits, the step says so and names the generic tool that would allow one. Suggestions for a better tool come from the same data: a method the inventory does not support that the knowledge base marks as easier or more accurate.
 
+The preference order is the order of `METHODS` in `knowledge/methods.ts`, where each operation type's methods are listed together: guided and stationary power tools first, since they hold the line and the angle, and hand tools last. A method's tools are met when, for each requirement, the inventory has one of its tool types with every capability it needs at least the operation's value divided by the number of passes. Each method lists the methods for the same operation it is easier than and more accurate than (`easierThan`, `moreAccurateThan`). `fillMethodText` fills a method's `{name}` values from an operation with core's formatters.
+
 ## apps/api
 
 ### Routes

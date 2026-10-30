@@ -12,5 +12,5 @@ export { findTemplate, TEMPLATES } from './templates/index.ts';
 export * from './templates/operations.ts';
 export * as swingSetAFrame from './templates/swing-set-a-frame/index.ts';
 export type * from './templates/types.ts';
-export { CHECKLIST_CATEGORY_LABELS, FLAG_CATEGORY_LABELS } from './templates/types.ts';
+export { CHECKLIST_CATEGORY_LABELS } from './templates/types.ts';
 export * from './units/index.ts';

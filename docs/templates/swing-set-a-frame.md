@@ -223,8 +223,8 @@ The tool-type library (`packages/core/src/knowledge/tools.ts`, #85) is checked a
 | Bolt holes through thick stock (leg, beam, leg; boards and legs) | all bolted parts | drill/driver with auger or spade bits, drilled from one side or both depending on reach; clamps hold the parts while drilling |
 | Tighten bolts and locking nuts | all bolted parts | socket wrench, impact driver |
 | Ease edges and splinters | all | sander, block plane |
-| Lay out the footprint and set the frames level and plumb | site | tape measure, string line, level |
-| Dig for buried legs, or level pads | site | post-hole digger, tamper |
+| Lay out the footprint and set the frames level and plumb | site | tape measure, string line, line level, level |
+| Dig for buried legs, or level pads | site | post-hole digger, shovel, tamper |
 
 ### Operations
 

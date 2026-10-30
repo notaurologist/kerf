@@ -39,6 +39,7 @@ describe('tool-type library', () => {
       'chalk-line',
       'level',
       'string-line',
+      'line-level',
       'circular-saw',
       'miter-saw',
       'hand-saw',
@@ -53,6 +54,7 @@ describe('tool-type library', () => {
       'block-plane',
       'sander',
       'post-hole-digger',
+      'shovel',
       'tamper',
     ];
     expect(TOOL_TYPES.map((t) => t.id).sort()).toEqual(fromSpec.sort());

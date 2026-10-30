@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { FlagCategory } from '../knowledge/categories.ts';
 import { Stock } from '../lumber/stock.ts';
 
 // Shared shapes of template output. Each is a Zod schema with its type inferred from it, so the
@@ -12,30 +13,6 @@ export const Issue = z.object({
   params: z.array(z.string()),
 });
 export type Issue = z.infer<typeof Issue>;
-
-/** Expert-check categories from DOMAIN.md. */
-export const FlagCategory = z.enum([
-  'table-saw',
-  'router',
-  'jointer-planer-lathe',
-  'load-bearing',
-  'dynamic-loads',
-  'wood-movement',
-  'finishes',
-  'dust-and-species',
-]);
-export type FlagCategory = z.infer<typeof FlagCategory>;
-
-export const FLAG_CATEGORY_LABELS: Record<FlagCategory, string> = {
-  'table-saw': 'Table saw',
-  router: 'Router technique',
-  'jointer-planer-lathe': 'Jointer, planer, or lathe',
-  'load-bearing': 'Load-bearing design',
-  'dynamic-loads': 'Dynamic loads',
-  'wood-movement': 'Wood movement',
-  finishes: 'Finishes',
-  'dust-and-species': 'Dust and species',
-};
 
 /** Something to ask an experienced builder about, and why (DOMAIN.md, Expert-check categories). */
 export const Flag = z.object({

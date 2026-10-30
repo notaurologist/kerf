@@ -37,6 +37,12 @@ Everything a person acts on (steps, methods, flags, checklist items, errors, but
 
 > Marking the overall length, 131-1/2", along an edge leaves the leg too long. Mark 130-1/4" along each edge from the top cut.
 
+**Numbers in method text.** A method is written once for every part, so it names the operation's numbers as `{setting}`, `{thickness}`, and so on, and core fills them in (`knowledge/methods.ts`). The sentence reads the same with the number in place: "Set the miter saw to {setting}, turned the way the cut detail shows."
+
+**Safety notes.** The hazard as it happens, then what to do about it, with the source. No signal word in front.
+
+> A circular saw kicks back toward you when the blade pinches in the cut. Support the board and both pieces of it, so neither drops into the blade as the cut finishes, and keep your hands out of the line of the cut. (OSHA Woodworking eTool, Handheld Circular Saws)
+
 **Expert checks.** The label "Expert check", then what to ask an experienced builder, as "Ask whether..." or "Confirm...", naming the numbers involved. Then "Why:" and one sentence on what the element does. Never the answer, never "make sure it is fine".
 
 > **Expert check** Ask an experienced builder whether 24" is deep enough for your soil, and whether the leg lumber is rated for ground contact.
