@@ -4,6 +4,7 @@ import { api, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { readDrawings, readPlan, readSteps } from '../../lib/plan.ts';
 import { href, type Route, redirect } from '../../lib/route.ts';
+import { ThemeSwitch } from '../../lib/theme.tsx';
 import { describeWaiting, useTicks } from '../../lib/ticks.ts';
 import type { Project } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
@@ -47,7 +48,7 @@ export function ModeScreen(props: { route: ModeRoute }) {
   const mode = props.route.screen === 'shop' ? 'Shopping' : 'Building';
   if (loaded.state !== 'ready') {
     return (
-      <ModeFrame mode={mode} exitHref={href({ screen: 'project', id })}>
+      <ModeFrame mode={mode} exitHref={href({ screen: 'project', id })} end={<ThemeSwitch />}>
         <Loaded state={loaded} loading="Loading project…" />
       </ModeFrame>
     );
@@ -71,7 +72,7 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
     window.scrollTo(0, 0);
   }, [address]);
   const frame = (children: ReactNode) => (
-    <ModeFrame mode={mode} context={project.name} exitHref={exitHref}>
+    <ModeFrame mode={mode} context={project.name} exitHref={exitHref} end={<ThemeSwitch />}>
       <Stack>
         <Waiting ticks={ticks} />
         {children}

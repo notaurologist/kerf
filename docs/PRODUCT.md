@@ -69,7 +69,7 @@ For our backyard: two swings, used by kids (7 and 10) and adults.
 
 Persisted data includes the tool inventory, projects (past, current, and planned) with their parameters, template versions, status, and the operations and methods used, structural check inputs, and settings, with photos and journal entries later.
 
-- **Backend from the start:** a small Hono API with Postgres, matching the rowing app. The same data is available on the laptop (design) and the phone or tablet (shop) from day one; no browser-only storage and no sync layer.
+- **Backend from the start:** a small Hono API with Postgres, matching the rowing app. The same data is available on the laptop (design) and the phone or tablet (shop) from day one; no browser-only storage of data (a display preference for one device, such as the theme, aside: 0005) and no sync layer.
 - **All access goes through one data layer** (a repository interface) on the server, so the storage behind it can change without touching the rest of the app.
 - **Single-user authentication.** The API is reachable from my devices, so it needs a login, but there is no account system: one user, configured at deploy time.
 - **Access control lives in API code,** not database policies.

@@ -92,7 +92,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 ## Themes, density, and print
 
-- **Theme:** follows the device. `data-theme="light"` or `"dark"` on an element forces one, as the catalog does.
+- **Theme:** follows the device unless the Theme menu (`ThemeSwitch` in `lib/theme.tsx`, #155) chooses Light or Dark for this device, which sets `data-theme` on the page's root. `data-theme="light"` or `"dark"` on any element forces one, as the catalog does. Shop modes pass the menu to `ModeFrame`'s `end`.
 - **Shop density:** `data-density="shop"` on a container gives Shopping and Building their spacing and control size.
 - **Print:** always light, on US Letter with 1/2" margins. Each `PlanSection` starts a page with its title block, hidden ones included, so the whole plan prints from any section, and every `Disclosure` opens.
 

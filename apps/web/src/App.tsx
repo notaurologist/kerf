@@ -7,6 +7,7 @@ import { EditProjectScreen, NewProjectScreen } from './features/project-editor/P
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
 import { href, isMode, type Route, useRoute } from './lib/route.ts';
+import { ThemeSwitch } from './lib/theme.tsx';
 import { Button, Header, Loading, Notice, Page, Stack, Text } from './ui/index.ts';
 
 // The design system's catalog (#45), loaded only when opened: it carries the worked example's
@@ -111,9 +112,12 @@ export function App() {
           { label: 'Tools', href: href({ screen: 'tools' }), current: section === 'tools' },
         ]}
         end={
-          <Button variant="link" onClick={() => void logout()}>
-            Log out
-          </Button>
+          <>
+            <ThemeSwitch />
+            <Button variant="link" onClick={() => void logout()}>
+              Log out
+            </Button>
+          </>
         }
       />
       <Page>

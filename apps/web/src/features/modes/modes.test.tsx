@@ -35,7 +35,9 @@ describe('Shopping mode', () => {
     const p = project([{ kind: 'shopping-line', key: 'lumber/2x6/10' }]);
     const html = render(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
     const text = renderText(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
-    expect(text).toContain('Shopping · Backyard swing set Exit');
+    expect(text).toContain(
+      'Shopping · Backyard swing set Theme System theme Light theme Dark theme Exit',
+    );
     expect(html).not.toContain('<nav');
     expect(html).toContain(`href="#/projects/${p.id}"`);
     expect(text).toContain('1 of 11 bought.');
@@ -93,7 +95,9 @@ describe('Building mode', () => {
     const route = { screen: 'build-step' as const, id: p.id, step: 'board-6' };
     const text = renderText(<ModeView route={route} project={p} />);
     const html = render(<ModeView route={route} project={p} />);
-    expect(text).toContain('Building · Backyard swing set Exit');
+    expect(text).toContain(
+      'Building · Backyard swing set Theme System theme Light theme Dark theme Exit',
+    );
     expect(text).toContain('Step 6 of 11 · Cutting All steps');
     expect(text).toContain("Cut board 6, a 2x6 10' long: 2 × Crossbar");
     expect(text).toContain('Trim 1/2" off the factory end to square it');

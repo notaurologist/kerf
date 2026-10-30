@@ -332,6 +332,16 @@ describe('ModeFrame', () => {
     expect(html).not.toContain('<nav');
     expect(html).toContain('<main class="l-page" data-density="shop">');
   });
+
+  it('puts what it is given in the bar before Exit', () => {
+    expect(
+      renderText(
+        <ModeFrame mode="Building" exitHref="#/projects/1" end={<span>Theme menu</span>}>
+          x
+        </ModeFrame>,
+      ),
+    ).toContain('Building Theme menu Exit');
+  });
 });
 
 describe('StepLayout', () => {
