@@ -74,6 +74,12 @@ Everything a person acts on (steps, methods, flags, checklist items, errors, but
 
 **Status.** Short, saying what is happening or happened: "Saving…", "Saved.", "Loading project…". The ellipsis is one character.
 
+**Definitions.** A glossary entry (`knowledge/glossary.ts`) is the term, then one or two sentences: what the thing is, then, if the reader needs it, where Kerf shows it or how to work with it. No "a term for", no "refers to", and no examples a reader could mistake for a value.
+
+> **Long point** The end of an angled cut where the part is longest. A part's length in the cut list is measured from long point to long point.
+
+Text marks only the first use of a term on a screen, not every use. Each plan section, each Building step, and each other screen is its own screen for this. A term inside a tool's name ("miter saw", "sliding bevel") is the tool, not the term, and is never marked.
+
 **Headings.** Nouns for what the section holds: "Cut list", "Structural review", "Dimensions and hardware".
 
 ## Word list

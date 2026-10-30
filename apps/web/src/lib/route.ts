@@ -1,3 +1,4 @@
+import { findGlossaryEntry } from '@kerf/core';
 import { useEffect, useState } from 'react';
 import { isPlanSection, type PlanSectionId } from './sections.ts';
 
@@ -21,6 +22,9 @@ export type Route =
   | { screen: 'build-step'; id: string; step: string }
   | { screen: 'build-part'; id: string; step: string; part: string }
   | { screen: 'tools' }
+  // `term` is the entry brought into view. The address names it, since a bare `#id` would replace
+  // the route.
+  | { screen: 'glossary'; term?: string }
   | { screen: 'catalog' }
   | { screen: 'not-found' };
 
@@ -35,6 +39,10 @@ export function parseRoute(hash: string): Route {
   if (parts.length === 0) return { screen: 'projects' };
   if (first === 'tools' && parts.length === 1) return { screen: 'tools' };
   if (first === 'catalog' && parts.length === 1) return { screen: 'catalog' };
+  if (first === 'glossary' && parts.length === 1) return { screen: 'glossary' };
+  if (first === 'glossary' && parts.length === 2 && second && findGlossaryEntry(second)) {
+    return { screen: 'glossary', term: second };
+  }
   if (first !== 'projects' || parts.length > 5) return { screen: 'not-found' };
   if (second === undefined) return { screen: 'projects' };
   if (second === 'new' && parts.length === 2) {
@@ -121,6 +129,8 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
       return `#/projects/${encodeURIComponent(route.id)}/build/${encodeURIComponent(route.step)}/${encodeURIComponent(route.part)}`;
     case 'tools':
       return '#/tools';
+    case 'glossary':
+      return route.term ? `#/glossary/${encodeURIComponent(route.term)}` : '#/glossary';
     case 'catalog':
       return '#/catalog';
   }

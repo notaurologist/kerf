@@ -73,7 +73,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │           ├── structural/     # Generic beam and hardware checks and adjustment factors
 │           ├── steps/          # Build steps: operations to methods, using the tool inventory
 │           ├── progress/       # What can be ticked off in a plan, and which ticks a regeneration clears
-│           ├── knowledge/      # Tool types, skills, methods, expert-check categories (data)
+│           ├── knowledge/      # Tool types, skills, methods, expert-check categories, glossary (data)
 │           ├── design-values/  # NDS reference values and adjustment factors (data, sourced)
 │           └── snapshot/       # Project snapshots: create, read back, compare with the current version
 └── docs/
@@ -135,6 +135,10 @@ Every type that appears in a snapshot is a Zod schema with its TypeScript type i
 For each operation, `steps/` lists the methods from the knowledge base whose required tool types and capabilities the inventory satisfies, and picks one by a fixed, documented preference order per operation. If no method fits, the step says so and names the generic tool that would allow one. Suggestions for a better tool come from the same data: a method the inventory does not support that the knowledge base marks as easier or more accurate.
 
 The preference order is the order of `METHODS` in `knowledge/methods.ts`, where each operation type's methods are listed together: guided and stationary power tools first, since they hold the line and the angle, and hand tools last. A method's tools are met when, for each requirement, the inventory has a tool of one of its types with every capability it needs at least the operation's value divided by the number of passes. The inventory can hold several tools of a type, each named; the first in the owner's list that meets the requirement is chosen, and the step names it. Each method lists the methods for the same operation it is easier than and more accurate than (`easierThan`, `moreAccurateThan`). `fillMethodText` fills a method's `{name}` values from an operation with core's formatters.
+
+### Glossary
+
+`knowledge/glossary.ts` holds the glossary: each term with its other forms (plurals), a definition, an optional illustration, and sources where the definition is safety-relevant. `findTerms` finds the uses of glossary terms in a string: whole words, ignoring case, the longest term at each place, never inside a tool type's name ("miter" in "miter saw"), and never "Kerf" with a capital, which is the app's name. Screens use it to mark the first use of a term (`docs/design/content.md`, Definitions).
 
 `steps/select.ts` applies this to one operation. A tool type the inventory lacks, or a capability below what the operation needs, is a gap; a capability not entered is a gap too, never a guess (hard rule 3). The chosen method is the first with no gaps. With none, the step names the tools for the method with the fewest gaps, ties going to preference order. Methods that wait only on capabilities not entered, and that are preferred over the chosen one or better than it, are listed as input needed, so the step says which entry would allow them. Methods the inventory does not support that are easier or more accurate than the chosen one are the tool suggestions, each gap described by `describeChoice` with core's formatters.
 
@@ -223,7 +227,7 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 ## apps/web
 
 - Talks only to `/api/*` on its own origin, through the Hono typed client (`src/lib/api.ts`). One function, `send`, turns responses into results the UI shows; a 401 sends the owner to the login screen.
-- Screens are chosen from the URL hash (`#/projects`, `#/projects/<id>`, `#/projects/<id>/<section>`, `#/projects/<id>/edit`, `#/projects/new?template=<id>`, `#/tools`, and `#/catalog` for the design system's catalog), so links, reload, and back work without a router library.
+- Screens are chosen from the URL hash (`#/projects`, `#/projects/<id>`, `#/projects/<id>/<section>`, `#/projects/<id>/edit`, `#/projects/new?template=<id>`, `#/tools`, `#/glossary` and `#/glossary/<term>`, and `#/catalog` for the design system's catalog), so links, reload, and back work without a router library.
 - The plan is one section per screen (#156): the summary at `#/projects/<id>`, and each other section of order A at `#/projects/<id>/<section>` (`diagrams`, `structural-review`, `cut-list`, `boards`, `shopping-list`, `build-steps`, `parameters`; `lib/sections.ts`). No section may be `edit`, `shop`, or `build`. A move between sections adds a history entry. The part selected in the drawings and the cut list is in the address (`…/cut-list?part=<id>`), and selecting one replaces the entry. Edit carries the section it was opened from (`…/edit?from=cut-list`), and Save and Cancel return there.
 - Shopping and Building (#61) are full-screen modes launched from cards in the plan's summary, under a bar with the mode's name and Exit and no other navigation: `#/projects/<id>/shop`, `#/projects/<id>/build` (opens the next step not done), `…/build/<step>`, `…/build/<step>/<part>` (the piece's cut card), and `…/build/steps`. A mode changes progress only, never the plan. The projects list puts a Resume card above an in-progress project, going to its next step or, before building starts, the shopping list.
 - While a mode is open it holds a screen wake lock (`lib/wakeLock.ts`, #54), asked for again each time the page is shown, since the browser releases it when the page is hidden. Where the browser has no wake lock or refuses one, the screen sleeps as usual and nothing is said.

@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { GlossaryScreen } from './features/glossary/GlossaryScreen.tsx';
 import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
 import { LoginScreen } from './features/login/LoginScreen.tsx';
 import { ModeScreen } from './features/modes/modes.tsx';
@@ -37,6 +38,8 @@ export function Screen(props: { route: Route }) {
     case 'build-part':
       // Modes bring their own frame (App, below).
       return <ModeScreen route={props.route} />;
+    case 'glossary':
+      return <GlossaryScreen term={props.route.term} />;
     case 'catalog':
       return (
         <Suspense fallback={<Loading>Loading components…</Loading>}>
@@ -100,7 +103,11 @@ export function App() {
   // Shopping and Building fill the screen under their own bar, with no other navigation (#61).
   if (isMode(route)) return <Screen route={route} />;
   const section =
-    route.screen === 'tools' ? 'tools' : route.screen === 'catalog' ? null : 'projects';
+    route.screen === 'tools' || route.screen === 'glossary'
+      ? route.screen
+      : route.screen === 'catalog'
+        ? null
+        : 'projects';
   return (
     <>
       <Header
@@ -112,6 +119,11 @@ export function App() {
             current: section === 'projects',
           },
           { label: 'Tools', href: href({ screen: 'tools' }), current: section === 'tools' },
+          {
+            label: 'Glossary',
+            href: href({ screen: 'glossary' }),
+            current: section === 'glossary',
+          },
         ]}
         end={
           <>

@@ -103,3 +103,14 @@ After the MVP. Starting a project today means about 30 empty fields and no outpu
 - Structural inputs are never suggested. Answers that are structural inputs, such as a rider's weight, are entered by the user (hard rule 3).
 
 **Accept when:** the swing set can be started from a worked example, an earlier project, or its questions, each opening a filled form with a preview; hand-checked worked examples cover the questions' suggestions, including a yard too shallow for the conventional beam height; and no structural input is filled in except from the owner's own answers or project.
+
+## Glossary
+
+Woodworking terms in the plan, method text, and flags are defined where they are used (#108). The owner chose tap-to-open definitions on the first use of a term per screen (October 2026).
+
+- The glossary as data in core's knowledge base, a term finder in core, and a glossary page at `#/glossary` with an address for each entry (#177).
+- Terms in method text, flags, and the cut list's end cuts open their definition in place on first use, with a link to the entry (#178).
+- Illustrations for the terms a drawing explains best (#179).
+- The printed plan ends with the terms it uses (#180).
+
+**Accept when:** every entry parses and has a unique ID and terms; tool names are never marked as terms; the first use of a term on each screen opens its definition by touch and keyboard at 375 px; and the printed plan lists the terms it uses.

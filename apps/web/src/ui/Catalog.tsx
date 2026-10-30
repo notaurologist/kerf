@@ -3,6 +3,7 @@ import {
   createSnapshot,
   entryEcho,
   type FormField,
+  findGlossaryEntry,
   formValues,
   parseLength,
   planDigests,
@@ -20,6 +21,7 @@ import { type ReactNode, useState } from 'react';
 import { Button, ButtonLink } from './Button.tsx';
 import { InlineConfirm } from './Confirm.tsx';
 import { SectionList, SectionPager, WithContents } from './Contents.tsx';
+import { Definitions } from './Definitions.tsx';
 import { Diagram } from './Diagram.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
 import { ConfirmDialog } from './Dialog.tsx';
@@ -243,6 +245,16 @@ function Specimens() {
                 ]
               : []),
           ]}
+        />
+      </Group>
+
+      <Group title="Definitions">
+        <Definitions
+          items={['kerf', 'long-point'].map((id) => ({
+            id: `catalog-${id}`,
+            term: findGlossaryEntry(id)?.term ?? id,
+            definition: findGlossaryEntry(id)?.definition,
+          }))}
         />
       </Group>
 
