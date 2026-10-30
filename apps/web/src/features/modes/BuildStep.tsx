@@ -244,6 +244,8 @@ export function CutCard(props: {
         (op.type === 'miter' || op.type === 'crosscut') && op.partId === partId && op.end === end,
     );
   const pieces = step.board?.pieces.filter((p) => p.partId === partId) ?? [];
+  // How the template describes each end, and the edge its angles are laid out from (#132).
+  const described = plan.cutEnds.find((c) => c.partId === partId);
   const bothAngled = [0, 1].every((e) => endCut(e)?.type === 'miter');
   return (
     <>
@@ -261,25 +263,35 @@ export function CutCard(props: {
           <Text>Length, long point to long point</Text>
           <Glance>{row.length}</Glance>
         </Stack>
+        {described?.referenceEdge && (
+          <Text>
+            Lay out each angle on the face marked with a loop in the drawing, from the{' '}
+            {described.referenceEdge}.
+          </Text>
+        )}
         {row.ends.map((text, end) => {
           const op = endCut(end);
+          const own = described?.ends[end];
           return (
             // biome-ignore lint/suspicious/noArrayIndexKey: a part's ends, in order.
             <Stack key={end} gap="xs">
-              <h2>End {end + 1}</h2>
-              {op?.type === 'miter' ? (
+              {/* Named as the template names the end, such as "Top: level cut" (#132). */}
+              <h2>{own ? <Measured text={own.description} /> : `End ${end + 1}`}</h2>
+              {op?.type === 'miter' && (
                 <SawSetting
                   setting={formatAngle(op.setting)}
                   toEdge={formatAngle(angleToEdge(op.setting))}
                 />
-              ) : (
+              )}
+              {own?.measuredFrom === 'reference-face' && (
+                <Text>Measured from the face marked with a loop, not the edge.</Text>
+              )}
+              {/* A plan the template did not describe end by end keeps the cut list's words. */}
+              {!own && (
                 <Text>
-                  <b>Square</b>
+                  <Measured text={text} />
                 </Text>
               )}
-              <Text>
-                <Measured text={text} />
-              </Text>
             </Stack>
           );
         })}

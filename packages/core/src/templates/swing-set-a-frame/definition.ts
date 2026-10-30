@@ -153,6 +153,14 @@ export const swingSetAFrame: TemplateDefinition<
       checklist: review.checklist,
       boltLayout: outputs.design.boltLayout ?? [],
       operations: outputs.design.operations ?? [],
+      cutEnds: outputs.design.parts.map((part) => ({
+        partId: part.id,
+        ...(part.referenceEdge ? { referenceEdge: part.referenceEdge } : {}),
+        ends: part.ends.map(({ description, measuredFrom }) => ({
+          description,
+          ...(measuredFrom ? { measuredFrom } : {}),
+        })),
+      })),
     };
   },
   drawings,
