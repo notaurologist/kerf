@@ -119,13 +119,16 @@ export function StepScreen(props: {
         {step.board && <BoardPieces step={step} rows={plan.cutList} ticks={ticks} links={links} />}
         <StepBody step={step} rows={plan.cutList} withoutBoard />
       </BesideDrawing>
+      {/* Undoing is a full-size control (#133), on its own line apart from Back and Next. */}
       {done && (
-        <Cluster>
+        <Stack gap="xs">
           <StatusLine>Step done{ticks.isWaiting(tick) ? ', not sent yet' : ''}.</StatusLine>
-          <Button variant="link" onClick={() => ticks.set(tick, false)}>
-            Mark not done
-          </Button>
-        </Cluster>
+          <div>
+            <Button variant="secondary" onClick={() => ticks.set(tick, false)}>
+              Mark not done
+            </Button>
+          </div>
+        </Stack>
       )}
       <Cluster>
         {previous && (

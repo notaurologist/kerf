@@ -152,6 +152,11 @@ describe('Building mode', () => {
       <ModeView route={{ screen: 'build-step', id: p.id, step: 'board-6' }} project={p} />,
     );
     expect(text).toContain('Step done. Mark not done');
+    // A full-size control, not a link-sized one (#133).
+    const html = render(
+      <ModeView route={{ screen: 'build-step', id: p.id, step: 'board-6' }} project={p} />,
+    );
+    expect(html).toMatch(/data-variant="secondary"[^>]*>Mark not done</);
     expect(text).toContain('Back Next');
     expect(text).not.toContain('Done, next');
   });
