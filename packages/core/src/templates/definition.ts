@@ -56,6 +56,15 @@ export interface TemplateDefinition<Params = unknown, Inputs = unknown, Outputs 
    * what is stored; they never recompute, so an old plan keeps its numbers.
    */
   snapshotUpgrades: Readonly<Record<number, SnapshotUpgrade>>;
-  /** Worked examples, used to write each shape version's fixture and to test its shape. */
-  examples: readonly { name: string; params: Params; structuralInputs: Inputs }[];
+  /**
+   * Worked examples, used to write each shape version's fixture and to test its shape. One with a
+   * `start` is also offered as a new project's starting point under that name (#98): its
+   * parameters only, since structural inputs are never filled in for the owner (hard rule 3).
+   */
+  examples: readonly {
+    name: string;
+    start?: string;
+    params: Params;
+    structuralInputs: Inputs;
+  }[];
 }

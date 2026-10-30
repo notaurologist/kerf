@@ -52,6 +52,12 @@ export interface FormSection {
   title: string;
   help?: string;
   fields: readonly FormField[];
+  /**
+   * Parameters the owner enters or confirms (hard rule 3), such as hardware sizes. A new project
+   * started from a worked example leaves them empty, and one copied from an earlier project asks
+   * the owner to confirm them (#98). Structural inputs are always treated this way.
+   */
+  confirmed?: true;
 }
 
 export interface TemplateForm {
@@ -64,6 +70,11 @@ export interface TemplateForm {
 export type FormValues = Readonly<Record<string, string>>;
 
 const getter = (values: FormValues) => (path: string) => values[path] ?? '';
+
+/** The paths of fields the owner enters or confirms in these parameter sections (#98). */
+export function confirmedPaths(sections: readonly FormSection[]): Set<string> {
+  return new Set(sections.filter((s) => s.confirmed).flatMap((s) => s.fields.map((f) => f.path)));
+}
 
 /** The fields that apply to the current values, in order. */
 export function visibleFields(sections: readonly FormSection[], values: FormValues): FormField[] {

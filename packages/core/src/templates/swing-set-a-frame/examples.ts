@@ -40,17 +40,20 @@ const allInputs: SwingSetStructuralInputs = {
 
 export const EXAMPLES: readonly {
   name: string;
+  start?: string;
   params: SwingSetParams;
   structuralInputs: SwingSetStructuralInputs;
 }[] = [
   {
     name: 'Worked example, every input entered',
+    start: "The spec's worked example: one beam, two swings, legs buried",
     params: workedExample,
     structuralInputs: allInputs,
   },
   { name: 'Worked example, no structural inputs', params: workedExample, structuralInputs: {} },
   {
     name: 'Two-ply 2x6 beam on pads, level ground, footprint depth',
+    start: 'A two-ply 2x6 beam, legs on pads, level ground',
     params: {
       ...workedExample,
       beamStock: '2x6',

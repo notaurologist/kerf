@@ -154,6 +154,7 @@ export const SWING_SET_FORM: TemplateForm = {
     },
     {
       title: 'Hardware',
+      confirmed: true,
       help: 'Bolt sizes and counts confirmed with an experienced builder. They decide whether the frame holds, so none is filled in for you.',
       fields: [
         {

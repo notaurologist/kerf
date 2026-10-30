@@ -26,6 +26,8 @@ export function FieldInput(props: {
   onChange: (text: string) => void;
   readOnly?: boolean;
   needed?: boolean;
+  /** A copied structural input waiting to be confirmed (#98); see `Field`. */
+  confirm?: string;
 }) {
   const { field, text } = props;
   const unit = field.unit || UNITS[field.kind];
@@ -39,6 +41,7 @@ export function FieldInput(props: {
       error={props.issue}
       echo={entryEcho(field, text)}
       needed={props.needed && text.trim() === ''}
+      confirm={props.confirm}
       unit={unit}
     >
       {(c) =>

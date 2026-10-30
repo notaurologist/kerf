@@ -16,6 +16,26 @@ describe('parseRoute', () => {
       '#/projects/new?template=swing-set-a-frame',
       { screen: 'new-project', templateId: 'swing-set-a-frame' },
     ],
+    [
+      '#/projects/new?template=swing-set-a-frame&example=1',
+      {
+        screen: 'new-project',
+        templateId: 'swing-set-a-frame',
+        start: { kind: 'example', index: 1 },
+      },
+    ],
+    [
+      '#/projects/new?template=swing-set-a-frame&project=abc',
+      {
+        screen: 'new-project',
+        templateId: 'swing-set-a-frame',
+        start: { kind: 'project', id: 'abc' },
+      },
+    ],
+    [
+      '#/projects/new?template=swing-set-a-frame&example=x',
+      { screen: 'new-project', templateId: 'swing-set-a-frame' },
+    ],
     ['#/projects/new', { screen: 'not-found' }],
     ['#/projects/abc/delete', { screen: 'not-found' }],
     ['#/projects/abc/edit/x', { screen: 'not-found' }],
@@ -66,6 +86,12 @@ describe('parseRoute', () => {
       { screen: 'project', id: '6f1c2a3e-0000-4000-8000-000000000000' },
       { screen: 'edit-project', id: 'x y' },
       { screen: 'new-project', templateId: 'swing-set-a-frame' },
+      {
+        screen: 'new-project',
+        templateId: 'swing-set-a-frame',
+        start: { kind: 'example', index: 0 },
+      },
+      { screen: 'new-project', templateId: 'swing set', start: { kind: 'project', id: 'a b' } },
       { screen: 'shop', id: 'abc' },
       { screen: 'build', id: 'abc' },
       { screen: 'build-steps', id: 'abc' },

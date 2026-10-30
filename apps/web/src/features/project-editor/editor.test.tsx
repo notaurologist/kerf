@@ -1,10 +1,16 @@
-import { buildFromForm, findTemplate, formValues, type TemplateDefinition } from '@kerf/core';
+import {
+  buildFromForm,
+  confirmedPaths,
+  findTemplate,
+  formValues,
+  type TemplateDefinition,
+} from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
 import { placeIssues, schemaIssues } from './issues.ts';
-import { changesFor, ProjectEditor } from './ProjectEditor.tsx';
+import { changesFor, ProjectEditor, startValues } from './ProjectEditor.tsx';
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const { params: sections } = template.form;
@@ -30,6 +36,92 @@ describe('a new project form', () => {
     expect(html).toContain('Beam species and grade');
     expect(html).toContain('Swing hanger rated working load');
     expect(html).toContain('Input needed');
+  });
+});
+
+describe('starting a new project (#98)', () => {
+  const earlier = projectFrom(storedSnapshots[0] ?? null, { name: 'First swing set' });
+
+  it('starts empty with no start chosen', () => {
+    const start = startValues(template, undefined, null);
+    if (!start.ok) throw new Error(start.message);
+    expect(Object.values(start.initial.params).every((v) => v === '')).toBe(true);
+    expect(Object.values(start.initial.inputs).every((v) => v === '')).toBe(true);
+    expect(start.copied).toBeUndefined();
+  });
+
+  it('offers worked examples, filling in neither hardware nor structural inputs (rule 3)', () => {
+    const confirm = confirmedPaths(sections);
+    expect(confirm.has('hardware.legBoltDiameter')).toBe(true);
+    const offered = template.examples.flatMap((e, index) => (e.start ? [index] : []));
+    expect(offered.length).toBeGreaterThan(0);
+    for (const index of offered) {
+      const start = startValues(template, { kind: 'example', index }, null);
+      if (!start.ok) throw new Error(start.message);
+      const { params, inputs } = start.initial;
+      expect(params['beamLength']).not.toBe('');
+      for (const path of confirm) expect(params[path]).toBe('');
+      // Only the hardware is missing: filled in, the example's parameters are what core reads.
+      const example = template.examples[index];
+      const filled = { ...formValues(sections, example?.params), ...params };
+      for (const path of confirm) filled[path] = formValues(sections, example?.params)[path] ?? '';
+      expect(template.params.safeParse(buildFromForm(sections, filled)).success).toBe(true);
+      expect(Object.values(inputs).every((v) => v === '')).toBe(true);
+      expect(start.copied).toBeUndefined();
+    }
+  });
+
+  it('refuses an example that is not offered as a start', () => {
+    const notOffered = template.examples.findIndex((e) => !e.start);
+    expect(startValues(template, { kind: 'example', index: notOffered }, null).ok).toBe(false);
+    expect(startValues(template, { kind: 'example', index: 99 }, null).ok).toBe(false);
+  });
+
+  it("copies an earlier project's values, its hardware and structural inputs to confirm", () => {
+    const start = startValues(template, { kind: 'project', id: earlier.id }, earlier);
+    if (!start.ok) throw new Error(start.message);
+    expect(start.initial.name).toBe('');
+    expect(start.initial.params['beamLength']).toBe('120');
+    expect(start.initial.params['hardware.legBoltDiameter']).toBe('0.5');
+    expect(start.initial.inputs['beamSpeciesGrade']).toBe('southern-pine-no2');
+    expect(start.copied?.from).toBe('First swing set');
+    expect(start.copied?.inputs).toEqual(start.initial.inputs);
+    expect(Object.keys(start.copied?.params ?? {})).toEqual([...confirmedPaths(sections)]);
+  });
+
+  it('refuses a project of another template, or one whose plan cannot be read', () => {
+    const other = { ...earlier, templateId: 'bookshelf' };
+    expect(startValues(template, { kind: 'project', id: earlier.id }, other).ok).toBe(false);
+    const unreadable = projectFrom(null, { name: 'Broken' });
+    const start = startValues(template, { kind: 'project', id: unreadable.id }, unreadable);
+    expect(start).toEqual({
+      ok: false,
+      message: "Broken's stored plan cannot be read, so it cannot be copied.",
+    });
+  });
+
+  it('marks each copied hardware value and structural input to confirm, and asks for it', () => {
+    const start = startValues(template, { kind: 'project', id: earlier.id }, earlier);
+    if (!start.ok) throw new Error(start.message);
+    const editor = (
+      <ProjectEditor template={template} initial={start.initial} copied={start.copied} />
+    );
+    const text = renderText(editor);
+    expect(text).toContain('The values marked "Copied, confirm" are from First swing set.');
+    expect(text).toContain('The copied values are right for this project');
+    const html = render(editor);
+    expect(html).toMatch(/Leg-to-beam bolt diameter<\/span><span class="k-needed">Copied, confirm/);
+    // Every shown hardware field and every entered structural input, and nothing else.
+    const hardware = [...confirmedPaths(sections)].filter((p) => html.includes(`id="p-${p}"`));
+    const inputs = Object.values(start.initial.inputs).filter((v) => v !== '').length;
+    expect(html.match(/class="k-needed">Copied, confirm/g)).toHaveLength(hardware.length + inputs);
+  });
+
+  it('shows a preview beside a new form, waiting until the entries can be read', () => {
+    const start = startValues(template, undefined, null);
+    if (!start.ok) throw new Error(start.message);
+    const text = renderText(<ProjectEditor template={template} initial={start.initial} />);
+    expect(text).toContain('show here when every dimension and hardware entry can be read');
   });
 });
 
