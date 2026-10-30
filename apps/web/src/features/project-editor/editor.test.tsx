@@ -1,6 +1,8 @@
 import { buildFromForm, findTemplate, formValues, type TemplateDefinition } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { render } from '../../test/render.tsx';
+import type { Project } from '../../lib/types.ts';
+import { projectFrom, storedSnapshots } from '../../test/projects.ts';
+import { render, renderText } from '../../test/render.tsx';
 import { placeIssues, schemaIssues } from './issues.ts';
 import { changesFor, ProjectEditor } from './ProjectEditor.tsx';
 
@@ -49,6 +51,34 @@ describe('an existing project in the form', () => {
     // The beam length, read back through core's formatter.
     expect(html).toContain('10&#x27; 0&quot;');
     expect(html).toMatch(/<option value="southern-pine-no2" selected="">Southern Pine No.2</);
+  });
+});
+
+describe('a project made with an older template version', () => {
+  it('says, as information rather than a problem, that saving regenerates it', () => {
+    const snapshot = storedSnapshots[0] ?? null;
+    const version = {
+      status: 'behind',
+      storedVersion: 1,
+      currentVersion: 2,
+      regenerated: { ok: true, changes: [], truncated: false },
+    } as Project['version'];
+    const project = projectFrom(snapshot, { version, templateBehind: true });
+    const editor = (
+      <ProjectEditor
+        template={template}
+        project={project}
+        initial={{
+          name: project.name,
+          params: formValues(template.form.params, snapshot?.params),
+          inputs: formValues(template.form.structuralInputs, snapshot?.structuralInputs),
+        }}
+      />
+    );
+    expect(render(editor)).toMatch(/<div class="k-info" role="status">/);
+    expect(renderText(editor)).toContain(
+      'Saving changed parameters or structural inputs regenerates this plan with template version 2. It was made with version 1.',
+    );
   });
 });
 

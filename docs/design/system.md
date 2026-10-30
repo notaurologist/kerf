@@ -44,7 +44,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | A plan's or a step's flags | `FlagList` | Core's `Flag[]`, each an `ExpertCheck` labeled with its category. Nothing when there are none. |
 | Where a structural check stands | `CheckStatus` | The margin through core's formatter, input needed, or "Not computed." with the reason; `was` in a preview. |
 | A save that did not go through | `SaveFailed` | "Not saved.", the reason, and "Your changes are still here", with the connection icon when the server was not reached. Takes a `Failure` from `failureOf`. A preview passes its own `title` and `kept`. |
-| Something to know that is not a problem | `InfoNotice` | Status, not an alert, with the info icon. Shown in the catalog for the owner's review; not on screens yet (#122). |
+| Something to know that is not a problem | `InfoNotice` | Status, not an alert, with the info icon. Such as a plan made with a newer or older template version. |
 | Loading a screen's data | `Loaded` (`lib/Loaded.tsx`) | Takes `useLoad`'s state, the loading words, and a function from the value to the screen. |
 | What just happened | `StatusLine` | Stays until the next action. Use `setFlash` (`lib/flash.ts`) to carry it to the next screen. |
 | Progress not yet sent | `Pending` | Shop modes (#57). |

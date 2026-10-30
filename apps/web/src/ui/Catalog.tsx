@@ -341,11 +341,7 @@ function Specimens() {
         <Loading delayMs={0}>Loading project…</Loading>
       </Group>
 
-      <Group title="Information (for review, #122)">
-        <Text>
-          Neither a problem nor an expert check. Not used on screens until the owner has reviewed
-          it.
-        </Text>
+      <Group title="Information">
         <InfoNotice>
           <Text>
             This plan was made with template version {template.version + 1}, newer than the version
