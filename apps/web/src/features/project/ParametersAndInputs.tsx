@@ -54,6 +54,7 @@ function Sections(props: {
             <MeasureTable
               caption={section.title}
               captionHidden
+              equalColumns
               rows={section.values}
               rowKey={(v) => v.path}
               columns={[

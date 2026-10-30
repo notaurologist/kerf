@@ -1,6 +1,7 @@
 import {
   type CutListRow,
   createSnapshot,
+  enteredValues,
   entryEcho,
   type FormField,
   findGlossaryEntry,
@@ -107,6 +108,8 @@ const rangeMessage = (f: FormField, text: string) =>
   schemaProblemMessage(f, { code: 'too_big', path: [f.path], message: '' }, text, template.params);
 
 const CUT_ROWS = [part, other];
+/** The worked example's first two sections as entered, for tables whose columns line up. */
+const ENTERED = enteredValues(template.form.params, template.examples[0]?.params).slice(0, 2);
 
 /** Sample fields of each kind from the template's form, with the worked example's values. */
 const allFields = [...template.form.params, ...template.form.structuralInputs].flatMap(
@@ -545,17 +548,45 @@ function Specimens() {
                 </>
               ),
             },
-            { key: 'qty', label: 'Qty', numeric: true, cell: (r) => r.quantity },
-            { key: 'stock', label: 'Stock', cell: (r) => r.stock },
+            { key: 'qty', label: 'Qty', numeric: true, width: 'fit', cell: (r) => r.quantity },
+            { key: 'stock', label: 'Stock', width: 'fit', cell: (r) => r.stock },
             {
               key: 'length',
               label: 'Length',
               numeric: true,
+              width: 'fit',
               cell: (r) => <Length>{r.length}</Length>,
             },
-            { key: 'ends', label: 'End cuts', cell: (r) => <Measured text={r.ends.join('; ')} /> },
+            {
+              key: 'ends',
+              label: 'End cuts',
+              width: 'fill',
+              cell: (r) => <Measured text={r.ends.join('; ')} />,
+            },
           ]}
         />
+      </Group>
+
+      <Group title="Measurement tables with equal columns">
+        <Stack gap="xs">
+          {ENTERED.map((section) => (
+            <MeasureTable
+              key={section.title}
+              caption={section.title}
+              equalColumns
+              rowKey={(v) => v.path}
+              rows={section.values}
+              columns={[
+                { key: 'field', label: 'Field', cell: (v) => v.label },
+                {
+                  key: 'entered',
+                  label: 'As entered',
+                  cell: (v) => <Measured text={v.text ?? ''} />,
+                },
+              ]}
+            />
+          ))}
+        </Stack>
       </Group>
 
       <Group title="Disclosure">

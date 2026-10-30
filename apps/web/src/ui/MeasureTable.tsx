@@ -10,6 +10,12 @@ export interface Column<Row> {
   /** The label in full for screen readers, when `label` is shortened for a narrow column. */
   fullLabel?: string;
   numeric?: boolean;
+  /**
+   * In a table: `fit` is as narrow as its content, on one line from about 900 px of the table's
+   * width and breaking only between whole pieces (`Length`, `Readings`) below that; `fill` columns
+   * share what is left equally. Unset, the browser shares the width by content.
+   */
+  width?: 'fit' | 'fill';
   cell: (row: Row) => ReactNode;
 }
 
@@ -24,17 +30,24 @@ export function MeasureTable<Row>(props: {
   rowChanged?: (row: Row, index: number) => boolean;
   /** The row selected in a linked drawing (#91), highlighted as the drawing highlights its part. */
   rowSelected?: (row: Row) => boolean;
+  /** Every column the same width, so separate tables with the same columns line up. */
+  equalColumns?: boolean;
 }) {
   return (
     <div className="k-table-wrap">
-      <table className="k-table">
+      <table className="k-table" data-equal={props.equalColumns ? '' : undefined}>
         <caption className={props.captionHidden ? 'k-visually-hidden' : undefined}>
           {props.caption}
         </caption>
         <thead>
           <tr>
             {props.columns.map((c) => (
-              <th key={c.key} scope="col" data-numeric={c.numeric ? '' : undefined}>
+              <th
+                key={c.key}
+                scope="col"
+                data-numeric={c.numeric ? '' : undefined}
+                data-width={c.width}
+              >
                 {c.fullLabel ? (
                   <>
                     <span aria-hidden="true">{c.label}</span>
@@ -55,7 +68,12 @@ export function MeasureTable<Row>(props: {
               data-selected={props.rowSelected?.(row) ? '' : undefined}
             >
               {props.columns.map((c) => (
-                <td key={c.key} data-label={c.label} data-numeric={c.numeric ? '' : undefined}>
+                <td
+                  key={c.key}
+                  data-label={c.label}
+                  data-numeric={c.numeric ? '' : undefined}
+                  data-width={c.width}
+                >
                   {/* One box per cell, so stacked rows keep mixed text and lengths together. */}
                   <div>{c.cell(row)}</div>
                 </td>

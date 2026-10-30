@@ -129,6 +129,13 @@ describe('Parameters and inputs', () => {
     expect(text).not.toContain('Footprint depth');
   });
 
+  it('gives every section’s table equal columns, so As entered lines up from table to table', () => {
+    const part = sectionOf(html(complete), 'parameters');
+    const tables = part.match(/<table class="k-table[^>]*>/g) ?? [];
+    expect(tables.length).toBeGreaterThan(3);
+    for (const table of tables) expect(table).toBe('<table class="k-table" data-equal="">');
+  });
+
   it('says input needed for structural inputs not entered, and fills nothing in', () => {
     const text = section(noInputs, 'parameters');
     expect(text.match(/Input needed/g)?.length).toBeGreaterThan(3);

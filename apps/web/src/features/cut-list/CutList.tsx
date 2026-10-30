@@ -9,6 +9,7 @@ import {
   MeasureTable,
   PartLetter,
   PlainList,
+  Readings,
   StatusLine,
   Text,
 } from '../../ui/index.ts';
@@ -76,17 +77,20 @@ export function CutList(props: {
             label: 'Qty',
             fullLabel: 'Quantity',
             numeric: true,
+            width: 'fit',
             cell: (row) => marked(`${path(row)}.quantity`, row.quantity),
           },
           {
             key: 'stock',
             label: 'Stock',
-            cell: (row) => marked(`${path(row)}.stock`, <Measured text={row.stock} />),
+            width: 'fit',
+            cell: (row) => marked(`${path(row)}.stock`, <Readings text={row.stock} />),
           },
           {
             key: 'length',
             label: 'Length',
             numeric: true,
+            width: 'fit',
             cell: (row) =>
               marked(
                 `${path(row)}.length`,
@@ -98,6 +102,7 @@ export function CutList(props: {
           {
             key: 'ends',
             label: 'End cuts',
+            width: 'fill',
             cell: (row) => (
               <>
                 <List ordered>
@@ -117,6 +122,7 @@ export function CutList(props: {
           {
             key: 'marks',
             label: 'Marks and notes',
+            width: 'fill',
             cell: (row) =>
               row.marks.length === 0 && row.notes.length === 0 ? (
                 <Text tone="muted" as="span">

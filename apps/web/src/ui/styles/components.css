@@ -557,6 +557,34 @@
     white-space: nowrap;
   }
 
+  /* Column widths apply to the table only; stacked rows have their own grid. */
+  @container (width >= 40rem) {
+    /* The first column names the row: a name breaks between words, not after each one. */
+    .k-table :is(th, td):first-child {
+      min-inline-size: 8rem;
+    }
+
+    /* 1% asks for the narrowest width: a value's pieces stay whole, and break between them. */
+    .k-table [data-width="fit"] {
+      inline-size: 1%;
+    }
+
+    .k-table [data-width="fill"] {
+      inline-size: 50%;
+    }
+
+    .k-table[data-equal] {
+      table-layout: fixed;
+    }
+  }
+
+  /* With room, a fit column's value stays on one line. */
+  @container (width >= 56rem) {
+    .k-table [data-width="fit"] {
+      white-space: nowrap;
+    }
+  }
+
   @container (width < 40rem) {
     .k-table thead {
       position: absolute;
