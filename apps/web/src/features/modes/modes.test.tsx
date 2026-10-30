@@ -103,8 +103,11 @@ describe('Building mode', () => {
     expect(html.match(/class="k-glance"/g)).toHaveLength(2);
     expect(html.match(/checked=""/g)).toHaveLength(1);
     expect(html).toContain(`href="#/projects/${p.id}/build/board-6/crossbar"`);
-    // The board's drawing sits beside the step from the 8-column width.
-    expect(html).toContain('class="l-switcher"');
+    // The board's drawing: beside the step from the 8-column width, and on a phone after the
+    // pieces and before the methods (#134).
+    const at = (x: string) => html.indexOf(x);
+    expect(at('k-steplayout__lead')).toBeLessThan(at('k-steplayout__drawing'));
+    expect(at('k-steplayout__drawing')).toBeLessThan(at('Miter: D Crossbar'));
     expect(html).toContain('A 2x6 board 10');
     expect(text).toContain('Back Done, next');
   });
@@ -127,8 +130,10 @@ describe('Building mode', () => {
     const p = project();
     const route = { screen: 'build-step' as const, id: p.id, step: 'beam' };
     const html = render(<ModeView route={route} project={p} />);
-    expect(html).toContain('class="l-switcher"');
+    // Right after the title on a phone, before the flags and methods (#134).
     expect(html).toContain('Adds A Beam, to B Back leg');
+    expect(html).not.toContain('k-steplayout__lead');
+    expect(html.indexOf('k-steplayout__drawing')).toBeLessThan(html.indexOf('Expert check'));
     // Only the beam is emphasized, as a selected part is drawn.
     const emphasized = [...html.matchAll(/data-selected="" data-part="([^"]+)"/g)].map((m) => m[1]);
     expect(new Set(emphasized)).toEqual(new Set(['beam']));
@@ -139,11 +144,11 @@ describe('Building mode', () => {
     const site = render(
       <ModeView route={{ screen: 'build-step', id: p.id, step: 'site' }} project={p} />,
     );
-    expect(site).toContain('class="l-switcher"');
+    expect(site).toContain('class="k-steplayout__drawing"');
     const ease = render(
       <ModeView route={{ screen: 'build-step', id: p.id, step: 'ease-edges' }} project={p} />,
     );
-    expect(ease).not.toContain('class="l-switcher"');
+    expect(ease).not.toContain('class="k-steplayout__drawing"');
   });
 
   it('says a step is done and offers Next instead', () => {

@@ -38,6 +38,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | A question for an experienced builder | `ExpertCheck` | Amber, with the flag icon and "Expert check" (#43, rule 3). |
 | What just happened | `StatusLine` | Stays until the next action. Use `setFlash` (`lib/flash.ts`) to carry it to the next screen. |
 | Progress not yet sent | `Pending` | Shop modes (#57). |
+| A Building step with its drawing | `StepLayout` | `lead` (a cutting step's pieces), `drawing`, then the rest. From 600 px of its own width the drawing sits beside the step; narrower, it comes after the lead and before the rest (#134). |
 | Marking an item done in a shop mode | `Tick` | A native checkbox with the item as its label, at least the control height; `waiting` adds `Pending` (#61). |
 | A margin | `MarginLine` | Core's `formatMargin`, then "under these assumptions", in the text color. In a preview, `was` gives the saved margin. |
 | A value a preview changes | `Changed`, and `rowChanged` on `MeasureTable` | The new value with "was" and the saved value under it, and a bar beside the row (#56). `was={null}` says "new". |

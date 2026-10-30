@@ -25,6 +25,7 @@ import {
   Select,
   StateTag,
   StatusLine,
+  StepLayout,
   TextInput,
   Tick,
 } from './index.ts';
@@ -293,6 +294,31 @@ describe('ModeFrame', () => {
     expect(html).toContain('href="#/projects/1"');
     expect(html).not.toContain('<nav');
     expect(html).toContain('<main class="l-page" data-density="shop">');
+  });
+});
+
+describe('StepLayout', () => {
+  it('puts the drawing after the lead and before the rest, in one place', () => {
+    const html = render(
+      <StepLayout lead={<p>Pieces</p>} drawing={<p>Drawing</p>}>
+        <p>Methods</p>
+      </StepLayout>,
+    );
+    expect(
+      renderText(
+        <StepLayout lead="Pieces" drawing="Drawing">
+          Methods
+        </StepLayout>,
+      ),
+    ).toBe('Pieces Drawing Methods');
+    expect(html.match(/Drawing/g)).toHaveLength(1);
+    expect(html).toContain('data-drawing=""');
+  });
+
+  it('is a plain column with no drawing', () => {
+    const html = render(<StepLayout>Methods</StepLayout>);
+    expect(html).not.toContain('data-drawing');
+    expect(html).not.toContain('k-steplayout__drawing');
   });
 });
 
