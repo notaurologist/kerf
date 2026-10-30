@@ -123,8 +123,9 @@ export const swingSetAFrame: TemplateDefinition<
   // size it drilled, its bolt's diameter. Shape 10 adds the parts and hardware each flag and
   // checklist item concerns (#51), optional: a plan stored before it keeps its flags on the plan.
   // Shape 11 adds the board plan's kerf and end trim (#58); reading an older plan sets the defaults
-  // every plan was made with.
-  snapshotVersion: 11,
+  // every plan was made with. Shape 12 adds each hardware item's and line's store group (#59),
+  // optional: a plan stored before it shows its hardware as one group.
+  snapshotVersion: 12,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -136,6 +137,7 @@ export const swingSetAFrame: TemplateDefinition<
     8: addHoleSizes,
     9: (snapshot) => snapshot,
     10: addBoardAllowances,
+    11: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   steps: (outputs) => stepOutline(outputs.design),

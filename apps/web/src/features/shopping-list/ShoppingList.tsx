@@ -1,4 +1,4 @@
-import { formatLength, type HardwareLine, type LumberPlan } from '@kerf/core';
+import { formatLength, groupHardware, type HardwareLine, type LumberPlan } from '@kerf/core';
 import { Fragment } from 'react';
 import { type Changes, marked, NO_CHANGES } from '../../lib/changes.tsx';
 import {
@@ -122,33 +122,39 @@ export function ShoppingList(props: {
       <BoardSelection lumber={lumber} />
 
       <h3>Hardware</h3>
-      <MeasureTable
-        caption="Hardware to buy"
-        captionHidden
-        rows={props.hardware}
-        rowKey={(h) => h.description}
-        rowChanged={(h) => changes.under(line(h, props.hardware, 'hardware'))}
-        columns={[
-          {
-            key: 'item',
-            label: 'Item',
-            cell: (h) =>
-              marked(
-                changes,
-                `${line(h, props.hardware, 'hardware')}.description`,
-                <Measured text={h.description} />,
-              ),
-          },
-          {
-            key: 'qty',
-            label: 'Qty',
-            fullLabel: 'Quantity',
-            numeric: true,
-            cell: (h) =>
-              marked(changes, `${line(h, props.hardware, 'hardware')}.quantity`, h.quantity),
-          },
-        ]}
-      />
+      {/* By store group (#59): each group the template names, under its own heading. */}
+      {groupHardware(props.hardware, (h) => h.group).map((group, _, groups) => (
+        <Stack key={group.title} gap="xs">
+          {groups.length > 1 && <h4>{group.title}</h4>}
+          <MeasureTable
+            caption={`${group.title} to buy`}
+            captionHidden
+            rows={group.lines}
+            rowKey={(h) => h.description}
+            rowChanged={(h) => changes.under(line(h, props.hardware, 'hardware'))}
+            columns={[
+              {
+                key: 'item',
+                label: 'Item',
+                cell: (h) =>
+                  marked(
+                    changes,
+                    `${line(h, props.hardware, 'hardware')}.description`,
+                    <Measured text={h.description} />,
+                  ),
+              },
+              {
+                key: 'qty',
+                label: 'Qty',
+                fullLabel: 'Quantity',
+                numeric: true,
+                cell: (h) =>
+                  marked(changes, `${line(h, props.hardware, 'hardware')}.quantity`, h.quantity),
+              },
+            ]}
+          />
+        </Stack>
+      ))}
       {removedHardware.length > 0 && (
         <Text>
           No longer bought:{' '}

@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { progressItems, progressToReset } from '../../progress/progress.ts';
+import { readSnapshot } from '../../snapshot/snapshot.ts';
+import type { TemplateDefinition } from '../definition.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 import type { SwingSetParams } from './params.ts';
+import v11 from './snapshots/v11.json' with { type: 'json' };
 
 // Saved progress across a regeneration (#57), on the spec's worked example. Ticks stay only on
 // items whose key is still in the plan with the same numbers.
@@ -123,5 +126,15 @@ describe('progress items for the worked example', () => {
       'board 2x8/8/1',
       'step board-7',
     ]);
+  });
+});
+
+describe('progress across the version 12 regeneration (#59)', () => {
+  it('keeps ticks on shopping lines when only their store group is added', () => {
+    const read = readSnapshot([swingSetAFrame as TemplateDefinition], v11[0]);
+    if (!read.ok) throw new Error('v11 fixture does not read');
+    const stored = swingSetAFrame.outputs.parse(read.snapshot.outputs);
+    const old = progressItems(swingSetAFrame, stored).filter((i) => i.kind === 'shopping-line');
+    expect(progressToReset(old, old, before)).toEqual([]);
   });
 });

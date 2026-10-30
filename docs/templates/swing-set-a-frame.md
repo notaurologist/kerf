@@ -35,6 +35,8 @@ Template version 10 (#51) names the parts and hardware each flag and checklist i
 
 Template version 11 (#58) stores the board plan's kerf and end trim, which cutting steps state. Every plan before it used 1/8" and 1/2", and reading one sets those, so nothing changes.
 
+Template version 12 (#59) puts each hardware item in a store group (Hardware, below), so the store checklist reads lumber, then bolts and fittings, then swing hardware, then ground anchors. It also rewords each bolt's note as #68's audit asked ("1/2" through-bolt. Length: at least ..."). No number changes; a plan made before version 12 shows its hardware as one list until it is regenerated.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -215,6 +217,7 @@ Every structural connection is a through-bolt with a flat washer at each end and
 - **Swing seats:** 2, lightweight (CPSC p. 4), with chain set to the chain length.
 - **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
+- **Store groups** (version 12): the bolts and their washers, nuts, and caps are "Bolts and fittings"; the hangers and seats are "Swing hardware"; the ground anchors are "Ground anchors". The store checklist shows them in that order, after the lumber.
 
 ### Tools for the work
 

@@ -74,8 +74,13 @@ export function planProgressItems(
   const { lumber } = plan;
   const detail = (partId: string) => drawings.cutDetails.find((d) => d.partId === partId) ?? null;
   const items: ProgressItem[] = [];
+  // A line's numbers are what is bought: its store group can move without undoing a tick.
   for (const { key, line } of shoppingLines(plan)) {
-    items.push({ kind: 'shopping-line', key, numbers: json(line) });
+    const bought =
+      'nominal' in line
+        ? { nominal: line.nominal, feet: line.feet, count: line.count }
+        : { description: line.description, quantity: line.quantity };
+    items.push({ kind: 'shopping-line', key, numbers: json(bought) });
   }
   const ids = boardIds(lumber.boards);
   lumber.boards.forEach((board, i) => {
@@ -172,6 +177,48 @@ export function progressToReset(
     if (numbers !== was.get(id)) return [{ kind, key, reason: 'changed' }];
     return [];
   });
+}
+
+/** A heading on the store checklist (#59) and the shopping lines under it. */
+export interface ShoppingGroup {
+  title: string;
+  lines: ReturnType<typeof shoppingLines>;
+}
+
+/** The heading for hardware a plan made before store groups did not place (#59). */
+export const UNGROUPED_HARDWARE = 'Hardware';
+
+/**
+ * The shopping lines as the store checklist shows them (#59): lumber first, then each hardware
+ * group in the order its first line comes. The groups are the template's words; this only keeps
+ * their order.
+ */
+export function shoppingGroups(plan: Pick<Plan, 'lumber' | 'hardware'>): ShoppingGroup[] {
+  const lines = shoppingLines(plan);
+  const lumber = lines.filter((l) => 'nominal' in l.line);
+  const hardware = lines.filter((l) => !('nominal' in l.line));
+  return [
+    ...(lumber.length > 0 ? [{ title: 'Lumber', lines: lumber }] : []),
+    ...groupHardware(hardware, (l) => ('group' in l.line ? l.line.group : undefined)),
+  ];
+}
+
+/**
+ * Hardware under its store groups, each in the order its first item comes; items a plan made
+ * before groups did not place go under `UNGROUPED_HARDWARE`.
+ */
+export function groupHardware<T>(
+  items: readonly T[],
+  groupOf: (item: T) => string | undefined,
+): { title: string; lines: T[] }[] {
+  const groups: { title: string; lines: T[] }[] = [];
+  for (const item of items) {
+    const title = groupOf(item) ?? UNGROUPED_HARDWARE;
+    const group = groups.find((g) => g.title === title);
+    if (group) group.lines.push(item);
+    else groups.push({ title, lines: [item] });
+  }
+  return groups;
 }
 
 /** How far a project has got (#61): for the plan's mode cards and the projects list. */

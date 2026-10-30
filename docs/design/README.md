@@ -67,7 +67,7 @@ Every M4 screen is built from `apps/web/src/ui` only: login, projects, tools, th
   - "Not saved." with the reason when the server cannot be reached, keeping what was typed;
   - a "Saved." line on the plan afterwards;
   - a prompt before leaving with unsaved changes, from any link or when the tab closes.
-- The 14 screen strings from #68's audit are changed. The core hardware note waits for the next template version bump (0008).
+- The 14 screen strings from #68's audit are changed. The core hardware note changed with template version 12 (#59).
 
 Checked in the browser with the worked example's stored snapshot served in place of the API, at 375 px and about 820 px, in light and dark: the plan, the editor's failed save and leave prompt, and the tools screen. No page scrolls sideways, and long formulas scroll within their own line. Print was not checked in a browser; it is worth checking on paper in #81.
 
@@ -84,7 +84,7 @@ How to use the system, including which component for which job, the tokens, the 
 | `ARCHITECTURE.md` describes where the system lives and how new screens use it | Met. |
 | C1 colors and D2 face tones as tokens, with a test of every recorded contrast ratio | Met (#78, #79). |
 | Atkinson Hyperlegible Next and Mono self-hosted with the OFL license | Met (#78). |
-| Forms follow #67's entry standard and states; strings follow #68's guide | Met (#73, #80). The core hardware note waits for the next template version bump. |
+| Forms follow #67's entry standard and states; strings follow #68's guide | Met (#73, #80). The core hardware note changed with template version 12 (#59). |
 | Icons in one style at the diagram line weights | Met for the M4 screens (#79). Tool icons are #86; shop-mode icons come with the shop screens (#61). |
 | Accessibility beyond contrast | Partly met: keyboard, focus, roles and names, and reflow at 360 px and 640 px are checked. VoiceOver, 320 px, and reduced motion in effect are #87. Text equivalents for diagrams are built into `DiagramFrame`; the diagrams themselves are M5. |
 | A catalog page showing every component in every state, light and dark | Met (#79): `#/catalog`. No screenshot tests (the owner chose no new test dependencies). |
@@ -108,7 +108,7 @@ The owner took the suggested option for each (October 2026).
 |---|---|---|
 | Voice | V1, shop voice: "you", the active voice, the verb first, then the number, then why. Everything a person acts on uses it; the structural working keeps its exact, impersonal register. The guide is `content.md`. | V2, report voice: exact, but the reader has to turn labels into actions with a saw in hand, "Invalid input" reads as blame (NN/g), and "Expert review" and "required" lean toward a verdict. Kept only for the working. V3, mentor voice: friendlier, but its reassurance becomes verdicts ("perfectly level", "a little headroom"), which hard rule 2 forbids, and cheer wears thin when repeated (NN/g). |
 | "Sanity checks" | Renamed "structural checks" in PRODUCT.md, AGENTS.md, DOMAIN.md, ARCHITECTURE.md, and MILESTONES.md in this change, and in the app in #45. Decision 0001 keeps its wording. | Keeping "sanity checks": familiar, and the word warns that the checks are rough, but it is vague about what is checked, and the review already says "not an engineered design". |
-| Guide, word list, and audit | As written. The audit's 15 changes (in `words.html`) are made in #45; the change to core's hardware note waits for the next template version bump (0008). | None proposed. |
+| Guide, word list, and audit | As written. The audit's 15 changes (in `words.html`) are made in #45; the change to core's hardware note was made with template version 12 (#59). | None proposed. |
 
 ## Stage 5a: number entry and form states (#67)
 

@@ -44,6 +44,20 @@ describe('Shopping mode', () => {
     expect(html.match(/type="checkbox"/g)).toHaveLength(11);
     expect(html.match(/checked=""/g)).toHaveLength(1);
   });
+
+  it('groups the list by where things are in the store, each with its own count (#59)', () => {
+    const p = project([
+      { kind: 'shopping-line', key: 'lumber/2x6/10' },
+      { kind: 'shopping-line', key: 'hardware/Swing hangers' },
+    ]);
+    const text = renderText(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
+    const headings = [...text.matchAll(/(Lumber|Bolts and fittings|Swing hardware) (\d+ of \d+)/g)];
+    expect(headings.map((m) => `${m[1]} ${m[2]}`)).toEqual([
+      'Lumber 1 of 4',
+      'Bolts and fittings 0 of 5',
+      'Swing hardware 1 of 2',
+    ]);
+  });
 });
 
 describe('Building mode', () => {

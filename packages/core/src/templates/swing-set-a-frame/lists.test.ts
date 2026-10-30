@@ -180,14 +180,51 @@ describe('hardwareList', () => {
   const list = hardwareList(out.hardware);
 
   it('groups bolts by diameter and grip and totals the fittings', () => {
+    const bolts = 'Bolts and fittings';
+    const swing = 'Swing hardware';
     expect(list).toEqual([
-      { description: '1/2" through-bolt, grip 8-15/16"', quantity: 2 },
-      { description: '1/2" through-bolt, grip 5"', quantity: 16 },
-      { description: '1/2" flat washers', quantity: 36 },
-      { description: '1/2" locking nuts', quantity: 18 },
-      { description: '1/2" bolt caps', quantity: 18 },
-      { description: 'Swing hangers', quantity: 4 },
-      { description: 'Swing seats with chain', quantity: 2 },
+      { description: '1/2" through-bolt, grip 8-15/16"', quantity: 2, group: bolts },
+      { description: '1/2" through-bolt, grip 5"', quantity: 16, group: bolts },
+      { description: '1/2" flat washers', quantity: 36, group: bolts },
+      { description: '1/2" locking nuts', quantity: 18, group: bolts },
+      { description: '1/2" bolt caps', quantity: 18, group: bolts },
+      { description: 'Swing hangers', quantity: 4, group: swing },
+      { description: 'Swing seats with chain', quantity: 2, group: swing },
+    ]);
+  });
+
+  it('puts ground anchors in their own group when the legs stand on pads', () => {
+    const onPads = hardwareList(
+      output({ ...example, burialDepth: 0, hardware: { ...example.hardware, anchorsPerFoot: 1 } })
+        .hardware,
+    );
+    expect(onPads.at(-1)).toEqual({
+      description: 'Ground anchors',
+      quantity: 4,
+      group: 'Ground anchors',
+    });
+  });
+
+  it('keeps lines from different groups apart, and lists items with no group as they are', () => {
+    const bolt = (group?: string) => ({
+      id: 'b',
+      name: 'B',
+      quantity: 1,
+      bolt: { diameter: 0.5, grip: 5, washers: 2, nut: 'locking' as const, cap: false },
+      structural: true,
+      notes: [],
+      ...(group ? { group } : {}),
+    });
+    expect(hardwareList([bolt('A'), bolt('B'), bolt()]).map((l) => l.group)).toEqual([
+      'A',
+      'B',
+      undefined,
+      'A',
+      'A',
+      'B',
+      'B',
+      undefined,
+      undefined,
     ]);
   });
 
@@ -204,8 +241,8 @@ describe('hardwareList', () => {
       }).hardware,
     );
     expect(mixed.filter((l) => l.description.includes('washers'))).toEqual([
-      { description: '1/2" flat washers', quantity: 32 },
-      { description: '5/8" flat washers', quantity: 4 },
+      { description: '1/2" flat washers', quantity: 32, group: 'Bolts and fittings' },
+      { description: '5/8" flat washers', quantity: 4, group: 'Bolts and fittings' },
     ]);
   });
 });
