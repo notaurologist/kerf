@@ -133,6 +133,10 @@ For each operation, `steps/` lists the methods from the knowledge base whose req
 
 The preference order is the order of `METHODS` in `knowledge/methods.ts`, where each operation type's methods are listed together: guided and stationary power tools first, since they hold the line and the angle, and hand tools last. A method's tools are met when, for each requirement, the inventory has one of its tool types with every capability it needs at least the operation's value divided by the number of passes. Each method lists the methods for the same operation it is easier than and more accurate than (`easierThan`, `moreAccurateThan`). `fillMethodText` fills a method's `{name}` values from an operation with core's formatters.
 
+`steps/select.ts` applies this to one operation. A tool type the inventory lacks, or a capability below what the operation needs, is a gap; a capability not entered is a gap too, never a guess (hard rule 3). The chosen method is the first with no gaps. With none, the step names the tools for the method with the fewest gaps, ties going to preference order. Methods that wait only on capabilities not entered, and that are preferred over the chosen one or better than it, are listed as input needed, so the step says which entry would allow them. Methods the inventory does not support that are easier or more accurate than the chosen one are the tool suggestions, each gap described by `describeChoice` with core's formatters.
+
+`steps/build.ts` turns a plan's operations into build steps. Each template supplies its step order as data through `TemplateDefinition.steps`: groups of operation IDs with a title and the expert-check categories the work falls in. Generic code chooses a method for each operation, fills its text, and gathers each step's parts, skills, and flags (the chosen methods' flags and the step's categories). An outline that leaves out, repeats, or invents an operation throws. Like drawings, steps are made on read from the stored operations and the current inventory and knowledge base, and are not stored. How they reach the web app is #52.
+
 ## apps/api
 
 ### Routes
