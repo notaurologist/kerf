@@ -20,6 +20,7 @@ import {
 import { formatLength } from '../../units/length.ts';
 import { ChecklistItem, type Issue } from '../types.ts';
 import type { SwingSetOutput } from './template.ts';
+import { LEG_IDS } from './validate.ts';
 
 // The swing set's structural model (DOMAIN.md, Swing set specifics, Loads; spec, Structural
 // model). It turns the template output and the owner's structural inputs into loads, load cases,
@@ -393,18 +394,24 @@ export function checklist(output: SwingSetOutput): ChecklistItem[] {
     {
       category: 'bolted-connections',
       element: 'Leg-to-beam bolt and gusset, each frame',
+      partIds: [...LEG_IDS, 'beam', 'gusset'],
+      hardwareIds: ['leg-beam-bolts', 'gusset-bolts'],
       confirm: `Bolt size (${formatLength(h.legBoltDiameter)} entered, ${formatLength(g.boltGrip)} grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.`,
       why: 'Each frame carries half of every swing load into the legs through this joint; connections are not computed.',
     },
     {
       category: 'check-assumptions',
       element: 'Beam ends at the frames',
+      partIds: ['beam', ...LEG_IDS],
+      hardwareIds: [],
       confirm: 'That each frame holds the beam against rolling over at its support.',
       why: 'The beam stability factor assumes it; without that restraint the beam can buckle sideways at a lower load.',
     },
     {
       category: 'racking',
       element: 'A-frames and crossbars',
+      partIds: [...LEG_IDS, 'crossbar', 'gusset'],
+      hardwareIds: ['crossbar-bolts', 'gusset-bolts'],
       confirm:
         'That the frames resist side-to-side and front-to-back swing forces without racking, and whether corner braces are needed.',
       why: 'Swinging pushes the top of the frame back and forth; racking is not computed.',
@@ -413,18 +420,24 @@ export function checklist(output: SwingSetOutput): ChecklistItem[] {
       ? {
           category: 'tipping-and-anchoring',
           element: 'Buried legs',
+          partIds: [...LEG_IDS],
+          hardwareIds: [],
           confirm: `Burial depth (${formatLength(p.burialDepth)}), soil, backfill or concrete, and lumber rated for ground contact.`,
           why: 'Burial keeps the frame from lifting and walking; tipping and anchoring are not computed.',
         }
       : {
           category: 'tipping-and-anchoring',
           element: 'Ground anchors on pads',
+          partIds: [...LEG_IDS],
+          hardwareIds: ['ground-anchors'],
           confirm: `Anchor type and count (${h.anchorsPerFoot ?? 'not entered'} per foot) and how they are buried or covered.`,
           why: 'Anchors keep the frame from lifting, tipping, and walking; tipping and anchoring are not computed.',
         },
     {
       category: 'bolted-connections',
       element: 'Swing hangers',
+      partIds: ['beam'],
+      hardwareIds: ['swing-hangers'],
       confirm:
         'Hangers rated for swing use, installed through the beam as the manufacturer specifies.',
       why: "The hanger margin uses the manufacturer's rating, which holds only for its specified installation.",
@@ -432,6 +445,8 @@ export function checklist(output: SwingSetOutput): ChecklistItem[] {
     {
       category: 'lumber-quality',
       element: 'Beam and legs',
+      partIds: ['beam', ...LEG_IDS],
+      hardwareIds: [],
       confirm:
         'Boards free of large knots near the edges (especially near midspan of the beam), steep grain slope, splits, and wane.',
       why: 'Design values assume the grade; a defect in the wrong place lowers strength more than the grade allows for.',
@@ -439,6 +454,9 @@ export function checklist(output: SwingSetOutput): ChecklistItem[] {
     {
       category: 'long-term-condition',
       element: 'Whole frame',
+      // The whole design: no one part.
+      partIds: [],
+      hardwareIds: [],
       confirm:
         'An inspection routine: nuts and bolts twice a month, seats and chains monthly (CPSC Pub. 324, p. 5), and decay at the ground line.',
       why: 'Wood shrinks and bolts loosen, especially in pressure-treated lumber that was sold wet.',
@@ -448,6 +466,8 @@ export function checklist(output: SwingSetOutput): ChecklistItem[] {
     items.splice(1, 0, {
       category: 'bolted-connections',
       element: `Beam plies (${p.beamPlies} x ${p.beamStock})`,
+      partIds: ['beam'],
+      hardwareIds: ['ply-bolts', 'swing-hangers'],
       confirm: `Ply bolt pattern and spacing (${h.plyBolts?.count ?? 'no'} bolts entered), and that every hanger bolts through all ${p.beamPlies} plies.`,
       why: 'The checks assume each ply carries an equal share of every load (decision 0013); that holds only if the plies are fastened together and every load reaches every ply.',
     });

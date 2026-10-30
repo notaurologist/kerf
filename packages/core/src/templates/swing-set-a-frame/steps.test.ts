@@ -14,10 +14,11 @@ if (!example) throw new Error('no worked example');
 const generated = swingSetAFrame.generate(example.params, example.structuralInputs);
 if (!generated.ok) throw new Error('worked example does not generate');
 const outputs = generated.output;
-const operations = swingSetAFrame.plan(outputs).operations;
+const plan = swingSetAFrame.plan(outputs);
+const operations = plan.operations;
 
 function steps(inventory: Inventory): BuildStep[] {
-  return buildSteps(swingSetAFrame.steps(outputs), operations, inventory);
+  return buildSteps(swingSetAFrame.steps(outputs), operations, inventory, plan.flags);
 }
 
 function inventory(...tools: [string, Record<string, number>?][]): Inventory {
@@ -186,15 +187,55 @@ describe('swing-set build steps (#105)', () => {
       const flags = Object.fromEntries(
         steps(inv).map((s) => [s.id, s.flags.map((f) => f.category)]),
       );
+      // The plan's own flags are load-bearing: two on the legs, three on the boards' bolts, and
+      // one on the leg-to-beam bolt (#51), each before the generic check for its step.
       expect(flags).toEqual({
         'cut-beam': [],
-        'cut-legs': [],
+        'cut-legs': ['load-bearing', 'load-bearing'],
         'cut-boards': [],
         'ease-edges': ['dust-and-species'],
         site: ['load-bearing'],
-        frames: ['load-bearing'],
-        beam: ['load-bearing', 'dynamic-loads'],
+        frames: ['load-bearing', 'load-bearing', 'load-bearing', 'load-bearing'],
+        beam: ['load-bearing', 'load-bearing', 'dynamic-loads'],
       });
+    }
+  });
+
+  // The worked example's flags (spec, Flags): a sloped site, legs buried 24", and 1/2" bolts with
+  // 1-3/4" of leg edge distance, under NDS's 4D (2").
+  it('shows each of the plan flags once, on the first step that does the work it concerns (#51)', () => {
+    const built = steps(fullShop);
+    const stepOf = (start: string) =>
+      built.filter((s) => s.flags.some((f) => f.ask.startsWith(start))).map((s) => s.id);
+    // Leg length depends on the slope and the burial depth, so both are asked before cutting.
+    expect(stepOf('Confirm the frame on sloped ground')).toEqual(['cut-legs']);
+    expect(stepOf('Confirm the burial depth (24")')).toEqual(['cut-legs']);
+    // Bolt flags go where their bolts are drilled.
+    expect(stepOf('Crossbar to leg, 2 1/2" bolts')).toEqual(['frames']);
+    expect(stepOf('Gusset to leg, 2 1/2" bolts')).toEqual(['frames']);
+    expect(stepOf("For the bolts' end distance")).toEqual(['frames']);
+    expect(stepOf('Confirm the bolt size for the leg-to-beam bolt')).toEqual(['beam']);
+    // Every plan flag is on exactly one step.
+    for (const flag of plan.flags) expect(stepOf(flag.ask), flag.ask).toHaveLength(1);
+  });
+
+  it('names only parts and hardware the plan has, in every flag and checklist item', () => {
+    for (const ex of EXAMPLES) {
+      const made = swingSetAFrame.generate(ex.params, ex.structuralInputs);
+      if (!made.ok) throw new Error('worked example does not generate');
+      const parts = new Set(made.output.design.parts.map((p) => p.id));
+      const hardware = new Set(made.output.design.hardware.map((h) => h.id));
+      const items = [...made.output.design.flags, ...made.output.structuralReview.checklist];
+      for (const item of items) {
+        expect(
+          item.partIds?.every((id) => parts.has(id)),
+          JSON.stringify(item),
+        ).toBe(true);
+        expect(
+          item.hardwareIds?.every((id) => hardware.has(id)),
+          JSON.stringify(item),
+        ).toBe(true);
+      }
     }
   });
 
@@ -208,10 +249,12 @@ describe('swing-set build steps (#105)', () => {
       example.structuralInputs,
     );
     if (!onPads.ok) throw new Error('pads example does not generate');
+    const padsPlan = swingSetAFrame.plan(onPads.output);
     const built = buildSteps(
       swingSetAFrame.steps(onPads.output),
-      swingSetAFrame.plan(onPads.output).operations,
+      padsPlan.operations,
       fullShop,
+      padsPlan.flags,
     );
     const site = built.find((s) => s.id === 'site');
     expect(site?.title).toBe('Level the pads');

@@ -14,11 +14,22 @@ export const Issue = z.object({
 });
 export type Issue = z.infer<typeof Issue>;
 
+/**
+ * The parts and hardware items a flag or checklist item concerns, by ID (#51), so a cut card or
+ * build step can show it without matching on its words. Both are empty when it concerns the whole
+ * design. Plans made before snapshot shape 10 do not say.
+ */
+const concerns = {
+  partIds: z.array(z.string()).optional(),
+  hardwareIds: z.array(z.string()).optional(),
+};
+
 /** Something to ask an experienced builder about, and why (DOMAIN.md, Expert-check categories). */
 export const Flag = z.object({
   category: FlagCategory,
   ask: z.string(),
   why: z.string(),
+  ...concerns,
 });
 export type Flag = z.infer<typeof Flag>;
 
@@ -208,5 +219,6 @@ export const ChecklistItem = z.object({
   element: z.string(),
   confirm: z.string(),
   why: z.string(),
+  ...concerns,
 });
 export type ChecklistItem = z.infer<typeof ChecklistItem>;

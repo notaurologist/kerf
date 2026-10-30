@@ -31,6 +31,8 @@ Template version 8 (#103) adds the operations each part and the site need (Opera
 
 Template version 9 (#110) drills each bolt hole 1/16" over its bolt, as NDS 2024 12.1.3.2 requires (from 1/32" to 1/16" over). Before, each hole was drawn and recorded at the bolt's own diameter. Holes and bolt-hole operations now carry both sizes, and each cut detail labels them ("Drill 9/16" holes for 1/2" bolts"). Kerf uses 1/16" because spade and auger bits come in sixteenths, so a bit exists for any bolt sized in sixteenths. Bolt sizes, positions, and distances do not change; a plan made before version 9 keeps its holes at the bolt's diameter until it is regenerated.
 
+Template version 10 (#51) names the parts and hardware each flag and checklist item concerns (Flags, below), so a build step shows the flags for its work. No number or wording changes; a plan made before version 10 shows its flags in the structural review only until it is regenerated.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -257,6 +259,8 @@ The template orders the operations into steps (`steps.ts`, #105); methods are ch
 | Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes | load-bearing design |
 | Bolt the beam between the leg tops | leg-to-beam bolt holes | load-bearing design, dynamic loads |
 
+Each step also shows the plan's own flags for its work (Flags, below).
+
 The assembly order (frames braced first, then the beam) is Kerf's proposal and goes to the review with an experienced builder (M7). Raising the frames, backfilling, tightening, and hanging the swings have no operation type yet, so they are not steps.
 
 Worked example, two inventories (`steps.test.ts`): a shop with a miter saw that cuts a 4x4, a jigsaw, and auger bits reaching 10" uses the miter saw for every end cut, the jigsaw for the flush cuts, and drills every hole from one side. A kit with a circular saw cutting 2-3/8" and spade bits reaching 6" cuts the 4x4s from two faces (2-3/8" ≥ 3-1/2" / 2), the 2x boards in one pass, drills the board holes (5") from one side and the leg-to-beam holes (8.947) from both sides (6 ≥ 4.47), and is offered the auger and longer spade bits as easier and more accurate. The angled-line offset on a 4x4 is 3.5 · tan 20° = 1.274, shown as 1-1/4"; on a 2x6, 5.5 · tan 20° = 2.002, shown as 2".
@@ -304,6 +308,22 @@ Rejected combinations, each with a message saying which values conflict:
 - Pads (d = 0): **expert check** on ground anchors (`DOMAIN.md`, Tipping and anchoring).
 - Built-up beam (n > 1): **expert check** on how the plies are fastened together.
 - Sloped ground (g ≠ 0): **expert check**, since the CPSC handbook recommends a level site.
+- Bolt layout and projecting board ends: **expert checks** from the bolt layout (Bolt layout, above).
+
+Each flag and checklist item names the parts and hardware it concerns (#51). A build step shows a plan flag on the first step that drills for its hardware, or else the first that works on one of its parts (`ARCHITECTURE.md`, Method selection):
+
+| Flag | Parts | Hardware | Build step |
+|---|---|---|---|
+| Leg-to-beam bolt and flush cut | legs, beam | leg-to-beam bolts | Bolt the beam between the leg tops |
+| Thin flush cut | legs | | Cut the legs |
+| Built-up beam | beam | ply bolts | Bolt the beam between the leg tops |
+| Sloped ground | legs | | Cut the legs |
+| Buried legs | legs | | Cut the legs |
+| Pads | legs | ground anchors | Cut the legs |
+| Crossbar or gusset bolt distances | that board, legs | its bolts | Bolt the crossbars and gussets across the legs |
+| Projecting board ends | the boards that project | their bolts | Bolt the crossbars and gussets across the legs |
+
+Leg length depends on the slope and the burial depth, so those are asked before the legs are cut. Ground anchors have no drilling operation, so the pads flag goes with the legs.
 
 ## Worked example (hand-checked)
 

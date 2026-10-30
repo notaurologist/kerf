@@ -6,6 +6,7 @@ import { fillMethodText, findMethod, type Method } from '../knowledge/methods.ts
 import { SkillIdSchema } from '../knowledge/skills.ts';
 import type { TemplateDefinition } from '../templates/definition.ts';
 import { Operation } from '../templates/operations.ts';
+import type { Flag } from '../templates/types.ts';
 import {
   describeChoice,
   type MethodFit,
@@ -146,13 +147,34 @@ function stepOperation(op: Operation, inventory: Inventory): [StepOperation, Met
 }
 
 /**
+ * The step a plan flag is shown on (#51): the first that drills for hardware it names, or else
+ * the first that works on a part it names, so it is asked before the work it concerns. A flag
+ * that names neither, or was stored before flags named them, stays on the plan only.
+ */
+function stepForFlag(flag: Flag, steps: readonly { operations: StepOperation[] }[]): number {
+  const hardware = flag.hardwareIds ?? [];
+  const parts = flag.partIds ?? [];
+  const drills = steps.findIndex((s) =>
+    s.operations.some(
+      (o) => 'hardwareId' in o.operation && hardware.includes(o.operation.hardwareId),
+    ),
+  );
+  if (drills >= 0) return drills;
+  return steps.findIndex((s) =>
+    s.operations.some((o) => o.partIds.some((id) => parts.includes(id))),
+  );
+}
+
+/**
  * The build steps for a plan's operations, in the outline's order. Every operation must be in
  * exactly one step: an operation left out, listed twice, or not in the plan is a template bug.
+ * Each of the plan's flags is shown on one step (`stepForFlag`).
  */
 export function buildSteps(
   outline: readonly StepOutline[],
   operations: readonly Operation[],
   inventory: Inventory,
+  planFlags: readonly Flag[],
 ): BuildStep[] {
   const byId = new Map(operations.map((op) => [op.id, op]));
   const placed = outline.flatMap((s) => s.operationIds);
@@ -164,10 +186,21 @@ export function buildSteps(
       `step outline does not match the operations: missing [${missing}], unknown [${unknown}], twice [${twice}]`,
     );
   }
-  return outline.map((s) => {
-    const done = s.operationIds.map((id) => stepOperation(byId.get(id) as Operation, inventory));
+  const done = outline.map((s) =>
+    s.operationIds.map((id) => stepOperation(byId.get(id) as Operation, inventory)),
+  );
+  const onStep = done.map((): StepFlag[] => []);
+  const operationsOf = done.map((d) => ({ operations: d.map(([op]) => op) }));
+  for (const flag of planFlags) {
+    const i = stepForFlag(flag, operationsOf);
+    if (i >= 0)
+      onStep[i]?.push({ category: flag.category, ask: flag.ask, why: flag.why, sources: [] });
+  }
+  return outline.map((s, i) => {
+    const ops = done[i] ?? [];
     const flags: StepFlag[] = [
-      ...done.flatMap(([, method]) => method?.flags ?? []),
+      ...ops.flatMap(([, method]) => method?.flags ?? []),
+      ...(onStep[i] ?? []),
       ...s.categories.map((id) => {
         const { ask, why, sources } = findExpertCheckCategory(id);
         return { category: id, ask, why, sources: [...sources] };
@@ -177,8 +210,8 @@ export function buildSteps(
     return {
       id: s.id,
       title: s.title,
-      operations: done.map(([op]) => op),
-      partIds: [...new Set(done.flatMap(([op]) => op.partIds))],
+      operations: ops.map(([op]) => op),
+      partIds: [...new Set(ops.flatMap(([op]) => op.partIds))],
       flags: flags.filter((f) => {
         const key = `${f.category}\n${f.ask}`;
         if (seen.has(key)) return false;
@@ -224,8 +257,9 @@ export function planSteps<O>(
   outputs: O,
   inventory: Inventory,
 ): BuildSteps {
+  const plan = template.plan(outputs);
   return {
     inventoryKey: inventoryKey(inventory),
-    steps: buildSteps(template.steps(outputs), template.plan(outputs).operations, inventory),
+    steps: buildSteps(template.steps(outputs), plan.operations, inventory, plan.flags),
   };
 }

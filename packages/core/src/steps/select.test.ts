@@ -92,20 +92,25 @@ describe('buildSteps', () => {
 
   it('refuses an outline that leaves out, repeats, or invents an operation', () => {
     const none = inventory();
-    expect(() => buildSteps([{ ...step, operationIds: [post.id] }], [post, other], none)).toThrow(
-      'missing [site/level-pads]',
-    );
     expect(() =>
-      buildSteps([{ ...step, operationIds: [post.id, post.id, other.id] }], [post, other], none),
+      buildSteps([{ ...step, operationIds: [post.id] }], [post, other], none, []),
+    ).toThrow('missing [site/level-pads]');
+    expect(() =>
+      buildSteps(
+        [{ ...step, operationIds: [post.id, post.id, other.id] }],
+        [post, other],
+        none,
+        [],
+      ),
     ).toThrow('twice [post/end-0]');
-    expect(() => buildSteps([{ ...step, operationIds: ['nope'] }], [], none)).toThrow(
+    expect(() => buildSteps([{ ...step, operationIds: ['nope'] }], [], none, [])).toThrow(
       'unknown [nope]',
     );
   });
 
   it("fills the chosen method's text and lists the tools it uses", () => {
     const shop = inventory(['miter-saw', { cutDepth: 4, crosscutWidth: 6 }], ['tape-measure']);
-    const [built] = buildSteps([{ ...step, operationIds: [post.id] }], [post], shop);
+    const [built] = buildSteps([{ ...step, operationIds: [post.id] }], [post], shop, []);
     const op = built?.operations[0];
     expect(op?.method?.technique).toContain('Cut 2 this way.');
     expect(op?.method?.tools).toEqual([

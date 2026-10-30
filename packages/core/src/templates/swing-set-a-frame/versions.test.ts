@@ -9,6 +9,7 @@ import v4 from './snapshots/v4.json' with { type: 'json' };
 import v5 from './snapshots/v5.json' with { type: 'json' };
 import v6 from './snapshots/v6.json' with { type: 'json' };
 import v8 from './snapshots/v8.json' with { type: 'json' };
+import v9 from './snapshots/v9.json' with { type: 'json' };
 
 // What each template version changed for the worked examples, as the owner sees it in the version
 // report (decision 0008).
@@ -51,11 +52,18 @@ const VERSION_9 = [
   /^design\.parts\[\d+\]\.holes\[\d+\]\.diameter$/,
   /^design\.operations\[\d+\]\.holeDiameter$/,
 ];
+/** Version 10's additions (#51): the parts and hardware each flag and checklist item concerns. */
+const VERSION_10 = [
+  /^design\.flags\[\d+\]\.(partIds|hardwareIds)$/,
+  /^structuralReview\.checklist\[\d+\]\.(partIds|hardwareIds)$/,
+];
 const notVersion6 = (c: { path: string }) =>
-  ![...VERSION_6, ...VERSION_7, ...VERSION_9].some((r) => r.test(c.path));
+  ![...VERSION_6, ...VERSION_7, ...VERSION_9, ...VERSION_10].some((r) => r.test(c.path));
 const notVersion7 = (c: { path: string }) =>
-  ![...VERSION_7, ...VERSION_9].some((r) => r.test(c.path));
-const notVersion9 = (c: { path: string }) => !VERSION_9.some((r) => r.test(c.path));
+  ![...VERSION_7, ...VERSION_9, ...VERSION_10].some((r) => r.test(c.path));
+const notVersion9 = (c: { path: string }) =>
+  ![...VERSION_9, ...VERSION_10].some((r) => r.test(c.path));
+const notVersion10 = (c: { path: string }) => !VERSION_10.some((r) => r.test(c.path));
 
 describe('swing-set template versions', () => {
   it('version 2 adds sources and bases to the structural working, and changes no number (#36)', () => {
@@ -72,9 +80,9 @@ describe('swing-set template versions', () => {
       const now = createSnapshot(template, read.snapshot.params, read.snapshot.structuralInputs);
       if (!now.ok) throw new Error('worked example no longer generates');
       // Later versions' changes are checked in their own tests below.
-      const fromVersion2 = report.regenerated.changes.filter((c) =>
-        c.path.startsWith('structuralReview.'),
-      );
+      const fromVersion2 = report.regenerated.changes
+        .filter(notVersion10)
+        .filter((c) => c.path.startsWith('structuralReview.'));
       for (const change of fromVersion2) {
         // Every change is a new field on a quantity in the working, never a changed value.
         expect(change, change.path).not.toHaveProperty('before');
@@ -216,10 +224,26 @@ describe('swing-set template versions', () => {
       const { changes } = report.regenerated;
       expect(changes.filter(notVersion9)).toEqual([]);
       expect(changes.length).toBeGreaterThan(0);
-      for (const change of changes) {
+      for (const change of changes.filter(notVersion10)) {
         const { before, after } = change as { before: number; after: number };
         expect(after - before, change.path).toBeCloseTo(1 / 16, 12);
       }
+    }
+  });
+
+  // A plan read from shape 9 keeps its flags and checklist as they were; regenerating adds the
+  // parts and hardware each concerns, and nothing else changes.
+  it('version 10 names the parts and hardware each flag and checklist item concerns (#51)', () => {
+    for (const stored of v9) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(9);
+      const report = compareWithCurrent(template, read.snapshot);
+      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+      const { changes } = report.regenerated;
+      expect(changes.filter(notVersion10)).toEqual([]);
+      expect(changes.length).toBeGreaterThan(0);
+      for (const change of changes) expect(change, change.path).not.toHaveProperty('before');
     }
   });
 });

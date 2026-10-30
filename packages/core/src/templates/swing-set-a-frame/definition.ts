@@ -101,8 +101,9 @@ export const swingSetAFrame: TemplateDefinition<
   // Shape 7 adds each part's board selection guides and the lumber plan's copy of them (#53);
   // both optional. Shape 8 adds operations (#103), optional. Shape 9 adds each hole's bolt diameter
   // and each bolt-hole operation's hole diameter (#110); reading an older plan sets both to the
-  // size it drilled, its bolt's diameter.
-  snapshotVersion: 9,
+  // size it drilled, its bolt's diameter. Shape 10 adds the parts and hardware each flag and
+  // checklist item concerns (#51), optional: a plan stored before it keeps its flags on the plan.
+  snapshotVersion: 10,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -112,6 +113,7 @@ export const swingSetAFrame: TemplateDefinition<
     6: (snapshot) => snapshot,
     7: (snapshot) => snapshot,
     8: addHoleSizes,
+    9: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   steps: (outputs) => stepOutline(outputs.design),
