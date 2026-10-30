@@ -61,6 +61,11 @@ export function List(props: ListProps) {
   );
 }
 
+/** Text kept to one line, cut short with an ellipsis, such as a summary of what a section holds in full. */
+export function OneLine(props: { children: ReactNode }) {
+  return <span className="k-one-line">{props.children}</span>;
+}
+
 /** A formula or identifier, in the Mono, never wrapped (#42). */
 export function Code(props: { children: ReactNode }) {
   return <code className="k-code">{props.children}</code>;

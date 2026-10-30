@@ -183,6 +183,52 @@ export function entryProblems(
   return problems;
 }
 
+/** A field as it was entered, for reading back on the plan (#119). */
+export interface EnteredValue {
+  path: string;
+  /** The field's label, as the editor shows it. */
+  label: string;
+  /** The value through core's formatters; null when it was not entered. */
+  text: string | null;
+}
+
+/**
+ * Every field that applies to a stored parameters or inputs object, by section, as it reads back:
+ * lengths in feet and inches and inches, angles in degrees, numbers with their unit, choices by
+ * their label, yes or no. Hidden fields (such as a footprint depth when the splay is an angle) are
+ * left out; fields that apply but were not entered have no text.
+ */
+export function enteredValues(
+  sections: readonly FormSection[],
+  object: unknown,
+): { title: string; values: EnteredValue[] }[] {
+  const visible = new Set(visibleFields(sections, formValues(sections, object)).map((f) => f.path));
+  return sections.map((section) => ({
+    title: section.title,
+    values: section.fields
+      .filter((f) => visible.has(f.path))
+      .map((field) => ({
+        path: field.path,
+        label: field.label,
+        text: enteredText(field, readPath(object, field.path)),
+      })),
+  }));
+}
+
+function enteredText(field: FormField, value: unknown): string | null {
+  if (value === undefined || value === null || value === '') return null;
+  switch (field.kind) {
+    case 'yes-no':
+      return value === true ? 'Yes' : value === false ? 'No' : null;
+    case 'choice':
+      return field.options?.find((o) => o.value === value)?.label ?? String(value);
+    case 'length':
+      return typeof value === 'number' ? describeLength(value) : null;
+    default:
+      return typeof value === 'number' ? inFieldUnits(field, value) : String(value);
+  }
+}
+
 /**
  * What a length field's text reads as, for the line under it while typing: core's reading, or
  * "Not a length yet". Null for an empty field or a field that is not a length.

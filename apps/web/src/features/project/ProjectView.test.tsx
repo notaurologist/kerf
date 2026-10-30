@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { setFlash } from '../../lib/flash.ts';
 import { readPlan } from '../../lib/plan.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
-import { render, renderText } from '../../test/render.tsx';
+import { render, renderText, sectionOf, textOf } from '../../test/render.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import { ProjectView } from './ProjectScreen.tsx';
@@ -46,7 +46,16 @@ describe('ProjectView, from a stored snapshot', () => {
 
   it('shows the shopping list, with board lengths and pieces through formatLength', () => {
     expect(text).toContain(`4x4 12' 0" 4`);
-    expect(text).toContain(`4x6, 12' 0": Beam 120". Offcut about 22-7/8".`);
+    expect(text).toContain(`4x6 12' 0" 1`);
+    for (const line of outputs.hardware) expect(text).toContain(line.description);
+  });
+
+  it('shows which pieces come from which board in its own section (#119)', () => {
+    const boards = textOf(
+      sectionOf(render(<ProjectView project={projectFrom(workedExample)} />), 'boards'),
+    );
+    expect(boards).toContain(`trims 1/2" off each factory end and allows 1/8" for each saw cut`);
+    expect(boards).toContain(`A Beam 120" Offcut 22-7/8".`);
     for (const line of outputs.hardware) expect(text).toContain(line.description);
   });
 
@@ -157,7 +166,7 @@ describe('the diagrams in the plan (#91)', () => {
     for (const row of outputs.cutList) expect(text).toContain(row.name);
     expect(text).toContain('Site layout');
     // Five cut details, three views.
-    expect(html.match(/<svg[^>]*role="img"/g)).toHaveLength(8);
+    expect(sectionOf(html, 'diagrams').match(/<svg[^>]*role="img"/g)).toHaveLength(8);
   });
 
   it('labels each drawing from the same data, and points to the cut list as its long description', () => {
@@ -182,7 +191,7 @@ describe('the diagrams in the plan (#91)', () => {
 
   it('shows a plan made before placements with its cut details and site layout only', () => {
     const old = render(<ProjectView project={projectFrom(workedExample)} />);
-    expect(old.match(/<svg[^>]*role="img"/g)).toHaveLength(6);
+    expect(sectionOf(old, 'diagrams').match(/<svg[^>]*role="img"/g)).toHaveLength(6);
     expect(old).not.toContain('Isometric view');
   });
 

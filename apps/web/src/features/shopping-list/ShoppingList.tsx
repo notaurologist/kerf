@@ -1,20 +1,10 @@
 import { formatLength, groupHardware, type HardwareLine, type LumberPlan } from '@kerf/core';
-import { Fragment } from 'react';
 import { type Changes, marked, NO_CHANGES } from '../../lib/changes.tsx';
-import {
-  Disclosure,
-  ErrorText,
-  Length,
-  List,
-  Measured,
-  MeasureTable,
-  Stack,
-  Text,
-} from '../../ui/index.ts';
+import { ErrorText, Length, List, Measured, MeasureTable, Stack, Text } from '../../ui/index.ts';
 import { BoardSelection } from './BoardSelection.tsx';
 
-// The shopping list (PRODUCT.md, MVP feature 4): boards to buy, how the parts fit on them, and
-// hardware. Board and piece lengths are stored in inches or feet and shown through core's
+// The shopping list (PRODUCT.md, MVP feature 4): boards to buy, what to look for in them, and
+// hardware. Which parts come from which board is the plan's Boards section (#119). Board and piece lengths are stored in inches or feet and shown through core's
 // formatLength, so they round the same way as the cut list. In a preview (#56), `changes` marks
 // each line that differs from the saved plan with the saved value.
 
@@ -87,30 +77,6 @@ export function ShoppingList(props: {
         </Text>
       )}
       <List items={lumber.notes} />
-      <Disclosure summary="Which parts come from which board">
-        <List ordered>
-          {lumber.boards.map((board, b) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: boards are listed in the plan's order and have no ID.
-            <li key={b}>
-              <b>
-                {board.nominal}, <Length>{feet(board.feet)}</Length>
-              </b>
-              :{' '}
-              {board.pieces.map((p, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: pieces are listed in cutting order and repeat.
-                <Fragment key={i}>
-                  {i > 0 && ', '}
-                  {p.name} <Length>{formatLength(p.length)}</Length>
-                </Fragment>
-              ))}
-              .{' '}
-              <Text tone="muted" as="span">
-                Offcut about <Length>{formatLength(board.offcut)}</Length>.
-              </Text>
-            </li>
-          ))}
-        </List>
-      </Disclosure>
       <BoardSelection lumber={lumber} />
 
       <h3>Hardware</h3>

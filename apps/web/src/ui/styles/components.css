@@ -62,6 +62,110 @@
     scroll-margin-block-start: var(--space-s);
   }
 
+  /* A heading the contents moves focus to shows where focus went without a box around it. */
+  .k-section > h2:focus {
+    outline: none;
+  }
+
+  .k-section > h2:focus-visible {
+    outline: 3px solid var(--focus);
+  }
+
+  /* ---------- Contents (#119): a list on top when narrow, a sidebar that stays in view when wide ---------- */
+  .k-with-contents {
+    container-type: inline-size;
+  }
+
+  .k-with-contents > .l-sidebar {
+    flex-direction: column;
+  }
+
+  .k-with-contents > .l-sidebar > :first-child {
+    flex-basis: auto;
+  }
+
+  .k-with-contents > .l-sidebar > :last-child {
+    --stack-gap: var(--space-l);
+    min-inline-size: 0;
+  }
+
+  .k-contents ol {
+    margin: 0;
+    padding-inline-start: 1.4em;
+    display: grid;
+    gap: var(--space-3xs);
+  }
+
+  .k-contents__heading {
+    font-size: var(--size-0);
+    color: var(--muted);
+  }
+
+  /* From 48rem of the plan's width (the tablet in #40) the contents sit beside the sections and
+     stay in view. Below it they stack, so they do not cover the plan on a phone. */
+  @container (min-width: 48rem) {
+    .k-with-contents > .l-sidebar {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: flex-start;
+    }
+
+    .k-with-contents > .l-sidebar > :first-child {
+      flex: 0 0 12rem;
+    }
+
+    .k-contents {
+      position: sticky;
+      inset-block-start: var(--space-s);
+      max-block-size: calc(100dvh - 2 * var(--space-s));
+      overflow-y: auto;
+    }
+  }
+
+  /* ---------- Figures (#119): a label over a value, as many to a row as fit ---------- */
+  .k-figures {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(9rem, 100%), 1fr));
+    gap: var(--space-xs);
+    margin: 0;
+  }
+
+  .k-figure {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3xs);
+    padding: var(--space-xs) var(--space-s);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--raised);
+  }
+
+  .k-figure dt {
+    color: var(--muted);
+    font-size: var(--size--1);
+  }
+
+  .k-figure dd {
+    margin: 0;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .k-figure dd.k-figure__detail {
+    font-weight: 400;
+    font-size: var(--size--1);
+  }
+
+  /* One line per item, cut short with an ellipsis; the full text is in the section it links to. */
+  .k-one-line {
+    display: block;
+    /* Adds nothing to the width of what holds it, so a long line never widens the page. */
+    contain: inline-size;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
   .k-section__title-block {
     display: none;
   }
@@ -274,6 +378,8 @@
   }
 
   .k-flag__body {
+    flex: 1;
+    min-inline-size: 0;
     display: grid;
     gap: var(--space-3xs);
   }
@@ -888,6 +994,16 @@
     font-size: var(--size--1);
     padding-inline-start: var(--space-m);
   }
+
+  /* Placed after the blocks they adjust (#119). */
+  .k-contents .k-button {
+    justify-content: start;
+    text-align: start;
+  }
+
+  .k-figure .k-margin {
+    font-size: var(--size-0);
+  }
 }
 
 @layer print {
@@ -895,6 +1011,15 @@
     /* Each section of the plan starts a page with its title block (#41). */
     .k-section {
       break-before: page;
+    }
+
+    .k-section[data-page="same"] {
+      break-before: auto;
+    }
+
+    /* Paper has no contents to tap; the plan prints in section order A. */
+    .k-contents {
+      display: none;
     }
 
     .k-section__title-block {

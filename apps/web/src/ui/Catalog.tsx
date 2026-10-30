@@ -17,11 +17,13 @@ const SAW = /saw at ([\d.]+°), ([\d.]+°) to the edge/;
 import { type ReactNode, useState } from 'react';
 import { Button, ButtonLink } from './Button.tsx';
 import { InlineConfirm } from './Confirm.tsx';
+import { WithContents } from './Contents.tsx';
 import { Diagram } from './Diagram.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
 import { ConfirmDialog } from './Dialog.tsx';
 import { Disclosure } from './Disclosure.tsx';
 import { Field, Select, TextInput, YesNo } from './Field.tsx';
+import { Figures } from './Figures.tsx';
 import {
   ErrorSummary,
   ErrorText,
@@ -218,6 +220,37 @@ function Specimens() {
           meta={`${template.name}, version ${template.version}.`}
           status={<StatusLine>Saved.</StatusLine>}
         />
+      </Group>
+
+      <Group title="Figures">
+        <Figures
+          items={[
+            ...first.plan.keyResults.map((r) => ({
+              label: r.label,
+              value: <Measured text={r.value} />,
+            })),
+            ...(check
+              ? [
+                  {
+                    label: 'Lowest margin',
+                    value: <MarginLine margin={margin} />,
+                    detail: `${check.title}: ${check.subject}`,
+                  },
+                ]
+              : []),
+          ]}
+        />
+      </Group>
+
+      <Group title="Contents">
+        <WithContents
+          items={[
+            { id: 'catalog-summary', title: 'Summary' },
+            { id: 'catalog-boards', title: 'Boards' },
+          ]}
+        >
+          <p>The sections. From 48rem of width the contents sit beside them and stay in view.</p>
+        </WithContents>
       </Group>
 
       <Group title="Buttons">

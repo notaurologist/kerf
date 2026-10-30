@@ -26,7 +26,7 @@ export function buildingText(s: ProgressSummary): string {
   return `${cut}Step ${s.nextStep.number} of ${total} next: ${s.nextStep.title}.`;
 }
 
-/** The Shopping and Building cards in the plan's summary, counted with ticks not sent yet. */
+/** The Shopping and Building cards in the plan's summary (under its h2), counted with ticks not sent yet. */
 export function ModeCards(props: { project: Project; plan: Plan; steps: readonly BuildStep[] }) {
   const { project } = props;
   const ticks = useTicks(project.id, project.ticks);
@@ -36,7 +36,7 @@ export function ModeCards(props: { project: Project; plan: Plan; steps: readonly
     <Grid>
       <Card as="section">
         <Stack gap="xs">
-          <h2>Shopping</h2>
+          <h3>Shopping</h3>
           <Text>{shoppingText(shopping)}</Text>
           <Cluster>
             <ButtonLink href={href({ screen: 'shop', id: project.id })}>
@@ -48,7 +48,7 @@ export function ModeCards(props: { project: Project; plan: Plan; steps: readonly
       {steps.total > 0 && (
         <Card as="section">
           <Stack gap="xs">
-            <h2>Building</h2>
+            <h3>Building</h3>
             <Text>{buildingText(summary)}</Text>
             <Cluster>
               <ButtonLink href={href({ screen: 'build', id: project.id })}>

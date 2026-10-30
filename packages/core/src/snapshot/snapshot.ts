@@ -196,6 +196,11 @@ export function compareSnapshots(
   preview: ProjectSnapshot,
   limit = 1000,
 ): Diff {
-  const plan = (s: ProjectSnapshot) => asJson(template.plan(template.outputs.parse(s.outputs)));
+  // Key results repeat values the plan already holds (#119), so they are left out rather than
+  // counted twice.
+  const plan = (s: ProjectSnapshot) => {
+    const { keyResults: _, ...rest } = template.plan(template.outputs.parse(s.outputs));
+    return asJson(rest);
+  };
   return diff(plan(saved), plan(preview), limit);
 }

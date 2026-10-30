@@ -21,7 +21,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
   - `Center` for a readable measure.
 
   Gaps are steps of the spacing scale (`3xs` to `xl`), never lengths.
-- **Headings:** plain `h1` to `h5`, which the base styles size. Sections of the plan use `PlanSection`, which also gives each its printed page and title block, and an `intro` line under the heading when the section needs one.
+- **Headings:** plain `h1` to `h5`, which the base styles size. Sections of the plan use `PlanSection`, which also gives each its printed page and title block, and an `intro` line under the heading when the section needs one. `newPage={false}` lets the first section share the printed page with the title. Its heading takes focus from the contents.
 - **Loading and errors:** render `useLoad`'s state through `Loaded` (`lib/Loaded.tsx`), which shows `Loading` while data loads (it waits 300 ms, so a fast load does not flash) and a `Notice` if it did not load. Use `Notice` for any other problem that is not about a field, with `icon="connection"` when the server cannot be reached; `failureOf` (`lib/api.ts`) says which.
 - **Announcing:** screens never write `role="alert"` or `role="status"`. `ErrorText alert`, `Notice`, `SaveFailed`, `StatusLine`, `InfoNotice`, and `Loading` own their live regions; `ui/screens.test.ts` fails if a screen writes one.
 - **A lone action:** a single button or link goes in a `Cluster`, so it keeps its own width instead of stretching across a `Stack`.
@@ -30,6 +30,9 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 | Job | Component | Notes |
 |---|---|---|
+| A plan's contents | `WithContents` | The sections' titles in order, beside them from 48rem of its own width and staying in view, a list on top when narrower. Each moves focus to its section's heading (`goToSection`). Not printed. |
+| Key figures at a glance | `Figures` | A label over each value, with an optional `detail` line, as many to a row as fit. The plan's summary. |
+| One line of a longer text | `OneLine` | Cut short with an ellipsis, with the full text in the page; only where the full text is a link away. |
 | The top of a screen | `ScreenHeader` | The `h1` with the screen's `actions` beside it (wrapping under it when narrow), then a `lede`, a `meta` line of facts, and a `status` such as a `StatusLine`. |
 | An action | `Button` | `primary` for the main action, `secondary` for the others, `destructive` for one that destroys (named for what it destroys), `link` for a quiet action in running text. `busy` while working, with `busyLabel` saying what is happening ("Saving…"). |
 | An action that fails | `ErrorText alert` under it | Announced when it appears. |

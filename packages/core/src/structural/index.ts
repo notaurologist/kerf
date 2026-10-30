@@ -47,4 +47,5 @@ export {
   type StabilityGeometry,
 } from './factors.ts';
 export { formatNumber, formatQuantity } from './format.ts';
+export { type LowestMargin, lowestMargin } from './lowest.ts';
 export * from './types.ts';

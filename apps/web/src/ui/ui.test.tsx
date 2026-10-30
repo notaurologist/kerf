@@ -13,6 +13,7 @@ import {
   ErrorText,
   ExpertCheck,
   Field,
+  Figures,
   FlagList,
   Glance,
   Header,
@@ -27,6 +28,7 @@ import {
   MeasureTable,
   ModeFrame,
   Notice,
+  OneLine,
   PartLetter,
   PlainList,
   PlanSection,
@@ -39,6 +41,7 @@ import {
   StepLayout,
   TextInput,
   Tick,
+  WithContents,
 } from './index.ts';
 
 // Each component's states and what assistive technology is told about them (#45). The catalog
@@ -512,6 +515,66 @@ function examplePlan(inputs: unknown) {
   return template.plan(template.outputs.parse(made.output.outputs));
 }
 const examplePlanAsEntered = examplePlan(TEMPLATES[0]?.examples[0]?.structuralInputs);
+
+describe('Figures', () => {
+  it('pairs each label with its value and detail as a description list', () => {
+    const html = render(
+      <Figures
+        items={[
+          { label: 'Beam', value: '120", 4x6' },
+          { label: 'Lowest margin', value: 'margin 1.1x', detail: 'Bending: Top beam' },
+        ]}
+      />,
+    );
+    expect(html).toMatch(/^<dl class="k-figures"><div class="k-figure"><dt>Beam<\/dt><dd>/);
+    expect(html).toContain('<dd class="k-figure__detail">Bending: Top beam</dd>');
+  });
+});
+
+describe('WithContents', () => {
+  const contents = (
+    <WithContents
+      items={[
+        { id: 'summary', title: 'Summary' },
+        { id: 'boards', title: 'Boards' },
+      ]}
+    >
+      <p>Sections</p>
+    </WithContents>
+  );
+
+  it('is a labeled navigation list, in the order given, before the sections', () => {
+    const html = render(contents);
+    const id = html.match(/<nav class="k-contents" aria-labelledby="([^"]+)">/)?.[1];
+    expect(html).toContain(`<h2 id="${id}" class="k-contents__heading">Contents</h2>`);
+    expect(renderText(contents)).toBe('Contents Summary Boards Sections');
+    expect(html.indexOf('<ol>')).toBeLessThan(html.indexOf('Sections'));
+  });
+
+  it('uses buttons, since the address picks the screen', () => {
+    expect(render(contents).match(/<button type="button"/g)).toHaveLength(2);
+  });
+});
+
+describe('OneLine', () => {
+  it('keeps the whole text in the page, for screen readers and copying', () => {
+    expect(render(<OneLine>A long sentence.</OneLine>)).toBe(
+      '<span class="k-one-line">A long sentence.</span>',
+    );
+  });
+});
+
+describe('PlanSection headings', () => {
+  it('take focus from the contents, and the first section can share a printed page', () => {
+    const html = render(
+      <PlanSection id="summary" title="Summary" project="Backyard" newPage={false}>
+        <p>Figures</p>
+      </PlanSection>,
+    );
+    expect(html).toContain('<h2 id="summary-heading" tabindex="-1">Summary</h2>');
+    expect(html).toContain('data-page="same"');
+  });
+});
 
 describe('FlagList', () => {
   const flag = examplePlanAsEntered.flags[0] as Flag;
