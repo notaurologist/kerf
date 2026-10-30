@@ -1,8 +1,10 @@
 # The garage check
 
-Status: Draft for #69. Not run yet.
+Status: In use. Run whenever it is useful; no run gates other work.
 
-A short, repeatable test of Kerf where it is used: on the laptop at the desk, on paper from the owner's printer, on a phone in the garage, and on a phone at the store. Each run uses the same tasks, settings, and record, so a later run can be compared with an earlier one. The design milestone's acceptance asks for screens "checked on a real phone in the garage, on the laptop, and on a printed page" (`MILESTONES.md`, Design). This page says how. Run it once on the design system's screens (#69). Run it again on Shopping and Building before the swing set is built from them (#70). Run it again after any change to a shop screen.
+A short, repeatable test of Kerf where it is used: on the laptop at the desk, on paper from the owner's printer, on a phone in the garage, and on a phone at the store. Each run uses the same tasks, settings, and record, so a later run can be compared with an earlier one. The design milestone's acceptance asks for screens "checked on a real phone in the garage, on the laptop, and on a printed page" (`MILESTONES.md`, Design). This page says how.
+
+The check is one source of fixes among several, not a gate. Development does not wait on a run: real use in the garage and at the store will keep turning up changes, and each goes straight to an issue the same way a run's misses do. Run the check when it helps: after a change to a shop screen, before a build, or when something feels off and a fair comparison with an earlier run would show whether it got worse.
 
 ## Why this shape
 
@@ -82,7 +84,7 @@ Do them in order. Say each task aloud as written, then do it. Stop the timer whe
 | S3 | With one hand, mark the 4x4 line bought. | It is ticked with no wrong taps. |
 | S4 | Find the locking nuts and say how many to buy. | You read the count from the Bolts and fittings group. |
 
-The first run (#69) uses the D, P, and G1 to G3 tasks on the screens the design system built, and adds whatever Shopping and Building can show at the time. #70 runs every task.
+Every task can be run now; Shopping and Building exist. A run in a desktop browser's phone view is useful for catching layout and flow problems early, but it cannot stand in for the garage tasks (G2, G3, G9: distance and light) or the real-device ones (G6, G7, S3: screen sleep, airplane mode, one hand), so a run says where it was done.
 
 ## What to record
 
@@ -115,29 +117,31 @@ The first run (#69) uses the D, P, and G1 to G3 tasks on the screens the design 
 
 ## Results
 
-No runs yet. Copy this table for each run, under a heading with the run's date and commit.
+Copy the table for each run, under a heading with the run's date, commit, and where it was done.
+
+### Dry run, 30 October 2026, `bfb4f61`, desktop browser only
+
+Done by Claude in the in-app browser's phone view (375 × 812) and a narrow desktop pane, on a local copy of the app with the worked example and every structural input entered. A browser can't test distance, light, gloves, one hand, a real phone's sleep, or paper, so those tasks are marked not run. Taps were made with a mouse; the offline tick was simulated by making the page's requests fail.
 
 | Task | Result | Time | What happened | Problems (severity) | Issue |
 |---|---|---|---|---|---|
-| D1 | | | | | |
-| D2 | | | | | |
-| D3 | | | | | |
-| P1 | | | | | |
-| P2 | | | | | |
-| P3 | | | | | |
-| G1 | | | | | |
-| G2 | | | | | |
-| G3 | | | | | |
-| G4 | | | | | |
-| G5 | | | | | |
-| G6 | | | | | |
-| G7 | | | | | |
-| G8 | | | | | |
-| G9 | | | | | |
-| S1 | | | | | |
-| S2 | | | | | |
-| S3 | | | | | |
-| S4 | | | | | |
+| D1 | Minor issue | not timed | Found bending at 1.1x, the lowest, by reading all four checks in the structural review. | The plan has no summary of the lowest margin (1). | #119, #136 |
+| D2 | Complete | not timed | The preview showed the beam at 132" (was 120") and bending dropping to 0.9x; the lumber is unchanged, since 132" still fits the 12' board. In the narrow pane the preview sits below the form. | | |
+| D3 | Not run | | Needs the printer. | | |
+| P1 to P3 | Not run | | Need the printed plan. | | |
+| G1 | Minor issue | not timed | The step list names boards, not parts, so finding the front legs' step meant guessing which 4x4 board. | Step titles don't name their parts (2). | #131 |
+| G2 | Not run | | Needs 1 m in the garage. The glance size was chosen for 20 arc-minutes at 1 m (Stage 3). | | |
+| G3 | Minor issue | not timed | The saw setting is boxed and clear. The reference face is only in the note under the drawing, at the bottom. | Reference face far from the end cuts; ends headed "End 1" and "End 2", not "Top" and "Foot" (2). | #132 |
+| G4 | Complete | not timed | Ticked the piece on the cut card and went back; the step showed it cut and the server had it. | "Back to the step" only at the bottom of the card (1). | #136 |
+| G5 | Complete | not timed | Done, next, then Back, then Mark not done all worked. | "Mark not done" is link-sized, under the 56 px shop controls (2). On a phone the board drawing is after all the method text (2). | #133, #134 |
+| G6 | Not run | | Needs a real phone left alone for 5 minutes. | | |
+| G7 | Complete | not timed | Simulated: the tick showed "On this phone, not yet sent" and the notice, then saved when requests worked again. Needs a real airplane-mode run. | | |
+| G8 | Minor issue | not timed | The beam step's action drawing is clear, but on a phone it starts about 1,450 px down a 1,925 px page. | Drawing far below the step's title (2). | #134 |
+| G9 | Not run | | Needs daylight or the brightest shop light. | | |
+| S1 | Minor issue | not timed | The Resume card opened Shopping. With two front-leg pieces ticked as cut, it still said "Resume shopping" and "Building: 11 steps, not started". | Cut pieces don't count as building progress (2). | #135 |
+| S2 | Complete | not timed | The 4x4 card's guidance named the leg boards and what to check. It comes after all four board cards. | Long scroll to the guidance (1). | #136 |
+| S3 | Not run | | Needs one hand at the store; the tick itself works. | | |
+| S4 | Complete | not timed | 18 locking nuts, under Bolts and fittings. | | |
 
 ## Sources
 
