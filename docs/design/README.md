@@ -130,7 +130,7 @@ The owner chose square corners and a 1-unit line (October 2026). With the app's 
 | Question | Chosen | Rejected, and why |
 |---|---|---|
 | Style | Outlines with square ends and sharp joins, a 1-unit line, shared edges drawn once. Reads as a shop drawing, and lighter than the text, so the tool's name leads. The construction guide is in `system.md`, Icons. | B, working part filled, and C, silhouettes: too chunky; C also loses the inner shapes that tell tools apart. Rounded outlines at 1.25 to 1.75 units: still too chunky, and the round ends, joins, and corners read as a soft app style rather than a woodworking one. Eased corners at 1 unit: close to square at 20 px, but softer than asked for; kept as the fallback if the app's corners (#148) end up eased. 1.25 units: heavier than wanted. |
-| Where they appear | Beside the tool's name in the tool list (each tool's heading and the Add buttons) and in each method's Tools line, which the plan and Building mode share. | None proposed. |
+| Where they appear | Beside the tool's name in the tool list (each checkbox and each tool's details) and in each method's Tools line, which the plan and Building mode share. | None proposed. |
 
 A 1-unit line is 0.83 px at 20 px: crisp on a 2x screen, slightly gray on a 1x monitor. No direction separates the drill/driver from the impact driver at small sizes; the name beside the icon does (NN/g).
 
@@ -148,6 +148,17 @@ The owner chose eased (October 2026).
 | Line ends and joins | Drawings: butt ends, round joins, so lines stop where they are drawn and corners are eased. Icons: round ends and joins. The text halo keeps its round join. | Mitered joins and butt ends on icons (the square tool icons of #86): they belong with square corners. |
 | Kerf's icons | Redrawn to the tool icons' 1-unit line on their 16-unit grid (1.06 px at 17 px text), with round ends and joins. The error and info circles stay. | Keeping the 1.6-unit line: heavier than the tool icons beside them. Square frames for error and info: read as checkboxes. |
 | The part letter | A filled square with the same eased corners beside the part's name and in the drawings (`rx` = 1/12 of the box). | None proposed. |
+
+### The tool list (#168)
+
+The tools screen showed each unowned library type as an Add button and each owned tool as an open card of its capabilities, so setting up a shop meant a long run of buttons and then every question at once.
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Choosing tools | The whole library as checkboxes, one fieldset per shop area with the area as its legend, none ticked, and a search box that narrows the list by name. Ticking adds a tool; unticking removes it, and ticking it again in the same visit brings back what was typed. Grouped checkboxes under a legend and nothing pre-selected follow GOV.UK's checkboxes guidance. | Add buttons and Remove links: two places for one fact, and the list of buttons shrinks as tools are added, so a tool moves while being looked for. A select-many listbox: harder on a phone and with a screen reader than native checkboxes. |
+| Capabilities | Under "Tool details", one disclosure per owned tool that has any, closed, its summary saying how many are still input needed ("2 details needed") or "Details entered". A save that finds a problem opens that tool's disclosure. Showing the main choice first and the rest one level down follows NN/g on progressive disclosure, which also warns against more than two levels. | Every card open: the questions crowd out the list. Revealing each tool's questions under its checkbox (conditional reveal): GOV.UK keeps that for a simple follow-up question, and screen readers are not always told when it appears. |
+
+Sources: GOV.UK Design System, Checkboxes, read October 2026 (https://design-system.service.gov.uk/components/checkboxes/). NN/g, Progressive Disclosure, read October 2026 (https://www.nngroup.com/articles/progressive-disclosure/).
 
 ### Device accessibility pass (#87)
 

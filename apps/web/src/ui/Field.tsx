@@ -90,7 +90,7 @@ export function TextInput(
     onChange: (text: string) => void;
     keyboard?: 'text' | 'decimal' | 'numeric';
     readOnly?: boolean;
-    type?: 'text' | 'password';
+    type?: 'text' | 'password' | 'search';
     autoComplete?: string;
   },
 ) {

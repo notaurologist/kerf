@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 import { Pending } from './feedback.tsx';
 
 /**
- * Marks one item done in Shopping or Building (#57, #61): a native checkbox, so its state is a
- * shape and its name is the label, at least the control height. A tick not saved yet says so
- * with `Pending` beside the label, and in the checkbox's name.
+ * Marks one item done in Shopping or Building (#57, #61), or a tool owned: a native checkbox, so
+ * its state is a shape and its name is the label, at least the control height. A tick not saved
+ * yet says so with `Pending` beside the label, and in the checkbox's name.
  */
 export function Tick(props: {
   done: boolean;

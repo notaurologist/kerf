@@ -1,19 +1,22 @@
+import { TOOL_TYPES } from '@kerf/core';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { emptyInventory, fromInventory } from './draft.ts';
 import { ToolsEditor } from './ToolsScreen.tsx';
 
 describe('ToolsEditor', () => {
-  it('says when there are no tools, and offers the whole library by group', () => {
+  it('lists the whole library by group as a checklist, none ticked, with a search box', () => {
     const html = renderToString(<ToolsEditor saved={emptyInventory()} />);
-    expect(html).toContain('No tools yet.');
-    expect(html).toContain('Measuring and marking');
-    expect(html).toContain('Digging and setting');
-    expect(html).toContain('Add circular saw');
-    expect(html).toContain('Add post-hole digger');
+    expect(html).toContain('<legend>Measuring and marking</legend>');
+    expect(html).toContain('<legend>Digging and setting</legend>');
+    expect(html.match(/type="checkbox"/g)).toHaveLength(TOOL_TYPES.length);
+    expect(html).not.toMatch(/type="checkbox"[^>]*checked/);
+    expect(html).toMatch(/<label[^>]*for="tool-search"[^>]*>.*Find a tool/s);
+    expect(html).toContain('type="search"');
+    expect(html).not.toContain('Tool details');
   });
 
-  it('shows each tool with its capabilities, marking those not entered as input needed', () => {
+  it('ticks owned tools, and says how many details each still needs', () => {
     const html = renderToString(
       <ToolsEditor
         saved={fromInventory({
@@ -22,12 +25,13 @@ describe('ToolsEditor', () => {
         })}
       />,
     );
-    expect(html).toContain('Miter saw');
+    expect(html.match(/type="checkbox"[^>]*checked/g)).toHaveLength(1);
+    expect(html).toContain('Tool details');
+    expect(html).toContain('1 detail needed');
+    // The details sit closed under their summary, still in the page for print and find.
+    expect(html).toMatch(/<details class="k-disclosure">/);
     expect(html).toContain('value="7-1/2"');
     expect(html).toContain('Largest miter');
-    expect((html.match(/Input needed/g) ?? []).length).toBe(1);
-    // An owned tool is not offered again.
-    expect(html).not.toContain('Add miter saw');
     expect(html).toContain('value="Table saw"');
     expect(html).toContain('build steps do not use them');
   });

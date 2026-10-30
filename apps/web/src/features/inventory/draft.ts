@@ -57,6 +57,21 @@ export function addTool(draft: InventoryDraft, toolTypeId: string): InventoryDra
   return { ...draft, tools: [...draft.tools, { toolTypeId, values: {} }].sort(byLibrary) };
 }
 
+export function removeTool(draft: InventoryDraft, toolTypeId: string): InventoryDraft {
+  return { ...draft, tools: draft.tools.filter((t) => t.toolTypeId !== toolTypeId) };
+}
+
+export function matchingTypes(query: string) {
+  const q = query.trim().toLowerCase();
+  return q ? TOOL_TYPES.filter((t) => t.name.toLowerCase().includes(q)) : TOOL_TYPES;
+}
+
+export function detailsNeeded(tool: ToolDraft): number {
+  const type = findToolType(tool.toolTypeId);
+  if (!type) return 0;
+  return capabilityForm(type).fields.filter((f) => !(tool.values[f.path] ?? '').trim()).length;
+}
+
 /** The inventory to send, or the problems that stop it, by field (`tools.0.capabilities.depthOfCut`). */
 export function toInventory(
   draft: InventoryDraft,
