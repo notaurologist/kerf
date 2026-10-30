@@ -7,7 +7,7 @@ import {
   TOOL_TYPES,
 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { render, renderText } from '../test/render.tsx';
+import { render, renderText, textOf } from '../test/render.tsx';
 import { Catalog } from './Catalog.tsx';
 import { ICON_NAMES } from './Icon.tsx';
 import {
@@ -42,6 +42,8 @@ import {
   SaveFailed,
   SawSetting,
   ScreenHeader,
+  SectionList,
+  SectionPager,
   Select,
   StateTag,
   StatusLine,
@@ -524,6 +526,17 @@ describe('PlanSection', () => {
     expect(html.indexOf('How to read it.')).toBeGreaterThan(html.indexOf('</h2>'));
     expect(html).toContain('<p class="k-text" data-tone="muted">How to read it.</p>');
   });
+
+  it('stays in the page when it is not on screen, hidden, so it still prints', () => {
+    const html = render(
+      <PlanSection id="boards" title="Boards" project="Backyard" hidden>
+        <p>Boards</p>
+      </PlanSection>,
+    );
+    expect(html).toMatch(
+      /^<section id="boards" class="k-section" aria-labelledby="boards-heading" hidden="">/,
+    );
+  });
 });
 
 // A plan made by core from the first template's worked example, with the given structural inputs.
@@ -552,27 +565,84 @@ describe('Figures', () => {
 });
 
 describe('WithContents', () => {
-  const contents = (
+  const contents = () => (
     <WithContents
       items={[
-        { id: 'summary', title: 'Summary' },
-        { id: 'boards', title: 'Boards' },
+        { id: 'summary', title: 'Summary', href: '#/projects/p' },
+        {
+          id: 'structural-review',
+          title: 'Structural review',
+          href: '#/projects/p/structural-review',
+        },
+        { id: 'boards', title: 'Boards', href: '#/projects/p/boards' },
       ]}
+      current="structural-review"
     >
       <p>Sections</p>
     </WithContents>
   );
 
-  it('is a labeled navigation list, in the order given, before the sections', () => {
-    const html = render(contents);
+  it('is a labeled navigation list of links, in the order given, before the sections', () => {
+    const html = render(contents());
     const id = html.match(/<nav class="k-contents" aria-labelledby="([^"]+)">/)?.[1];
     expect(html).toContain(`<h2 id="${id}" class="k-contents__heading">Contents</h2>`);
-    expect(renderText(contents)).toBe('Contents Summary Boards Sections');
-    expect(html.indexOf('<ol>')).toBeLessThan(html.indexOf('Sections'));
+    expect(html).toContain('<a href="#/projects/p/boards">Boards</a>');
+    expect(html.indexOf('<ol')).toBeLessThan(html.indexOf('Sections'));
   });
 
-  it('uses buttons, since the address picks the screen', () => {
-    expect(render(contents).match(/<button type="button"/g)).toHaveLength(2);
+  it('marks the current section as the page, in words for screen readers', () => {
+    const html = render(contents());
+    expect(html).toContain(
+      '<a href="#/projects/p/structural-review" aria-current="page">Structural review</a>',
+    );
+    expect(html.match(/aria-current/g)).toHaveLength(1);
+  });
+
+  it('has a bar for narrow screens that says where you are and opens the list', () => {
+    const html = render(contents());
+    const listId = html.match(/<ol id="([^"]+)">/)?.[1];
+    expect(html).toContain(
+      `<button type="button" class="k-contents__bar" aria-expanded="false" aria-controls="${listId}">`,
+    );
+    const bar = textOf(html.slice(html.indexOf('<button'), html.indexOf('</button>')));
+    expect(bar).toBe('2 of 3 · Structural review Contents');
+  });
+});
+
+describe('SectionPager', () => {
+  it('names the sections either side, in a navigation labeled for the plan', () => {
+    const html = render(
+      <SectionPager
+        previous={{ title: 'Diagrams', href: '#/p/diagrams' }}
+        next={{ title: 'Cut list', href: '#/p/cut-list' }}
+      />,
+    );
+    expect(html).toMatch(/^<nav class="k-pager" aria-label="Plan sections">/);
+    expect(textOf(html)).toBe('Previous Diagrams Next Cut list');
+    expect(html).toContain('<a class="k-pager__link" href="#/p/diagrams" rel="prev">');
+    expect(html).toContain('<a class="k-pager__link" href="#/p/cut-list" rel="next">');
+  });
+
+  it('gives only the side there is at either end, and nothing with neither', () => {
+    expect(textOf(render(<SectionPager next={{ title: 'Diagrams', href: '#' }} />))).toBe(
+      'Next Diagrams',
+    );
+    expect(render(<SectionPager />)).toBe('');
+  });
+});
+
+describe('SectionList', () => {
+  it('links each section with its digest under it', () => {
+    const html = render(
+      <SectionList
+        items={[
+          { id: 'cut-list', title: 'Cut list', href: '#/p/cut-list', digest: '5 parts, 9 pieces' },
+        ]}
+      />,
+    );
+    expect(html).toBe(
+      '<ul class="k-section-list"><li><a href="#/p/cut-list">Cut list</a><span class="k-section-list__digest">5 parts, 9 pieces</span></li></ul>',
+    );
   });
 });
 
@@ -585,7 +655,7 @@ describe('OneLine', () => {
 });
 
 describe('PlanSection headings', () => {
-  it('take focus from the contents, and the first section can share a printed page', () => {
+  it('can take focus after a move, and the first section can share a printed page', () => {
     const html = render(
       <PlanSection id="summary" title="Summary" project="Backyard" newPage={false}>
         <p>Figures</p>

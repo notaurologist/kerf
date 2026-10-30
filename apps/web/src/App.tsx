@@ -24,9 +24,11 @@ export function Screen(props: { route: Route }) {
     case 'new-project':
       return <NewProjectScreen templateId={props.route.templateId} />;
     case 'edit-project':
-      return <EditProjectScreen id={props.route.id} />;
+      return <EditProjectScreen id={props.route.id} from={props.route.from} />;
     case 'project':
-      return <ProjectScreen id={props.route.id} />;
+      return (
+        <ProjectScreen id={props.route.id} section={props.route.section} part={props.route.part} />
+      );
     case 'shop':
     case 'build':
     case 'build-steps':

@@ -1,5 +1,6 @@
 import { CHECKLIST_CATEGORY_LABELS, type ChecklistItem, type Flag, structural } from '@kerf/core';
 import { href } from '../../lib/route.ts';
+import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
 import {
   Card,
   CheckStatus,
@@ -50,7 +51,10 @@ export function StructuralReview(props: {
 
       {props.flags.length > 0 && (
         <>
-          <h3>Expert checks</h3>
+          {/* Focusable, so the summary's flags can open the review here (#156). */}
+          <h3 id={EXPERT_CHECKS_ID} tabIndex={-1}>
+            Expert checks
+          </h3>
           <FlagList flags={props.flags} />
         </>
       )}
@@ -104,7 +108,13 @@ function Check(props: { check: CheckResult; projectId: string }) {
         {check.status === 'input-needed' && (
           <>
             <List items={check.missing.map((m) => m.label)} />
-            <a href={href({ screen: 'edit-project', id: props.projectId })}>
+            <a
+              href={href({
+                screen: 'edit-project',
+                id: props.projectId,
+                from: 'structural-review',
+              })}
+            >
               Enter structural inputs
             </a>
           </>

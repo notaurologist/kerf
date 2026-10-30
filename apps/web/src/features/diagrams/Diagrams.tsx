@@ -1,12 +1,13 @@
 import type { CutListRow, geometry } from '@kerf/core';
-import { cutDetailId, show } from '../../lib/show.ts';
-import { Button, Diagram, Stack, StatusLine, Text } from '../../ui/index.ts';
+import { cutDetailHeadingId, cutDetailId } from '../../lib/show.ts';
+import { Diagram, Stack, StatusLine, Text } from '../../ui/index.ts';
 
 // The plan's drawings (#91), drawn from the primitives core made from the stored snapshot (#90).
 // Each is labeled with core's description of it, which the template words for its own views,
 // plus the part letters or dimensions; the cut list is the long description. Nothing here knows
 // a template.
-// Tapping a part selects it here and in the cut list (#39, Q3).
+// Tapping a part selects it in every drawing (#39, Q3), and a link opens it in the cut list, which
+// is its own section (#156).
 
 type Drawings = geometry.Drawings;
 type Drawing = geometry.Drawing;
@@ -29,6 +30,8 @@ export function Diagrams(props: {
   describedBy: string;
   selected: string | null;
   onSelect: (partId: string) => void;
+  /** The cut list with this part selected. */
+  partHref: (partId: string) => string;
 }) {
   const { drawings, rows } = props;
   const common = {
@@ -41,14 +44,13 @@ export function Diagrams(props: {
   return (
     <Stack gap="l">
       <Text tone="muted">
-        Tap a part to find it in the cut list, or a part's name in the cut list to find it here.
+        Tap a part to select it in every drawing, then open it in the cut list. A part's name in the
+        cut list opens it here.
       </Text>
       {chosen && (
         <StatusLine>
           {chosen.letter} · {chosen.name} selected.{' '}
-          <Button variant="link" onClick={() => show(props.describedBy)}>
-            Show it in the cut list
-          </Button>
+          <a href={props.partHref(chosen.partId)}>Show it in the cut list</a>
         </StatusLine>
       )}
       {drawings.isometric && (
@@ -80,7 +82,13 @@ export function Diagrams(props: {
           key={detail.title}
           id={detail.partId ? cutDetailId(detail.partId) : undefined}
         >
-          <h4>{detail.title}</h4>
+          {/* Focusable, so a link to the part can move focus here (#156). */}
+          <h4
+            id={detail.partId ? cutDetailHeadingId(detail.partId) : undefined}
+            tabIndex={detail.partId ? -1 : undefined}
+          >
+            {detail.title}
+          </h4>
           <Diagram {...common} drawing={detail} minWidth={560} label={detail.description} />
         </Stack>
       ))}

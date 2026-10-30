@@ -3,7 +3,7 @@
 
 export { Button, ButtonLink, type ButtonVariant } from './Button.tsx';
 export { InlineConfirm } from './Confirm.tsx';
-export { type ContentsItem, goToSection, WithContents } from './Contents.tsx';
+export { type ContentsItem, SectionList, SectionPager, WithContents } from './Contents.tsx';
 export { Diagram } from './Diagram.tsx';
 export { DiagramFrame } from './DiagramFrame.tsx';
 export { ConfirmDialog } from './Dialog.tsx';

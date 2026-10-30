@@ -1,14 +1,15 @@
 import type { CutListRow } from '@kerf/core';
 import type { ReactNode } from 'react';
 import { type Changes, marked as mark, NO_CHANGES } from '../../lib/changes.tsx';
+import { cutListPartId } from '../../lib/show.ts';
 import {
-  Button,
   Length,
   List,
   Measured,
   MeasureTable,
   PartLetter,
   PlainList,
+  StatusLine,
   Text,
 } from '../../ui/index.ts';
 
@@ -19,16 +20,25 @@ import {
 export function CutList(props: {
   rows: readonly CutListRow[];
   changes?: Changes;
-  /** The part selected in the drawings (#91); its name becomes a button that selects it. */
+  /** The part selected in the drawings (#91), whose row is marked. */
   selected?: string | null;
-  onSelect?: (partId: string) => void;
+  /** Where a part's name goes: in the plan, the drawings with that part selected (#156). */
+  partHref?: (partId: string) => string;
 }) {
   const changes = props.changes ?? NO_CHANGES;
   const path = (row: CutListRow) => `cutList[${props.rows.indexOf(row)}]`;
   const marked = (at: string, value: ReactNode) => mark(changes, at, value);
   const removed = changes.removed('cutList') as CutListRow[];
+  const chosen = props.rows.find((r) => r.partId === props.selected);
   return (
     <>
+      {/* The row is marked too; this says which in words (#43, rule 6). */}
+      {chosen && props.partHref && (
+        <StatusLine>
+          {chosen.letter} · {chosen.name} selected.{' '}
+          <a href={props.partHref(chosen.partId)}>Show it in the drawings</a>
+        </StatusLine>
+      )}
       <MeasureTable
         caption="Cut list"
         captionHidden
@@ -48,17 +58,13 @@ export function CutList(props: {
                   <b>{row.name}</b>
                 </>
               );
-              const onSelect = props.onSelect;
+              const partHref = props.partHref;
               return marked(
                 path(row),
-                onSelect ? (
-                  <Button
-                    variant="link"
-                    pressed={props.selected === row.partId}
-                    onClick={() => onSelect(row.partId)}
-                  >
+                partHref ? (
+                  <a id={cutListPartId(row.partId)} href={partHref(row.partId)}>
                     {name}
-                  </Button>
+                  </a>
                 ) : (
                   name
                 ),

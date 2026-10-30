@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isPlanSection, type PlanSectionId } from './sections.ts';
 
 // Screens are chosen from the URL hash, so links, reload, and the back button work without a
 // router library.
@@ -6,8 +7,11 @@ import { useEffect, useState } from 'react';
 export type Route =
   | { screen: 'projects' }
   | { screen: 'new-project'; templateId: string }
-  | { screen: 'project'; id: string }
-  | { screen: 'edit-project'; id: string }
+  // The plan, one section per screen (#156). No section is the summary. `part` is the part
+  // selected in the drawings and the cut list, kept in the address so a reload keeps it.
+  | { screen: 'project'; id: string; section?: PlanSectionId; part?: string }
+  // `from` is the section Edit was opened from, which Save and Cancel return to.
+  | { screen: 'edit-project'; id: string; from?: PlanSectionId }
   // Shopping and Building, full-screen modes launched from the plan (#61). The URL carries the
   // mode and step, so a reload or a shared link reopens the same place.
   | { screen: 'shop'; id: string }
@@ -23,17 +27,29 @@ export function parseRoute(hash: string): Route {
   const [path = '', query = ''] = hash.replace(/^#/, '').split('?');
   const parts = path.split('/').filter(Boolean).map(decodeURIComponent);
   const [first, second, third, fourth, fifth] = parts;
+  const search = new URLSearchParams(query);
   if (parts.length === 0) return { screen: 'projects' };
   if (first === 'tools' && parts.length === 1) return { screen: 'tools' };
   if (first === 'catalog' && parts.length === 1) return { screen: 'catalog' };
   if (first !== 'projects' || parts.length > 5) return { screen: 'not-found' };
   if (second === undefined) return { screen: 'projects' };
   if (second === 'new' && parts.length === 2) {
-    const templateId = new URLSearchParams(query).get('template');
+    const templateId = search.get('template');
     return templateId ? { screen: 'new-project', templateId } : { screen: 'not-found' };
   }
-  if (third === undefined) return { screen: 'project', id: second };
-  if (third === 'edit' && parts.length === 3) return { screen: 'edit-project', id: second };
+  if (third === undefined) return project(second, undefined, null);
+  if (third === 'edit' && parts.length === 3) {
+    const from = search.get('from');
+    return isPlanSection(from) && from !== 'summary'
+      ? { screen: 'edit-project', id: second, from }
+      : { screen: 'edit-project', id: second };
+  }
+  // The summary has the project's own address, so `summary` is not one of its sections'.
+  if (isPlanSection(third) && third !== 'summary') {
+    return parts.length === 3
+      ? project(second, third, search.get('part'))
+      : { screen: 'not-found' };
+  }
   if (third === 'shop' && parts.length === 3) return { screen: 'shop', id: second };
   if (third !== 'build') return { screen: 'not-found' };
   // "steps" is the step list, so no step may have that ID.
@@ -45,16 +61,32 @@ export function parseRoute(hash: string): Route {
   return { screen: 'build-part', id: second, step: fourth, part: fifth };
 }
 
+function project(id: string, section: PlanSectionId | undefined, part: string | null): Route {
+  return {
+    screen: 'project',
+    id,
+    ...(section ? { section } : {}),
+    ...(part ? { part } : {}),
+  };
+}
+
 export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
   switch (route.screen) {
     case 'projects':
       return '#/projects';
     case 'new-project':
       return `#/projects/new?template=${encodeURIComponent(route.templateId)}`;
-    case 'project':
-      return `#/projects/${encodeURIComponent(route.id)}`;
-    case 'edit-project':
-      return `#/projects/${encodeURIComponent(route.id)}/edit`;
+    case 'project': {
+      const section =
+        route.section && route.section !== 'summary' ? `/${encodeURIComponent(route.section)}` : '';
+      const part = route.part ? `?part=${encodeURIComponent(route.part)}` : '';
+      return `#/projects/${encodeURIComponent(route.id)}${section}${part}`;
+    }
+    case 'edit-project': {
+      const from =
+        route.from && route.from !== 'summary' ? `?from=${encodeURIComponent(route.from)}` : '';
+      return `#/projects/${encodeURIComponent(route.id)}/edit${from}`;
+    }
     case 'shop':
       return `#/projects/${encodeURIComponent(route.id)}/shop`;
     case 'build':

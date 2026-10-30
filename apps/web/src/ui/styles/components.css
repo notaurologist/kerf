@@ -62,6 +62,11 @@
     scroll-margin-block-start: var(--space-s);
   }
 
+  /* One section on screen at a time (#156); the print layer shows them all. */
+  .k-section[hidden] {
+    display: none;
+  }
+
   /* A heading the contents moves focus to shows where focus went without a box around it. */
   .k-section > h2:focus {
     outline: none;
@@ -69,57 +74,6 @@
 
   .k-section > h2:focus-visible {
     outline: 3px solid var(--focus);
-  }
-
-  /* ---------- Contents (#119): a list on top when narrow, a sidebar that stays in view when wide ---------- */
-  .k-with-contents {
-    container-type: inline-size;
-  }
-
-  .k-with-contents > .l-sidebar {
-    flex-direction: column;
-  }
-
-  .k-with-contents > .l-sidebar > :first-child {
-    flex-basis: auto;
-  }
-
-  .k-with-contents > .l-sidebar > :last-child {
-    --stack-gap: var(--space-l);
-    min-inline-size: 0;
-  }
-
-  .k-contents ol {
-    margin: 0;
-    padding-inline-start: 1.4em;
-    display: grid;
-    gap: var(--space-3xs);
-  }
-
-  .k-contents__heading {
-    font-size: var(--size-0);
-    color: var(--muted);
-  }
-
-  /* From 48rem of the plan's width (the tablet in #40) the contents sit beside the sections and
-     stay in view. Below it they stack, so they do not cover the plan on a phone. */
-  @container (min-width: 48rem) {
-    .k-with-contents > .l-sidebar {
-      flex-direction: row;
-      flex-wrap: nowrap;
-      align-items: flex-start;
-    }
-
-    .k-with-contents > .l-sidebar > :first-child {
-      flex: 0 0 12rem;
-    }
-
-    .k-contents {
-      position: sticky;
-      inset-block-start: var(--space-s);
-      max-block-size: calc(100dvh - 2 * var(--space-s));
-      overflow-y: auto;
-    }
   }
 
   /* ---------- Figures (#119): a label over a value, as many to a row as fit ---------- */
@@ -1016,12 +970,223 @@
     padding-inline-start: var(--space-m);
   }
 
-  /* Placed after the blocks they adjust (#119). */
-  .k-contents .k-button {
-    justify-content: start;
-    text-align: start;
+  /* ---------- Contents (#119, #156): a bar that opens the list when narrow, a sidebar that stays in view when wide.
+     Placed late, after the link and icon rules they refine. ---------- */
+  .k-with-contents {
+    container-type: inline-size;
   }
 
+  .k-with-contents > .l-sidebar {
+    flex-direction: column;
+  }
+
+  .k-with-contents > .l-sidebar > .k-contents {
+    flex-basis: auto;
+  }
+
+  .k-with-contents > .l-sidebar > :last-child {
+    --stack-gap: var(--space-l);
+    min-inline-size: 0;
+  }
+
+  .k-contents ol {
+    margin: 0;
+    padding-inline-start: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-3xs);
+  }
+
+  /* The current section is marked with a bar and bold type, and aria-current says it in words. */
+  .k-contents li > a {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--control-min);
+    padding-inline-start: var(--space-xs);
+    border-inline-start: 3px solid transparent;
+  }
+
+  .k-contents li > a[aria-current="page"] {
+    border-inline-start-color: var(--text);
+    color: var(--text);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .k-contents__heading {
+    font-size: var(--size-0);
+    color: var(--muted);
+  }
+
+  /* Narrow: the bar says where you are and opens the list in place (#147, 2a). */
+  .k-contents__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    inline-size: 100%;
+    min-block-size: var(--control-min);
+    padding-inline: var(--space-s);
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--raised);
+    color: var(--text);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .k-contents__where {
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  .k-contents__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    color: var(--accent);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .k-contents__chevron {
+    display: inline-flex;
+    transition: transform 0.15s;
+  }
+
+  .k-contents[data-open] .k-contents__chevron {
+    transform: rotate(180deg);
+  }
+
+  .k-contents__heading,
+  .k-contents:not([data-open]) ol {
+    display: none;
+  }
+
+  .k-contents[data-open] ol {
+    margin-block-start: var(--space-xs);
+  }
+
+  /* From 48rem of the plan's width (the tablet in #40) the contents sit beside the sections and
+     stay in view, always open. Below it the bar opens them, so they do not cover the plan on a
+     phone. */
+  @container (min-width: 48rem) {
+    .k-with-contents > .l-sidebar {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: flex-start;
+    }
+
+    .k-with-contents > .l-sidebar > .k-contents {
+      flex: 0 0 12rem;
+      position: sticky;
+      inset-block-start: var(--space-s);
+      max-block-size: calc(100dvh - 2 * var(--space-s));
+      overflow-y: auto;
+    }
+
+    .k-contents__bar {
+      display: none;
+    }
+
+    .k-contents__heading {
+      display: block;
+    }
+
+    .k-contents:not([data-open]) ol {
+      display: grid;
+    }
+
+    .k-contents[data-open] ol {
+      margin-block-start: 0;
+    }
+  }
+
+  /* ---------- Previous and Next (#156): GOV.UK's pagination block, stacked when narrow ---------- */
+  .k-pager {
+    container-type: inline-size;
+    padding-block-start: var(--space-s);
+    border-block-start: 1px solid var(--border);
+  }
+
+  .k-pager ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-s);
+  }
+
+  .k-pager__link {
+    display: grid;
+    gap: var(--space-3xs);
+    min-block-size: var(--control-min);
+    text-decoration: none;
+  }
+
+  .k-pager__dir {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    font-weight: 700;
+  }
+
+  .k-pager__title {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .k-pager__arrow {
+    display: inline-flex;
+  }
+
+  .k-pager [data-dir="previous"] .k-pager__arrow {
+    transform: rotate(90deg);
+  }
+
+  .k-pager [data-dir="next"] .k-pager__arrow {
+    transform: rotate(-90deg);
+  }
+
+  @container (min-width: 36rem) {
+    .k-pager ul {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .k-pager [data-dir="next"] {
+      grid-column: 2;
+      text-align: end;
+    }
+
+    .k-pager [data-dir="next"] .k-pager__link {
+      justify-items: end;
+    }
+  }
+
+  /* ---------- The summary's list of sections (#156): each a link with its digest under it ---------- */
+  .k-section-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-s);
+  }
+
+  .k-section-list > li {
+    display: grid;
+    gap: var(--space-3xs);
+  }
+
+  .k-section-list > li > a {
+    font-weight: 700;
+  }
+
+  .k-section-list__digest {
+    color: var(--muted);
+  }
+
+  /* Placed after the blocks they adjust (#119). */
   .k-figure .k-margin {
     font-size: var(--size-0);
   }
@@ -1038,9 +1203,15 @@
       break-before: auto;
     }
 
-    /* Paper has no contents to tap; the plan prints in section order A. */
-    .k-contents {
+    /* Paper has no contents to tap; the plan prints in section order A, every section of it,
+       whichever is on screen (#156). */
+    .k-contents,
+    .k-pager {
       display: none;
+    }
+
+    .k-section[hidden] {
+      display: grid;
     }
 
     .k-section__title-block {

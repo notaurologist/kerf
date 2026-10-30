@@ -1,4 +1,5 @@
 export { CutListRow, cutList } from './cutList.ts';
+export { type PlanDigests, planDigests } from './digests.ts';
 export { HardwareLine, hardwareList } from './hardwareList.ts';
 export type { Plan } from './plan.ts';
 export {
