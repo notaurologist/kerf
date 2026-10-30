@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { METHODS } from './methods.ts';
 import { findToolType, TOOL_GROUPS, TOOL_TYPES, ToolType } from './tools.ts';
 
 describe('tool-type library', () => {
@@ -14,6 +15,25 @@ describe('tool-type library', () => {
   it('has a tool in every group, listed in group order', () => {
     const groups = TOOL_TYPES.map((t) => t.group);
     expect([...new Set(groups)]).toEqual([...TOOL_GROUPS]);
+  });
+
+  // Clamp count waits on #170.
+  const UNUSED_KEPT = ['clamps.count'];
+
+  it('lists only capabilities some method needs', () => {
+    const used = new Set(
+      METHODS.flatMap((m) =>
+        m.tools.flatMap((r) =>
+          r.anyOf.flatMap((c: { tool: string; needs?: readonly { capability: string }[] }) =>
+            (c.needs ?? []).map((n) => `${c.tool}.${n.capability}`),
+          ),
+        ),
+      ),
+    );
+    const listed = TOOL_TYPES.flatMap((t) =>
+      (t.capabilities as readonly { id: string }[]).map((c) => `${t.id}.${c.id}`),
+    );
+    expect(listed.filter((c) => !used.has(c))).toEqual(UNUSED_KEPT);
   });
 
   it('gives every capability a range', () => {

@@ -6,7 +6,7 @@ import { z } from 'zod';
 //
 // Names are generic (hard rule 11). A capability holds a value the owner reads off their own tool,
 // so the library states no numbers about tools; each capability says where its value is read, and
-// none has a default (hard rule 3).
+// none has a default (hard rule 3). A capability is listed only if a method uses it.
 
 export const TOOL_GROUPS = [
   'measuring-and-marking',
@@ -80,16 +80,6 @@ const SIXTEENTH = 1 / 16;
 
 const READ_MANUAL = "The tool's manual, or its specifications.";
 
-const BEVEL = (tool: string): CapabilityField => ({
-  id: 'maxBevel',
-  label: 'Largest bevel',
-  kind: 'angle',
-  help: `Decides which bevel cuts the ${tool} can make. Enter 0 if the blade does not tilt.`,
-  readFrom: 'The bevel scale on the saw.',
-  min: 0,
-  max: 60,
-});
-
 /**
  * Every tool the templates' work could use, and the common alternatives, checked against the work
  * each template lists in its spec (docs/templates/, Tools for the work). In group order, then in
@@ -132,7 +122,6 @@ export const TOOL_TYPES = [
         min: SIXTEENTH,
         max: 12,
       },
-      BEVEL('saw'),
     ],
   },
   {
@@ -167,7 +156,6 @@ export const TOOL_TYPES = [
         min: 0,
         max: 90,
       },
-      BEVEL('saw'),
     ],
   },
   { id: 'hand-saw', name: 'Hand saw', group: 'cutting', capabilities: [] },
@@ -185,7 +173,6 @@ export const TOOL_TYPES = [
         min: SIXTEENTH,
         max: 12,
       },
-      BEVEL('jigsaw'),
     ],
   },
 
@@ -194,17 +181,7 @@ export const TOOL_TYPES = [
     id: 'drill-driver',
     name: 'Drill/driver',
     group: 'drilling-and-driving',
-    capabilities: [
-      {
-        id: 'chuckSize',
-        label: 'Chuck capacity',
-        kind: 'length',
-        help: 'Decides the largest bit shank it holds.',
-        readFrom: "The tool's manual, or the marking on the chuck.",
-        min: SIXTEENTH,
-        max: 1,
-      },
-    ],
+    capabilities: [],
   },
   { id: 'impact-driver', name: 'Impact driver', group: 'drilling-and-driving', capabilities: [] },
   {

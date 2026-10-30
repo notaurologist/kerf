@@ -14,7 +14,7 @@ describe('/api/tools', () => {
     const first = {
       tools: [
         { toolTypeId: 'drill-driver', capabilities: {} },
-        { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375, maxBevel: 50 } },
+        { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375 } },
       ],
       other: [
         { name: 'Table saw', note: 'Tilts to 45' },
@@ -67,11 +67,11 @@ describe('/api/tools', () => {
     // Rows as M3 to M5 stored them: free-text IDs and capability names.
     await client.query(
       `insert into tools (tool_type_id, capabilities) values
-         ('circular-saw', '{"bevels": true, "maxBevel": 56}'),
+         ('circular-saw', '{"bevels": true, "depthOfCut": 2.375}'),
          ('table-saw', '{}')`,
     );
     const expected = {
-      tools: [{ toolTypeId: 'circular-saw', capabilities: { maxBevel: 56 } }],
+      tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }],
       other: [
         {
           name: 'circular-saw',

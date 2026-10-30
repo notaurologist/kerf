@@ -10,7 +10,7 @@ describe('Inventory', () => {
   it('accepts library tools with some, all, or none of their capabilities entered', () => {
     const inventory = {
       tools: [
-        { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375, maxBevel: 50 } },
+        { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375 } },
         { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } },
         { toolTypeId: 'clamps', capabilities: {} },
       ],
@@ -28,13 +28,16 @@ describe('Inventory', () => {
   it('accepts only the capabilities the library gives a tool type, in range and of their kind', () => {
     const result = Tool.safeParse({
       toolTypeId: 'circular-saw',
-      capabilities: { bevels: true, depthOfCut: 0, maxBevel: true },
+      capabilities: { bevels: true, depthOfCut: 0, maxBevel: 45 },
     });
     expect(messages(result)).toEqual([
       'capabilities.bevels: is not a capability of a circular saw',
       'capabilities.depthOfCut: Depth of cut with the blade square must be from 1/16" to 1\' 0".',
-      'capabilities.maxBevel: Enter a number.',
+      'capabilities.maxBevel: is not a capability of a circular saw',
     ]);
+    expect(
+      messages(Tool.safeParse({ toolTypeId: 'miter-saw', capabilities: { maxMiter: true } })),
+    ).toEqual(['capabilities.maxMiter: Enter a number.']);
     expect(
       messages(Tool.safeParse({ toolTypeId: 'clamps', capabilities: { count: 2.5 } })),
     ).toEqual(['capabilities.count: Enter a whole number.']);
@@ -58,37 +61,34 @@ describe('Inventory', () => {
 describe('missingCapabilities', () => {
   it('lists the capabilities not entered, which are input needed', () => {
     const tool = { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } };
-    expect(missingCapabilities(tool).map((c) => c.id)).toEqual([
-      'crosscutWidth',
-      'cutDepth',
-      'maxBevel',
-    ]);
+    expect(missingCapabilities(tool).map((c) => c.id)).toEqual(['crosscutWidth', 'cutDepth']);
     expect(missingCapabilities({ toolTypeId: 'hand-saw', capabilities: {} })).toEqual([]);
   });
 });
 
 describe('capabilityForm', () => {
-  const saw = findToolType('circular-saw');
-  if (!saw) throw new Error('circular-saw is in the library');
+  const saw = findToolType('miter-saw');
+  if (!saw) throw new Error('miter-saw is in the library');
   const form = [capabilityForm(saw)];
 
   it('enters capabilities like template fields, lengths as a plan writes them', () => {
-    const values = { depthOfCut: '2-7/16', maxBevel: '' };
+    const values = { crosscutWidth: '7-1/2', cutDepth: '', maxMiter: '50' };
     expect(entryProblems(form, values)).toEqual([]);
     // Left empty: left out, so it stays input needed.
-    expect(buildFromForm(form, values)).toEqual({ depthOfCut: 2.4375 });
+    expect(buildFromForm(form, values)).toEqual({ crosscutWidth: 7.5, maxMiter: 50 });
   });
 
   it('writes stored values back without changing them', () => {
-    expect(formValues(form, { depthOfCut: 2.4375, maxBevel: 50 })).toEqual({
-      depthOfCut: '2-7/16',
-      maxBevel: '50',
+    expect(formValues(form, { crosscutWidth: 7.5, maxMiter: 50 })).toEqual({
+      crosscutWidth: '7-1/2',
+      cutDepth: '',
+      maxMiter: '50',
     });
   });
 
   it('says in each hint what the value decides and where to read it', () => {
     expect(form[0]?.fields[0]?.help).toBe(
-      "Decides whether a cut through thick stock takes one pass or two. Read it from: the tool's manual, or its specifications.",
+      "Decides which boards it cuts across in one pass. Read it from: the tool's manual, or its specifications.",
     );
   });
 });
@@ -96,9 +96,9 @@ describe('capabilityForm', () => {
 describe('readStoredTools', () => {
   it('keeps a library tool and the capabilities that fit it', () => {
     expect(
-      readStoredTools([{ toolTypeId: 'circular-saw', capabilities: { maxBevel: 56 } }]),
+      readStoredTools([{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }]),
     ).toEqual({
-      tools: [{ toolTypeId: 'circular-saw', capabilities: { maxBevel: 56 } }],
+      tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }],
       moved: [],
     });
   });
@@ -119,11 +119,15 @@ describe('readStoredTools', () => {
     const read = readStoredTools([
       {
         toolTypeId: 'circular-saw',
-        capabilities: { bevels: true, maxBevel: 56, depthOfCut: 'deep' },
+        capabilities: { bevels: true, depthOfCut: 'deep' },
       },
+      { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } },
     ]);
     expect(read).toEqual({
-      tools: [{ toolTypeId: 'circular-saw', capabilities: { maxBevel: 56 } }],
+      tools: [
+        { toolTypeId: 'circular-saw', capabilities: {} },
+        { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } },
+      ],
       moved: [
         {
           name: 'circular-saw',

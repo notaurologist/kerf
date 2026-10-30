@@ -185,11 +185,11 @@ describe('buildSteps', () => {
 
 describe('inventoryKey', () => {
   it('is the same for the same tools in any order, and differs when a capability changes', () => {
-    const a = inventory(['hand-saw'], ['circular-saw', { maxBevel: 45, depthOfCut: 2.375 }]);
-    const b = inventory(['circular-saw', { depthOfCut: 2.375, maxBevel: 45 }], ['hand-saw']);
+    const a = inventory(['hand-saw'], ['circular-saw', { depthOfCut: 2.375 }]);
+    const b = inventory(['circular-saw', { depthOfCut: 2.375 }], ['hand-saw']);
     expect(inventoryKey(a)).toBe(inventoryKey(b));
     expect(inventoryKey(a)).toMatch(/^[0-9a-f]{8}$/);
-    const deeper = inventory(['hand-saw'], ['circular-saw', { maxBevel: 45, depthOfCut: 2.5 }]);
+    const deeper = inventory(['hand-saw'], ['circular-saw', { depthOfCut: 2.5 }]);
     expect(inventoryKey(deeper)).not.toBe(inventoryKey(a));
     expect(inventoryKey({ ...a, other: [{ name: 'Rasp', note: '' }] })).toBe(inventoryKey(a));
   });

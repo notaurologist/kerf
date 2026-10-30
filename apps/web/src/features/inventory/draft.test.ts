@@ -5,16 +5,16 @@ import { addTool, emptyInventory, fromInventory, toInventory } from './draft.ts'
 describe('inventory drafts', () => {
   const inventory: Inventory = {
     tools: [
-      { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375, maxBevel: 50 } },
-      { toolTypeId: 'drill-driver', capabilities: {} },
+      { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375 } },
+      { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } },
     ],
     other: [{ name: 'Table saw', note: 'Tilts to 45' }],
   };
 
   it('round-trips an inventory, writing lengths as a plan does', () => {
     const draft = fromInventory(inventory);
-    expect(draft.tools[0]?.values).toEqual({ depthOfCut: '2-7/16', maxBevel: '50' });
-    expect(draft.tools[1]?.values).toEqual({ chuckSize: '' });
+    expect(draft.tools[0]?.values).toEqual({ depthOfCut: '2-7/16' });
+    expect(draft.tools[1]?.values).toEqual({ crosscutWidth: '', cutDepth: '', maxMiter: '50' });
     expect(toInventory(draft)).toEqual({ ok: true, inventory });
   });
 
@@ -42,7 +42,8 @@ describe('inventory drafts', () => {
   it('says what to type for text it cannot read, and reports ranges from core', () => {
     const result = toInventory({
       tools: [
-        { toolTypeId: 'circular-saw', values: { depthOfCut: 'deep', maxBevel: '75' } },
+        { toolTypeId: 'circular-saw', values: { depthOfCut: 'deep' } },
+        { toolTypeId: 'miter-saw', values: { maxMiter: '95' } },
         { toolTypeId: 'clamps', values: { count: '2.5' } },
       ],
       other: [],
@@ -55,10 +56,10 @@ describe('inventory drafts', () => {
           message: expect.stringContaining('Kerf cannot read this as a length'),
         },
         {
-          field: 'tools.0.capabilities.maxBevel',
-          message: 'Largest bevel must be from 0.0° to 60.0°.',
+          field: 'tools.1.capabilities.maxMiter',
+          message: 'Largest miter must be from 0.0° to 90.0°.',
         },
-        { field: 'tools.1.capabilities.count', message: 'Enter a whole number.' },
+        { field: 'tools.2.capabilities.count', message: 'Enter a whole number.' },
       ],
     });
   });
