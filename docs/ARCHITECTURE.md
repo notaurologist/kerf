@@ -190,6 +190,25 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 - Every production build runs `pnpm db:migrate` for the API service (`vercel.json`): the Drizzle migrations, then the snapshot backfill (0014) and the tool-inventory backfill. It connects through `DATABASE_URL_UNPOOLED` (Neon's direct connection) when set. Preview builds skip it. Locally, `pnpm db:migrate` does the same against `.env` or the Docker database.
 - Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, redeploy, and delete the rows in `sessions` (0007).
 
+#### Backups (manual, for now)
+
+There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions` and `login_attempts` but not their rows, so no live session token is written to a file.
+
+1. Install the Postgres client once: `brew install libpq`, then use `/opt/homebrew/opt/libpq/bin/pg_dump`. Its version must be 18 or later (`pg_dump --version`).
+2. Copy the direct connection string (host without `-pooler`) from the Neon console, and read it into the shell without echo: `read -rs NEON_URL`.
+3. Dump, to a folder outside the repository:
+
+   ```
+   pg_dump "$NEON_URL" -Fc --no-owner --no-acl \
+     --exclude-table-data=sessions --exclude-table-data=login_attempts \
+     -f ~/Backups/kerf-$(date +%F).dump
+   ```
+
+4. Check a dump by restoring it into the local Docker database. This replaces the local development data: `pg_restore -d postgres://kerf:kerf@localhost:5432/kerf --clean --if-exists --no-owner ~/Backups/kerf-<date>.dump`
+5. To restore production, run the same `pg_restore` against `"$NEON_URL"`. Every session is gone afterwards, so log in again. If the mistake happened within the last 6 hours, Neon's own restore in the console is simpler.
+
+Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty database brought back every row of the other tables, plus the Drizzle migration history, and left `sessions` and `login_attempts` empty.
+
 #### First deploy (the owner's steps; they need accounts)
 
 1. **Neon:** a free project on Postgres 18 in AWS `us-east-1`, near Vercel's default function region. Copy the pooled connection string (host ends in `-pooler`) and the direct one.
