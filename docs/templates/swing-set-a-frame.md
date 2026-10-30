@@ -243,6 +243,24 @@ What needs doing, before any choice of how (`DOMAIN.md`, Operations; methods are
 
 Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep. Four holes 24 deep.
 
+### Build steps
+
+The template orders the operations into steps (`steps.ts`, #105); methods are chosen from the tool inventory by generic code (`ARCHITECTURE.md`, Method selection).
+
+| Step | Operations | Expert checks |
+|---|---|---|
+| Cut the beam | beam end cuts | |
+| Cut the legs | leg end cuts and flush cuts | |
+| Cut the crossbars and gussets | their end cuts | |
+| Ease the edges of every part | ease edges, every part | from the method (dust) |
+| Dig the leg holes, or Level the pads | dig holes or level pads | load-bearing design |
+| Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes | load-bearing design |
+| Bolt the beam between the leg tops | leg-to-beam bolt holes | load-bearing design, dynamic loads |
+
+The assembly order (frames braced first, then the beam) is Kerf's proposal and goes to the review with an experienced builder (M7). Raising the frames, backfilling, tightening, and hanging the swings have no operation type yet, so they are not steps.
+
+Worked example, two inventories (`steps.test.ts`): a shop with a miter saw that cuts a 4x4, a jigsaw, and auger bits reaching 10" uses the miter saw for every end cut, the jigsaw for the flush cuts, and drills every hole from one side. A kit with a circular saw cutting 2-3/8" and spade bits reaching 6" cuts the 4x4s from two faces (2-3/8" ≥ 3-1/2" / 2), the 2x boards in one pass, drills the board holes (5") from one side and the leg-to-beam holes (8.947) from both sides (6 ≥ 4.47), and is offered the auger and longer spade bits as easier and more accurate. The angled-line offset on a 4x4 is 3.5 · tan 20° = 1.274, shown as 1-1/4"; on a 2x6, 5.5 · tan 20° = 2.002, shown as 2".
+
 ### Board selection
 
 Each part lists the board selection guides that apply to it, from the knowledge base (`packages/core/src/knowledge/boardSelection.ts`), and the shopping list carries them by part ID.

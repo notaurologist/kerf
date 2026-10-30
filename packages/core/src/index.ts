@@ -5,6 +5,7 @@ export * from './knowledge/index.ts';
 export * from './lumber/stock.ts';
 export * from './outputs/index.ts';
 export * from './snapshot/index.ts';
+export * from './steps/index.ts';
 export * as structural from './structural/index.ts';
 export type { SnapshotUpgrade, TemplateDefinition } from './templates/definition.ts';
 export * from './templates/form.ts';

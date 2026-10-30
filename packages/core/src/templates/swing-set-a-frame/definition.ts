@@ -8,6 +8,7 @@ import { drawings } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';
 import { SwingSetParams } from './params.ts';
+import { stepOutline } from './steps.ts';
 import {
   SwingSetStructuralInputs,
   SwingSetStructuralReview,
@@ -113,6 +114,7 @@ export const swingSetAFrame: TemplateDefinition<
     8: addHoleSizes,
   },
   examples: EXAMPLES,
+  steps: (outputs) => stepOutline(outputs.design),
   plan(outputs) {
     const review = outputs.structuralReview;
     return {
