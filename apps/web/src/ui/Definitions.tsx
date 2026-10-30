@@ -8,6 +8,8 @@ export interface Definition {
   id: string;
   term: string;
   definition: ReactNode;
+  /** A drawing that explains the term, under the definition, kept to a readable width. */
+  figure?: ReactNode;
   /** Under the definition, such as its source. */
   detail?: ReactNode;
 }
@@ -21,6 +23,7 @@ export function Definitions(props: { items: readonly Definition[] }) {
             <dfn>{item.term}</dfn>
           </dt>
           <dd>{item.definition}</dd>
+          {item.figure && <dd className="k-definition__figure">{item.figure}</dd>}
           {item.detail && <dd>{item.detail}</dd>}
         </div>
       ))}

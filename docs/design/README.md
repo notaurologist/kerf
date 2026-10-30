@@ -172,6 +172,14 @@ Sources: GOV.UK Design System, Checkboxes, read October 2026 (https://design-sys
 
 The popover's reading order follows the button, and VoiceOver waits for #87.
 
+### Glossary illustrations (#179)
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Which terms | Kerf; long point and short point (one drawing); miter; bevel; saw setting and angle to the edge (one drawing). These are the terms a reader mixes up or cannot picture from words; the others read clearly as sentences. | Drawings for every term: grip, stock, or plumb add little a sentence does not say. |
+| How they are drawn | Core's 2D primitives (`knowledge/illustrations.ts`), drawn by `Diagram` like the plan's drawings, so line roles, text sizes, and print follow the drawing standard. Face views are drawn as cut details are: the reference edge at the bottom, a square line and arcs at the long point. The miter and bevel are isometric with D2's face tones, since only a 3D view shows which face the angle crosses. A short length of a 2x4 at a sample angle; every label is words, so nothing reads as a value from a plan. | Separate `ui/` SVGs: a second drawing style to keep in step. Numbers on the sample angle: they would look like a setting to use. |
+| Where they show | With the entry on the glossary page, under the definition, no wider than 28rem. Not in a term's popover: with text at least 13 px a drawing needs most of a phone's width and is taller than the definition, so it would cover the step it explains. The popover's link opens the entry with its drawing. | In the popover: too large to read in place on a phone. |
+
 Sources: Heydon Pickering, "Tooltips & Toggletips", Inclusive Components (2017), https://inclusive-components.design/tooltips-toggletips/. MDN, Popover API, read October 2026, https://developer.mozilla.org/en-US/docs/Web/API/Popover_API.
 
 ### Device accessibility pass (#87)

@@ -92,7 +92,10 @@ export function Term(props: { id: GlossaryId; href: string; children: string }) 
         {props.children}
       </button>
       <span ref={popover} id={popoverId} popover="auto" className="k-term__popover">
-        <b>{entry.term}</b> {entry.definition} <a href={props.href}>Open the glossary entry</a>
+        <b>{entry.term}</b> {entry.definition}{' '}
+        <a className="k-term__entry" href={props.href}>
+          Open the glossary entry
+        </a>
       </span>
     </span>
   );

@@ -1,6 +1,6 @@
-import { GLOSSARY } from '@kerf/core';
+import { GLOSSARY, ILLUSTRATIONS } from '@kerf/core';
 import { useEffect } from 'react';
-import { Definitions, ScreenHeader, Stack } from '../../ui/index.ts';
+import { Definitions, Diagram, ScreenHeader, Stack } from '../../ui/index.ts';
 import { SourceToggle } from '../structural/Citation.tsx';
 
 // Every glossary term, in alphabetical order, each at its own address (#/glossary/<id>) so text
@@ -30,6 +30,12 @@ export function GlossaryScreen(props: { term?: string }) {
           id: entryId(entry.id),
           term: entry.term,
           definition: entry.definition,
+          figure: 'illustration' in entry && (
+            <Diagram
+              drawing={ILLUSTRATIONS[entry.illustration]}
+              label={ILLUSTRATIONS[entry.illustration].description}
+            />
+          ),
           detail: entry.sources.length > 0 && <SourceToggle citations={entry.sources} />,
         }))}
       />

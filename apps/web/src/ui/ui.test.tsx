@@ -634,7 +634,9 @@ describe('Term', () => {
     expect(html).toContain(
       `<span id="${target}" popover="auto" class="k-term__popover"><b>Long point</b> The end of an angled cut`,
     );
-    expect(html).toContain('<a href="#/glossary/long-point">Open the glossary entry</a>');
+    expect(html).toContain(
+      '<a class="k-term__entry" href="#/glossary/long-point">Open the glossary entry</a>',
+    );
   });
 
   it('marks the first use of each term in a scope and no later one', () => {

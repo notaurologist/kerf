@@ -1,4 +1,4 @@
-import { GLOSSARY } from '@kerf/core';
+import { GLOSSARY, ILLUSTRATIONS } from '@kerf/core';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { Screen } from './App.tsx';
@@ -33,6 +33,21 @@ describe('Screen', () => {
     for (const entry of GLOSSARY) {
       expect(html).toContain(entry.definition.replaceAll("'", '&#x27;'));
     }
+  });
+
+  it('shows each illustrated entry with its drawing', () => {
+    const html = renderToString(<Screen route={{ screen: 'glossary' }} />);
+    GLOSSARY.forEach((entry, i) => {
+      const start = html.indexOf(`<div id="term-${entry.id}"`);
+      const next = GLOSSARY[i + 1];
+      const block = html.slice(start, next ? html.indexOf(`<div id="term-${next.id}"`) : undefined);
+      const drawing = 'illustration' in entry ? ILLUSTRATIONS[entry.illustration] : undefined;
+      if (drawing) {
+        expect(block).toContain(`aria-label="${drawing.description.replaceAll("'", '&#x27;')}"`);
+      } else {
+        expect(block).not.toContain('role="img"');
+      }
+    });
   });
 
   it('says when there is no page at an address', () => {
