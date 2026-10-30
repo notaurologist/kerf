@@ -16,9 +16,9 @@ export function FlagList(props: { flags: readonly Flag[] }) {
         <li key={`${flag.category}/${flag.ask}`}>
           <ExpertCheck
             label={`Expert check · ${FLAG_CATEGORY_LABELS[flag.category]}`}
-            why={<Measured text={flag.why} />}
+            why={<Measured text={flag.why} terms />}
           >
-            <Measured text={flag.ask} />
+            <Measured text={flag.ask} terms />
           </ExpertCheck>
         </li>
       ))}

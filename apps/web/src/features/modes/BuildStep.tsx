@@ -314,7 +314,7 @@ export function CutCard(props: {
               {/* A plan the template did not describe end by end keeps the cut list's words. */}
               {!own && (
                 <Text>
-                  <Measured text={text} />
+                  <Measured text={text} terms />
                 </Text>
               )}
             </Stack>

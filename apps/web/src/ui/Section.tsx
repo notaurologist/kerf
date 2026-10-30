@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { TermScope } from './Term.tsx';
 import { Text } from './text.tsx';
 
 // A section of the plan (#40, section order A). On paper each starts a new page with a title
@@ -35,10 +36,13 @@ export function PlanSection(props: {
       <h2 id={headingId} tabIndex={-1}>
         {props.title}
       </h2>
-      <div className="l-stack">
-        {props.intro && <Text tone="muted">{props.intro}</Text>}
-        {props.children}
-      </div>
+      {/* Each section is its own screen, so the first use of a term is marked again in it. */}
+      <TermScope>
+        <div className="l-stack">
+          {props.intro && <Text tone="muted">{props.intro}</Text>}
+          {props.children}
+        </div>
+      </TermScope>
     </section>
   );
 }

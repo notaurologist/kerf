@@ -819,6 +819,61 @@
     background: rgb(0 0 0 / 0.4);
   }
 
+  /* ---------- Term ---------- */
+  /* A glossary term in running text: reads as the text it is, with a dotted underline, and is
+     a button. Its target reaches the control height above and below without moving the line. */
+  .k-term__button {
+    position: relative;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    text-decoration: underline dotted;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  .k-term__button::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block: min(0px, (100% - var(--control-min)) / 2);
+  }
+
+  .k-term__button[aria-expanded="true"] {
+    text-decoration-style: solid;
+  }
+
+  /* Opens in the top layer, centered where anchor positioning is not supported, otherwise under
+     the term (or above it near the bottom of the screen). */
+  .k-term__popover {
+    max-inline-size: min(22rem, 100vw - 2 * var(--space-s));
+    padding: var(--space-xs) var(--space-s);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--raised);
+    color: var(--text);
+    text-align: start;
+  }
+
+  @supports (position-area: block-end) {
+    .k-term__popover {
+      inset: auto;
+      /* Clear of the screen's edge on the side it opens toward. */
+      margin: var(--space-3xs) var(--space-s) var(--space-3xs) 0;
+      position-area: block-end span-inline-end;
+      position-try-fallbacks: flip-block, flip-inline;
+    }
+  }
+
+  .k-term__popover a {
+    display: block;
+    margin-block-start: var(--space-2xs);
+  }
+
   /* ---------- Catalog ---------- */
   .k-catalog__panel {
     padding: var(--space-m);

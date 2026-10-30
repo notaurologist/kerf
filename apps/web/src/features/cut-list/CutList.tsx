@@ -103,7 +103,9 @@ export function CutList(props: {
                 <List ordered>
                   {row.ends.map((end, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: the two ends are positional.
-                    <li key={i}>{marked(`${path(row)}.ends[${i}]`, <Measured text={end} />)}</li>
+                    <li key={i}>
+                      {marked(`${path(row)}.ends[${i}]`, <Measured text={end} terms />)}
+                    </li>
                   ))}
                 </List>
                 <Text tone="muted" size="small">

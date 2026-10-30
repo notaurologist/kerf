@@ -1,3 +1,4 @@
+import type { GlossaryId } from '@kerf/core';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { GlossaryScreen } from './features/glossary/GlossaryScreen.tsx';
 import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
@@ -9,7 +10,17 @@ import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
 import { href, isMode, type Route, useRoute } from './lib/route.ts';
 import { ThemeSwitch } from './lib/theme.tsx';
-import { Button, Header, Loading, Notice, Page, Stack, Text, Wordmark } from './ui/index.ts';
+import {
+  Button,
+  Header,
+  Loading,
+  Notice,
+  Page,
+  Stack,
+  TermScope,
+  Text,
+  Wordmark,
+} from './ui/index.ts';
 
 // The design system's catalog (#45), loaded only when opened: it carries the worked example's
 // snapshot for its sample values.
@@ -49,6 +60,17 @@ export function Screen(props: { route: Route }) {
     case 'not-found':
       return <Text>There is no page here.</Text>;
   }
+}
+
+const entryHref = (term: GlossaryId) => href({ screen: 'glossary', term });
+
+/** A screen with its scope for marking the first use of each glossary term. */
+function ScreenWithTerms(props: { route: Route }) {
+  return (
+    <TermScope entryHref={entryHref}>
+      <Screen route={props.route} />
+    </TermScope>
+  );
 }
 
 async function checkSession(): Promise<Session> {
@@ -101,7 +123,7 @@ export function App() {
     );
   }
   // Shopping and Building fill the screen under their own bar, with no other navigation (#61).
-  if (isMode(route)) return <Screen route={route} />;
+  if (isMode(route)) return <ScreenWithTerms route={route} />;
   const section =
     route.screen === 'tools' || route.screen === 'glossary'
       ? route.screen
@@ -135,7 +157,7 @@ export function App() {
         }
       />
       <Page>
-        <Screen route={route} />
+        <ScreenWithTerms route={route} />
       </Page>
     </>
   );
