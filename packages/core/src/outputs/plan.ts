@@ -1,7 +1,7 @@
 import type { BoltJoint } from '../structural/boltDistances.ts';
 import type { CheckResult } from '../structural/types.ts';
 import type { Operation } from '../templates/operations.ts';
-import type { ChecklistItem, Flag } from '../templates/types.ts';
+import type { ChecklistItem, EndCut, Flag } from '../templates/types.ts';
 import type { CutListRow } from './cutList.ts';
 import type { HardwareLine } from './hardwareList.ts';
 import type { LumberPlan } from './shoppingList.ts';
@@ -26,4 +26,15 @@ export interface Plan {
   boltLayout: BoltJoint[];
   /** What needs doing to each part and on the site (#103). Empty for plans made before it. */
   operations: Operation[];
+  /**
+   * Each part's end cuts as the template describes them, and the edge its angles are laid out
+   * from, for the cut card (#132). Picked from the stored parts; the cut list holds the same ends
+   * already formatted.
+   */
+  cutEnds: {
+    partId: string;
+    /** Such as "inner edge, against the beam". Absent in plans made before template version 4. */
+    referenceEdge?: string;
+    ends: Pick<EndCut, 'description' | 'measuredFrom'>[];
+  }[];
 }

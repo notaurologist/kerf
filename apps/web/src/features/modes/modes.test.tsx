@@ -178,8 +178,16 @@ describe('Building mode', () => {
       `D Crossbar 2x6 (1-1/2" x 5-1/2"). Cut 2. From board 6, a 2x6 10' 0" long.`,
     );
     expect(text).toContain('Length, long point to long point 59"');
-    // Each end: the saw setting boxed, the angle to the edge smaller (Stage 3, SawSetting).
-    expect(text.match(/End \d Saw at 20\.0° To the edge 70\.0°/g)).toHaveLength(2);
+    // Where the angles are laid out from, before the ends (#132).
+    expect(text).toContain(
+      'Lay out each angle on the face marked with a loop in the drawing, from the bottom edge.',
+    );
+    // Each end headed as the template names it, then its saw setting boxed and the angle to the
+    // edge smaller (Stage 3, SawSetting), said once.
+    expect(
+      text.match(/1-5\/8" past the leg, parallel to it Saw at 20\.0° To the edge 70\.0°/g),
+    ).toHaveLength(2);
+    expect(text).not.toContain('End 1');
     expect(text).toContain('The ends mirror each other.');
     expect(text).toContain('Top edge: 55"');
     expect(text).toContain('Bottom edge: 59"');
@@ -188,6 +196,15 @@ describe('Building mode', () => {
     expect(html.match(/checked=""/g)).toHaveLength(1);
     expect(html).toContain('<svg');
     expect(text).toContain('Back to the step');
+  });
+
+  it('heads a leg’s ends Top and Foot, and says where their angles start (#132)', () => {
+    const p = project();
+    const route = { screen: 'build-part' as const, id: p.id, step: 'board-2', part: 'leg-front' };
+    const text = renderText(<ModeView route={route} project={p} />);
+    expect(text).toContain('from the inner edge, against the beam.');
+    expect(text).toMatch(/Top: level cut Saw at 20\.0° To the edge 70\.0°/);
+    expect(text).toMatch(/Foot: level cut Saw at 20\.0° To the edge 70\.0°/);
   });
 
   it('says when a link names a step the plan no longer has', () => {
