@@ -29,18 +29,26 @@ export function Header(props: { brandHref: string; nav: readonly NavItem[]; end?
 
 /**
  * Shop modes fill the screen under this bar (#40): the mode's name, what it is working on (the
- * project's name), and a way out.
+ * project's name), and a way out. `end` sits before Exit, as the theme menu does (#155).
  */
-export function ModeBar(props: { mode: string; context?: string; exitHref: string }) {
+export function ModeBar(props: {
+  mode: string;
+  context?: string;
+  exitHref: string;
+  end?: ReactNode;
+}) {
   return (
     <div className="k-modebar" data-density="shop">
       <span>
         <b>{props.mode}</b>
         {props.context && ` · ${props.context}`}
       </span>
-      <a className="k-button" data-variant="secondary" href={props.exitHref}>
-        Exit
-      </a>
+      <span className="k-modebar__end">
+        {props.end}
+        <a className="k-button" data-variant="secondary" href={props.exitHref}>
+          Exit
+        </a>
+      </span>
     </div>
   );
 }
@@ -53,11 +61,17 @@ export function ModeFrame(props: {
   mode: string;
   context?: string;
   exitHref: string;
+  end?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <>
-      <ModeBar mode={props.mode} context={props.context} exitHref={props.exitHref} />
+      <ModeBar
+        mode={props.mode}
+        context={props.context}
+        exitHref={props.exitHref}
+        end={props.end}
+      />
       <main className="l-page" data-density="shop">
         {props.children}
       </main>

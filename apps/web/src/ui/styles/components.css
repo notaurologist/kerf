@@ -692,6 +692,12 @@
     color: var(--bg);
   }
 
+  .k-modebar__end {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
   .k-modebar .k-button {
     border-color: var(--bg);
     color: var(--bg);

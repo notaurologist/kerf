@@ -244,8 +244,21 @@ The owner took the suggested option for each (October 2026).
 | Question | Chosen | Rejected, and why |
 |---|---|---|
 | Palette | C1, graphite and chalk line: warm paper, graphite text, one chalk-line blue accent, amber flags, crimson errors beside form fields only. It keeps the screen calm so the few things that need attention stand out, and both themes hold up under glare and in grayscale. | C2, layout blue: the most evocative dark theme, a blueprint, but the weakest in grayscale and its accent is too close to its text. C3, high-visibility: the highest contrast and the most resistant to glare, but yellow and black is the ANSI caution sign, so every flag would look like a hazard warning, which pushes toward a verdict; orange for "done" borrows a hazard color; and pure white on near-black halos for people with astigmatism. Its glare lesson is kept as rule 5. |
-| Light and dark | Follow the device's own setting, including its sunset schedule. Print is always light. | Always dark in the shop modes: works against the research for small text (NN/g), and the garage is not always dim. A switch in the app: a per-device setting would need storing on the server (0005), a new requirement for little gain. |
+| Light and dark | Follow the device's own setting, including its sunset schedule, unless a switch on that device chooses Light or Dark (revisited in #155, below). Print is always light. | Always dark in the shop modes: works against the research for small text (NN/g), and the garage is not always dim. |
 | Rules for color | The six rules as written: margins have no color; no red or green near structural results; flags amber with an icon and the label "Expert check"; input needed is a dashed accent outline, not an error; no secondary text in the shop modes; never color alone. | None proposed. |
+
+#### Revisited: a theme switch (#155)
+
+In October 2026 the owner asked for a switch after all, with three choices: System (the default, as before), Light, and Dark. The first answer rejected it because 0005 kept everything on the server. Two places to keep the choice were weighed:
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Where the choice is kept | In the browser, per device, so the shop phone can stay dark while the laptop follows the system. 0005 is amended: a display preference for one device is not user data. A script in `index.html` sets it before the first paint, so the page does not flash the other scheme. If the browser clears it, the device goes back to System. | On the server, as one setting for every device: satisfies 0005 as first written, but needs a table, a migration, and a route, the loading and login screens would still paint in the system scheme first unless the choice were also copied into the browser, and one setting cannot be dark on the phone and light on the laptop. |
+| Where the switch is | A menu named Theme in the header beside Log out, and in Shopping and Building's bar beside Exit, so it is one tap away where the light changes most. | A settings screen: leaving a mode to change the theme is a round trip, and it adds a screen for one setting. |
+
+The switch sets `data-theme` on the page's root, which the tokens already used to force one scheme; System removes it. The tokens did not change, so the contrast test covers both choices.
+
+Checked in the browser against a local database, with the device set to dark and then light: Light on a dark device in the plan at 1024 px and in Shopping at 375 px, Dark on a light device in the diagrams at 1024 px and in a Building cutting step with its board drawing at 375 px, and System following the device when the emulated setting changed with the page open. A chosen theme survived a reload, and the built `index.html` sets it before the app's script. Print was not checked in a browser; the print rule that forces light on `data-theme` is covered by a test. At 375 px the mode bar's project name wraps to three lines beside the menu and Exit.
 
 The C1 values, in OKLCH, are in `color.html` (the `pal-C1-light` and `pal-C1-dark` classes) with every pairing measured. #45 turns them into tokens and adds a contrast test, so the measured ratios stay checked in code. Diagram ink roles (part, highlighted part, hidden line, dimension, clearance zone) carry into #44.
 
