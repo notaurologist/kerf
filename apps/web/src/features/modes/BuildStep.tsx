@@ -137,11 +137,11 @@ export function StepScreen(props: {
       {done && (
         <Stack gap="xs">
           <StatusLine>Step done{ticks.isWaiting(tick) ? ', not sent yet' : ''}.</StatusLine>
-          <div>
+          <Cluster>
             <Button variant="secondary" onClick={() => ticks.set(tick, false)}>
               Mark not done
             </Button>
-          </div>
+          </Cluster>
         </Stack>
       )}
       <Cluster>
@@ -242,9 +242,11 @@ export function CutCard(props: {
   const row = plan.cutList.find((r) => r.partId === partId);
   const detail = props.drawings?.cutDetails.find((d) => d.partId === partId);
   const back = (
-    <ButtonLink variant="secondary" href={links.step(step.id)}>
-      Back to the step
-    </ButtonLink>
+    <Cluster>
+      <ButtonLink variant="secondary" href={links.step(step.id)}>
+        Back to the step
+      </ButtonLink>
+    </Cluster>
   );
   if (!row) {
     return (

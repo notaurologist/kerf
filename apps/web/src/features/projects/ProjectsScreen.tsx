@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
+import { Loaded } from '../../lib/Loaded.tsx';
 import { href } from '../../lib/route.ts';
 import {
   type Project,
@@ -15,9 +16,9 @@ import {
   Card,
   Cluster,
   CompactSelect,
-  Loading,
   Notice,
   PlainList,
+  ScreenHeader,
   Stack,
   Text,
 } from '../../ui/index.ts';
@@ -40,11 +41,11 @@ export function ProjectsScreen() {
   }, 'projects');
   const [error, setError] = useState<string | null>(null);
 
-  if (loaded.state === 'loading') return <Loading>Loading projects…</Loading>;
-  if (loaded.state === 'error') return <Notice>{describeError(loaded.error)}</Notice>;
-  const { projects, templates } = loaded.value;
-
-  const changeStatus = async (id: string, status: ProjectStatus) => {
+  const changeStatus = async (
+    { projects, templates }: { projects: ProjectSummary[]; templates: TemplateSummary[] },
+    id: string,
+    status: ProjectStatus,
+  ) => {
     setError(null);
     const result = await send(api.api.projects[':id'].$put({ param: { id }, json: { status } }));
     if (!result.ok) {
@@ -56,12 +57,16 @@ export function ProjectsScreen() {
   };
 
   return (
-    <ProjectList
-      projects={projects}
-      templates={templates}
-      error={error}
-      onStatus={(id, status) => void changeStatus(id, status)}
-    />
+    <Loaded state={loaded} loading="Loading projects…">
+      {(value) => (
+        <ProjectList
+          projects={value.projects}
+          templates={value.templates}
+          error={error}
+          onStatus={(id, status) => void changeStatus(value, id, status)}
+        />
+      )}
+    </Loaded>
   );
 }
 
@@ -91,14 +96,14 @@ export function ProjectList(props: {
   const templateName = (id: string) => props.templates.find((t) => t.id === id)?.name ?? id;
   return (
     <Stack>
-      <h1>Projects</h1>
-      <Cluster>
-        {props.templates.map((t) => (
+      <ScreenHeader
+        title="Projects"
+        actions={props.templates.map((t) => (
           <ButtonLink key={t.id} href={href({ screen: 'new-project', templateId: t.id })}>
             New {t.name.charAt(0).toLowerCase() + t.name.slice(1)}
           </ButtonLink>
         ))}
-      </Cluster>
+      />
       {props.error && <Notice>{props.error}</Notice>}
       {/* One Resume card (#40): the most recently updated project that has somewhere to resume. */}
       {resuming && <ResumeCard project={resuming} />}

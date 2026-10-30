@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ApiError, ApiResult } from './api.ts';
 
-export type Loaded<T> =
+export type LoadState<T> =
   | { state: 'loading' }
   | { state: 'error'; error: ApiError }
   | { state: 'ready'; value: T };
@@ -11,7 +11,7 @@ export type Loaded<T> =
  * the value with a newer one the API returned, such as the response to a save.
  */
 export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string) {
-  const [loaded, setLoaded] = useState<Loaded<T>>({ state: 'loading' });
+  const [loaded, setLoaded] = useState<LoadState<T>>({ state: 'loading' });
   // Only the latest request may set the result, so a slow earlier one cannot overwrite it.
   const latest = useRef(0);
   // biome-ignore lint/correctness/useExhaustiveDependencies: reloads when the key changes, not when the caller passes a new closure.

@@ -2,6 +2,7 @@
 // layout primitives; they write no classes or styles of their own.
 
 export { Button, ButtonLink, type ButtonVariant } from './Button.tsx';
+export { InlineConfirm } from './Confirm.tsx';
 export { Diagram } from './Diagram.tsx';
 export { DiagramFrame } from './DiagramFrame.tsx';
 export { ConfirmDialog } from './Dialog.tsx';
@@ -20,10 +21,13 @@ export {
   ErrorSummary,
   ErrorText,
   ExpertCheck,
+  type Failure,
+  InfoNotice,
   InputNeeded,
   Loading,
   Notice,
   Pending,
+  SaveFailed,
   StateTag,
   StatusLine,
   type SummaryItem,
@@ -51,6 +55,8 @@ export {
   PartLetter,
   SawSetting,
 } from './numbers.tsx';
+export { CheckStatus, FlagList } from './plan.tsx';
+export { ScreenHeader } from './ScreenHeader.tsx';
 export { PlanSection } from './Section.tsx';
 export { Header, ModeBar, ModeFrame, type NavItem } from './Shell.tsx';
 export { StepLayout } from './StepLayout.tsx';

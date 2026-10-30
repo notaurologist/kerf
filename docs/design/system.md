@@ -11,7 +11,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 ## Building a screen
 
-- **Frame:** the app shell supplies `Header` and `Page`. A screen returns its content: usually a `Stack` holding an `h1`, then sections.
+- **Frame:** the app shell supplies `Header` and `Page`. A screen returns its content: usually a `Stack` holding a `ScreenHeader`, then sections.
 - **Layout:** the primitives, which respond to the space they are given rather than to the page width (#41):
   - `Stack` for a column;
   - `Cluster` for a wrapping row, with `spread` to push items to either end;
@@ -21,14 +21,19 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
   - `Center` for a readable measure.
 
   Gaps are steps of the spacing scale (`3xs` to `xl`), never lengths.
-- **Headings:** plain `h1` to `h5`, which the base styles size. Sections of the plan use `PlanSection`, which also gives each its printed page and title block.
-- **Loading and errors:** use `Loading` while data loads; it waits 300 ms, so a fast load does not flash. Use `Notice` for a problem that is not about a field, with `icon="connection"` when the server cannot be reached.
+- **Headings:** plain `h1` to `h5`, which the base styles size. Sections of the plan use `PlanSection`, which also gives each its printed page and title block, and an `intro` line under the heading when the section needs one.
+- **Loading and errors:** render `useLoad`'s state through `Loaded` (`lib/Loaded.tsx`), which shows `Loading` while data loads (it waits 300 ms, so a fast load does not flash) and a `Notice` if it did not load. Use `Notice` for any other problem that is not about a field, with `icon="connection"` when the server cannot be reached; `failureOf` (`lib/api.ts`) says which.
+- **Announcing:** screens never write `role="alert"` or `role="status"`. `ErrorText alert`, `Notice`, `SaveFailed`, `StatusLine`, `InfoNotice`, and `Loading` own their live regions; `ui/screens.test.ts` fails if a screen writes one.
+- **A lone action:** a single button or link goes in a `Cluster`, so it keeps its own width instead of stretching across a `Stack`.
 
 ## Which component for which job
 
 | Job | Component | Notes |
 |---|---|---|
-| An action | `Button` | `primary` for the main action, `secondary` for the others, `destructive` for one that destroys (named for what it destroys), `link` for a quiet action in running text. `busy` while working. |
+| The top of a screen | `ScreenHeader` | The `h1` with the screen's `actions` beside it (wrapping under it when narrow), then a `lede`, a `meta` line of facts, and a `status` such as a `StatusLine`. |
+| An action | `Button` | `primary` for the main action, `secondary` for the others, `destructive` for one that destroys (named for what it destroys), `link` for a quiet action in running text. `busy` while working, with `busyLabel` saying what is happening ("Saving…"). |
+| An action that fails | `ErrorText alert` under it | Announced when it appears. |
+| A question asked in place | `InlineConfirm` | The question (and any field to fill in), the action named for what it does, a "Keep …" choice, the busy label, and the error. A form, so Enter answers. Use `ConfirmDialog` only when the answer has to come before going anywhere. |
 | Going to another screen | `ButtonLink`, or a plain `a` | `ButtonLink` when it should look like an action, such as "New swing set". |
 | A field | `Field` with `TextInput`, `Select`, or `YesNo` | `Field` holds the label, hint, error, echo, and input needed. Give it an `id` when an error summary links to it. Lengths use the full keyboard (the default); numbers use `keyboard="decimal"` or `"numeric"`. |
 | Related fields | `FieldGroup` inside a `Grid` | A legend and optional help. |
@@ -36,6 +41,11 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Problems after a save | `ErrorSummary` at the top, `error` on each `Field` | The summary takes focus and links to each field (#67). Show errors only after a save. |
 | An empty structural input | `needed` on `Field`, or `InputNeeded` | A question, not an error (#43, rule 4). |
 | A question for an experienced builder | `ExpertCheck` | Amber, with the flag icon and "Expert check" (#43, rule 3). |
+| A plan's or a step's flags | `FlagList` | Core's `Flag[]`, each an `ExpertCheck` labeled with its category. Nothing when there are none. |
+| Where a structural check stands | `CheckStatus` | The margin through core's formatter, input needed, or "Not computed." with the reason; `was` in a preview. |
+| A save that did not go through | `SaveFailed` | "Not saved.", the reason, and "Your changes are still here", with the connection icon when the server was not reached. Takes a `Failure` from `failureOf`. A preview passes its own `title` and `kept`. |
+| Something to know that is not a problem | `InfoNotice` | Status, not an alert, with the info icon. Such as a plan made with a newer or older template version. |
+| Loading a screen's data | `Loaded` (`lib/Loaded.tsx`) | Takes `useLoad`'s state, the loading words, and a function from the value to the screen. |
 | What just happened | `StatusLine` | Stays until the next action. Use `setFlash` (`lib/flash.ts`) to carry it to the next screen. |
 | Progress not yet sent | `Pending` | Shop modes (#57). |
 | A Building step with its drawing | `StepLayout` | `lead` (a cutting step's pieces), `drawing`, then the rest. From 600 px of its own width the drawing sits beside the step; narrower, it comes after the lead and before the rest (#134). |
@@ -49,7 +59,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | A list of measurements | `MeasureTable` | A table from about 640 px of its own width, labeled rows below it. Put the name of each row in the first column. Mark number columns `numeric`; give shortened headers a `fullLabel`. |
 | Working, sources, detail | `Disclosure` | Closed on screen, open in print. `size="small"` for a "Source" toggle. |
 | A raised item | `Card` | One check, one checklist entry, one project. |
-| Lists | `PlainList` (no bullets) or `List` | |
+| Lists | `PlainList` (no bullets) or `List` | `items` takes core's sentences and makes each an item through `Measured`. |
 | Formulas and IDs | `Code` | The Mono, never wrapped; scrolls within its line. |
 | Secondary text | `Text tone="muted"` | Desk screens only. Shop modes use the text color for every word (#43, rule 5). |
 | Leaving with changes | `useLeaveGuard(dirty)` | Render its `dialog`; it asks before any in-app link and when the tab closes. |

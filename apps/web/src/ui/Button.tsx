@@ -8,8 +8,10 @@ export function Button(props: {
   children: ReactNode;
   variant?: ButtonVariant;
   type?: 'button' | 'submit';
-  /** While true, the button says what is happening (its children should) and ignores presses. */
+  /** While true, the button shows `busyLabel` and ignores presses. */
   busy?: boolean;
+  /** What the button says while busy, such as "Saving…" (docs/design/content.md, Status). */
+  busyLabel?: string;
   /** For a toggle, such as selecting a part: whether it is on. */
   pressed?: boolean;
   onClick?: () => void;
@@ -30,7 +32,7 @@ export function Button(props: {
       aria-pressed={props.pressed}
       onClick={click}
     >
-      {props.children}
+      {props.busy && props.busyLabel ? props.busyLabel : props.children}
     </button>
   );
 }

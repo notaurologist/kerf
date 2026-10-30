@@ -71,6 +71,21 @@ Every M4 screen is built from `apps/web/src/ui` only: login, projects, tools, th
 
 Checked in the browser with the worked example's stored snapshot served in place of the API, at 375 px and about 820 px, in light and dark: the plan, the editor's failed save and leave prompt, and the tools screen. No page scrolls sideways, and long formulas scroll within their own line. Print was not checked in a browser; it is worth checking on paper in #81.
 
+### Shared components for repeated patterns (#122)
+
+By M7 the screens composed the same few patterns by hand, each a little differently. These became shared components (October 2026), so later screens build from them instead of copying a sibling:
+
+- `ScreenHeader`: the title with the screen's actions beside it, a lede, a line of facts, and a status. Every screen with an `h1` uses it, so the plan's Edit and Print (#119) go in one place.
+- Action feedback: `Button` takes a `busyLabel`, and `ErrorText alert` announces an action's error. `SaveFailed` gives "Not saved." with the reason and what is kept, choosing the connection icon from `failureOf`.
+- `InlineConfirm`: a question asked in place, used to delete a project and to regenerate a plan. It stays inline, beside what it is about; `ConfirmDialog` remains for questions that block leaving.
+- `Loaded` (`lib/Loaded.tsx`): loading and load errors for `useLoad`, now with the connection icon when the server cannot be reached.
+- `FlagList` and `CheckStatus`: a plan's or step's expert checks, and a check's margin, input needed, or not computed, shared by the structural review, the build steps, and the editor's preview.
+- An `items` prop on `List` and `PlainList` for core's sentences, and an `intro` on `PlanSection`.
+- A lone action sits in a `Cluster`, never a bare `div` or stretched across a column.
+- `InfoNotice`, a neutral notice announced as status with an info icon. The owner reviewed it in the catalog, and it replaced the plain cards that said a plan was made with a newer template version, or that saving would regenerate it with a newer one.
+
+No screen writes `role="alert"` or `role="status"` itself; `ui/screens.test.ts` checks it.
+
 ### Guidance and the check against "Done when" (#81)
 
 How to use the system, including which component for which job, the tokens, the layers, and how to add a component, is in `system.md`. `ARCHITECTURE.md` describes where it lives and the rule that screens write no styles.

@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 
 // Screens are built only from ui/: its components and layout primitives (#45, Stage 6, DS1).
 // A class or a style written in a screen is a one-off style the system does not know about, so
-// it fails here. Tests are exempt: they read the markup the components produce.
+// it fails here. So is an alert or status role: announcing is the job of ErrorText, Notice,
+// StatusLine, and the other feedback components (#122). Tests are exempt: they read the markup the
+// components produce.
 
 const src = new URL('..', import.meta.url).pathname;
 
@@ -27,6 +29,11 @@ describe('screens outside ui/', () => {
     const text = readFileSync(join(src, file), 'utf8');
     expect(text).not.toMatch(/\bclassName\s*=/);
     expect(text).not.toMatch(/\bstyle\s*=\s*\{/);
+  });
+
+  it.each(screens.map((f) => relative(src, f)))('%s announces nothing itself', (file) => {
+    const text = readFileSync(join(src, file), 'utf8');
+    expect(text).not.toMatch(/\brole\s*=\s*["'{](alert|status)/);
   });
 
   it('import no stylesheets of their own', () => {

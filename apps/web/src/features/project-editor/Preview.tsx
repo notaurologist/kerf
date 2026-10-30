@@ -8,17 +8,17 @@ import {
   type TemplateDefinition,
 } from '@kerf/core';
 import { useEffect, useRef, useState } from 'react';
-import { type ApiResult, api, describeError, send } from '../../lib/api.ts';
+import { type ApiResult, api, failureOf, send } from '../../lib/api.ts';
 import { type Changes, indexChanges } from '../../lib/changes.tsx';
 import { planOf } from '../../lib/plan.ts';
 import type { Project } from '../../lib/types.ts';
 import {
   Card,
-  Changed,
+  CheckStatus,
   Cluster,
-  InputNeeded,
-  MarginLine,
+  type Failure,
   Notice,
+  SaveFailed,
   Stack,
   StateTag,
   Text,
@@ -83,7 +83,7 @@ export type PreviewState =
   | { kind: 'waiting' }
   | { kind: 'ready'; plan: Plan; changes: Changes; truncated: boolean }
   | { kind: 'rejected'; messages: string[] }
-  | { kind: 'failed'; message: string; connection: boolean };
+  | { kind: 'failed'; failure: Failure };
 
 /** Asks the API for a preview a moment after the form stops changing; only the latest counts. */
 export function usePreview(
@@ -127,14 +127,10 @@ export function previewState(templateId: string, result: PreviewResult): Preview
   if (!result.ok) {
     return result.error.kind === 'invalid'
       ? { kind: 'rejected', messages: result.error.issues.map((i) => i.message) }
-      : {
-          kind: 'failed',
-          message: describeError(result.error),
-          connection: result.error.kind === 'failed' && result.error.status === 0,
-        };
+      : { kind: 'failed', failure: failureOf(result.error) };
   }
   const plan = planOf(templateId, result.value.snapshot.outputs);
-  if (!plan.ok) return { kind: 'failed', message: plan.message, connection: false };
+  if (!plan.ok) return { kind: 'failed', failure: { message: plan.message, connection: false } };
   return {
     kind: 'ready',
     plan: plan.plan,
@@ -209,9 +205,11 @@ function PreviewStatus(props: { state: PreviewState }) {
       );
     case 'failed':
       return (
-        <Notice icon={state.connection ? 'connection' : 'error'}>
-          <b>No preview.</b> {state.message} The form still shows your values.
-        </Notice>
+        <SaveFailed
+          failure={state.failure}
+          title="No preview."
+          kept="The form still shows your values."
+        />
       );
   }
 }
@@ -237,18 +235,7 @@ function Margins(props: { checks: readonly CheckResult[]; changes?: Changes }) {
               <b>
                 {check.title}: {check.subject}
               </b>
-              {check.status === 'computed' && (
-                <MarginLine margin={structural.formatMargin(check.margin)} was={was} />
-              )}
-              {check.status === 'input-needed' &&
-                (was === undefined ? (
-                  <InputNeeded />
-                ) : (
-                  <Changed was={was}>
-                    <InputNeeded />
-                  </Changed>
-                ))}
-              {check.status === 'not-computed' && <Text>Not computed: {check.reason}</Text>}
+              <CheckStatus check={check} was={was} />
             </Stack>
           </Card>
         );

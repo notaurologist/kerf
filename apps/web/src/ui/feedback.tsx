@@ -4,14 +4,19 @@ import { Icon } from './Icon.tsx';
 // What Kerf tells the reader about the state of things (#43, #67, #68). Every state has a second
 // signal besides color: an icon and words.
 
-/** An error beside a field, in crimson with an icon (#43, rule 2: errors only beside fields). */
-export function ErrorText(props: { id?: string; children: ReactNode }) {
-  return (
+/**
+ * An error beside a field, in crimson with an icon (#43, rule 2: errors only beside fields).
+ * `alert` announces it when it appears, as under an action that failed, so no screen writes the
+ * live region itself.
+ */
+export function ErrorText(props: { id?: string; alert?: boolean; children: ReactNode }) {
+  const text = (
     <span id={props.id} className="k-error-text">
       <Icon name="error" />
       <span>{props.children}</span>
     </span>
   );
+  return props.alert ? <div role="alert">{text}</div> : text;
 }
 
 export interface SummaryItem {
@@ -96,6 +101,41 @@ export function Notice(props: { children: ReactNode; icon?: 'connection' | 'erro
     <div className="k-notice" role="alert">
       <Icon name={props.icon ?? 'error'} />
       <span>{props.children}</span>
+    </div>
+  );
+}
+
+/** Why a request did not go through, and whether it was the connection. */
+export interface Failure {
+  message: string;
+  /** True when Kerf could not reach the server at all. */
+  connection: boolean;
+}
+
+/**
+ * A save that did not go through (docs/design/content.md, Connection and server problems): what
+ * happened, from Kerf's side, and what is kept. The connection icon when the server could not be
+ * reached. A preview says the same with its own words (`title`, `kept`).
+ */
+export function SaveFailed(props: { failure: Failure; title?: string; kept?: string }) {
+  return (
+    <Notice icon={props.failure.connection ? 'connection' : 'error'}>
+      <b>{props.title ?? 'Not saved.'}</b> {props.failure.message}{' '}
+      {props.kept ?? 'Your changes are still here.'}
+    </Notice>
+  );
+}
+
+/**
+ * Something to know about the plan that is neither a problem nor an expert check, such as a plan
+ * made with a newer template version. Announced politely, never as an alert; the info icon and the
+ * words carry it, not color.
+ */
+export function InfoNotice(props: { children: ReactNode }) {
+  return (
+    <div className="k-info" role="status">
+      <Icon name="info" />
+      <div className="k-info__body">{props.children}</div>
     </div>
   );
 }

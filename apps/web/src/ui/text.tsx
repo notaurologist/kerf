@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Measured } from './numbers.tsx';
 
 // Text that is not body text, without screens writing styles. Secondary text is for the desk
 // screens only; the shop modes use the main text color for every word (#43, rule 5).
@@ -22,20 +23,42 @@ export function VisuallyHidden(props: { children: ReactNode }) {
   return <span className="k-visually-hidden">{props.children}</span>;
 }
 
+interface ListProps {
+  children?: ReactNode;
+  /** Sentences from core, each an item with its lengths kept on one line (`Measured`). */
+  items?: readonly string[];
+  ordered?: boolean;
+}
+
+/** Core's sentences as list items, before any other children. */
+function Items(props: { items?: readonly string[] }) {
+  return props.items?.map((text) => (
+    <li key={text}>
+      <Measured text={text} />
+    </li>
+  ));
+}
+
 /** A list without bullets, its items stacked with the given gap. */
-export function PlainList(props: { children: ReactNode; ordered?: boolean; gap?: 'xs' | 's' }) {
+export function PlainList(props: ListProps & { gap?: 'xs' | 's' }) {
   const Tag = props.ordered ? 'ol' : 'ul';
   return (
     <Tag className="k-plain-list" data-gap={props.gap ?? 's'}>
+      <Items items={props.items} />
       {props.children}
     </Tag>
   );
 }
 
 /** A list with its bullets or numbers, as in running text. */
-export function List(props: { children: ReactNode; ordered?: boolean }) {
+export function List(props: ListProps) {
   const Tag = props.ordered ? 'ol' : 'ul';
-  return <Tag className="k-list">{props.children}</Tag>;
+  return (
+    <Tag className="k-list">
+      <Items items={props.items} />
+      {props.children}
+    </Tag>
+  );
 }
 
 /** A formula or identifier, in the Mono, never wrapped (#42). */

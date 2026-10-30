@@ -12,7 +12,7 @@ const vars = (v: Vars) => v as CSSProperties;
 
 export function Stack(props: {
   gap?: Space;
-  as?: 'div' | 'section' | 'ul';
+  as?: 'div' | 'section' | 'ul' | 'header';
   id?: string;
   children: ReactNode;
 }) {

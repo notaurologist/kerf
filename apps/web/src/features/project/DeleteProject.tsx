@@ -1,7 +1,7 @@
-import { type FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { navigate } from '../../lib/route.ts';
-import { Button, Card, Cluster, ErrorText, Field, Stack, Text, TextInput } from '../../ui/index.ts';
+import { Button, Card, Cluster, Field, InlineConfirm, Text, TextInput } from '../../ui/index.ts';
 
 // Deleting a project is permanent (issue #22): there is no archive and, until backups exist, no
 // way back. The owner confirms by typing the project's name.
@@ -20,16 +20,15 @@ export function DeleteProject(props: { id: string; name: string }) {
 
   if (!open) {
     return (
-      <div>
+      <Cluster>
         <Button variant="destructive" onClick={() => setOpen(true)}>
           Delete project
         </Button>
-      </div>
+      </Cluster>
     );
   }
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
+  const remove = async () => {
     if (!confirmsName(typed, props.name)) {
       setNameError(`Type “${props.name.trim()}” exactly to delete this project.`);
       return;
@@ -45,38 +44,29 @@ export function DeleteProject(props: { id: string; name: string }) {
 
   return (
     <Card as="section">
-      <form onSubmit={(e) => void submit(e)} noValidate>
-        <Stack gap="s">
-          <Text>
-            <b>Delete “{props.name}”?</b> This deletes the project, its plan, and its history. It
-            cannot be undone.
-          </Text>
-          <Field label="Type the project's name to confirm" error={nameError}>
-            {(c) => <TextInput {...c} value={typed} onChange={setTyped} autoComplete="off" />}
-          </Field>
-          <Cluster>
-            <Button type="submit" variant="destructive" busy={busy}>
-              {busy ? 'Deleting…' : 'Delete project'}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setOpen(false);
-                setTyped('');
-                setError(null);
-                setNameError(undefined);
-              }}
-            >
-              Keep project
-            </Button>
-          </Cluster>
-          {error && (
-            <div role="alert">
-              <ErrorText>{error}</ErrorText>
-            </div>
-          )}
-        </Stack>
-      </form>
+      <InlineConfirm
+        confirm="Delete project"
+        busyLabel="Deleting…"
+        variant="destructive"
+        keep="Keep project"
+        busy={busy}
+        error={error}
+        onConfirm={() => void remove()}
+        onKeep={() => {
+          setOpen(false);
+          setTyped('');
+          setError(null);
+          setNameError(undefined);
+        }}
+      >
+        <Text>
+          <b>Delete “{props.name}”?</b> This deletes the project, its plan, and its history. It
+          cannot be undone.
+        </Text>
+        <Field label="Type the project's name to confirm" error={nameError}>
+          {(c) => <TextInput {...c} value={typed} onChange={setTyped} autoComplete="off" />}
+        </Field>
+      </InlineConfirm>
     </Card>
   );
 }
