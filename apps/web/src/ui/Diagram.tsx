@@ -253,7 +253,7 @@ export function Diagram(props: {
         y={l.at.y - s / 2}
         width={s}
         height={s}
-        rx={s / 5}
+        rx={s / 12}
       />
       <text
         className="k-letter__text"

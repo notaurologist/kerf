@@ -15,7 +15,7 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 5a. Number entry and form states | #67 | Decided October 2026 | `entry.html` |
 | 5b. Words | #68 | Decided October 2026 | `words.html`, `content.md` |
 | 6. Design system | #45 | Built October 2026 (#78 to #81) | `system.html`, `system.md` |
-| 6b. Sharper corners | #148 | Directions drawn October 2026; owner to choose | `corners.html` |
+| 6b. Sharper corners | #148 | Decided October 2026: eased | `corners.html` |
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
@@ -109,14 +109,29 @@ Key results and the lowest margin are read from the stored outputs on display, s
 
 #### Choices
 
-The owner chose square corners and a 1-unit line (October 2026).
+The owner chose square corners and a 1-unit line (October 2026). With the app's corners (#148), the owner then chose eased, and the tool icons moved to their eased drawings: round ends and joins and a 0.6-unit radius on boxes, with the same shapes and the same 1-unit line.
 
 | Question | Chosen | Rejected, and why |
 |---|---|---|
 | Style | Outlines with square ends and sharp joins, a 1-unit line, shared edges drawn once. Reads as a shop drawing, and lighter than the text, so the tool's name leads. The construction guide is in `system.md`, Icons. | B, working part filled, and C, silhouettes: too chunky; C also loses the inner shapes that tell tools apart. Rounded outlines at 1.25 to 1.75 units: still too chunky, and the round ends, joins, and corners read as a soft app style rather than a woodworking one. Eased corners at 1 unit: close to square at 20 px, but softer than asked for; kept as the fallback if the app's corners (#148) end up eased. 1.25 units: heavier than wanted. |
 | Where they appear | Beside the tool's name in the tool list (each tool's heading and the Add buttons) and in each method's Tools line, which the plan and Building mode share. | None proposed. |
 
-A 1-unit line is 0.83 px at 20 px: crisp on a 2x screen, slightly gray on a 1x monitor. No direction separates the drill/driver from the impact driver at small sizes; the name beside the icon does (NN/g). Whether Kerf's other icons and the app's corners follow is #148.
+A 1-unit line is 0.83 px at 20 px: crisp on a 2x screen, slightly gray on a 1x monitor. No direction separates the drill/driver from the impact driver at small sizes; the name beside the icon does (NN/g).
+
+### Sharper corners (#148)
+
+The owner found the app's rounded corners too soft for a woodworking tool. `corners.html` drew today's corners beside three sharper directions on the real components, light and dark, then square and eased side by side with tool icons drawn to match.
+
+#### Choices
+
+The owner chose eased (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Corners | Eased, as sandpaper eases an edge: `--radius` 2 px on boxes, fields, buttons, the dialog, the part letter, and the catalog's panels; 1 px on small tags. Sharp at a glance, without the hard edge of square. | Square: the closest alternative and the recommendation at first, matching GOV.UK and IBM Carbon; the owner preferred how eased looks. Chamfered: a real shop detail, but `corner-shape` is only in Safari's preview (October 2026), and the `clip-path` fallback the iPhone would need clips away the focus ring and leaves gaps in the border. Today's 4 px and 8 px: too soft. |
+| Line ends and joins | Drawings: butt ends, round joins, so lines stop where they are drawn and corners are eased. Icons: round ends and joins. The text halo keeps its round join. | Mitered joins and butt ends on icons (the square tool icons of #86): they belong with square corners. |
+| Kerf's icons | Redrawn to the tool icons' 1-unit line on their 16-unit grid (1.06 px at 17 px text), with round ends and joins. The error and info circles stay. | Keeping the 1.6-unit line: heavier than the tool icons beside them. Square frames for error and info: read as checkboxes. |
+| The part letter | A filled square with the same eased corners beside the part's name and in the drawings (`rx` = 1/12 of the box). | None proposed. |
 
 ### Guidance and the check against "Done when" (#81)
 
@@ -132,7 +147,7 @@ How to use the system, including which component for which job, the tokens, the 
 | C1 colors and D2 face tones as tokens, with a test of every recorded contrast ratio | Met (#78, #79). |
 | Atkinson Hyperlegible Next and Mono self-hosted with the OFL license | Met (#78). |
 | Forms follow #67's entry standard and states; strings follow #68's guide | Met (#73, #80). The core hardware note changed with template version 12 (#59). |
-| Icons in one style at the diagram line weights | Met for the M4 screens (#79). Tool icons landed in #86 in a lighter, square-cornered style (see "Tool icons (#86)" above); whether the other icons follow is #148. |
+| Icons in one style at the diagram line weights | Met for the M4 screens (#79). Tool icons landed in #86 at a 1-unit line; with #148, they and Kerf's other icons share that line and eased ends and joins. |
 | Accessibility beyond contrast | Partly met: keyboard, focus, roles and names, and reflow at 360 px and 640 px are checked. VoiceOver, 320 px, and reduced motion in effect are #87. Text equivalents for diagrams are built into `DiagramFrame`; the diagrams themselves are M5. |
 | A catalog page showing every component in every state, light and dark | Met (#79): `#/catalog`. No screenshot tests (the owner chose no new test dependencies). |
 | The owner is proud of the key screens on a phone in the garage, on the laptop, and printed | Met: the owner reviewed the screens in production and signed off (October 2026). Anything found later becomes an issue; the written, repeatable garage check follows in #69. |

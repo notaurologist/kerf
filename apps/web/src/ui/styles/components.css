@@ -356,7 +356,7 @@
     display: inline-block;
     padding-inline: var(--space-3xs);
     border: 1.5px dashed var(--accent);
-    border-radius: 3px;
+    border-radius: 1px;
     color: var(--accent);
     font-size: var(--size--1);
     font-weight: 700;
@@ -444,7 +444,7 @@
   }
 
   /* ---------- Numbers (#42) ---------- */
-  /* A part letter (#44): the drawing standard's dark rounded square, letter in the page color. */
+  /* A part letter (#44): the drawing standard's dark square, eased (#148), letter in the page color. */
   .k-part-letter {
     display: inline-grid;
     place-items: center;
@@ -452,7 +452,7 @@
     block-size: 1.75em;
     padding-inline: var(--space-3xs);
     margin-inline-end: var(--space-2xs);
-    border-radius: 4px;
+    border-radius: var(--radius);
     background: var(--text);
     color: var(--bg);
     font-weight: 700;
@@ -533,7 +533,7 @@
     display: inline-block;
     padding: var(--space-3xs) var(--space-2xs);
     border: 1.5px solid var(--accent);
-    border-radius: 3px;
+    border-radius: 1px;
     color: var(--accent);
     font-size: var(--size--1);
     font-weight: 700;
@@ -818,7 +818,7 @@
     max-inline-size: min(28rem, 100% - 2 * var(--space-s));
     padding: var(--space-m);
     border: 1px solid var(--border-strong);
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--bg);
     color: var(--text);
   }
@@ -831,7 +831,7 @@
   .k-catalog__panel {
     padding: var(--space-m);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--bg);
     color: var(--text);
   }
@@ -871,7 +871,8 @@
     fill: none;
     stroke: var(--ink);
     stroke-width: var(--line-visible);
-    stroke-linecap: round;
+    /* Lines stop where they are drawn; corners are eased (#148). */
+    stroke-linecap: butt;
     stroke-linejoin: round;
   }
 

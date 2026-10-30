@@ -1,14 +1,15 @@
 import type { ReactNode } from 'react';
 
 // Tool icons (#86; docs/design/tool-icons.html), one per tool type in the library (#85), keyed by
-// its ID. Drawn on a 24-unit grid with one 1-unit line, square ends and sharp joins, side-on and
-// flat, with each shared edge drawn once. Always shown beside the tool's name and hidden from
+// its ID. Drawn on a 24-unit grid with one 1-unit line, eased like the app's corners (#148): round
+// ends and joins, and a 0.6-unit radius on each box. Side-on and flat, with each shared edge drawn
+// once. Always shown beside the tool's name and hidden from
 // assistive technology (#43, rule 6): the name says what the tool is.
 
 const DRAWINGS: Readonly<Record<string, ReactNode>> = {
   'tape-measure': (
     <>
-      <rect x="3" y="5" width="13" height="13" />
+      <rect x="3" y="5" width="13" height="13" rx="0.6" />
       <circle cx="9.5" cy="11.5" r="2.2" />
       <path d="M16 14.5 H21.5 M16 16.5 H21.5 M21.5 13 V18" />
     </>
@@ -23,13 +24,13 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
   'rafter-square': (
     <>
       <path d="M18 20 H3 L18 5" />
-      <rect x="18" y="4" width="2.5" height="17" />
+      <rect x="18" y="4" width="2.5" height="17" rx="0.6" />
       <path d="M10 17 H15 V12 Z" />
     </>
   ),
   'sliding-bevel': (
     <>
-      <rect x="2" y="14" width="13" height="4" />
+      <rect x="2" y="14" width="13" height="4" rx="0.6" />
       <path d="M9.6 14 L19 4.6 L20.6 6.2 L12.8 14" />
       <circle cx="11" cy="16" r="0.9" />
     </>
@@ -43,8 +44,8 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
   ),
   level: (
     <>
-      <rect x="2" y="9" width="20" height="6" />
-      <rect x="9.5" y="10.5" width="5" height="3" />
+      <rect x="2" y="9" width="20" height="6" rx="0.6" />
+      <rect x="9.5" y="10.5" width="5" height="3" rx="0.6" />
       <path d="M11.25 10.5 V13.5 M12.75 10.5 V13.5" />
     </>
   ),
@@ -56,7 +57,7 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
   'line-level': (
     <>
       <path d="M2 12 H7 M17 12 H22" />
-      <rect x="7" y="10" width="10" height="4" />
+      <rect x="7" y="10" width="10" height="4" rx="0.6" />
       <path d="M11 10 V14 M13 10 V14" />
     </>
   ),
@@ -67,7 +68,7 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
   ),
   'miter-saw': (
     <>
-      <rect x="2" y="19" width="20" height="2.5" />
+      <rect x="2" y="19" width="20" height="2.5" rx="0.6" />
       <path d="M5 19 V6 L9 9 M16.5 8 L20 4.5" />
       <circle cx="13" cy="12" r="5" />
       <circle cx="13" cy="12" r="0.8" />
@@ -75,8 +76,8 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
   ),
   'hand-saw': (
     <>
-      <rect x="2" y="6" width="7" height="12" />
-      <rect x="4" y="9" width="3" height="6" />
+      <rect x="2" y="6" width="7" height="12" rx="0.6" />
+      <rect x="4" y="9" width="3" height="6" rx="0.6" />
       <path d="M9 7 L22 11 V13" />
       <path d="M22 13 L20.97 14.47 L19.40 13.60 L18.37 15.07 L16.80 14.20 L15.77 15.67 L14.20 14.80 L13.17 16.27 L11.60 15.40 L10.57 16.87 L9 16" />
     </>
@@ -89,14 +90,14 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
   'drill-driver': (
     <>
       <path d="M11 16 L11.5 10 H9 V5 H20 V10 H15.5 L15 16" />
-      <rect x="9" y="16" width="8.5" height="4" />
+      <rect x="9" y="16" width="8.5" height="4" rx="0.6" />
       <path d="M9 5.8 L5.5 6.8 V8.2 L9 9.2 M5.5 7.5 H2" />
     </>
   ),
   'impact-driver': (
     <>
       <path d="M11 16 L11.5 10 H11 V5 H19.5 V10 H15.5 L15 16" />
-      <rect x="9" y="16" width="8.5" height="4" />
+      <rect x="9" y="16" width="8.5" height="4" rx="0.6" />
       <path d="M11 5.8 H7.5 V9.2 H11" />
       <path d="M7.5 7.5 H4.5" />
     </>
@@ -116,13 +117,13 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <g transform="rotate(-45 12 12)">
         <path d="M14.84 10.5 H2 V13.5 H14.84" />
         <circle cx="18" cy="12" r="3.5" />
-        <rect x="16.8" y="10.8" width="2.4" height="2.4" />
+        <rect x="16.8" y="10.8" width="2.4" height="2.4" rx="0.6" />
       </g>
     </>
   ),
   clamps: (
     <>
-      <rect x="4" y="2.5" width="2" height="19" />
+      <rect x="4" y="2.5" width="2" height="19" rx="0.6" />
       <path d="M6 2.5 H16 V5.5 H6 M6 13 H14 V15.5 H6" />
       <path d="M11.5 9.5 V13 M11.5 15.5 V20.5 M9.5 9.5 H13.5 M9 20.5 H14" />
     </>
@@ -131,7 +132,7 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
     <>
       <g transform="rotate(-45 12 12)">
         <path d="M10 9.8 H2.3 L1.5 10.6 V13.4 L2.3 14.2 H10" />
-        <rect x="10" y="10.4" width="1.5" height="3.2" />
+        <rect x="10" y="10.4" width="1.5" height="3.2" rx="0.6" />
         <path d="M11.5 10.9 H20 L22 13.1 H11.5" />
       </g>
     </>
@@ -143,7 +144,7 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
   ),
   sander: (
     <>
-      <rect x="3" y="17" width="18" height="2.5" />
+      <rect x="3" y="17" width="18" height="2.5" rx="0.6" />
       <path d="M5 17 V13 L8 9 H16 L19 13 V17 M9 9 V5 H15 V9 M19 14 H22" />
     </>
   ),
@@ -160,7 +161,7 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
   tamper: (
     <>
       <path d="M9 2 H15 M12 2 V16" />
-      <rect x="5" y="16" width="14" height="5" />
+      <rect x="5" y="16" width="14" height="5" rx="0.6" />
     </>
   ),
 };
@@ -179,9 +180,8 @@ export function ToolIcon(props: { toolTypeId: string }) {
       fill="none"
       stroke="currentColor"
       strokeWidth={1}
-      strokeLinecap="butt"
-      strokeLinejoin="miter"
-      strokeMiterlimit={4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
       focusable="false"
     >

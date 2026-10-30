@@ -40,7 +40,7 @@ export function Measured(props: { text: string }) {
 }
 
 /**
- * A part's letter, as the cut list and every drawing show it (#44, #66): a dark rounded square
+ * A part's letter, as the cut list and every drawing show it (#44, #66): a dark square with eased corners
  * with the letter in the page color. The letter comes from core; it is read out as written.
  */
 export function PartLetter(props: { children: string }) {
