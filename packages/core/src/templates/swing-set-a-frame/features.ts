@@ -14,6 +14,7 @@ import { formatLength } from '../../units/length.ts';
 import type { BoltArea, Flag, Hole, Taper } from '../types.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
 import type { SwingSetParams } from './params.ts';
+import { LEG_IDS } from './validate.ts';
 
 // Holes, bolt areas, and the flush cut, in each part's own frame (spec, Holes and joints;
 // template version 4; crossbar and gusset bolt holes, spec, Bolt layout, template version 6). Frames as in placements.ts: u along the part from its first end, v across
@@ -241,12 +242,19 @@ export function flushCutNote(cut: Taper, angle: string, depthSquare: number): st
   return `Flush cut on the inside face at the top: mark the inner edge ${formatLength(cut.start.u)} down from the top corner, and the top cut ${formatLength(alongTopCut)} from that corner (${formatLength(depthSquare)} in from the edge, square to it). Cut along the line between the marks, through the leg; it runs at ${angle} to the inner edge.`;
 }
 
+/** A bolted joint with the parts it joins and its bolts, for its flag (#51). */
+export interface JoinedParts {
+  joint: BoltJoint;
+  partIds: string[];
+  hardwareIds: string[];
+}
+
 /**
  * Each bolted joint's distances against NDS 2024 12.5.1 (spec, Bolt layout; #93). The swing set
  * is built from softwood dimension lumber. Loads assumed: along each board's grain, and across
  * the leg's grain (the board meets it at 90° − α); at the beam, across its grain.
  */
-export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): BoltJoint[] {
+export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): JoinedParts[] {
   const a = g.splay * RAD;
   const bolts = boardBolts(p, dims, g);
   const angle = formatAngle(g.splay);
@@ -312,15 +320,23 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
   };
 
   return [
-    boardJoint('Crossbar to leg', 'Crossbar', bolts.crossbar),
-    boardJoint('Gusset to leg', 'Gusset', bolts.gusset),
-    legToBeam,
+    {
+      joint: boardJoint('Crossbar to leg', 'Crossbar', bolts.crossbar),
+      partIds: ['crossbar', ...LEG_IDS],
+      hardwareIds: [bolts.crossbar.hardwareId],
+    },
+    {
+      joint: boardJoint('Gusset to leg', 'Gusset', bolts.gusset),
+      partIds: ['gusset', ...LEG_IDS],
+      hardwareIds: [bolts.gusset.hardwareId],
+    },
+    { joint: legToBeam, partIds: [...LEG_IDS, 'beam'], hardwareIds: ['leg-beam-bolts'] },
   ];
 }
 
 /** An expert check for each joint with a distance under an NDS row (spec, Bolt layout). */
-export function boltFlags(joints: readonly BoltJoint[]): Flag[] {
-  return joints.flatMap((joint) => {
+export function boltFlags(joints: readonly JoinedParts[]): Flag[] {
+  return joints.flatMap(({ joint, partIds, hardwareIds }) => {
     const items = joint.distances.flatMap((d) => {
       const short = shortfalls(d);
       if (short.length === 0) return [];
@@ -338,6 +354,8 @@ export function boltFlags(joints: readonly BoltJoint[]): Flag[] {
     return [
       {
         category: 'load-bearing' as const,
+        partIds: [...partIds],
+        hardwareIds: [...hardwareIds],
         ask: `${joint.title}, ${joint.bolts} ${formatLength(joint.diameter)} bolt${joint.bolts > 1 ? 's' : ''}: ${items.join('. ')}. Confirm the bolt size and layout with these distances.`,
         why: 'NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load.',
       },
@@ -358,6 +376,8 @@ export function projectionFlags(bolts: Record<'crossbar' | 'gusset', BoardBolts>
   return [
     {
       category: 'load-bearing',
+      partIds: past.map((b) => (b.hardwareId === 'crossbar-bolts' ? 'crossbar' : 'gusset')),
+      hardwareIds: past.map((b) => b.hardwareId),
       ask: `For the bolts' end distance, ${where} project past the legs. Confirm the projecting ends are acceptable where children play, with their edges and corners eased.`,
       why: 'The projecting ends are new to this design, and children reach the crossbar.',
     },

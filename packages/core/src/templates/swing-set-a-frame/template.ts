@@ -42,9 +42,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * distances against NDS 2024 (#93, decision 0016). Version 7 adds what to look for when choosing
  * each part's board (#53); no number changes. Version 8 adds the operations each part and the site
  * need (#103); no number changes. Version 9 drills each bolt hole 1/16" over its bolt, per NDS 2024
- * 12.1.3.2 (#110); bolt sizes and positions do not change.
+ * 12.1.3.2 (#110); bolt sizes and positions do not change. Version 10 names the parts and hardware
+ * each flag and checklist item concerns (#51); no number or wording changes.
  */
-export const TEMPLATE_VERSION = 9;
+export const TEMPLATE_VERSION = 10;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
@@ -260,7 +261,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       hardware: madeHardware,
       hardwareNotes: HARDWARE_NOTES,
       flags: [...flags(dims, g), ...boltFlags(joints), ...projectionFlags(boardBolts(p, dims, g))],
-      boltLayout: joints,
+      boltLayout: joints.map((j) => j.joint),
       operations: operations(madeParts, madeHardware, dims.d),
     },
   };

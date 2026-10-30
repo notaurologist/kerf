@@ -113,11 +113,19 @@ export function validateSwings(dims: Dimensions, s: SwingGeometry): Issue[] {
   return issues;
 }
 
-/** Expert-check flags for a frame that validates. */
+/** The part IDs of the legs (template.ts, parts). */
+export const LEG_IDS = ['leg-back', 'leg-front'];
+
+/**
+ * Expert-check flags for a frame that validates, each with the parts and hardware it concerns.
+ * Ply bolts and ground anchors are named only where `validateHardware` requires them.
+ */
 export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
   const result: Flag[] = [
     {
       category: 'load-bearing',
+      partIds: [...LEG_IDS, 'beam'],
+      hardwareIds: ['leg-beam-bolts'],
       ask: `Confirm the bolt size for the leg-to-beam bolt (${len(g.boltGrip)} of wood), the ${len(g.flushCut.woodLeftAtBolt)} of leg left at the bolt after the flush cut, and how the head and nut bear on the leg's tilted outer face.`,
       why: 'This joint and the gusset carry the beam and every swing load.',
     },
@@ -126,6 +134,8 @@ export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
   if (g.flushCut.woodLeftAtTop < THIN_FLUSH_CUT) {
     result.push({
       category: 'load-bearing',
+      partIds: [...LEG_IDS],
+      hardwareIds: [],
       ask: `Only ${len(g.flushCut.woodLeftAtTop)} of leg is left at the top of the flush cut. Confirm that is enough.`,
       why: 'The flush cut thins the leg where it is bolted to the beam.',
     });
@@ -134,6 +144,8 @@ export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
   if (dims.plies > 1) {
     result.push({
       category: 'load-bearing',
+      partIds: ['beam'],
+      hardwareIds: ['ply-bolts'],
       ask: `Confirm how the ${dims.plies} beam plies are fastened together: fastener type, size, spacing, and pattern.`,
       why: 'A built-up beam only acts as one member when its plies are fastened well enough to share the load.',
     });
@@ -142,6 +154,8 @@ export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
   if (dims.k !== 0) {
     result.push({
       category: 'load-bearing',
+      partIds: [...LEG_IDS],
+      hardwareIds: [],
       ask: 'Confirm the frame on sloped ground: leg lengths, footing or burial on the downhill side, and whether to regrade instead.',
       why: 'The CPSC home handbook recommends a level site to reduce the chance of tipping (Pub. 324, p. 2).',
     });
@@ -150,12 +164,16 @@ export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
   if (dims.d > 0) {
     result.push({
       category: 'load-bearing',
+      partIds: [...LEG_IDS],
+      hardwareIds: [],
       ask: `Confirm the burial depth (${len(dims.d)}) and that the leg lumber is rated for ground contact.`,
       why: 'Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line.',
     });
   } else {
     result.push({
       category: 'load-bearing',
+      partIds: [...LEG_IDS],
+      hardwareIds: ['ground-anchors'],
       ask: 'Confirm the pads or footings and the ground anchors for each foot.',
       why: 'On pads, the anchors alone keep the frame from lifting or walking under swing loads.',
     });
