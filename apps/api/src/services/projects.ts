@@ -4,7 +4,7 @@ import {
   compareSnapshots,
   compareWithCurrent,
   createSnapshot,
-  type geometry,
+  geometry,
   type Inventory,
   type Issue,
   type ProgressReset,
@@ -122,9 +122,17 @@ export type Result<T> =
 
 type Row = typeof projects.$inferSelect;
 
-/** A snapshot's drawings, from its template; read already, so its outputs parse. */
-function drawingsOf(template: TemplateDefinition, snapshot: ProjectSnapshot) {
-  return template.drawings(template.outputs.parse(snapshot.outputs));
+/**
+ * A snapshot's drawings, from its template, with the board cards' drawings (#59), which come from
+ * the board plan every template shares. Read already, so its outputs parse.
+ */
+function drawingsOf(template: TemplateDefinition, snapshot: ProjectSnapshot): geometry.Drawings {
+  const outputs = template.outputs.parse(snapshot.outputs);
+  const plan = template.plan(outputs);
+  return {
+    ...template.drawings(outputs),
+    boards: geometry.boardDrawings(plan.lumber, plan.cutList),
+  };
 }
 
 /**

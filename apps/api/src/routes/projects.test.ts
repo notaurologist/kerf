@@ -1,6 +1,7 @@
 import {
   BuildSteps,
   createSnapshot,
+  geometry,
   type Inventory,
   inventoryKey,
   swingSetAFrame,
@@ -105,10 +106,15 @@ describe('GET /api/projects/:id drawings', () => {
     const { authed } = await createTestApp();
     const { body } = await create(authed);
     const project = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
-    const expected = swingSetAFrame.definition.drawings(
-      swingSetAFrame.definition.outputs.parse(project.snapshot.outputs),
-    );
+    const outputs = swingSetAFrame.definition.outputs.parse(project.snapshot.outputs);
+    const plan = swingSetAFrame.definition.plan(outputs);
+    // The template's drawings, and the board cards' from the board plan (#59).
+    const expected = {
+      ...swingSetAFrame.definition.drawings(outputs),
+      boards: geometry.boardDrawings(plan.lumber, plan.cutList),
+    };
     expect(project.drawings).toEqual(JSON.parse(JSON.stringify(expected)));
+    expect(project.drawings.boards).toHaveLength(plan.lumber.boards.length);
     expect(project.drawings.isometric.title).toBe('Isometric view');
     expect(project.drawings.cutDetails).toHaveLength(project.snapshot.outputs.cutList.length);
   });
@@ -502,6 +508,11 @@ const nextShape: TemplateDefinition = {
   ...(swingSetAFrame.definition as TemplateDefinition),
   snapshotVersion: SHAPE + 1,
   outputs: z.looseObject({ cuts: z.array(z.object({ length: z.string() }).loose()) }),
+  // Its plan reads the renamed field, as a real next shape's would.
+  plan: (outputs) => {
+    const { cuts, ...rest } = outputs as { cuts: unknown };
+    return (swingSetAFrame.definition as TemplateDefinition).plan({ ...rest, cutList: cuts });
+  },
   snapshotUpgrades: {
     ...swingSetAFrame.definition.snapshotUpgrades,
     [SHAPE]: (s) => {
