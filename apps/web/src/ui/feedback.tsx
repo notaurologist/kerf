@@ -88,8 +88,8 @@ export function ExpertCheck(props: { label?: string; children: ReactNode; why?: 
       <Icon name="flag" />
       <div className="k-flag__body">
         <span className="k-flag__label">{props.label ?? 'Expert check'}</span>
-        <span>{props.children}</span>
-        {props.why && <span>Why: {props.why}</span>}
+        <div>{props.children}</div>
+        {props.why && <div>Why: {props.why}</div>}
       </div>
     </div>
   );

@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { CutListRow, cutList } from '../../outputs/cutList.ts';
 import { HardwareLine, hardwareList } from '../../outputs/hardwareList.ts';
+import type { KeyResult } from '../../outputs/plan.ts';
 import { DEFAULT_BOARD_OPTIONS, LumberPlan, planLumber } from '../../outputs/shoppingList.ts';
+import { angleToEdge, formatAngle } from '../../units/angle.ts';
 import type { SnapshotUpgrade, TemplateDefinition } from '../definition.ts';
 import { withLetters } from '../letters.ts';
 import { assembly, drawings } from './drawings.ts';
@@ -99,6 +101,38 @@ const addHoleSizes: SnapshotUpgrade = (snapshot) => {
   };
 };
 
+/**
+ * What says most about a swing set at a glance (#119; information architecture, revised laptop
+ * plan): the beam's length and stock, each leg's length, and the saw setting for the legs' level
+ * cuts. Picked from the stored cut list and geometry, so a stored plan shows its own numbers.
+ */
+function keyResults(outputs: SwingSetOutputs): KeyResult[] {
+  const { design } = outputs;
+  const row = (id: string) => outputs.cutList.find((r) => r.partId === id);
+  const beam = row('beam');
+  const legs = [row('leg-back'), row('leg-front')];
+  const plies = design.params.beamPlies;
+  const splay = design.geometry.splay;
+  return [
+    ...(beam
+      ? [
+          {
+            label: 'Beam',
+            value:
+              plies > 1
+                ? `${beam.length}, ${plies} plies of ${design.params.beamStock}`
+                : `${beam.length}, ${design.params.beamStock}`,
+          },
+        ]
+      : []),
+    ...legs.flatMap((leg) => (leg ? [{ label: leg.name, value: leg.length }] : [])),
+    {
+      label: 'Leg end cuts',
+      value: `Saw at ${formatAngle(splay)}, ${formatAngle(angleToEdge(splay))} to the edge`,
+    },
+  ];
+}
+
 export const swingSetAFrame: TemplateDefinition<
   SwingSetParams,
   SwingSetStructuralInputs,
@@ -144,6 +178,7 @@ export const swingSetAFrame: TemplateDefinition<
   plan(outputs) {
     const review = outputs.structuralReview;
     return {
+      keyResults: keyResults(outputs),
       cutList: outputs.cutList,
       lumber: outputs.lumber,
       hardware: outputs.hardware,

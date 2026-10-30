@@ -10,20 +10,23 @@ import { type Project, STATUS_LABELS } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
-  Cluster,
+  ButtonLink,
   Notice,
   PlanSection,
   ScreenHeader,
   Stack,
   StatusLine,
+  WithContents,
 } from '../../ui/index.ts';
+import { Boards } from '../boards/Boards.tsx';
 import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { Diagrams } from '../diagrams/Diagrams.tsx';
-import { ModeCards } from '../modes/ModeCards.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import { StructuralReview } from '../structural/StructuralReview.tsx';
 import { DeleteProject } from './DeleteProject.tsx';
+import { ParametersAndInputs } from './ParametersAndInputs.tsx';
+import { PlanSummary } from './PlanSummary.tsx';
 import { VersionNotice } from './VersionNotice.tsx';
 
 // One project, rendered from the snapshot the API returns (ARCHITECTURE.md, apps/web). The
@@ -55,17 +58,27 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
   // "Saved." from the editor stays until the next action (#67), not a toast that disappears. A
   // regenerate that clears ticks says so the same way (#57).
   const [flash, setFlashLine] = useState(takeFlash);
+  const editHref = plan.ok ? href({ screen: 'edit-project', id: project.id }) : undefined;
+  const shown = (id: SectionId) =>
+    (id !== 'diagrams' || drawings !== null) &&
+    (id !== 'build-steps' || hasSteps) &&
+    (id !== 'parameters' || (template !== undefined && project.snapshot !== null));
   return (
     <Stack gap="l">
       <ScreenHeader
         title={project.name}
-        meta={
-          <>
-            {STATUS_LABELS[project.status]}. {template?.name ?? project.templateId}, version{' '}
-            {project.templateVersion}.{' '}
-            {plan.ok && <a href={href({ screen: 'edit-project', id: project.id })}>Edit</a>}
-          </>
+        actions={
+          plan.ok && (
+            <>
+              {/* Prints the plan in section order A (#40), with every "Show the working" open. */}
+              <Button variant="secondary" onClick={() => window.print()}>
+                Print
+              </Button>
+              {editHref && <ButtonLink href={editHref}>Edit</ButtonLink>}
+            </>
+          )
         }
+        meta={`${STATUS_LABELS[project.status]}. ${template?.name ?? project.templateId}, version ${project.templateVersion}.`}
         status={flash && <StatusLine>{flash}</StatusLine>}
       />
       <VersionNotice
@@ -78,18 +91,16 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
       {!plan.ok ? (
         <Notice>{plan.message}</Notice>
       ) : (
-        <>
-          <ModeCards project={project} plan={plan.plan} steps={steps?.steps ?? []} />
-          <nav aria-label="Sections">
-            <Cluster>
-              {SECTIONS.filter((s) => hasSteps || s.id !== 'build-steps').map((s) => (
-                <Button key={s.id} variant="link" onClick={() => jump(s.id)}>
-                  {s.title}
-                </Button>
-              ))}
-            </Cluster>
-          </nav>
-          {/* Section order A (#40): the same reading order on screen and on paper. */}
+        // Section order A (#40): the same reading order in the contents, on screen, and on paper.
+        <WithContents items={SECTIONS.filter((s) => shown(s.id))}>
+          <PlanSection id="summary" title="Summary" project={project.name} newPage={false}>
+            <PlanSummary
+              project={project}
+              plan={plan.plan}
+              steps={steps?.steps ?? []}
+              editHref={editHref}
+            />
+          </PlanSection>
           {drawings && (
             <PlanSection id="diagrams" title="Diagrams" project={project.name}>
               <Diagrams
@@ -118,6 +129,13 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
           >
             <CutList rows={plan.plan.cutList} selected={selected} onSelect={select} />
           </PlanSection>
+          <PlanSection id="boards" title="Boards" project={project.name}>
+            <Boards
+              lumber={plan.plan.lumber}
+              rows={plan.plan.cutList}
+              drawings={drawings?.boards ?? []}
+            />
+          </PlanSection>
           <PlanSection id="shopping-list" title="Shopping list" project={project.name}>
             <ShoppingList
               lumber={plan.plan.lumber}
@@ -135,25 +153,28 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
               <BuildSteps steps={steps?.steps ?? []} rows={plan.plan.cutList} />
             </PlanSection>
           )}
-        </>
+          {template && shown('parameters') && (
+            <PlanSection id="parameters" title="Parameters and inputs" project={project.name}>
+              <ParametersAndInputs project={project} template={template} editHref={editHref} />
+            </PlanSection>
+          )}
+        </WithContents>
       )}
       <DeleteProject id={project.id} name={project.name} />
     </Stack>
   );
 }
 
+/** The plan's sections in order A (#40). */
 const SECTIONS = [
+  { id: 'summary', title: 'Summary' },
   { id: 'diagrams', title: 'Diagrams' },
   { id: 'structural-review', title: 'Structural review' },
   { id: 'cut-list', title: 'Cut list' },
+  { id: 'boards', title: 'Boards' },
   { id: 'shopping-list', title: 'Shopping list' },
   { id: 'build-steps', title: 'Build steps' },
-];
+  { id: 'parameters', title: 'Parameters and inputs' },
+] as const;
 
-/** Scrolls to a section. The hash picks the screen, so in-page jumps cannot use it. */
-function jump(id: string) {
-  document.getElementById(id)?.scrollIntoView({
-    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-    block: 'start',
-  });
-}
+type SectionId = (typeof SECTIONS)[number]['id'];

@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
-import { renderText } from '../../test/render.tsx';
+import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from '../project/ProjectScreen.tsx';
 
 const [complete, noInputs, builtUp] = storedSnapshots;
 if (!complete || !noInputs || !builtUp) throw new Error('fixture has three worked examples');
+/** The plan's structural review section, as text. */
 const text = (snapshot: typeof complete) =>
-  renderText(<ProjectView project={projectFrom(snapshot)} />);
+  textOf(sectionOf(render(<ProjectView project={projectFrom(snapshot)} />), 'structural-review'));
 
 describe('the structural review, worked example with every input', () => {
   const review = text(complete);

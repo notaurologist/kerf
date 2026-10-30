@@ -3,6 +3,7 @@
 
 export { Button, ButtonLink, type ButtonVariant } from './Button.tsx';
 export { InlineConfirm } from './Confirm.tsx';
+export { type ContentsItem, goToSection, WithContents } from './Contents.tsx';
 export { Diagram } from './Diagram.tsx';
 export { DiagramFrame } from './DiagramFrame.tsx';
 export { ConfirmDialog } from './Dialog.tsx';
@@ -17,6 +18,7 @@ export {
   TextInput,
   YesNo,
 } from './Field.tsx';
+export { type Figure, Figures } from './Figures.tsx';
 export {
   ErrorSummary,
   ErrorText,
@@ -61,4 +63,4 @@ export { PlanSection } from './Section.tsx';
 export { Header, ModeBar, ModeFrame, type NavItem } from './Shell.tsx';
 export { StepLayout } from './StepLayout.tsx';
 export { Tick } from './Tick.tsx';
-export { Code, List, PlainList, Text, VisuallyHidden } from './text.tsx';
+export { Code, List, OneLine, PlainList, Text, VisuallyHidden } from './text.tsx';

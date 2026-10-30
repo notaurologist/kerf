@@ -11,7 +11,20 @@ import type { LumberPlan } from './shoppingList.ts';
  * template (ARCHITECTURE.md, principle 6). Each template maps its stored outputs to this; the
  * mapping only picks values out, it never computes.
  */
+/** A result the template counts as key, for the plan's summary (#119): formatted by core. */
+export interface KeyResult {
+  /** Such as a part's name. */
+  label: string;
+  /** Such as a length with its stock, or a saw setting with the angle to the edge. */
+  value: string;
+}
+
 export interface Plan {
+  /**
+   * The results that say most about this design at a glance, chosen by the template and in its
+   * order, for the top of the plan (#119). Picked from stored values and formatted by core.
+   */
+  keyResults: KeyResult[];
   cutList: CutListRow[];
   lumber: LumberPlan;
   hardware: HardwareLine[];

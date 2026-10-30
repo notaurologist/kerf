@@ -58,7 +58,7 @@ Checked by hand in the catalog, October 2026:
 
 Every M4 screen is built from `apps/web/src/ui` only: login, projects, tools, the editor, and the plan. `ui/screens.test.ts` fails if any file outside `ui/` writes `className` or `style`, or imports a stylesheet. The old `styles.css` and its `legacy` layer are gone. The changes the stages called for:
 
-- The plan reads in section order A (#40): summary, structural review, cut list, shopping list. On paper each section starts a page with a title block naming the project and the section (#41), and every "Show the working" opens for printing.
+- On paper each section of the plan starts a page with a title block naming the project and the section (#41), and every "Show the working" opens for printing. #80 did not build the rest of the plan Stage 1 drew; it had the title, a status line, a row of section links, and five sections, not order A in full. That landed in #119 (see below).
 - The editor follows #67:
   - an error summary at the top that takes focus, with each problem linked to its field;
   - errors beside fields only after a save, with core's reading under each length while typing;
@@ -86,6 +86,18 @@ By M7 the screens composed the same few patterns by hand, each a little differen
 
 No screen writes `role="alert"` or `role="status"` itself; `ui/screens.test.ts` checks it.
 
+### The plan document as Stage 1 drew it (#119)
+
+The plan now follows the revised laptop plan in `information-architecture.html` (October 2026):
+
+- **Summary** first: the results the template counts as key (for the swing set, the beam's length and stock, each leg's length, and the legs' saw setting, from `Plan.keyResults`), the lowest margin with the check it comes from (`structural.lowestMargin`, which gives "Input needed" instead while any check lacks its inputs, since that check could be the lowest), the Shopping and Building cards (#61), and the expert checks counted by kind with each in one line, linking to the structural review. On paper it shares the first page with the title.
+- **Contents** in order A beside the plan from 48rem of its width (tablet and laptop), staying in view as the plan scrolls; a list at the top on a phone. Each entry moves focus to its section's heading. Not printed.
+- **Boards** between the cut list and the shopping list: every board in the plan's order with core's drawing, its pieces in cutting order, its offcut, and the trim and saw cut allowed. The shopping list keeps the boards to buy and what to look for in them.
+- **Parameters and inputs** last: every parameter and structural input that applies, as entered, labeled as in the editor and read back through core (`enteredValues`), with "Input needed" for a structural input not entered, and Edit.
+- **Print** beside Edit, calling the browser's print, which prints the plan in order A.
+
+Key results and the lowest margin are read from the stored outputs on display, so nothing stored changed: no new snapshot shape (0014) and no template version (0008). Key results are left out of the comparison between a saved plan and a preview or a regeneration, since they repeat values already compared.
+
 ### Guidance and the check against "Done when" (#81)
 
 How to use the system, including which component for which job, the tokens, the layers, and how to add a component, is in `system.md`. `ARCHITECTURE.md` describes where it lives and the rule that screens write no styles.
@@ -95,7 +107,7 @@ How to use the system, including which component for which job, the tokens, the 
 | Item | Status |
 |---|---|
 | Tokens and components in code, with usage guidance in `docs/design/` | Met: `apps/web/src/ui`, `system.md`. |
-| Every M4 screen built from the system, with no one-off styles | Met (#80); `ui/screens.test.ts` enforces it. |
+| Every M4 screen built from the system, with no one-off styles | Met (#80); `ui/screens.test.ts` enforces it. The plan's summary, contents, Boards, and Parameters and inputs, which M4 never had, were built in #119. |
 | `ARCHITECTURE.md` describes where the system lives and how new screens use it | Met. |
 | C1 colors and D2 face tones as tokens, with a test of every recorded contrast ratio | Met (#78, #79). |
 | Atkinson Hyperlegible Next and Mono self-hosted with the OFL license | Met (#78). |
