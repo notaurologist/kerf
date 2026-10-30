@@ -110,6 +110,29 @@
     font-size: var(--size--1);
   }
 
+  /* ---------- Definitions ---------- */
+  .k-definitions {
+    display: grid;
+    gap: var(--space-s);
+    max-inline-size: var(--measure);
+    margin: 0;
+  }
+
+  .k-definition {
+    display: grid;
+    gap: var(--space-3xs);
+    scroll-margin-block-start: var(--space-s);
+  }
+
+  .k-definition dfn {
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  .k-definition dd {
+    margin: 0;
+  }
+
   /* One line per item, cut short with an ellipsis; the full text is in the section it links to. */
   .k-one-line {
     display: block;
@@ -1236,6 +1259,7 @@
 
     .k-card,
     .k-flag,
+    .k-definition,
     .k-table tr {
       break-inside: avoid;
     }

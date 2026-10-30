@@ -1,3 +1,4 @@
+import { GLOSSARY } from '@kerf/core';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { Screen } from './App.tsx';
@@ -25,6 +26,15 @@ describe('LoginForm', () => {
 });
 
 describe('Screen', () => {
+  it('lists every glossary entry, in order, each term a dfn at its own id', () => {
+    const html = renderToString(<Screen route={{ screen: 'glossary' }} />);
+    const terms = [...html.matchAll(/<div id="term-([a-z-]+)"[^>]*><dt><dfn>([^<]+)<\/dfn>/g)];
+    expect(terms.map((m) => [m[1], m[2]])).toEqual(GLOSSARY.map((e) => [e.id, e.term]));
+    for (const entry of GLOSSARY) {
+      expect(html).toContain(entry.definition.replaceAll("'", '&#x27;'));
+    }
+  });
+
   it('says when there is no page at an address', () => {
     expect(renderToString(<Screen route={{ screen: 'not-found' }} />)).toContain('no page here');
   });

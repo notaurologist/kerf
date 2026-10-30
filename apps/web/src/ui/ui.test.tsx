@@ -15,6 +15,7 @@ import {
   Button,
   Changed,
   CheckStatus,
+  Definitions,
   Diagram,
   Disclosure,
   ErrorSummary,
@@ -606,6 +607,23 @@ describe('Figures', () => {
     );
     expect(html).toMatch(/^<dl class="k-figures"><div class="k-figure"><dt>Beam<\/dt><dd>/);
     expect(html).toContain('<dd class="k-figure__detail">Bending: Top beam</dd>');
+  });
+});
+
+describe('Definitions', () => {
+  it('marks each term as a dfn in a description list, each entry focusable by its id', () => {
+    const html = render(
+      <Definitions
+        items={[
+          { id: 'term-kerf', term: 'Kerf', definition: 'The width a blade removes.' },
+          { id: 'term-margin', term: 'Margin', definition: 'A ratio.', detail: 'Source' },
+        ]}
+      />,
+    );
+    expect(html).toContain(
+      '<div id="term-kerf" class="k-definition" tabindex="-1"><dt><dfn>Kerf</dfn></dt><dd>The width a blade removes.</dd></div>',
+    );
+    expect(html).toContain('<dd>A ratio.</dd><dd>Source</dd>');
   });
 });
 
