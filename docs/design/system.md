@@ -57,7 +57,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | A value a preview changes | `Changed`, and `rowChanged` on `MeasureTable` | The new value with "was" and the saved value under it, and a bar beside the row (#56). `was={null}` says "new". |
 | The state of the numbers shown | `StateTag` | Words in an outlined box, such as "Preview, not saved". |
 | The length you cut to | `Glance` | 51 px bold: readable across the bench (#42). |
-| A part's letter | `PartLetter` | Core's letter in a dark rounded square, before the part's name, as the drawings show it (#66). Prints with its square. |
+| A part's letter | `PartLetter` | Core's letter in a dark square with eased corners, before the part's name, as the drawings show it (#66). Prints with its square. |
 | A saw setting | `SawSetting` | The setting boxed and larger, the angle to the edge smaller and labeled. |
 | A list of measurements | `MeasureTable` | A table from about 640 px of its own width, labeled rows below it. Put the name of each row in the first column. Mark number columns `numeric`; give shortened headers a `fullLabel`. |
 | Working, sources, detail | `Disclosure` | Closed on screen, open in print. `size="small"` for a "Source" toggle. |
@@ -79,7 +79,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Color | `--bg`, `--raised`, `--sunken`, `--text`, `--muted`, `--border`, `--border-strong`, `--accent`, `--on-accent`, `--focus`, `--flag-bg`, `--flag-border`, `--flag-text`, `--input-bg`, `--input-border`, `--input-text`, `--done`, `--error`, `--error-bg` | C1 (#43). Each is `light-dark(light, dark)`. |
 | Diagram ink | `--ink`, `--dim`, `--hidden`, `--highlight`, `--zone`, `--zone-line`, `--tone-1` to `--tone-3`, `--highlight-1` to `--highlight-3` | #44 |
 | Type | `--font-text`, `--font-mono`, `--size--1` to `--size-3`, `--size-read`, `--size-glance`, `--size-saw`, `--size-edge`, `--leading-*` | #42, decision 0015 |
-| Space | `--space-3xs` to `--space-xl`, `--density`, `--control-min`, `--content-max`, `--measure`, `--radius` | #41 |
+| Space and corners | `--space-3xs` to `--space-xl`, `--density`, `--control-min`, `--content-max`, `--measure`; `--radius` (2 px, eased; 1 px on small tags) | #41, #148 |
 | Lines | `--line-*` (screen widths; print widths in print), `--dash-*` | #44 |
 
 `tokens.test.ts` checks every contrast ratio recorded in `color.html` against these values. When a color changes, measure the new pairing and update both the value and the recorded ratio.
@@ -105,16 +105,17 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 ## Icons
 
-Icons are drawn in the repo (`ui/Icon.tsx`) on a 16-unit grid with 1.6-unit round strokes, matching the diagram line weights. They are always decorative.
+Corners are eased everywhere (#148): boxes, fields, buttons, the dialog, and the part letter use `--radius` (2 px), and small tags 1 px. Drawings stop lines where they are drawn (butt ends) and round their joins. Use `--radius` rather than a new literal value.
+
+Kerf's icons (`ui/Icon.tsx`) are drawn on a 16-unit grid with a 1-unit line on half units, with round ends and joins, to match the tool icons. They are always decorative.
 
 Tool icons (`ui/ToolIcon.tsx`, #86) are drawn to their own guide, chosen in `tool-icons.html`. A new tool type gets one in the same change:
 
 - **Grid:** 24 × 24 units, artwork inside a one-unit margin.
-- **Line:** one 1-unit line, centered, with square (butt) ends and mitered joins. Outlines only; nothing filled.
-- **Corners:** square boxes and handles; a 45° chamfer where the real tool has one. Circles only for round parts: blades, hubs, nuts.
+- **Line:** one 1-unit line, centered, with round ends and joins, to match the app's eased corners (#148). Outlines only; nothing filled.
+- **Corners:** boxes and handles eased with `rx="0.6"`; a 45° chamfer where the real tool has one. Circles only for round parts: blades, hubs, nuts.
 - **View:** side-on and flat, no perspective; long tools at 45°.
 - **Shared edges:** where two parts touch, draw the edge once. A part that butts against another is an open path ending on the other's outline.
 - **Detail:** only what tells the tool from its neighbors, with at least 1.5 units between parallel lines.
 - **Use:** beside the tool's name (`ToolLabel`), never alone, and never under 20 px on screen.
 
-Whether `Icon.tsx` and the rest of the app move to the same square corners is #148.

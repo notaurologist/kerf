@@ -391,6 +391,16 @@ describe('icons', () => {
     expect(html).toContain('aria-hidden="true"');
     expect(html).toContain('focusable="false"');
   });
+
+  it.each(ICON_NAMES)(
+    "%s has the tool icons' 1-unit line and eased ends and joins (#148)",
+    (name) => {
+      const html = render(<Icon name={name} />);
+      expect(html).toContain('stroke-width="1"');
+      expect(html).toContain('stroke-linecap="round"');
+      expect(html).toContain('stroke-linejoin="round"');
+    },
+  );
 });
 
 describe('ErrorText', () => {
@@ -649,12 +659,15 @@ describe('tool icons (#86)', () => {
     expect(renderText(<ToolLabel toolTypeId="miter-saw">Miter saw</ToolLabel>)).toBe('Miter saw');
   });
 
-  it('are drawn with one 1-unit line, square ends and sharp joins (docs/design/tool-icons.html)', () => {
-    const html = render(<ToolIcon toolTypeId="clamps" />);
-    expect(html).toContain('stroke-width="1"');
-    expect(html).toContain('stroke-linecap="butt"');
-    expect(html).toContain('stroke-linejoin="miter"');
-    expect(html).not.toMatch(/\brx=/);
+  it('are drawn with one 1-unit line and eased corners, as the app boxes are (#148)', () => {
+    for (const id of TOOL_ICON_IDS) {
+      const html = render(<ToolIcon toolTypeId={id} />);
+      expect(html).toContain('stroke-width="1"');
+      expect(html).toContain('stroke-linecap="round"');
+      expect(html).toContain('stroke-linejoin="round"');
+      // Every box is eased by the same small radius.
+      for (const rect of html.match(/<rect [^>]*>/g) ?? []) expect(rect).toContain('rx="0.6"');
+    }
   });
 
   it('draw nothing for a tool type without one, leaving the name', () => {
