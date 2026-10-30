@@ -4,11 +4,18 @@ import { SourceToggle } from '../structural/Citation.tsx';
 
 // What to look for when choosing boards at the store (#53): each guide the plan's parts use, in
 // the knowledge base's order, with the parts it applies to. The plan stores guide IDs by part ID;
-// the words and sources come from the knowledge base. The store view (#59) will show the same
-// data on each board.
+// the words and sources come from the knowledge base. A board card (#59) shows the guides for the
+// parts on that board only.
 
-export function BoardSelection(props: { lumber: LumberPlan }) {
-  const selection = props.lumber.selection ?? [];
+export function BoardSelection(props: {
+  lumber: LumberPlan;
+  /** Only these parts' guides, as on a board card; every part's when absent. */
+  partIds?: readonly string[];
+  /** The heading; a board card nests it one level lower. */
+  heading?: { level: 3 | 4; text: string };
+}) {
+  const only = props.partIds;
+  const selection = (props.lumber.selection ?? []).filter((s) => !only || only.includes(s.partId));
   if (selection.length === 0) return null;
   const names = new Map(
     props.lumber.boards.flatMap((b) => b.pieces.map((p) => [p.partId, p.name])),
@@ -19,12 +26,15 @@ export function BoardSelection(props: { lumber: LumberPlan }) {
       .map((s) => names.get(s.partId) ?? s.partId);
     return parts.length > 0 ? [{ guide, parts }] : [];
   });
+  const { level, text } = props.heading ?? { level: 3, text: 'Choosing boards' };
+  const Heading = level === 3 ? 'h3' : 'h4';
+  const GuideHeading = level === 3 ? 'h4' : 'h5';
   return (
     <Stack as="section">
-      <h3>Choosing boards</h3>
+      <Heading>{text}</Heading>
       {guides.map(({ guide, parts }) => (
         <Stack key={guide.id} gap="xs">
-          <h4>{guide.title}</h4>
+          <GuideHeading>{guide.title}</GuideHeading>
           <Text tone="muted">For: {parts.join(', ')}.</Text>
           <List>
             {guide.checks.map((check) => (

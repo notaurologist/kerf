@@ -60,6 +60,32 @@ describe('Shopping mode', () => {
   });
 });
 
+describe('board cards (#59)', () => {
+  const p = project();
+  const text = renderText(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
+  const html = render(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
+
+  it('open under each lumber line', () => {
+    expect(text.match(/The boards?, and what to look for/g)).toHaveLength(4);
+    expect(text).toContain(`4 × 4x4, 12' 0" The boards, and what to look for`);
+  });
+
+  it('draw each board of the line with its pieces and offcut', () => {
+    // The worked example's 4x4 boards are boards 2 to 5, one leg each.
+    for (const n of [2, 3, 4, 5]) expect(text).toContain(`Board ${n}: 4x4, 12' 0"`);
+    expect(text).toContain(`Board 1: 4x6, 12' 0"`);
+    expect(text).toContain('A Beam 120" Offcut 22-7/8".');
+    expect(html.match(/class="k-diagram-wrap"/g)).toHaveLength(7);
+  });
+
+  it('say what to look for in the boards of that line only', () => {
+    const beamCard = text.slice(text.indexOf('Board 1:'), text.indexOf('Board 2:'));
+    expect(beamCard).toContain('What to look for');
+    expect(beamCard).toContain('For: Beam.');
+    expect(beamCard).not.toContain('leg');
+  });
+});
+
 describe('Building mode', () => {
   it('shows one step with where you are, its pieces linked to their cut cards, and Done, next', () => {
     const p = project();

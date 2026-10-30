@@ -1,5 +1,6 @@
 import {
   findTemplate,
+  geometry,
   type Inventory,
   planSteps,
   progressSummary,
@@ -55,7 +56,14 @@ function drawingsFor(snapshot: NonNullable<Project['snapshot']>) {
   const template = findTemplate(snapshot.templateId);
   if (!template) return null;
   const outputs = template.outputs.safeParse(snapshot.outputs);
-  return outputs.success ? JSON.parse(JSON.stringify(template.drawings(outputs.data))) : null;
+  if (!outputs.success) return null;
+  // As the API composes them: the template's drawings and the board cards' (#59).
+  const plan = template.plan(outputs.data);
+  const drawings = {
+    ...template.drawings(outputs.data),
+    boards: geometry.boardDrawings(plan.lumber, plan.cutList),
+  };
+  return JSON.parse(JSON.stringify(drawings));
 }
 
 /** Build steps as the API sends them: chosen by core from an inventory, through JSON. */

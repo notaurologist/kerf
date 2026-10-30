@@ -1,3 +1,4 @@
+export { boardDrawings } from './boards.ts';
 export { cutDetail } from './cutDetail.ts';
 export { blankOutline, edgeLengths, partOutline } from './outline.ts';
 export { type PlanArea, type PlanLine, planView } from './planView.ts';
@@ -23,5 +24,10 @@ export const Drawings = z.object({
   exploded: Drawing.nullable(),
   cutDetails: z.array(Drawing),
   siteLayout: Drawing.nullable(),
+  /**
+   * Each board to buy with the pieces it becomes (#59), from the board plan by `boardDrawings`.
+   * Generic, so the API adds them to every template's drawings.
+   */
+  boards: z.array(Drawing).optional(),
 });
 export type Drawings = z.infer<typeof Drawings>;

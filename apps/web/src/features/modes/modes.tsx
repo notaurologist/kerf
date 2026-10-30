@@ -12,6 +12,7 @@ import {
   ButtonLink,
   Cluster,
   Diagram,
+  Disclosure,
   Glance,
   Loading,
   Measured,
@@ -25,6 +26,7 @@ import {
   Tick,
 } from '../../ui/index.ts';
 import { StepBody } from '../build-steps/BuildSteps.tsx';
+import { BoardCards } from './BoardCards.tsx';
 
 // Shopping and Building (#61): full-screen modes launched from the plan, each under a bar with
 // the mode's name and Exit and no other navigation. A mode changes progress only, never the plan
@@ -90,7 +92,9 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
     const lineTick = (key: string) => ({ kind: 'shopping-line' as const, key });
     const bought = (lines: ShoppingGroup['lines']) =>
       lines.filter((l) => ticks.isDone(lineTick(l.key))).length;
-    // The store checklist (#59): lumber, then the hardware groups, each with its own count.
+    // The store checklist (#59): lumber, then the hardware groups, each with its own count. Each
+    // lumber line opens its board cards.
+    const boardDrawings = readDrawings(project)?.boards ?? [];
     return frame(
       <>
         <h1>Shopping list</h1>
@@ -124,6 +128,22 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
                       </>
                     )}
                   </Tick>
+                  {'nominal' in line && (
+                    <Disclosure
+                      summary={
+                        line.count === 1
+                          ? 'The board, and what to look for'
+                          : 'The boards, and what to look for'
+                      }
+                    >
+                      <BoardCards
+                        line={line}
+                        lumber={plan.plan.lumber}
+                        rows={plan.plan.cutList}
+                        drawings={boardDrawings}
+                      />
+                    </Disclosure>
+                  )}
                 </li>
               ))}
             </PlainList>
