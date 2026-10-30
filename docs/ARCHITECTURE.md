@@ -171,7 +171,7 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 | `tools` | Library tool type ID and the capabilities entered. Rows from before the library are read through core's `readStoredTools`, which moves what the library lacks to `other_tools`; the release step rewrites them |
 | `other_tools` | Tools the library does not have: position, name, note |
 | `projects` | Name, status, template ID, template version, snapshot (JSON, holding the parameters and structural inputs), timestamps |
-| `project_history` | One row per operation in a project: operation type, method ID, skills. Written when the snapshot is saved; used later for references to past projects |
+| `project_history` | One row per operation in a project: operation ID and type, the method chosen (null when the inventory supported none), its skills, and the key of the inventory it was chosen from. Replaced in the same transaction whenever a snapshot is saved (create, a parameter or input change, regenerate), not on a rename or status change. The release step writes rows for projects that have none and keeps rows that exist (#106). Used later for references to past projects |
 | `sessions` | Session ID, created, expires |
 | `login_attempts` | Time window and failure count for rate limiting |
 

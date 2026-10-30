@@ -33,6 +33,10 @@ try {
   const projects = createProjectService({ db, templates: TEMPLATES, now: () => new Date() });
   const { upgraded, unreadable } = await projects.upgradeStoredSnapshots();
   console.log(`release: ${upgraded} project snapshots upgraded to the current shape.`);
+  const history = await projects.backfillHistory();
+  console.log(
+    `release: history written for ${history.projects} projects (${history.rows} operations).`,
+  );
   const moved = await upgradeStoredInventory(db, new Date());
   console.log(`release: ${moved} tool entries moved to other tools.`);
   if (unreadable.length > 0) {
