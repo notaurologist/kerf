@@ -78,11 +78,12 @@ describe('board cards (#59)', () => {
     expect(html.match(/class="k-diagram-wrap"/g)).toHaveLength(7);
   });
 
-  it('say what to look for in the boards of that line only', () => {
-    const beamCard = text.slice(text.indexOf('Board 1:'), text.indexOf('Board 2:'));
-    expect(beamCard).toContain('What to look for');
-    expect(beamCard).toContain('For: Beam.');
-    expect(beamCard).not.toContain('leg');
+  it('say first what to look for in the boards of that line only (#136)', () => {
+    // The 4x6 line: its guidance, then its one board, before the 4x4 line starts.
+    const line = text.slice(text.indexOf(`1 × 4x6`), text.indexOf(`4 × 4x4`));
+    expect(line.indexOf('What to look for')).toBeLessThan(line.indexOf('Board 1:'));
+    expect(line).toContain('For: Beam.');
+    expect(line).not.toContain('leg');
   });
 });
 
@@ -175,6 +176,8 @@ describe('Building mode', () => {
     const text = renderText(<ModeView route={{ screen: 'build-steps', id: p.id }} project={p} />);
     expect(text).toContain('2 of 11 steps done.');
     expect(text).toContain('11. Bolt');
+    // Every row laid out the same (#136): the tick, then Open under it.
+    expect(html.match(/<li><div class="l-stack"[^>]*><label class="k-tick"/g)).toHaveLength(11);
     expect(html.match(/checked=""/g)).toHaveLength(2);
   });
 
@@ -183,7 +186,7 @@ describe('Building mode', () => {
     const route = { screen: 'build-part' as const, id: p.id, step: 'board-6', part: 'crossbar' };
     const text = renderText(<ModeView route={route} project={p} />);
     const html = render(<ModeView route={route} project={p} />);
-    expect(text).toContain('Step 6 of 11 · Cutting All steps');
+    expect(text).toContain('Step 6 of 11 · Cutting Back to the step');
     expect(text).toContain(
       `D Crossbar 2x6 (1-1/2" x 5-1/2"). Cut 2. From board 6, a 2x6 10' 0" long.`,
     );
