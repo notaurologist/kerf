@@ -1,0 +1,421 @@
+<title>Kerf New Project Screen</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+/* Additions for the new-project page: form columns, a preview that stays in view, the field anatomy. */
+.frames { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+.frames .phone { margin-inline: 0; }
+.cols { display: grid; gap: 14px; padding: 12px; align-items: start; }
+.cols.n1 { grid-template-columns: 300px 1fr; }
+.cols.n2 { grid-template-columns: 150px 260px 1fr; }
+.cols.n3 { grid-template-columns: 330px 1fr; }
+.side { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 8px 10px; display: grid; gap: 8px; align-content: start; }
+.side .sticky-note { font-size: 10px; color: var(--blue); }
+.prog { display: grid; gap: 4px; }
+.prog .meter { height: 6px; border: 1px solid var(--wf-ink); border-radius: 3px; overflow: hidden; }
+.prog .meter span { display: block; height: 100%; background: var(--wf-ink); }
+.fld { display: grid; gap: 2px; padding-bottom: 7px; }
+.fld .lab { font-weight: 650; }
+.fld .need { justify-self: start; font-size: 10px; border: 1px dashed var(--wf-ink); border-radius: 1px; padding: 0 4px; }
+.fld .hint { font-size: 10.5px; color: var(--muted); }
+.fld .row { display: flex; align-items: center; gap: 6px; padding: 0; border: 0; }
+.fld .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); width: 120px; font-family: var(--mono); }
+.fld .in.wide { width: 170px; }
+.fld .in.empty { border: 1.5px dashed var(--wf-ink); color: transparent; }
+.fld .unit { width: 52px; white-space: nowrap; color: var(--muted); font-size: 11px; }
+.fld .echo { font-family: var(--mono); font-size: 10.5px; }
+.grp { font-weight: 650; padding: 4px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
+.grp .st2 { font-weight: 400; font-size: 11px; color: var(--muted); }
+.tl { display: grid; gap: 0; align-content: start; }
+.tl > span { display: flex; justify-content: space-between; gap: 6px; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.tl > span.on { font-weight: 650; border-left: 3px solid var(--wf-ink); padding-left: 6px; }
+.tl .s { font-size: 10px; color: var(--muted); font-weight: 400; white-space: nowrap; }
+.acc2 { border: 1.2px solid var(--wf-ink); border-radius: 3px; }
+.acc2 > .hd { display: flex; gap: 8px; padding: 6px 9px; align-items: baseline; }
+.acc2 > .hd .grow { flex: 1; font-weight: 650; }
+.acc2 > .hd .s { font-size: 10.5px; color: var(--muted); }
+.acc2 > .bd { border-top: 1px solid var(--line); padding: 8px 9px; display: grid; gap: 2px; }
+.stack-sm { display: grid; gap: 8px; }
+.today { display: grid; gap: 4px; }
+table.how { border-collapse: collapse; width: 100%; font-size: 0.92rem; background: var(--wf-bg); }
+.how th, .how td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.how th { width: 10em; font-weight: 600; color: var(--muted); font-size: var(--step--1); }
+.cmp-wrap { overflow-x: auto; }
+table.cmp { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 0.92rem; background: var(--wf-bg); }
+.cmp th, .cmp td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.cmp thead th { font-size: var(--step--1); color: var(--muted); background: var(--paper); }
+.cmp tbody th { font-weight: 600; width: 13em; }
+</style>
+<main>
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #164</p>
+  <h1>The new-project screen</h1>
+  <div class="prose stack">
+    <p>The new-project and edit screens share one layout: the form, with the preview beside it (#98 added the preview to the new-project screen). The form has 33 fields for the swing set. This page shows what is wrong with that layout today, draws three directions for it, and asks two smaller questions: how the fields are grouped, and how one field is laid out. Then it recommends one of each.</p>
+    <p class="muted small">Measured October 30, 2026 in a local copy, starting from the spec's worked example. Laptop frames are 900 px wide; on a phone, scroll them sideways inside their box. Values and counts in the sketches are the form's, started from the spec's worked example: 33 fields, 14 of them input needed and the project name empty.</p>
+  </div>
+</header>
+
+<section class="stack-lg" aria-labelledby="now-h">
+  <div class="place"><h2 id="now-h">What is there now</h2></div>
+  <table class="how">
+    <tr><th>Laptop, 1366 px</th><td>The form is the narrow side of the layout (24rem, about 370 px), one field per row, so the page is about 5,500 to 5,800 px tall. The preview takes the other 60% of the width, but it stays at the top of the page: after the first screen the right half is empty. It says nothing until every dimension and hardware entry can be read, and the hardware is never filled in for you, so with a worked example it stays empty until the last section is done.</td></tr>
+    <tr><th>Tablet, 768 px</th><td>The preview drops below the form, and the form's sections become two-column grids. This is where the issue's alignment problems show: help text of one to three lines puts inputs in the same row at different heights (Ground slope and Burial depth), "in per ft" wraps to two lines and makes Ground slope's input narrower than Burial depth's, and sections end with a lone field (Seat height).</td></tr>
+    <tr><th>Phone, 375 px</th><td>One column, about 6,000 px tall. Inputs with a unit are narrower than those without.</td></tr>
+    <tr><th>Everywhere</th><td>"Input needed" sits beside a short label and on its own line under a long one. Create is only at the bottom. Beam stock is in Lumber under Dimensions and hardware; beam species and grade is in Beam lumber under Structural inputs, a long scroll away.</td></tr>
+  </table>
+</section>
+
+<section class="stack-lg">
+  <div class="place"><h2>What stays the same in every direction</h2></div>
+  <ul class="prose stack" style="padding-left:1.2em">
+    <li>Core describes the form as data and checks it; the screen renders any template's form (hard rule 6). Errors show only after Create or Save, through the error summary (#67).</li>
+    <li>Structural inputs and confirmed hardware are never filled in for you (hard rule 3). An empty one says "Input needed".</li>
+    <li>The preview is the API's dry run (#56, #98), labeled "Preview, not saved".</li>
+    <li>The edit screen uses the same layout, so a change here changes both.</li>
+  </ul>
+</section>
+
+<section id="n1" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow"><span class="letter">N1</span></p>
+    <h2>One column of fields, with the preview and Create always in view</h2>
+    <p class="prose">The form becomes the wide side at a readable width; the preview becomes a side column that stays in view as you scroll (<code>position: sticky</code>). At its top: how much is left and the Create button. Every field is one row, so nothing has to line up across a row. Below about 60rem the preview follows the form, and Create is also in the screen's header.</p>
+  </div>
+  <div class="scroll"><div class="wf laptop">
+    <div class="bar"><b>kerf</b><span class="grow"></span><span>Projects</span><span>Tools</span><span>Glossary</span></div>
+    <div class="cols n1" style="grid-template-columns: 1fr 300px;">
+      <div class="stack-sm">
+        <b style="font-size:15px">New two-swing A-frame swing set</b>
+        <div class="grp">Beam <span class="st2">8 fields</span></div>
+        <div class="fld"><span class="lab">Beam length</span><span class="hint">Overall length of the top beam. Inches, or feet and inches.</span><div class="row"><span class="in">120</span><span class="echo">10' 0" · 120"</span></div></div>
+        <div class="fld"><span class="lab">Beam stock</span><span class="hint">Stands on edge.</span><div class="row"><span class="in wide">4x6</span></div></div>
+        <div class="fld"><span class="lab">Beam species and grade</span><span class="need">Input needed</span><span class="hint">From the grade stamp on the boards you buy.</span><div class="row"><span class="in wide empty">-</span></div></div>
+        <div class="fld"><span class="lab">Beam moisture content</span><span class="need">Input needed</span><div class="row"><span class="in empty">-</span><span class="unit">%</span></div></div>
+        <div class="grp">Site <span class="st2">2 fields</span></div>
+        <div class="fld"><span class="lab">Ground slope</span><span class="hint">Inches the ground falls per foot toward the front.</span><div class="row"><span class="in">1</span><span class="unit">in per ft</span></div></div>
+      </div>
+      <div class="side">
+        <span class="sticky-note">Stays in view while the form scrolls</span>
+        <div class="prog"><b>18 of 33 entered</b><div class="meter"><span style="width:55%"></span></div><span>14 input needed, in Beam, Legs, Crossbars, Gussets, Swings, and Loads</span></div>
+        <span class="btn solid" style="justify-self:start">Create project</span>
+        <div class="grp">Preview <span class="tag">Preview, not saved</span></div>
+        <span class="ph" style="height:150px">Cut list, shopping list, and checks once every dimension and hardware entry can be read</span>
+      </div>
+    </div>
+  </div></div>
+  <div class="critique">
+    <dl>
+      <dt>For</dt><dd>One column is what NN/g recommends for forms ("Present fields in a single column layout"), and it removes the row-alignment problems at every width rather than fixing them. The preview is visible next to whichever field you are on, as on the edit screen today. Create and the count of what is left are always reachable (issue items 1, 2, 3, 5, 7). The smallest change: the same components, with a sticky side and a progress line.</dd>
+      <dt>Against</dt><dd>The page is still long (one field per row); grouping by part (question 2) shortens the jumps but not the length. A sticky column taller than the screen has to scroll on its own, so the preview gets its own scroll inside the side.</dd>
+    </dl>
+  </div>
+</section>
+
+<section id="n2" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow"><span class="letter">N2</span></p>
+    <h2>A list of groups, one group at a time</h2>
+    <p class="prose">GOV.UK's task list: the groups down the left with a status each ("Entered", "2 input needed"), one group's fields in the middle, the preview on the right. Create sits under the list. On a phone the list is its own screen and each group opens from it.</p>
+  </div>
+  <div class="scroll"><div class="wf laptop">
+    <div class="bar"><b>kerf</b><span class="grow"></span><span>Projects</span><span>Tools</span><span>Glossary</span></div>
+    <div class="cols n2">
+      <div class="tl">
+        <span class="on">Beam <span class="s">4 needed</span></span>
+        <span>Legs <span class="s">1 needed</span></span>
+        <span>Crossbars <span class="s">2 needed</span></span>
+        <span>Gussets <span class="s">2 needed</span></span>
+        <span>Site <span class="s">Entered</span></span>
+        <span>Swings <span class="s">1 needed</span></span>
+        <span>Loads <span class="s">4 needed</span></span>
+        <span style="border:0;padding-top:10px"><span class="btn solid">Create project</span></span>
+      </div>
+      <div class="stack-sm">
+        <b>Beam</b>
+        <div class="fld"><span class="lab">Beam length</span><div class="row"><span class="in">120</span></div></div>
+        <div class="fld"><span class="lab">Beam stock</span><div class="row"><span class="in wide">4x6</span></div></div>
+        <div class="fld"><span class="lab">Beam species and grade</span><span class="need">Input needed</span><div class="row"><span class="in wide empty">-</span></div></div>
+        <span class="btn" style="justify-self:start">Next: Legs</span>
+      </div>
+      <div class="side"><div class="grp">Preview <span class="tag">Preview, not saved</span></div><span class="ph" style="height:200px">Preview</span></div>
+    </div>
+  </div></div>
+  <div class="critique">
+    <dl>
+      <dt>For</dt><dd>The shortest screens, and the clearest sense of what is left. GOV.UK lets groups be done in any order, which fits a form that is mostly filled in from an example.</dd>
+      <dt>Against</dt><dd>GOV.UK keeps the task list for long transactions done over several sessions, and says first to simplify instead. Editing one value means finding its group first, and comparing values in two groups (beam height and crossbar height) means switching. Three columns are tight on a laptop and need a third layout on the tablet. The most new structure: a list component, per-group status from core, and a new screen per group on the phone.</dd>
+    </dl>
+  </div>
+</section>
+
+<section id="n3" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow"><span class="letter">N3</span></p>
+    <h2>Groups you open and close, with the preview in view</h2>
+    <p class="prose">Every group on one page as a disclosure whose summary says how much is left ("Beam · 2 input needed"). Groups with something left open by themselves; finished ones close. The preview stays in view beside them, as in N1.</p>
+  </div>
+  <div class="scroll"><div class="wf laptop">
+    <div class="bar"><b>kerf</b><span class="grow"></span><span>Projects</span><span>Tools</span><span>Glossary</span></div>
+    <div class="cols n3" style="grid-template-columns: 1fr 300px;">
+      <div class="stack-sm">
+        <b style="font-size:15px">New two-swing A-frame swing set</b>
+        <div class="acc2"><div class="hd"><span>▾</span><span class="grow">Beam</span><span class="s">4 input needed</span></div>
+          <div class="bd">
+            <div class="fld"><span class="lab">Beam length</span><div class="row"><span class="in">120</span></div></div>
+            <div class="fld"><span class="lab">Beam species and grade</span><span class="need">Input needed</span><div class="row"><span class="in wide empty">-</span></div></div>
+          </div></div>
+        <div class="acc2"><div class="hd"><span>▸</span><span class="grow">Site</span><span class="s">Entered: 1 in per ft, legs buried 24"</span></div></div>
+        <div class="acc2"><div class="hd"><span>▾</span><span class="grow">Swings</span><span class="s">1 input needed</span></div></div>
+        <div class="acc2"><div class="hd"><span>▾</span><span class="grow">Loads</span><span class="s">4 input needed</span></div></div>
+      </div>
+      <div class="side">
+        <div class="prog"><b>18 of 33 entered</b><div class="meter"><span style="width:55%"></span></div></div>
+        <span class="btn solid" style="justify-self:start">Create project</span>
+        <div class="grp">Preview <span class="tag">Preview, not saved</span></div>
+        <span class="ph" style="height:150px">Preview</span>
+      </div>
+    </div>
+  </div></div>
+  <div class="critique">
+    <dl>
+      <dt>For</dt><dd>A short page once groups are done, and status in each summary. Uses the existing <code>Disclosure</code>.</dd>
+      <dt>Against</dt><dd>NN/g: accordions hurt when people need several sections at once, and hidden content is easy to miss. On the edit screen most groups would start closed, so changing a value takes a click to find it. Opening and closing by status moves things under the pointer as you type.</dd>
+    </dl>
+  </div>
+</section>
+
+<section id="compare" class="stack-lg">
+  <div class="place"><h2>The three compared</h2></div>
+  <div class="cmp-wrap"><table class="cmp">
+    <thead><tr><th></th><th>N1 one column, preview in view</th><th>N2 task list</th><th>N3 open and close</th></tr></thead>
+    <tbody>
+      <tr><th>Fields line up in a row</th><td>Yes: one per row</td><td>Yes: one per row</td><td>Yes: one per row</td></tr>
+      <tr><th>Preview beside the field</th><td>Yes</td><td>Yes, three columns</td><td>Yes</td></tr>
+      <tr><th>Create and what is left, always</th><td>In the side, and the header</td><td>Under the list</td><td>In the side</td></tr>
+      <tr><th>Edit one value</th><td>Scroll to it</td><td>Find its group</td><td>Open its group</td></tr>
+      <tr><th>Page length</th><td>Long</td><td>Short</td><td>Short when done</td></tr>
+      <tr><th>New parts</th><td>A sticky side, a progress line</td><td>Task list, a screen per group on a phone</td><td>Status in disclosures, a progress line</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="questions" class="stack-lg">
+  <div class="place"><h2>Two questions inside the direction</h2></div>
+  <div class="q">
+    <h3>2. How the fields are grouped</h3>
+    <div class="opts">
+      <div class="opt"><div class="head"><b>G1</b> As now</div><p>Dimensions and hardware (Frame, Lumber, Site, Swings, Hardware), then Structural inputs (Beam lumber, Loads, Limits and ratings). Nothing changes in core.</p></div>
+      <div class="opt rec"><div class="head"><b>G2</b> By part of the project <span class="rec-tag">Recommended</span></div><p>Beam (length, height, stock, plies, species and grade, incised, moisture, ply bolts, deflection limit), Legs, Crossbars, Gussets, Site, Swings (with the hanger rating), Loads. Structural inputs keep "Input needed" on each field and the line saying none is filled in for you moves to the top of the form. The grouping is data in the template's folder (principle 6); the generic form code only renders it. The plan's Parameters and inputs reads the same groups. No change to outputs, so no template version bump.</p></div>
+    </div>
+    <p class="needs">Issue item 6. NN/g: split a form's fields into sections by topic. A woodworker thinks of the beam as one thing: what size, what board, what species.</p>
+  </div>
+  <div class="q">
+    <h3>3. How one field is laid out</h3>
+    <div class="opts">
+      <div class="opt rec"><div class="head"><b>F1</b> A fixed shape for every field <span class="rec-tag">Recommended</span></div><p>Label; "Input needed" always on its own line under the label; the hint; then the input at a fixed width by kind (numbers and lengths 10rem, choices up to 20rem, as GOV.UK sizes inputs to their expected length), with the unit after it in a slot that never wraps (GOV.UK: suffixes outside the input, the label or hint still naming the unit). The echo under the input. Every field looks the same whatever its label's length.</p></div>
+      <div class="opt"><div class="head"><b>F2</b> As now, fixed only where it breaks</div><p>Keep full-width inputs and the badge beside the label; only stop the unit from wrapping. Smaller change, but badges still move and inputs with a unit stay narrower.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="recommendation" class="stack-lg">
+  <div class="place"><h2>Recommendation: N1, with G2 and F1</h2></div>
+  <div class="prose stack">
+    <p>N1 fixes every item in the issue with the least new structure, keeps the edit screen as fast to change as it is now, and follows the plainest guidance on form layout. G2 puts the beam's size and its species together, which is how you shop for it and how the checks use it. F1 makes every field the same shape, so the column reads evenly at every width.</p>
+    <p>Built as: the generic form groups in core with the template's own grouping in its folder; <code>Sidebar</code> with a sticky side (a new option, catalog and tests), a progress line counting entered and input-needed fields, Create in the side and the header; <code>Field</code> laid out as F1. Checked at 320, 375, tablet, and laptop widths, light and dark.</p>
+  </div>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Sources: Kathryn Whitenton, "Website Forms Usability: Top 10 Recommendations", NN/g, 2016 (https://www.nngroup.com/articles/web-form-design/). NN/g, "Accordions on Desktop: When and How to Use" (https://www.nngroup.com/articles/accordions-on-desktop/). GOV.UK Design System, "Complete multiple tasks" (https://design-system.service.gov.uk/patterns/complete-multiple-tasks/), "Question pages" (https://design-system.service.gov.uk/patterns/question-pages/), and "Text input", fixed-width inputs and prefixes and suffixes (https://design-system.service.gov.uk/components/text-input/). All read October 30, 2026.</p>
+  <p>Kept at <code>docs/design/new-project.html</code>; the choice will be recorded in <code>docs/design/README.md</code>.</p>
+</footer>
+
+</main>
