@@ -93,3 +93,13 @@ A phase, not a single task. It starts from the wireframes and data requirements 
 - Build the swing set.
 
 **Accept when:** the swing set is built from the app's plans with no recuts from wrong numbers and one trip to the store, or every miss is recorded as an issue with its cause.
+
+## M8: Starting points
+
+After the MVP. Starting a project today means about 30 empty fields and no output until Create.
+
+- Start from a template's worked example or an earlier project, with a preview of the output before saving (#98).
+- Each template carries the dimensions its project type conventionally uses, as data, and asks a few questions only for what it can't determine on its own (the space, who uses it, a style choice). The answers become suggested parameters from template code, each labeled with its source, convention, or rule of thumb (#163).
+- Structural inputs are never suggested. Answers that are structural inputs, such as a rider's weight, are entered by the user (hard rule 3).
+
+**Accept when:** the swing set can be started from a worked example, an earlier project, or its questions, each opening a filled form with a preview; hand-checked worked examples cover the questions' suggestions, including a yard too shallow for the conventional beam height; and no structural input is filled in except from the owner's own answers or project.
