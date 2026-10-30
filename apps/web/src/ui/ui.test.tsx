@@ -6,6 +6,7 @@ import {
   TEMPLATES,
   TOOL_TYPES,
 } from '@kerf/core';
+import { isValidElement, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, renderText, textOf } from '../test/render.tsx';
 import { Catalog } from './Catalog.tsx';
@@ -1089,4 +1090,60 @@ describe('Diagram (#91)', () => {
       'Clear area: handbook, p. 2.',
     );
   });
+
+  it('keys each placed letter uniquely when a part is lettered twice', () => {
+    // Server rendering does not report duplicate keys, so the keys are read from the element tree.
+    const twice = {
+      ...drawing,
+      primitives: [
+        ...drawing.primitives,
+        {
+          kind: 'letter' as const,
+          at: { x: 45, y: 4 },
+          target: { x: 20, y: 4 },
+          letter: 'B',
+          part: { partId: 'leg', instance: 1, letter: 'B' },
+        },
+        {
+          kind: 'letter' as const,
+          at: { x: 45, y: 8 },
+          target: { x: 25, y: 4 },
+          letter: 'B',
+          part: { partId: 'leg', instance: 1, letter: 'B' },
+        },
+      ],
+    };
+    let tree: ReactNode = null;
+    const html = render(
+      <DiagramProbe
+        diagram={{ drawing: twice, label: 'Sample', assumedWidth: 400 }}
+        onTree={(t) => {
+          tree = t;
+        }}
+      />,
+    );
+    expect(html.match(/class="k-letter"/g)).toHaveLength(3);
+    const duplicates: string[] = [];
+    const walk = (node: ReactNode) => {
+      if (Array.isArray(node)) {
+        const keys = node.flatMap((n) => (isValidElement(n) && n.key !== null ? [n.key] : []));
+        duplicates.push(...keys.filter((k, i) => keys.indexOf(k) !== i));
+        node.forEach(walk);
+      } else if (isValidElement<{ children?: ReactNode }>(node)) {
+        walk(node.props.children);
+      }
+    };
+    walk(tree);
+    expect(duplicates).toEqual([]);
+  });
 });
+
+/** Diagram's element tree, from a component that calls it as a function and so owns its hooks. */
+function DiagramProbe(props: {
+  diagram: Parameters<typeof Diagram>[0];
+  onTree: (tree: ReactNode) => void;
+}) {
+  const tree = Diagram(props.diagram);
+  props.onTree(tree);
+  return tree;
+}

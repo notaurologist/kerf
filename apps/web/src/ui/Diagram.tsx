@@ -231,9 +231,10 @@ export function Diagram(props: {
   });
 
   const s = PX.letter * u;
-  const marks = placed.map((l) => (
+  const marks = placed.map((l, i) => (
     <g
-      key={l.part.partId}
+      // biome-ignore lint/suspicious/noArrayIndexKey: a part can be lettered more than once in a drawing, and the letters are redrawn whole.
+      key={i}
       className="k-letter"
       data-selected={selected(l)}
       data-part={l.part.partId}
