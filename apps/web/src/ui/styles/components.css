@@ -623,6 +623,52 @@
     align-items: baseline;
   }
 
+  /* A Building step and its drawing (#134): stacked lead, drawing, rest on a phone; the drawing
+     beside the step from 600 px of the component's own width (8 page columns, #41). */
+  .k-steplayout {
+    container-type: inline-size;
+  }
+
+  .k-steplayout__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-l);
+    align-items: start;
+  }
+
+  .k-steplayout__lead,
+  .k-steplayout__rest {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+  }
+
+  @container (width >= 37.5rem) {
+    .k-steplayout__grid[data-drawing] {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas:
+        "lead drawing"
+        "rest drawing";
+    }
+
+    .k-steplayout__lead {
+      grid-area: lead;
+    }
+
+    .k-steplayout__rest {
+      grid-area: rest;
+    }
+
+    .k-steplayout__drawing {
+      grid-area: drawing;
+    }
+
+    /* With no lead, the rest starts at the top beside the drawing. */
+    .k-steplayout__grid[data-drawing]:not(:has(.k-steplayout__lead)) {
+      grid-template-areas: "rest drawing";
+    }
+  }
+
   /* ---------- Dialog ---------- */
   .k-dialog {
     max-inline-size: min(28rem, 100% - 2 * var(--space-s));

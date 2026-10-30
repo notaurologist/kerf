@@ -45,6 +45,7 @@ import {
   SawSetting,
 } from './numbers.tsx';
 import { Header, ModeBar } from './Shell.tsx';
+import { StepLayout } from './StepLayout.tsx';
 import { Tick } from './Tick.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
@@ -512,6 +513,9 @@ function ShopSpecimens() {
             <Measured text={sampleFlag.ask} />
           </ExpertCheck>
         )}
+        <StepLayout lead={<Glance>{part.length}</Glance>} drawing={<p>The step's drawing</p>}>
+          <p>The step's methods and flags.</p>
+        </StepLayout>
         <StatusLine>{part.name} cut</StatusLine>
         <Cluster>
           <Button>Done, next</Button>

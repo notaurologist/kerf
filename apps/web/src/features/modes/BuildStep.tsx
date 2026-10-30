@@ -23,6 +23,7 @@ import {
   SawSetting,
   Stack,
   StatusLine,
+  StepLayout,
   Switcher,
   Text,
   Tick,
@@ -72,7 +73,7 @@ function drawingFor(step: BuildStep, drawings: geometry.Drawings | null) {
   return onSite ? (drawings.siteLayout ?? undefined) : undefined;
 }
 
-/** The step and, on a wide screen, its drawing beside it. */
+/** A cut card and, on a wide screen, its cut detail beside it. */
 function BesideDrawing(props: {
   children: ReactNode;
   drawing: geometry.Drawing | undefined;
@@ -115,10 +116,15 @@ export function StepScreen(props: {
     <>
       <Position number={at + 1} total={steps.length} step={step} links={links} />
       <h1>{step.title}</h1>
-      <BesideDrawing drawing={drawing}>
-        {step.board && <BoardPieces step={step} rows={plan.cutList} ticks={ticks} links={links} />}
+      {/* On a phone the drawing follows the pieces, or the title, before the methods (#134). */}
+      <StepLayout
+        lead={
+          step.board && <BoardPieces step={step} rows={plan.cutList} ticks={ticks} links={links} />
+        }
+        drawing={drawing && <Diagram drawing={drawing} label={drawing.description} />}
+      >
         <StepBody step={step} rows={plan.cutList} withoutBoard />
-      </BesideDrawing>
+      </StepLayout>
       {/* Undoing is a full-size control (#133), on its own line apart from Back and Next. */}
       {done && (
         <Stack gap="xs">
