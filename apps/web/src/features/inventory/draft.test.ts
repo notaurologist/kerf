@@ -5,7 +5,9 @@ import {
   detailsNeeded,
   emptyInventory,
   fromInventory,
+  libraryMatch,
   matchingTypes,
+  moveToLibrary,
   removeTool,
   toInventory,
 } from './draft.ts';
@@ -81,11 +83,31 @@ describe('inventory drafts', () => {
     expect(matchingTypes('SAW').map((t) => t.id)).toEqual([
       'circular-saw',
       'miter-saw',
+      'table-saw',
+      'track-saw',
+      'band-saw',
       'hand-saw',
       'jigsaw',
     ]);
     expect(matchingTypes('  ').length).toBeGreaterThan(20);
-    expect(matchingTypes('router')).toEqual([]);
+    expect(matchingTypes('lathe')).toEqual([]);
+  });
+
+  it('matches an other tool to the library by name or old ID, ignoring case and spacing', () => {
+    expect(libraryMatch(' table SAW ')?.id).toBe('table-saw');
+    expect(libraryMatch('table-saw')?.id).toBe('table-saw');
+    expect(libraryMatch('Table saw with sled')).toBeUndefined();
+    expect(libraryMatch('')).toBeUndefined();
+  });
+
+  it('moves an other tool into the library tools', () => {
+    const moved = moveToLibrary(fromInventory(inventory), 0, 'table-saw');
+    expect(moved.tools.map((t) => t.toolTypeId)).toEqual([
+      'circular-saw',
+      'miter-saw',
+      'table-saw',
+    ]);
+    expect(moved.other).toEqual([]);
   });
 
   it('counts the details not entered yet', () => {

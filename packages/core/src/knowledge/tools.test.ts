@@ -77,7 +77,7 @@ describe('tool-type library', () => {
       'shovel',
       'tamper',
     ];
-    expect(TOOL_TYPES.map((t) => t.id).sort()).toEqual(fromSpec.sort());
+    expect(TOOL_TYPES.map((t) => t.id)).toEqual(expect.arrayContaining(fromSpec));
   });
 
   it('names no brands (hard rule 11)', () => {
@@ -90,6 +90,6 @@ describe('tool-type library', () => {
 
   it('finds an entry by ID, and nothing for an unknown ID', () => {
     expect(findToolType('circular-saw')?.name).toBe('Circular saw');
-    expect(findToolType('table-saw')).toBeUndefined();
+    expect(findToolType('lathe')).toBeUndefined();
   });
 });

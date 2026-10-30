@@ -82,8 +82,10 @@ const READ_MANUAL = "The tool's manual, or its specifications.";
 
 /**
  * Every tool the templates' work could use, and the common alternatives, checked against the work
- * each template lists in its spec (docs/templates/, Tools for the work). In group order, then in
- * the order a shop would reach for them.
+ * each template lists in its spec (docs/templates/, Tools for the work). Also the power tools that
+ * home-shop tool lists name, so they need not go under other tools: Fine Woodworking, "Choosing
+ * Tools: How to Do More with Less", and Highland Woodworking, "Woodworking Tool List", both read
+ * October 2026. In group order, then in the order a shop would reach for them.
  */
 export const TOOL_TYPES = [
   // Measuring and marking
@@ -158,6 +160,9 @@ export const TOOL_TYPES = [
       },
     ],
   },
+  { id: 'table-saw', name: 'Table saw', group: 'cutting', capabilities: [] },
+  { id: 'track-saw', name: 'Track saw', group: 'cutting', capabilities: [] },
+  { id: 'band-saw', name: 'Band saw', group: 'cutting', capabilities: [] },
   { id: 'hand-saw', name: 'Hand saw', group: 'cutting', capabilities: [] },
   {
     id: 'jigsaw',
@@ -184,6 +189,7 @@ export const TOOL_TYPES = [
     capabilities: [],
   },
   { id: 'impact-driver', name: 'Impact driver', group: 'drilling-and-driving', capabilities: [] },
+  { id: 'drill-press', name: 'Drill press', group: 'drilling-and-driving', capabilities: [] },
   {
     id: 'spade-bits',
     name: 'Spade bits',
@@ -247,6 +253,8 @@ export const TOOL_TYPES = [
   },
 
   // Shaping
+  { id: 'router', name: 'Router', group: 'shaping', capabilities: [] },
+  { id: 'thickness-planer', name: 'Thickness planer', group: 'shaping', capabilities: [] },
   { id: 'chisel', name: 'Chisel', group: 'shaping', capabilities: [] },
   { id: 'block-plane', name: 'Block plane', group: 'shaping', capabilities: [] },
   { id: 'sander', name: 'Sander', group: 'shaping', capabilities: [] },
