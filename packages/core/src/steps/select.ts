@@ -91,10 +91,8 @@ const entered = (tool: Tool, capability: string) => {
 };
 
 /**
- * Each choice for a requirement, against every tool of its type the owner has. A count (an
- * integer capability, such as clamps) adds up across the tools that meet the choice's other
- * needs; any other capability is met by one tool alone. With several tools that meet the choice,
- * the first in the owner's list is chosen.
+ * Each choice for a requirement, against every tool of its type the owner has. One tool must meet
+ * every need; with several that do, the first in the owner's list is chosen.
  */
 function requirementChoices(
   requirement: ToolRequirement,
@@ -102,27 +100,21 @@ function requirementChoices(
   inventory: Inventory,
 ): Choice[] {
   return requirement.anyOf.map((choice) => {
-    const type = findToolType(choice.tool);
-    const isCount = (capability: string) =>
-      type?.capabilities.find((c) => c.id === capability)?.kind === 'integer';
     const needs = choice.needs.map((need) => ({
       capability: need.capability,
       atLeast: operationValue(op, need.atLeast) / need.passes,
     }));
     const tools = inventory.tools.filter((t) => t.toolTypeId === choice.tool);
     const reaching = tools.filter((t) =>
-      needs.every((n) => isCount(n.capability) || (entered(t, n.capability) ?? 0) >= n.atLeast),
+      needs.every((n) => (entered(t, n.capability) ?? 0) >= n.atLeast),
     );
     const short: CapabilityShort[] = [];
     for (const need of needs) {
-      const values = (isCount(need.capability) ? reaching : tools).flatMap((t) => {
+      const values = tools.flatMap((t) => {
         const value = entered(t, need.capability);
         return value === undefined ? [] : [value];
       });
-      const best = isCount(need.capability)
-        ? values.reduce((sum, v) => sum + v, 0)
-        : Math.max(...values);
-      const value = values.length > 0 ? best : undefined;
+      const value = values.length > 0 ? Math.max(...values) : undefined;
       if (value !== undefined && value >= need.atLeast) continue;
       short.push({ ...need, ...(value !== undefined ? { entered: value } : {}) });
     }

@@ -55,7 +55,6 @@ describe('inventory drafts', () => {
       tools: [
         { toolTypeId: 'circular-saw', name: '', values: { depthOfCut: 'deep' } },
         { toolTypeId: 'miter-saw', name: '', values: { maxMiter: '95' } },
-        { toolTypeId: 'clamps', name: '', values: { count: '2.5' } },
       ],
       other: [],
     });
@@ -70,7 +69,6 @@ describe('inventory drafts', () => {
           field: 'tools.1.capabilities.maxMiter',
           message: 'Largest miter must be from 0.0° to 90.0°.',
         },
-        { field: 'tools.2.capabilities.count', message: 'Enter a whole number.' },
       ],
     });
   });

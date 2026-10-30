@@ -15,8 +15,8 @@ describe('/api/tools', () => {
       tools: [
         { toolTypeId: 'drill-driver', capabilities: {} },
         { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375 } },
-        { toolTypeId: 'clamps', name: 'Long', capabilities: { count: 2, maxOpening: 24 } },
-        { toolTypeId: 'clamps', name: 'Short', capabilities: { count: 4 } },
+        { toolTypeId: 'clamps', name: 'Long', capabilities: { maxOpening: 24 } },
+        { toolTypeId: 'clamps', name: 'Short', capabilities: {} },
       ],
       other: [
         { name: 'Table saw', note: 'Tilts to 45' },

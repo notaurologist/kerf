@@ -70,7 +70,6 @@ describe('several tools of one type', () => {
     ]);
   });
 
-  // Holes 8" deep, four of them: a method needing that many clamps that reach across 8".
   const holes: Operation = {
     id: 'bolts',
     type: 'bolt-holes',
@@ -81,32 +80,20 @@ describe('several tools of one type', () => {
     holeDiameter: 0.5625,
     depth: 8,
   };
-  const clampsReaching = {
-    use: 'holding',
-    anyOf: [
-      {
-        tool: 'clamps' as const,
-        needs: [
-          { capability: 'maxOpening', atLeast: 'depth', passes: 1 as const },
-          { capability: 'count', atLeast: 'count', passes: 1 as const },
-        ],
-      },
-    ],
-  };
-  const clamps = (...entries: [string, number, number][]): Inventory => ({
-    tools: entries.map(([name, maxOpening, count]) => named('clamps', name, { maxOpening, count })),
-    other: [],
-  });
 
-  it('counts only the clamps that reach, across every clamp entry', () => {
-    const fit = fitMethod(
-      { ...method('bolt-holes-auger-one-side'), tools: [clampsReaching] },
-      holes,
-      clamps(['Short', 6, 4], ['Long', 12, 2]),
+  it('chooses the clamps that reach across the parts', () => {
+    const holding = method('bolt-holes-auger-one-side').tools.find((r) =>
+      r.use.startsWith('holding'),
     );
-    expect(fit.gaps[0]?.anyOf[0]?.short).toEqual([{ capability: 'count', atLeast: 4, entered: 2 }]);
-    const enough = clamps(['Short', 6, 4], ['Long', 12, 2], ['Longer', 24, 2]);
-    expect(meetingTool(clampsReaching, holes, enough)?.name).toBe('Long');
+    if (!holding) throw new Error('the method holds the parts with clamps');
+    const shop: Inventory = {
+      tools: [
+        named('clamps', 'Short', { maxOpening: 6 }),
+        named('clamps', 'Long', { maxOpening: 12 }),
+      ],
+      other: [],
+    };
+    expect(meetingTool(holding, holes, shop)?.name).toBe('Long');
   });
 });
 

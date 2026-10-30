@@ -38,15 +38,12 @@ describe('Inventory', () => {
     expect(
       messages(Tool.safeParse({ toolTypeId: 'miter-saw', capabilities: { maxMiter: true } })),
     ).toEqual(['capabilities.maxMiter: Enter a number.']);
-    expect(
-      messages(Tool.safeParse({ toolTypeId: 'clamps', capabilities: { count: 2.5 } })),
-    ).toEqual(['capabilities.count: Enter a whole number.']);
   });
 
   it('takes several tools of one type when each has its own name', () => {
     const tools = [
-      { toolTypeId: 'clamps', name: 'Short', capabilities: { count: 4 } },
-      { toolTypeId: 'clamps', name: 'Long', capabilities: { count: 2 } },
+      { toolTypeId: 'clamps', name: 'Short', capabilities: { maxOpening: 6 } },
+      { toolTypeId: 'clamps', name: 'Long', capabilities: { maxOpening: 24 } },
     ];
     expect(Inventory.parse({ tools, other: [] }).tools).toEqual(tools);
   });

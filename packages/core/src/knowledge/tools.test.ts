@@ -17,9 +17,6 @@ describe('tool-type library', () => {
     expect([...new Set(groups)]).toEqual([...TOOL_GROUPS]);
   });
 
-  // Clamp count waits for a sourced number of clamps for a method to need.
-  const UNUSED_KEPT = ['clamps.count'];
-
   it('lists only capabilities some method needs', () => {
     const used = new Set(
       METHODS.flatMap((m) =>
@@ -33,7 +30,7 @@ describe('tool-type library', () => {
     const listed = TOOL_TYPES.flatMap((t) =>
       (t.capabilities as readonly { id: string }[]).map((c) => `${t.id}.${c.id}`),
     );
-    expect(listed.filter((c) => !used.has(c))).toEqual(UNUSED_KEPT);
+    expect(listed.filter((c) => !used.has(c))).toEqual([]);
   });
 
   it('gives every capability a range', () => {

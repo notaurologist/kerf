@@ -21,8 +21,8 @@ describe('ToolsEditor', () => {
       <ToolsEditor
         saved={fromInventory({
           tools: [
-            { toolTypeId: 'clamps', name: 'Short', capabilities: { count: 4, maxOpening: 6 } },
-            { toolTypeId: 'clamps', name: 'Long', capabilities: { count: 2 } },
+            { toolTypeId: 'clamps', name: 'Short', capabilities: { maxOpening: 6 } },
+            { toolTypeId: 'clamps', name: 'Long', capabilities: {} },
           ],
           other: [],
         })}
