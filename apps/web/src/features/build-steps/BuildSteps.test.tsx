@@ -77,7 +77,7 @@ describe('build steps in the project view (#52)', () => {
     const p = project(shop);
     const steps = readSteps(p)?.steps ?? [];
     const text = renderText(<ProjectView project={p} />);
-    expect(text).toContain("1. Cut board 1, a 4x6 12' long");
+    expect(text).toContain("1. Cut board 1, a 4x6 12' long: Beam");
     expect(text).toContain(
       'Trim 1/2" off the end to square it, then cut these in order, measuring each from the fresh cut. Each saw cut takes about 1/8".',
     );
