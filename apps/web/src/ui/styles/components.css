@@ -615,8 +615,10 @@
       font-weight: 600;
     }
 
+    /* Stacked, a value may break between its readings; each reading stays whole (Readings). */
     .k-table [data-numeric] {
       text-align: start;
+      white-space: normal;
     }
 
     /* The row's first cell names it, so it needs no label. */
