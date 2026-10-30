@@ -224,14 +224,16 @@ export function groupHardware<T>(
 /** How far a project has got (#61): for the plan's mode cards and the projects list. */
 export interface ProgressSummary {
   shopping: { done: number; total: number };
+  /** Parts' pieces cut (#135): cutting a piece counts as building, before any step is done. */
+  pieces: { done: number; total: number };
   steps: { done: number; total: number };
   /** The first step not done, numbered from 1; null when there are no steps or all are done. */
   nextStep: { id: string; number: number; title: string } | null;
 }
 
-/** Counts the ticked shopping lines and steps, and finds the first step not done. */
+/** Counts the ticked shopping lines, pieces, and steps, and finds the first step not done. */
 export function summarizeProgress(
-  plan: Pick<Plan, 'lumber' | 'hardware'>,
+  plan: Pick<Plan, 'lumber' | 'hardware' | 'cutList'>,
   steps: readonly { id: string; title: string }[],
   ticked: readonly Pick<ProgressItem, 'kind' | 'key'>[],
 ): ProgressSummary {
@@ -240,10 +242,17 @@ export function summarizeProgress(
   const isDone = (kind: ProgressKind, key: string) => done.has(progressId({ kind, key }));
   const next = steps.findIndex((s) => !isDone('step', s.id));
   const step = steps[next];
+  const pieces = plan.cutList.flatMap((row) =>
+    Array.from({ length: row.quantity }, (_, i) => partProgressKey(row.partId, i)),
+  );
   return {
     shopping: {
       done: lines.filter((l) => isDone('shopping-line', l.key)).length,
       total: lines.length,
+    },
+    pieces: {
+      done: pieces.filter((key) => isDone('part', key)).length,
+      total: pieces.length,
     },
     steps: { done: steps.filter((s) => isDone('step', s.id)).length, total: steps.length },
     nextStep: step ? { id: step.id, number: next + 1, title: step.title } : null,

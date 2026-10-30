@@ -227,8 +227,14 @@ describe('the plan’s mode cards', () => {
 });
 
 describe('progress in words', () => {
-  const summary = (shopping: [number, number], steps: [number, number], next?: number) => ({
+  const summary = (
+    shopping: [number, number],
+    steps: [number, number],
+    next?: number,
+    pieces: [number, number] = [0, 9],
+  ) => ({
     shopping: { done: shopping[0], total: shopping[1] },
+    pieces: { done: pieces[0], total: pieces[1] },
     steps: { done: steps[0], total: steps[1] },
     nextStep: next ? { id: `s${next}`, number: next, title: 'Bolt' } : null,
   });
@@ -237,6 +243,10 @@ describe('progress in words', () => {
     expect(shoppingText({ done: 11, total: 11 })).toBe('All 11 lines bought.');
     expect(buildingText(summary([0, 1], [11, 11]))).toBe('All 11 steps done.');
     expect(buildingText(summary([0, 1], [3, 11], 4))).toBe('Step 4 of 11 next: Bolt.');
+    // Pieces cut count until the first step is done (#135).
+    expect(buildingText(summary([0, 1], [0, 11], 1, [2, 9]))).toBe(
+      '2 of 9 pieces cut. Step 1 of 11 next: Bolt.',
+    );
   });
 
   it('resumes shopping until it is done or building starts, then the next step', () => {
@@ -252,6 +262,8 @@ describe('progress in words', () => {
     });
     expect(resumeTarget(summaryOf(summary([4, 11], [2, 11], 3)))?.mode).toBe('building');
     expect(resumeTarget(summaryOf(summary([11, 11], [11, 11])))).toBeNull();
+    // A cut piece starts the build (#135), before any step or the shopping is done.
+    expect(resumeTarget(summaryOf(summary([0, 11], [0, 11], 1, [2, 9])))?.mode).toBe('building');
     expect(
       resumeTarget({ ...summaryOf(summary([4, 11], [0, 11], 1)), status: 'built' }),
     ).toBeNull();
