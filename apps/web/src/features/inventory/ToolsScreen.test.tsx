@@ -17,17 +17,19 @@ describe('ToolsEditor', () => {
     const html = renderToString(
       <ToolsEditor
         saved={fromInventory({
-          tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375 } }],
+          tools: [{ toolTypeId: 'miter-saw', capabilities: { crosscutWidth: 7.5, cutDepth: 3.5 } }],
           other: [{ name: 'Table saw', note: '' }],
         })}
       />,
     );
-    expect(html).toContain('Circular saw');
-    expect(html).toContain('value="2-7/16"');
-    expect(html).toContain('Largest bevel');
+    expect(html).toContain('Miter saw');
+    expect(html).toContain('value="7-1/2"');
+    expect(html).toContain('Largest miter');
     expect((html.match(/Input needed/g) ?? []).length).toBe(1);
+    // A retired capability is no longer asked (#171).
+    expect(html).not.toContain('Largest bevel');
     // An owned tool is not offered again.
-    expect(html).not.toContain('Add circular saw');
+    expect(html).not.toContain('Add miter saw');
     expect(html).toContain('value="Table saw"');
     expect(html).toContain('build steps do not use them');
   });

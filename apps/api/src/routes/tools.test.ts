@@ -14,7 +14,7 @@ describe('/api/tools', () => {
     const first = {
       tools: [
         { toolTypeId: 'drill-driver', capabilities: {} },
-        { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375, maxBevel: 50 } },
+        { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375 } },
       ],
       other: [
         { name: 'Table saw', note: 'Tilts to 45' },
@@ -67,11 +67,11 @@ describe('/api/tools', () => {
     // Rows as M3 to M5 stored them: free-text IDs and capability names.
     await client.query(
       `insert into tools (tool_type_id, capabilities) values
-         ('circular-saw', '{"bevels": true, "maxBevel": 56}'),
+         ('circular-saw', '{"bevels": true, "depthOfCut": 2.375}'),
          ('table-saw', '{}')`,
     );
     const expected = {
-      tools: [{ toolTypeId: 'circular-saw', capabilities: { maxBevel: 56 } }],
+      tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }],
       other: [
         {
           name: 'circular-saw',
@@ -91,6 +91,24 @@ describe('/api/tools', () => {
     const stored = await client.query('select tool_type_id from tools');
     expect(stored.rows).toEqual([{ tool_type_id: 'circular-saw' }]);
     expect(await (await authed('/api/tools')).json()).toEqual(expected);
+  });
+
+  it('reads a stored retired capability as gone, without moving anything (#171)', async () => {
+    const { authed, client, db } = await createTestApp();
+    await client.query(
+      `insert into tools (tool_type_id, capabilities) values
+         ('circular-saw', '{"depthOfCut": 2.375, "maxBevel": 45}'),
+         ('drill-driver', '{"chuckSize": 0.5}')`,
+    );
+    expect(await (await authed('/api/tools')).json()).toEqual({
+      tools: [
+        { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } },
+        { toolTypeId: 'drill-driver', capabilities: {} },
+      ],
+      other: [],
+    });
+    // Nothing moves, so the release step leaves the rows alone; the next save drops the values.
+    expect(await upgradeStoredInventory(db, new Date('2026-10-30T12:00:00Z'))).toBe(0);
   });
 });
 

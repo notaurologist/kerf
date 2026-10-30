@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { type CapabilityField, findToolType, type ToolType } from '../knowledge/tools.ts';
+import {
+  type CapabilityField,
+  findToolType,
+  RETIRED_CAPABILITIES,
+  type ToolType,
+  type ToolTypeId,
+} from '../knowledge/tools.ts';
 import type { FormSection } from '../templates/form.ts';
 import { formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
@@ -108,9 +114,10 @@ export interface StoredTool {
 }
 
 /**
- * Reads stored tool rows into the current shape, losing nothing. A row whose ID is a library
- * tool keeps the capabilities that fit it; a row whose ID is not, and any capability that does
- * not fit, moves to `other` under the old ID, with the old values written in its note.
+ * Reads stored tool rows into the current shape. A row whose ID is a library tool keeps the
+ * capabilities that fit it; a row whose ID is not, and any capability that does not fit, moves to
+ * `other` under the old ID, with the old values written in its note. A retired capability
+ * (`RETIRED_CAPABILITIES`) is the one thing dropped: no method ever read it.
  */
 export function readStoredTools(rows: readonly StoredTool[]): {
   tools: Tool[];
@@ -129,7 +136,9 @@ export function readStoredTools(rows: readonly StoredTool[]): {
     }
     const capabilities: Record<string, CapabilityValue> = {};
     const left: [string, unknown][] = [];
+    const retired = RETIRED_CAPABILITIES[type.id as ToolTypeId] ?? [];
     for (const [id, value] of entries) {
+      if (retired.includes(id)) continue;
       const field = type.capabilities.find((c) => c.id === id);
       if (field && !capabilityProblem(field, value)) capabilities[id] = value as CapabilityValue;
       else left.push([id, value]);

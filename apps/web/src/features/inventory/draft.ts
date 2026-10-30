@@ -57,7 +57,7 @@ export function addTool(draft: InventoryDraft, toolTypeId: string): InventoryDra
   return { ...draft, tools: [...draft.tools, { toolTypeId, values: {} }].sort(byLibrary) };
 }
 
-/** The inventory to send, or the problems that stop it, by field (`tools.0.capabilities.maxBevel`). */
+/** The inventory to send, or the problems that stop it, by field (`tools.0.capabilities.depthOfCut`). */
 export function toInventory(
   draft: InventoryDraft,
 ): { ok: true; inventory: Inventory } | { ok: false; issues: FieldIssue[] } {

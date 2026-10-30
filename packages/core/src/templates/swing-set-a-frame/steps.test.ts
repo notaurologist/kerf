@@ -56,7 +56,7 @@ const fullShop = inventory(
 // A circular saw that cuts 2-3/8" (through a 2x but only past halfway in a 4x: 1.75), spade bits
 // that reach 6" (past halfway in 8.947, through 5), clamps that open 10", and no digger.
 const circularSawKit = inventory(
-  ['circular-saw', { depthOfCut: 2.375, maxBevel: 45 }],
+  ['circular-saw', { depthOfCut: 2.375 }],
   ['hand-saw'],
   ['tape-measure'],
   ['rafter-square'],
