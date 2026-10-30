@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Inventory } from '../inventory/tools.ts';
 import { findMethod } from '../knowledge/methods.ts';
 import type { Operation } from '../templates/operations.ts';
-import { buildSteps } from './build.ts';
+import { buildSteps, inventoryKey } from './build.ts';
 import { describeChoice, fitMethod, selectMethod } from './select.ts';
 
 // A square crosscut through a 3-1/2" by 3-1/2" post: what each method needs is set by those two
@@ -114,5 +114,17 @@ describe('buildSteps', () => {
     ]);
     expect(op?.skills).toEqual(['measure-and-mark', 'cut-to-a-line']);
     expect(built?.partIds).toEqual(['post']);
+  });
+});
+
+describe('inventoryKey', () => {
+  it('is the same for the same tools in any order, and differs when a capability changes', () => {
+    const a = inventory(['hand-saw'], ['circular-saw', { maxBevel: 45, depthOfCut: 2.375 }]);
+    const b = inventory(['circular-saw', { depthOfCut: 2.375, maxBevel: 45 }], ['hand-saw']);
+    expect(inventoryKey(a)).toBe(inventoryKey(b));
+    expect(inventoryKey(a)).toMatch(/^[0-9a-f]{8}$/);
+    const deeper = inventory(['hand-saw'], ['circular-saw', { maxBevel: 45, depthOfCut: 2.5 }]);
+    expect(inventoryKey(deeper)).not.toBe(inventoryKey(a));
+    expect(inventoryKey({ ...a, other: [{ name: 'Rasp', note: '' }] })).toBe(inventoryKey(a));
   });
 });

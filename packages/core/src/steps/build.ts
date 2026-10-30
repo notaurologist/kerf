@@ -1,15 +1,17 @@
-import type { Citation } from '../design-values/sources.ts';
+import { z } from 'zod';
+import { Citation } from '../design-values/sources.ts';
 import type { Inventory } from '../inventory/tools.ts';
-import { type FlagCategory, findExpertCheckCategory } from '../knowledge/categories.ts';
-import { fillMethodText, type Method } from '../knowledge/methods.ts';
-import type { SkillId } from '../knowledge/skills.ts';
-import type { Operation } from '../templates/operations.ts';
+import { FlagCategory, findExpertCheckCategory } from '../knowledge/categories.ts';
+import { fillMethodText, findMethod, type Method } from '../knowledge/methods.ts';
+import { SkillIdSchema } from '../knowledge/skills.ts';
+import type { TemplateDefinition } from '../templates/definition.ts';
+import { Operation } from '../templates/operations.ts';
 import {
+  describeChoice,
   type MethodFit,
   meetingTool,
   type RequirementGap,
   selectMethod,
-  type ToolSuggestion,
 } from './select.ts';
 
 // Build steps (#105; ARCHITECTURE.md, Generation pipeline): a template's operations, grouped and
@@ -30,46 +32,68 @@ export interface StepOutline {
 }
 
 /** An expert check shown on a step. */
-export interface StepFlag {
-  category: FlagCategory;
-  ask: string;
-  why: string;
-  sources: Citation[];
-}
+export const StepFlag = z.object({
+  category: FlagCategory,
+  ask: z.string(),
+  why: z.string(),
+  sources: z.array(Citation),
+});
+export type StepFlag = z.infer<typeof StepFlag>;
 
 /** The chosen method with its text filled from the operation. */
-export interface FilledMethod {
-  id: string;
-  name: string;
+export const FilledMethod = z.object({
+  id: z.string(),
+  name: z.string(),
   /** For each requirement: what it is used for and the owned tool type that meets it. */
-  tools: { use: string; toolTypeId: string }[];
-  setup: string[];
-  technique: string[];
-  mistakes: string[];
-  safety: { text: string; sources: Citation[] }[];
-}
+  tools: z.array(z.object({ use: z.string(), toolTypeId: z.string() })),
+  setup: z.array(z.string()),
+  technique: z.array(z.string()),
+  mistakes: z.array(z.string()),
+  safety: z.array(z.object({ text: z.string(), sources: z.array(Citation) })),
+});
+export type FilledMethod = z.infer<typeof FilledMethod>;
 
-export interface StepOperation {
-  operation: Operation;
+/**
+ * A requirement a method lacks, in words: what the tool is for, and each tool type that would
+ * meet it, described by `describeChoice` with core's formatters.
+ */
+export const Gap = z.object({ use: z.string(), anyOf: z.array(z.string()).min(1) });
+export type Gap = z.infer<typeof Gap>;
+
+/** A method and what it lacks. */
+export const MethodGaps = z.object({
+  methodId: z.string(),
+  methodName: z.string(),
+  gaps: z.array(Gap),
+});
+export type MethodGaps = z.infer<typeof MethodGaps>;
+
+export const StepOperation = z.object({
+  operation: Operation,
   /** The parts the operation works on; empty for site work. */
-  partIds: string[];
-  method?: FilledMethod;
-  skills: SkillId[];
+  partIds: z.array(z.string()),
+  method: FilledMethod.optional(),
+  skills: z.array(SkillIdSchema),
   /** With no method: the method closest to supported and what it lacks. */
-  needed?: { methodId: string; gaps: RequirementGap[] };
+  needed: MethodGaps.optional(),
   /** Better methods that wait only on capabilities not entered. */
-  inputNeeded: { methodId: string; gaps: RequirementGap[] }[];
-  suggestions: ToolSuggestion[];
-}
+  inputNeeded: z.array(MethodGaps),
+  /** Methods the tools do not support that are easier or more accurate than the chosen one. */
+  suggestions: z.array(
+    MethodGaps.extend({ better: z.array(z.enum(['easier', 'more accurate'])).min(1) }),
+  ),
+});
+export type StepOperation = z.infer<typeof StepOperation>;
 
-export interface BuildStep {
-  id: string;
-  title: string;
-  operations: StepOperation[];
+export const BuildStep = z.object({
+  id: z.string(),
+  title: z.string(),
+  operations: z.array(StepOperation),
   /** Every part the step uses, in order of first use. */
-  partIds: string[];
-  flags: StepFlag[];
-}
+  partIds: z.array(z.string()),
+  flags: z.array(StepFlag),
+});
+export type BuildStep = z.infer<typeof BuildStep>;
 
 function partIdsOf(op: Operation): string[] {
   if ('partId' in op) return [op.partId];
@@ -92,7 +116,14 @@ function fill(method: Method, op: Operation, inventory: Inventory): FilledMethod
   };
 }
 
-const gapsOf = (f: MethodFit) => ({ methodId: f.method.id, gaps: f.gaps });
+const inWords = (gaps: RequirementGap[]): Gap[] =>
+  gaps.map((g) => ({ use: g.use, anyOf: g.anyOf.map(describeChoice) }));
+
+function methodGaps(methodId: string, gaps: RequirementGap[]): MethodGaps {
+  return { methodId, methodName: findMethod(methodId)?.name ?? methodId, gaps: inWords(gaps) };
+}
+
+const gapsOf = (f: MethodFit) => methodGaps(f.method.id, f.gaps);
 
 function stepOperation(op: Operation, inventory: Inventory): [StepOperation, Method | undefined] {
   const selection = selectMethod(op, inventory);
@@ -105,7 +136,10 @@ function stepOperation(op: Operation, inventory: Inventory): [StepOperation, Met
       skills: chosen ? [...chosen.skills] : [],
       ...(selection.needed ? { needed: gapsOf(selection.needed) } : {}),
       inputNeeded: selection.inputNeeded.map(gapsOf),
-      suggestions: selection.suggestions,
+      suggestions: selection.suggestions.map((x) => ({
+        ...methodGaps(x.methodId, x.gaps),
+        better: x.better,
+      })),
     },
     chosen ?? selection.needed?.method,
   ];
@@ -153,4 +187,45 @@ export function buildSteps(
       }),
     };
   });
+}
+
+/**
+ * A short key for the tools an inventory has and their capabilities, in any order, so a step list
+ * can say which inventory it was chosen from and a client can tell when it is stale (#52). Tools
+ * outside the library are left out: methods ignore them. FNV-1a over a canonical JSON form.
+ */
+export function inventoryKey(inventory: Inventory): string {
+  const canonical = JSON.stringify(
+    [...inventory.tools]
+      .sort((a, b) => a.toolTypeId.localeCompare(b.toolTypeId))
+      .map((t) => [
+        t.toolTypeId,
+        Object.entries(t.capabilities).sort(([a], [b]) => a.localeCompare(b)),
+      ]),
+  );
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < canonical.length; i++) {
+    hash ^= canonical.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+/** A plan's build steps and the inventory they were chosen from. */
+export const BuildSteps = z.object({
+  inventoryKey: z.string(),
+  steps: z.array(BuildStep),
+});
+export type BuildSteps = z.infer<typeof BuildSteps>;
+
+/** The build steps for a template's stored outputs and an inventory. */
+export function planSteps<O>(
+  template: Pick<TemplateDefinition<unknown, unknown, O>, 'steps' | 'plan'>,
+  outputs: O,
+  inventory: Inventory,
+): BuildSteps {
+  return {
+    inventoryKey: inventoryKey(inventory),
+    steps: buildSteps(template.steps(outputs), template.plan(outputs).operations, inventory),
+  };
 }
