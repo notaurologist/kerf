@@ -45,6 +45,7 @@ import {
   SawSetting,
 } from './numbers.tsx';
 import { Header, ModeBar } from './Shell.tsx';
+import { Tick } from './Tick.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
 // (#45). Sample values are core's output for the first template's worked examples, formatted by
@@ -490,8 +491,17 @@ function Specimens() {
 function ShopSpecimens() {
   return (
     <Stack gap="m">
-      <ModeBar mode="Building" exitHref="#/catalog" />
+      <ModeBar mode="Building" context="Backyard project" exitHref="#/catalog" />
       <Stack gap="s">
+        <Tick done={false} onChange={() => {}}>
+          {part.name}, 1 of {part.quantity} cut
+        </Tick>
+        <Tick done onChange={() => {}}>
+          {part.name}, 2 of {part.quantity} cut
+        </Tick>
+        <Tick done waiting onChange={() => {}}>
+          Step done
+        </Tick>
         <p>
           {part.name}, {part.quantity}
         </p>

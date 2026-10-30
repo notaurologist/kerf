@@ -105,10 +105,12 @@
     --dash-zone: 8 4;
   }
 
-  /* Shopping and Building (#41): larger space and controls at least 56 px tall. */
+  /* Shopping and Building (#41): larger space and controls at least 56 px tall, and every word in
+     the text color (#43, rule 5), so text a desk screen mutes reads at arm's length. */
   [data-density="shop"] {
     --density: 1.5;
     --control-min: 3.5rem;
+    --muted: var(--text);
   }
 
   /* Colors follow the device (#43): each is light-dark(light value, dark value), picked by the

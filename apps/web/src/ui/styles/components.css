@@ -598,6 +598,31 @@
     background: transparent;
   }
 
+  /* One item to mark done in a shop mode (#61). The box is drawn by the browser, so checked is a
+     shape, not only a color. */
+  .k-tick {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: center;
+    min-block-size: var(--control-min);
+    cursor: pointer;
+  }
+
+  .k-tick > input {
+    flex: none;
+    inline-size: 1.5em;
+    block-size: 1.5em;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+
+  .k-tick__label {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-xs);
+    align-items: baseline;
+  }
+
   /* ---------- Dialog ---------- */
   .k-dialog {
     max-inline-size: min(28rem, 100% - 2 * var(--space-s));

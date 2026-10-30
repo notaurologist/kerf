@@ -32,7 +32,7 @@ async function setup() {
   };
   const progress = async () => {
     const res = await test.authed(`/api/projects/${id}/progress`);
-    return ((await res.json()) as Json).progress as { kind: string; key: string }[];
+    return ((await res.json()) as Json).ticks as { kind: string; key: string }[];
   };
   return { ...test, id, tick, progress };
 }
@@ -64,13 +64,13 @@ describe('project progress', () => {
       done('step', 'board-6'),
     ]);
     expect(status).toBe(200);
-    expect(body.progress).toHaveLength(4);
-    expect(body.progress[0]).toEqual({
+    expect(body.ticks).toHaveLength(4);
+    expect(body.ticks[0]).toEqual({
       kind: 'board',
       key: '2x6/10/1',
       doneAt: clock.now.toISOString(),
     });
-    expect(keys(await progress())).toEqual(keys(body.progress));
+    expect(keys(await progress())).toEqual(keys(body.ticks));
   });
 
   it('keeps the first time when a tick is sent again, so a retry changes nothing', async () => {
@@ -79,7 +79,7 @@ describe('project progress', () => {
     await tick([done('step', 'site')]);
     clock.now = new Date(clock.now.getTime() + 60_000);
     const { body } = await tick([done('step', 'site')]);
-    expect(body.progress).toEqual([{ kind: 'step', key: 'site', doneAt: first }]);
+    expect(body.ticks).toEqual([{ kind: 'step', key: 'site', doneAt: first }]);
   });
 
   it('clears ticks, and takes the last value for a key sent twice', async () => {
@@ -92,7 +92,7 @@ describe('project progress', () => {
       // Clearing a tick that is not there, or an item the plan lacks, is allowed: no tick either way.
       { kind: 'board', key: 'no-such-board', done: false },
     ]);
-    expect(keys(body.progress)).toEqual(['step frames']);
+    expect(keys(body.ticks)).toEqual(['step frames']);
   });
 
   it('refuses a tick on an item the plan does not have, and saves none of the request', async () => {
@@ -198,5 +198,55 @@ describe('project progress', () => {
       'select count(*)::int as n from project_progress',
     );
     expect(rows).toEqual([{ n: 0 }]);
+  });
+
+  it('moves a planned project to In progress at its first tick, and to Built at its last step', async () => {
+    const { tick, authed, id } = await setup();
+    const status = async () =>
+      ((await (await authed(`/api/projects/${id}`)).json()) as Json).status;
+    expect(await status()).toBe('planned');
+
+    // Clearing a tick starts nothing.
+    expect((await tick([{ kind: 'step', key: 'site', done: false }])).body.status).toBe('planned');
+    expect((await tick([done('shopping-line', 'lumber/2x6/10')])).body.status).toBe('in-progress');
+
+    const steps = [1, 2, 3, 4, 5, 6, 7].map((n) => `board-${n}`);
+    steps.push('ease-edges', 'site', 'frames');
+    expect((await tick(steps.map((key) => done('step', key)))).body.status).toBe('in-progress');
+    expect((await tick([done('step', 'beam')])).body.status).toBe('built');
+    expect(await status()).toBe('built');
+
+    // Set by hand, it stays: clearing and ticking again a step already done does not move it.
+    await authed(`/api/projects/${id}`, { method: 'PUT', body: { status: 'in-progress' } });
+    expect((await tick([done('step', 'beam')])).body.status).toBe('in-progress');
+    await tick([{ kind: 'step', key: 'beam', done: false }]);
+    expect((await tick([done('step', 'beam')])).body.status).toBe('built');
+  });
+
+  it('lists each project with its progress summary and no snapshot', async () => {
+    const { tick, authed } = await setup();
+    await tick([
+      done('shopping-line', 'lumber/2x6/10'),
+      done('shopping-line', 'hardware/Swing hangers'),
+      done('step', 'board-1'),
+      done('step', 'board-2'),
+    ]);
+    const list = (await (await authed('/api/projects')).json()) as Json;
+    const [project] = list.projects;
+    expect(project).not.toHaveProperty('snapshot');
+    // The worked example: 4 lumber and 7 hardware lines, 7 board steps and 4 more.
+    expect(project.progress).toEqual({
+      shopping: { done: 2, total: 11 },
+      steps: { done: 2, total: 11 },
+      nextStep: { id: 'board-3', number: 3, title: "Cut board 3, a 4x4 12' long" },
+    });
+  });
+
+  it('carries the ticks and summary in the project response', async () => {
+    const { tick, authed, id } = await setup();
+    await tick([done('step', 'board-1')]);
+    const project = (await (await authed(`/api/projects/${id}`)).json()) as Json;
+    expect(project.ticks.map((t: Json) => t.key)).toEqual(['board-1']);
+    expect(project.progress.steps).toEqual({ done: 1, total: 11 });
   });
 });

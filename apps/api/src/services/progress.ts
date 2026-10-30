@@ -2,6 +2,7 @@ import {
   type ProgressKind,
   ProgressKind as ProgressKindSchema,
   type ProgressReset,
+  type ProgressSummary,
   type ProjectSnapshot,
   progressItems,
   progressToReset,
@@ -10,7 +11,7 @@ import {
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from '../db/client.ts';
-import { projectProgress } from '../db/schema.ts';
+import { type PROJECT_STATUSES, projectProgress } from '../db/schema.ts';
 
 // Saved progress (#57): what has been ticked off in a project, by the keys core gives each item.
 // Every device reads the same rows. A write sets or clears ticks and is safe to send again, so a
@@ -42,13 +43,34 @@ export function itemsOf(template: TemplateDefinition, snapshot: ProjectSnapshot)
   return progressItems(template, template.outputs.parse(snapshot.outputs));
 }
 
+type ProgressRow = typeof projectProgress.$inferSelect;
+const ORDER = [asc(projectProgress.doneAt), asc(projectProgress.kind), asc(projectProgress.key)];
+const entry = (r: ProgressRow): ProgressEntry => ({
+  kind: r.kind,
+  key: r.key,
+  doneAt: r.doneAt.toISOString(),
+});
+
 export async function readProgress(db: Database, projectId: string): Promise<ProgressEntry[]> {
   const rows = await db
     .select()
     .from(projectProgress)
     .where(eq(projectProgress.projectId, projectId))
-    .orderBy(asc(projectProgress.doneAt), asc(projectProgress.kind), asc(projectProgress.key));
-  return rows.map((r) => ({ kind: r.kind, key: r.key, doneAt: r.doneAt.toISOString() }));
+    .orderBy(...ORDER);
+  return rows.map(entry);
+}
+
+/** Every project's ticks, by project ID, for the projects list (#61). */
+export async function readAllProgress(db: Database): Promise<Map<string, ProgressEntry[]>> {
+  const rows = await db
+    .select()
+    .from(projectProgress)
+    .orderBy(...ORDER);
+  const byProject = new Map<string, ProgressEntry[]>();
+  for (const row of rows) {
+    byProject.set(row.projectId, [...(byProject.get(row.projectId) ?? []), entry(row)]);
+  }
+  return byProject;
 }
 
 /**
@@ -108,7 +130,7 @@ export async function resetProgress(
     .select({ kind: projectProgress.kind, key: projectProgress.key })
     .from(projectProgress)
     .where(eq(projectProgress.projectId, projectId))
-    .orderBy(asc(projectProgress.doneAt), asc(projectProgress.kind), asc(projectProgress.key));
+    .orderBy(...ORDER);
   if (ticked.length === 0) return [];
   const reset = progressToReset(
     ticked,
@@ -117,4 +139,24 @@ export async function resetProgress(
   );
   await clearTicks(tx, projectId, reset);
   return reset;
+}
+
+type Status = (typeof PROJECT_STATUSES)[number];
+
+/**
+ * A project's status after a write to its ticks (#61; information architecture, "Status follows
+ * what you do"): Built when the write finishes the last step, In progress when a Planned project
+ * gets its first tick. Only these forward moves are made; any status can still be set by hand,
+ * and clearing a tick never moves it back.
+ */
+export function statusAfterTicks(
+  status: Status,
+  changes: ProgressChanges['changes'],
+  before: ProgressSummary,
+  after: ProgressSummary,
+): Status {
+  const { done, total } = after.steps;
+  if (total > 0 && done === total && before.steps.done < total) return 'built';
+  if (status === 'planned' && changes.some((c) => c.done)) return 'in-progress';
+  return status;
 }

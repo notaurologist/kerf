@@ -52,5 +52,6 @@ export {
   SawSetting,
 } from './numbers.tsx';
 export { PlanSection } from './Section.tsx';
-export { Header, ModeBar, type NavItem } from './Shell.tsx';
+export { Header, ModeBar, ModeFrame, type NavItem } from './Shell.tsx';
+export { Tick } from './Tick.tsx';
 export { Code, List, PlainList, Text, VisuallyHidden } from './text.tsx';

@@ -38,6 +38,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | A question for an experienced builder | `ExpertCheck` | Amber, with the flag icon and "Expert check" (#43, rule 3). |
 | What just happened | `StatusLine` | Stays until the next action. Use `setFlash` (`lib/flash.ts`) to carry it to the next screen. |
 | Progress not yet sent | `Pending` | Shop modes (#57). |
+| Marking an item done in a shop mode | `Tick` | A native checkbox with the item as its label, at least the control height; `waiting` adds `Pending` (#61). |
 | A margin | `MarginLine` | Core's `formatMargin`, then "under these assumptions", in the text color. In a preview, `was` gives the saved margin. |
 | A value a preview changes | `Changed`, and `rowChanged` on `MeasureTable` | The new value with "was" and the saved value under it, and a bar beside the row (#56). `was={null}` says "new". |
 | The state of the numbers shown | `StateTag` | Words in an outlined box, such as "Preview, not saved". |
@@ -52,7 +53,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Secondary text | `Text tone="muted"` | Desk screens only. Shop modes use the text color for every word (#43, rule 5). |
 | Leaving with changes | `useLeaveGuard(dirty)` | Render its `dialog`; it asks before any in-app link and when the tab closes. |
 | A diagram | `Diagram`, inside `DiagramFrame` | `Diagram` draws core's primitives (#90, #91): roles to the line and diagram tokens, text at least 13 px, part letters in columns (one column when narrow), and `selected` and `onSelect` to link a part with the cut list. Give it a short `label` generated from the data and `describedBy` the cut list's id; `page="landscape"` for views that print on their own landscape page. |
-| Shop modes | `ModeBar`, `data-density="shop"` | The mode's name and Exit; space times 1.5, controls at least 56 px tall. |
+| Shop modes | `ModeFrame` (or `ModeBar` alone) | The mode's name, the project's name, and Exit, over content in shop density: space times 1.5, controls at least 56 px tall, and every word in the text color. No other navigation (#61). |
 
 ## Tokens
 

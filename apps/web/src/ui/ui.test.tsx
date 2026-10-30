@@ -18,6 +18,7 @@ import {
   MarginLine,
   Measured,
   MeasureTable,
+  ModeFrame,
   Notice,
   PartLetter,
   SawSetting,
@@ -25,6 +26,7 @@ import {
   StateTag,
   StatusLine,
   TextInput,
+  Tick,
 } from './index.ts';
 
 // Each component's states and what assistive technology is told about them (#45). The catalog
@@ -271,6 +273,54 @@ describe('Header', () => {
     expect(html).toContain('<nav aria-label="Main">');
     expect(html).toContain('<a href="#/projects" aria-current="page">Projects</a>');
     expect(html).toContain('<a href="#/tools">Tools</a>');
+  });
+});
+
+describe('ModeFrame', () => {
+  it('names the mode and the project, offers Exit, and has no other navigation', () => {
+    const html = render(
+      <ModeFrame mode="Shopping" context="Backyard swing set" exitHref="#/projects/1">
+        <p>Lines</p>
+      </ModeFrame>,
+    );
+    expect(
+      renderText(
+        <ModeFrame mode="Shopping" context="Backyard swing set" exitHref="#/projects/1">
+          x
+        </ModeFrame>,
+      ),
+    ).toContain('Shopping · Backyard swing set Exit');
+    expect(html).toContain('href="#/projects/1"');
+    expect(html).not.toContain('<nav');
+    expect(html).toContain('<main class="l-page" data-density="shop">');
+  });
+});
+
+describe('Tick', () => {
+  it('is a labeled checkbox whose state is the box, not a color', () => {
+    const html = render(
+      <Tick done onChange={none}>
+        Crossbar cut
+      </Tick>,
+    );
+    expect(html).toMatch(/<label class="k-tick"[^>]*><input type="checkbox" checked=""/);
+    expect(
+      renderText(
+        <Tick done={false} onChange={none}>
+          Crossbar cut
+        </Tick>,
+      ),
+    ).toBe('Crossbar cut');
+  });
+
+  it('says when a tick is not saved yet, in its name', () => {
+    expect(
+      renderText(
+        <Tick done waiting onChange={none}>
+          Crossbar cut
+        </Tick>,
+      ),
+    ).toBe('Crossbar cut On this phone, not yet sent');
   });
 });
 

@@ -45,6 +45,22 @@ export const hardwareProgressKey = (description: string) => `hardware/${descript
 const json = (value: unknown) => JSON.stringify(value);
 
 /**
+ * The shopping lines as they are ticked: lumber, then hardware, each with its key. Two hardware
+ * lines with one description would share a tick, so only the first is kept.
+ */
+export function shoppingLines(
+  plan: Pick<Plan, 'lumber' | 'hardware'>,
+): { key: string; line: Plan['lumber']['lines'][number] | Plan['hardware'][number] }[] {
+  const lines: { key: string; line: Plan['lumber']['lines'][number] | Plan['hardware'][number] }[] =
+    plan.lumber.lines.map((line) => ({ key: lumberProgressKey(line), line }));
+  for (const line of plan.hardware) {
+    const key = hardwareProgressKey(line.description);
+    if (!lines.some((l) => l.key === key)) lines.push({ key, line });
+  }
+  return lines;
+}
+
+/**
  * Every item in a plan that can be ticked off, in the plan's order: shopping lines (lumber, then
  * hardware), boards, each part's pieces, and the build steps. A piece's numbers include its
  * part's cut detail, and a step's the cut details of the parts it works on and, for site work, the
@@ -58,13 +74,7 @@ export function planProgressItems(
   const { lumber } = plan;
   const detail = (partId: string) => drawings.cutDetails.find((d) => d.partId === partId) ?? null;
   const items: ProgressItem[] = [];
-  for (const line of lumber.lines) {
-    items.push({ kind: 'shopping-line', key: lumberProgressKey(line), numbers: json(line) });
-  }
-  for (const line of plan.hardware) {
-    const key = hardwareProgressKey(line.description);
-    // Two hardware lines with one description would share a tick; keep the first.
-    if (items.some((i) => i.kind === 'shopping-line' && i.key === key)) continue;
+  for (const { key, line } of shoppingLines(plan)) {
     items.push({ kind: 'shopping-line', key, numbers: json(line) });
   }
   const ids = boardIds(lumber.boards);
@@ -162,4 +172,43 @@ export function progressToReset(
     if (numbers !== was.get(id)) return [{ kind, key, reason: 'changed' }];
     return [];
   });
+}
+
+/** How far a project has got (#61): for the plan's mode cards and the projects list. */
+export interface ProgressSummary {
+  shopping: { done: number; total: number };
+  steps: { done: number; total: number };
+  /** The first step not done, numbered from 1; null when there are no steps or all are done. */
+  nextStep: { id: string; number: number; title: string } | null;
+}
+
+/** Counts the ticked shopping lines and steps, and finds the first step not done. */
+export function summarizeProgress(
+  plan: Pick<Plan, 'lumber' | 'hardware'>,
+  steps: readonly { id: string; title: string }[],
+  ticked: readonly Pick<ProgressItem, 'kind' | 'key'>[],
+): ProgressSummary {
+  const done = new Set(ticked.map(progressId));
+  const lines = shoppingLines(plan);
+  const isDone = (kind: ProgressKind, key: string) => done.has(progressId({ kind, key }));
+  const next = steps.findIndex((s) => !isDone('step', s.id));
+  const step = steps[next];
+  return {
+    shopping: {
+      done: lines.filter((l) => isDone('shopping-line', l.key)).length,
+      total: lines.length,
+    },
+    steps: { done: steps.filter((s) => isDone('step', s.id)).length, total: steps.length },
+    nextStep: step ? { id: step.id, number: next + 1, title: step.title } : null,
+  };
+}
+
+/** The progress summary for a template's stored outputs. Draws nothing, so it is cheap to list. */
+export function progressSummary<O>(
+  template: Pick<TemplateDefinition<unknown, unknown, O>, 'steps' | 'plan'>,
+  outputs: O,
+  ticked: readonly Pick<ProgressItem, 'kind' | 'key'>[],
+): ProgressSummary {
+  const plan = template.plan(outputs);
+  return summarizeProgress(plan, stepContents(template.steps(outputs), plan), ticked);
 }

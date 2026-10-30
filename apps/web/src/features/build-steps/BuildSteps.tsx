@@ -28,12 +28,9 @@ import { SourceToggle } from '../structural/Citation.tsx';
 // The build steps (#105, #52), rendered from the project response: the API chose each method
 // from the tool inventory and filled its numbers, so this only lays the words out. Cutting goes
 // board by board (#58), each piece opening its part's cut detail. The shop view (M7) will show the
-// same data one step at a time.
+// same data one step at a time (`StepBody`).
 
 export function BuildSteps(props: { steps: readonly BuildStep[]; rows: readonly CutListRow[] }) {
-  const parts = new Map(props.rows.map((r) => [r.partId, `${r.letter} ${r.name}`]));
-  const partName = (id: string) => parts.get(id) ?? id;
-  const quantity = new Map(props.rows.map((r) => [r.partId, r.quantity]));
   return (
     <PlainList ordered>
       {props.steps.map((step, i) => (
@@ -42,38 +39,64 @@ export function BuildSteps(props: { steps: readonly BuildStep[]; rows: readonly 
             <h3>
               {i + 1}. {step.title}
             </h3>
-            {step.board ? (
-              <Board board={step.board} partName={partName} quantity={quantity} />
-            ) : (
-              step.partIds.length > 0 && (
-                <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
-              )
-            )}
-            {step.flags.length > 0 && (
-              <PlainList>
-                {step.flags.map((flag) => (
-                  <li key={`${flag.category}/${flag.ask}`}>
-                    <ExpertCheck
-                      label={`Expert check · ${FLAG_CATEGORY_LABELS[flag.category]}`}
-                      why={<Measured text={flag.why} />}
-                    >
-                      <Measured text={flag.ask} />
-                    </ExpertCheck>
-                  </li>
-                ))}
-              </PlainList>
-            )}
-            <PlainList>
-              {step.operations.map((op) => (
-                <Card key={op.operation.id} as="li">
-                  <Operation op={op} partName={partName} />
-                </Card>
-              ))}
-            </PlainList>
+            <StepBody step={step} rows={props.rows} />
           </Stack>
         </li>
       ))}
     </PlainList>
+  );
+}
+
+/**
+ * One step's board or parts, flags, and operations with their methods: in the plan's list, and
+ * one at a time in Building (#61). In Building each piece links to its cut card (`pieceHref`); in
+ * the plan it shows the part's cut detail on the page.
+ */
+export function StepBody(props: {
+  step: BuildStep;
+  rows: readonly CutListRow[];
+  pieceHref?: (partId: string) => string;
+}) {
+  const { step } = props;
+  const parts = new Map(props.rows.map((r) => [r.partId, `${r.letter} ${r.name}`]));
+  const partName = (id: string) => parts.get(id) ?? id;
+  const quantity = new Map(props.rows.map((r) => [r.partId, r.quantity]));
+  return (
+    <Stack gap="s">
+      {step.board ? (
+        <Board
+          board={step.board}
+          partName={partName}
+          quantity={quantity}
+          pieceHref={props.pieceHref}
+        />
+      ) : (
+        step.partIds.length > 0 && (
+          <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
+        )
+      )}
+      {step.flags.length > 0 && (
+        <PlainList>
+          {step.flags.map((flag) => (
+            <li key={`${flag.category}/${flag.ask}`}>
+              <ExpertCheck
+                label={`Expert check · ${FLAG_CATEGORY_LABELS[flag.category]}`}
+                why={<Measured text={flag.why} />}
+              >
+                <Measured text={flag.ask} />
+              </ExpertCheck>
+            </li>
+          ))}
+        </PlainList>
+      )}
+      <PlainList>
+        {step.operations.map((op) => (
+          <Card key={op.operation.id} as="li">
+            <Operation op={op} partName={partName} />
+          </Card>
+        ))}
+      </PlainList>
+    </Stack>
   );
 }
 
@@ -82,6 +105,7 @@ function Board(props: {
   board: StepBoard;
   partName: (id: string) => string;
   quantity: ReadonlyMap<string, number>;
+  pieceHref?: (partId: string) => string;
 }) {
   const { board } = props;
   return (
@@ -94,9 +118,13 @@ function Board(props: {
       <List ordered>
         {board.pieces.map((piece) => (
           <li key={`${piece.partId}/${piece.instance}`}>
-            <Button variant="link" onClick={() => show(cutDetailId(piece.partId))}>
-              {props.partName(piece.partId)}
-            </Button>{' '}
+            {props.pieceHref ? (
+              <a href={props.pieceHref(piece.partId)}>{props.partName(piece.partId)}</a>
+            ) : (
+              <Button variant="link" onClick={() => show(cutDetailId(piece.partId))}>
+                {props.partName(piece.partId)}
+              </Button>
+            )}{' '}
             <Length>{formatLength(piece.length)}</Length>
             {(props.quantity.get(piece.partId) ?? 1) > 1 &&
               `, piece ${piece.instance + 1} of ${props.quantity.get(piece.partId)}`}

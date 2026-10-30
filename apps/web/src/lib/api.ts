@@ -35,7 +35,12 @@ export type ApiError =
   | { kind: 'login-required' }
   | { kind: 'wrong-password' }
   | { kind: 'rate-limited'; retryAfterSeconds: number | null }
-  | { kind: 'invalid'; issues: FieldIssue[] }
+  | {
+      kind: 'invalid';
+      issues: FieldIssue[];
+      /** Ticks on items the stored plan does not have (`unknown-progress`, #57). */
+      items?: { kind: string; key: string }[];
+    }
   | { kind: 'not-found' }
   | { kind: 'failed'; status: number; message: string };
 
@@ -70,6 +75,10 @@ export function fieldIssues(body: unknown): FieldIssue[] {
   });
 }
 
+function isTickRef(value: unknown): value is { kind: string; key: string } {
+  return isRecord(value) && typeof value.kind === 'string' && typeof value.key === 'string';
+}
+
 async function readJson(res: Response): Promise<unknown> {
   if (res.status === 204) return null;
   try {
@@ -95,7 +104,9 @@ export async function toError(res: Response): Promise<ApiError> {
     }
     case 400:
     case 422:
-      return { kind: 'invalid', issues: fieldIssues(body) };
+      return isRecord(body) && Array.isArray(body.items)
+        ? { kind: 'invalid', issues: fieldIssues(body), items: body.items.filter(isTickRef) }
+        : { kind: 'invalid', issues: fieldIssues(body) };
     case 404:
       return { kind: 'not-found' };
     default:
