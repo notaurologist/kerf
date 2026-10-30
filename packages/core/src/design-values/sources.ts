@@ -69,6 +69,39 @@ export const SOURCES = {
     url: 'https://awpa.com/info/technical/homeowners',
     note: 'For ground-contact use categories and end tags.',
   },
+  'osha-3080': {
+    title: 'Hand and Power Tools (OSHA 3080)',
+    publisher: 'U.S. Department of Labor, Occupational Safety and Health Administration',
+    edition: '2002 (Revised)',
+    url: 'https://www.osha.gov/sites/default/files/publications/osha3080.pdf',
+    note: 'For guards, clamping the work, and unplugging a tool to change a blade or bit.',
+  },
+  'osha-woodworking-etool': {
+    title: 'Woodworking eTool',
+    publisher: 'U.S. Department of Labor, Occupational Safety and Health Administration',
+    edition: 'Web pages, read October 2026 (undated)',
+    url: 'https://www.osha.gov/etools/woodworking',
+    note: 'For kickback, supporting the work, and the guards on saws, routers, and jointers.',
+  },
+  'osha-wood-dust': {
+    title: 'Wood Dust: Overview',
+    publisher: 'U.S. Department of Labor, Occupational Safety and Health Administration',
+    edition: 'Web page, read October 2026 (undated)',
+    url: 'https://www.osha.gov/wood-dust',
+  },
+  'usfa-oily-rags': {
+    title: 'Pictograph: Store Oily and Solvent-Wet Rags in a Metal Container',
+    publisher: 'U.S. Fire Administration (FEMA)',
+    edition: 'Web page, last reviewed January 9, 2022',
+    url: 'https://www.usfa.fema.gov/gallery/pictographs/pictograph98.html',
+  },
+  'cga-811': {
+    title: '811 Before You Dig',
+    publisher: 'Common Ground Alliance',
+    edition: 'Web page, read October 2026 (undated)',
+    url: 'https://811beforeyoudig.com/',
+    note: 'For having buried utility lines marked before digging.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

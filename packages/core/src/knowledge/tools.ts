@@ -115,6 +115,7 @@ export const TOOL_TYPES = [
   { id: 'chalk-line', name: 'Chalk line', group: 'measuring-and-marking', capabilities: [] },
   { id: 'level', name: 'Level', group: 'measuring-and-marking', capabilities: [] },
   { id: 'string-line', name: 'String line', group: 'measuring-and-marking', capabilities: [] },
+  { id: 'line-level', name: 'Line level', group: 'measuring-and-marking', capabilities: [] },
 
   // Cutting
   {
@@ -280,6 +281,7 @@ export const TOOL_TYPES = [
     group: 'digging-and-setting',
     capabilities: [],
   },
+  { id: 'shovel', name: 'Shovel', group: 'digging-and-setting', capabilities: [] },
   { id: 'tamper', name: 'Tamper', group: 'digging-and-setting', capabilities: [] },
 ] as const satisfies readonly z.input<typeof ToolType>[];
 
