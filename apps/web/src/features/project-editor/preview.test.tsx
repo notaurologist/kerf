@@ -126,3 +126,36 @@ describe('the preview pane', () => {
     expect(text).toContain('Saved plan');
   });
 });
+
+describe("a new project's preview pane", () => {
+  it('shows no plan and says what it waits for until every entry can be read', () => {
+    const text = renderText(<PreviewPane saved={null} state={{ kind: 'incomplete' }} />);
+    expect(text).toContain('Preview');
+    expect(text).not.toContain('Saved plan');
+    expect(text).not.toContain('Cut list');
+    expect(text).toContain('show here when every dimension and hardware entry can be read');
+  });
+
+  it('shows the previewed plan, labeled, with nothing marked as changed', () => {
+    const plan = planFrom(project.snapshot as { outputs: unknown });
+    const state = { kind: 'ready' as const, plan, changes: indexChanges([]), truncated: false };
+    const html = render(<PreviewPane saved={null} state={state} />);
+    const text = renderText(<PreviewPane saved={null} state={state} />);
+    expect(text).toContain('Preview, not saved');
+    expect(text).toContain('Nothing is saved until you create the project.');
+    expect(text).toContain('131-1/2"');
+    expect(html).not.toContain('data-changed');
+  });
+});
+
+describe('previewRequest for a new project', () => {
+  it('asks for the values as soon as they can be read, with nothing to compare against', () => {
+    expect(previewRequest(template, null, savedForm.params, savedForm.inputs)).toEqual({
+      kind: 'ask',
+      body: {
+        params: project.snapshot?.params,
+        structuralInputs: project.snapshot?.structuralInputs,
+      },
+    });
+  });
+});

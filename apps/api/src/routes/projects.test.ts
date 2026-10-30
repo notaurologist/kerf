@@ -418,6 +418,57 @@ describe('POST /api/projects/:id/preview', () => {
   });
 });
 
+describe('POST /api/projects/preview', () => {
+  const draft = { templateId: 'swing-set-a-frame', params: swingSetParams, structuralInputs: {} };
+
+  it('returns the snapshot a create would store, marks nothing changed, and saves nothing', async () => {
+    const { authed, client } = await createTestApp();
+    const res = await authed('/api/projects/preview', { method: 'POST', body: draft });
+    expect(res.status).toBe(200);
+    const result = (await res.json()) as Json;
+    const expected = createSnapshot(TEMPLATES[0] as TemplateDefinition, swingSetParams, {});
+    if (!expected.ok) throw new Error('worked example should generate');
+    expect(result.snapshot).toEqual(JSON.parse(JSON.stringify(expected.output)));
+    expect(result.changes).toEqual([]);
+    expect(result.truncated).toBe(false);
+    const { rows } = await client.query('select id from projects');
+    expect(rows).toEqual([]);
+  });
+
+  it('takes the create body as it is, name and status included', async () => {
+    const { authed } = await createTestApp();
+    const res = await authed('/api/projects/preview', { method: 'POST', body: newProject });
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as Json).snapshot.structuralInputs).toEqual(swingSetInputs);
+  });
+
+  it('answers 422 with core issues, and 400 for an unknown template', async () => {
+    const { authed } = await createTestApp();
+    const rejected = await authed('/api/projects/preview', {
+      method: 'POST',
+      body: { ...draft, params: { ...swingSetParams, beamLength: 10 } },
+    });
+    expect(rejected.status).toBe(422);
+    expect(((await rejected.json()) as Json).issues[0].params).toEqual(['beamLength']);
+    const unknown = await authed('/api/projects/preview', {
+      method: 'POST',
+      body: { ...draft, templateId: 'bookshelf' },
+    });
+    expect(unknown.status).toBe(400);
+    expect(((await unknown.json()) as Json).error).toBe('unknown-template');
+  });
+
+  it('requires a session', async () => {
+    const { app } = await createTestApp();
+    const res = await app.request('/api/projects/preview', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(draft),
+    });
+    expect(res.status).toBe(401);
+  });
+});
+
 describe('DELETE /api/projects/:id', () => {
   it('deletes the project and its history rows, then answers 404 for it', async () => {
     const { authed, client } = await createTestApp();

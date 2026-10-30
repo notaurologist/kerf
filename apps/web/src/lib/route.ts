@@ -6,7 +6,8 @@ import { isPlanSection, type PlanSectionId } from './sections.ts';
 
 export type Route =
   | { screen: 'projects' }
-  | { screen: 'new-project'; templateId: string }
+  // `start` fills the form from a worked example or an earlier project (#98); none is empty.
+  | { screen: 'new-project'; templateId: string; start?: ProjectStart }
   // The plan, one section per screen (#156). No section is the summary. `part` is the part
   // selected in the drawings and the cut list, kept in the address so a reload keeps it.
   | { screen: 'project'; id: string; section?: PlanSectionId; part?: string }
@@ -23,6 +24,9 @@ export type Route =
   | { screen: 'catalog' }
   | { screen: 'not-found' };
 
+/** Where a new project's form starts: a template's worked example, or an earlier project. */
+export type ProjectStart = { kind: 'example'; index: number } | { kind: 'project'; id: string };
+
 export function parseRoute(hash: string): Route {
   const [path = '', query = ''] = hash.replace(/^#/, '').split('?');
   const parts = path.split('/').filter(Boolean).map(decodeURIComponent);
@@ -35,7 +39,11 @@ export function parseRoute(hash: string): Route {
   if (second === undefined) return { screen: 'projects' };
   if (second === 'new' && parts.length === 2) {
     const templateId = search.get('template');
-    return templateId ? { screen: 'new-project', templateId } : { screen: 'not-found' };
+    if (!templateId) return { screen: 'not-found' };
+    const start = startOf(search);
+    return start
+      ? { screen: 'new-project', templateId, start }
+      : { screen: 'new-project', templateId };
   }
   if (third === undefined) return project(second, undefined, null);
   if (third === 'edit' && parts.length === 3) {
@@ -61,6 +69,13 @@ export function parseRoute(hash: string): Route {
   return { screen: 'build-part', id: second, step: fourth, part: fifth };
 }
 
+function startOf(search: URLSearchParams): ProjectStart | undefined {
+  const example = search.get('example');
+  if (example !== null && /^\d+$/.test(example)) return { kind: 'example', index: Number(example) };
+  const project = search.get('project');
+  return project ? { kind: 'project', id: project } : undefined;
+}
+
 function project(id: string, section: PlanSectionId | undefined, part: string | null): Route {
   return {
     screen: 'project',
@@ -74,8 +89,15 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
   switch (route.screen) {
     case 'projects':
       return '#/projects';
-    case 'new-project':
-      return `#/projects/new?template=${encodeURIComponent(route.templateId)}`;
+    case 'new-project': {
+      const start =
+        route.start?.kind === 'example'
+          ? `&example=${route.start.index}`
+          : route.start?.kind === 'project'
+            ? `&project=${encodeURIComponent(route.start.id)}`
+            : '';
+      return `#/projects/new?template=${encodeURIComponent(route.templateId)}${start}`;
+    }
     case 'project': {
       const section =
         route.section && route.section !== 'summary' ? `/${encodeURIComponent(route.section)}` : '';

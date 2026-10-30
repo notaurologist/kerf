@@ -30,6 +30,7 @@ import { sameJson } from './sameJson.ts';
 // The edit screen's output side (#39, L-A; #56): a moment after typing stops, the server
 // generates a snapshot from the form without saving it and says what differs from the saved
 // plan. The numbers come from the API (hard rule 6); this only shows them and marks the changes.
+// A new project (#98) has no saved plan, so its preview marks nothing.
 
 /** How long typing has to stop before the preview is asked for. */
 export const PREVIEW_DELAY_MS = 500;
@@ -42,11 +43,11 @@ export type PreviewRequest =
 /**
  * What the form asks of the preview: nothing while it matches the saved plan or has an entry
  * the template cannot read yet (the errors wait for a save, as on the rest of the form), else
- * the same body a save would send.
+ * the same body a save would send. `project` is null for a new project.
  */
 export function previewRequest(
   template: TemplateDefinition,
-  project: Project,
+  project: Project | null,
   params: FormValues,
   inputs: FormValues,
 ): PreviewRequest {
@@ -66,7 +67,7 @@ export function previewRequest(
   ) {
     return { kind: 'incomplete' };
   }
-  const stored = project.snapshot;
+  const stored = project?.snapshot;
   if (
     stored &&
     sameJson(builtParams, stored.params) &&
@@ -88,13 +89,13 @@ export type PreviewState =
 /** Asks the API for a preview a moment after the form stops changing; only the latest counts. */
 export function usePreview(
   template: TemplateDefinition,
-  project: Project,
+  project: Project | null,
   params: FormValues,
   inputs: FormValues,
 ): PreviewState {
   const request = previewRequest(template, project, params, inputs);
   const key = JSON.stringify(request);
-  const [state, setState] = useState<PreviewState>({ kind: 'saved' });
+  const [state, setState] = useState<PreviewState>({ kind: project ? 'saved' : 'incomplete' });
   const latest = useRef(0);
   // biome-ignore lint/correctness/useExhaustiveDependencies: `key` is the request, serialized.
   useEffect(() => {
@@ -106,13 +107,15 @@ export function usePreview(
     setState((s) => (s.kind === 'ready' ? s : { kind: 'waiting' }));
     const timer = setTimeout(async () => {
       const result = await send(
-        api.api.projects[':id'].preview.$post({ param: { id: project.id }, json: request.body }),
+        project
+          ? api.api.projects[':id'].preview.$post({ param: { id: project.id }, json: request.body })
+          : api.api.projects.preview.$post({ json: { templateId: template.id, ...request.body } }),
       );
       if (id !== latest.current) return;
-      setState(previewState(project.templateId, result));
+      setState(previewState(template.id, result));
     }, PREVIEW_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [key, project.id]);
+  }, [key, project?.id, template.id]);
   return state;
 }
 
@@ -141,46 +144,62 @@ export function previewState(templateId: string, result: PreviewResult): Preview
 
 /**
  * The output side of the edit screen. With no preview, it shows the saved plan; with one, it
- * says "Preview, not saved" and marks every value that differs with the saved value.
+ * says "Preview, not saved" and marks every value that differs with the saved value. A new
+ * project has no saved plan (`saved` is null), so until there is a preview it shows only why.
  */
-export function PreviewPane(props: { saved: Plan; state: PreviewState }) {
+export function PreviewPane(props: { saved: Plan | null; state: PreviewState }) {
   const { state } = props;
   const preview = state.kind === 'ready' ? state : null;
   const plan = preview?.plan ?? props.saved;
   const changes = preview?.changes;
+  const isNew = props.saved === null;
   return (
     <section aria-labelledby="preview-heading">
       <Stack>
         <Cluster spread>
-          <h2 id="preview-heading">{preview ? 'Preview' : 'Saved plan'}</h2>
+          <h2 id="preview-heading">{preview || isNew ? 'Preview' : 'Saved plan'}</h2>
           {preview && <StateTag>Preview, not saved</StateTag>}
         </Cluster>
         <div aria-live="polite">
-          <PreviewStatus state={state} />
+          <PreviewStatus state={state} isNew={isNew} />
         </div>
-        <h3>Structural checks</h3>
-        <Margins checks={plan.checks} changes={changes} />
-        <h3>Cut list</h3>
-        <CutList rows={plan.cutList} changes={changes} />
-        <h3>Shopping list</h3>
-        <ShoppingList
-          lumber={plan.lumber}
-          hardware={plan.hardware}
-          hardwareNotes={plan.hardwareNotes}
-          changes={changes}
-        />
+        {plan && <PlanOutputs plan={plan} changes={changes} />}
       </Stack>
     </section>
   );
 }
 
-function PreviewStatus(props: { state: PreviewState }) {
+function PlanOutputs(props: { plan: Plan; changes: Changes | undefined }) {
+  const { plan, changes } = props;
+  return (
+    <>
+      <h3>Structural checks</h3>
+      <Margins checks={plan.checks} changes={changes} />
+      <h3>Cut list</h3>
+      <CutList rows={plan.cutList} changes={changes} />
+      <h3>Shopping list</h3>
+      <ShoppingList
+        lumber={plan.lumber}
+        hardware={plan.hardware}
+        hardwareNotes={plan.hardwareNotes}
+        changes={changes}
+      />
+    </>
+  );
+}
+
+function PreviewStatus(props: { state: PreviewState; isNew: boolean }) {
   const { state } = props;
   switch (state.kind) {
     case 'saved':
       return <Text tone="muted">Change a value to preview its effect here before saving.</Text>;
     case 'incomplete':
-      return (
+      return props.isNew ? (
+        <Text tone="muted">
+          The cut list, shopping list, and structural checks show here when every dimension and
+          hardware entry can be read.
+        </Text>
+      ) : (
         <Text tone="muted">
           The preview updates when every entry can be read. Until then this is the saved plan.
         </Text>
@@ -188,6 +207,8 @@ function PreviewStatus(props: { state: PreviewState }) {
     case 'waiting':
       return <Text tone="muted">Updating the preview…</Text>;
     case 'ready':
+      if (props.isNew)
+        return <Text tone="muted">Nothing is saved until you create the project.</Text>;
       return (
         <Text tone="muted">
           {state.changes.size > 0

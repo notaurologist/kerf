@@ -22,6 +22,11 @@ export function Field(props: {
   echo?: string | null;
   /** An empty structural input: a question, not a mistake (#43, rule 4). */
   needed?: boolean;
+  /**
+   * A value copied from another project and not confirmed yet (#98): shown like an empty input,
+   * with this text in place of "Input needed".
+   */
+  confirm?: string;
   /** Use a fixed id, so an error summary can link to the control. */
   id?: string;
   unit?: string;
@@ -39,7 +44,7 @@ export function Field(props: {
   ]
     .filter(Boolean)
     .join(' ');
-  const state = props.error ? 'error' : props.needed ? 'needed' : undefined;
+  const state = props.error ? 'error' : props.needed || props.confirm ? 'needed' : undefined;
   const control = props.children({
     id,
     'aria-describedby': describedBy || undefined,
@@ -51,6 +56,9 @@ export function Field(props: {
       <label className="k-field__label" htmlFor={id}>
         <span>{props.label}</span>
         {props.needed && !props.error && <InputNeeded />}
+        {props.confirm && !props.needed && !props.error && (
+          <InputNeeded>{props.confirm}</InputNeeded>
+        )}
       </label>
       {props.hint && (
         <span id={hintId} className="k-field__hint">

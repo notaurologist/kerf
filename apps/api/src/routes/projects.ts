@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ProgressChanges } from '../services/progress.ts';
 import {
   NewProject,
+  NewProjectPreview,
   ProjectChanges,
   type ProjectService,
   type Result,
@@ -34,6 +35,10 @@ export function projectRoutes(projects: ProjectService) {
     .post('/projects', valid('json', NewProject), async (c) => {
       const result = await projects.create(c.req.valid('json'));
       return result.ok ? c.json(result.value, 201) : failure(c, result);
+    })
+    .post('/projects/preview', valid('json', NewProjectPreview), (c) => {
+      const result = projects.previewNew(c.req.valid('json'));
+      return result.ok ? c.json(result.value, 200) : failure(c, result);
     })
     .get('/projects/:id', valid('param', ById), async (c) => {
       const result = await projects.get(c.req.valid('param').id);

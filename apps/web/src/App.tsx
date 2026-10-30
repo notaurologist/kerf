@@ -23,7 +23,7 @@ export function Screen(props: { route: Route }) {
     case 'tools':
       return <ToolsScreen />;
     case 'new-project':
-      return <NewProjectScreen templateId={props.route.templateId} />;
+      return <NewProjectScreen templateId={props.route.templateId} start={props.route.start} />;
     case 'edit-project':
       return <EditProjectScreen id={props.route.id} from={props.route.from} />;
     case 'project':

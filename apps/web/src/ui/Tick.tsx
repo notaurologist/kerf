@@ -8,6 +8,8 @@ import { Pending } from './feedback.tsx';
  */
 export function Tick(props: {
   done: boolean;
+  /** The checkbox's id, so an error summary can link to it. */
+  id?: string;
   /** A change waiting to reach the server. */
   waiting?: boolean;
   onChange: (done: boolean) => void;
@@ -17,6 +19,7 @@ export function Tick(props: {
     <label className="k-tick" data-done={props.done || undefined}>
       <input
         type="checkbox"
+        id={props.id}
         checked={props.done}
         onChange={(e) => props.onChange(e.currentTarget.checked)}
       />

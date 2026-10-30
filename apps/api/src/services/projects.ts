@@ -51,6 +51,14 @@ export const NewProject = z.object({
 });
 export type NewProject = z.infer<typeof NewProject>;
 
+/** What a new project's preview needs (#98): a create body without its name and status. */
+export const NewProjectPreview = NewProject.pick({
+  templateId: true,
+  params: true,
+  structuralInputs: true,
+});
+export type NewProjectPreview = z.infer<typeof NewProjectPreview>;
+
 export const ProjectChanges = z
   .object({
     name: z.string().trim().min(1).max(200),
@@ -420,6 +428,16 @@ export function createProjectService(deps: {
           ...compareSnapshots(template, stored.snapshot, generated.snapshot),
         },
       };
+    },
+
+    /**
+     * What creating a project from these values would produce, without saving anything (#98).
+     * There is no saved plan to compare with, so nothing is marked as changed.
+     */
+    previewNew(input: NewProjectPreview): Result<Preview> {
+      const generated = generate(input.templateId, input.params, input.structuralInputs ?? {});
+      if (!generated.ok) return generated;
+      return { ok: true, value: { snapshot: generated.snapshot, changes: [], truncated: false } };
     },
 
     /** Regenerates from the stored parameters and inputs with the current template version. */
