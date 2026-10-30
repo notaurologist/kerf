@@ -29,6 +29,8 @@ Template version 7 (#53) adds what to look for when choosing each part's board (
 
 Template version 8 (#103) adds the operations each part and the site need (Operations, below). No number changes.
 
+Template version 9 (#110) drills each bolt hole 1/16" over its bolt, as NDS 2024 12.1.3.2 requires (from 1/32" to 1/16" over). Before, each hole was drawn and recorded at the bolt's own diameter. Holes and bolt-hole operations now carry both sizes, and each cut detail labels them ("Drill 9/16" holes for 1/2" bolts"). Kerf uses 1/16" because spade and auger bits come in sixteenths, so a bit exists for any bolt sized in sixteenths. Bolt sizes, positions, and distances do not change; a plan made before version 9 keeps its holes at the bolt's diameter until it is regenerated.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -346,6 +348,7 @@ The back legs run along (0, 0.34202, −0.93969). Fit tests place the parts this
 | Flush cut as written before version 4 | starting 5.168 down the edge ends 1.661 in from it, 0.22" short: the leg would hit the beam |
 | Leg bolt hole | enters the outer edge (2.75 + 3.5·0.34202) / 0.93969 = 4.200 down, at mid-thickness 1.75; 3.7246 − 1.0009 = 2.724 long |
 | Beam holes | u = 13.75 and 106.25, v = 2.75 |
+| Hole size (version 9) | every hole 0.5 + 1/16 = 0.5625 (9/16") for the 1/2" bolts, within NDS 12.1.3.2's 1/32" to 1/16" over |
 | Crossbar bolt holes (Bolt layout) | v = 1.375 and 4.125; u = v·0.36397 + 3.5 = 4.000 and 5.001 from the front end, 58.993 − v·0.36397 − 3.5 = 54.993 and 53.992 from the back |
 | Leg holes for the crossbar bolts | v = 1.75; u = (101.5 + 1.75·0.34202 − z) / 0.93969 at z = 35.875 and 38.625: 70.474 and 67.547 |
 | Leg holes for the gusset bolts | at z = 90.5625 and 94.1875: 12.276 and 8.419 |

@@ -8,6 +8,7 @@ import v3 from './snapshots/v3.json' with { type: 'json' };
 import v4 from './snapshots/v4.json' with { type: 'json' };
 import v5 from './snapshots/v5.json' with { type: 'json' };
 import v6 from './snapshots/v6.json' with { type: 'json' };
+import v8 from './snapshots/v8.json' with { type: 'json' };
 
 // What each template version changed for the worked examples, as the owner sees it in the version
 // report (decision 0008).
@@ -45,9 +46,16 @@ const VERSION_7 = [
   // Version 8 (#103), also only additions.
   /^design\.operations/,
 ];
+/** Version 9's changes (#110): each bolt hole drilled 1/16" over its bolt. */
+const VERSION_9 = [
+  /^design\.parts\[\d+\]\.holes\[\d+\]\.diameter$/,
+  /^design\.operations\[\d+\]\.holeDiameter$/,
+];
 const notVersion6 = (c: { path: string }) =>
-  ![...VERSION_6, ...VERSION_7].some((r) => r.test(c.path));
-const notVersion7 = (c: { path: string }) => !VERSION_7.some((r) => r.test(c.path));
+  ![...VERSION_6, ...VERSION_7, ...VERSION_9].some((r) => r.test(c.path));
+const notVersion7 = (c: { path: string }) =>
+  ![...VERSION_7, ...VERSION_9].some((r) => r.test(c.path));
+const notVersion9 = (c: { path: string }) => !VERSION_9.some((r) => r.test(c.path));
 
 describe('swing-set template versions', () => {
   it('version 2 adds sources and bases to the structural working, and changes no number (#36)', () => {
@@ -180,7 +188,38 @@ describe('swing-set template versions', () => {
       expect(changes.filter(notVersion7)).toEqual([]);
       // Every change is a new field: no number or word that was there before changes.
       expect(changes.length).toBeGreaterThan(0);
-      for (const change of changes) expect(change, change.path).not.toHaveProperty('before');
+      for (const change of changes.filter(notVersion9)) {
+        expect(change, change.path).not.toHaveProperty('before');
+      }
+    }
+  });
+
+  // NDS 2024 12.1.3.2: holes 1/32" to 1/16" over the bolt. Version 9 drills 1/16" over: a 1/2"
+  // bolt gets a 9/16" hole (0.5 + 0.0625 = 0.5625). Reading a version 8 plan keeps its 1/2"
+  // holes and records the bolt each was for.
+  it('version 9 drills every bolt hole 1/16" over its bolt, and changes nothing else (#110)', () => {
+    for (const stored of v8) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      const design = (read.snapshot.outputs as { design: Record<string, unknown> }).design as {
+        parts: { holes?: { diameter: number; boltDiameter: number }[] }[];
+        operations: { type: string; boltDiameter?: number; holeDiameter?: number }[];
+      };
+      for (const hole of design.parts.flatMap((p) => p.holes ?? [])) {
+        expect(hole.boltDiameter).toBe(hole.diameter);
+      }
+      for (const op of design.operations.filter((o) => o.type === 'bolt-holes')) {
+        expect(op.holeDiameter).toBe(op.boltDiameter);
+      }
+      const report = compareWithCurrent(template, read.snapshot);
+      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+      const { changes } = report.regenerated;
+      expect(changes.filter(notVersion9)).toEqual([]);
+      expect(changes.length).toBeGreaterThan(0);
+      for (const change of changes) {
+        const { before, after } = change as { before: number; after: number };
+        expect(after - before, change.path).toBeCloseTo(1 / 16, 12);
+      }
     }
   });
 });

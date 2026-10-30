@@ -41,9 +41,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * gusset ends past the legs, places their bolts as holes, and reports each bolted joint's
  * distances against NDS 2024 (#93, decision 0016). Version 7 adds what to look for when choosing
  * each part's board (#53); no number changes. Version 8 adds the operations each part and the site
- * need (#103); no number changes.
+ * need (#103); no number changes. Version 9 drills each bolt hole 1/16" over its bolt, per NDS 2024
+ * 12.1.3.2 (#110); bolt sizes and positions do not change.
  */
-export const TEMPLATE_VERSION = 8;
+export const TEMPLATE_VERSION = 9;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

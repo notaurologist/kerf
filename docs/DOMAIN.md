@@ -30,7 +30,7 @@ Operations are what needs to happen to a part. Methods are how, given specific t
 | Bevel cut | Miter saw or circular saw with bevel; table saw with tilted blade |
 | Rip (cut along the grain) | Table saw; circular saw with straightedge guide or rip fence |
 | Taper (a straight cut along a part, partway across it, such as a flush cut) | Circular saw, jigsaw, or hand saw along a marked line; chisel or block plane to clean up |
-| Bolt holes | Drill with spade or auger bit; drill guide for straight holes through thick stock |
+| Bolt holes | Drill with spade or auger bit; drill guide for straight holes through thick stock. Each hole is 1/16" over its bolt (NDS 2024 12.1.3.2 allows 1/32" to 1/16"; `structural/boltHoles.ts`) |
 | Counterbore (recess a bolt head or nut) | Forstner or spade bit, drilled before the through hole |
 | Ease edges and splinters | Sander; block plane; router with roundover bit |
 | Dig holes, or level pads (site work for parts set in or on the ground) | Post-hole digger and tamper; level |

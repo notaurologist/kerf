@@ -23,6 +23,7 @@ export {
   spreadAcrossGrain,
   type Wood,
 } from './boltDistances.ts';
+export { BOLT_HOLE_OVERSIZE, boltHoleDiameter, holeWithinRange } from './boltHoles.ts';
 export {
   type BeamCheckInput,
   BeamChecks,
