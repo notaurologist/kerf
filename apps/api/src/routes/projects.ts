@@ -1,6 +1,7 @@
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { ProgressChanges } from '../services/progress.ts';
 import {
   NewProject,
   ProjectChanges,
@@ -22,6 +23,8 @@ function failure(c: Context, result: Extract<Result<unknown>, { ok: false }>) {
       return c.json({ error: result.error }, 500);
     case 'invalid-project':
       return c.json({ error: result.error, issues: result.issues }, 422);
+    case 'unknown-progress':
+      return c.json({ error: result.error, items: result.items }, 422);
   }
 }
 
@@ -53,6 +56,19 @@ export function projectRoutes(projects: ProjectService) {
       const result = await projects.regenerate(c.req.valid('param').id);
       return result.ok ? c.json(result.value, 200) : failure(c, result);
     })
+    .get('/projects/:id/progress', valid('param', ById), async (c) => {
+      const result = await projects.progress(c.req.valid('param').id);
+      return result.ok ? c.json({ progress: result.value }, 200) : failure(c, result);
+    })
+    .patch(
+      '/projects/:id/progress',
+      valid('param', ById),
+      valid('json', ProgressChanges),
+      async (c) => {
+        const result = await projects.setProgress(c.req.valid('param').id, c.req.valid('json'));
+        return result.ok ? c.json({ progress: result.value }, 200) : failure(c, result);
+      },
+    )
     .delete('/projects/:id', valid('param', ById), async (c) => {
       const result = await projects.remove(c.req.valid('param').id);
       return result.ok ? c.body(null, 204) : failure(c, result);

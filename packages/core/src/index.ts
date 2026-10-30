@@ -4,6 +4,7 @@ export * from './inventory/tools.ts';
 export * from './knowledge/index.ts';
 export * from './lumber/stock.ts';
 export * from './outputs/index.ts';
+export * from './progress/index.ts';
 export * from './snapshot/index.ts';
 export * from './steps/index.ts';
 export * as structural from './structural/index.ts';

@@ -71,6 +71,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │           ├── outputs/        # Cut list, shopping list (board grouping with kerf and trim)
 │           ├── structural/     # Generic beam and hardware checks and adjustment factors
 │           ├── steps/          # Build steps: operations to methods, using the tool inventory
+│           ├── progress/       # What can be ticked off in a plan, and which ticks a regeneration clears
 │           ├── knowledge/      # Tool types, skills, methods, expert-check categories (data)
 │           ├── design-values/  # NDS reference values and adjustment factors (data, sourced)
 │           └── snapshot/       # Project snapshots: create, read back, compare with the current version
@@ -149,10 +150,12 @@ The preference order is the order of `METHODS` in `knowledge/methods.ts`, where 
 | `GET/PUT /api/tools` | Tool inventory: library tools with their capabilities, and other tools by name; `PUT` replaces the whole list |
 | `GET /api/projects`, `POST /api/projects` | List (summaries, no snapshots) and create |
 | `GET /api/projects/:id` | The stored snapshot (upgraded to the current shape if needed, 0014), plus a version report: `current`, `ahead`, or `behind` with the changed paths regenerating would bring (or the issues that stop it), the plan's drawings, drawn by core from the stored snapshot on each read (#91), and its build steps, with methods chosen from the current tool inventory and that inventory's key (`inventoryKey`), so the shop view needs no other request and a stale step list can be detected (#52) |
-| `PUT /api/projects/:id` | Update name, status, parameters, or structural inputs; changing parameters or inputs regenerates the snapshot with the current template version |
+| `PUT /api/projects/:id` | Update name, status, parameters, or structural inputs; changing parameters or inputs regenerates the snapshot with the current template version, and the response's `progressReset` lists the ticks that cleared (#57) |
 | `POST /api/projects/:id/preview` | Dry run for the edit screen (#56): takes the same body as `PUT`, generates the snapshot with the current template version, and returns it with the changed paths against the stored snapshot. Saves nothing; 422 with core's issues like `PUT` |
-| `POST /api/projects/:id/regenerate` | Regenerate with the current template version (explicit, never automatic) |
-| `DELETE /api/projects/:id` | Delete a project and its history rows, permanently (204) |
+| `POST /api/projects/:id/regenerate` | Regenerate with the current template version (explicit, never automatic); `progressReset` as for `PUT` |
+| `GET /api/projects/:id/progress` | What has been ticked off (#57): each tick's kind, key, and the time the server saved it |
+| `PATCH /api/projects/:id/progress` | Set and clear ticks: `{ changes: [{ kind, key, done }] }`. Safe to send again: ticking a done item keeps its first time, and clearing one that is not done does nothing, so a client can retry writes queued through a dropped connection. A tick on an item the stored plan lacks is refused with 422 `unknown-progress`, naming the items, and nothing in the request is saved |
+| `DELETE /api/projects/:id` | Delete a project and its history and progress rows, permanently (204) |
 
 Errors are JSON with an `error` code: 400 for a malformed request (with `issues` and their paths), 401 without a session, 404 for a missing project, 415 for a state-changing request that is not JSON, 422 when core rejects the parameters or inputs (with core's `issues`), 429 when login is rate limited. Routes call services in `services/`, the only code that touches the database.
 
@@ -172,6 +175,7 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 | `other_tools` | Tools the library does not have: position, name, note |
 | `projects` | Name, status, template ID, template version, snapshot (JSON, holding the parameters and structural inputs), timestamps |
 | `project_history` | One row per operation in a project: operation ID and type, the method chosen (null when the inventory supported none), its skills, and the key of the inventory it was chosen from. Replaced in the same transaction whenever a snapshot is saved (create, a parameter or input change, regenerate), not on a rename or status change. The release step writes rows for projects that have none and keeps rows that exist (#106). Used later for references to past projects |
+| `project_progress` | One row per item ticked off in a project (#57): kind (`shopping-line`, `board`, `part`, `step`), key, and when it was done. Keys come from core's `progress/`: a lumber line by nominal size and length, a hardware line by its description, a board by its ID in the board plan (`boardIds`: line and which board of that line, so boards of other sizes do not shift it), a part's piece by part ID and instance, a step by its ID. When a snapshot is saved, rows whose item is gone or has other numbers are deleted in the same transaction (`progressToReset`). A piece's numbers include its part's cut detail, and a step's the cut details of its parts, so moved holes clear a tick even when the cut list does not change |
 | `sessions` | Session ID, created, expires |
 | `login_attempts` | Time window and failure count for rate limiting |
 

@@ -132,6 +132,7 @@ describe('buildSteps', () => {
       ['s', 'Do it', ['site/level-pads']],
     ]);
     expect(built[0]?.board).toEqual({
+      id: '4x4/8/1',
       number: 1,
       nominal: '4x4',
       feet: 8,

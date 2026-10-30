@@ -5,7 +5,7 @@ import { FlagCategory, findExpertCheckCategory } from '../knowledge/categories.t
 import { fillMethodText, findMethod, type Method } from '../knowledge/methods.ts';
 import { SkillIdSchema } from '../knowledge/skills.ts';
 import type { Plan } from '../outputs/plan.ts';
-import { PlannedBoard } from '../outputs/shoppingList.ts';
+import { boardIds, PlannedBoard } from '../outputs/shoppingList.ts';
 import type { TemplateDefinition } from '../templates/definition.ts';
 import { CUTTING_OPERATION_TYPES, Operation } from '../templates/operations.ts';
 import type { Flag } from '../templates/types.ts';
@@ -103,6 +103,8 @@ export type BoardPiece = z.infer<typeof BoardPiece>;
 
 /** The board a cutting step breaks down, with the trim and kerf it was planned with. */
 export const StepBoard = z.object({
+  /** The board's ID in the board plan (`boardIds`), which saved progress keys on (#57). */
+  id: z.string(),
   /** From 1, in the board plan's order. */
   number: z.number().int().positive(),
   nominal: PlannedBoard.shape.nominal,
@@ -229,6 +231,7 @@ function boardSteps(plan: Pick<Plan, 'operations' | 'lumber'>): Draft[] {
     return op.count % pieces === 0 ? (op.count / pieces) * onBoard : op.count;
   };
   const counted = new Map<string, number>();
+  const ids = boardIds(boards);
   const steps: Draft[] = boards.map((board, i) => {
     const pieces = board.pieces.map((piece) => {
       const instance = counted.get(piece.partId) ?? 0;
@@ -252,6 +255,7 @@ function boardSteps(plan: Pick<Plan, 'operations' | 'lumber'>): Draft[] {
       operationIds: [...new Set(pieces.flatMap((p) => p.operationIds))],
       categories: [],
       board: {
+        id: ids[i] ?? '',
         number: i + 1,
         nominal: board.nominal,
         feet: board.feet,
@@ -275,16 +279,14 @@ function boardSteps(plan: Pick<Plan, 'operations' | 'lumber'>): Draft[] {
 }
 
 /**
- * The build steps for a plan: cutting board by board (`boardSteps`), then the template's outline.
- * The outline must hold every other operation exactly once: an operation left out, listed twice,
- * not in the plan, or a cutting operation is a template bug. Each of the plan's flags is shown on
- * one step (`stepForFlag`).
+ * The steps in order, each with its operations (a cutting step's counted for its board), before
+ * any method is chosen. The outline must hold every other operation exactly once: an operation
+ * left out, listed twice, not in the plan, or a cutting operation is a template bug.
  */
-export function buildSteps(
+function draftSteps(
   outline: readonly StepOutline[],
-  plan: Pick<Plan, 'operations' | 'flags' | 'lumber'>,
-  inventory: Inventory,
-): BuildStep[] {
+  plan: Pick<Plan, 'operations' | 'lumber'>,
+): { draft: Draft; operations: Operation[] }[] {
   const { operations } = plan;
   if (operations.length === 0) return [];
   const byId = new Map(operations.map((op) => [op.id, op]));
@@ -299,13 +301,49 @@ export function buildSteps(
     );
   }
   const drafts: Draft[] = [...boardSteps(plan), ...outline];
-  const done = drafts.map((s) =>
-    s.operationIds.map((id) => {
+  return drafts.map((draft) => ({
+    draft,
+    operations: draft.operationIds.map((id) => {
       const op = byId.get(id) as Operation;
-      const count = s.counts?.get(id);
-      return stepOperation(count === undefined ? op : { ...op, count }, inventory);
+      const count = draft.counts?.get(id);
+      return count === undefined ? op : { ...op, count };
     }),
-  );
+  }));
+}
+
+/** What a step does, without methods: what saved progress compares across regenerations (#57). */
+export interface StepContent {
+  id: string;
+  title: string;
+  board?: StepBoard;
+  operations: Operation[];
+}
+
+/** Each step's ID, title, board, and operations, in order, with no inventory needed. */
+export function stepContents(
+  outline: readonly StepOutline[],
+  plan: Pick<Plan, 'operations' | 'lumber'>,
+): StepContent[] {
+  return draftSteps(outline, plan).map(({ draft, operations }) => ({
+    id: draft.id,
+    title: draft.title,
+    ...(draft.board ? { board: draft.board } : {}),
+    operations,
+  }));
+}
+
+/**
+ * The build steps for a plan: cutting board by board (`boardSteps`), then the template's outline
+ * (`draftSteps` checks it). Each of the plan's flags is shown on one step (`stepForFlag`).
+ */
+export function buildSteps(
+  outline: readonly StepOutline[],
+  plan: Pick<Plan, 'operations' | 'flags' | 'lumber'>,
+  inventory: Inventory,
+): BuildStep[] {
+  const drafted = draftSteps(outline, plan);
+  const drafts = drafted.map((d) => d.draft);
+  const done = drafted.map((d) => d.operations.map((op) => stepOperation(op, inventory)));
   const onStep = done.map((): StepFlag[] => []);
   const operationsOf = done.map((d) => ({ operations: d.map(([op]) => op) }));
   for (const flag of plan.flags) {
