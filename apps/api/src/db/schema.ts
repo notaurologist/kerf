@@ -59,7 +59,9 @@ export const projects = pgTable(
 );
 
 // One row per operation in a project's plan, for later references to past projects
-// (PRODUCT.md, MVP feature 8). Written when a snapshot is saved, from M6 on.
+// (PRODUCT.md, MVP feature 8). Replaced in the same transaction whenever a snapshot is saved
+// (#106), from the build steps chosen from the inventory at that moment, which `inventory_key`
+// names. Derived data: the release step writes rows for projects that have none.
 export const projectHistory = pgTable(
   'project_history',
   {
@@ -67,9 +69,15 @@ export const projectHistory = pgTable(
     projectId: uuid('project_id')
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
+    /** The operation's ID in the plan, such as "beam/end-0". */
+    operationId: text('operation_id').notNull(),
+    /** The operation type. */
     operation: text('operation').notNull(),
-    methodId: text('method_id').notNull(),
+    /** The chosen method, or null when the inventory supported none. */
+    methodId: text('method_id'),
     skills: text('skills').array().notNull().default(sql`'{}'::text[]`),
+    inventoryKey: text('inventory_key').notNull(),
+    recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('project_history_project_id').on(t.projectId)],
 );

@@ -152,6 +152,98 @@ describe('GET /api/projects/:id build steps (#52)', () => {
   });
 });
 
+describe('project history (#106)', () => {
+  type HistoryRow = {
+    operation_id: string;
+    operation: string;
+    method_id: string | null;
+    skills: string[];
+    inventory_key: string;
+  };
+  async function history(client: Awaited<ReturnType<typeof createTestApp>>['client'], id: string) {
+    const { rows } = await client.query<HistoryRow>(
+      `select operation_id, operation, method_id, skills, inventory_key
+       from project_history where project_id = $1 order by id`,
+      [id],
+    );
+    return rows;
+  }
+  const miterSaw: Inventory = {
+    tools: [
+      { toolTypeId: 'miter-saw', capabilities: { cutDepth: 4, crosscutWidth: 12, maxMiter: 50 } },
+      { toolTypeId: 'tape-measure', capabilities: {} },
+    ],
+    other: [],
+  };
+
+  it('writes a row for every operation when a project is created', async () => {
+    const { authed, client } = await createTestApp();
+    const { body } = await create(authed);
+    const rows = await history(client, body.id);
+    const operations = body.snapshot.outputs.design.operations as { id: string; type: string }[];
+    expect(rows.map((r) => [r.operation_id, r.operation]).sort()).toEqual(
+      operations.map((o) => [o.id, o.type]).sort(),
+    );
+    // No tools yet: no method, no skills, and the empty inventory's key.
+    expect(rows.every((r) => r.method_id === null && r.skills.length === 0)).toBe(true);
+    expect(new Set(rows.map((r) => r.inventory_key))).toEqual(
+      new Set([inventoryKey({ tools: [], other: [] })]),
+    );
+  });
+
+  it('replaces the rows when the parameters change or the project is regenerated, not on a rename', async () => {
+    const { authed, client } = await createTestApp();
+    const { body } = await create(authed);
+    const before = await history(client, body.id);
+    expect((await authed('/api/tools', { method: 'PUT', body: miterSaw })).status).toBe(200);
+
+    // A rename keeps the snapshot, so its history stands.
+    await authed(`/api/projects/${body.id}`, { method: 'PUT', body: { name: 'Renamed' } });
+    expect(await history(client, body.id)).toEqual(before);
+
+    // New parameters save a new snapshot: the rows are rewritten from the current tools.
+    const params = { ...swingSetParams, beamHeight: swingSetParams.beamHeight - 1 };
+    const updated = await authed(`/api/projects/${body.id}`, { method: 'PUT', body: { params } });
+    expect(updated.status).toBe(200);
+    const after = await history(client, body.id);
+    expect(after).toHaveLength(before.length);
+    expect(after.find((r) => r.operation_id === 'beam/end-0')).toMatchObject({
+      method_id: 'crosscut-miter-saw',
+      skills: ['measure-and-mark', 'cut-to-a-line'],
+      inventory_key: inventoryKey(miterSaw),
+    });
+
+    // Regenerating rewrites them too, from the tools at that moment.
+    await authed('/api/tools', { method: 'PUT', body: { tools: [], other: [] } });
+    const regenerated = await authed(`/api/projects/${body.id}/regenerate`, {
+      method: 'POST',
+      body: {},
+    });
+    expect(regenerated.status).toBe(200);
+    const again = await history(client, body.id);
+    expect(again.every((r) => r.method_id === null)).toBe(true);
+  });
+
+  it('backfills rows at release for projects that have none, and keeps rows that exist', async () => {
+    const { authed, client, db } = await createTestApp();
+    const first = await create(authed);
+    const second = await create(authed, { ...newProject, name: 'Second' });
+    await client.query('delete from project_history where project_id = $1', [first.body.id]);
+    const kept = await history(client, second.body.id);
+    await authed('/api/tools', { method: 'PUT', body: miterSaw });
+
+    const service = createProjectService({ db, templates: TEMPLATES, now: () => new Date() });
+    const result = await service.backfillHistory();
+    expect(result.projects).toBe(1);
+    const filled = await history(client, first.body.id);
+    expect(result.rows).toBe(filled.length);
+    expect(filled.length).toBe(kept.length);
+    expect(filled[0]?.inventory_key).toBe(inventoryKey(miterSaw));
+    expect(await history(client, second.body.id)).toEqual(kept);
+    expect(await service.backfillHistory()).toEqual({ projects: 0, rows: 0 });
+  });
+});
+
 describe('GET /api/projects', () => {
   it('lists projects, most recently updated first, without snapshots', async () => {
     const { authed, clock } = await createTestApp();
@@ -319,18 +411,23 @@ describe('DELETE /api/projects/:id', () => {
     const { authed, client } = await createTestApp();
     const { body } = await create(authed);
     const other = await create(authed, { ...newProject, name: 'Kept' });
-    await client.query(
-      `insert into project_history (project_id, operation, method_id) values ($1, 'crosscut', 'circular-saw')`,
-      [body.id],
-    );
+    const count = async (id: string) =>
+      (
+        await client.query<{ n: number }>(
+          'select count(*)::int as n from project_history where project_id = $1',
+          [id],
+        )
+      ).rows[0]?.n;
+    const kept = await count(other.body.id);
+    expect(await count(body.id)).toBeGreaterThan(0);
 
     const res = await authed(`/api/projects/${body.id}`, { method: 'DELETE', body: {} });
     expect(res.status).toBe(204);
     expect(await res.text()).toBe('');
 
     expect((await authed(`/api/projects/${body.id}`)).status).toBe(404);
-    const history = await client.query('select count(*)::int as n from project_history');
-    expect(history.rows).toEqual([{ n: 0 }]);
+    expect(await count(body.id)).toBe(0);
+    expect(await count(other.body.id)).toBe(kept);
     const list = (await (await authed('/api/projects')).json()) as Json;
     expect(list.projects.map((p: Json) => p.id)).toEqual([other.body.id]);
   });

@@ -42,7 +42,7 @@ describe('createTestDatabase', () => {
     );
     const id = rows[0]?.id;
     await client.query(
-      "insert into project_history (project_id, operation, method_id) values ($1, 'crosscut', 'm')",
+      "insert into project_history (project_id, operation_id, operation, method_id, inventory_key) values ($1, 'a/end-0', 'crosscut', 'm', 'k')",
       [id],
     );
     await client.query('delete from projects where id = $1', [id]);
