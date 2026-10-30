@@ -33,6 +33,8 @@ describe('ToolsEditor', () => {
     expect(html).toContain('value="7-1/2"');
     expect(html).toContain('Largest miter');
     expect(html).toContain('value="Table saw"');
+    expect(html).toMatch(/Table saw(<!-- -->)? is in the library now\./);
+    expect(html).toContain('Move table saw to your tools');
     expect(html).toContain('build steps do not use them');
   });
 });

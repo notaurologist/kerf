@@ -45,7 +45,7 @@ describe('/api/tools', () => {
       other: [],
     };
     expect((await put(dup)).status).toBe(400);
-    const unknown = { tools: [{ toolTypeId: 'table-saw', capabilities: {} }], other: [] };
+    const unknown = { tools: [{ toolTypeId: 'lathe', capabilities: {} }], other: [] };
     const res = await put(unknown);
     expect(res.status).toBe(400);
     expect(await res.json()).toMatchObject({
@@ -68,7 +68,7 @@ describe('/api/tools', () => {
     await client.query(
       `insert into tools (tool_type_id, capabilities) values
          ('circular-saw', '{"bevels": true, "depthOfCut": 2.375}'),
-         ('table-saw', '{}')`,
+         ('lathe', '{}')`,
     );
     const expected = {
       tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }],
@@ -78,7 +78,7 @@ describe('/api/tools', () => {
           note: 'Moved here from your tool list. Details the circular saw entry cannot use. Earlier values: bevels: true.',
         },
         {
-          name: 'table-saw',
+          name: 'lathe',
           note: 'Moved here from your tool list. Not a tool type in the library.',
         },
       ],

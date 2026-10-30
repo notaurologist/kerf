@@ -61,6 +61,23 @@ export function removeTool(draft: InventoryDraft, toolTypeId: string): Inventory
   return { ...draft, tools: draft.tools.filter((t) => t.toolTypeId !== toolTypeId) };
 }
 
+const nameKey = (name: string) =>
+  name
+    .trim()
+    .toLowerCase()
+    .replace(/[-\s]+/g, ' ');
+
+/** The library type an other tool's name names, as typed or as an old ID like `table-saw`. */
+export function libraryMatch(name: string) {
+  const key = nameKey(name);
+  return key ? TOOL_TYPES.find((t) => nameKey(t.name) === key || nameKey(t.id) === key) : undefined;
+}
+
+export function moveToLibrary(draft: InventoryDraft, other: number, toolTypeId: string) {
+  const moved = addTool(draft, toolTypeId);
+  return { ...moved, other: moved.other.filter((_, i) => i !== other) };
+}
+
 export function matchingTypes(query: string) {
   const q = query.trim().toLowerCase();
   return q ? TOOL_TYPES.filter((t) => t.name.toLowerCase().includes(q)) : TOOL_TYPES;

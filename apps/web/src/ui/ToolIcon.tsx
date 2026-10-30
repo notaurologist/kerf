@@ -74,6 +74,28 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <circle cx="13" cy="12" r="0.8" />
     </>
   ),
+  'table-saw': (
+    <>
+      <rect x="2" y="11" width="20" height="2.5" rx="0.6" />
+      <path d="M8 11 A4 4 0 0 1 16 11" />
+      <path d="M5 13.5 L4 21 M19 13.5 L20 21 M7.5 13.5 V17.5 H16.5 V13.5" />
+    </>
+  ),
+  'track-saw': (
+    <>
+      <rect x="2" y="16" width="20" height="2.5" rx="0.6" />
+      <path d="M4.5 16 A6.5 6.5 0 0 1 17.5 16 M8 16 A3 3 0 0 1 14 16 M15.9 11.7 L18 8 H21" />
+    </>
+  ),
+  'band-saw': (
+    <>
+      <rect x="5" y="2.5" width="13" height="6" rx="0.6" />
+      <rect x="5" y="15.5" width="13" height="6" rx="0.6" />
+      <circle cx="11.5" cy="5.5" r="1.5" />
+      <circle cx="11.5" cy="18.5" r="1.5" />
+      <path d="M14.5 8.5 V15.5 M16.5 8.5 V15.5 M7.5 8.5 V15.5 M3 12 H14.5" />
+    </>
+  ),
   'hand-saw': (
     <>
       <rect x="2" y="6" width="7" height="12" rx="0.6" />
@@ -102,6 +124,14 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <path d="M7.5 7.5 H4.5" />
     </>
   ),
+  'drill-press': (
+    <>
+      <rect x="6" y="3" width="13" height="5" rx="0.6" />
+      <rect x="3" y="19" width="16" height="2.5" rx="0.6" />
+      <path d="M14.5 8 V19 M16.5 8 V19 M5 15 H14.5 M19 5.5 H22" />
+      <path d="M8.5 8 V10.5 L9.25 11.5 L10 10.5 V8 M9.25 11.5 V13.5" />
+    </>
+  ),
   'spade-bits': (
     <>
       <path d="M12 2 V11 M9 11 H15 V17 L13 18 L12 22 L11 18 L9 17 Z" />
@@ -126,6 +156,22 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <rect x="4" y="2.5" width="2" height="19" rx="0.6" />
       <path d="M6 2.5 H16 V5.5 H6 M6 13 H14 V15.5 H6" />
       <path d="M11.5 9.5 V13 M11.5 15.5 V20.5 M9.5 9.5 H13.5 M9 20.5 H14" />
+    </>
+  ),
+  router: (
+    <>
+      <rect x="4" y="15" width="16" height="2.5" rx="0.6" />
+      <rect x="8" y="4" width="8" height="11" rx="0.6" />
+      <circle cx="5" cy="9.5" r="2" />
+      <circle cx="19" cy="9.5" r="2" />
+      <path d="M7 9.5 H8 M16 9.5 H17 M12 17.5 V20.5" />
+    </>
+  ),
+  'thickness-planer': (
+    <>
+      <rect x="6" y="4" width="12" height="9" rx="0.6" />
+      <rect x="2" y="15" width="20" height="2.5" rx="0.6" />
+      <path d="M3 13 H6 M18 13 H21 M3 13 V15 M21 13 V15 M12 4 V2 M10 2 H14 M5 17.5 V21 M19 17.5 V21" />
     </>
   ),
   chisel: (

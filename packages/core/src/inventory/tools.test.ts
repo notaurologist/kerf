@@ -20,7 +20,7 @@ describe('Inventory', () => {
   });
 
   it('accepts only library tool type IDs', () => {
-    expect(messages(Tool.safeParse({ toolTypeId: 'table-saw', capabilities: {} }))).toEqual([
+    expect(messages(Tool.safeParse({ toolTypeId: 'lathe', capabilities: {} }))).toEqual([
       'toolTypeId: is not a tool type in the library',
     ]);
   });
@@ -104,11 +104,11 @@ describe('readStoredTools', () => {
   });
 
   it('moves a free-text tool to other tools, with its earlier values in the note', () => {
-    expect(readStoredTools([{ toolTypeId: 'table-saw', capabilities: { tilts: true } }])).toEqual({
+    expect(readStoredTools([{ toolTypeId: 'lathe', capabilities: { tilts: true } }])).toEqual({
       tools: [],
       moved: [
         {
-          name: 'table-saw',
+          name: 'lathe',
           note: 'Moved here from your tool list. Not a tool type in the library. Earlier values: tilts: true.',
         },
       ],

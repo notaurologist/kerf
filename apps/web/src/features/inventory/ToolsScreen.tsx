@@ -30,7 +30,9 @@ import {
   fromInventory,
   type InventoryDraft,
   issueFor,
+  libraryMatch,
   matchingTypes,
+  moveToLibrary,
   type OtherDraft,
   removeTool,
   type ToolDraft,
@@ -184,6 +186,7 @@ export function ToolsEditor(props: {
             issues={issues}
             onChange={(edit) => editOther(o, edit)}
             onRemove={() => change((d) => ({ ...d, other: d.other.filter((_, i) => i !== o) }))}
+            onMove={(toolTypeId) => change((d) => moveToLibrary(d, o, toolTypeId))}
           />
         ))}
         <Cluster>
@@ -270,8 +273,10 @@ function OtherCard(props: {
   issues: FieldIssue[];
   onChange: (edit: Partial<OtherDraft>) => void;
   onRemove: () => void;
+  onMove: (toolTypeId: string) => void;
 }) {
   const at = `other.${props.index}`;
+  const match = libraryMatch(props.other.name);
   return (
     <Card as="section">
       <Stack gap="s">
@@ -304,7 +309,18 @@ function OtherCard(props: {
             )}
           </Field>
         </Grid>
+        {match && (
+          <Text>
+            {match.name} is in the library now.
+            {props.other.note.trim() && ' Moving it does not keep the note.'}
+          </Text>
+        )}
         <Cluster>
+          {match && (
+            <Button variant="secondary" onClick={() => props.onMove(match.id)}>
+              {`Move ${match.name.toLowerCase()} to your tools`}
+            </Button>
+          )}
           <Button variant="link" onClick={props.onRemove}>
             {`Remove ${props.other.name.trim() || 'this tool'}`}
           </Button>
