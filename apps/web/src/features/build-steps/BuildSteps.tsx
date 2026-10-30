@@ -152,6 +152,7 @@ function Operation(props: { op: StepOperation; partName: (id: string) => string 
                 {i > 0 && ', '}
                 <ToolLabel toolTypeId={t.toolTypeId}>
                   {findToolType(t.toolTypeId)?.name ?? t.toolTypeId}
+                  {t.name && ` (${t.name})`}
                 </ToolLabel>
               </Fragment>
             ))}

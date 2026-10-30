@@ -15,6 +15,8 @@ describe('/api/tools', () => {
       tools: [
         { toolTypeId: 'drill-driver', capabilities: {} },
         { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375 } },
+        { toolTypeId: 'clamps', name: 'Long', capabilities: { maxOpening: 24 } },
+        { toolTypeId: 'clamps', name: 'Short', capabilities: {} },
       ],
       other: [
         { name: 'Table saw', note: 'Tilts to 45' },
@@ -23,18 +25,14 @@ describe('/api/tools', () => {
     };
     const put = await authed('/api/tools', { method: 'PUT', body: first });
     expect(put.status).toBe(200);
-    // Library tools sorted by ID; other tools in the order given.
-    expect(await put.json()).toEqual({
-      tools: [first.tools[1], first.tools[0]],
-      other: first.other,
-    });
+    expect(await put.json()).toEqual(first);
 
     const second = { tools: [{ toolTypeId: 'rafter-square', capabilities: {} }], other: [] };
     await authed('/api/tools', { method: 'PUT', body: second });
     expect(await (await authed('/api/tools')).json()).toEqual(second);
   });
 
-  it('rejects duplicates, IDs not in the library, and capabilities out of range, changing nothing', async () => {
+  it('rejects unnamed repeats, IDs not in the library, and capabilities out of range, changing nothing', async () => {
     const { authed } = await createTestApp();
     const put = (body: unknown) => authed('/api/tools', { method: 'PUT', body });
     const dup = {
@@ -66,9 +64,9 @@ describe('/api/tools', () => {
     const { authed, client, db } = await createTestApp();
     // Rows as M3 to M5 stored them: free-text IDs and capability names.
     await client.query(
-      `insert into tools (tool_type_id, capabilities) values
-         ('circular-saw', '{"bevels": true, "depthOfCut": 2.375}'),
-         ('lathe', '{}')`,
+      `insert into tools (position, tool_type_id, capabilities) values
+         (0, 'circular-saw', '{"bevels": true, "depthOfCut": 2.375}'),
+         (1, 'lathe', '{}')`,
     );
     const expected = {
       tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }],

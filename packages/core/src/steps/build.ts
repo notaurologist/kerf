@@ -49,8 +49,10 @@ export type StepFlag = z.infer<typeof StepFlag>;
 export const FilledMethod = z.object({
   id: z.string(),
   name: z.string(),
-  /** For each requirement: what it is used for and the owned tool type that meets it. */
-  tools: z.array(z.object({ use: z.string(), toolTypeId: z.string() })),
+  /** For each requirement: what it is used for and the owned tool that meets it. */
+  tools: z.array(
+    z.object({ use: z.string(), toolTypeId: z.string(), name: z.string().optional() }),
+  ),
   setup: z.array(z.string()),
   technique: z.array(z.string()),
   mistakes: z.array(z.string()),
@@ -142,10 +144,14 @@ function fill(method: Method, op: Operation, inventory: Inventory): FilledMethod
   return {
     id: method.id,
     name: method.name,
-    tools: method.tools.map((r) => ({
-      use: r.use,
-      toolTypeId: meetingTool(r, op, inventory) ?? '',
-    })),
+    tools: method.tools.map((r) => {
+      const tool = meetingTool(r, op, inventory);
+      return {
+        use: r.use,
+        toolTypeId: tool?.toolTypeId ?? '',
+        ...(tool?.name ? { name: tool.name } : {}),
+      };
+    }),
     setup: method.setup.map((t) => fillMethodText(t, op)),
     technique: method.technique.map((t) => fillMethodText(t, op)),
     mistakes: method.mistakes.map((t) => fillMethodText(t, op)),
@@ -399,6 +405,7 @@ export function inventoryKey(inventory: Inventory): string {
       .sort((a, b) => a.toolTypeId.localeCompare(b.toolTypeId))
       .map((t) => [
         t.toolTypeId,
+        t.name ?? '',
         Object.entries(t.capabilities).sort(([a], [b]) => a.localeCompare(b)),
       ]),
   );

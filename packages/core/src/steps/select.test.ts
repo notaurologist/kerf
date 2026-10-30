@@ -3,7 +3,7 @@ import type { Inventory } from '../inventory/tools.ts';
 import { findMethod } from '../knowledge/methods.ts';
 import type { Operation } from '../templates/operations.ts';
 import { buildSteps, inventoryKey } from './build.ts';
-import { describeChoice, fitMethod, selectMethod } from './select.ts';
+import { describeChoice, fitMethod, meetingTool, selectMethod } from './select.ts';
 
 // A square crosscut through a 3-1/2" by 3-1/2" post: what each method needs is set by those two
 // numbers (knowledge/methods.ts).
@@ -25,6 +25,77 @@ function inventory(...tools: [string, Record<string, number>?][]): Inventory {
 }
 
 const marking: [string][] = [['tape-measure'], ['combination-square'], ['clamps']];
+
+function method(id: string) {
+  const found = findMethod(id);
+  if (!found) throw new Error(`no method ${id}`);
+  return found;
+}
+
+describe('several tools of one type', () => {
+  const named = (id: string, name: string, caps: Record<string, number>) => ({
+    toolTypeId: id,
+    name,
+    capabilities: caps,
+  });
+
+  it('chooses the first tool in the list that meets the method, and names it', () => {
+    const shop: Inventory = {
+      tools: [
+        named('circular-saw', 'Small', { depthOfCut: 1.5 }),
+        named('circular-saw', 'Big', { depthOfCut: 4 }),
+        named('circular-saw', 'Also big', { depthOfCut: 4 }),
+        ...inventory(...marking).tools,
+      ],
+      other: [],
+    };
+    const s = selectMethod(post, shop);
+    expect(s.chosen?.id).toBe('crosscut-circular-saw');
+    const saw = s.chosen?.tools[0];
+    if (!saw) throw new Error('the method needs a saw');
+    expect(meetingTool(saw, post, shop)?.name).toBe('Big');
+  });
+
+  it('reads a capability from the best tool of the type when none meets it', () => {
+    const shop: Inventory = {
+      tools: [
+        named('circular-saw', 'Small', { depthOfCut: 1.5 }),
+        named('circular-saw', 'Medium', { depthOfCut: 2.375 }),
+      ],
+      other: [],
+    };
+    const fit = fitMethod(method('crosscut-circular-saw'), post, shop);
+    expect(fit.gaps[0]?.anyOf[0]?.short).toEqual([
+      { capability: 'depthOfCut', atLeast: 3.5, entered: 2.375 },
+    ]);
+  });
+
+  const holes: Operation = {
+    id: 'bolts',
+    type: 'bolt-holes',
+    hardwareId: 'bolts',
+    partIds: ['a', 'b'],
+    count: 4,
+    boltDiameter: 0.5,
+    holeDiameter: 0.5625,
+    depth: 8,
+  };
+
+  it('chooses the clamps that reach across the parts', () => {
+    const holding = method('bolt-holes-auger-one-side').tools.find((r) =>
+      r.use.startsWith('holding'),
+    );
+    if (!holding) throw new Error('the method holds the parts with clamps');
+    const shop: Inventory = {
+      tools: [
+        named('clamps', 'Short', { maxOpening: 6 }),
+        named('clamps', 'Long', { maxOpening: 12 }),
+      ],
+      other: [],
+    };
+    expect(meetingTool(holding, holes, shop)?.name).toBe('Long');
+  });
+});
 
 describe('selectMethod', () => {
   it('takes the first method in preference order that the tools support', () => {

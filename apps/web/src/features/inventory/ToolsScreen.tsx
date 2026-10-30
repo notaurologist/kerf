@@ -25,6 +25,7 @@ import {
   ToolLabel,
 } from '../../ui/index.ts';
 import {
+  addAnother,
   addTool,
   detailsNeeded,
   fromInventory,
@@ -34,7 +35,9 @@ import {
   matchingTypes,
   moveToLibrary,
   type OtherDraft,
+  removeAt,
   removeTool,
+  restoreTools,
   type ToolDraft,
   toInventory,
 } from './draft.ts';
@@ -61,21 +64,16 @@ export function ToolsEditor(props: {
   const [issues, setIssues] = useState<FieldIssue[]>([]);
   const [save, setSave] = useState<SaveState>({ state: 'idle' });
   const [query, setQuery] = useState('');
-  // Values of a tool unticked by mistake come back when it is ticked again.
-  const [unticked, setUnticked] = useState<Record<string, ToolDraft['values']>>({});
+  // Tools unticked by mistake come back, with what was typed, when ticked again.
+  const [unticked, setUnticked] = useState<Record<string, ToolDraft[]>>({});
   useEffect(() => setDraft(props.saved), [props.saved]);
 
   const change = (next: (d: InventoryDraft) => InventoryDraft) => {
     setDraft(next);
     setSave({ state: 'idle' });
   };
-  const editTool = (t: number, path: string, text: string) =>
-    change((d) => ({
-      ...d,
-      tools: d.tools.map((tool, i) =>
-        i === t ? { ...tool, values: { ...tool.values, [path]: text } } : tool,
-      ),
-    }));
+  const editTool = (t: number, edit: (tool: ToolDraft) => ToolDraft) =>
+    change((d) => ({ ...d, tools: d.tools.map((tool, i) => (i === t ? edit(tool) : tool)) }));
   const editOther = (o: number, edit: Partial<OtherDraft>) =>
     change((d) => ({
       ...d,
@@ -98,23 +96,22 @@ export function ToolsEditor(props: {
   };
 
   const owned = new Set(draft.tools.map((t) => t.toolTypeId));
+  const ofType = (toolTypeId: string) => draft.tools.filter((t) => t.toolTypeId === toolTypeId);
   const setOwned = (toolTypeId: string, own: boolean) => {
-    const tool = draft.tools.find((t) => t.toolTypeId === toolTypeId);
-    if (!own && tool) setUnticked((u) => ({ ...u, [toolTypeId]: tool.values }));
+    if (!own) setUnticked((u) => ({ ...u, [toolTypeId]: ofType(toolTypeId) }));
+    const restore = unticked[toolTypeId];
     change((d) => {
       if (!own) return removeTool(d, toolTypeId);
-      const added = addTool(d, toolTypeId);
-      const values = unticked[toolTypeId] ?? {};
-      return {
-        ...added,
-        tools: added.tools.map((t) => (t.toolTypeId === toolTypeId ? { ...t, values } : t)),
-      };
+      return restore ? restoreTools(d, restore) : addTool(d, toolTypeId);
     });
   };
   const matching = matchingTypes(query);
   const withDetails = draft.tools
-    .map((tool, t) => ({ tool, t }))
-    .filter(({ tool }) => (findToolType(tool.toolTypeId)?.capabilities.length ?? 0) > 0);
+    .map((tool, t) => ({ tool, t, repeated: ofType(tool.toolTypeId).length > 1 }))
+    .filter(
+      ({ tool, repeated }) =>
+        repeated || (findToolType(tool.toolTypeId)?.capabilities.length ?? 0) > 0,
+    );
 
   return (
     <Stack>
@@ -160,13 +157,20 @@ export function ToolsEditor(props: {
             Build steps use these to choose between methods. Enter each from the tool's manual or by
             measuring it. One not entered is input needed.
           </Text>
-          {withDetails.map(({ tool, t }) => (
+          {withDetails.map(({ tool, t, repeated }) => (
             <ToolDetails
-              key={tool.toolTypeId}
+              // biome-ignore lint/suspicious/noArrayIndexKey: tools are edited in place by position; names can be blank or repeated while typing.
+              key={t}
               tool={tool}
               index={t}
+              repeated={repeated}
               issues={issues}
-              onChange={(path, text) => editTool(t, path, text)}
+              onChange={(path, text) =>
+                editTool(t, (x) => ({ ...x, values: { ...x.values, [path]: text } }))
+              }
+              onName={(name) => editTool(t, (x) => ({ ...x, name }))}
+              onAddAnother={() => change((d) => addAnother(d, tool.toolTypeId))}
+              onRemove={() => change((d) => removeAt(d, t))}
             />
           ))}
         </Stack>
@@ -222,47 +226,78 @@ function summaryItems(issues: readonly FieldIssue[]): SummaryItem[] {
 function ToolDetails(props: {
   tool: ToolDraft;
   index: number;
+  repeated: boolean;
   issues: FieldIssue[];
   onChange: (path: string, text: string) => void;
+  onName: (name: string) => void;
+  onAddAnother: () => void;
+  onRemove: () => void;
 }) {
   const type = findToolType(props.tool.toolTypeId);
   // The API accepts only library tools, so every saved tool is found.
   if (!type) return null;
   const fields = capabilityForm(type).fields;
-  const at = `tools.${props.index}.capabilities`;
+  const at = `tools.${props.index}`;
   const needed = detailsNeeded(props.tool);
-  const hasIssue = fields.some((f) => issueFor(props.issues, `${at}.${f.path}`));
+  const name = props.tool.name.trim();
+  const lower = type.name.toLowerCase();
+  const nameIssue = issueFor(props.issues, `${at}.name`);
+  const hasIssue =
+    nameIssue !== undefined ||
+    fields.some((f) => issueFor(props.issues, `${at}.capabilities.${f.path}`));
   return (
     <Disclosure
       open={hasIssue || undefined}
       summary={
         <>
-          <ToolLabel toolTypeId={type.id}>{type.name}</ToolLabel>{' '}
+          <ToolLabel toolTypeId={type.id}>{name ? `${type.name}: ${name}` : type.name}</ToolLabel>{' '}
           {needed > 0 ? (
             <InputNeeded>
               {needed === 1 ? '1 detail needed' : `${needed} details needed`}
             </InputNeeded>
           ) : (
-            <Text as="span" tone="muted">
-              Details entered
-            </Text>
+            fields.length > 0 && (
+              <Text as="span" tone="muted">
+                Details entered
+              </Text>
+            )
           )}
         </>
       }
     >
-      <Grid min="16rem" gap="s">
-        {fields.map((field) => (
-          <FieldInput
-            key={field.path}
-            id={controlId(`${at}.${field.path}`)}
-            field={field}
-            text={props.tool.values[field.path] ?? ''}
-            issue={issueFor(props.issues, `${at}.${field.path}`)}
-            onChange={(text) => props.onChange(field.path, text)}
-            needed
-          />
-        ))}
-      </Grid>
+      <Stack gap="s">
+        <Grid min="16rem" gap="s">
+          <Field
+            id={controlId(`${at}.name`)}
+            label="Name"
+            hint="Optional unless you add another. Build steps use it to say which one."
+            error={nameIssue}
+          >
+            {(c) => <TextInput {...c} value={props.tool.name} onChange={props.onName} />}
+          </Field>
+          {fields.map((field) => (
+            <FieldInput
+              key={field.path}
+              id={controlId(`${at}.capabilities.${field.path}`)}
+              field={field}
+              text={props.tool.values[field.path] ?? ''}
+              issue={issueFor(props.issues, `${at}.capabilities.${field.path}`)}
+              onChange={(text) => props.onChange(field.path, text)}
+              needed
+            />
+          ))}
+        </Grid>
+        <Cluster>
+          <Button variant="secondary" onClick={props.onAddAnother}>
+            {lower.endsWith('s') ? `Add another set of ${lower}` : `Add another ${lower}`}
+          </Button>
+          {props.repeated && (
+            <Button variant="link" onClick={props.onRemove}>
+              {`Remove ${name || 'this one'}`}
+            </Button>
+          )}
+        </Cluster>
+      </Stack>
     </Disclosure>
   );
 }

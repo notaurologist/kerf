@@ -1,6 +1,7 @@
 import type { Inventory } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import {
+  addAnother,
   addTool,
   detailsNeeded,
   emptyInventory,
@@ -33,8 +34,8 @@ describe('inventory drafts', () => {
     draft = addTool(draft, 'tape-measure');
     draft = addTool(draft, 'drill-driver');
     expect(draft.tools).toEqual([
-      { toolTypeId: 'tape-measure', values: {} },
-      { toolTypeId: 'drill-driver', values: {} },
+      { toolTypeId: 'tape-measure', name: '', values: {} },
+      { toolTypeId: 'drill-driver', name: '', values: {} },
     ]);
     // Nothing entered is left out: input needed, not a stand-in value.
     expect(toInventory(draft)).toEqual({
@@ -52,9 +53,8 @@ describe('inventory drafts', () => {
   it('says what to type for text it cannot read, and reports ranges from core', () => {
     const result = toInventory({
       tools: [
-        { toolTypeId: 'circular-saw', values: { depthOfCut: 'deep' } },
-        { toolTypeId: 'miter-saw', values: { maxMiter: '95' } },
-        { toolTypeId: 'clamps', values: { count: '2.5' } },
+        { toolTypeId: 'circular-saw', name: '', values: { depthOfCut: 'deep' } },
+        { toolTypeId: 'miter-saw', name: '', values: { maxMiter: '95' } },
       ],
       other: [],
     });
@@ -69,7 +69,6 @@ describe('inventory drafts', () => {
           field: 'tools.1.capabilities.maxMiter',
           message: 'Largest miter must be from 0.0° to 90.0°.',
         },
-        { field: 'tools.2.capabilities.count', message: 'Enter a whole number.' },
       ],
     });
   });
@@ -110,10 +109,32 @@ describe('inventory drafts', () => {
     expect(moved.other).toEqual([]);
   });
 
+  it('adds another tool of a type after the others, and sends names trimmed', () => {
+    let draft = addTool(emptyInventory(), 'clamps');
+    draft = addTool(draft, 'tape-measure');
+    draft = addAnother(draft, 'clamps');
+    expect(draft.tools.map((t) => t.toolTypeId)).toEqual(['tape-measure', 'clamps', 'clamps']);
+    draft = {
+      ...draft,
+      tools: draft.tools.map((t, i) => ({ ...t, name: ['', ' Short ', 'Long'][i] ?? '' })),
+    };
+    expect(toInventory(draft)).toEqual({
+      ok: true,
+      inventory: {
+        tools: [
+          { toolTypeId: 'tape-measure', capabilities: {} },
+          { toolTypeId: 'clamps', name: 'Short', capabilities: {} },
+          { toolTypeId: 'clamps', name: 'Long', capabilities: {} },
+        ],
+        other: [],
+      },
+    });
+  });
+
   it('counts the details not entered yet', () => {
     const draft = fromInventory(inventory);
     expect(draft.tools.map(detailsNeeded)).toEqual([0, 2]);
-    expect(detailsNeeded({ toolTypeId: 'tape-measure', values: {} })).toBe(0);
+    expect(detailsNeeded({ toolTypeId: 'tape-measure', name: '', values: {} })).toBe(0);
   });
 
   it('trims other tools and asks for a name', () => {

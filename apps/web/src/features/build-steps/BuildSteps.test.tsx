@@ -36,6 +36,23 @@ function project(inventory: Inventory): Project {
 }
 
 describe('build steps in the project view (#52)', () => {
+  it('names the tool chosen when there are several of its type', () => {
+    const named: Inventory = {
+      tools: [
+        { toolTypeId: 'miter-saw', name: 'Small', capabilities: { cutDepth: 1, crosscutWidth: 3 } },
+        {
+          toolTypeId: 'miter-saw',
+          name: 'Sliding',
+          capabilities: { cutDepth: 4, crosscutWidth: 12, maxMiter: 50 },
+        },
+        { toolTypeId: 'tape-measure', capabilities: {} },
+      ],
+      other: [],
+    };
+    const text = renderText(<ProjectView project={project(named)} />);
+    expect(text).toContain('With a miter saw. Tools: Miter saw (Sliding), Tape measure.');
+  });
+
   it('renders every step and every operation from one project response', () => {
     const p = project(shop);
     const steps = readSteps(p);

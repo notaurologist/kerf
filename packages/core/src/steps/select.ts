@@ -1,4 +1,4 @@
-import type { Inventory } from '../inventory/tools.ts';
+import type { Inventory, Tool } from '../inventory/tools.ts';
 import {
   METHOD_VALUES,
   type Method,
@@ -83,37 +83,63 @@ function operationValue(op: Operation, name: string): number {
   return value.of(op as never);
 }
 
+type Choice = ChoiceGap & { chosen?: Tool };
+
+const entered = (tool: Tool, capability: string) => {
+  const value = tool.capabilities[capability];
+  return typeof value === 'number' ? value : undefined;
+};
+
+/**
+ * Each choice for a requirement, against every tool of its type the owner has. One tool must meet
+ * every need; with several that do, the first in the owner's list is chosen.
+ */
 function requirementChoices(
   requirement: ToolRequirement,
   op: Operation,
   inventory: Inventory,
-): ChoiceGap[] {
+): Choice[] {
   return requirement.anyOf.map((choice) => {
-    const tool = inventory.tools.find((t) => t.toolTypeId === choice.tool);
+    const needs = choice.needs.map((need) => ({
+      capability: need.capability,
+      atLeast: operationValue(op, need.atLeast) / need.passes,
+    }));
+    const tools = inventory.tools.filter((t) => t.toolTypeId === choice.tool);
+    const reaching = tools.filter((t) =>
+      needs.every((n) => (entered(t, n.capability) ?? 0) >= n.atLeast),
+    );
     const short: CapabilityShort[] = [];
-    for (const need of choice.needs) {
-      const atLeast = operationValue(op, need.atLeast) / need.passes;
-      const entered = tool?.capabilities[need.capability];
-      if (typeof entered === 'number' && entered >= atLeast) continue;
-      short.push({
-        capability: need.capability,
-        atLeast,
-        ...(typeof entered === 'number' ? { entered } : {}),
+    for (const need of needs) {
+      const values = tools.flatMap((t) => {
+        const value = entered(t, need.capability);
+        return value === undefined ? [] : [value];
       });
+      const value = values.length > 0 ? Math.max(...values) : undefined;
+      if (value !== undefined && value >= need.atLeast) continue;
+      short.push({ ...need, ...(value !== undefined ? { entered: value } : {}) });
     }
-    return { toolTypeId: choice.tool, owned: tool !== undefined, short };
+    const chosen = short.length === 0 ? reaching[0] : undefined;
+    return {
+      toolTypeId: choice.tool,
+      owned: tools.length > 0,
+      // Each need is met by some tool, but no one tool meets them all.
+      short: short.length === 0 && !chosen ? needs : short,
+      ...(chosen ? { chosen } : {}),
+    };
   });
 }
 
-const meets = (c: ChoiceGap) => c.owned && c.short.length === 0;
+const meets = (c: Choice) => c.chosen !== undefined;
 
-/** The first tool type in the inventory that meets a requirement, if any. */
+const gapOf = ({ chosen: _, ...gap }: Choice): ChoiceGap => gap;
+
+/** The first tool in the inventory that meets a requirement, if any. */
 export function meetingTool(
   requirement: ToolRequirement,
   op: Operation,
   inventory: Inventory,
-): string | undefined {
-  return requirementChoices(requirement, op, inventory).find(meets)?.toolTypeId;
+): Tool | undefined {
+  return requirementChoices(requirement, op, inventory).find(meets)?.chosen;
 }
 
 /** How well the inventory supports one method for one operation. */
@@ -121,7 +147,7 @@ export function fitMethod(method: Method, op: Operation, inventory: Inventory): 
   const gaps: RequirementGap[] = [];
   for (const requirement of method.tools) {
     const choices = requirementChoices(requirement, op, inventory);
-    if (!choices.some(meets)) gaps.push({ use: requirement.use, anyOf: choices });
+    if (!choices.some(meets)) gaps.push({ use: requirement.use, anyOf: choices.map(gapOf) });
   }
   return { method, gaps };
 }

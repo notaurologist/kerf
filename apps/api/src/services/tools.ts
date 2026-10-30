@@ -8,7 +8,7 @@ import { otherTools, tools } from '../db/schema.ts';
 // have to other tools; the release step rewrites them (`upgradeStoredInventory`).
 
 async function readInventory(db: Database): Promise<{ inventory: Inventory; moved: number }> {
-  const rows = await db.select().from(tools).orderBy(tools.toolTypeId);
+  const rows = await db.select().from(tools).orderBy(tools.position);
   const others = await db.select().from(otherTools).orderBy(otherTools.position);
   const read = readStoredTools(rows);
   const inventory = Inventory.parse({
@@ -28,7 +28,14 @@ export async function replaceInventory(db: Database, inventory: Inventory, now: 
     await tx.delete(tools);
     await tx.delete(otherTools);
     if (inventory.tools.length > 0) {
-      await tx.insert(tools).values(inventory.tools.map((t) => ({ ...t, updatedAt: now })));
+      await tx.insert(tools).values(
+        inventory.tools.map((t, position) => ({
+          ...t,
+          name: t.name ?? '',
+          position,
+          updatedAt: now,
+        })),
+      );
     }
     if (inventory.other.length > 0) {
       await tx

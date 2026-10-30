@@ -231,16 +231,6 @@ export const TOOL_TYPES = [
     group: 'clamping-and-holding',
     capabilities: [
       {
-        id: 'count',
-        label: 'How many',
-        kind: 'integer',
-        unit: 'clamps',
-        help: 'Decides whether parts can be held in place while you drill and bolt them.',
-        readFrom: 'Count the clamps you have.',
-        min: 1,
-        max: 50,
-      },
-      {
         id: 'maxOpening',
         label: 'Widest opening',
         kind: 'length',

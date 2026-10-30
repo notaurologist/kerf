@@ -37,6 +37,8 @@ function inUnits(field: CapabilityField, n: number): string {
 export const Tool = z
   .object({
     toolTypeId: z.string(),
+    /** Tells two tools of one type apart, such as "Long clamps"; build steps say it. */
+    name: z.string().trim().max(80).optional(),
     /** By capability ID. A capability not entered is left out. */
     capabilities: z.record(z.string(), CapabilityValue),
   })
@@ -68,12 +70,28 @@ export const OtherTool = z.object({
 export type OtherTool = z.infer<typeof OtherTool>;
 
 export const Inventory = z.object({
-  tools: z
-    .array(Tool)
-    .refine(
-      (list) => new Set(list.map((t) => t.toolTypeId)).size === list.length,
-      'lists a tool type more than once',
-    ),
+  tools: z.array(Tool).superRefine((list, ctx) => {
+    list.forEach((tool, i) => {
+      const same = list.filter((t) => t.toolTypeId === tool.toolTypeId);
+      if (same.length < 2) return;
+      const type = findToolType(tool.toolTypeId)?.name.toLowerCase() ?? 'tool';
+      if (!tool.name) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [i, 'name'],
+          message: `Name each one, so build steps can say which ${type} to use.`,
+        });
+      } else if (
+        same.filter((t) => t.name?.toLowerCase() === tool.name?.toLowerCase()).length > 1
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [i, 'name'],
+          message: 'Give each one a different name.',
+        });
+      }
+    });
+  }),
   other: z.array(OtherTool),
 });
 export type Inventory = z.infer<typeof Inventory>;
@@ -104,6 +122,7 @@ const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 /** A tool row as stored before the library (M3 to M5): any lowercase ID and free capabilities. */
 export interface StoredTool {
   toolTypeId: string;
+  name?: string;
   capabilities: unknown;
 }
 
@@ -134,7 +153,7 @@ export function readStoredTools(rows: readonly StoredTool[]): {
       if (field && !capabilityProblem(field, value)) capabilities[id] = value as CapabilityValue;
       else left.push([id, value]);
     }
-    tools.push({ toolTypeId: type.id, capabilities });
+    tools.push({ toolTypeId: type.id, ...(row.name ? { name: row.name } : {}), capabilities });
     if (left.length > 0) {
       moved.push(
         movedTool(row.toolTypeId, `Details the ${type.name.toLowerCase()} entry cannot use.`, left),
