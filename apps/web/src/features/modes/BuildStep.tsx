@@ -48,14 +48,22 @@ export interface StepLinks {
 /** The page grid has 8 columns from 600 px (#41): from there the step sits beside its drawing. */
 const BESIDE = '37.5rem';
 
-function Position(props: { number: number; total: number; step: BuildStep; links: StepLinks }) {
+/** Where you are, with a way back: the step list from a step, the step from a cut card (#136). */
+function Position(props: {
+  number: number;
+  total: number;
+  step: BuildStep;
+  links: StepLinks;
+  back?: { href: string; label: string };
+}) {
+  const back = props.back ?? { href: props.links.steps, label: 'All steps' };
   return (
     <Cluster spread>
       <Text>
         Step {props.number} of {props.total}
         {props.step.board && ' · Cutting'}
       </Text>
-      <a href={props.links.steps}>All steps</a>
+      <a href={back.href}>{back.label}</a>
     </Cluster>
   );
 }
@@ -258,7 +266,13 @@ export function CutCard(props: {
   const bothAngled = [0, 1].every((e) => endCut(e)?.type === 'miter');
   return (
     <>
-      <Position number={props.number} total={props.total} step={step} links={links} />
+      <Position
+        number={props.number}
+        total={props.total}
+        step={step}
+        links={links}
+        back={{ href: links.step(step.id), label: 'Back to the step' }}
+      />
       <h1>
         <PartLetter>{row.letter}</PartLetter> {row.name}
       </h1>

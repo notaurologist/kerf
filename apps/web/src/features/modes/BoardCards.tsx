@@ -8,10 +8,10 @@ import {
 import { Card, Diagram, Length, PartLetter, PlainList, Stack, Text } from '../../ui/index.ts';
 import { BoardSelection } from '../shopping-list/BoardSelection.tsx';
 
-// Board cards (#59; wireframes S-B): under a lumber line on the store checklist, each board of
-// that size and length with the pieces it becomes, drawn by core, and what to look for when
-// choosing it (#53). Choosing a board happens at the rack, so the card says what each board is
-// for and how much it has to spare.
+// Board cards (#59; wireframes S-B): under a lumber line on the store checklist, what to look
+// for when choosing these boards (#53), then each board of that size and length with the pieces
+// it becomes, drawn by core. Choosing a board happens at the rack, so the card says what each
+// board is for and how much it has to spare.
 
 export function BoardCards(props: {
   line: Pick<ShoppingLine, 'nominal' | 'feet'>;
@@ -28,6 +28,12 @@ export function BoardCards(props: {
   const partIds = [...new Set(boards.flatMap(({ board }) => board.pieces.map((p) => p.partId)))];
   return (
     <Stack>
+      {/* What to look for first: it applies to every board below (#136). */}
+      <BoardSelection
+        lumber={lumber}
+        partIds={partIds}
+        heading={{ level: 3, text: 'What to look for' }}
+      />
       {boards.map(({ board, i }) => {
         const drawing = props.drawings[i];
         return (
@@ -51,11 +57,6 @@ export function BoardCards(props: {
           </Card>
         );
       })}
-      <BoardSelection
-        lumber={lumber}
-        partIds={partIds}
-        heading={{ level: 3, text: 'What to look for' }}
-      />
     </Stack>
   );
 }

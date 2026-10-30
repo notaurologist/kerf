@@ -176,8 +176,9 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
           {steps.map((step, i) => {
             const tick = { kind: 'step' as const, key: step.id };
             return (
+              // Every row the same (#136): the tick and title, then Open under it.
               <li key={step.id}>
-                <Cluster spread>
+                <Stack gap="2xs">
                   <Tick
                     done={ticks.isDone(tick)}
                     waiting={ticks.isWaiting(tick)}
@@ -185,10 +186,12 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
                   >
                     {i + 1}. {step.title}
                   </Tick>
-                  <ButtonLink variant="secondary" href={stepHref(step.id)}>
-                    Open
-                  </ButtonLink>
-                </Cluster>
+                  <div>
+                    <ButtonLink variant="secondary" href={stepHref(step.id)}>
+                      Open
+                    </ButtonLink>
+                  </div>
+                </Stack>
               </li>
             );
           })}
