@@ -367,6 +367,65 @@ export function explodedView(
   return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [] };
 }
 
+/** What one assembly step shows (#118): the parts it adds and the parts already built. */
+export interface Action {
+  /** Part IDs the step adds: drawn tinted, each moved by its `explode` offset if it has one. */
+  added: ReadonlySet<string>;
+  /** Part IDs built in earlier steps: drawn in place, in their face tones. */
+  built: ReadonlySet<string>;
+  /** How far the template pulls each instance apart, as for the exploded view. */
+  explode: readonly Explode[];
+}
+
+/**
+ * An action drawing (Stage 5, "Drawings in Building mode"; Agrawala et al. 2003): only the parts
+ * built so far and the parts the step adds. An added part the template pulls apart is drawn away
+ * from where it goes, with a motion arrow back to it. Parts not built yet, and phantom lines such
+ * as chains, are left out. Added
+ * parts are the drawing's emphasis, tinted and outlined heavily by the renderer.
+ */
+export function actionView(
+  scene: Scene,
+  view: Isometric,
+  action: Action,
+  description: string,
+  title: string,
+): Drawing {
+  const shown = (pl: Placement) => action.added.has(pl.partId) || action.built.has(pl.partId);
+  const offsetOf = (pl: Placement) =>
+    action.added.has(pl.partId)
+      ? action.explode.find((e) => e.partId === pl.partId && e.instance === pl.instance)?.offset
+      : undefined;
+  // Phantoms are things not built, such as chains hung from a part not there yet: left out.
+  const partial: Scene = { ...scene, placements: scene.placements.filter(shown), phantoms: [] };
+  const solids = placedSolids(partial, offsetOf);
+  const { primitives, faces } = drawSolids(partial, view, solids);
+  const arrows = partial.placements.flatMap((pl): Primitive[] => {
+    const offset = offsetOf(pl);
+    const part = scene.parts.find((p) => p.id === pl.partId);
+    if (!offset || !part) return [];
+    const home = solidCentroid(solid(part, pl));
+    return [
+      {
+        kind: 'line',
+        role: 'guideline',
+        points: [project(view, add(home, offset)), project(view, home)],
+        arrows: 'end',
+        part: refFor(scene, pl),
+      },
+    ];
+  });
+  const all = [...primitives, ...arrows, ...letters(faces, primitives)];
+  return {
+    title,
+    description,
+    bounds: boundsOf(all, 2),
+    primitives: all,
+    notes: [],
+    emphasis: [...action.added],
+  };
+}
+
 function placedSolids(
   scene: Scene,
   offsetOf: (pl: Placement) => Vec3 | undefined = () => undefined,

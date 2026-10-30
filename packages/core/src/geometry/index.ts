@@ -13,7 +13,14 @@ export {
   Tone,
 } from './primitives.ts';
 export { depth, depthOnPlane, type Isometric, isometric, project } from './projection.ts';
-export { type Explode, explodedView, isometricView, type Scene } from './views.ts';
+export {
+  type Action,
+  actionView,
+  type Explode,
+  explodedView,
+  isometricView,
+  type Scene,
+} from './views.ts';
 
 import { z } from 'zod';
 import { Drawing } from './primitives.ts';
@@ -29,5 +36,10 @@ export const Drawings = z.object({
    * Generic, so the API adds them to every template's drawings.
    */
   boards: z.array(Drawing).optional(),
+  /**
+   * An action drawing for each assembly step, by step ID (#118), from `stepDrawings`. Generic, so
+   * the API adds them like the boards.
+   */
+  steps: z.array(z.object({ stepId: z.string(), drawing: Drawing })).optional(),
 });
 export type Drawings = z.infer<typeof Drawings>;

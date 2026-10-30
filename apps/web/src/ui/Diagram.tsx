@@ -119,8 +119,11 @@ export function Diagram(props: {
   const minY = Math.min(b.y, ...boxes.map((r) => r.y0));
   const maxY = Math.max(b.y + b.height, ...boxes.map((r) => r.y1));
   const viewBox = `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
+  // A selected part, and an action drawing's emphasis (#118), are tinted and outlined heavily.
   const selected = (p: { part?: { partId: string } }) =>
-    props.selected && p.part?.partId === props.selected ? '' : undefined;
+    p.part && (p.part.partId === props.selected || drawing.emphasis?.includes(p.part.partId))
+      ? ''
+      : undefined;
   // One handler for the whole drawing: the tapped shape names its part.
   const tap = (event: { target: EventTarget }) => {
     const id = (event.target as Element).closest?.('[data-part]')?.getAttribute('data-part');
@@ -148,12 +151,14 @@ export function Diagram(props: {
         );
       }
       case 'line': {
+        // Both ends for a dimension; the last point only for a motion arrow.
+        const ends = [
+          [p.points[0], p.points[1]],
+          [p.points[p.points.length - 1], p.points[p.points.length - 2]],
+        ];
         const arrows =
           p.arrows && p.points.length >= 2
-            ? [
-                [p.points[0], p.points[1]],
-                [p.points[p.points.length - 1], p.points[p.points.length - 2]],
-              ].map(([tip, from], k) => (
+            ? (p.arrows === 'end' ? ends.slice(1) : ends).map(([tip, from], k) => (
                 <polygon
                   // biome-ignore lint/suspicious/noArrayIndexKey: the two ends of one line.
                   key={k}

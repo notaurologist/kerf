@@ -4,6 +4,7 @@ import {
   geometry,
   type Inventory,
   inventoryKey,
+  stepDrawings,
   swingSetAFrame,
   TEMPLATES,
   type TemplateDefinition,
@@ -108,10 +109,12 @@ describe('GET /api/projects/:id drawings', () => {
     const project = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
     const outputs = swingSetAFrame.definition.outputs.parse(project.snapshot.outputs);
     const plan = swingSetAFrame.definition.plan(outputs);
-    // The template's drawings, and the board cards' from the board plan (#59).
+    // The template's drawings, the board cards' from the board plan (#59), and the assembly
+    // steps' action drawings (#118).
     const expected = {
       ...swingSetAFrame.definition.drawings(outputs),
       boards: geometry.boardDrawings(plan.lumber, plan.cutList),
+      steps: stepDrawings(swingSetAFrame.definition, outputs),
     };
     expect(project.drawings).toEqual(JSON.parse(JSON.stringify(expected)));
     expect(project.drawings.boards).toHaveLength(plan.lumber.boards.length);

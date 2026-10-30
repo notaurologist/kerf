@@ -35,11 +35,19 @@ export function explodeOffsets(placements: readonly Placement[]): Explode[] {
   });
 }
 
-export function drawings(outputs: SwingSetOutputs): Drawings {
+/**
+ * What the 3D views are drawn from (#90, #118): every part in place on sloped ground, the chains
+ * and seats as phantoms, the viewpoint, and how far the exploded and action views pull parts
+ * apart. Null for a plan made before placements.
+ */
+export function assembly(
+  outputs: SwingSetOutputs,
+): { scene: Scene; view: typeof VIEW; explode: Explode[] } | null {
   const { design } = outputs;
   const p = design.params;
   const k = p.groundSlope / 12;
   const placements = design.placements ?? [];
+  if (placements.length === 0) return null;
   const H = p.beamHeight;
   const seat = p.swings.seatHeight;
   const scene: Scene = {
@@ -59,8 +67,13 @@ export function drawings(outputs: SwingSetOutputs): Drawings {
       ]),
     ],
   };
-  const explode = explodeOffsets(placements);
-  const has3d = placements.length > 0;
+  return { scene, view: VIEW, explode: explodeOffsets(placements) };
+}
+
+export function drawings(outputs: SwingSetOutputs): Drawings {
+  const { design } = outputs;
+  const p = design.params;
+  const views = assembly(outputs);
   const { footprint, clearArea, swingZones } = design.layout;
   const areas: PlanArea[] = [
     { ...clearArea, kind: 'zone', dimensioned: true },
@@ -71,12 +84,12 @@ export function drawings(outputs: SwingSetOutputs): Drawings {
   const beam = design.parts.find((x) => x.id === 'beam');
   const beamWidth = (beam?.stock.thickness ?? 0) * (beam?.quantity ?? 1);
   return {
-    isometric: has3d ? isometricView(scene, VIEW, 'The swing set, assembled.') : null,
-    exploded: has3d
+    isometric: views ? isometricView(views.scene, views.view, 'The swing set, assembled.') : null,
+    exploded: views
       ? explodedView(
-          scene,
-          VIEW,
-          explode,
+          views.scene,
+          views.view,
+          views.explode,
           'The beam lifted, and the crossbars and gussets pulled out along the beam, with guidelines to where each goes.',
         )
       : null,

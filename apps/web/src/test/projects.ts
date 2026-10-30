@@ -5,6 +5,7 @@ import {
   planSteps,
   progressSummary,
   readSnapshot,
+  stepDrawings,
   TEMPLATES,
 } from '@kerf/core';
 import fixtures from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v1.json';
@@ -57,11 +58,13 @@ function drawingsFor(snapshot: NonNullable<Project['snapshot']>) {
   if (!template) return null;
   const outputs = template.outputs.safeParse(snapshot.outputs);
   if (!outputs.success) return null;
-  // As the API composes them: the template's drawings and the board cards' (#59).
+  // As the API composes them: the template's drawings, the board cards' (#59), and the action
+  // drawings (#118).
   const plan = template.plan(outputs.data);
   const drawings = {
     ...template.drawings(outputs.data),
     boards: geometry.boardDrawings(plan.lumber, plan.cutList),
+    steps: stepDrawings(template, outputs.data),
   };
   return JSON.parse(JSON.stringify(drawings));
 }

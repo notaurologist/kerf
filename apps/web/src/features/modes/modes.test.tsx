@@ -123,6 +123,29 @@ describe('Building mode', () => {
     expect(html).not.toContain('class="k-glance"');
   });
 
+  it('sets an assembly step beside its action drawing, what it adds emphasized (#118)', () => {
+    const p = project();
+    const route = { screen: 'build-step' as const, id: p.id, step: 'beam' };
+    const html = render(<ModeView route={route} project={p} />);
+    expect(html).toContain('class="l-switcher"');
+    expect(html).toContain('Adds A Beam, to B Back leg');
+    // Only the beam is emphasized, as a selected part is drawn.
+    const emphasized = [...html.matchAll(/data-selected="" data-part="([^"]+)"/g)].map((m) => m[1]);
+    expect(new Set(emphasized)).toEqual(new Set(['beam']));
+  });
+
+  it('sets site work beside the site layout, and a step with neither on its own', () => {
+    const p = project();
+    const site = render(
+      <ModeView route={{ screen: 'build-step', id: p.id, step: 'site' }} project={p} />,
+    );
+    expect(site).toContain('class="l-switcher"');
+    const ease = render(
+      <ModeView route={{ screen: 'build-step', id: p.id, step: 'ease-edges' }} project={p} />,
+    );
+    expect(ease).not.toContain('class="l-switcher"');
+  });
+
   it('says a step is done and offers Next instead', () => {
     const p = project([{ kind: 'step', key: 'board-6' }]);
     const text = renderText(

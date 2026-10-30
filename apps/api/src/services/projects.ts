@@ -14,6 +14,7 @@ import {
   progressId,
   progressSummary,
   readSnapshot,
+  stepDrawings,
   type TemplateDefinition,
   type VersionReport,
 } from '@kerf/core';
@@ -123,8 +124,9 @@ export type Result<T> =
 type Row = typeof projects.$inferSelect;
 
 /**
- * A snapshot's drawings, from its template, with the board cards' drawings (#59), which come from
- * the board plan every template shares. Read already, so its outputs parse.
+ * A snapshot's drawings, from its template, with the board cards' drawings (#59) from the board
+ * plan and the assembly steps' action drawings (#118), which every template's data supports.
+ * Read already, so its outputs parse.
  */
 function drawingsOf(template: TemplateDefinition, snapshot: ProjectSnapshot): geometry.Drawings {
   const outputs = template.outputs.parse(snapshot.outputs);
@@ -132,6 +134,7 @@ function drawingsOf(template: TemplateDefinition, snapshot: ProjectSnapshot): ge
   return {
     ...template.drawings(outputs),
     boards: geometry.boardDrawings(plan.lumber, plan.cutList),
+    steps: stepDrawings(template, outputs),
   };
 }
 

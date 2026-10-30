@@ -353,6 +353,59 @@ describe('the catalog', () => {
   });
 });
 
+describe('Diagram, action drawings (#118)', () => {
+  const drawing = {
+    title: 'Step',
+    description: 'Adds the beam.',
+    bounds: { x: 0, y: 0, width: 10, height: 10 },
+    notes: [],
+    emphasis: ['beam'],
+    primitives: [
+      {
+        kind: 'polygon' as const,
+        role: 'visible' as const,
+        fill: 1 as const,
+        points: [
+          { x: 0, y: 0 },
+          { x: 4, y: 0 },
+          { x: 4, y: 2 },
+        ],
+        part: { partId: 'beam', instance: 0, letter: 'A' },
+      },
+      {
+        kind: 'polygon' as const,
+        role: 'visible' as const,
+        fill: 2 as const,
+        points: [
+          { x: 0, y: 5 },
+          { x: 4, y: 5 },
+          { x: 4, y: 7 },
+        ],
+        part: { partId: 'leg', instance: 0, letter: 'B' },
+      },
+      {
+        kind: 'line' as const,
+        role: 'guideline' as const,
+        arrows: 'end' as const,
+        points: [
+          { x: 2, y: -3 },
+          { x: 2, y: 1 },
+        ],
+      },
+    ],
+  };
+  const html = render(<Diagram drawing={drawing} label="Adds the beam." assumedWidth={600} />);
+
+  it('tints and outlines what the step adds, as a selected part, and nothing else', () => {
+    expect(html).toMatch(/data-selected="" data-part="beam"/);
+    expect(html).not.toMatch(/data-selected="" data-part="leg"/);
+  });
+
+  it('draws a motion arrow with one head, at the end', () => {
+    expect(html.match(/class="k-arrow"/g)).toHaveLength(1);
+  });
+});
+
 describe('Diagram (#91)', () => {
   const drawing = {
     title: 'Sample',
