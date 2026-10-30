@@ -51,7 +51,9 @@ export function ErrorSummary(props: {
       <ul>
         {props.items.map((item) => (
           <li key={item.field}>
-            <a href={`#${item.field}`}>{item.message}</a>
+            <a href={`#${item.field}`} onClick={(e) => goToField(item.field, e, document)}>
+              {item.message}
+            </a>
           </li>
         ))}
         {props.general?.map((m) => (
@@ -60,6 +62,23 @@ export function ErrorSummary(props: {
       </ul>
     </div>
   );
+}
+
+/**
+ * Follows a summary link (#161): focuses its field and scrolls it into view. Screens are chosen
+ * from the URL hash, so the link's own `#field` would replace the route and lose the form. The
+ * href stays for what it says: where the link goes.
+ */
+export function goToField(
+  field: string,
+  event: { preventDefault: () => void },
+  doc: { getElementById: (id: string) => Pick<HTMLElement, 'focus' | 'scrollIntoView'> | null },
+) {
+  event.preventDefault();
+  const target = doc.getElementById(field);
+  if (!target) return;
+  target.focus({ preventScroll: true });
+  target.scrollIntoView({ block: 'center' });
 }
 
 /** "2 fields need fixing before this can be saved", or "problems" when some are not fields. */
