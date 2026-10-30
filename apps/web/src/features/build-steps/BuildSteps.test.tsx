@@ -10,7 +10,8 @@ import { readSteps } from '../../lib/plan.ts';
 import { cutDetailId } from '../../lib/show.ts';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, stepsFor } from '../../test/projects.ts';
-import { render, renderText } from '../../test/render.tsx';
+import { render, renderText, sectionOf } from '../../test/render.tsx';
+import { TermScope } from '../../ui/index.ts';
 import { ProjectView } from '../project/ProjectScreen.tsx';
 
 // #52: the shop view needs nothing beyond the project response, so a dropped connection after
@@ -34,6 +35,28 @@ const shop: Inventory = {
 function project(inventory: Inventory): Project {
   return projectFrom(snapshot, { steps: stepsFor(snapshot, inventory) });
 }
+
+describe('glossary terms in the plan (#178)', () => {
+  const html = render(
+    <TermScope entryHref={(id) => `#/glossary/${id}`}>
+      <ProjectView project={project(shop)} />
+    </TermScope>,
+  );
+  const marked = (section: string) =>
+    [...sectionOf(html, section).matchAll(/class="k-term__button"[^>]*>([^<]+)</g)].map((m) =>
+      (m[1] ?? '').toLowerCase(),
+    );
+
+  it("marks each term's first use in the build steps once, in method text and flags", () => {
+    const terms = marked('build-steps');
+    expect(terms).toEqual(expect.arrayContaining(['miter', 'bevel', 'margins']));
+    expect(new Set(terms).size).toBe(terms.length);
+  });
+
+  it('starts each section afresh: the structural review marks its own first use', () => {
+    expect(marked('structural-review')).toEqual(['gusset']);
+  });
+});
 
 describe('build steps in the project view (#52)', () => {
   it('names the tool chosen when there are several of its type', () => {

@@ -57,6 +57,7 @@ import { CheckStatus, FlagList } from './plan.tsx';
 import { ScreenHeader } from './ScreenHeader.tsx';
 import { Header, ModeBar } from './Shell.tsx';
 import { StepLayout } from './StepLayout.tsx';
+import { TermScope } from './Term.tsx';
 import { Tick } from './Tick.tsx';
 import { ToolLabel } from './ToolIcon.tsx';
 import { List, Text } from './text.tsx';
@@ -256,6 +257,18 @@ function Specimens() {
             definition: findGlossaryEntry(id)?.definition,
           }))}
         />
+      </Group>
+
+      <Group title="Terms">
+        <TermScope entryHref={(id) => `#/glossary/${id}`}>
+          <List
+            items={[
+              'Mark the long point on the edge the cut detail measures from.',
+              'Join the long point and the short point with a straightedge, then set the miter saw.',
+            ]}
+            terms
+          />
+        </TermScope>
       </Group>
 
       <Group title="Contents">

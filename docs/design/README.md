@@ -160,6 +160,20 @@ The tools screen showed each unowned library type as an Add button and each owne
 
 Sources: GOV.UK Design System, Checkboxes, read October 2026 (https://design-system.service.gov.uk/components/checkboxes/). NN/g, Progressive Disclosure, read October 2026 (https://www.nngroup.com/articles/progressive-disclosure/).
 
+### Terms defined in place (#178)
+
+#108 asked for each woodworking term to be defined where it is used. The owner chose tap-to-open definitions on the first use of a term per screen (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| How a term opens its definition | A real button, named by the term as written, that opens a non-modal popover with the definition and a link to the glossary entry (`Term`). Built on the Popover API, Baseline since January 2025: `popover="auto"` closes with Escape and a tap elsewhere, and the popover sits in the top layer, under the term where anchor positioning is supported and centered where it is not. The browser does not set `aria-expanded`, so the button's follows the popover's `toggle` event. This is Heydon Pickering's toggletip: a click, not a hover, so it works by touch, by keyboard, and with a screen reader. | A hover tooltip or `title`: neither appears on touch, and `title` is not read by most screen readers. A plain link to the glossary: leaves the step to read one sentence. `<abbr title>`: the same problems as `title`. |
+| Which uses are marked | The first use of each term on a screen; each plan section and each Building step is its own screen (`TermScope`). Method text (setup, technique, mistakes), flags, and the cut list's end cuts. A term inside a tool's name ("miter saw") is never marked. The plan summary's one-line flags are not marked: they are cut short, and the structural review marks them in full. | Every use: a paragraph of underlined words, and each one a tab stop. |
+| How it looks | The words as written, with a dotted underline (solid while open), in the text's own color and size. The button's target reaches the control height above and below the text without changing the line height. | A filled or colored chip: reads as a tag and breaks the sentence. |
+
+The popover's reading order follows the button, and VoiceOver waits for #87.
+
+Sources: Heydon Pickering, "Tooltips & Toggletips", Inclusive Components (2017), https://inclusive-components.design/tooltips-toggletips/. MDN, Popover API, read October 2026, https://developer.mozilla.org/en-US/docs/Web/API/Popover_API.
+
 ### Device accessibility pass (#87)
 
 Run in parts. The first part needs no device and was run October 2026 in the in-app browser, against a local copy with the worked example (every input entered):

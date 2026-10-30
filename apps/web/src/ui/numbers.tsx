@@ -1,4 +1,6 @@
+import { findTerms, type GlossaryId } from '@kerf/core';
 import { Fragment, type ReactNode } from 'react';
+import { Term, useEntryHref, useFirstUses } from './Term.tsx';
 
 // Numbers as #42 sets them. Every value here is a string core formatted (hard rule 1); these
 // components only decide how it is shown.
@@ -26,16 +28,31 @@ const MEASURE = /\d+' \d+(?:-\d+\/\d+)?"|\d+(?:-\d+\/\d+)?"|\d+\/\d+"|\d+(?:\.\d
 
 /**
  * Text from core with lengths and angles in it, such as `Each edge: 130-1/4"`, shown exactly as
- * core formatted it, with each length and angle kept on one line.
+ * core formatted it, with each length and angle kept on one line. With `terms`, the first use of
+ * each glossary term in the scope opens its definition (`Term`).
  */
-export function Measured(props: { text: string }) {
-  const parts: (string | { measure: string })[] = [];
+export function Measured(props: { text: string; terms?: boolean }) {
+  const uses = props.terms ? findTerms(props.text) : [];
+  const marked = useFirstUses(uses);
+  const entryHref = useEntryHref();
+  const parts: (string | { measure: string } | { term: GlossaryId; words: string })[] = [];
   let last = 0;
-  for (const match of props.text.matchAll(MEASURE)) {
-    const at = match.index ?? 0;
-    if (at > last) parts.push(props.text.slice(last, at));
-    parts.push({ measure: match[0] });
-    last = at + match[0].length;
+  const spans = [
+    ...[...props.text.matchAll(MEASURE)].map((m) => ({
+      start: m.index,
+      end: m.index + m[0].length,
+      part: { measure: m[0] },
+    })),
+    ...[...marked].map((u) => ({
+      start: u.start,
+      end: u.end,
+      part: { term: u.id, words: props.text.slice(u.start, u.end) },
+    })),
+  ].sort((a, b) => a.start - b.start);
+  for (const span of spans) {
+    if (span.start > last) parts.push(props.text.slice(last, span.start));
+    parts.push(span.part);
+    last = span.end;
   }
   if (last < props.text.length) parts.push(props.text.slice(last));
   return (
@@ -44,9 +61,17 @@ export function Measured(props: { text: string }) {
         typeof part === 'string' ? (
           // biome-ignore lint/suspicious/noArrayIndexKey: parts of one fixed string, in order.
           <Fragment key={i}>{part}</Fragment>
-        ) : (
+        ) : 'measure' in part ? (
           // biome-ignore lint/suspicious/noArrayIndexKey: parts of one fixed string, in order.
           <Length key={i}>{part.measure}</Length>
+        ) : entryHref ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: parts of one fixed string, in order.
+          <Term key={i} id={part.term} href={entryHref(part.term)}>
+            {part.words}
+          </Term>
+        ) : (
+          // biome-ignore lint/suspicious/noArrayIndexKey: parts of one fixed string, in order.
+          <Fragment key={i}>{part.words}</Fragment>
         ),
       )}
     </>

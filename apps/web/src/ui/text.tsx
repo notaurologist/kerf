@@ -28,13 +28,15 @@ interface ListProps {
   /** Sentences from core, each an item with its lengths kept on one line (`Measured`). */
   items?: readonly string[];
   ordered?: boolean;
+  /** Mark the first use of each glossary term in `items` (`Term`). */
+  terms?: boolean;
 }
 
 /** Core's sentences as list items, before any other children. */
-function Items(props: { items?: readonly string[] }) {
+function Items(props: { items?: readonly string[]; terms?: boolean }) {
   return props.items?.map((text) => (
     <li key={text}>
-      <Measured text={text} />
+      <Measured text={text} terms={props.terms} />
     </li>
   ));
 }
@@ -44,7 +46,7 @@ export function PlainList(props: ListProps & { gap?: 'xs' | 's' }) {
   const Tag = props.ordered ? 'ol' : 'ul';
   return (
     <Tag className="k-plain-list" data-gap={props.gap ?? 's'}>
-      <Items items={props.items} />
+      <Items items={props.items} terms={props.terms} />
       {props.children}
     </Tag>
   );
@@ -55,7 +57,7 @@ export function List(props: ListProps) {
   const Tag = props.ordered ? 'ol' : 'ul';
   return (
     <Tag className="k-list">
-      <Items items={props.items} />
+      <Items items={props.items} terms={props.terms} />
       {props.children}
     </Tag>
   );

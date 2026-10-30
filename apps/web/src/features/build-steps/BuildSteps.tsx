@@ -166,13 +166,13 @@ function Operation(props: { op: StepOperation; partName: (id: string) => string 
           {method.setup.length > 0 && (
             <>
               <b>Setup</b>
-              <List ordered items={method.setup} />
+              <List ordered items={method.setup} terms />
             </>
           )}
           <b>Technique</b>
-          <List ordered items={method.technique} />
+          <List ordered items={method.technique} terms />
           <b>Common mistakes</b>
-          <List items={method.mistakes} />
+          <List items={method.mistakes} terms />
           {method.safety.length > 0 && (
             <>
               <b>Safety</b>

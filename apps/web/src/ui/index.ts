@@ -64,6 +64,7 @@ export { ScreenHeader } from './ScreenHeader.tsx';
 export { PlanSection } from './Section.tsx';
 export { Header, ModeBar, ModeFrame, type NavItem } from './Shell.tsx';
 export { StepLayout } from './StepLayout.tsx';
+export { Term, TermScope } from './Term.tsx';
 export { Tick } from './Tick.tsx';
 export { ToolIcon, ToolLabel } from './ToolIcon.tsx';
 export { Code, List, OneLine, PlainList, Text, VisuallyHidden } from './text.tsx';

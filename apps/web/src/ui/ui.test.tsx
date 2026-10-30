@@ -50,6 +50,8 @@ import {
   StateTag,
   StatusLine,
   StepLayout,
+  Term,
+  TermScope,
   TextInput,
   Tick,
   ToolIcon,
@@ -607,6 +609,95 @@ describe('Figures', () => {
     );
     expect(html).toMatch(/^<dl class="k-figures"><div class="k-figure"><dt>Beam<\/dt><dd>/);
     expect(html).toContain('<dd class="k-figure__detail">Bending: Top beam</dd>');
+  });
+});
+
+describe('Term', () => {
+  const href = (id: string) => `#/glossary/${id}`;
+  const buttons = (html: string) =>
+    [...html.matchAll(/<button type="button" class="k-term__button"[^>]*>([^<]+)<\/button>/g)].map(
+      (m) => m[1],
+    );
+
+  it('is a button named by the words, opening a popover with the definition and the entry', () => {
+    const html = render(
+      <Term id="long-point" href="#/glossary/long-point">
+        long points
+      </Term>,
+    );
+    const [, target] = html.match(/popovertarget="([^"]+)"/i) ?? [];
+    expect(target).toBeTruthy();
+    expect(html).toMatch(
+      /<button type="button" class="k-term__button" popovertarget="[^"]+" aria-expanded="false">long points<\/button>/i,
+    );
+    expect(html).toContain(
+      `<span id="${target}" popover="auto" class="k-term__popover"><b>Long point</b> The end of an angled cut`,
+    );
+    expect(html).toContain('<a href="#/glossary/long-point">Open the glossary entry</a>');
+  });
+
+  it('marks the first use of each term in a scope and no later one', () => {
+    const html = render(
+      <TermScope entryHref={href}>
+        <Measured text="Mark the long point, then the short point from the long point." terms />
+        <List items={['Join the long point and the short point.', 'Mind the kerf.']} terms />
+      </TermScope>,
+    );
+    expect(buttons(html)).toEqual(['long point', 'short point', 'kerf']);
+  });
+
+  it('starts each scope fresh, inheriting where entries are', () => {
+    const html = render(
+      <TermScope entryHref={href}>
+        <Measured text="Mind the kerf." terms />
+        <TermScope>
+          <Measured text="Mind the kerf." terms />
+        </TermScope>
+        <Measured text="Mind the kerf." terms />
+      </TermScope>,
+    );
+    expect(buttons(html)).toEqual(['kerf', 'kerf']);
+    expect(html.match(/href="#\/glossary\/kerf"/g)).toHaveLength(2);
+  });
+
+  it('never marks a tool name, text not asked to, or text outside a scope', () => {
+    const scoped = render(
+      <TermScope entryHref={href}>
+        <Measured text="Set the miter saw and the sliding bevel." terms />
+        <Measured text="Cut the miter." />
+      </TermScope>,
+    );
+    expect(buttons(scoped)).toEqual([]);
+    expect(buttons(render(<Measured text="Cut the miter." terms />))).toEqual([]);
+  });
+
+  it('keeps lengths whole beside a term', () => {
+    const html = render(
+      <TermScope entryHref={href}>
+        <Measured text={'Measure 3-1/2" from the long point.'} terms />
+      </TermScope>,
+    );
+    expect(html).toContain('<span class="k-length">3-1/2&quot;</span>');
+    expect(buttons(html)).toEqual(['long point']);
+  });
+
+  it('marks terms in flags', () => {
+    const html = render(
+      <TermScope entryHref={href}>
+        <FlagList
+          flags={[
+            {
+              category: 'load-bearing',
+              ask: 'Confirm the gusset bolts.',
+              why: 'The gusset carries the beam.',
+              partIds: [],
+              hardwareIds: [],
+            } as Flag,
+          ]}
+        />
+      </TermScope>,
+    );
+    expect(buttons(html)).toEqual(['gusset']);
   });
 });
 
