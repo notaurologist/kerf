@@ -1,4 +1,4 @@
-import { findTemplate } from '@kerf/core';
+import { findTemplate, planTerms } from '@kerf/core';
 import { useEffect, useState } from 'react';
 import { api, send } from '../../lib/api.ts';
 import { takeFlash } from '../../lib/flash.ts';
@@ -14,6 +14,7 @@ import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
   ButtonLink,
+  Definitions,
   Notice,
   PlanSection,
   ScreenHeader,
@@ -233,6 +234,9 @@ export function ProjectView(props: {
               <ParametersAndInputs project={project} template={template} editHref={editHref} />
             </PlanSection>
           )}
+          {/* A term's popover cannot open on paper, so the printed plan ends with the terms it
+              uses. Never shown on screen, where each term opens in place (#178). */}
+          <TermsUsed terms={planTerms(plan.plan, steps?.steps ?? [])} project={project.name} />
           <SectionPager
             previous={previous && { title: previous.title, href: at(previous.id) }}
             next={next && { title: next.title, href: at(next.id) }}
@@ -241,5 +245,20 @@ export function ProjectView(props: {
       )}
       <DeleteProject id={project.id} name={project.name} />
     </Stack>
+  );
+}
+
+function TermsUsed(props: { terms: ReturnType<typeof planTerms>; project: string }) {
+  if (props.terms.length === 0) return null;
+  return (
+    <PlanSection id="terms-used" title="Terms used in this plan" project={props.project} hidden>
+      <Definitions
+        items={props.terms.map((entry) => ({
+          id: `terms-used-${entry.id}`,
+          term: entry.term,
+          definition: entry.definition,
+        }))}
+      />
+    </PlanSection>
   );
 }

@@ -1,4 +1,10 @@
-import { buildSteps, createSnapshot, findTemplate, type TemplateDefinition } from '@kerf/core';
+import {
+  buildSteps,
+  createSnapshot,
+  findTemplate,
+  planTerms,
+  type TemplateDefinition,
+} from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { projectFrom } from '../../test/projects.ts';
@@ -44,7 +50,8 @@ describe('each section on its own screen', () => {
     const html = at(id);
     // Only the current section shows; the rest stay in the page, hidden, for print.
     expect(shownSections(html)).toEqual([id]);
-    expect(html.match(/<section id="[a-z-]+" class="k-section"/g)).toHaveLength(8);
+    // The eight, and the terms the plan uses, which only print (#180).
+    expect(html.match(/<section id="[a-z-]+" class="k-section"/g)).toHaveLength(9);
     // The contents mark it as the page, with its own address.
     const href = id === 'summary' ? base : `${base}/${id}`;
     expect(contentsOf(html)).toContain(`<a href="${href}" aria-current="page">${title}</a>`);
@@ -178,5 +185,29 @@ describe('Edit', () => {
     expect(sectionOf(html, 'structural-review')).toContain(
       `href="${base}/edit?from=structural-review">Enter structural inputs</a>`,
     );
+  });
+});
+
+describe('the terms the plan uses, for print (#180)', () => {
+  const html = at('cut-list');
+  const terms = sectionOf(html, 'terms-used');
+
+  it('is in the page but never shown on screen, whichever section is', () => {
+    expect(html).toMatch(
+      /<section id="terms-used" class="k-section" aria-labelledby="terms-used-heading" hidden="">/,
+    );
+    expect(shownSections(at('build-steps'))).toEqual(['build-steps']);
+  });
+
+  it("lists the worked example's terms with their definitions, in alphabetical order", () => {
+    const steps = project.steps?.steps ?? [];
+    const plan = template.plan(outputs);
+    const expected = planTerms(plan, steps);
+    // With no tools, no method is chosen: the terms come from the flags.
+    expect(expected.map((e) => e.term)).toEqual(['Gusset', 'Margin']);
+    const listed = [...terms.matchAll(/<dfn>([^<]+)<\/dfn>/g)].map((m) => m[1]);
+    expect(listed).toEqual(expected.map((e) => e.term));
+    for (const entry of expected) expect(textOf(terms)).toContain(textOf(entry.definition));
+    expect(textOf(terms)).toContain('Terms used in this plan');
   });
 });
