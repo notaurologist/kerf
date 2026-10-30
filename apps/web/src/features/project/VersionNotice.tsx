@@ -8,7 +8,7 @@ import {
   Cluster,
   Code,
   Disclosure,
-  ErrorText,
+  InlineConfirm,
   List,
   MeasureTable,
   Stack,
@@ -56,9 +56,10 @@ export function VersionNotice(props: {
       api.api.projects[':id'].regenerate.$post({ param: { id: project.id } }),
     );
     setBusy(false);
-    setConfirming(false);
-    if (result.ok) props.onRegenerated(result.value);
-    else setError(describeError(result.error));
+    if (result.ok) {
+      setConfirming(false);
+      props.onRegenerated(result.value);
+    } else setError(describeError(result.error));
   };
 
   const { regenerated } = report;
@@ -100,11 +101,7 @@ export function VersionNotice(props: {
             <Text>
               Version {report.currentVersion} cannot make a plan from this project's values:
             </Text>
-            <List>
-              {regenerated.issues.map((i) => (
-                <li key={`${i.code}/${i.message}`}>{i.message}</li>
-              ))}
-            </List>
+            <List items={regenerated.issues.map((i) => i.message)} />
             <Text>
               Edit the project to change them; saving regenerates with the current version.
             </Text>
@@ -112,32 +109,30 @@ export function VersionNotice(props: {
         )}
         {regenerated.ok &&
           (confirming ? (
-            <Stack gap="xs">
+            <InlineConfirm
+              confirm="Regenerate"
+              busyLabel="Regenerating…"
+              keep="Keep this plan"
+              busy={busy}
+              error={error}
+              onConfirm={() => void regenerate()}
+              onKeep={() => {
+                setConfirming(false);
+                setError(null);
+              }}
+            >
               <Text>
                 Replace the stored plan with version {report.currentVersion}'s? This cannot be
                 undone.
               </Text>
-              <Cluster>
-                <Button busy={busy} onClick={() => void regenerate()}>
-                  {busy ? 'Regenerating…' : 'Regenerate'}
-                </Button>
-                <Button variant="secondary" onClick={() => setConfirming(false)}>
-                  Keep this plan
-                </Button>
-              </Cluster>
-            </Stack>
+            </InlineConfirm>
           ) : (
-            <div>
+            <Cluster>
               <Button variant="secondary" onClick={() => setConfirming(true)}>
                 Regenerate with version {report.currentVersion}
               </Button>
-            </div>
+            </Cluster>
           ))}
-        {error && (
-          <div role="alert">
-            <ErrorText>{error}</ErrorText>
-          </div>
-        )}
       </Stack>
     </Card>
   );

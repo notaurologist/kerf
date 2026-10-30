@@ -1,7 +1,6 @@
 import {
   type BuildStep,
   type CutListRow,
-  FLAG_CATEGORY_LABELS,
   findSkill,
   findToolType,
   formatLength,
@@ -14,7 +13,7 @@ import { cutDetailId, show } from '../../lib/show.ts';
 import {
   Button,
   Card,
-  ExpertCheck,
+  FlagList,
   InputNeeded,
   Length,
   List,
@@ -77,20 +76,7 @@ export function StepBody(props: {
         : step.partIds.length > 0 && (
             <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
           )}
-      {step.flags.length > 0 && (
-        <PlainList>
-          {step.flags.map((flag) => (
-            <li key={`${flag.category}/${flag.ask}`}>
-              <ExpertCheck
-                label={`Expert check · ${FLAG_CATEGORY_LABELS[flag.category]}`}
-                why={<Measured text={flag.why} />}
-              >
-                <Measured text={flag.ask} />
-              </ExpertCheck>
-            </li>
-          ))}
-        </PlainList>
-      )}
+      <FlagList flags={step.flags} />
       <PlainList>
         {step.operations.map((op) => (
           <Card key={op.operation.id} as="li">
@@ -168,31 +154,13 @@ function Operation(props: { op: StepOperation; partName: (id: string) => string 
           {method.setup.length > 0 && (
             <>
               <b>Setup</b>
-              <List ordered>
-                {method.setup.map((t) => (
-                  <li key={t}>
-                    <Measured text={t} />
-                  </li>
-                ))}
-              </List>
+              <List ordered items={method.setup} />
             </>
           )}
           <b>Technique</b>
-          <List ordered>
-            {method.technique.map((t) => (
-              <li key={t}>
-                <Measured text={t} />
-              </li>
-            ))}
-          </List>
+          <List ordered items={method.technique} />
           <b>Common mistakes</b>
-          <List>
-            {method.mistakes.map((t) => (
-              <li key={t}>
-                <Measured text={t} />
-              </li>
-            ))}
-          </List>
+          <List items={method.mistakes} />
           {method.safety.length > 0 && (
             <>
               <b>Safety</b>

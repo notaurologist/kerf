@@ -10,9 +10,10 @@ import {
   visibleFields,
 } from '@kerf/core';
 import { type FormEvent, useState } from 'react';
-import { api, describeError, type FieldIssue, send } from '../../lib/api.ts';
+import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { setFlash } from '../../lib/flash.ts';
+import { Loaded } from '../../lib/Loaded.tsx';
 import { readPlan } from '../../lib/plan.ts';
 import { describeReset } from '../../lib/progress.ts';
 import { href, navigate } from '../../lib/route.ts';
@@ -27,8 +28,9 @@ import {
   Field,
   FieldGroup,
   Grid,
-  Loading,
   Notice,
+  SaveFailed,
+  ScreenHeader,
   Sidebar,
   Stack,
   type SummaryItem,
@@ -64,9 +66,15 @@ export function EditProjectScreen(props: { id: string }) {
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
   );
-  if (loaded.state === 'loading') return <Loading>Loading project…</Loading>;
-  if (loaded.state === 'error') return <Notice>{describeError(loaded.error)}</Notice>;
-  const project = loaded.value;
+  return (
+    <Loaded state={loaded} loading="Loading project…">
+      {(project) => <EditProject project={project} />}
+    </Loaded>
+  );
+}
+
+function EditProject(props: { project: Project }) {
+  const { project } = props;
   const template = findTemplate(project.templateId);
   if (!template) return <Notice>This project's template is no longer offered.</Notice>;
   if (!project.snapshot) {
@@ -111,8 +119,8 @@ export function ProjectEditor(props: {
     params: NO_ISSUES,
     inputs: NO_ISSUES,
   });
-  const [saving, setSaving] = useState(false);
-  const [failure, setFailure] = useState<{ message: string; connection: boolean } | null>(null);
+  const [saveState, setSaveState] = useState<SaveState>({ state: 'idle' });
+  const saving = saveState.state === 'saving';
   const dirty =
     name !== props.initial.name ||
     !sameJson(params, props.initial.params) ||
@@ -133,7 +141,7 @@ export function ProjectEditor(props: {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setFailure(null);
+    setSaveState({ state: 'idle' });
     const builtParams = buildFromForm(form.params, params);
     const builtInputs = buildFromForm(form.structuralInputs, inputs);
     const p = template.params.safeParse(builtParams);
@@ -157,7 +165,7 @@ export function ProjectEditor(props: {
     show(found, nameIssue);
     if (found.length > 0 || nameIssue) return;
 
-    setSaving(true);
+    setSaveState({ state: 'saving' });
     const result = project
       ? await save(project, name.trim(), builtParams, builtInputs)
       : await send(
@@ -170,7 +178,7 @@ export function ProjectEditor(props: {
             },
           }),
         );
-    setSaving(false);
+    setSaveState({ state: 'idle' });
     if (result.ok) {
       const reset = 'progressReset' in result.value ? result.value.progressReset : undefined;
       setFlash(project ? ['Saved.', describeReset(reset)].filter(Boolean).join(' ') : 'Created.');
@@ -181,10 +189,7 @@ export function ProjectEditor(props: {
       show(result.error.issues);
       return;
     }
-    setFailure({
-      message: describeError(result.error),
-      connection: result.error.kind === 'failed' && result.error.status === 0,
-    });
+    setSaveState({ state: 'failed', failure: failureOf(result.error) });
   };
 
   const fieldLabel = (path: string) =>
@@ -236,19 +241,10 @@ export function ProjectEditor(props: {
         structural
       />
 
-      {failure &&
-        (failure.connection ? (
-          <Notice icon="connection">
-            <b>Not saved.</b> {failure.message} Your changes are still here.
-          </Notice>
-        ) : (
-          <Notice>
-            <b>Not saved.</b> {failure.message}
-          </Notice>
-        ))}
+      {saveState.state === 'failed' && <SaveFailed failure={saveState.failure} />}
       <Cluster>
-        <Button type="submit" busy={saving}>
-          {saving ? 'Saving…' : project ? 'Save changes' : 'Create project'}
+        <Button type="submit" busy={saving} busyLabel="Saving…">
+          {project ? 'Save changes' : 'Create project'}
         </Button>
         <ButtonLink
           variant="secondary"
@@ -265,11 +261,13 @@ export function ProjectEditor(props: {
   return (
     <form onSubmit={submit} noValidate>
       <Stack gap="l">
-        <h1>
-          {project
-            ? `Edit ${project.name}`
-            : `New ${template.name.charAt(0).toLowerCase()}${template.name.slice(1)}`}
-        </h1>
+        <ScreenHeader
+          title={
+            project
+              ? `Edit ${project.name}`
+              : `New ${template.name.charAt(0).toLowerCase()}${template.name.slice(1)}`
+          }
+        />
         <ErrorSummary items={summary} general={general} />
         {project?.version?.status === 'behind' && (
           <Card>

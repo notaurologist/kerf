@@ -1,6 +1,15 @@
 import { type FormEvent, useState } from 'react';
 import { type ApiError, api, describeError, send } from '../../lib/api.ts';
-import { Button, Center, ErrorText, Field, Page, Stack, TextInput } from '../../ui/index.ts';
+import {
+  Button,
+  Center,
+  Cluster,
+  ErrorText,
+  Field,
+  Page,
+  Stack,
+  TextInput,
+} from '../../ui/index.ts';
 
 // One password, no username (decision 0007).
 
@@ -31,16 +40,12 @@ export function LoginForm(props: {
                 />
               )}
             </Field>
-            {props.error && (
-              <div role="alert">
-                <ErrorText>{describeError(props.error)}</ErrorText>
-              </div>
-            )}
-            <div>
-              <Button type="submit" busy={props.busy}>
-                {props.busy ? 'Logging in…' : 'Log in'}
+            {props.error && <ErrorText alert>{describeError(props.error)}</ErrorText>}
+            <Cluster>
+              <Button type="submit" busy={props.busy} busyLabel="Logging in…">
+                Log in
               </Button>
-            </div>
+            </Cluster>
           </Stack>
         </form>
       </Center>

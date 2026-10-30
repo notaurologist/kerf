@@ -16,6 +16,7 @@ const SAW = /saw at ([\d.]+°), ([\d.]+°) to the edge/;
 
 import { type ReactNode, useState } from 'react';
 import { Button, ButtonLink } from './Button.tsx';
+import { InlineConfirm } from './Confirm.tsx';
 import { Diagram } from './Diagram.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
 import { ConfirmDialog } from './Dialog.tsx';
@@ -25,10 +26,12 @@ import {
   ErrorSummary,
   ErrorText,
   ExpertCheck,
+  InfoNotice,
   InputNeeded,
   Loading,
   Notice,
   Pending,
+  SaveFailed,
   StateTag,
   StatusLine,
 } from './feedback.tsx';
@@ -44,9 +47,12 @@ import {
   PartLetter,
   SawSetting,
 } from './numbers.tsx';
+import { CheckStatus, FlagList } from './plan.tsx';
+import { ScreenHeader } from './ScreenHeader.tsx';
 import { Header, ModeBar } from './Shell.tsx';
 import { StepLayout } from './StepLayout.tsx';
 import { Tick } from './Tick.tsx';
+import { List, Text } from './text.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
 // (#45). Sample values are core's output for the first template's worked examples, formatted by
@@ -115,6 +121,19 @@ const readOnlyField = lengths[0];
 const previewPart = last.plan.cutList.find((r) => r.partId === part.partId);
 const lastCheck = computed(last.plan);
 const previewMargin = lastCheck ? structural.formatMargin(lastCheck.margin) : '';
+/** The first example's parameters with no structural inputs entered: every check needs input. */
+function unentered() {
+  const result = createSnapshot(template, template.examples[0]?.params, {});
+  if (!result.ok) return undefined;
+  return template
+    .plan(template.outputs.parse(result.output.outputs))
+    .checks.find((c) => c.status === 'input-needed');
+}
+const needsInput = unentered();
+/** A check core could not compute, if a worked example has one. */
+const notComputed = [...first.plan.checks, ...last.plan.checks].find(
+  (c) => c.status === 'not-computed',
+);
 const parsedEightZero = parseLength('8 0');
 const unreadable = parsedEightZero.ok ? '' : parsedEightZero.message;
 
@@ -186,13 +205,30 @@ function Specimens() {
         />
       </Group>
 
+      <Group title="Screen header">
+        <ScreenHeader
+          title="Backyard project"
+          actions={
+            <>
+              <Button variant="secondary">Edit</Button>
+              <Button variant="secondary">Print</Button>
+            </>
+          }
+          lede="What the screen is for, in a sentence or two."
+          meta={`${template.name}, version ${template.version}.`}
+          status={<StatusLine>Saved.</StatusLine>}
+        />
+      </Group>
+
       <Group title="Buttons">
         <Cluster>
           <Button>Save changes</Button>
           <Button variant="secondary">Cancel</Button>
           <Button variant="destructive">Delete project</Button>
           <Button variant="link">Show the working</Button>
-          <Button busy>Saving…</Button>
+          <Button busy busyLabel="Saving…">
+            Save changes
+          </Button>
           <ButtonLink href="#/catalog">Start building</ButtonLink>
         </Cluster>
       </Group>
@@ -276,6 +312,9 @@ function Specimens() {
           ]}
         />
         <ErrorText>Enter a length.</ErrorText>
+        <ErrorText alert>
+          Kerf could not reach the server. Check your connection, then try again.
+        </ErrorText>
       </Group>
 
       <Group title="Notices">
@@ -287,15 +326,82 @@ function Specimens() {
         <p>
           {numberField?.label ?? 'An input'} <InputNeeded />
         </p>
-        <Notice icon="connection">
-          <b>Not saved.</b> Kerf could not reach the server. Your changes are still here. Save again
-          when you have a connection.
-        </Notice>
+        <SaveFailed
+          failure={{
+            message: 'Kerf could not reach the server. Check your connection, then try again.',
+            connection: true,
+          }}
+        />
+        <SaveFailed failure={{ message: 'The server answered 500.', connection: false }} />
+        <Notice>This project's template is no longer offered.</Notice>
         <StatusLine>Saved. The plan was regenerated.</StatusLine>
         <p>
           {part.name}, 1 of {part.quantity} cut <Pending />
         </p>
         <Loading delayMs={0}>Loading project…</Loading>
+      </Group>
+
+      <Group title="Information (for review, #122)">
+        <Text>
+          Neither a problem nor an expert check. Not used on screens until the owner has reviewed
+          it.
+        </Text>
+        <InfoNotice>
+          <Text>
+            This plan was made with template version {template.version + 1}, newer than the version
+            this app has ({template.version}). It is shown as stored and cannot be regenerated here.
+          </Text>
+        </InfoNotice>
+      </Group>
+
+      <Group title="Expert checks">
+        <FlagList flags={first.plan.flags.slice(0, 2)} />
+      </Group>
+
+      <Group title="Structural check status">
+        {check && <CheckStatus check={check} />}
+        {lastCheck && check && <CheckStatus check={lastCheck} was={margin} />}
+        {needsInput && <CheckStatus check={needsInput} />}
+        {needsInput && <CheckStatus check={needsInput} was={margin} />}
+        {notComputed && <CheckStatus check={notComputed} />}
+      </Group>
+
+      <Group title="Inline confirmation">
+        <Card>
+          <InlineConfirm
+            confirm="Delete project"
+            busyLabel="Deleting…"
+            variant="destructive"
+            keep="Keep project"
+            busy={false}
+            onConfirm={() => {}}
+            onKeep={() => {}}
+          >
+            <Text>
+              <b>Delete “Backyard project”?</b> This deletes the project, its plan, and its history.
+              It cannot be undone.
+            </Text>
+          </InlineConfirm>
+        </Card>
+        <Card>
+          <InlineConfirm
+            confirm="Regenerate"
+            busyLabel="Regenerating…"
+            keep="Keep this plan"
+            busy
+            error="Kerf could not reach the server. Check your connection, then try again."
+            onConfirm={() => {}}
+            onKeep={() => {}}
+          >
+            <Text>
+              Replace the stored plan with version {template.version}'s? This cannot be undone.
+            </Text>
+          </InlineConfirm>
+        </Card>
+      </Group>
+
+      <Group title="Lists of core's sentences">
+        <List ordered items={part.notes.length > 0 ? part.notes : part.ends} />
       </Group>
 
       <Group title="Numbers">

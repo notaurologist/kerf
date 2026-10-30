@@ -1,6 +1,7 @@
 import { formatLength, type ShoppingGroup, shoppingGroups, summarizeProgress } from '@kerf/core';
 import { type ReactNode, useEffect } from 'react';
-import { api, describeError, send } from '../../lib/api.ts';
+import { api, send } from '../../lib/api.ts';
+import { Loaded } from '../../lib/Loaded.tsx';
 import { readDrawings, readPlan, readSteps } from '../../lib/plan.ts';
 import { href, type Route, redirect } from '../../lib/route.ts';
 import { describeWaiting, useTicks } from '../../lib/ticks.ts';
@@ -16,6 +17,7 @@ import {
   ModeFrame,
   Notice,
   PlainList,
+  ScreenHeader,
   Stack,
   Text,
   Tick,
@@ -46,11 +48,7 @@ export function ModeScreen(props: { route: ModeRoute }) {
   if (loaded.state !== 'ready') {
     return (
       <ModeFrame mode={mode} exitHref={href({ screen: 'project', id })}>
-        {loaded.state === 'loading' ? (
-          <Loading>Loading project…</Loading>
-        ) : (
-          <Notice>{describeError(loaded.error)}</Notice>
-        )}
+        <Loaded state={loaded} loading="Loading project…" />
       </ModeFrame>
     );
   }
@@ -92,10 +90,10 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
     const boardDrawings = readDrawings(project)?.boards ?? [];
     return frame(
       <>
-        <h1>Shopping list</h1>
-        <Text>
-          {summary.shopping.done} of {summary.shopping.total} bought.
-        </Text>
+        <ScreenHeader
+          title="Shopping list"
+          meta={`${summary.shopping.done} of ${summary.shopping.total} bought.`}
+        />
         {shoppingGroups(plan.plan).map((group) => (
           <Stack key={group.title} gap="xs">
             <Cluster spread>
@@ -168,10 +166,10 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
   if (route.screen === 'build-steps') {
     return frame(
       <>
-        <h1>All steps</h1>
-        <Text>
-          {summary.steps.done} of {summary.steps.total} steps done.
-        </Text>
+        <ScreenHeader
+          title="All steps"
+          meta={`${summary.steps.done} of ${summary.steps.total} steps done.`}
+        />
         <PlainList ordered>
           {steps.map((step, i) => {
             const tick = { kind: 'step' as const, key: step.id };
@@ -186,11 +184,11 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
                   >
                     {i + 1}. {step.title}
                   </Tick>
-                  <div>
+                  <Cluster>
                     <ButtonLink variant="secondary" href={stepHref(step.id)}>
                       Open
                     </ButtonLink>
-                  </div>
+                  </Cluster>
                 </Stack>
               </li>
             );
@@ -206,7 +204,9 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
     return frame(
       <>
         <Notice>This plan has no step "{route.step}". It may have changed since the link.</Notice>
-        <ButtonLink href={stepsHref}>All steps</ButtonLink>
+        <Cluster>
+          <ButtonLink href={stepsHref}>All steps</ButtonLink>
+        </Cluster>
       </>,
     );
   }

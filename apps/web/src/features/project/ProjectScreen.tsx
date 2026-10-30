@@ -1,7 +1,8 @@
 import { findTemplate } from '@kerf/core';
 import { useState } from 'react';
-import { api, describeError, send } from '../../lib/api.ts';
+import { api, send } from '../../lib/api.ts';
 import { takeFlash } from '../../lib/flash.ts';
+import { Loaded } from '../../lib/Loaded.tsx';
 import { readDrawings, readPlan, readSteps } from '../../lib/plan.ts';
 import { describeReset } from '../../lib/progress.ts';
 import { href } from '../../lib/route.ts';
@@ -10,12 +11,11 @@ import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
   Cluster,
-  Loading,
   Notice,
   PlanSection,
+  ScreenHeader,
   Stack,
   StatusLine,
-  Text,
 } from '../../ui/index.ts';
 import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
@@ -34,9 +34,11 @@ export function ProjectScreen(props: { id: string }) {
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
   );
-  if (loaded.state === 'loading') return <Loading>Loading project…</Loading>;
-  if (loaded.state === 'error') return <Notice>{describeError(loaded.error)}</Notice>;
-  return <ProjectView project={loaded.value} onChange={set} />;
+  return (
+    <Loaded state={loaded} loading="Loading project…">
+      {(project) => <ProjectView project={project} onChange={set} />}
+    </Loaded>
+  );
 }
 
 export function ProjectView(props: { project: Project; onChange?: (project: Project) => void }) {
@@ -55,15 +57,17 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
   const [flash, setFlashLine] = useState(takeFlash);
   return (
     <Stack gap="l">
-      <Stack gap="2xs">
-        <h1>{project.name}</h1>
-        <Text tone="muted">
-          {STATUS_LABELS[project.status]}. {template?.name ?? project.templateId}, version{' '}
-          {project.templateVersion}.{' '}
-          {plan.ok && <a href={href({ screen: 'edit-project', id: project.id })}>Edit</a>}
-        </Text>
-        {flash && <StatusLine>{flash}</StatusLine>}
-      </Stack>
+      <ScreenHeader
+        title={project.name}
+        meta={
+          <>
+            {STATUS_LABELS[project.status]}. {template?.name ?? project.templateId}, version{' '}
+            {project.templateVersion}.{' '}
+            {plan.ok && <a href={href({ screen: 'edit-project', id: project.id })}>Edit</a>}
+          </>
+        }
+        status={flash && <StatusLine>{flash}</StatusLine>}
+      />
       <VersionNotice
         project={project}
         onRegenerated={(p) => {
@@ -106,11 +110,12 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
               boltLayout={plan.plan.boltLayout}
             />
           </PlanSection>
-          <PlanSection id="cut-list" title="Cut list" project={project.name}>
-            <Text tone="muted">
-              Lengths are long point to long point, rounded to 1/16". Angles are miter-saw settings
-              (0° is square), with the angle to the board's edge for a protractor or sliding bevel.
-            </Text>
+          <PlanSection
+            id="cut-list"
+            title="Cut list"
+            project={project.name}
+            intro={`Lengths are long point to long point, rounded to 1/16". Angles are miter-saw settings (0° is square), with the angle to the board's edge for a protractor or sliding bevel.`}
+          >
             <CutList rows={plan.plan.cutList} selected={selected} onSelect={select} />
           </PlanSection>
           <PlanSection id="shopping-list" title="Shopping list" project={project.name}>
@@ -121,10 +126,12 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
             />
           </PlanSection>
           {hasSteps && (
-            <PlanSection id="build-steps" title="Build steps" project={project.name}>
-              <Text tone="muted">
-                Methods are chosen from the tools in your tool list. Change the list to change them.
-              </Text>
+            <PlanSection
+              id="build-steps"
+              title="Build steps"
+              project={project.name}
+              intro="Methods are chosen from the tools in your tool list. Change the list to change them."
+            >
               <BuildSteps steps={steps?.steps ?? []} rows={plan.plan.cutList} />
             </PlanSection>
           )}

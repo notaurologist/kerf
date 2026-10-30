@@ -6,8 +6,9 @@ import {
   TOOL_TYPES,
 } from '@kerf/core';
 import { useEffect, useState } from 'react';
-import { api, describeError, type FieldIssue, send } from '../../lib/api.ts';
+import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
+import { Loaded } from '../../lib/Loaded.tsx';
 import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
@@ -16,8 +17,8 @@ import {
   ErrorSummary,
   Field,
   Grid,
-  Loading,
-  Notice,
+  SaveFailed,
+  ScreenHeader,
   Stack,
   StatusLine,
   type SummaryItem,
@@ -41,16 +42,12 @@ import {
 
 export function ToolsScreen() {
   const { loaded, set } = useLoad(() => send(api.api.tools.$get()), 'tools');
-  if (loaded.state === 'loading') return <Loading>Loading tools…</Loading>;
-  if (loaded.state === 'error') return <Notice>{describeError(loaded.error)}</Notice>;
-  return <ToolsEditor saved={fromInventory(loaded.value)} onSaved={set} />;
+  return (
+    <Loaded state={loaded} loading="Loading tools…">
+      {(inventory) => <ToolsEditor saved={fromInventory(inventory)} onSaved={set} />}
+    </Loaded>
+  );
 }
-
-type SaveState =
-  | { state: 'idle' }
-  | { state: 'saving' }
-  | { state: 'saved' }
-  | { state: 'failed'; message: string };
 
 export function ToolsEditor(props: {
   saved: InventoryDraft;
@@ -89,7 +86,7 @@ export function ToolsEditor(props: {
       props.onSaved?.(result.value);
     } else {
       if (result.error.kind === 'invalid') setIssues(result.error.issues);
-      setSave({ state: 'failed', message: describeError(result.error) });
+      setSave({ state: 'failed', failure: failureOf(result.error) });
     }
   };
 
@@ -97,11 +94,10 @@ export function ToolsEditor(props: {
 
   return (
     <Stack>
-      <h1>Tools</h1>
-      <Text tone="muted">
-        The tool types you own. Build steps choose a method for each cut and joint from these, so
-        enter each tool's details from its manual or by measuring it.
-      </Text>
+      <ScreenHeader
+        title="Tools"
+        lede="The tool types you own. Build steps choose a method for each cut and joint from these, so enter each tool's details from its manual or by measuring it."
+      />
       <ErrorSummary items={summaryItems(issues)} />
 
       <Stack as="section">
@@ -185,16 +181,12 @@ export function ToolsEditor(props: {
       </Stack>
 
       <Cluster>
-        <Button busy={save.state === 'saving'} onClick={() => void submit()}>
-          {save.state === 'saving' ? 'Saving…' : 'Save tools'}
+        <Button busy={save.state === 'saving'} busyLabel="Saving…" onClick={() => void submit()}>
+          Save tools
         </Button>
       </Cluster>
       {save.state === 'saved' && <StatusLine>Saved.</StatusLine>}
-      {save.state === 'failed' && issues.length === 0 && (
-        <Notice icon="connection">
-          <b>Not saved.</b> {save.message} Your changes are still here.
-        </Notice>
-      )}
+      {save.state === 'failed' && issues.length === 0 && <SaveFailed failure={save.failure} />}
     </Stack>
   );
 }

@@ -295,6 +295,26 @@
     margin-block-start: 0.2em;
   }
 
+  /* Something to know that is not a problem: quieter than a notice, announced as status. */
+  .k-info {
+    display: flex;
+    gap: var(--space-2xs);
+    padding: var(--space-xs) var(--space-s);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--sunken);
+  }
+
+  .k-info .k-icon {
+    margin-block-start: 0.2em;
+    color: var(--accent);
+  }
+
+  .k-info__body {
+    display: grid;
+    gap: var(--space-3xs);
+  }
+
   .k-status {
     display: flex;
     gap: var(--space-2xs);

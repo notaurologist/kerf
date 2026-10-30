@@ -12,6 +12,12 @@ const PATHS = {
   ),
   done: <path d="M2.5 8.5l3.5 3.5 7.5-8" />,
   pending: <circle cx="8" cy="8" r="5.5" strokeDasharray="2.2 1.8" />,
+  info: (
+    <>
+      <circle cx="8" cy="8" r="6.3" />
+      <path d="M8 7.2v4.2M8 4.7v.4" />
+    </>
+  ),
   chevron: <path d="M3.5 6l4.5 4.5L12.5 6" />,
   connection: (
     <>

@@ -1,20 +1,13 @@
-import {
-  CHECKLIST_CATEGORY_LABELS,
-  type ChecklistItem,
-  FLAG_CATEGORY_LABELS,
-  type Flag,
-  structural,
-} from '@kerf/core';
+import { CHECKLIST_CATEGORY_LABELS, type ChecklistItem, type Flag, structural } from '@kerf/core';
 import { href } from '../../lib/route.ts';
 import {
   Card,
+  CheckStatus,
   Code,
   Disclosure,
-  ExpertCheck,
-  InputNeeded,
+  FlagList,
   Length,
   List,
-  MarginLine,
   Measured,
   MeasureTable,
   PlainList,
@@ -58,18 +51,7 @@ export function StructuralReview(props: {
       {props.flags.length > 0 && (
         <>
           <h3>Expert checks</h3>
-          <PlainList>
-            {props.flags.map((flag) => (
-              <li key={flag.ask}>
-                <ExpertCheck
-                  label={`Expert check · ${FLAG_CATEGORY_LABELS[flag.category]}`}
-                  why={<Measured text={flag.why} />}
-                >
-                  <Measured text={flag.ask} />
-                </ExpertCheck>
-              </li>
-            ))}
-          </PlainList>
+          <FlagList flags={props.flags} />
         </>
       )}
 
@@ -108,9 +90,9 @@ function Check(props: { check: CheckResult; projectId: string }) {
           {check.title}: {check.subject}
         </h4>
         <Text tone="muted">{check.loadCase}</Text>
+        <CheckStatus check={check} />
         {check.status === 'computed' && (
           <>
-            <MarginLine margin={formatMargin(check.margin)} />
             <Text>
               Computed {check.computed.label.toLowerCase()} {check.computed.symbol} ={' '}
               <Value q={check.computed} />; allowed {check.allowable.symbol} ={' '}
@@ -121,25 +103,14 @@ function Check(props: { check: CheckResult; projectId: string }) {
         )}
         {check.status === 'input-needed' && (
           <>
-            <div>
-              <InputNeeded />
-            </div>
-            <List>
-              {check.missing.map((m) => (
-                <li key={m.key}>{m.label}</li>
-              ))}
-            </List>
+            <List items={check.missing.map((m) => m.label)} />
             <a href={href({ screen: 'edit-project', id: props.projectId })}>
               Enter structural inputs
             </a>
           </>
         )}
-        {check.status === 'not-computed' && (
-          <>
-            <b>Not computed</b>
-            <Text>{check.reason}</Text>
-            {check.sources.length > 0 && <CitationList citations={check.sources} />}
-          </>
+        {check.status === 'not-computed' && check.sources.length > 0 && (
+          <CitationList citations={check.sources} />
         )}
       </Stack>
     </Card>
@@ -225,13 +196,7 @@ function Working(props: { check: Extract<CheckResult, { status: 'computed' }> })
           <b>{formatMargin(check.margin)}</b>
         </Text>
         <h5>Assumptions</h5>
-        <List>
-          {check.assumptions.map((a) => (
-            <li key={a}>
-              <Measured text={a} />
-            </li>
-          ))}
-        </List>
+        <List items={check.assumptions} />
       </Stack>
     </Disclosure>
   );

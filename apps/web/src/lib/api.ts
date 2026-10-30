@@ -1,6 +1,7 @@
 import type { AppType } from '@kerf/api';
 import { type ClientResponse, hc } from 'hono/client';
 import type { SuccessStatusCode } from 'hono/utils/http-status';
+import type { Failure } from '../ui/index.ts';
 
 // The only way the web app reaches the API: Hono's typed client over /api on the same origin
 // (ARCHITECTURE.md, apps/web). Request and response types come from the API's routes.
@@ -151,6 +152,21 @@ export async function send<R extends ClientResponse<unknown>>(
   if (error.kind === 'login-required') onLoginRequired();
   return { ok: false, error };
 }
+
+/** An error as a failed request the UI shows: its words, and whether the server was reached. */
+export function failureOf(error: ApiError): Failure {
+  return {
+    message: describeError(error),
+    connection: error.kind === 'failed' && error.status === 0,
+  };
+}
+
+/** Where a save stands, for a screen that stays open after saving. */
+export type SaveState =
+  | { state: 'idle' }
+  | { state: 'saving' }
+  | { state: 'saved' }
+  | { state: 'failed'; failure: Failure };
 
 /** Plain words for an error, for places that show one line. */
 export function describeError(error: ApiError): string {

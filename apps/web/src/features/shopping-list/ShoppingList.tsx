@@ -36,11 +36,9 @@ export function ShoppingList(props: {
     <Stack>
       <h3>Lumber</h3>
       {lumber.issues.map((issue) => (
-        <div key={issue.message} role="alert">
-          <ErrorText>
-            <Measured text={issue.message} />
-          </ErrorText>
-        </div>
+        <ErrorText key={issue.message} alert>
+          <Measured text={issue.message} />
+        </ErrorText>
       ))}
       <MeasureTable
         caption="Lumber to buy"
@@ -88,13 +86,7 @@ export function ShoppingList(props: {
           .
         </Text>
       )}
-      <List>
-        {lumber.notes.map((n) => (
-          <li key={n}>
-            <Measured text={n} />
-          </li>
-        ))}
-      </List>
+      <List items={lumber.notes} />
       <Disclosure summary="Which parts come from which board">
         <List ordered>
           {lumber.boards.map((board, b) => (
@@ -164,13 +156,7 @@ export function ShoppingList(props: {
           .
         </Text>
       )}
-      <List>
-        {props.hardwareNotes.map((n) => (
-          <li key={n}>
-            <Measured text={n} />
-          </li>
-        ))}
-      </List>
+      <List items={props.hardwareNotes} />
     </Stack>
   );
 }

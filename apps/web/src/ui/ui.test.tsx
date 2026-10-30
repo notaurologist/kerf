@@ -1,3 +1,4 @@
+import { createSnapshot, FLAG_CATEGORY_LABELS, type Flag, structural, TEMPLATES } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { render, renderText } from '../test/render.tsx';
 import { Catalog } from './Catalog.tsx';
@@ -5,15 +6,21 @@ import { ICON_NAMES } from './Icon.tsx';
 import {
   Button,
   Changed,
+  CheckStatus,
   Diagram,
   Disclosure,
   ErrorSummary,
+  ErrorText,
   ExpertCheck,
   Field,
+  FlagList,
   Glance,
   Header,
   Icon,
+  InfoNotice,
+  InlineConfirm,
   Length,
+  List,
   Loading,
   MarginLine,
   Measured,
@@ -21,7 +28,11 @@ import {
   ModeFrame,
   Notice,
   PartLetter,
+  PlainList,
+  PlanSection,
+  SaveFailed,
   SawSetting,
+  ScreenHeader,
   Select,
   StateTag,
   StatusLine,
@@ -102,6 +113,17 @@ describe('Button', () => {
     const html = render(<Button busy>Saving…</Button>);
     expect(html).toContain('aria-disabled="true"');
     expect(html).not.toContain('disabled=""');
+  });
+
+  it('says what it is doing while busy, and what it does otherwise', () => {
+    expect(renderText(<Button busyLabel="Saving…">Save tools</Button>)).toBe('Save tools');
+    expect(
+      renderText(
+        <Button busy busyLabel="Saving…">
+          Save tools
+        </Button>,
+      ),
+    ).toBe('Saving…');
   });
 
   it('carries its variant as data', () => {
@@ -355,6 +377,191 @@ describe('icons', () => {
     const html = render(<Icon name={name} />);
     expect(html).toContain('aria-hidden="true"');
     expect(html).toContain('focusable="false"');
+  });
+});
+
+describe('ErrorText', () => {
+  it('announces itself as an alert only when asked, as under a failed action', () => {
+    expect(render(<ErrorText>Enter a length.</ErrorText>)).not.toContain('role=');
+    const html = render(<ErrorText alert>That password is not right.</ErrorText>);
+    expect(html).toMatch(/^<div role="alert"><span class="k-error-text">/);
+    expect(html).toContain('aria-hidden="true"');
+  });
+});
+
+describe('SaveFailed', () => {
+  it('says what happened and what is kept, with the connection icon when offline', () => {
+    const offline = { message: 'Kerf could not reach the server.', connection: true };
+    expect(renderText(<SaveFailed failure={offline} />)).toBe(
+      'Not saved. Kerf could not reach the server. Your changes are still here.',
+    );
+    const html = render(<SaveFailed failure={offline} />);
+    expect(html).toContain('role="alert"');
+    expect(html).toContain('M2 2l12 12');
+  });
+
+  it('uses the error icon when the server answered, and takes its own words', () => {
+    const answered = { message: 'The server answered 500.', connection: false };
+    expect(render(<SaveFailed failure={answered} />)).not.toContain('M2 2l12 12');
+    expect(
+      renderText(
+        <SaveFailed
+          failure={answered}
+          title="No preview."
+          kept="The form still shows your values."
+        />,
+      ),
+    ).toBe('No preview. The server answered 500. The form still shows your values.');
+  });
+});
+
+describe('InfoNotice', () => {
+  it('is a status, not an alert, with its icon hidden and the words carrying it', () => {
+    const html = render(<InfoNotice>Shown as stored.</InfoNotice>);
+    expect(html).toContain('role="status"');
+    expect(html).not.toContain('role="alert"');
+    expect(html).toContain('aria-hidden="true"');
+    expect(renderText(<InfoNotice>Shown as stored.</InfoNotice>)).toBe('Shown as stored.');
+  });
+});
+
+describe('InlineConfirm', () => {
+  const confirm = (props: Partial<Parameters<typeof InlineConfirm>[0]> = {}) => (
+    <InlineConfirm
+      confirm="Delete project"
+      busyLabel="Deleting…"
+      variant="destructive"
+      keep="Keep project"
+      busy={false}
+      onConfirm={none}
+      onKeep={none}
+      {...props}
+    >
+      <p>Delete “Backyard”?</p>
+    </InlineConfirm>
+  );
+
+  it('asks, then offers the action as the form’s submit and a way to keep things as they are', () => {
+    const html = render(confirm());
+    expect(renderText(confirm())).toBe('Delete “Backyard”? Delete project Keep project');
+    expect(html).toMatch(/<form noValidate="">/);
+    expect(html).toMatch(/type="submit" class="k-button" data-variant="destructive"/);
+    expect(html).not.toContain('role="alert"');
+  });
+
+  it('says it is working, and announces what went wrong', () => {
+    const html = render(confirm({ busy: true, error: 'Not found.' }));
+    expect(html).toContain('aria-disabled="true"');
+    expect(renderText(confirm({ busy: true }))).toContain('Deleting…');
+    expect(html).toMatch(/role="alert".*Not found\./);
+  });
+});
+
+describe('ScreenHeader', () => {
+  it('puts the title first, the actions beside it, then the lede, facts, and status', () => {
+    const header = (
+      <ScreenHeader
+        title="Backyard"
+        actions={<Button variant="secondary">Edit</Button>}
+        lede="What this is for."
+        meta="Planned."
+        status={<StatusLine>Saved.</StatusLine>}
+      />
+    );
+    expect(renderText(header)).toBe('Backyard Edit What this is for. Planned. Saved.');
+    const html = render(header);
+    expect(html).toMatch(/^<header class="l-stack"/);
+    expect(html).toContain('<h1>Backyard</h1>');
+    expect(html.match(/data-tone="muted"/g)).toHaveLength(2);
+  });
+
+  it('is only a heading when given only a title', () => {
+    expect(render(<ScreenHeader title="Tools" />)).toMatch(
+      /^<header[^>]*><h1>Tools<\/h1><\/header>$/,
+    );
+  });
+});
+
+describe('lists of core sentences', () => {
+  it('make an item of each sentence, keeping its lengths on one line', () => {
+    const html = render(<List ordered items={['Mark 130-1/4" from the top cut.', 'Cut.']} />);
+    expect(html).toMatch(/^<ol class="k-list"><li>/);
+    expect(html).toContain('<span class="k-length">130-1/4&quot;</span>');
+    expect(render(<PlainList items={['a', 'b']} />).match(/<li>/g)).toHaveLength(2);
+  });
+});
+
+describe('PlanSection', () => {
+  it('puts its intro under the heading, in the muted tone', () => {
+    const html = render(
+      <PlanSection id="cut-list" title="Cut list" project="Backyard" intro="How to read it.">
+        <p>Rows</p>
+      </PlanSection>,
+    );
+    expect(html.indexOf('How to read it.')).toBeGreaterThan(html.indexOf('</h2>'));
+    expect(html).toContain('<p class="k-text" data-tone="muted">How to read it.</p>');
+  });
+});
+
+// A plan made by core from the first template's worked example, with the given structural inputs.
+function examplePlan(inputs: unknown) {
+  const template = TEMPLATES[0];
+  if (!template) throw new Error('No template.');
+  const made = createSnapshot(template, template.examples[0]?.params, inputs);
+  if (!made.ok) throw new Error('The worked example does not generate.');
+  return template.plan(template.outputs.parse(made.output.outputs));
+}
+const examplePlanAsEntered = examplePlan(TEMPLATES[0]?.examples[0]?.structuralInputs);
+
+describe('FlagList', () => {
+  const flag = examplePlanAsEntered.flags[0] as Flag;
+
+  it('labels each flag with its category in words', () => {
+    expect(flag).toBeDefined();
+    expect(renderText(<FlagList flags={[flag]} />)).toBe(
+      renderText(
+        <ExpertCheck label={`Expert check · ${FLAG_CATEGORY_LABELS[flag.category]}`} why={flag.why}>
+          {flag.ask}
+        </ExpertCheck>,
+      ),
+    );
+  });
+
+  it('shows nothing when there are no flags', () => {
+    expect(render(<FlagList flags={[]} />)).toBe('');
+  });
+});
+
+describe('CheckStatus', () => {
+  const computed = examplePlanAsEntered.checks.find((c) => c.status === 'computed');
+  const needed = examplePlan({}).checks.find((c) => c.status === 'input-needed');
+
+  it("gives a computed check's margin through core's formatter, in words", () => {
+    if (computed?.status !== 'computed') throw new Error('No computed check.');
+    expect(renderText(<CheckStatus check={computed} />)).toBe(
+      `${structural.formatMargin(computed.margin)} under these assumptions`,
+    );
+  });
+
+  it('says input needed, and in a preview what it was', () => {
+    if (!needed) throw new Error('No check needing input.');
+    expect(renderText(<CheckStatus check={needed} />)).toBe('Input needed');
+    expect(renderText(<CheckStatus check={needed} was="margin 1.1x" />)).toBe(
+      'Input needed was margin 1.1x',
+    );
+  });
+
+  it('says why a check was not computed', () => {
+    if (!computed) throw new Error('No computed check.');
+    const check = {
+      ...computed,
+      status: 'not-computed',
+      reason: 'No design value for this species.',
+      sources: [],
+    } as structural.CheckResult;
+    expect(renderText(<CheckStatus check={check} />)).toBe(
+      'Not computed. No design value for this species.',
+    );
   });
 });
 
