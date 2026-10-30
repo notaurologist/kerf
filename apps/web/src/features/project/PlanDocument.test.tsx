@@ -91,6 +91,8 @@ describe('the plan’s contents', () => {
       'shopping-list',
       'build-steps',
       'parameters',
+      // Printed only, after the plan (#180).
+      'terms-used',
     ]);
   });
 
