@@ -63,6 +63,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Working, sources, detail | `Disclosure` | Closed on screen, open in print. `size="small"` for a "Source" toggle. |
 | A raised item | `Card` | One check, one checklist entry, one project. |
 | Lists | `PlainList` (no bullets) or `List` | `items` takes core's sentences and makes each an item through `Measured`. |
+| A tool's name | `ToolLabel` (or `ToolIcon` inside a button) | The tool type's icon before its name, kept on one line. The icon is 1.2em, so 20 px beside desk text and 24 px in shop density, and hidden from screen readers. A tool type with no icon shows its name alone. |
 | Formulas and IDs | `Code` | The Mono, never wrapped; scrolls within its line. |
 | Secondary text | `Text tone="muted"` | Desk screens only. Shop modes use the text color for every word (#43, rule 5). |
 | Leaving with changes | `useLeaveGuard(dirty)` | Render its `dialog`; it asks before any in-app link and when the tab closes. |
@@ -104,4 +105,16 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 ## Icons
 
-Icons are drawn in the repo (`ui/Icon.tsx`) on a 16-unit grid with 1.6-unit round strokes, matching the diagram line weights. They are always decorative. Tool icons are #86.
+Icons are drawn in the repo (`ui/Icon.tsx`) on a 16-unit grid with 1.6-unit round strokes, matching the diagram line weights. They are always decorative.
+
+Tool icons (`ui/ToolIcon.tsx`, #86) are drawn to their own guide, chosen in `tool-icons.html`. A new tool type gets one in the same change:
+
+- **Grid:** 24 × 24 units, artwork inside a one-unit margin.
+- **Line:** one 1-unit line, centered, with square (butt) ends and mitered joins. Outlines only; nothing filled.
+- **Corners:** square boxes and handles; a 45° chamfer where the real tool has one. Circles only for round parts: blades, hubs, nuts.
+- **View:** side-on and flat, no perspective; long tools at 45°.
+- **Shared edges:** where two parts touch, draw the edge once. A part that butts against another is an open path ending on the other's outline.
+- **Detail:** only what tells the tool from its neighbors, with at least 1.5 units between parallel lines.
+- **Use:** beside the tool's name (`ToolLabel`), never alone, and never under 20 px on screen.
+
+Whether `Icon.tsx` and the rest of the app move to the same square corners is #148.

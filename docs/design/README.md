@@ -98,6 +98,25 @@ The plan now follows the revised laptop plan in `information-architecture.html` 
 
 Key results and the lowest margin are read from the stored outputs on display, so nothing stored changed: no new snapshot shape (0014) and no template version (0008). Key results are left out of the comparison between a saved plan and a preview or a regeneration, since they repeat values already compared.
 
+### Tool icons (#86)
+
+`tool-icons.html` drew ten tool types, including the pairs most easily confused (two saws, two squares, two drivers), over three rounds:
+
+- Round 1: three directions at a 2.4-unit line on a 24-unit grid, the weight of Kerf's existing icons: A, outlines; B, outlines with the working part filled; C, silhouettes.
+- Round 2: outlines only, slimmer, at 1.25, 1.5, and 1.75 units, against the measured stem of Atkinson Hyperlegible Next (0.084 of the type size).
+- Round 3: 1 and 1.25 units, each with square corners (square line ends, sharp joins, no rounding) or eased ones, and each shared edge drawn once.
+
+#### Choices
+
+The owner chose square corners and a 1-unit line (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Style | Outlines with square ends and sharp joins, a 1-unit line, shared edges drawn once. Reads as a shop drawing, and lighter than the text, so the tool's name leads. The construction guide is in `system.md`, Icons. | B, working part filled, and C, silhouettes: too chunky; C also loses the inner shapes that tell tools apart. Rounded outlines at 1.25 to 1.75 units: still too chunky, and the round ends, joins, and corners read as a soft app style rather than a woodworking one. Eased corners at 1 unit: close to square at 20 px, but softer than asked for; kept as the fallback if the app's corners (#148) end up eased. 1.25 units: heavier than wanted. |
+| Where they appear | Beside the tool's name in the tool list (each tool's heading and the Add buttons) and in each method's Tools line, which the plan and Building mode share. | None proposed. |
+
+A 1-unit line is 0.83 px at 20 px: crisp on a 2x screen, slightly gray on a 1x monitor. No direction separates the drill/driver from the impact driver at small sizes; the name beside the icon does (NN/g). Whether Kerf's other icons and the app's corners follow is #148.
+
 ### Guidance and the check against "Done when" (#81)
 
 How to use the system, including which component for which job, the tokens, the layers, and how to add a component, is in `system.md`. `ARCHITECTURE.md` describes where it lives and the rule that screens write no styles.
@@ -112,7 +131,7 @@ How to use the system, including which component for which job, the tokens, the 
 | C1 colors and D2 face tones as tokens, with a test of every recorded contrast ratio | Met (#78, #79). |
 | Atkinson Hyperlegible Next and Mono self-hosted with the OFL license | Met (#78). |
 | Forms follow #67's entry standard and states; strings follow #68's guide | Met (#73, #80). The core hardware note changed with template version 12 (#59). |
-| Icons in one style at the diagram line weights | Met for the M4 screens (#79). Tool icons are #86; shop-mode icons come with the shop screens (#61). |
+| Icons in one style at the diagram line weights | Met for the M4 screens (#79). Tool icons landed in #86 in a lighter, square-cornered style (see "Tool icons (#86)" above); whether the other icons follow is #148. |
 | Accessibility beyond contrast | Partly met: keyboard, focus, roles and names, and reflow at 360 px and 640 px are checked. VoiceOver, 320 px, and reduced motion in effect are #87. Text equivalents for diagrams are built into `DiagramFrame`; the diagrams themselves are M5. |
 | A catalog page showing every component in every state, light and dark | Met (#79): `#/catalog`. No screenshot tests (the owner chose no new test dependencies). |
 | The owner is proud of the key screens on a phone in the garage, on the laptop, and printed | Met: the owner reviewed the screens in production and signed off (October 2026). Anything found later becomes an issue; the written, repeatable garage check follows in #69. |
