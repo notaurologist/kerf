@@ -8,7 +8,7 @@ import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
 import { href, isMode, type Route, useRoute } from './lib/route.ts';
 import { ThemeSwitch } from './lib/theme.tsx';
-import { Button, Header, Loading, Notice, Page, Stack, Text } from './ui/index.ts';
+import { Button, Header, Loading, Notice, Page, Stack, Text, Wordmark } from './ui/index.ts';
 
 // The design system's catalog (#45), loaded only when opened: it carries the worked example's
 // snapshot for its sample values.
@@ -86,7 +86,9 @@ export function App() {
     return (
       <Page>
         <Stack>
-          <h1>Kerf</h1>
+          <h1>
+            <Wordmark />
+          </h1>
           <Notice icon="connection">{session.unreachable}</Notice>
           <div>
             <Button onClick={check}>Try again</Button>

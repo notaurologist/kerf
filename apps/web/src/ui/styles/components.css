@@ -650,7 +650,7 @@
   .k-header {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     gap: var(--space-2xs) var(--space-s);
     padding: var(--space-xs) var(--space-s);
@@ -659,10 +659,17 @@
   }
 
   .k-header__brand {
-    font-weight: 700;
-    font-size: var(--size-1);
+    font-size: var(--size-3); /* The wordmark's k is 20.5 px tall at 29 px (#166). */
+    line-height: 1;
     color: var(--text);
     text-decoration: none;
+  }
+
+  /* The wordmark (#166): its box ends 12 units below the baseline, for the e's overshoot. */
+  .k-wordmark {
+    display: inline-block;
+    vertical-align: baseline;
+    margin-block-end: -0.012em;
   }
 
   .k-header nav {

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Wordmark } from './Wordmark.tsx';
 
 // The frame around every screen (#40): a header with Projects and Tools on planning screens, and
 // a bar with the mode's name and Exit in Shopping and Building (M7, #61).
@@ -13,7 +14,7 @@ export function Header(props: { brandHref: string; nav: readonly NavItem[]; end?
   return (
     <header className="k-header">
       <a className="k-header__brand" href={props.brandHref}>
-        Kerf
+        <Wordmark />
       </a>
       <nav aria-label="Main">
         {props.nav.map((item) => (
