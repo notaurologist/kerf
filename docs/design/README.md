@@ -15,6 +15,7 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 5a. Number entry and form states | #67 | Decided October 2026 | `entry.html` |
 | 5b. Words | #68 | Decided October 2026 | `words.html`, `content.md` |
 | 6. Design system | #45 | Built October 2026 (#78 to #81) | `system.html`, `system.md` |
+| 6b. Sharper corners | #148 | Directions drawn October 2026; owner to choose | `corners.html` |
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
