@@ -6,6 +6,7 @@ import { href, type Route, redirect } from '../../lib/route.ts';
 import { describeWaiting, useTicks } from '../../lib/ticks.ts';
 import type { Project } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
+import { useWakeLock } from '../../lib/wakeLock.ts';
 import {
   Button,
   ButtonLink,
@@ -39,6 +40,9 @@ type ModeRoute = Extract<
 
 /** Loads the project, then shows the mode the route names. */
 export function ModeScreen(props: { route: ModeRoute }) {
+  // The screen stays on while a mode is open (#54). This component stays mounted from step to
+  // step and card to card, so the lock is held for the whole visit, not asked for at each step.
+  useWakeLock();
   const { id } = props.route;
   const { loaded } = useLoad(() => send(api.api.projects[':id'].$get({ param: { id } })), id);
   const mode = props.route.screen === 'shop' ? 'Shopping' : 'Building';
