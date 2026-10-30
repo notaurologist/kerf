@@ -8,6 +8,20 @@ export function Length(props: { children: string }) {
   return <span className="k-length">{props.children}</span>;
 }
 
+/**
+ * A value core formatted with a second reading in parentheses, such as `92.5 in (92-1/2")`. Each
+ * reading stays on one line, and a narrow column can break between them (#152).
+ */
+export function Readings(props: { text: string }) {
+  const at = props.text.indexOf(' (');
+  if (at < 0) return <Length>{props.text}</Length>;
+  return (
+    <>
+      <Length>{props.text.slice(0, at)}</Length> <Length>{props.text.slice(at + 1)}</Length>
+    </>
+  );
+}
+
 const MEASURE = /\d+' \d+(?:-\d+\/\d+)?"|\d+(?:-\d+\/\d+)?"|\d+\/\d+"|\d+(?:\.\d+)?°/g;
 
 /**

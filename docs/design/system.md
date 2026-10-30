@@ -5,7 +5,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 ## The rules
 
 1. **Screens write no styles.** A file outside `ui/` never passes `className` or `style` and never imports a stylesheet. `ui/screens.test.ts` fails if one does. If a screen needs something the system does not have, add it to `ui/` (see "Adding a component").
-2. **Numbers come from core.** Components show strings core formatted (hard rule 1). They decide how a number looks, never what it is. Put every length and angle in `Length`, or pass core's text through `Measured`, so a length never breaks across lines.
+2. **Numbers come from core.** Components show strings core formatted (hard rule 1). They decide how a number looks, never what it is. Put every length and angle in `Length`, or pass core's text through `Measured`, so a length never breaks across lines. A value with a second reading in parentheses, such as `92.5 in (92-1/2")`, goes in `Readings`, which can break between the two readings in a narrow column.
 3. **Never color alone** (#43, rule 6). Every state has words and usually an icon as well as a color. Icons are hidden from assistive technology, and the words beside them say the meaning.
 4. **Words follow `content.md`.** Use the shop voice, the patterns there, and the word list: no "safe", "pass", "fail", "invalid", or "sanity".
 
