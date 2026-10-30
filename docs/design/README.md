@@ -8,6 +8,7 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 |---|---|---|---|
 | 0. Wireframes and the data they need | #39 | Decided October 2026 | `wireframes.html` |
 | 1. Information architecture | #40 | Decided October 2026 | `information-architecture.html` |
+| 1b. The plan, one part at a time | #147 | Decided October 2026: one section per screen | `plan-screen.html` |
 | 2. Layout and grid | #41 | Decided October 2026 | `layout.html` |
 | 3. Typography | #42 | Decided October 2026 | `typography.html` |
 | 4. Color | #43 | Decided October 2026 | `color.html` |
@@ -320,6 +321,24 @@ The owner took the suggestions for distances, the cut list, and paper (October 2
 
 Sizes in the distance table assume a digit is 0.7 of the font size; #42 redoes them for the chosen typeface.
 
+## Stage 1b: the plan, one part at a time (#147)
+
+With all eight sections built (#119), the owner found the plan heavy: one long page, hard to find a part and stay on it even with the contents beside it. The owner did not want IA-1's tabs back. `plan-screen.html` drew three directions on the laptop and the phone with the worked example, and answered for each how you move, the address, links between sections, Edit, print, and accessibility.
+
+### Choices
+
+The owner took the suggested option for each (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Direction | P1: each section is its own screen, at its own address (`#/projects/<id>/<section>`; the summary stays at `#/projects/<id>`). The contents move you: beside the plan on the laptop with the current section marked, and Previous and Next at the end of each section, naming the sections either side, as GOV.UK's multi-part guides do. Focus goes to the section heading and the page title names the section. Edit returns to the section you came from. From P2, the summary lists each section with a one-line digest from core, linking to it, so on a phone the summary also works as a hub. | P2, the summary as a hub with five views named by question: the best on the phone, but slower at the desk, where every move goes back through the summary, and grouping moves the diagrams after the review, which changes order A. P3, one page with the sections closed: the smallest change, but it only shortens the page, and with two or three sections open it is the long page again. Section tabs: too many sections for short tab labels, and on the laptop a row of tabs reads as IA-1, which the owner rejected. |
+| Contents on a phone | a: a bar at the top of each section ("3 of 8 · Structural review") that opens the list in place. Always says where you are, in one line. | b: the full list at the top of every section, as GOV.UK's guides do: nothing to open, but eight lines push the section down on every move. |
+| Diagrams and the cut list | a: two sections, as in order A. A part selected in a drawing opens the cut list with its row selected, and the row's name opens the drawing, with the part carried in the address. | b: one "Drawings and cuts" section: the selection shows in both at once, but it becomes the longest section in the plan, which brings back the scrolling for the part used most. |
+
+What does not change: IA-2 (Shopping and Building are full-screen modes from the summary's cards), order A, and print, which gives the whole plan in order A from any section. Lost, and accepted: browser find searches only the section on screen.
+
+The build is #156.
+
 ## Stage 1: information architecture (#40)
 
 `information-architecture.html` sets out three structures, each with a site map and navigation for phone, tablet, laptop, and print:
@@ -346,6 +365,8 @@ Rules that hold across the structure:
 - Status follows progress: In progress when shopping or building starts, Built when the last step is done.
 - Regenerating a project with saved progress says how much would reset before it runs.
 - Printing any view of a project prints the plan in section order A.
+
+Revised in Stage 1b (#147): on screen, each section of the plan is its own screen, reached from the contents; the order and print are unchanged.
 
 Navigation by device:
 
@@ -407,4 +428,4 @@ The owner took the suggested option for each (October 2026).
 | Q4 grouping cuts | a, by board in the shop, by part in the plan | b, by part everywhere: the board for each part is looked up by hand. c, by saw setting: mixes boards, so each is handled twice. |
 | Q5 connection drops | a, queue ticks in memory, show what is not saved yet | b, a copy on the device: that is offline mode, a change to 0005. c, nothing: only fits with no saved progress. |
 
-What this means for #40: the project has one reading order shared by screen and print (L-B), a separate edit screen with live output (L-A), and phone views for the store (Shop) and the garage (Build, with a cut card for each piece), all built from one project response.
+What this means for #40: the project has one reading order shared by screen and print (L-B; since Stage 1b, #147, the screen shows it one section at a time), a separate edit screen with live output (L-A), and phone views for the store (Shop) and the garage (Build, with a cut card for each piece), all built from one project response.
