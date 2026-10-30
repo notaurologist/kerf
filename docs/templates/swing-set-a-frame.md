@@ -256,7 +256,7 @@ Cutting goes board by board in the board plan's order (#58): generic code makes 
 
 | Step | Operations | Expert checks |
 |---|---|---|
-| Cut board 1, 2, ... (one per board) | the end cuts and flush cuts of its pieces | |
+| Cut board 1, 2, ... (one per board), titled with what comes off it ("Cut board 6, a 2x6 10' long: 2 × Crossbar") | the end cuts and flush cuts of its pieces | |
 | Ease the edges of every part | ease edges, every part | from the method (dust) |
 | Dig the leg holes, or Level the pads | dig holes or level pads | load-bearing design |
 | Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes | load-bearing design |

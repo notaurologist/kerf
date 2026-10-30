@@ -211,6 +211,16 @@ interface Draft extends StepOutline {
 }
 
 /**
+ * What comes off a board, by part name in cutting order, so a step can be found by its parts
+ * (#131): "Post", or "2 × Rail" for two of one part.
+ */
+function piecesInWords(pieces: readonly { name: string }[]): string {
+  const counts = new Map<string, number>();
+  for (const p of pieces) counts.set(p.name, (counts.get(p.name) ?? 0) + 1);
+  return [...counts].map(([name, n]) => (n > 1 ? `${n} × ${name}` : name)).join(', ');
+}
+
+/**
  * One cutting step per board, in the board plan's order (#58), each listing its pieces as they
  * come off it. An operation is done on a board's pieces its share of times: an end cut done twice
  * for a part with two pieces is done once on a board that holds one of them. A cutting operation
@@ -251,7 +261,7 @@ function boardSteps(plan: Pick<Plan, 'operations' | 'lumber'>): Draft[] {
     return {
       id: `board-${i + 1}`,
       counts,
-      title: `Cut board ${i + 1}, a ${board.nominal} ${board.feet}' long`,
+      title: `Cut board ${i + 1}, a ${board.nominal} ${board.feet}' long: ${piecesInWords(board.pieces)}`,
       operationIds: [...new Set(pieces.flatMap((p) => p.operationIds))],
       categories: [],
       board: {

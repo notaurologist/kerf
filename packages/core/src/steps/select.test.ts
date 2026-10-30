@@ -128,7 +128,8 @@ describe('buildSteps', () => {
       inventory(),
     );
     expect(built.map((s) => [s.id, s.title, s.operations.map((o) => o.operation.id)])).toEqual([
-      ['board-1', "Cut board 1, a 4x4 8' long", ['post/end-0']],
+      // Named by what comes off it (#131): two posts.
+      ['board-1', "Cut board 1, a 4x4 8' long: 2 × Post", ['post/end-0']],
       ['s', 'Do it', ['site/level-pads']],
     ]);
     expect(built[0]?.board).toEqual({

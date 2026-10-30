@@ -94,7 +94,7 @@ describe('Building mode', () => {
     const html = render(<ModeView route={route} project={p} />);
     expect(text).toContain('Building · Backyard swing set Exit');
     expect(text).toContain('Step 6 of 11 · Cutting All steps');
-    expect(text).toContain("Cut board 6, a 2x6 10' long");
+    expect(text).toContain("Cut board 6, a 2x6 10' long: 2 × Crossbar");
     expect(text).toContain('Trim 1/2" off the factory end to square it');
     expect(text).toContain('Each saw cut takes 1/8"');
     // Both crossbars, each with its tick, its length to cut, and its cut card.
@@ -219,7 +219,9 @@ describe('the plan’s mode cards', () => {
     ]);
     const text = renderText(<ProjectView project={p} />);
     expect(text).toContain('1 of 11 bought. Open the shopping list');
-    expect(text).toContain("Step 2 of 11 next: Cut board 2, a 4x4 12' long. Resume");
+    expect(text).toContain(
+      "Step 2 of 11 next: Cut board 2, a 4x4 12' long: Front leg (downhill). Resume",
+    );
     expect(render(<ProjectView project={p} />)).toContain(`href="#/projects/${p.id}/build"`);
   });
 });
@@ -264,7 +266,7 @@ describe('progress in words', () => {
     // One card, for the first project in the list (the most recently updated).
     expect(text.match(/Resume /g)).toHaveLength(1);
     expect(text).toContain(
-      "Resume building Backyard swing set. Step 2 of 11: Cut board 2, a 4x4 12' long. Go",
+      "Resume building Backyard swing set. Step 2 of 11: Cut board 2, a 4x4 12' long: Front leg (downhill). Go",
     );
     expect(text).toContain('Shopping: 11 lines, none bought. Building: Step 2 of 11 next');
   });

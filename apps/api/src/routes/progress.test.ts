@@ -238,7 +238,11 @@ describe('project progress', () => {
     expect(project.progress).toEqual({
       shopping: { done: 2, total: 11 },
       steps: { done: 2, total: 11 },
-      nextStep: { id: 'board-3', number: 3, title: "Cut board 3, a 4x4 12' long" },
+      nextStep: {
+        id: 'board-3',
+        number: 3,
+        title: "Cut board 3, a 4x4 12' long: Front leg (downhill)",
+      },
     });
   });
 
