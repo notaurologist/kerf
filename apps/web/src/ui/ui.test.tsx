@@ -54,8 +54,10 @@ import {
   ToolIcon,
   ToolLabel,
   WithContents,
+  Wordmark,
 } from './index.ts';
 import { TOOL_ICON_IDS } from './ToolIcon.tsx';
+import { WORDMARK } from './wordmark-outline.ts';
 
 // Each component's states and what assistive technology is told about them (#45). The catalog
 // shows the same states for a person to look at.
@@ -329,8 +331,21 @@ describe('Header', () => {
       />,
     );
     expect(html).toContain('<nav aria-label="Main">');
+    expect(html).toMatch(
+      /^<header class="k-header"><a class="k-header__brand" href="#\/projects"><svg class="k-wordmark" role="img" aria-label="Kerf"/,
+    );
     expect(html).toContain('<a href="#/projects" aria-current="page">Projects</a>');
     expect(html).toContain('<a href="#/tools">Tools</a>');
+  });
+});
+
+describe('Wordmark', () => {
+  it('is an image named Kerf, sized in em from its outline, in the text color', () => {
+    const html = render(<Wordmark />);
+    expect(html).toContain('role="img" aria-label="Kerf"');
+    expect(html).toContain(`viewBox="0 -720 ${WORDMARK.width} 732"`);
+    expect(html).toContain(`width="${WORDMARK.width / 1000}em" height="0.732em"`);
+    expect(html).toContain('fill="currentColor"');
   });
 });
 

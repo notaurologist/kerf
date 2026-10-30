@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful) and the device accessibility pass (#87).
+Status: Stages 0 to 6 are decided and built. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -18,8 +18,23 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 6. Design system | #45 | Built October 2026 (#78 to #81) | `system.html`, `system.md` |
 | 6b. Sharper corners | #148 | Decided October 2026: eased | `corners.html` |
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
+| 8. Brand: logo, wordmark, icons | #166 | Decided October 2026: the end-cut k; built | `brand.html`, `brand.md` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 8: brand (#166)
+
+`brand.html` explores the brand in three rounds, latest first. Round 1 drew five directions: a handsaw blade, a circular blade, a board cut through at 20.0° with the kerf open, the same kerf dimensioned as a drawing, and the wordmark with a slot cut between the k's stem and arm. Round 2 explored the k further (an end cut on its stem, the end cut with the slot, the k as three boards, a cut through the whole word) and added two new marks, kerf bending and the crow's foot. Round 3 refined the chosen one. The result, and how to use it, is in `brand.md`.
+
+### Choices
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Direction | The wordmark "kerf" with the k's stem cut at 45°, and the k alone as the icon. The cut is the one detail, and it is still visible at 16 px. | The saws: at tab size the handsaw reads as a comb or a factory roof and the circular blade as a settings gear, and a saw is the most common woodworking symbol. The board cut at an angle: a square with a slanted stripe reads as the "diver down" flag. The dimensioned kerf: its arrows cannot be drawn at 16 px, so it needs two versions. The slot through the k (with or without the end cut) and the three boards: their gaps close up below header size. A cut through the word reads as struck-out text, kerf bending as a gauge, and the crow's foot as the download icon. |
+| Name | Kept: Kerf. The owner was open to a new name if it branded better; the trouble in rounds 1 and 2 was symbols that look like other symbols, which a different woodworking name would share. | Renaming: churn in packages, storage keys, and hosting for no clear gain. |
+| Spacing | The font's own kerning, evened at display size: k–e −30, e–r −14, r–f +22 font units. | Rounds 1 and 2 tightened every pair by 12 units and ignored the font's kerning, which left r–f 42 units too tight. |
+| Small sizes | The icon fitted to a 16-unit grid, so its straight edges land on whole pixels at 16 and 32 px. | The outline scaled down: gray, blurred edges in the tab. |
+| Files | An SVG icon that follows the system's light or dark setting, an ICO fallback on a paper tile, the 180 px home-screen icon, and a social preview image, made by a script from the font. | Installable-app icons and a manifest: installable web apps are a non-goal. |
 
 ## Stage 6: design system (#45)
 

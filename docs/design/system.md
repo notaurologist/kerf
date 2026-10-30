@@ -66,6 +66,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | A raised item | `Card` | One check, one checklist entry, one project. |
 | Lists | `PlainList` (no bullets) or `List` | `items` takes core's sentences and makes each an item through `Measured`. |
 | A tool's name | `ToolLabel` (or `ToolIcon` inside a button) | The tool type's icon before its name, kept on one line. The icon is 1.2em, so 20 px beside desk text and 24 px in shop density, and hidden from screen readers. A tool type with no icon shows its name alone. |
+| The name as a logo | `Wordmark` | The outlined wordmark (#166, `brand.md`), sized in em to the type around it, on the baseline, named "Kerf". In the header and as the login and connection screens' heading; in running text, write "Kerf". |
 | Formulas and IDs | `Code` | The Mono, never wrapped; scrolls within its line. |
 | Secondary text | `Text tone="muted"` | Desk screens only. Shop modes use the text color for every word (#43, rule 5). |
 | Leaving with changes | `useLeaveGuard(dirty)` | Render its `dialog`; it asks before any in-app link and when the tab closes. |

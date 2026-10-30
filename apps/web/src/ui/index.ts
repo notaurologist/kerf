@@ -66,3 +66,4 @@ export { StepLayout } from './StepLayout.tsx';
 export { Tick } from './Tick.tsx';
 export { ToolIcon, ToolLabel } from './ToolIcon.tsx';
 export { Code, List, OneLine, PlainList, Text, VisuallyHidden } from './text.tsx';
+export { Wordmark } from './Wordmark.tsx';

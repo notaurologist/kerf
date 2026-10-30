@@ -54,6 +54,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │   │   ├── scripts/          # hash-password
 │   │   └── test/
 │   └── web/
+│       ├── public/           # Icons and the social preview image (docs/design/brand.md)
 │       └── src/
 │           ├── features/     # inventory/, project-editor/, cut-list/, shopping-list/,
 │           │                 # diagrams/, build-steps/, structural/, login/
@@ -236,6 +237,7 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 - **The design system lives in `src/ui`** (`docs/design/README.md`, Stage 6; usage in `docs/design/system.md`).
   - **Styles:** plain CSS in cascade layers, in the order `reset, tokens, base, layout, components, print`. Tokens are custom properties; colors are `light-dark()` pairs that follow the device, or the Theme menu's choice for this device, kept in browser storage (0005, #155).
   - **Fonts:** Atkinson Hyperlegible Next and Mono, self-hosted (decision 0015).
+  - **Brand:** the `Wordmark` component and the files in `public/` (icons, social preview image) are made from the font by `docs/design/brand/make_brand.py` (#166, `docs/design/brand.md`).
   - **Screens:** built only from `ui/` components and layout primitives. They write no `className` or `style` and import no stylesheet, which `ui/screens.test.ts` enforces. A screen that needs something new gets a new component in `ui/`, with tests and a place on the catalog page.
 - Diagrams render core's 2D primitives, which the API sends with the project, as SVG through `Diagram` inside `DiagramFrame` (#91). Each primitive's role maps to the line and diagram tokens; strokes do not scale, and text, arrowheads, and part letters are sized in pixels for the width shown. Tapping a part selects it in the drawings and the cut list, whose part names are the keyboard path. In print, each section of the plan starts a page with a title block, the isometric, exploded, and site views take landscape pages, cut details do not split, zones are hatched, and expandable working opens.
 - Phone and tablet layouts are first-class: large text and one build step at a time (`PRODUCT.md`, MVP feature 9).

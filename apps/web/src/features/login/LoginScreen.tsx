@@ -9,6 +9,7 @@ import {
   Page,
   Stack,
   TextInput,
+  Wordmark,
 } from '../../ui/index.ts';
 
 // One password, no username (decision 0007).
@@ -28,7 +29,9 @@ export function LoginForm(props: {
       <Center max="24rem">
         <form onSubmit={submit} noValidate>
           <Stack>
-            <h1>Kerf</h1>
+            <h1>
+              <Wordmark />
+            </h1>
             <Field label="Password">
               {(c) => (
                 <TextInput
