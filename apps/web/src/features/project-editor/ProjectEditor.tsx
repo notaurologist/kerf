@@ -22,12 +22,12 @@ import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
   ButtonLink,
-  Card,
   Cluster,
   ErrorSummary,
   Field,
   FieldGroup,
   Grid,
+  InfoNotice,
   Notice,
   SaveFailed,
   ScreenHeader,
@@ -270,13 +270,13 @@ export function ProjectEditor(props: {
         />
         <ErrorSummary items={summary} general={general} />
         {project?.version?.status === 'behind' && (
-          <Card>
+          <InfoNotice>
             <Text>
               Saving changed parameters or structural inputs regenerates this plan with template
               version {project.version.currentVersion}. It was made with version{' '}
               {project.version.storedVersion}.
             </Text>
-          </Card>
+          </InfoNotice>
         )}
         {saved?.ok && project ? (
           <Sidebar sideWidth="24rem" gap="l">

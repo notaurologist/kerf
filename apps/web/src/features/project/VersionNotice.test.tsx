@@ -77,6 +77,13 @@ describe('VersionNotice', () => {
     const text = show({ status: 'ahead', storedVersion: 3, currentVersion: 2 });
     expect(text).toContain('newer than the version this app has (2)');
     expect(text).not.toContain('Regenerate');
+    const html = render(
+      <VersionNotice
+        project={withReport({ status: 'ahead', storedVersion: 3, currentVersion: 2 })}
+        onRegenerated={() => {}}
+      />,
+    );
+    expect(html).toMatch(/^<div class="k-info" role="status">/);
   });
 });
 

@@ -8,6 +8,7 @@ import {
   Cluster,
   Code,
   Disclosure,
+  InfoNotice,
   InlineConfirm,
   List,
   MeasureTable,
@@ -39,13 +40,13 @@ export function VersionNotice(props: {
 
   if (report.status === 'ahead') {
     return (
-      <Card>
+      <InfoNotice>
         <Text>
           This plan was made with template version {report.storedVersion}, newer than the version
           this app has ({report.currentVersion}). It is shown as stored and cannot be regenerated
           here.
         </Text>
-      </Card>
+      </InfoNotice>
     );
   }
 

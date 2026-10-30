@@ -82,7 +82,7 @@ By M7 the screens composed the same few patterns by hand, each a little differen
 - `FlagList` and `CheckStatus`: a plan's or step's expert checks, and a check's margin, input needed, or not computed, shared by the structural review, the build steps, and the editor's preview.
 - An `items` prop on `List` and `PlainList` for core's sentences, and an `intro` on `PlanSection`.
 - A lone action sits in a `Cluster`, never a bare `div` or stretched across a column.
-- `InfoNotice`, a neutral notice announced as status with an info icon, is in the catalog for the owner's review and not yet on any screen.
+- `InfoNotice`, a neutral notice announced as status with an info icon. The owner reviewed it in the catalog, and it replaced the plain cards that said a plan was made with a newer template version, or that saving would regenerate it with a newer one.
 
 No screen writes `role="alert"` or `role="status"` itself; `ui/screens.test.ts` checks it.
 
