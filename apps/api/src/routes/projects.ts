@@ -58,7 +58,7 @@ export function projectRoutes(projects: ProjectService) {
     })
     .get('/projects/:id/progress', valid('param', ById), async (c) => {
       const result = await projects.progress(c.req.valid('param').id);
-      return result.ok ? c.json({ progress: result.value }, 200) : failure(c, result);
+      return result.ok ? c.json({ ticks: result.value }, 200) : failure(c, result);
     })
     .patch(
       '/projects/:id/progress',
@@ -66,7 +66,7 @@ export function projectRoutes(projects: ProjectService) {
       valid('json', ProgressChanges),
       async (c) => {
         const result = await projects.setProgress(c.req.valid('param').id, c.req.valid('json'));
-        return result.ok ? c.json({ progress: result.value }, 200) : failure(c, result);
+        return result.ok ? c.json(result.value, 200) : failure(c, result);
       },
     )
     .delete('/projects/:id', valid('param', ById), async (c) => {

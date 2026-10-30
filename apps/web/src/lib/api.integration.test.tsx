@@ -163,7 +163,7 @@ describe('the web client against the API', () => {
       }),
     );
     if (!ticked.ok) throw new Error(JSON.stringify(ticked.error));
-    expect(ticked.value.progress.map((p) => p.key)).toEqual(['2x6/10/1', 'site']);
+    expect(ticked.value.ticks.map((p) => p.key)).toEqual(['2x6/10/1', 'site']);
 
     // A higher crossbar changes its board; the site work stays (core's worked example).
     const saved = await send(
@@ -178,6 +178,6 @@ describe('the web client against the API', () => {
     );
     const read = await send(client.api.projects[':id'].progress.$get({ param: { id } }));
     if (!read.ok) throw new Error(JSON.stringify(read.error));
-    expect(read.value.progress.map((p) => p.key)).toEqual(['site']);
+    expect(read.value.ticks.map((p) => p.key)).toEqual(['site']);
   }, 30_000);
 });

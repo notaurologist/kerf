@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { boardIds } from '../outputs/shoppingList.ts';
-import { type ProgressItem, progressToReset } from './progress.ts';
+import { type ProgressItem, progressToReset, summarizeProgress } from './progress.ts';
 
 describe('boardIds', () => {
   it('numbers each board within its line, so boards of other sizes do not shift it', () => {
@@ -41,5 +41,41 @@ describe('progressToReset', () => {
     expect(progressToReset(ticked, before, before)).toEqual([
       { kind: 'board', key: 'a', reason: 'removed' },
     ]);
+  });
+});
+
+describe('summarizeProgress', () => {
+  const plan = {
+    lumber: { lines: [{ nominal: '2x6' as const, feet: 10, count: 1 }] },
+    hardware: [
+      { description: 'Bolts', quantity: 4 },
+      { description: 'Bolts', quantity: 2 },
+      { description: 'Nuts', quantity: 4 },
+    ],
+  } as unknown as Parameters<typeof summarizeProgress>[0];
+  const steps = [
+    { id: 'a', title: 'Cut' },
+    { id: 'b', title: 'Drill' },
+    { id: 'c', title: 'Bolt' },
+  ];
+
+  it('counts shopping lines once each, and steps, and finds the first step not done', () => {
+    expect(
+      summarizeProgress(plan, steps, [
+        { kind: 'shopping-line', key: 'hardware/Bolts' },
+        { kind: 'step', key: 'a' },
+        { kind: 'step', key: 'c' },
+        { kind: 'board', key: 'b' },
+      ]),
+    ).toEqual({
+      shopping: { done: 1, total: 3 },
+      steps: { done: 2, total: 3 },
+      nextStep: { id: 'b', number: 2, title: 'Drill' },
+    });
+  });
+
+  it('has no next step when every step is done', () => {
+    const ticked = steps.map((s) => ({ kind: 'step' as const, key: s.id }));
+    expect(summarizeProgress(plan, steps, ticked).nextStep).toBeNull();
   });
 });

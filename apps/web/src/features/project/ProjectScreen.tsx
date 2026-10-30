@@ -20,6 +20,7 @@ import {
 import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { Diagrams } from '../diagrams/Diagrams.tsx';
+import { ModeCards } from '../modes/ModeCards.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import { StructuralReview } from '../structural/StructuralReview.tsx';
 import { DeleteProject } from './DeleteProject.tsx';
@@ -74,6 +75,7 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
         <Notice>{plan.message}</Notice>
       ) : (
         <>
+          <ModeCards project={project} plan={plan.plan} steps={steps?.steps ?? []} />
           <nav aria-label="Sections">
             <Cluster>
               {SECTIONS.filter((s) => hasSteps || s.id !== 'build-steps').map((s) => (

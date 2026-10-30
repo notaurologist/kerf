@@ -21,6 +21,7 @@ import {
   Stack,
   Text,
 } from '../../ui/index.ts';
+import { buildingText, ResumeCard, resumeTarget, shoppingText } from '../modes/ModeCards.tsx';
 
 // Projects with their status (PRODUCT.md, MVP features 2 and 8), most recently updated first.
 
@@ -65,9 +66,19 @@ export function ProjectsScreen() {
 }
 
 export function toSummary(project: Project): ProjectSummary {
-  const { id, name, status, templateId, templateVersion, templateBehind, createdAt, updatedAt } =
-    project;
-  return { id, name, status, templateId, templateVersion, templateBehind, createdAt, updatedAt };
+  const { id, name, status, templateId, templateVersion, templateBehind, progress } = project;
+  const { createdAt, updatedAt } = project;
+  return {
+    id,
+    name,
+    status,
+    templateId,
+    templateVersion,
+    templateBehind,
+    progress,
+    createdAt,
+    updatedAt,
+  };
 }
 
 export function ProjectList(props: {
@@ -76,6 +87,7 @@ export function ProjectList(props: {
   error?: string | null;
   onStatus: (id: string, status: ProjectStatus) => void;
 }) {
+  const resuming = props.projects.find((p) => resumeTarget(p) !== null);
   const templateName = (id: string) => props.templates.find((t) => t.id === id)?.name ?? id;
   return (
     <Stack>
@@ -88,6 +100,8 @@ export function ProjectList(props: {
         ))}
       </Cluster>
       {props.error && <Notice>{props.error}</Notice>}
+      {/* One Resume card (#40): the most recently updated project that has somewhere to resume. */}
+      {resuming && <ResumeCard project={resuming} />}
       {props.projects.length === 0 ? (
         <Text>No projects yet. Start one with a New button above.</Text>
       ) : (
@@ -106,6 +120,12 @@ export function ProjectList(props: {
                     onChange={(status) => props.onStatus(p.id, status as ProjectStatus)}
                   />
                 </Cluster>
+                {p.progress && p.status !== 'planned' && (
+                  <Text>
+                    Shopping: {shoppingText(p.progress.shopping)}{' '}
+                    {p.progress.steps.total > 0 && `Building: ${buildingText(p.progress)}`}
+                  </Text>
+                )}
                 <Text tone="muted">
                   {templateName(p.templateId)}, version {p.templateVersion}. Updated{' '}
                   {new Date(p.updatedAt).toLocaleDateString()}.

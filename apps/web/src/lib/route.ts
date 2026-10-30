@@ -8,6 +8,13 @@ export type Route =
   | { screen: 'new-project'; templateId: string }
   | { screen: 'project'; id: string }
   | { screen: 'edit-project'; id: string }
+  // Shopping and Building, full-screen modes launched from the plan (#61). The URL carries the
+  // mode and step, so a reload or a shared link reopens the same place.
+  | { screen: 'shop'; id: string }
+  | { screen: 'build'; id: string }
+  | { screen: 'build-steps'; id: string }
+  | { screen: 'build-step'; id: string; step: string }
+  | { screen: 'build-part'; id: string; step: string; part: string }
   | { screen: 'tools' }
   | { screen: 'catalog' }
   | { screen: 'not-found' };
@@ -15,19 +22,27 @@ export type Route =
 export function parseRoute(hash: string): Route {
   const [path = '', query = ''] = hash.replace(/^#/, '').split('?');
   const parts = path.split('/').filter(Boolean).map(decodeURIComponent);
-  const [first, second, third] = parts;
+  const [first, second, third, fourth, fifth] = parts;
   if (parts.length === 0) return { screen: 'projects' };
   if (first === 'tools' && parts.length === 1) return { screen: 'tools' };
   if (first === 'catalog' && parts.length === 1) return { screen: 'catalog' };
-  if (first !== 'projects' || parts.length > 3) return { screen: 'not-found' };
+  if (first !== 'projects' || parts.length > 5) return { screen: 'not-found' };
   if (second === undefined) return { screen: 'projects' };
   if (second === 'new' && parts.length === 2) {
     const templateId = new URLSearchParams(query).get('template');
     return templateId ? { screen: 'new-project', templateId } : { screen: 'not-found' };
   }
   if (third === undefined) return { screen: 'project', id: second };
-  if (third === 'edit') return { screen: 'edit-project', id: second };
-  return { screen: 'not-found' };
+  if (third === 'edit' && parts.length === 3) return { screen: 'edit-project', id: second };
+  if (third === 'shop' && parts.length === 3) return { screen: 'shop', id: second };
+  if (third !== 'build') return { screen: 'not-found' };
+  // "steps" is the step list, so no step may have that ID.
+  if (fourth === undefined) return { screen: 'build', id: second };
+  if (fourth === 'steps') {
+    return parts.length === 4 ? { screen: 'build-steps', id: second } : { screen: 'not-found' };
+  }
+  if (fifth === undefined) return { screen: 'build-step', id: second, step: fourth };
+  return { screen: 'build-part', id: second, step: fourth, part: fifth };
 }
 
 export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
@@ -40,6 +55,16 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
       return `#/projects/${encodeURIComponent(route.id)}`;
     case 'edit-project':
       return `#/projects/${encodeURIComponent(route.id)}/edit`;
+    case 'shop':
+      return `#/projects/${encodeURIComponent(route.id)}/shop`;
+    case 'build':
+      return `#/projects/${encodeURIComponent(route.id)}/build`;
+    case 'build-steps':
+      return `#/projects/${encodeURIComponent(route.id)}/build/steps`;
+    case 'build-step':
+      return `#/projects/${encodeURIComponent(route.id)}/build/${encodeURIComponent(route.step)}`;
+    case 'build-part':
+      return `#/projects/${encodeURIComponent(route.id)}/build/${encodeURIComponent(route.step)}/${encodeURIComponent(route.part)}`;
     case 'tools':
       return '#/tools';
     case 'catalog':
@@ -49,6 +74,16 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
 
 export function navigate(route: Exclude<Route, { screen: 'not-found' }>) {
   window.location.hash = href(route);
+}
+
+/** Goes to `route` in place of the current entry, so Back skips the one left. */
+export function redirect(route: Exclude<Route, { screen: 'not-found' }>) {
+  window.location.replace(href(route));
+}
+
+/** True for Shopping and Building, which fill the screen under their own bar (#61). */
+export function isMode(route: Route): boolean {
+  return ['shop', 'build', 'build-steps', 'build-step', 'build-part'].includes(route.screen);
 }
 
 export function useRoute(): Route {

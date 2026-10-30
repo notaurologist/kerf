@@ -8,9 +8,11 @@ import {
   type Inventory,
   type Issue,
   type ProgressReset,
+  type ProgressSummary,
   type ProjectSnapshot,
   planSteps,
   progressId,
+  progressSummary,
   readSnapshot,
   type TemplateDefinition,
   type VersionReport,
@@ -23,8 +25,10 @@ import {
   itemsOf,
   type ProgressChanges,
   type ProgressEntry,
+  readAllProgress,
   readProgress,
   resetProgress,
+  statusAfterTicks,
   writeProgress,
 } from './progress.ts';
 import { getInventory } from './tools.ts';
@@ -65,6 +69,11 @@ export interface ProjectSummary {
   templateVersion: number;
   /** True when the template has a newer version than the one the snapshot was made with. */
   templateBehind: boolean;
+  /**
+   * Shopping lines bought, steps done, and the next step (#61), for the mode cards and the Resume
+   * card. Null when the stored snapshot cannot be read.
+   */
+  progress: ProgressSummary | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -88,6 +97,8 @@ export interface Project extends ProjectSummary {
    * response so the shop view needs no other request. Null when the snapshot cannot be read.
    */
   steps: BuildSteps | null;
+  /** What has been ticked off (#57), so the plan and its modes need no other request. */
+  ticks: ProgressEntry[];
   /**
    * After a save that regenerated the snapshot: the ticks it cleared because their item is gone
    * or has other numbers (#57). Absent when nothing was regenerated.
@@ -169,8 +180,10 @@ export function createProjectService(deps: {
   const { db, templates, now } = deps;
   const findTemplate = (id: string) => templates.find((t) => t.id === id);
 
-  function summary(row: Row): ProjectSummary {
+  /** The row's summary, with its progress counted from its ticks. */
+  function summary(row: Row, ticks: readonly ProgressEntry[]): ProjectSummary {
     const template = findTemplate(row.templateId);
+    const stored = template ? read(row) : undefined;
     return {
       id: row.id,
       name: row.name,
@@ -178,6 +191,10 @@ export function createProjectService(deps: {
       templateId: row.templateId,
       templateVersion: row.templateVersion,
       templateBehind: template !== undefined && row.templateVersion < template.version,
+      progress:
+        template && stored?.ok
+          ? progressSummary(template, template.outputs.parse(stored.snapshot.outputs), ticks)
+          : null,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
     };
@@ -190,23 +207,26 @@ export function createProjectService(deps: {
     const template = findTemplate(row.templateId);
     if (!template) return { ok: false, error: 'unknown-template' };
     const result = read(row);
+    const ticks = await readProgress(db, row.id);
     if (!result.ok) {
       return {
         ok: true,
         value: {
-          ...summary(row),
+          ...summary(row, ticks),
           snapshot: null,
           unreadable: { reason: result.reason, message: result.message },
           version: null,
           drawings: null,
           steps: null,
+          ticks,
         },
       };
     }
     return {
       ok: true,
       value: {
-        ...summary(row),
+        ...summary(row, ticks),
+        ticks,
         snapshot: result.snapshot,
         version: compareWithCurrent(template, result.snapshot),
         drawings: drawingsOf(template, result.snapshot),
@@ -288,7 +308,8 @@ export function createProjectService(deps: {
 
     async list(): Promise<ProjectSummary[]> {
       const rows = await db.select().from(projects).orderBy(desc(projects.updatedAt));
-      return rows.map(summary);
+      const ticks = await readAllProgress(db);
+      return rows.map((row) => summary(row, ticks.get(row.id) ?? []));
     },
 
     async get(id: string): Promise<Result<Project>> {
@@ -434,9 +455,13 @@ export function createProjectService(deps: {
     /**
      * Sets and clears ticks, and returns every tick. A tick on an item the stored plan does not
      * have is refused, with nothing saved, so a client learns which queued ticks went stale.
-     * Clearing one is allowed: it leaves no tick either way.
+     * Clearing one is allowed: it leaves no tick either way. Status follows (`statusAfterTicks`),
+     * and the response carries it.
      */
-    async setProgress(id: string, changes: ProgressChanges): Promise<Result<ProgressEntry[]>> {
+    async setProgress(
+      id: string,
+      changes: ProgressChanges,
+    ): Promise<Result<{ ticks: ProgressEntry[]; status: ProjectSummary['status'] }>> {
       const row = await load(id);
       if (!row) return { ok: false, error: 'not-found' };
       const template = findTemplate(row.templateId);
@@ -452,8 +477,22 @@ export function createProjectService(deps: {
           items: unknown.map(({ kind, key }) => ({ kind, key })),
         };
       }
-      await writeProgress(db, id, changes.changes, now());
-      return { ok: true, value: await readProgress(db, id) };
+      const outputs = template.outputs.parse(stored.snapshot.outputs);
+      const before = progressSummary(template, outputs, await readProgress(db, id));
+      const at = now();
+      await writeProgress(db, id, changes.changes, at);
+      const ticks = await readProgress(db, id);
+      const current = ProjectStatus.parse(row.status);
+      const status = statusAfterTicks(
+        current,
+        changes.changes,
+        before,
+        progressSummary(template, outputs, ticks),
+      );
+      if (status !== current) {
+        await db.update(projects).set({ status, updatedAt: at }).where(eq(projects.id, id));
+      }
+      return { ok: true, value: { ticks, status } };
     },
 
     /** Permanent: the project's history and progress rows go with it (they cascade). */
