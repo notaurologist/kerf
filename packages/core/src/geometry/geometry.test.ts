@@ -162,7 +162,8 @@ describe('cut details', () => {
       holes: [
         {
           hardwareId: 'bolt',
-          diameter: 0.5,
+          diameter: 0.5625,
+          boltDiameter: 0.5,
           entry: { u: 4, v: 1.375, n: 0 },
           direction: { u: 0, v: 0, n: 1 },
           length: 1.5,
@@ -181,10 +182,13 @@ describe('cut details', () => {
         `Saw at ${formatAngle(20)}`,
       ].sort(),
     );
-    expect(texts(detail.primitives, 'note')).toEqual([
-      `${formatAngle(70)} to the edge`,
-      `${formatAngle(70)} to the edge`,
-    ]);
+    expect(texts(detail.primitives, 'note').sort()).toEqual(
+      [
+        `${formatAngle(70)} to the edge`,
+        `${formatAngle(70)} to the edge`,
+        'Drill 9/16" holes for 1/2" bolts',
+      ].sort(),
+    );
     expect(detail.primitives.every((p) => p.kind === 'letter' || p.part?.letter === 'A')).toBe(
       true,
     );

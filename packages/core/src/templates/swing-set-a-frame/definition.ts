@@ -45,6 +45,41 @@ const addPartLetters: SnapshotUpgrade = (snapshot) => {
   };
 };
 
+/**
+ * Shape 8 to 9: plans made before template version 9 drilled each bolt hole at the bolt's own
+ * diameter, so each hole's bolt diameter is its diameter, and each bolt-hole operation's hole
+ * diameter is its bolt diameter. Nothing is recomputed.
+ */
+const addHoleSizes: SnapshotUpgrade = (snapshot) => {
+  type Stored = Record<string, unknown>;
+  const outputs = snapshot.outputs as { design: { parts: Stored[]; operations?: Stored[] } };
+  const { design } = outputs;
+  return {
+    ...snapshot,
+    outputs: {
+      ...outputs,
+      design: {
+        ...design,
+        parts: design.parts.map((part) =>
+          Array.isArray(part.holes)
+            ? {
+                ...part,
+                holes: (part.holes as Stored[]).map((h) => ({ ...h, boltDiameter: h.diameter })),
+              }
+            : part,
+        ),
+        ...(design.operations
+          ? {
+              operations: design.operations.map((op) =>
+                op.type === 'bolt-holes' ? { ...op, holeDiameter: op.boltDiameter } : op,
+              ),
+            }
+          : {}),
+      },
+    },
+  };
+};
+
 export const swingSetAFrame: TemplateDefinition<
   SwingSetParams,
   SwingSetStructuralInputs,
@@ -64,8 +99,10 @@ export const swingSetAFrame: TemplateDefinition<
   // part letters (#66), derived from the stored order of the parts, which is the cut-list order.
   // Shape 6 adds the bolt layout and each board's distance past the legs (#93); both optional.
   // Shape 7 adds each part's board selection guides and the lumber plan's copy of them (#53);
-  // both optional. Shape 8 adds operations (#103), optional.
-  snapshotVersion: 8,
+  // both optional. Shape 8 adds operations (#103), optional. Shape 9 adds each hole's bolt diameter
+  // and each bolt-hole operation's hole diameter (#110); reading an older plan sets both to the
+  // size it drilled, its bolt's diameter.
+  snapshotVersion: 9,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -74,6 +111,7 @@ export const swingSetAFrame: TemplateDefinition<
     5: (snapshot) => snapshot,
     6: (snapshot) => snapshot,
     7: (snapshot) => snapshot,
+    8: addHoleSizes,
   },
   examples: EXAMPLES,
   steps: (outputs) => stepOutline(outputs.design),

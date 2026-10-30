@@ -46,7 +46,13 @@ export type LocalPoint = z.infer<typeof LocalPoint>;
 /** A hole drilled in a part, for the hardware item that passes through it. */
 export const Hole = z.object({
   hardwareId: z.string(),
+  /** The hole to drill: the bolt's diameter plus the oversize NDS 12.1.3.2 allows (#110). */
   diameter: z.number(),
+  /**
+   * The bolt that goes through it. Plans made before template version 9 drilled at the bolt's
+   * diameter, and reading them sets this to `diameter` (snapshot shape 9).
+   */
+  boltDiameter: z.number(),
   /** Where the drill enters, in the part's frame. */
   entry: LocalPoint,
   /** The drilling direction, a unit vector in the part's frame. */

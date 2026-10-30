@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { boltHoleDiameter } from '../structural/boltHoles.ts';
 import type { HardwareItem, Part } from './types.ts';
 
 // Operations: what needs to happen to each part, before any choice of how (DOMAIN.md, Operations).
@@ -61,8 +62,12 @@ export const Operation = z.discriminatedUnion('type', [
     hardwareId: z.string(),
     /** Every part the holes pass through, in the order of the parts list. */
     partIds: z.array(z.string()).min(1),
-    /** The bolt's diameter. How much larger to drill is the method's to say. */
     boltDiameter: z.number(),
+    /**
+     * The hole to drill (#110). Plans made before template version 9 drilled at the bolt's
+     * diameter, and reading them sets this to `boltDiameter` (snapshot shape 9).
+     */
+    holeDiameter: z.number(),
     depth: z.number(),
   }),
   /** Round over sharp edges and sand off splinters on every face a person can touch. */
@@ -134,6 +139,7 @@ export function cutAndDrillOperations(
       partIds,
       count: item.quantity,
       boltDiameter: item.bolt.diameter,
+      holeDiameter: boltHoleDiameter(item.bolt.diameter),
       depth: item.bolt.grip,
     });
   }

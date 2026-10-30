@@ -94,7 +94,9 @@ describe('the worked example (spec, Holes and joints)', () => {
     expect(hole?.entry.v).toBe(3.5);
     expect(hole?.entry.n).toBe(1.75);
     expect(hole?.length).toBeCloseTo(2.724, 3);
-    expect(hole?.diameter).toBe(0.5);
+    // A 1/2" bolt, drilled 1/16" over (NDS 2024 12.1.3.2): 9/16".
+    expect(hole?.boltDiameter).toBe(0.5);
+    expect(hole?.diameter).toBe(0.5625);
   });
 
   it('drills the beam at each frame centerline, mid-depth', () => {

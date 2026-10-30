@@ -104,6 +104,8 @@ describe('cutAndDrillOperations', () => {
       partIds: ['rail'],
       count: 6,
       boltDiameter: 0.375,
+      // 3/8" + 1/16" (NDS 2024 12.1.3.2) = 7/16".
+      holeDiameter: 0.4375,
       depth: 5,
     });
     expect(ops.some((o) => o.type === 'bolt-holes' && o.hardwareId === 'screws')).toBe(false);

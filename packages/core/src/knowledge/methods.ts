@@ -122,6 +122,7 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
   'bolt-holes': {
     count,
     boltDiameter: { kind: 'length', of: (op) => op.boltDiameter },
+    holeDiameter: { kind: 'length', of: (op) => op.holeDiameter },
     depth: { kind: 'length', of: (op) => op.depth },
   },
   'ease-edges': { count },
@@ -199,9 +200,8 @@ const BURIED_LINES = {
   sources: [{ source: 'cga-811', locator: 'Home page' }],
 } satisfies z.input<typeof SafetyNote>;
 
-// The hole size itself is #110's: the operation records only the bolt's diameter.
 const BOLT_HOLE_SIZE = {
-  text: 'Drill the hole a little larger than the bolt, within the range the source gives, so the bolt goes in without being driven.',
+  text: 'Drill {holeDiameter} for a {boltDiameter} bolt. A hole a little larger than the bolt lets it go in without being driven.',
   sources: [{ source: 'nds-2024', locator: 'Section 12.1.3.2' }],
 } satisfies z.input<typeof SafetyNote>;
 
@@ -695,7 +695,7 @@ export const METHODS = [
     skills: ['clamp-parts-in-place', 'measure-and-mark', 'drill-straight'],
     setup: [
       'Clamp the parts together in their positions from the plan.',
-      'Chuck a bit for a {boltDiameter} bolt.',
+      'Chuck a {holeDiameter} bit, for the {boltDiameter} bolts.',
     ],
     technique: [
       'Mark each hole center from the cut detail on the face you drill from.',
@@ -740,7 +740,7 @@ export const METHODS = [
     skills: ['clamp-parts-in-place', 'measure-and-mark', 'drill-straight'],
     setup: [
       'Clamp the parts together in their positions from the plan.',
-      'Chuck a bit for a {boltDiameter} bolt, with an extension if the bit alone does not reach {depth}.',
+      'Chuck a {holeDiameter} bit, for the {boltDiameter} bolts, with an extension if the bit alone does not reach {depth}.',
     ],
     technique: [
       'Mark each hole center from the cut detail on the face you drill from.',
@@ -779,7 +779,7 @@ export const METHODS = [
     skills: ['clamp-parts-in-place', 'measure-and-mark', 'drill-straight', 'drill-from-both-sides'],
     setup: [
       'Clamp the parts together in their positions from the plan.',
-      'Chuck a bit for a {boltDiameter} bolt.',
+      'Chuck a {holeDiameter} bit, for the {boltDiameter} bolts.',
     ],
     technique: [
       'Mark each hole center from the cut detail on both outer faces, measured from the same end and edge.',
@@ -818,7 +818,7 @@ export const METHODS = [
     skills: ['clamp-parts-in-place', 'measure-and-mark', 'drill-straight', 'drill-from-both-sides'],
     setup: [
       'Clamp the parts together in their positions from the plan.',
-      'Chuck a bit for a {boltDiameter} bolt, with an extension if you have one.',
+      'Chuck a {holeDiameter} bit, for the {boltDiameter} bolts, with an extension if you have one.',
     ],
     technique: [
       'Mark each hole center from the cut detail on both outer faces, measured from the same end and edge.',

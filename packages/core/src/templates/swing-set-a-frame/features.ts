@@ -8,6 +8,7 @@ import {
   spacingInRow,
   spreadAcrossGrain,
 } from '../../structural/boltDistances.ts';
+import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
 import type { BoltArea, Flag, Hole, Taper } from '../types.ts';
@@ -19,6 +20,12 @@ import type { SwingSetParams } from './params.ts';
 // from its reference edge, n through its thickness.
 
 const RAD = Math.PI / 180;
+
+/** A hole's size for its bolt: drilled over the bolt's diameter (NDS 2024 12.1.3.2, #110). */
+const boltHole = (boltDiameter: number) => ({
+  diameter: boltHoleDiameter(boltDiameter),
+  boltDiameter,
+});
 
 export interface PartFeatures {
   referenceEdge: string;
@@ -110,7 +117,7 @@ export function features(
   const boltZ = dims.H + dims.bd / 2;
   const legBoltHole: Hole = {
     hardwareId: 'leg-beam-bolts',
-    diameter: h.legBoltDiameter,
+    ...boltHole(h.legBoltDiameter),
     // On the outer edge (v = w), where z = top + w·sin α − u·cos α equals the bolt's height.
     entry: { u: (top + dims.w * sin - boltZ) / cos, v: dims.w, n: dims.t / 2 },
     // Toward the beam, horizontally: in the leg's frame, (−sin α, −cos α, 0).
@@ -141,7 +148,7 @@ export function features(
     length: number,
   ): Hole => ({
     hardwareId,
-    diameter,
+    ...boltHole(diameter),
     entry: { u, v, n: 0 },
     direction: { u: 0, v: 0, n: 1 },
     length,
@@ -174,7 +181,7 @@ export function features(
   // mid-depth, through each ply. Ply bolts, for a built-up beam, go anywhere along the beam.
   const beamHoles: Hole[] = g.supportsX.map((x) => ({
     hardwareId: 'leg-beam-bolts',
-    diameter: h.legBoltDiameter,
+    ...boltHole(h.legBoltDiameter),
     entry: { u: x, v: dims.bd / 2, n: 0 },
     direction: { u: 0, v: 0, n: 1 },
     length: plyThickness,
