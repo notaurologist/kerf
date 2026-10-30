@@ -111,8 +111,10 @@
   }
 
   /* ---------- Definitions ---------- */
+  /* One column that content never widens, so a drawing measures the width it is given. */
   .k-definitions {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-s);
     max-inline-size: var(--measure);
     margin: 0;
@@ -120,6 +122,7 @@
 
   .k-definition {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-3xs);
     scroll-margin-block-start: var(--space-s);
   }
@@ -131,6 +134,10 @@
 
   .k-definition dd {
     margin: 0;
+  }
+
+  .k-definition__figure {
+    max-inline-size: 28rem;
   }
 
   /* One line per item, cut short with an ellipsis; the full text is in the section it links to. */

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Citation, SOURCE_LINKS } from '../design-values/sources.ts';
+import { IllustrationId } from './illustrations.ts';
 import { TOOL_TYPES } from './tools.ts';
 
 // The glossary (decision 0009): the woodworking terms Kerf's text uses, each with a short
@@ -17,7 +18,7 @@ export const GlossaryEntry = z.object({
   /** One or two sentences, in the content guide's voice. */
   definition: z.string().min(1),
   /** The drawing that goes with the definition, if one does. */
-  illustration: z.string().regex(ID).optional(),
+  illustration: IllustrationId.optional(),
   /** Where a safety-relevant definition comes from (hard rule 5). */
   sources: z.array(Citation),
 });
@@ -31,6 +32,7 @@ export const GLOSSARY = [
     forms: ['angles to the edge'],
     definition:
       "The angle between a cut line and the board's edge: 90° minus the saw setting. A protractor or sliding bevel reads this angle, not the saw setting.",
+    illustration: 'saw-setting',
     sources: [],
   },
   {
@@ -39,6 +41,7 @@ export const GLOSSARY = [
     forms: ['bevels', 'beveled'],
     definition:
       "An end cut angled through the board's thickness, made with the saw blade tilted. The cut list gives it as a saw setting.",
+    illustration: 'bevel',
     sources: [],
   },
   {
@@ -79,6 +82,7 @@ export const GLOSSARY = [
     forms: ['kerfs'],
     definition:
       'The width of wood a saw blade removes in a cut. Cut with the kerf on the waste side of the line, so the part keeps its length.',
+    illustration: 'kerf',
     sources: [],
   },
   {
@@ -87,6 +91,7 @@ export const GLOSSARY = [
     forms: ['long points'],
     definition:
       "The end of an angled cut where the part is longest. A part's length in the cut list is measured from long point to long point.",
+    illustration: 'long-and-short-point',
     sources: [],
   },
   {
@@ -109,6 +114,7 @@ export const GLOSSARY = [
     forms: ['miters', 'mitered'],
     definition:
       "An end cut angled across the board's face, with the blade square to the face. The cut list gives it as a saw setting.",
+    illustration: 'miter',
     sources: [],
   },
   {
@@ -139,6 +145,7 @@ export const GLOSSARY = [
     forms: ['saw settings'],
     definition:
       "An angle as a miter saw's scale reads it: 0° is a square cut, and the angle is measured from square. Kerf gives every cut angle this way, with the angle to the edge beside it.",
+    illustration: 'saw-setting',
     sources: [],
   },
   {
@@ -147,6 +154,7 @@ export const GLOSSARY = [
     forms: ['short points'],
     definition:
       'The end of an angled cut where the part is shortest, across the board from the long point.',
+    illustration: 'long-and-short-point',
     sources: [],
   },
   {
