@@ -1,0 +1,754 @@
+<title>Kerf Plan Screen</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+/* Additions for the plan-screen page: contents, Previous and Next, hub cards, collapsed sections, and the answer tables. */
+.frames { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+.frames .phone { margin-inline: 0; }
+.laptop.short { min-height: 0; }
+.toc { border-right: 1px solid var(--line); padding: 12px 10px; display: grid; gap: 7px; align-content: start; }
+.toc .h { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.toc span { padding-left: 8px; border-left: 3px solid transparent; }
+.toc span.on { border-left-color: var(--wf-ink); font-weight: 650; }
+.pn { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; }
+.pn > span { display: grid; }
+.pn .dir { font-weight: 650; }
+.where-bar { display: flex; align-items: center; gap: 8px; border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 6px 8px; }
+.where-bar .grow { flex: 1; }
+.hub { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.hubcard { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 8px 10px; display: grid; gap: 2px; align-content: start; }
+.hubcard b { font-size: 13px; }
+.row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.row .grow { flex: 1; display: grid; }
+.launch { border: 1.5px solid var(--wf-ink); border-radius: 4px; padding: 8px 10px; display: flex; align-items: center; gap: 10px; }
+.launch .grow { flex: 1; display: grid; }
+.acc { border: 1.2px solid var(--wf-ink); border-radius: 3px; }
+.acc > .hd { display: flex; align-items: center; gap: 8px; padding: 7px 10px; }
+.acc > .hd .grow { flex: 1; display: grid; }
+.acc > .bd { border-top: 1px solid var(--line); padding: 8px 10px; display: grid; gap: 8px; }
+.kr { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.kr > div { border: 1px solid var(--line); padding: 6px 8px; }
+.board { display: flex; height: 24px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+table.how { border-collapse: collapse; width: 100%; font-size: 0.92rem; background: var(--wf-bg); }
+.how th, .how td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.how th { width: 9.5em; font-weight: 600; color: var(--muted); font-size: var(--step--1); }
+.how td ul { margin: 0; padding-left: 1.1em; display: grid; gap: 3px; }
+.cmp-wrap { overflow-x: auto; }
+table.cmp { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 0.92rem; background: var(--wf-bg); }
+.cmp th, .cmp td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.cmp thead th { font-size: var(--step--1); color: var(--muted); background: var(--paper); }
+.cmp tbody th { font-weight: 600; width: 13em; }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+</style>
+
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Kerf · Design milestone · Issue #147</p>
+  <h1>The plan screen, one part at a time</h1>
+  <div class="prose stack">
+    <p>The plan is one long page of eight sections in order A: summary, diagrams, structural review, cut list, boards, shopping list, build steps, and parameters and inputs (#40, built in #119). With all eight built, it takes a lot of scrolling, and even with the contents beside it, it is hard to find the part you want and stay on it.</p>
+    <p>This page draws three ways to show one part at a time, each on the laptop and the phone, and answers the same six questions for each: how you move, what the address is, how links between sections work, how Edit fits, how it prints, and what a screen reader hears. Then it compares them and recommends one. The numbers in the sketches are the worked example as stored (template version 12, example 1).</p>
+    <p class="muted small">Laptop frames are 900 px wide. On a phone, scroll them sideways inside their box.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">What to choose</h2>
+  <ol>
+    <li><b>Direction.</b> <span class="pick">P1</span> one section per screen, <span class="pick">P2</span> the summary as a hub with five views named by question, or <span class="pick">P3</span> one page with the sections closed. Suggested: P1, with each section's one-line digest from P2 added to the summary.</li>
+    <li><b>The contents on a phone.</b> <span class="pick">a</span> a bar naming the section, which opens the list, or <span class="pick">b</span> the list at the top of every section. Suggested: a.</li>
+    <li><b>Diagrams and the cut list.</b> <span class="pick">a</span> stay two sections, with the selected part carried in the address, or <span class="pick">b</span> merge with Boards into one section. Suggested: a, which keeps order A.</li>
+  </ol>
+  <p class="small">Once you choose, the choice and the rejected directions go in <code>docs/design/README.md</code>, and a follow-up issue holds the build.</p>
+</section>
+
+<section class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Fixed</p>
+    <h2>What stays the same in every direction</h2>
+  </div>
+  <ul class="prose stack" style="margin:0; padding-left:1.2em">
+    <li><b>IA-2.</b> The project is the plan. Shopping and Building stay full-screen modes, launched from the summary's cards, with the mode bar and Exit. No direction brings back IA-1's Plan, Shop, and Build tabs.</li>
+    <li><b>Order A.</b> The sections keep their order, on screen and on paper. Print gives the whole plan in order A from wherever you are, with every "Show the working" open.</li>
+    <li><b>Edit.</b> Edit still opens the separate edit screen (L-A), whose preview shows the margins, cut list, and shopping list with changes marked (#56). What changes is where Save brings you back to.</li>
+    <li><b>Numbers.</b> Every number on screen comes from the stored snapshot through core. The section digests in P2 and P3 (counts such as "9 pieces from 7 boards") would come from core beside <code>Plan.keyResults</code>, not be counted in the web app.</li>
+  </ul>
+</section>
+
+<!-- ============================== P1 ============================== -->
+<section id="p1" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Direction P1</p>
+    <h2>One section per screen</h2>
+    <p class="prose">Each of the eight sections is its own screen. The contents become the way to move: beside the plan on the laptop, and a bar at the top on the phone that names where you are and opens the list. Previous and Next at the end of each section name the sections either side. This is how GOV.UK's multi-part guides work: a numbered contents list, one part per page, Next naming the next part, and a printable version of the whole guide.</p>
+  </div>
+
+  <article class="direction">
+    <header><p><span class="letter">P1</span> · Laptop</p><h3>The structural review on its own screen</h3></header>
+    <div class="scroll"><div class="wf laptop">
+      <div class="bar"><b>Kerf</b><span>Projects</span><span>Tools</span><span class="grow"></span><span class="muted">Log out</span></div>
+      <div style="display:grid; grid-template-columns: 180px 1fr; min-height:0;">
+        <nav class="toc">
+          <span class="h">Contents</span>
+          <span>Summary</span><span>Diagrams</span><span class="on">Structural review</span><span>Cut list</span><span>Boards</span><span>Shopping list</span><span>Build steps</span><span>Parameters and inputs</span>
+        </nav>
+        <div style="padding:12px 16px; display:grid; gap:10px; align-content:start; min-width:0;">
+          <div style="display:flex; align-items:baseline; gap:10px;"><span class="muted">Backyard swing set</span><span class="tag">Planned</span><span class="grow" style="flex:1"></span><span class="btn">Print</span><span class="btn solid">Edit</span></div>
+          <b style="font-size:17px">Structural review</b>
+          <table>
+            <thead><tr><th>Check</th><th>On</th><th class="r">Margin, under these assumptions</th></tr></thead>
+            <tbody>
+              <tr><td>Bending</td><td>Top beam, 4x6</td><td class="r n"><b>margin 1.1x</b></td></tr>
+              <tr><td>Shear</td><td>Top beam, 4x6</td><td class="r n">margin 3.5x</td></tr>
+              <tr><td>Deflection</td><td>Top beam, 4x6</td><td class="r n">margin 3.1x</td></tr>
+              <tr><td>Rated load</td><td>Swing hanger</td><td class="r n">margin 4.0x</td></tr>
+            </tbody>
+          </table>
+          <div class="flag"><span class="k">6 expert checks · load-bearing</span><span>Leg-to-beam bolt and gusset; frame on sloped ground; burial depth (24") and ground-contact lumber; crossbar and gusset bolt edge distances; bolt end distances.</span></div>
+          <div class="sec"><span>Confirm with an experienced builder</span><span class="muted">7 items</span></div>
+          <div class="blk" style="width:80%"></div><div class="blk" style="width:65%"></div>
+          <div class="pn" style="grid-template-columns:1fr 1fr;">
+            <span><span class="dir">‹ Previous</span><span>Diagrams</span></span>
+            <span style="text-align:right"><span class="dir">Next ›</span><span>Cut list</span></span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </article>
+
+  <div class="frames">
+    <article class="direction">
+      <header><p><span class="letter">P1</span> · Phone</p><h3>A bar says where you are</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:9px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;"><span class="muted">‹ Projects</span><span class="muted">Print · Edit</span></div>
+          <b style="font-size:15px">Backyard swing set</b>
+          <div class="where-bar"><span class="grow"><span class="muted" style="font-size:10px">3 of 8</span><br><b>Structural review</b></span><span>Contents ⌄</span></div>
+          <div class="row"><span class="grow"><span>Bending, top beam</span></span><b class="n">margin 1.1x</b></div>
+          <div class="row"><span class="grow"><span>Shear, top beam</span></span><span class="n">margin 3.5x</span></div>
+          <div class="row"><span class="grow"><span>Deflection, top beam</span></span><span class="n">margin 3.1x</span></div>
+          <div class="row"><span class="grow"><span>Rated load, swing hanger</span></span><span class="n">margin 4.0x</span></div>
+          <div class="flag"><span class="k">6 expert checks</span><span>Leg-to-beam bolt and gusset…</span></div>
+          <div class="pn">
+            <span><span class="dir">‹ Previous</span><span>Diagrams</span></span>
+            <span><span class="dir">Next ›</span><span>Cut list</span></span>
+          </div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+    <article class="direction">
+      <header><p><span class="letter">P1</span> · Phone, contents open</p><h3>Two taps to any section</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:9px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;"><span class="muted">‹ Projects</span><span class="muted">Print · Edit</span></div>
+          <b style="font-size:15px">Backyard swing set</b>
+          <div class="where-bar"><span class="grow"><span class="muted" style="font-size:10px">3 of 8</span><br><b>Structural review</b></span><span>Close ⌃</span></div>
+          <nav class="toc" style="border-right:0; padding:0 0 0 2px; gap:0;">
+            <span class="row" style="padding-block:9px">1 · Summary</span>
+            <span class="row" style="padding-block:9px">2 · Diagrams</span>
+            <span class="row on" style="padding-block:9px">3 · Structural review</span>
+            <span class="row" style="padding-block:9px">4 · Cut list</span>
+            <span class="row" style="padding-block:9px">5 · Boards</span>
+            <span class="row" style="padding-block:9px">6 · Shopping list</span>
+            <span class="row" style="padding-block:9px">7 · Build steps</span>
+            <span class="row" style="padding-block:9px">8 · Parameters and inputs</span>
+          </nav>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+  </div>
+
+  <table class="how">
+    <tbody>
+      <tr><th>Getting there</th><td><ul>
+        <li>Laptop: one click on any section in the contents; one click for Previous or Next. The contents stay put, with the current section marked.</li>
+        <li>Phone: one tap for Next or Previous; two taps for any other section (the bar, then the entry).</li>
+        <li>Back to the summary: one click on the laptop, two taps on the phone, or the browser's Back.</li>
+      </ul></td></tr>
+      <tr><th>Address</th><td><ul>
+        <li>One route per section: <code>#/projects/&lt;id&gt;</code> is the summary, then <code>#/projects/&lt;id&gt;/structural-review</code>, <code>…/cut-list</code>, and so on. The slugs cannot be <code>edit</code>, <code>shop</code>, or <code>build</code>, which the modes already use.</li>
+        <li>Moving between sections adds a history entry, so Back returns to the section before and a reload stays put. Selecting a part replaces the entry, so it does not fill the history.</li>
+      </ul></td></tr>
+      <tr><th>Links between sections</th><td><ul>
+        <li>A part in the drawings opens the cut list with it selected: <code>…/cut-list?part=leg-front</code>. The cut list's part name links back to <code>…/diagrams?part=leg-front</code>. The drawing and its row are no longer on screen together, which is the main cost of this direction (see question 3).</li>
+        <li>The summary's flags link to <code>…/structural-review</code> and focus the expert checks heading.</li>
+        <li>A build step's piece opens <code>…/diagrams?part=…</code> at that part's cut detail; Back returns to the step.</li>
+      </ul></td></tr>
+      <tr><th>Edit and "Saved."</th><td>Edit sits in the header on every section. The edit link carries the section you came from (<code>…/edit?from=cut-list</code>), and Save returns there with "Saved." under the header. Cancel returns there too. The preview itself is unchanged.</td></tr>
+      <tr><th>Print</th><td>Every section stays in the page; on screen all but the current one are hidden, and the print stylesheet shows them all, each starting a page with its title block as today. The browser's own Print menu gives the same result, since nothing is loaded on demand.</td></tr>
+      <tr><th>Accessibility</th><td><ul>
+        <li>After moving, focus goes to the section's heading, which is already focusable (#119). The page title names the section and project: "Structural review · Backyard swing set · Kerf".</li>
+        <li>The contents entry for the current section has <code>aria-current="page"</code>. Previous and Next sit in a <code>nav</code> labeled "Plan sections", stacked on the phone as GOV.UK does for screen magnifier users.</li>
+        <li>The phone's bar is a button with <code>aria-expanded</code> that says "Structural review, 3 of 8, contents".</li>
+        <li>Loss: browser find (Cmd+F) only searches the section on screen.</li>
+      </ul></td></tr>
+    </tbody>
+  </table>
+
+  <div class="critique">
+    <dl>
+      <dt>At the desk</dt>
+      <dd>The contents are always beside you and one click takes you anywhere, so "stay on the part you care about" is the default: the cut list fills the screen with nothing below it pulling you on. Checking a margin against an input means two sections, but the review shows its inputs in "Show the working", so it rarely comes up.</dd>
+      <dt>On the couch</dt>
+      <dd>Next and Previous suit reading the plan through on the phone, and the bar always says where you are. Jumping costs two taps.</dd>
+      <dt>Against the principles</dt>
+      <dd>Keeps order A on screen and paper, the Stage 1 rule. NN/g's advice against splitting linear content (Nielsen 2013) is for articles read start to finish; the plan is consulted a part at a time, the case where Schade (2017) says separate pages may serve better than in-page links. Sections stay whole, so nothing a reader compares is split across tabs, except the drawing and its cut list row.</dd>
+      <dt>Cost to build</dt>
+      <dd>Small. The sections, contents, and focus handling exist; this adds the routes, the Previous and Next block, the phone's bar, and a print rule. No new data.</dd>
+    </dl>
+    <p class="verdict">The closest fit to the complaint with the least new structure. Its weak point is that a part's drawing and its cut list row sit on different screens.</p>
+  </div>
+</section>
+
+<!-- ============================== P2 ============================== -->
+<section id="p2" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Direction P2</p>
+    <h2>The summary as a hub, with five views named by question</h2>
+    <p class="prose">The plan opens on the summary: the key results, the lowest margin, the flags, the Shopping and Building cards, and a card for each view with its one-line digest. Each card opens its view on its own screen, with "‹ Summary" to go back. The eight sections become five views named for what you are asking, so the drawings and the cut list share a screen. On a phone the cards are a list that drills down, as a settings app does.</p>
+  </div>
+
+  <article class="direction">
+    <header><p><span class="letter">P2</span> · Laptop, the hub</p><h3>The summary with a card for each view</h3></header>
+    <div class="scroll"><div class="wf laptop short">
+      <div class="bar"><b>Kerf</b><span>Projects</span><span>Tools</span><span class="grow"></span><span class="muted">Log out</span></div>
+      <div style="padding:12px 16px; display:grid; gap:10px; align-content:start;">
+        <div style="display:flex; align-items:baseline; gap:10px;"><b style="font-size:16px">Backyard swing set</b><span class="tag">Planned</span><span class="muted">Two-swing A-frame swing set, version 12</span><span class="grow" style="flex:1"></span><span class="btn">Print</span><span class="btn solid">Edit</span></div>
+        <div class="kr">
+          <div><span class="muted">Beam</span><br><b class="n">120"</b> 4x6</div>
+          <div><span class="muted">Legs</span><br><b class="n">131-1/2"</b> and <b class="n">138-3/8"</b> 4x4</div>
+          <div><span class="muted">Leg ends</span><br>saw at <b class="n">20.0°</b></div>
+          <div><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b>, bending</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="launch"><span class="grow"><b>Shopping</b><span class="muted">11 lines, none bought</span></span><span class="btn">Start</span></div>
+          <div class="launch"><span class="grow"><b>Building</b><span class="muted">11 steps, not started</span></span><span class="btn">Start</span></div>
+        </div>
+        <div class="hub">
+          <div class="hubcard"><b>Is it sound?</b><span>Structural review</span><span class="muted">4 checks, lowest margin 1.1x · 6 expert checks · 7 items to confirm</span></div>
+          <div class="hubcard"><b>What do I cut?</b><span>Diagrams, cut list, boards</span><span class="muted">5 parts, 9 pieces from 7 boards</span></div>
+          <div class="hubcard"><b>What do I buy?</b><span>Shopping list</span><span class="muted">4 lumber lines, 7 hardware lines</span></div>
+          <div class="hubcard"><b>How do I build it?</b><span>Build steps</span><span class="muted">11 steps: 7 boards to cut, then 4</span></div>
+          <div class="hubcard"><b>What did I enter?</b><span>Parameters and inputs</span><span class="muted">Every structural input entered</span></div>
+        </div>
+      </div>
+    </div></div>
+  </article>
+
+  <article class="direction">
+    <header><p><span class="letter">P2</span> · Laptop, a view</p><h3>"What do I cut?": the drawings beside the cut list</h3></header>
+    <div class="scroll"><div class="wf laptop short">
+      <div class="bar"><b>Kerf</b><span>Projects</span><span>Tools</span><span class="grow"></span><span class="muted">Log out</span></div>
+      <div style="padding:12px 16px; display:grid; gap:10px; align-content:start;">
+        <div style="display:flex; align-items:baseline; gap:10px;"><span>‹ Summary</span><span class="muted">Backyard swing set</span><span class="grow" style="flex:1"></span><span class="btn">Print</span><span class="btn solid">Edit</span></div>
+        <b style="font-size:17px">What do I cut?</b>
+        <div style="display:grid; grid-template-columns: 1fr 1.3fr; gap:12px;">
+          <div class="ph" style="height:150px">Exploded view, front leg (C) selected</div>
+          <table>
+            <thead><tr><th></th><th>Part</th><th class="r">Qty</th><th>Stock</th><th class="r">Length</th></tr></thead>
+            <tbody>
+              <tr><td>A</td><td>Beam</td><td class="r n">1</td><td>4x6</td><td class="r n">120"</td></tr>
+              <tr><td>B</td><td>Back leg (uphill)</td><td class="r n">2</td><td>4x4</td><td class="r n">131-1/2"</td></tr>
+              <tr class="hl"><td>C</td><td>Front leg (downhill)</td><td class="r n">2</td><td>4x4</td><td class="r n">138-3/8"</td></tr>
+              <tr><td>D</td><td>Crossbar</td><td class="r n">2</td><td>2x6</td><td class="r n">59"</td></tr>
+              <tr><td>E</td><td>Gusset</td><td class="r n">2</td><td>2x8</td><td class="r n">19-1/2"</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sec"><span>Boards</span><span class="muted">7</span></div>
+        <div class="board"><span class="pc" style="width:83.3%">Beam 120"</span><span class="off" style="width:16.7%">22-7/8"</span></div>
+        <div class="pn" style="grid-template-columns:1fr 1fr;">
+          <span><span class="dir">‹ Previous</span><span>Is it sound?</span></span>
+          <span style="text-align:right"><span class="dir">Next ›</span><span>What do I buy?</span></span>
+        </div>
+      </div>
+    </div></div>
+  </article>
+
+  <div class="frames">
+    <article class="direction">
+      <header><p><span class="letter">P2</span> · Phone, the hub</p><h3>A list that drills down</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:8px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;"><span class="muted">‹ Projects</span><span class="muted">Print · Edit</span></div>
+          <b style="font-size:15px">Backyard swing set</b>
+          <div class="kr" style="grid-template-columns:1fr 1fr;">
+            <div><span class="muted">Beam</span><br><b class="n">120"</b> 4x6</div>
+            <div><span class="muted">Lowest margin</span><br><b class="n">1.1x</b> bending</div>
+          </div>
+          <div class="launch"><span class="grow"><b>Shopping</b><span class="muted">11 lines, none bought</span></span><span>›</span></div>
+          <div class="launch"><span class="grow"><b>Building</b><span class="muted">11 steps, not started</span></span><span>›</span></div>
+          <div class="row"><span class="grow"><b>Is it sound?</b><span class="muted">Lowest margin 1.1x · 6 expert checks</span></span><span>›</span></div>
+          <div class="row"><span class="grow"><b>What do I cut?</b><span class="muted">9 pieces from 7 boards</span></span><span>›</span></div>
+          <div class="row"><span class="grow"><b>What do I buy?</b><span class="muted">11 lines</span></span><span>›</span></div>
+          <div class="row"><span class="grow"><b>How do I build it?</b><span class="muted">11 steps</span></span><span>›</span></div>
+          <div class="row"><span class="grow"><b>What did I enter?</b></span><span>›</span></div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+    <article class="direction">
+      <header><p><span class="letter">P2</span> · Phone, a view</p><h3>Back to the summary to go elsewhere</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:8px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;"><span>‹ Summary</span><span class="muted">Print · Edit</span></div>
+          <b style="font-size:15px">What do I cut?</b>
+          <div class="ph" style="height:110px">Exploded view, front leg (C) selected</div>
+          <div class="row hl"><span class="grow"><b>C · Front leg (downhill)</b><span class="n">2 × 4x4, 138-3/8"</span><span class="n muted">Top and foot: saw at 20.0°</span></span></div>
+          <div class="row"><span class="grow"><b>D · Crossbar</b><span class="n">2 × 2x6, 59"</span></span></div>
+          <div class="row"><span class="grow"><b>E · Gusset</b><span class="n">2 × 2x8, 19-1/2"</span></span></div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+  </div>
+
+  <table class="how">
+    <tbody>
+      <tr><th>Getting there</th><td><ul>
+        <li>Laptop: one click from the summary to a view; two to another view (Summary, then its card), or one with Next and Previous between views.</li>
+        <li>Phone: the same, as a list. Back to the summary is one tap.</li>
+      </ul></td></tr>
+      <tr><th>Address</th><td>The summary is <code>#/projects/&lt;id&gt;</code>; each view is <code>…/sound</code>, <code>…/cut</code>, <code>…/buy</code>, <code>…/build-steps</code>, <code>…/entered</code>. History as in P1.</td></tr>
+      <tr><th>Links between sections</th><td><ul>
+        <li>The drawings and the cut list share a view, so selecting a part works as it does today (#91) and the selection still goes in the address so a reload keeps it.</li>
+        <li>The summary's flags open "Is it sound?" at the expert checks. A build step's piece opens "What do I cut?" with the piece selected.</li>
+      </ul></td></tr>
+      <tr><th>Edit and "Saved."</th><td>As P1: Save returns to the view you came from, with "Saved." under its header.</td></tr>
+      <tr><th>Print</th><td>As P1, but grouping by question moves the diagrams after the structural review, so the printed order becomes summary, structural review, diagrams, cut list, boards, and so on. That changes order A, which Stage 1 chose, unless the screen and paper orders are allowed to differ, which Stage 1 ruled out.</td></tr>
+      <tr><th>Accessibility</th><td>Hub cards are links in a list, so a screen reader hears "list, 5 items". Focus and page titles as P1. The "‹ Summary" link is first in each view, so it is also the quickest way out by keyboard.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="critique">
+    <dl>
+      <dt>At the desk</dt>
+      <dd>The hub uses the laptop's width for navigation and gives no contents beside a view, so going from the review to the cut list is a trip through the summary. NN/g's hub pattern fits sessions with one task (Budiu 2015); planning at the desk moves between several parts.</dd>
+      <dt>On the couch</dt>
+      <dd>The strongest of the three on the phone: the summary answers most questions, and the digest under each view says whether it is worth opening.</dd>
+      <dt>Against the principles</dt>
+      <dd>Grouping keeps the drawings beside the cut list, which NN/g's tabs guidance argues for: do not split content people compare (Sunwall 2024). The question names have strong scent, but they are a second set of names for the same sections, and they change order A.</dd>
+      <dt>Cost to build</dt>
+      <dd>Medium. New views that combine sections, digests from core, and a reordered print.</dd>
+    </dl>
+    <p class="verdict">Best on the phone and for a first look. Slower on the laptop, and it reopens Stage 1's section order.</p>
+  </div>
+</section>
+
+<!-- ============================== P3 ============================== -->
+<section id="p3" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Direction P3</p>
+    <h2>One page, with the sections closed</h2>
+    <p class="prose">The page stays as it is, but only the summary starts open. Each other section is a closed header with its digest; opening one leaves the rest as they are. The contents link opens and moves to a section. Open all and Close all sit above the first section. The smallest change, but you still scroll once two or three are open.</p>
+  </div>
+
+  <article class="direction">
+    <header><p><span class="letter">P3</span> · Laptop</p><h3>The cut list open, everything else a line</h3></header>
+    <div class="scroll"><div class="wf laptop short">
+      <div class="bar"><b>Kerf</b><span>Projects</span><span>Tools</span><span class="grow"></span><span class="muted">Log out</span></div>
+      <div style="display:grid; grid-template-columns: 180px 1fr; min-height:0;">
+        <nav class="toc">
+          <span class="h">Contents</span>
+          <span>Summary</span><span>Diagrams</span><span>Structural review</span><span class="on">Cut list</span><span>Boards</span><span>Shopping list</span><span>Build steps</span><span>Parameters and inputs</span>
+        </nav>
+        <div style="padding:12px 16px; display:grid; gap:8px; align-content:start; min-width:0;">
+          <div style="display:flex; align-items:baseline; gap:10px;"><b style="font-size:16px">Backyard swing set</b><span class="tag">Planned</span><span class="grow" style="flex:1"></span><span class="btn">Print</span><span class="btn solid">Edit</span></div>
+          <div style="display:flex; gap:8px; justify-content:flex-end;"><span class="btn">Open all</span><span class="btn">Close all</span></div>
+          <div class="acc"><div class="hd"><span>⌄</span><span class="grow"><b>Summary</b></span></div><div class="bd"><div class="kr"><div><span class="muted">Beam</span><br><b class="n">120"</b> 4x6</div><div><span class="muted">Legs</span><br><b class="n">131-1/2"</b>, <b class="n">138-3/8"</b></div><div><span class="muted">Leg ends</span><br>saw at <b class="n">20.0°</b></div><div><span class="muted">Lowest margin</span><br><b class="n">margin 1.1x</b></div></div></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Diagrams</b><span class="muted">Isometric, exploded, and site views; a cut detail for each part</span></span></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Structural review</b><span class="muted">4 checks, lowest margin 1.1x · 6 expert checks · 7 items to confirm</span></span></div></div>
+          <div class="acc"><div class="hd"><span>⌄</span><span class="grow"><b>Cut list</b><span class="muted">5 parts, 9 pieces</span></span></div>
+            <div class="bd"><table>
+              <thead><tr><th></th><th>Part</th><th class="r">Qty</th><th>Stock</th><th class="r">Length</th><th>Ends</th></tr></thead>
+              <tbody>
+                <tr><td>A</td><td>Beam</td><td class="r n">1</td><td>4x6</td><td class="r n">120"</td><td>Square</td></tr>
+                <tr><td>B</td><td>Back leg (uphill)</td><td class="r n">2</td><td>4x4</td><td class="r n">131-1/2"</td><td class="n">saw at 20.0°</td></tr>
+                <tr><td>C</td><td>Front leg (downhill)</td><td class="r n">2</td><td>4x4</td><td class="r n">138-3/8"</td><td class="n">saw at 20.0°</td></tr>
+              </tbody>
+            </table></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Boards</b><span class="muted">7 boards</span></span></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Shopping list</b><span class="muted">4 lumber lines, 7 hardware lines</span></span></div></div>
+        </div>
+      </div>
+    </div></div>
+  </article>
+
+  <div class="frames">
+    <article class="direction">
+      <header><p><span class="letter">P3</span> · Phone, closed</p><h3>The whole plan fits one screen as headers</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:7px; align-content:start;">
+          <div style="display:flex; justify-content:space-between;"><span class="muted">‹ Projects</span><span class="muted">Print · Edit</span></div>
+          <b style="font-size:15px">Backyard swing set</b>
+          <div class="acc"><div class="hd"><span>⌄</span><span class="grow"><b>Summary</b><span class="n">Beam 120" · lowest margin 1.1x</span></span></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Diagrams</b></span></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Structural review</b><span class="muted">Lowest margin 1.1x</span></span></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Cut list</b><span class="muted">9 pieces</span></span></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Boards</b><span class="muted">7 boards</span></span></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Shopping list</b><span class="muted">11 lines</span></span></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Build steps</b><span class="muted">11 steps</span></span></div></div>
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Parameters and inputs</b></span></div></div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+    <article class="direction">
+      <header><p><span class="letter">P3</span> · Phone, one open</p><h3>Build steps open below the others</h3></header>
+      <div class="wf phone">
+        <div class="status"></div>
+        <div class="screen" style="padding:10px 12px; display:grid; gap:7px; align-content:start;">
+          <div class="acc"><div class="hd"><span>›</span><span class="grow"><b>Shopping list</b></span></div></div>
+          <div class="acc"><div class="hd"><span>⌄</span><span class="grow"><b>Build steps</b><span class="muted">11 steps</span></span></div>
+            <div class="bd">
+              <span class="small">1 · Cut board 1, a 4x6 12' long: Beam</span>
+              <span class="small">2 · Cut board 2, a 4x4 12' long: Front leg (downhill)</span>
+              <span class="small">3 · Cut board 3, a 4x4 12' long: Front leg (downhill)</span>
+              <span class="small">4 · Cut board 4, a 4x4 12' long: Back leg (uphill)</span>
+              <span class="small">5 · Cut board 5, a 4x4 12' long: Back leg (uphill)</span>
+              <span class="small">6 · Cut board 6, a 2x6 10' long: 2 × Crossbar</span>
+              <span class="small">7 · Cut board 7, a 2x8 8' long: 2 × Gusset</span>
+              <span class="small">8 · Ease the edges of every part</span>
+              <span class="small">9 · Dig the leg holes</span>
+            </div></div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </article>
+  </div>
+
+  <table class="how">
+    <tbody>
+      <tr><th>Getting there</th><td><ul>
+        <li>Laptop: one click in the contents opens the section and moves to it. Closing what you are done with is up to you.</li>
+        <li>Phone: one tap on a header, since all eight fit on the first screen while closed. Getting back to the top means scrolling past whatever is open.</li>
+      </ul></td></tr>
+      <tr><th>Address</th><td><code>#/projects/&lt;id&gt;</code> as today. Which sections are open could go in the query (<code>?open=cut-list,boards</code>, replacing the entry as you open and close) so a reload keeps them; Back would not close a section.</td></tr>
+      <tr><th>Links between sections</th><td>A link opens its target section and moves focus there: the summary's flags open the structural review, a build step's piece opens the diagrams at its cut detail. Selecting a part works as today, but the drawing and the cut list are in two sections, so both must be open to see the link.</td></tr>
+      <tr><th>Edit and "Saved."</th><td>Save returns to the plan with the same sections open (from the query) and "Saved." under the header.</td></tr>
+      <tr><th>Print</th><td>The print stylesheet opens every section, as it already opens every "Show the working". NN/g notes collapsed content often fails to print (Wang 2023); here it is a rule in Kerf's own print layer, so it is covered.</td></tr>
+      <tr><th>Accessibility</th><td>Each header is a button with <code>aria-expanded</code> inside the section's <code>h2</code>, so the heading list still has all eight. Opening does not move focus; the contents link does. Closed sections are hidden from screen readers and from browser find.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="critique">
+    <dl>
+      <dt>At the desk</dt>
+      <dd>Fine while one section is open. Open two or three, which reviewing a plan does, and it is the long page again, with headers to manage on top.</dd>
+      <dt>On the couch</dt>
+      <dd>The closed list with digests is a good overview, close to P2's hub. Reading through means opening each section in turn.</dd>
+      <dt>Against the principles</dt>
+      <dd>NN/g: accordions suit content people scan selectively and hurt content read in full (Wang 2023). The plan is mostly the first, so this is not wrong, but it does not stop the scrolling the owner complained about, and closed sections are easy to overlook. Keeps order A and needs no new routes.</dd>
+      <dt>Cost to build</dt>
+      <dd>Smallest: a disclosure on each section, the digests, and Open all.</dd>
+    </dl>
+    <p class="verdict">Cheapest, but it only shortens the page. It does not give one part a screen of its own.</p>
+  </div>
+</section>
+
+<!-- ============================== NOT DRAWN ============================== -->
+<section id="not-drawn" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Considered</p>
+    <h2>Directions from the issue not drawn on their own</h2>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>Section tabs</b><p>Tabs for the plan's sections on the laptop and a menu on the phone. With eight sections the tabs either wrap or scroll sideways, and NN/g advises as few tabs as possible with one- or two-word labels (Sunwall 2024); "Parameters and inputs" and "Structural review" are not. On the phone the menu is P1's bar. On the laptop a row of tabs under the project name looks like IA-1's Plan, Shop, and Build tabs, which the owner rejected. So tabs are P1 drawn sideways, with more to fit and a look the owner has turned down.</p></div>
+    <div class="opt"><b>Sections grouped by question</b><p>Drawn as part of P2, since grouping and a hub answer different things: grouping is how many screens there are, a hub is how you move between them. Grouping could also go with P1's contents (five entries instead of eight). The one grouping that clearly helps is the drawings with the cut list; question 3 asks about that on its own.</p></div>
+  </div>
+</section>
+
+<!-- ============================== COMPARISON ============================== -->
+<section id="compare" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Side by side</p>
+    <h2>The three directions compared</h2>
+  </div>
+  <div class="cmp-wrap">
+    <table class="cmp">
+      <thead><tr><th></th><th>P1 one section per screen</th><th>P2 hub, views by question</th><th>P3 one page, closed</th></tr></thead>
+      <tbody>
+        <tr><th>One part on screen at a time</th><td>Yes</td><td>Yes</td><td>Only if you close the others</td></tr>
+        <tr><th>Any section from any section, laptop</th><td>1 click</td><td>2 clicks (1 for the next view)</td><td>1 click, then scroll</td></tr>
+        <tr><th>Any section from any section, phone</th><td>2 taps (1 for the next)</td><td>2 taps (1 for the next view)</td><td>Scroll to its header, 1 tap</td></tr>
+        <tr><th>Reload and Back</th><td>Return to the same section</td><td>Return to the same view</td><td>Reload keeps open sections if they are in the query; Back leaves the plan</td></tr>
+        <tr><th>Drawing and cut list together</th><td>No; linked by the address</td><td>Yes</td><td>Only with both open</td></tr>
+        <tr><th>Order A on screen and paper</th><td>Kept</td><td>Changed: diagrams move after the review</td><td>Kept</td></tr>
+        <tr><th>Browser find across the plan</th><td>Lost</td><td>Lost</td><td>Lost for closed sections</td></tr>
+        <tr><th>New in core</th><td>None</td><td>Section digests</td><td>Section digests</td></tr>
+        <tr><th>Size of the build</th><td>Small</td><td>Medium</td><td>Smallest</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================== QUESTIONS ============================== -->
+<section id="questions" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Smaller questions</p>
+    <h2>Two choices inside the direction</h2>
+    <p class="prose">Asked for P1, the suggested direction. Question 3 applies to P3 as well.</p>
+  </div>
+  <div class="q">
+    <h3>2. The contents on a phone</h3>
+    <div class="opts">
+      <div class="opt rec"><div class="head"><b>a. A bar that opens the list</b><span class="rec-tag">Suggested</span></div><p>"3 of 8 · Structural review" at the top of every section; tapping it opens the list in place. Always says where you are and costs one line. NN/g found many people missed a collapsed contents that floats over the page (Wang and Brown 2023); this one stays in the flow at the top, under the project name, where people look first.</p></div>
+      <div class="opt"><div class="head"><b>b. The list at the top of every section</b></div><p>GOV.UK's guides do this: the numbered parts list above each part's content. Nothing to open, but eight lines push the section down a screen on every move.</p></div>
+    </div>
+  </div>
+  <div class="q">
+    <h3>3. Diagrams and the cut list</h3>
+    <div class="opts">
+      <div class="opt rec"><div class="head"><b>a. Two sections, part in the address</b><span class="rec-tag">Suggested</span></div><p>A part in a drawing opens the cut list with that row selected, and the row's name opens the drawing with the part selected. One click each way, Back returns, and order A is unchanged. The drawings get a whole screen, which the isometric and site views need.</p></div>
+      <div class="opt"><div class="head"><b>b. One "Drawings and cuts" section</b></div><p>Diagrams, cut list, and boards on one screen, as in P2, so a selection shows in both at once. Order A becomes seven sections, and this one is the longest in the plan, which brings back the scrolling for the part of the plan used most.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== RECOMMENDATION ============================== -->
+<section id="recommendation" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Recommendation</p>
+    <h2>P1, with the digests in the summary</h2>
+  </div>
+  <div class="prose stack">
+    <p>P1 answers the complaint directly: each section gets the screen to itself, the contents say where you are, and one click or two taps reach any section. It keeps order A on screen and on paper, keeps IA-2's modes as they are, and reuses what #119 built. Its cost, the drawing and its cut list row on separate screens, is met by carrying the part in the address (question 3, a).</p>
+    <p>From P2, take the one thing it does best on the phone: the summary lists the sections with their digests ("Structural review: lowest margin 1.1x, 6 expert checks"), each linking to its section. On the couch the summary then works as a hub, while the contents and Next keep the laptop quick. The digests come from core, like the key results.</p>
+    <p>P2 is the better choice if the phone is where the plan is mostly read. P3 is the fallback if P1 turns out to feel like too many screens; it can be built later on top of the same sections.</p>
+    <p class="muted small">Not checked: how long each section is on a phone today, and whether Safari opens closed sections for find in P3. Neither changes the comparison.</p>
+  </div>
+</section>
+
+<!-- ============================== REFERENCES ============================== -->
+<section id="references" class="stack-lg">
+  <div class="place">
+    <p class="eyebrow">Precedents and guidance</p>
+    <h2>Sources behind these directions</h2>
+    <p class="prose">Read in October 2026. Where a page could not be loaded, the note says so.</p>
+  </div>
+  <div class="opts">
+    <div class="opt"><b>NN/g: Scrolling and Attention</b><p>In 2018, 57% of viewing time was above the fold and 74% in the first two screens. On today's plan, the build steps and parameters sit many screens down. Basis for giving each section its own top of screen.</p><p class="small"><a href="https://www.nngroup.com/articles/scrolling-and-attention/">Fessenden, 2018</a></p></div>
+    <div class="opt"><b>NN/g: Pagination and View All</b><p>Articles read start to finish should almost never be split across pages; pagination suits listings. The plan is consulted a part at a time rather than read through, which is why P1 splits it by section and not into arbitrary pages.</p><p class="small"><a href="https://www.nngroup.com/articles/item-list-view-all/">Nielsen, 2013</a></p></div>
+    <div class="opt"><b>NN/g: In-page links</b><p>In-page links help long pages, more so on small screens, but are less useful when people do not read in order; then splitting into separate pages may be better. Back after a contents jump should return to where you were. Basis for P1 and for the history rules.</p><p class="small"><a href="https://www.nngroup.com/articles/in-page-links/">Schade, 2017</a></p></div>
+    <div class="opt"><b>NN/g: Table of contents</b><p>A sticky contents in a side rail, with the current section highlighted; on mobile, move it into the body. A floating, collapsible contents on mobile was often missed. Basis for P1's sidebar and question 2.</p><p class="small"><a href="https://www.nngroup.com/articles/table-of-contents/">Wang and Brown, 2023</a></p></div>
+    <div class="opt"><b>NN/g: Accordions on desktop</b><p>Accordions suit content scanned selectively and hurt content read in full; collapsed panels often do not print, so open them for print. Basis for P3 and its print rule.</p><p class="small"><a href="https://www.nngroup.com/articles/accordions-on-desktop/">Wang, 2023</a></p></div>
+    <div class="opt"><b>NN/g: Tabs, used right</b><p>As few tabs as possible, short labels, and no tabs for content people compare. Why section tabs are not drawn, and why P2 groups the drawings with the cut list.</p><p class="small"><a href="https://www.nngroup.com/articles/tabs-used-right/">Sunwall, 2024</a></p></div>
+    <div class="opt"><b>NN/g: Mobile navigation patterns</b><p>A hub suits apps used for one task per session, and costs a trip back to the hub for each move. Basis for P2 and its weakness at the desk. NN/g's separate hub-and-spoke article returned "not found".</p><p class="small"><a href="https://www.nngroup.com/articles/mobile-navigation-patterns/">Budiu, 2015</a></p></div>
+    <div class="opt"><b>GOV.UK multi-part guides</b><p>A numbered contents list, one part per page with its own address, Next naming the next part, and a printable version of the whole guide at its own address. The model for P1. Read on a live guide; GOV.UK's content-type page did not describe guides.</p><p class="small"><a href="https://www.gov.uk/vehicle-tax-direct-debit">Vehicle tax Direct Debit guide</a></p></div>
+    <div class="opt"><b>GOV.UK Design System: pagination</b><p>The block style for content split across pages: Previous and Next labeled with the neighbouring pages' titles, stacked for screen magnifier users, after the content. P1's Previous and Next.</p><p class="small"><a href="https://design-system.service.gov.uk/components/pagination/">Pagination</a></p></div>
+    <div class="opt"><b>GOV.UK step by step navigation</b><p>For journeys done in order with a clear start and end, not for reading. Its research found people frustrated moving back and forth between step by steps. Why the plan's sections are not presented as numbered steps; that job is Building mode's.</p><p class="small"><a href="https://design-system.service.gov.uk/patterns/step-by-step-navigation/">Step by step navigation</a></p></div>
+    <div class="opt"><b>Accessible client-side routing</b><p>User testing with screen reader, voice, and magnifier users: after a route change, focus on the new heading worked best of the options tried for screen reader users; resetting to the top of the app was overwhelming; a live region naming the page helped. Basis for moving focus to the section heading and naming it in the title.</p><p class="small"><a href="https://www.gatsbyjs.com/blog/2019-07-11-user-testing-accessible-client-routing/">Sutton, 2019</a></p></div>
+    <div class="opt"><b>WAI-ARIA tabs pattern</b><p>Tab list, tabs, and panels, with arrow keys between tabs. Read for the tabs direction; not needed by the suggested one.</p><p class="small"><a href="https://www.w3.org/WAI/ARIA/apg/patterns/tabs/">APG: Tabs</a></p></div>
+    <div class="opt"><b>Paprika recipe manager</b><p>One recipe on one screen: ingredients on the left, directions below or beside, with your place in the directions highlighted. A recipe is short enough for one screen; a plan of eight sections is not, which is the difference this issue is about. Paprika's iOS help does not say whether the phone layout changes.</p><p class="small"><a href="https://paprikaapp.com/help/ios">Paprika iOS help</a> · <a href="https://www.podfeet.com/blog/?p=8507">Podfeet review</a></p></div>
+    <div class="opt"><b>Woodsmith plans</b><p>A published plan lists exploded views, a cutting diagram, and a materials list among its contents, as one printed document. Kerf's printed plan stays one document in order A whichever direction is chosen. Ana White's plan pages could not be loaded (402).</p><p class="small"><a href="https://www.woodsmithplans.com/plan/mini-cutting-board-and-cheese-slicer/">A Woodsmith plan listing</a> · <a href="https://www.woodsmith.com/article/creating-cutting-diagrams/">Creating cutting diagrams</a></p></div>
+  </div>
+</section>
+
+<footer class="prose muted small stack">
+  <p>Numbers come from <code>packages/core/src/templates/swing-set-a-frame/snapshots/v12.json</code>, example 1, through core's formatters; the 11 build steps are core's <code>planSteps</code> for that snapshot. Kept at <code>docs/design/plan-screen.html</code>; the choice will be recorded in <code>docs/design/README.md</code>.</p>
+</footer>
+
+</main>
