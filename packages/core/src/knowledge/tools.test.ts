@@ -17,7 +17,7 @@ describe('tool-type library', () => {
     expect([...new Set(groups)]).toEqual([...TOOL_GROUPS]);
   });
 
-  // Clamp count waits on #170.
+  // Clamp count waits for a sourced number of clamps for a method to need.
   const UNUSED_KEPT = ['clamps.count'];
 
   it('lists only capabilities some method needs', () => {

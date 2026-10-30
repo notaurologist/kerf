@@ -16,6 +16,7 @@ import type { FieldIssue } from '../../lib/api.ts';
 
 export interface ToolDraft {
   toolTypeId: string;
+  name: string;
   /** The text typed for each capability, by capability ID. */
   values: FormValues;
 }
@@ -42,7 +43,7 @@ export function fromInventory(inventory: Inventory): InventoryDraft {
       .map((tool) => {
         const type = findToolType(tool.toolTypeId);
         const values = type ? formValues([capabilityForm(type)], tool.capabilities) : {};
-        return { toolTypeId: tool.toolTypeId, values };
+        return { toolTypeId: tool.toolTypeId, name: tool.name ?? '', values };
       })
       .sort(byLibrary),
     other: inventory.other.map((o) => ({ ...o })),
@@ -54,7 +55,20 @@ export const emptyInventory = (): InventoryDraft => ({ tools: [], other: [] });
 /** Adds a library tool with nothing entered. */
 export function addTool(draft: InventoryDraft, toolTypeId: string): InventoryDraft {
   if (draft.tools.some((t) => t.toolTypeId === toolTypeId)) return draft;
-  return { ...draft, tools: [...draft.tools, { toolTypeId, values: {} }].sort(byLibrary) };
+  return addAnother(draft, toolTypeId);
+}
+
+export function addAnother(draft: InventoryDraft, toolTypeId: string): InventoryDraft {
+  const tool = { toolTypeId, name: '', values: {} };
+  return { ...draft, tools: [...draft.tools, tool].sort(byLibrary) };
+}
+
+export function restoreTools(draft: InventoryDraft, tools: readonly ToolDraft[]): InventoryDraft {
+  return { ...draft, tools: [...draft.tools, ...tools].sort(byLibrary) };
+}
+
+export function removeAt(draft: InventoryDraft, index: number): InventoryDraft {
+  return { ...draft, tools: draft.tools.filter((_, i) => i !== index) };
 }
 
 export function removeTool(draft: InventoryDraft, toolTypeId: string): InventoryDraft {
@@ -104,7 +118,8 @@ export function toInventory(
       // Reported above with what to type; left out so core checks the rest.
       delete capabilities[p.field];
     }
-    return { toolTypeId: tool.toolTypeId, capabilities };
+    const name = tool.name.trim();
+    return { toolTypeId: tool.toolTypeId, ...(name ? { name } : {}), capabilities };
   });
   const other = draft.other.map((o) => ({ name: o.name.trim(), note: o.note.trim() }));
   const parsed = Inventory.safeParse({ tools, other });

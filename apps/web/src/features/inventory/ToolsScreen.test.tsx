@@ -16,6 +16,25 @@ describe('ToolsEditor', () => {
     expect(html).not.toContain('Tool details');
   });
 
+  it('shows each of several tools of a type by name, with a way to add or remove one', () => {
+    const html = renderToString(
+      <ToolsEditor
+        saved={fromInventory({
+          tools: [
+            { toolTypeId: 'clamps', name: 'Short', capabilities: { count: 4, maxOpening: 6 } },
+            { toolTypeId: 'clamps', name: 'Long', capabilities: { count: 2 } },
+          ],
+          other: [],
+        })}
+      />,
+    );
+    expect(html).toContain('Clamps: Short');
+    expect(html).toContain('Clamps: Long');
+    expect(html.match(/type="checkbox"[^>]*checked/g)).toHaveLength(1);
+    expect(html).toContain('Remove Short');
+    expect(html).toContain('Add another set of clamps');
+  });
+
   it('ticks owned tools, and says how many details each still needs', () => {
     const html = renderToString(
       <ToolsEditor

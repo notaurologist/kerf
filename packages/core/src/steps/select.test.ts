@@ -3,7 +3,7 @@ import type { Inventory } from '../inventory/tools.ts';
 import { findMethod } from '../knowledge/methods.ts';
 import type { Operation } from '../templates/operations.ts';
 import { buildSteps, inventoryKey } from './build.ts';
-import { describeChoice, fitMethod, selectMethod } from './select.ts';
+import { describeChoice, fitMethod, meetingTool, selectMethod } from './select.ts';
 
 // A square crosscut through a 3-1/2" by 3-1/2" post: what each method needs is set by those two
 // numbers (knowledge/methods.ts).
@@ -25,6 +25,90 @@ function inventory(...tools: [string, Record<string, number>?][]): Inventory {
 }
 
 const marking: [string][] = [['tape-measure'], ['combination-square'], ['clamps']];
+
+function method(id: string) {
+  const found = findMethod(id);
+  if (!found) throw new Error(`no method ${id}`);
+  return found;
+}
+
+describe('several tools of one type', () => {
+  const named = (id: string, name: string, caps: Record<string, number>) => ({
+    toolTypeId: id,
+    name,
+    capabilities: caps,
+  });
+
+  it('chooses the first tool in the list that meets the method, and names it', () => {
+    const shop: Inventory = {
+      tools: [
+        named('circular-saw', 'Small', { depthOfCut: 1.5 }),
+        named('circular-saw', 'Big', { depthOfCut: 4 }),
+        named('circular-saw', 'Also big', { depthOfCut: 4 }),
+        ...inventory(...marking).tools,
+      ],
+      other: [],
+    };
+    const s = selectMethod(post, shop);
+    expect(s.chosen?.id).toBe('crosscut-circular-saw');
+    const saw = s.chosen?.tools[0];
+    if (!saw) throw new Error('the method needs a saw');
+    expect(meetingTool(saw, post, shop)?.name).toBe('Big');
+  });
+
+  it('reads a capability from the best tool of the type when none meets it', () => {
+    const shop: Inventory = {
+      tools: [
+        named('circular-saw', 'Small', { depthOfCut: 1.5 }),
+        named('circular-saw', 'Medium', { depthOfCut: 2.375 }),
+      ],
+      other: [],
+    };
+    const fit = fitMethod(method('crosscut-circular-saw'), post, shop);
+    expect(fit.gaps[0]?.anyOf[0]?.short).toEqual([
+      { capability: 'depthOfCut', atLeast: 3.5, entered: 2.375 },
+    ]);
+  });
+
+  // Holes 8" deep, four of them: a method needing that many clamps that reach across 8".
+  const holes: Operation = {
+    id: 'bolts',
+    type: 'bolt-holes',
+    hardwareId: 'bolts',
+    partIds: ['a', 'b'],
+    count: 4,
+    boltDiameter: 0.5,
+    holeDiameter: 0.5625,
+    depth: 8,
+  };
+  const clampsReaching = {
+    use: 'holding',
+    anyOf: [
+      {
+        tool: 'clamps' as const,
+        needs: [
+          { capability: 'maxOpening', atLeast: 'depth', passes: 1 as const },
+          { capability: 'count', atLeast: 'count', passes: 1 as const },
+        ],
+      },
+    ],
+  };
+  const clamps = (...entries: [string, number, number][]): Inventory => ({
+    tools: entries.map(([name, maxOpening, count]) => named('clamps', name, { maxOpening, count })),
+    other: [],
+  });
+
+  it('counts only the clamps that reach, across every clamp entry', () => {
+    const fit = fitMethod(
+      { ...method('bolt-holes-auger-one-side'), tools: [clampsReaching] },
+      holes,
+      clamps(['Short', 6, 4], ['Long', 12, 2]),
+    );
+    expect(fit.gaps[0]?.anyOf[0]?.short).toEqual([{ capability: 'count', atLeast: 4, entered: 2 }]);
+    const enough = clamps(['Short', 6, 4], ['Long', 12, 2], ['Longer', 24, 2]);
+    expect(meetingTool(clampsReaching, holes, enough)?.name).toBe('Long');
+  });
+});
 
 describe('selectMethod', () => {
   it('takes the first method in preference order that the tools support', () => {

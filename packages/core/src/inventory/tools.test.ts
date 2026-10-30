@@ -43,16 +43,27 @@ describe('Inventory', () => {
     ).toEqual(['capabilities.count: Enter a whole number.']);
   });
 
-  it('rejects a tool type listed twice and an other tool with no name', () => {
+  it('takes several tools of one type when each has its own name', () => {
+    const tools = [
+      { toolTypeId: 'clamps', name: 'Short', capabilities: { count: 4 } },
+      { toolTypeId: 'clamps', name: 'Long', capabilities: { count: 2 } },
+    ];
+    expect(Inventory.parse({ tools, other: [] }).tools).toEqual(tools);
+  });
+
+  it('asks for a name on each tool of a repeated type, different from the others', () => {
     const result = Inventory.safeParse({
       tools: [
         { toolTypeId: 'level', capabilities: {} },
-        { toolTypeId: 'level', capabilities: {} },
+        { toolTypeId: 'level', name: 'Short', capabilities: {} },
+        { toolTypeId: 'level', name: 'short ', capabilities: {} },
       ],
       other: [{ name: '  ', note: '' }],
     });
     expect(messages(result)).toEqual([
-      'tools: lists a tool type more than once',
+      'tools.0.name: Name each one, so build steps can say which level to use.',
+      'tools.1.name: Give each one a different name.',
+      'tools.2.name: Give each one a different name.',
       'other.0.name: Enter a name.',
     ]);
   });

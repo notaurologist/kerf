@@ -20,9 +20,12 @@ const timestamps = {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 };
 
-// The owner's tool inventory: one row per library tool type, with the capabilities entered for it.
+// The owner's tool inventory: one row per library tool, in the owner's order, with the
+// capabilities entered for it. A type can appear more than once, each with its own name.
 export const tools = pgTable('tools', {
-  toolTypeId: text('tool_type_id').primaryKey(),
+  position: integer('position').primaryKey(),
+  toolTypeId: text('tool_type_id').notNull(),
+  name: text('name').notNull().default(''),
   capabilities: jsonb('capabilities').notNull().default({}),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
