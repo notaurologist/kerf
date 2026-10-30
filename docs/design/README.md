@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful) the device accessibility pass (#87), and the brand (#166: five directions in `brand.html`, waiting on the owner's choice).
+Status: Stages 0 to 6 are decided and built. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful) the device accessibility pass (#87), and the brand (#166: two rounds of directions in `brand.html`, waiting on the owner's choice).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -18,7 +18,7 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 6. Design system | #45 | Built October 2026 (#78 to #81) | `system.html`, `system.md` |
 | 6b. Sharper corners | #148 | Decided October 2026: eased | `corners.html` |
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
-| 8. Brand: logo, wordmark, icons | #166 | Five directions explored October 2026; waiting on the owner | `brand.html` |
+| 8. Brand: logo, wordmark, icons | #166 | Round 2 explored October 2026 (the cut k, five ways, and two new ideas); waiting on the owner | `brand.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
 
