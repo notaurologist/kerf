@@ -876,7 +876,7 @@
     }
   }
 
-  .k-term__popover a {
+  .k-term__entry {
     display: block;
     margin-block-start: var(--space-2xs);
   }
