@@ -9,6 +9,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import { render, renderText, textOf } from '../test/render.tsx';
 import { Catalog } from './Catalog.tsx';
+import { goToField } from './feedback.tsx';
 import { ICON_NAMES } from './Icon.tsx';
 import {
   Button,
@@ -162,6 +163,25 @@ describe('ErrorSummary', () => {
     expect(renderText(<ErrorSummary items={items} />)).toContain(
       '2 fields need fixing before this can be saved',
     );
+  });
+
+  it('goes to the field in place, leaving the address and the form alone (#161)', () => {
+    const calls: string[] = [];
+    const field = {
+      focus: (options?: FocusOptions) => calls.push(`focus ${JSON.stringify(options)}`),
+      scrollIntoView: (options?: boolean | ScrollIntoViewOptions) =>
+        calls.push(`scroll ${JSON.stringify(options)}`),
+    };
+    const doc = { getElementById: (id: string) => (id === 'p-beamLength' ? field : null) };
+    let prevented = 0;
+    const event = { preventDefault: () => prevented++ };
+    goToField('p-beamLength', event, doc);
+    expect(prevented).toBe(1);
+    expect(calls).toEqual(['focus {"preventScroll":true}', 'scroll {"block":"center"}']);
+    // A field that is not on the screen still never changes the address.
+    goToField('gone', event, doc);
+    expect(prevented).toBe(2);
+    expect(calls).toHaveLength(2);
   });
 
   it('counts problems that are not fields as problems', () => {
