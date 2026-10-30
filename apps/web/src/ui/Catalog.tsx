@@ -5,6 +5,7 @@ import {
   type FormField,
   formValues,
   parseLength,
+  planDigests,
   schemaProblemMessage,
   structural,
   TEMPLATES,
@@ -18,7 +19,7 @@ const SAW = /saw at ([\d.]+°), ([\d.]+°) to the edge/;
 import { type ReactNode, useState } from 'react';
 import { Button, ButtonLink } from './Button.tsx';
 import { InlineConfirm } from './Confirm.tsx';
-import { WithContents } from './Contents.tsx';
+import { SectionList, SectionPager, WithContents } from './Contents.tsx';
 import { Diagram } from './Diagram.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
 import { ConfirmDialog } from './Dialog.tsx';
@@ -90,6 +91,7 @@ const computed = (plan: typeof first.plan) =>
 const check = computed(first.plan);
 const margin = check ? structural.formatMargin(check.margin) : '';
 const sampleFlag = first.plan.flags[0];
+const digests = planDigests(first.plan);
 // The worked example's drawings, drawn by core from its outputs (#90), as the API does.
 const drawings = template.drawings(first.outputs);
 const partDetail = drawings.cutDetails.find((d) => d.title.endsWith(part.name));
@@ -247,12 +249,36 @@ function Specimens() {
       <Group title="Contents">
         <WithContents
           items={[
-            { id: 'catalog-summary', title: 'Summary' },
-            { id: 'catalog-boards', title: 'Boards' },
+            { id: 'catalog-summary', title: 'Summary', href: '#/catalog' },
+            { id: 'catalog-cut-list', title: 'Cut list', href: '#/catalog' },
+            { id: 'catalog-boards', title: 'Boards', href: '#/catalog' },
           ]}
+          current="catalog-cut-list"
         >
-          <p>The sections. From 48rem of width the contents sit beside them and stay in view.</p>
+          <p>
+            The current section. From 48rem of width the contents sit beside it, marked, and stay in
+            view; narrower, the bar opens them.
+          </p>
+          <SectionPager
+            previous={{ title: 'Summary', href: '#/catalog' }}
+            next={{ title: 'Boards', href: '#/catalog' }}
+          />
         </WithContents>
+      </Group>
+
+      <Group title="Section list">
+        <SectionList
+          items={[
+            { id: 'cut-list', title: 'Cut list', href: '#/catalog', digest: digests.cutList },
+            { id: 'boards', title: 'Boards', href: '#/catalog', digest: digests.boards },
+            {
+              id: 'structural-review',
+              title: 'Structural review',
+              href: '#/catalog',
+              digest: digests.structuralReview,
+            },
+          ]}
+        />
       </Group>
 
       <Group title="Buttons">

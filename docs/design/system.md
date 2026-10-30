@@ -21,7 +21,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
   - `Center` for a readable measure.
 
   Gaps are steps of the spacing scale (`3xs` to `xl`), never lengths.
-- **Headings:** plain `h1` to `h5`, which the base styles size. Sections of the plan use `PlanSection`, which also gives each its printed page and title block, and an `intro` line under the heading when the section needs one. `newPage={false}` lets the first section share the printed page with the title. Its heading takes focus from the contents.
+- **Headings:** plain `h1` to `h5`, which the base styles size. Sections of the plan use `PlanSection`, which also gives each its printed page and title block, and an `intro` line under the heading when the section needs one. `newPage={false}` lets the first section share the printed page with the title. Each section is its own screen (#156): pass `hidden` for every section but the current one, so they stay in the page and print in order A. After a move between sections, focus goes to its heading (`usePlanMoves`, `lib/planMoves.ts`).
 - **Loading and errors:** render `useLoad`'s state through `Loaded` (`lib/Loaded.tsx`), which shows `Loading` while data loads (it waits 300 ms, so a fast load does not flash) and a `Notice` if it did not load. Use `Notice` for any other problem that is not about a field, with `icon="connection"` when the server cannot be reached; `failureOf` (`lib/api.ts`) says which.
 - **Announcing:** screens never write `role="alert"` or `role="status"`. `ErrorText alert`, `Notice`, `SaveFailed`, `StatusLine`, `InfoNotice`, and `Loading` own their live regions; `ui/screens.test.ts` fails if a screen writes one.
 - **A lone action:** a single button or link goes in a `Cluster`, so it keeps its own width instead of stretching across a `Stack`.
@@ -30,7 +30,9 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 | Job | Component | Notes |
 |---|---|---|
-| A plan's contents | `WithContents` | The sections' titles in order, beside them from 48rem of its own width and staying in view, a list on top when narrower. Each moves focus to its section's heading (`goToSection`). Not printed. |
+| A plan's contents | `WithContents` | The sections' titles in order, each a link to its section's own screen, with the `current` one marked (`aria-current="page"`, a bar, and bold). From 48rem of its own width they sit beside the section and stay in view; narrower, a bar such as "3 of 8 · Structural review" is a button (`aria-expanded`) that opens the list in place (#156). Not printed. |
+| Moving through the plan's sections | `SectionPager` | Previous and Next at the end of a section, each naming the section it goes to, in a `nav` labeled "Plan sections", as GOV.UK's pagination block does. Stacked under 36rem of its own width. Not printed. |
+| Every section with what is in it | `SectionList` | Each section a link with core's one-line digest under it (`planDigests`), for the plan's summary (#156). |
 | Key figures at a glance | `Figures` | A label over each value, with an optional `detail` line, as many to a row as fit. The plan's summary. |
 | One line of a longer text | `OneLine` | Cut short with an ellipsis, with the full text in the page; only where the full text is a link away. |
 | The top of a screen | `ScreenHeader` | The `h1` with the screen's `actions` beside it (wrapping under it when narrow), then a `lede`, a `meta` line of facts, and a `status` such as a `StatusLine`. |
@@ -92,7 +94,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 - **Theme:** follows the device. `data-theme="light"` or `"dark"` on an element forces one, as the catalog does.
 - **Shop density:** `data-density="shop"` on a container gives Shopping and Building their spacing and control size.
-- **Print:** always light, on US Letter with 1/2" margins. Each `PlanSection` starts a page with its title block, and every `Disclosure` opens.
+- **Print:** always light, on US Letter with 1/2" margins. Each `PlanSection` starts a page with its title block, hidden ones included, so the whole plan prints from any section, and every `Disclosure` opens.
 
 ## Adding a component
 

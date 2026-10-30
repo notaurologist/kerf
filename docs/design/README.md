@@ -337,7 +337,7 @@ The owner took the suggested option for each (October 2026).
 
 What does not change: IA-2 (Shopping and Building are full-screen modes from the summary's cards), order A, and print, which gives the whole plan in order A from any section. Lost, and accepted: browser find searches only the section on screen.
 
-The build is #156.
+Built in #156 (October 2026): the routes, the contents with the current section marked and the phone's bar, Previous and Next, focus and the page title after a move, the links between sections, Edit returning to its section, print from any section, and the summary's list of sections. The digests are counted by core's `planDigests` from the stored plan on read, beside `Plan.keyResults`, so nothing stored changed: no new snapshot shape (0014) and no template version (0008).
 
 ## Stage 1: information architecture (#40)
 

@@ -17,6 +17,7 @@ import { Loaded } from '../../lib/Loaded.tsx';
 import { readPlan } from '../../lib/plan.ts';
 import { describeReset } from '../../lib/progress.ts';
 import { href, navigate } from '../../lib/route.ts';
+import type { PlanSectionId } from '../../lib/sections.ts';
 import type { Project } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import {
@@ -61,19 +62,20 @@ export function NewProjectScreen(props: { templateId: string }) {
   );
 }
 
-export function EditProjectScreen(props: { id: string }) {
+/** `from` is the plan's section Edit was opened from: Save and Cancel go back to it (#156). */
+export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
   const { loaded } = useLoad(
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
   );
   return (
     <Loaded state={loaded} loading="Loading project…">
-      {(project) => <EditProject project={project} />}
+      {(project) => <EditProject project={project} from={props.from} />}
     </Loaded>
   );
 }
 
-function EditProject(props: { project: Project }) {
+function EditProject(props: { project: Project; from?: PlanSectionId }) {
   const { project } = props;
   const template = findTemplate(project.templateId);
   if (!template) return <Notice>This project's template is no longer offered.</Notice>;
@@ -89,6 +91,7 @@ function EditProject(props: { project: Project }) {
     <ProjectEditor
       template={template}
       project={project}
+      from={props.from}
       initial={{
         name: project.name,
         params: formValues(template.form.params, project.snapshot.params),
@@ -107,6 +110,8 @@ interface EditorValues {
 export function ProjectEditor(props: {
   template: TemplateDefinition;
   project?: Project;
+  /** The plan's section to return to after Save or Cancel; the summary when absent. */
+  from?: PlanSectionId;
   initial: EditorValues;
 }) {
   const { template, project } = props;
@@ -182,7 +187,7 @@ export function ProjectEditor(props: {
     if (result.ok) {
       const reset = 'progressReset' in result.value ? result.value.progressReset : undefined;
       setFlash(project ? ['Saved.', describeReset(reset)].filter(Boolean).join(' ') : 'Created.');
-      navigate({ screen: 'project', id: result.value.id });
+      navigate({ screen: 'project', id: result.value.id, section: props.from });
       return;
     }
     if (result.error.kind === 'invalid') {
@@ -249,7 +254,9 @@ export function ProjectEditor(props: {
         <ButtonLink
           variant="secondary"
           href={
-            project ? href({ screen: 'project', id: project.id }) : href({ screen: 'projects' })
+            project
+              ? href({ screen: 'project', id: project.id, section: props.from })
+              : href({ screen: 'projects' })
           }
         >
           Cancel

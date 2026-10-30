@@ -77,9 +77,9 @@ describe('the plan’s contents', () => {
   const contents = page.slice(page.indexOf('<nav class="k-contents"'), page.indexOf('</nav>'));
 
   it('lists the sections in order A, the same order as the sections themselves', () => {
-    const listed = textOf(contents);
+    const listed = textOf(contents.slice(contents.indexOf('<ol')));
     expect(listed).toBe(
-      'Contents Summary Diagrams Structural review Cut list Boards Shopping list Build steps Parameters and inputs',
+      'Summary Diagrams Structural review Cut list Boards Shopping list Build steps Parameters and inputs',
     );
     const order = [...page.matchAll(/<section id="([a-z-]+)" class="k-section"/g)].map((m) => m[1]);
     expect(order).toEqual([
@@ -100,9 +100,9 @@ describe('the plan’s contents', () => {
 
   it('leaves out sections the plan does not have', () => {
     const none = render(<ProjectView project={projectFrom(complete, { drawings: null })} />);
-    expect(textOf(none.slice(none.indexOf('<nav class="k-contents"')))).not.toMatch(
-      /^Contents Summary Diagrams/,
-    );
+    const list = none.slice(none.indexOf('<nav class="k-contents"'), none.indexOf('</nav>'));
+    expect(textOf(list.slice(list.indexOf('<ol')))).toMatch(/^Summary Structural review/);
+    expect(textOf(list)).toMatch(/^1 of 6 · Summary/);
   });
 });
 

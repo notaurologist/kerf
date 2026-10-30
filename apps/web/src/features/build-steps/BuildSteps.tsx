@@ -10,9 +10,7 @@ import {
   type StepOperation,
 } from '@kerf/core';
 import { Fragment } from 'react';
-import { cutDetailId, show } from '../../lib/show.ts';
 import {
-  Button,
   Card,
   FlagList,
   InputNeeded,
@@ -31,7 +29,12 @@ import { SourceToggle } from '../structural/Citation.tsx';
 // board by board (#58), each piece opening its part's cut detail. The shop view (M7) will show the
 // same data one step at a time (`StepBody`).
 
-export function BuildSteps(props: { steps: readonly BuildStep[]; rows: readonly CutListRow[] }) {
+export function BuildSteps(props: {
+  steps: readonly BuildStep[];
+  rows: readonly CutListRow[];
+  /** Where a piece opens its part's cut detail: in the plan, the drawings with it selected (#156). */
+  pieceHref?: (partId: string) => string;
+}) {
   return (
     <PlainList ordered>
       {props.steps.map((step, i) => (
@@ -40,7 +43,7 @@ export function BuildSteps(props: { steps: readonly BuildStep[]; rows: readonly 
             <h3>
               {i + 1}. {step.title}
             </h3>
-            <StepBody step={step} rows={props.rows} />
+            <StepBody step={step} rows={props.rows} pieceHref={props.pieceHref} />
           </Stack>
         </li>
       ))}
@@ -50,8 +53,8 @@ export function BuildSteps(props: { steps: readonly BuildStep[]; rows: readonly 
 
 /**
  * One step's board or parts, flags, and operations with their methods: in the plan's list, and
- * one at a time in Building (#61). In Building each piece links to its cut card (`pieceHref`); in
- * the plan it shows the part's cut detail on the page.
+ * one at a time in Building (#61). Each piece links to its cut card in Building, or to its cut
+ * detail in the plan's drawings (`pieceHref`); with nowhere to go, it is its name.
  */
 export function StepBody(props: {
   step: BuildStep;
@@ -111,9 +114,7 @@ function Board(props: {
             {props.pieceHref ? (
               <a href={props.pieceHref(piece.partId)}>{props.partName(piece.partId)}</a>
             ) : (
-              <Button variant="link" onClick={() => show(cutDetailId(piece.partId))}>
-                {props.partName(piece.partId)}
-              </Button>
+              props.partName(piece.partId)
             )}{' '}
             <Length>{formatLength(piece.length)}</Length>
             {(props.quantity.get(piece.partId) ?? 1) > 1 &&

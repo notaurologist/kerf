@@ -183,9 +183,9 @@ describe('the diagrams in the plan (#91)', () => {
     expect(html.match(/data-page="landscape"/g)).toHaveLength(3);
   });
 
-  it('makes each cut-list part a toggle that selects it in the drawings', () => {
-    expect(html).toMatch(
-      /<button[^>]*aria-pressed="false"[^>]*><span class="k-part-letter">A<\/span><b>Beam<\/b><\/button>/,
+  it('makes each cut-list part a link to the drawings with it selected (#156)', () => {
+    expect(html).toContain(
+      `<a id="cut-list-part-beam" href="#/projects/${project.id}/diagrams?part=beam"><span class="k-part-letter">A</span><b>Beam</b></a>`,
     );
   });
 
