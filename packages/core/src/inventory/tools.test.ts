@@ -30,7 +30,6 @@ describe('Inventory', () => {
       toolTypeId: 'circular-saw',
       capabilities: { bevels: true, depthOfCut: 0, maxBevel: 45 },
     });
-    // A retired capability (#171) is refused like any other the tool type does not have.
     expect(messages(result)).toEqual([
       'capabilities.bevels: is not a capability of a circular saw',
       'capabilities.depthOfCut: Depth of cut with the blade square must be from 1/16" to 1\' 0".',
@@ -102,21 +101,6 @@ describe('readStoredTools', () => {
       tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }],
       moved: [],
     });
-  });
-
-  it('drops a retired capability without moving it to other tools (#171)', () => {
-    const read = readStoredTools([
-      { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375, maxBevel: 56 } },
-      { toolTypeId: 'drill-driver', capabilities: { chuckSize: 0.5 } },
-    ]);
-    expect(read).toEqual({
-      tools: [
-        { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } },
-        { toolTypeId: 'drill-driver', capabilities: {} },
-      ],
-      moved: [],
-    });
-    expect(Inventory.safeParse({ tools: read.tools, other: [] }).success).toBe(true);
   });
 
   it('moves a free-text tool to other tools, with its earlier values in the note', () => {

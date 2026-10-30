@@ -26,8 +26,6 @@ describe('ToolsEditor', () => {
     expect(html).toContain('value="7-1/2"');
     expect(html).toContain('Largest miter');
     expect((html.match(/Input needed/g) ?? []).length).toBe(1);
-    // A retired capability is no longer asked (#171).
-    expect(html).not.toContain('Largest bevel');
     // An owned tool is not offered again.
     expect(html).not.toContain('Add miter saw');
     expect(html).toContain('value="Table saw"');

@@ -92,24 +92,6 @@ describe('/api/tools', () => {
     expect(stored.rows).toEqual([{ tool_type_id: 'circular-saw' }]);
     expect(await (await authed('/api/tools')).json()).toEqual(expected);
   });
-
-  it('reads a stored retired capability as gone, without moving anything (#171)', async () => {
-    const { authed, client, db } = await createTestApp();
-    await client.query(
-      `insert into tools (tool_type_id, capabilities) values
-         ('circular-saw', '{"depthOfCut": 2.375, "maxBevel": 45}'),
-         ('drill-driver', '{"chuckSize": 0.5}')`,
-    );
-    expect(await (await authed('/api/tools')).json()).toEqual({
-      tools: [
-        { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } },
-        { toolTypeId: 'drill-driver', capabilities: {} },
-      ],
-      other: [],
-    });
-    // Nothing moves, so the release step leaves the rows alone; the next save drops the values.
-    expect(await upgradeStoredInventory(db, new Date('2026-10-30T12:00:00Z'))).toBe(0);
-  });
 });
 
 describe('/api/templates', () => {

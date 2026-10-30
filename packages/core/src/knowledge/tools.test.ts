@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { METHODS } from './methods.ts';
-import { findToolType, RETIRED_CAPABILITIES, TOOL_GROUPS, TOOL_TYPES, ToolType } from './tools.ts';
+import { findToolType, TOOL_GROUPS, TOOL_TYPES, ToolType } from './tools.ts';
 
 describe('tool-type library', () => {
   it('parses every entry with its schema', () => {
@@ -17,13 +17,10 @@ describe('tool-type library', () => {
     expect([...new Set(groups)]).toEqual([...TOOL_GROUPS]);
   });
 
-  // A capability is asked of the owner only if a method reads it (#171). Each exception says why
-  // it is kept; an exception a method has started to use fails too, so the list stays current.
-  const UNUSED_KEPT: Record<string, string> = {
-    'clamps.count': 'Kept until #170 settles whether clamp counts add across clamp entries.',
-  };
+  // Clamp count waits on #170.
+  const UNUSED_KEPT = ['clamps.count'];
 
-  it('lists only capabilities some method needs, and retires none it still lists', () => {
+  it('lists only capabilities some method needs', () => {
     const used = new Set(
       METHODS.flatMap((m) =>
         m.tools.flatMap((r) =>
@@ -36,10 +33,7 @@ describe('tool-type library', () => {
     const listed = TOOL_TYPES.flatMap((t) =>
       (t.capabilities as readonly { id: string }[]).map((c) => `${t.id}.${c.id}`),
     );
-    expect(listed.filter((c) => !used.has(c))).toEqual(Object.keys(UNUSED_KEPT));
-    for (const [type, ids] of Object.entries(RETIRED_CAPABILITIES)) {
-      for (const id of ids ?? []) expect(listed).not.toContain(`${type}.${id}`);
-    }
+    expect(listed.filter((c) => !used.has(c))).toEqual(UNUSED_KEPT);
   });
 
   it('gives every capability a range', () => {

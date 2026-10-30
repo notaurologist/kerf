@@ -6,7 +6,7 @@ import { z } from 'zod';
 //
 // Names are generic (hard rule 11). A capability holds a value the owner reads off their own tool,
 // so the library states no numbers about tools; each capability says where its value is read, and
-// none has a default (hard rule 3). A capability is listed only if a method uses it (#171).
+// none has a default (hard rule 3). A capability is listed only if a method uses it.
 
 export const TOOL_GROUPS = [
   'measuring-and-marking',
@@ -263,18 +263,6 @@ export const TOOL_TYPES = [
 ] as const satisfies readonly z.input<typeof ToolType>[];
 
 export type ToolTypeId = (typeof TOOL_TYPES)[number]['id'];
-
-/**
- * Capabilities the library asked for and no longer does, by tool type (#171): no method used
- * them. A stored value for one is dropped when read, not moved to other tools, since it was a
- * library detail and not a tool of its own.
- */
-export const RETIRED_CAPABILITIES: Readonly<Partial<Record<ToolTypeId, readonly string[]>>> = {
-  'circular-saw': ['maxBevel'],
-  'miter-saw': ['maxBevel'],
-  jigsaw: ['maxBevel'],
-  'drill-driver': ['chuckSize'],
-};
 
 const BY_ID: ReadonlyMap<string, ToolType> = new Map(TOOL_TYPES.map((t) => [t.id, t as ToolType]));
 
