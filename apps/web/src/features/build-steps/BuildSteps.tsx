@@ -4,14 +4,19 @@ import {
   FLAG_CATEGORY_LABELS,
   findSkill,
   findToolType,
+  formatLength,
   type MethodGaps,
   OPERATION_TYPE_LABELS,
+  type StepBoard,
   type StepOperation,
 } from '@kerf/core';
+import { cutDetailId, show } from '../../lib/show.ts';
 import {
+  Button,
   Card,
   ExpertCheck,
   InputNeeded,
+  Length,
   List,
   Measured,
   PlainList,
@@ -21,12 +26,14 @@ import {
 import { SourceToggle } from '../structural/Citation.tsx';
 
 // The build steps (#105, #52), rendered from the project response: the API chose each method
-// from the tool inventory and filled its numbers, so this only lays the words out. The shop
-// view (M7) will show the same data one step at a time.
+// from the tool inventory and filled its numbers, so this only lays the words out. Cutting goes
+// board by board (#58), each piece opening its part's cut detail. The shop view (M7) will show the
+// same data one step at a time.
 
 export function BuildSteps(props: { steps: readonly BuildStep[]; rows: readonly CutListRow[] }) {
   const parts = new Map(props.rows.map((r) => [r.partId, `${r.letter} ${r.name}`]));
   const partName = (id: string) => parts.get(id) ?? id;
+  const quantity = new Map(props.rows.map((r) => [r.partId, r.quantity]));
   return (
     <PlainList ordered>
       {props.steps.map((step, i) => (
@@ -35,8 +42,12 @@ export function BuildSteps(props: { steps: readonly BuildStep[]; rows: readonly 
             <h3>
               {i + 1}. {step.title}
             </h3>
-            {step.partIds.length > 0 && (
-              <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
+            {step.board ? (
+              <Board board={step.board} partName={partName} quantity={quantity} />
+            ) : (
+              step.partIds.length > 0 && (
+                <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
+              )
             )}
             {step.flags.length > 0 && (
               <PlainList>
@@ -63,6 +74,39 @@ export function BuildSteps(props: { steps: readonly BuildStep[]; rows: readonly 
         </li>
       ))}
     </PlainList>
+  );
+}
+
+/** A board's pieces in the order they come off it, each opening its part's cut detail. */
+function Board(props: {
+  board: StepBoard;
+  partName: (id: string) => string;
+  quantity: ReadonlyMap<string, number>;
+}) {
+  const { board } = props;
+  return (
+    <Stack gap="xs">
+      <Text>
+        Trim <Length>{formatLength(board.trimPerEnd)}</Length> off the end to square it, then cut
+        these in order, measuring each from the fresh cut. Each saw cut takes about{' '}
+        <Length>{formatLength(board.kerf)}</Length>.
+      </Text>
+      <List ordered>
+        {board.pieces.map((piece) => (
+          <li key={`${piece.partId}/${piece.instance}`}>
+            <Button variant="link" onClick={() => show(cutDetailId(piece.partId))}>
+              {props.partName(piece.partId)}
+            </Button>{' '}
+            <Length>{formatLength(piece.length)}</Length>
+            {(props.quantity.get(piece.partId) ?? 1) > 1 &&
+              `, piece ${piece.instance + 1} of ${props.quantity.get(piece.partId)}`}
+          </li>
+        ))}
+      </List>
+      <Text tone="muted">
+        Left over after both ends are trimmed: <Length>{formatLength(board.offcut)}</Length>.
+      </Text>
+    </Stack>
   );
 }
 

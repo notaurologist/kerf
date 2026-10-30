@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { CutListRow, cutList } from '../../outputs/cutList.ts';
 import { HardwareLine, hardwareList } from '../../outputs/hardwareList.ts';
-import { LumberPlan, planLumber } from '../../outputs/shoppingList.ts';
+import { DEFAULT_BOARD_OPTIONS, LumberPlan, planLumber } from '../../outputs/shoppingList.ts';
 import type { SnapshotUpgrade, TemplateDefinition } from '../definition.ts';
 import { withLetters } from '../letters.ts';
 import { drawings } from './drawings.ts';
@@ -41,6 +41,25 @@ const addPartLetters: SnapshotUpgrade = (snapshot) => {
       ...outputs,
       design: { ...outputs.design, parts: withLetters(outputs.design.parts) },
       cutList: withLetters(outputs.cutList),
+    },
+  };
+};
+
+/**
+ * Shape 10 to 11: stores the saw cut and end trim the boards were planned with. Every plan before
+ * shape 11 was planned with the defaults (1/8" kerf, 1/2" trim per end), unchanged since M1.
+ */
+const addBoardAllowances: SnapshotUpgrade = (snapshot) => {
+  const outputs = snapshot.outputs as { lumber: object };
+  return {
+    ...snapshot,
+    outputs: {
+      ...outputs,
+      lumber: {
+        ...outputs.lumber,
+        kerf: DEFAULT_BOARD_OPTIONS.kerf,
+        trimPerEnd: DEFAULT_BOARD_OPTIONS.trimPerEnd,
+      },
     },
   };
 };
@@ -103,7 +122,9 @@ export const swingSetAFrame: TemplateDefinition<
   // and each bolt-hole operation's hole diameter (#110); reading an older plan sets both to the
   // size it drilled, its bolt's diameter. Shape 10 adds the parts and hardware each flag and
   // checklist item concerns (#51), optional: a plan stored before it keeps its flags on the plan.
-  snapshotVersion: 10,
+  // Shape 11 adds the board plan's kerf and end trim (#58); reading an older plan sets the defaults
+  // every plan was made with.
+  snapshotVersion: 11,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -114,6 +135,7 @@ export const swingSetAFrame: TemplateDefinition<
     7: (snapshot) => snapshot,
     8: addHoleSizes,
     9: (snapshot) => snapshot,
+    10: addBoardAllowances,
   },
   examples: EXAMPLES,
   steps: (outputs) => stepOutline(outputs.design),

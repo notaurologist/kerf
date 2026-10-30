@@ -324,6 +324,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   ];
   return {
     title,
+    partId: part.id,
     description: `Cut detail for ${part.letter}, ${part.name}: ${formatLength(part.length)} overall${angles.length > 0 ? `, ends cut at ${angles.join(' and ')}` : ', ends square'}${(part.holes ?? []).length > 0 ? `, ${(part.holes ?? []).length} holes` : ''}.`,
     bounds: boundsOf(prims, 0.3 * W),
     primitives: prims,

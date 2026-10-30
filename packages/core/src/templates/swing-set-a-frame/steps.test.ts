@@ -15,10 +15,9 @@ const generated = swingSetAFrame.generate(example.params, example.structuralInpu
 if (!generated.ok) throw new Error('worked example does not generate');
 const outputs = generated.output;
 const plan = swingSetAFrame.plan(outputs);
-const operations = plan.operations;
 
 function steps(inventory: Inventory): BuildStep[] {
-  return buildSteps(swingSetAFrame.steps(outputs), operations, inventory, plan.flags);
+  return buildSteps(swingSetAFrame.steps(outputs), plan, inventory);
 }
 
 function inventory(...tools: [string, Record<string, number>?][]): Inventory {
@@ -71,17 +70,50 @@ const circularSawKit = inventory(
 );
 
 describe('swing-set build steps (#105)', () => {
-  it('puts every operation in one step, in build order', () => {
+  // The board plan, by hand (1/2" trim per end, 1/8" kerf per piece): the 120" beam on a 12' 4x6
+  // leaves 144 − (1 + 120.125) = 22.875. The front legs (138.354) and back legs (131.510) take a
+  // 12' 4x4 each, since two do not fit. Both crossbars (58.993) fit a 10' 2x6: 1 + 2 · 59.118 =
+  // 119.236. Both gussets (19.502) fit an 8' 2x8: 1 + 2 · 19.627 = 40.254, leaving 55.746.
+  it('cuts board by board in the board plan order, then assembles (#58)', () => {
     const built = steps(fullShop);
-    expect(built.map((s) => [s.id, s.operations.length])).toEqual([
-      ['cut-beam', 2],
-      ['cut-legs', 6],
-      ['cut-boards', 4],
-      ['ease-edges', 5],
-      ['site', 1],
-      ['frames', 2],
-      ['beam', 1],
+    expect(
+      built.map((s) => [
+        s.id,
+        s.board ? `${s.board.nominal} ${s.board.feet}'` : s.title,
+        s.board?.pieces.map((p) => `${p.partId} ${p.instance}`) ?? [],
+      ]),
+    ).toEqual([
+      ['board-1', "4x6 12'", ['beam 0']],
+      ['board-2', "4x4 12'", ['leg-front 0']],
+      ['board-3', "4x4 12'", ['leg-front 1']],
+      ['board-4', "4x4 12'", ['leg-back 0']],
+      ['board-5', "4x4 12'", ['leg-back 1']],
+      ['board-6', "2x6 10'", ['crossbar 0', 'crossbar 1']],
+      ['board-7', "2x8 8'", ['gusset 0', 'gusset 1']],
+      ['ease-edges', 'Ease the edges of every part', []],
+      ['site', 'Dig the leg holes', []],
+      ['frames', 'Bolt the crossbars and gussets across the legs', []],
+      ['beam', 'Bolt the beam between the leg tops', []],
     ]);
+    const board = (n: number) => built[n - 1]?.board;
+    expect(board(1)?.offcut).toBeCloseTo(22.875, 9);
+    expect(board(6)?.offcut).toBeCloseTo(120 - 119.236, 2);
+    expect(board(7)?.offcut).toBeCloseTo(55.746, 2);
+    expect([board(1)?.trimPerEnd, board(1)?.kerf]).toEqual([0.5, 0.125]);
+    // Each board's cuts are done once per piece on it: a leg's end cuts and flush cut once on its
+    // own board, a crossbar's end cuts twice on the board that holds both.
+    const counts = (n: number) =>
+      built[n - 1]?.operations.map((o) => [o.operation.id, o.operation.count]);
+    expect(counts(2)).toEqual([
+      ['leg-front/end-0', 1],
+      ['leg-front/end-1', 1],
+      ['leg-front/taper-0', 1],
+    ]);
+    expect(counts(6)).toEqual([
+      ['crossbar/end-0', 2],
+      ['crossbar/end-1', 2],
+    ]);
+    expect(built[1]?.operations[0]?.method?.technique).toContain('Cut 1 this way.');
     expect(built.find((s) => s.id === 'site')?.title).toBe('Dig the leg holes');
     expect(built.find((s) => s.id === 'beam')?.partIds).toEqual(['beam', 'leg-back', 'leg-front']);
   });
@@ -190,9 +222,13 @@ describe('swing-set build steps (#105)', () => {
       // The plan's own flags are load-bearing: two on the legs, three on the boards' bolts, and
       // one on the leg-to-beam bolt (#51), each before the generic check for its step.
       expect(flags).toEqual({
-        'cut-beam': [],
-        'cut-legs': ['load-bearing', 'load-bearing'],
-        'cut-boards': [],
+        'board-1': [],
+        'board-2': ['load-bearing', 'load-bearing'],
+        'board-3': [],
+        'board-4': [],
+        'board-5': [],
+        'board-6': [],
+        'board-7': [],
         'ease-edges': ['dust-and-species'],
         site: ['load-bearing'],
         frames: ['load-bearing', 'load-bearing', 'load-bearing', 'load-bearing'],
@@ -207,9 +243,10 @@ describe('swing-set build steps (#105)', () => {
     const built = steps(fullShop);
     const stepOf = (start: string) =>
       built.filter((s) => s.flags.some((f) => f.ask.startsWith(start))).map((s) => s.id);
-    // Leg length depends on the slope and the burial depth, so both are asked before cutting.
-    expect(stepOf('Confirm the frame on sloped ground')).toEqual(['cut-legs']);
-    expect(stepOf('Confirm the burial depth (24")')).toEqual(['cut-legs']);
+    // Leg length depends on the slope and the burial depth, so both are asked before the first leg
+    // is cut.
+    expect(stepOf('Confirm the frame on sloped ground')).toEqual(['board-2']);
+    expect(stepOf('Confirm the burial depth (24")')).toEqual(['board-2']);
     // Bolt flags go where their bolts are drilled.
     expect(stepOf('Crossbar to leg, 2 1/2" bolts')).toEqual(['frames']);
     expect(stepOf('Gusset to leg, 2 1/2" bolts')).toEqual(['frames']);
@@ -249,12 +286,10 @@ describe('swing-set build steps (#105)', () => {
       example.structuralInputs,
     );
     if (!onPads.ok) throw new Error('pads example does not generate');
-    const padsPlan = swingSetAFrame.plan(onPads.output);
     const built = buildSteps(
       swingSetAFrame.steps(onPads.output),
-      padsPlan.operations,
+      swingSetAFrame.plan(onPads.output),
       fullShop,
-      padsPlan.flags,
     );
     const site = built.find((s) => s.id === 'site');
     expect(site?.title).toBe('Level the pads');

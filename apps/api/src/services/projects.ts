@@ -102,8 +102,9 @@ function drawingsOf(template: TemplateDefinition, snapshot: ProjectSnapshot) {
 
 /**
  * Replaces a project's history rows (#106): one per operation in its build steps, with the method
- * chosen from the inventory now and that inventory's key. Called in the transaction that saves the
- * snapshot, so the rows always match it.
+ * chosen from the inventory now and that inventory's key. A part cut from two boards has its cuts
+ * in both board steps (#58); they get one row. Called in the transaction that saves the snapshot,
+ * so the rows always match it.
  */
 async function writeHistory(
   tx: Database,
@@ -114,17 +115,18 @@ async function writeHistory(
 ): Promise<number> {
   const { inventoryKey, steps } = stepsOf(template, snapshot, await getInventory(tx));
   await tx.delete(projectHistory).where(eq(projectHistory.projectId, projectId));
-  const rows = steps.flatMap((step) =>
-    step.operations.map((o) => ({
-      projectId,
-      operationId: o.operation.id,
-      operation: o.operation.type,
-      methodId: o.method?.id ?? null,
-      skills: o.skills,
-      inventoryKey,
-      recordedAt: at,
-    })),
-  );
+  const operations = [
+    ...new Map(steps.flatMap((s) => s.operations.map((o) => [o.operation.id, o]))).values(),
+  ];
+  const rows = operations.map((o) => ({
+    projectId,
+    operationId: o.operation.id,
+    operation: o.operation.type,
+    methodId: o.method?.id ?? null,
+    skills: o.skills,
+    inventoryKey,
+    recordedAt: at,
+  }));
   if (rows.length > 0) await tx.insert(projectHistory).values(rows);
   return rows.length;
 }

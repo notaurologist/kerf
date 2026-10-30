@@ -1,9 +1,16 @@
-import { createSnapshot, type Inventory, OPERATION_TYPE_LABELS, TEMPLATES } from '@kerf/core';
+import {
+  type CutListRow,
+  createSnapshot,
+  type Inventory,
+  OPERATION_TYPE_LABELS,
+  TEMPLATES,
+} from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { readSteps } from '../../lib/plan.ts';
+import { cutDetailId } from '../../lib/show.ts';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, stepsFor } from '../../test/projects.ts';
-import { renderText } from '../../test/render.tsx';
+import { render, renderText } from '../../test/render.tsx';
 import { ProjectView } from '../project/ProjectScreen.tsx';
 
 // #52: the shop view needs nothing beyond the project response, so a dropped connection after
@@ -62,6 +69,36 @@ describe('build steps in the project view (#52)', () => {
     const withNone = readSteps(project({ tools: [], other: [] }));
     expect(withShop?.inventoryKey).toMatch(/^[0-9a-f]{8}$/);
     expect(withShop?.inventoryKey).not.toBe(withNone?.inventoryKey);
+  });
+
+  // The worked example's board plan (core's steps.test.ts checks the numbers): the beam alone on
+  // a 12' 4x6, each leg on its own 12' 4x4, and both crossbars on a 10' 2x6.
+  it('cuts board by board, each piece naming its part and opening its cut detail (#58)', () => {
+    const p = project(shop);
+    const steps = readSteps(p)?.steps ?? [];
+    const text = renderText(<ProjectView project={p} />);
+    expect(text).toContain("1. Cut board 1, a 4x6 12' long");
+    expect(text).toContain(
+      'Trim 1/2" off the end to square it, then cut these in order, measuring each from the fresh cut. Each saw cut takes about 1/8".',
+    );
+    expect(text).toContain('Left over after both ends are trimmed: 22-7/8"');
+    // A part with more than one piece says which piece this is.
+    const crossbars = steps.find((s) => s.board?.pieces.length === 2);
+    const crossbar = crossbars?.board?.pieces[1];
+    if (!crossbar) throw new Error('no board with two pieces');
+    const { cutList } = made.output.outputs as { cutList: CutListRow[] };
+    const row = cutList.find((r) => r.partId === crossbar.partId);
+    expect(text).toContain(`${row?.letter} ${row?.name} 59", piece 2 of 2`);
+    // The assembly steps follow the boards.
+    const titles = steps.map((s) => s.title);
+    expect(titles.findIndex((t) => !t.startsWith('Cut board'))).toBe(
+      steps.filter((s) => s.board).length,
+    );
+    // Every piece's cut detail is on the page to open.
+    const html = render(<ProjectView project={p} />);
+    for (const piece of steps.flatMap((s) => s.board?.pieces ?? [])) {
+      expect(html).toContain(`id="${cutDetailId(piece.partId)}"`);
+    }
   });
 
   it('shows no build steps for a plan made before operations', () => {

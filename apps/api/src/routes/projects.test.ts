@@ -120,13 +120,14 @@ describe('GET /api/projects/:id build steps (#52)', () => {
     const { body } = await create(authed);
     const read = async () => (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
 
-    // No tools yet: every operation has a step, and none has a method.
+    // No tools yet: every operation has a step, and none has a method. A part cut from two boards
+    // has its cuts in both boards' steps (#58).
     const before = await read();
     const empty = { tools: [], other: [] };
     expect(BuildSteps.parse(before.steps).inventoryKey).toBe(inventoryKey(empty));
     const operations = before.snapshot.outputs.design.operations;
     const stepped = before.steps.steps.flatMap((s: Json) => s.operations);
-    expect(stepped.map((o: Json) => o.operation.id).sort()).toEqual(
+    expect([...new Set(stepped.map((o: Json) => o.operation.id))].sort()).toEqual(
       operations.map((o: Json) => o.id).sort(),
     );
     expect(stepped.every((o: Json) => o.method === undefined && o.needed)).toBe(true);
@@ -144,7 +145,9 @@ describe('GET /api/projects/:id build steps (#52)', () => {
     const after = await read();
     expect(after.steps.inventoryKey).toBe(inventoryKey(tools));
     expect(after.steps.inventoryKey).not.toBe(before.steps.inventoryKey);
-    const beam = after.steps.steps.find((s: Json) => s.id === 'cut-beam');
+    const beam = after.steps.steps.find((s: Json) =>
+      s.board?.pieces.some((p: Json) => p.partId === 'beam'),
+    );
     expect(beam.operations.map((o: Json) => o.method?.id)).toEqual([
       'crosscut-miter-saw',
       'crosscut-miter-saw',

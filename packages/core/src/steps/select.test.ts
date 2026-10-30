@@ -89,28 +89,87 @@ describe('selectMethod', () => {
 describe('buildSteps', () => {
   const other: Operation = { id: 'site/level-pads', type: 'level-pads', count: 4 };
   const step = { id: 's', title: 'Do it', categories: [] };
+  // Two 40" posts on one 8' 4x4: 96 − (2 · 1/2 trim + 2 · (40 + 1/8 kerf)) = 14.75 left over.
+  const piece = { partId: 'post', name: 'Post', length: 40 };
+  const oneBoard = { nominal: '4x4' as const, feet: 8, pieces: [piece, piece], offcut: 14.75 };
+  const lumber = (...boards: (typeof oneBoard)[]) => ({
+    boards,
+    kerf: 0.125,
+    trimPerEnd: 0.5,
+    lines: [],
+    notes: [],
+    issues: [],
+  });
+  const plan = (operations: Operation[], boards = [oneBoard]) => ({
+    operations,
+    flags: [],
+    lumber: lumber(...boards),
+  });
 
-  it('refuses an outline that leaves out, repeats, or invents an operation', () => {
+  it('refuses an outline that leaves out, repeats, or invents an operation, or holds a cut', () => {
     const none = inventory();
+    expect(() => buildSteps([], plan([post, other]), none)).toThrow('missing [site/level-pads]');
     expect(() =>
-      buildSteps([{ ...step, operationIds: [post.id] }], [post, other], none, []),
-    ).toThrow('missing [site/level-pads]');
-    expect(() =>
-      buildSteps(
-        [{ ...step, operationIds: [post.id, post.id, other.id] }],
-        [post, other],
-        none,
-        [],
-      ),
-    ).toThrow('twice [post/end-0]');
-    expect(() => buildSteps([{ ...step, operationIds: ['nope'] }], [], none, [])).toThrow(
-      'unknown [nope]',
+      buildSteps([{ ...step, operationIds: [other.id, other.id] }], plan([post, other]), none),
+    ).toThrow('twice [site/level-pads]');
+    expect(() => buildSteps([{ ...step, operationIds: ['nope'] }], plan([other]), none)).toThrow(
+      'unknown or cutting [nope]',
     );
+    // Cuts belong to the board steps.
+    expect(() =>
+      buildSteps([{ ...step, operationIds: [post.id, other.id] }], plan([post, other]), none),
+    ).toThrow('unknown or cutting [post/end-0]');
+  });
+
+  it('cuts board by board, then follows the outline (#58)', () => {
+    const built = buildSteps(
+      [{ ...step, operationIds: [other.id] }],
+      plan([post, other]),
+      inventory(),
+    );
+    expect(built.map((s) => [s.id, s.title, s.operations.map((o) => o.operation.id)])).toEqual([
+      ['board-1', "Cut board 1, a 4x4 8' long", ['post/end-0']],
+      ['s', 'Do it', ['site/level-pads']],
+    ]);
+    expect(built[0]?.board).toEqual({
+      number: 1,
+      nominal: '4x4',
+      feet: 8,
+      trimPerEnd: 0.5,
+      kerf: 0.125,
+      offcut: 14.75,
+      pieces: [
+        { partId: 'post', instance: 0, length: 40, operationIds: ['post/end-0'] },
+        { partId: 'post', instance: 1, length: 40, operationIds: ['post/end-0'] },
+      ],
+    });
+    expect(built[1]?.board).toBeUndefined();
+  });
+
+  it("counts a part's pieces through the boards, and repeats its cuts on each board", () => {
+    const single = { ...oneBoard, pieces: [piece], offcut: 55.375 };
+    const built = buildSteps([], plan([post], [single, single]), inventory());
+    expect(built.map((s) => s.board?.pieces.map((p) => [p.partId, p.instance]))).toEqual([
+      [['post', 0]],
+      [['post', 1]],
+    ]);
+    expect(built[1]?.operations).toEqual(built[0]?.operations);
+  });
+
+  it('gives a cut whose part is on no board a step of its own, so it is not left out', () => {
+    const built = buildSteps([], plan([post], []), inventory());
+    expect(built.map((s) => [s.id, s.operations.map((o) => o.operation.id)])).toEqual([
+      ['cut-unplanned', ['post/end-0']],
+    ]);
+  });
+
+  it('makes no steps for a plan made before operations', () => {
+    expect(buildSteps([], plan([]), inventory())).toEqual([]);
   });
 
   it("fills the chosen method's text and lists the tools it uses", () => {
     const shop = inventory(['miter-saw', { cutDepth: 4, crosscutWidth: 6 }], ['tape-measure']);
-    const [built] = buildSteps([{ ...step, operationIds: [post.id] }], [post], shop, []);
+    const [built] = buildSteps([], plan([post]), shop);
     const op = built?.operations[0];
     expect(op?.method?.technique).toContain('Cut 2 this way.');
     expect(op?.method?.tools).toEqual([
