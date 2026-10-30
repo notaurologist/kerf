@@ -24,6 +24,8 @@ import {
   type SummaryItem,
   Text,
   TextInput,
+  ToolIcon,
+  ToolLabel,
 } from '../../ui/index.ts';
 import {
   addTool,
@@ -171,6 +173,7 @@ export function ToolsEditor(props: {
                     variant="secondary"
                     onClick={() => change((d) => addTool(d, type.id))}
                   >
+                    <ToolIcon toolTypeId={type.id} />
                     {`Add ${type.name.toLowerCase()}`}
                   </Button>
                 ))}
@@ -215,7 +218,9 @@ function ToolCard(props: {
   return (
     <Card as="section">
       <Stack gap="s">
-        <h4>{type.name}</h4>
+        <h4>
+          <ToolLabel toolTypeId={type.id}>{type.name}</ToolLabel>
+        </h4>
         {fields.length > 0 && (
           <Grid min="16rem" gap="s">
             {fields.map((field) => (

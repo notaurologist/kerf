@@ -9,6 +9,7 @@ import {
   structural,
   TEMPLATES,
   type TemplateDefinition,
+  TOOL_TYPES,
 } from '@kerf/core';
 
 /** "saw at 20.0°, 70.0° to the edge" in a cut list's end text. */
@@ -54,6 +55,7 @@ import { ScreenHeader } from './ScreenHeader.tsx';
 import { Header, ModeBar } from './Shell.tsx';
 import { StepLayout } from './StepLayout.tsx';
 import { Tick } from './Tick.tsx';
+import { ToolLabel } from './ToolIcon.tsx';
 import { List, Text } from './text.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
@@ -548,6 +550,16 @@ function Specimens() {
         </Cluster>
       </Group>
 
+      <Group title="Tool icons">
+        <Cluster gap="m">
+          {TOOL_TYPES.map((t) => (
+            <ToolLabel key={t.id} toolTypeId={t.id}>
+              {t.name}
+            </ToolLabel>
+          ))}
+        </Cluster>
+      </Group>
+
       <Group title="Drawings">
         {drawings.isometric && (
           <Diagram
@@ -652,6 +664,10 @@ function ShopSpecimens() {
           <p>The step's methods and flags.</p>
         </StepLayout>
         <StatusLine>{part.name} cut</StatusLine>
+        <p>
+          Tools: <ToolLabel toolTypeId="miter-saw">Miter saw</ToolLabel>,{' '}
+          <ToolLabel toolTypeId="clamps">Clamps</ToolLabel>.
+        </p>
         <Cluster>
           <Button>Done, next</Button>
           <Button variant="secondary">Back</Button>

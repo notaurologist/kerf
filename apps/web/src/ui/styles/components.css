@@ -664,6 +664,24 @@
     padding-block-start: var(--space-xs);
   }
 
+  /* ---------- Tool icons (#86): 20 px beside 17 px text, 24 px beside 20 px shop text ---------- */
+  .k-tool-icon {
+    display: inline-block;
+    flex: none;
+    inline-size: 1.2em;
+    block-size: 1.2em;
+    vertical-align: -0.25em;
+  }
+
+  /* Inline, so a label in a sentence keeps the sentence's baseline for the commas around it. */
+  .k-tool-label {
+    white-space: nowrap;
+  }
+
+  .k-tool-label > .k-tool-icon {
+    margin-inline-end: 0.35em;
+  }
+
   /* ---------- Card ---------- */
   .k-card {
     padding: var(--space-s);

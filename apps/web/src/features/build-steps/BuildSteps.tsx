@@ -9,6 +9,7 @@ import {
   type StepBoard,
   type StepOperation,
 } from '@kerf/core';
+import { Fragment } from 'react';
 import { cutDetailId, show } from '../../lib/show.ts';
 import {
   Button,
@@ -21,6 +22,7 @@ import {
   PlainList,
   Stack,
   Text,
+  ToolLabel,
 } from '../../ui/index.ts';
 import { SourceToggle } from '../structural/Citation.tsx';
 
@@ -144,7 +146,15 @@ function Operation(props: { op: StepOperation; partName: (id: string) => string 
         <>
           <Text>
             <b>{method.name}.</b> Tools:{' '}
-            {method.tools.map((t) => findToolType(t.toolTypeId)?.name ?? t.toolTypeId).join(', ')}.
+            {method.tools.map((t, i) => (
+              <Fragment key={t.toolTypeId}>
+                {i > 0 && ', '}
+                <ToolLabel toolTypeId={t.toolTypeId}>
+                  {findToolType(t.toolTypeId)?.name ?? t.toolTypeId}
+                </ToolLabel>
+              </Fragment>
+            ))}
+            .
           </Text>
           {op.skills.length > 0 && (
             <Text tone="muted">

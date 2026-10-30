@@ -64,6 +64,13 @@ describe('build steps in the project view (#52)', () => {
     expect(text).toContain('No method fits your tools.');
   });
 
+  it("puts each tool's icon before its name in a method's tools (#86)", () => {
+    const html = render(<ProjectView project={project(shop)} />);
+    expect(html).toMatch(
+      /<span class="k-tool-label"><svg class="k-tool-icon"[^>]*aria-hidden="true"[^>]*>.*?<\/svg>Miter saw<\/span>/,
+    );
+  });
+
   it('says which inventory the steps were chosen from, so a stale list can be found', () => {
     const withShop = readSteps(project(shop));
     const withNone = readSteps(project({ tools: [], other: [] }));

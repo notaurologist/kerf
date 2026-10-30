@@ -1,4 +1,11 @@
-import { createSnapshot, FLAG_CATEGORY_LABELS, type Flag, structural, TEMPLATES } from '@kerf/core';
+import {
+  createSnapshot,
+  FLAG_CATEGORY_LABELS,
+  type Flag,
+  structural,
+  TEMPLATES,
+  TOOL_TYPES,
+} from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { render, renderText } from '../test/render.tsx';
 import { Catalog } from './Catalog.tsx';
@@ -41,8 +48,11 @@ import {
   StepLayout,
   TextInput,
   Tick,
+  ToolIcon,
+  ToolLabel,
   WithContents,
 } from './index.ts';
+import { TOOL_ICON_IDS } from './ToolIcon.tsx';
 
 // Each component's states and what assistive technology is told about them (#45). The catalog
 // shows the same states for a person to look at.
@@ -625,6 +635,31 @@ describe('CheckStatus', () => {
     expect(renderText(<CheckStatus check={check} />)).toBe(
       'Not computed. No design value for this species.',
     );
+  });
+});
+
+describe('tool icons (#86)', () => {
+  it('draw every tool type in the library, and nothing else', () => {
+    expect([...TOOL_ICON_IDS].sort()).toEqual(TOOL_TYPES.map((t) => t.id).sort());
+  });
+
+  it('are hidden from screen readers, so the name beside them says what the tool is', () => {
+    const html = render(<ToolLabel toolTypeId="miter-saw">Miter saw</ToolLabel>);
+    expect(html).toContain('aria-hidden="true"');
+    expect(renderText(<ToolLabel toolTypeId="miter-saw">Miter saw</ToolLabel>)).toBe('Miter saw');
+  });
+
+  it('are drawn with one 1-unit line, square ends and sharp joins (docs/design/tool-icons.html)', () => {
+    const html = render(<ToolIcon toolTypeId="clamps" />);
+    expect(html).toContain('stroke-width="1"');
+    expect(html).toContain('stroke-linecap="butt"');
+    expect(html).toContain('stroke-linejoin="miter"');
+    expect(html).not.toMatch(/\brx=/);
+  });
+
+  it('draw nothing for a tool type without one, leaving the name', () => {
+    expect(render(<ToolIcon toolTypeId="no-such-tool" />)).toBe('');
+    expect(renderText(<ToolLabel toolTypeId="no-such-tool">Router</ToolLabel>)).toBe('Router');
   });
 });
 
