@@ -105,6 +105,8 @@ export type Primitive = z.infer<typeof Primitive>;
 export const Drawing = z.object({
   /** Such as "Isometric view". */
   title: z.string(),
+  /** For a cut detail, the part it shows, so a cutting step can open it (#58). */
+  partId: z.string().optional(),
   /**
    * What the drawing shows, in a sentence, for assistive technology (W3C, complex images). The
    * template words it for its own views; a display may add the part letters or dimensions.

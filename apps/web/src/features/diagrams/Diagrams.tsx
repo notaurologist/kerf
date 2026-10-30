@@ -1,4 +1,5 @@
 import type { CutListRow, geometry } from '@kerf/core';
+import { cutDetailId, show } from '../../lib/show.ts';
 import { Button, Diagram, Stack, StatusLine, Text } from '../../ui/index.ts';
 
 // The plan's drawings (#91), drawn from the primitives core made from the stored snapshot (#90).
@@ -74,7 +75,11 @@ export function Diagrams(props: {
       )}
       <h3>Cut details</h3>
       {drawings.cutDetails.map((detail) => (
-        <Stack gap="xs" key={detail.title}>
+        <Stack
+          gap="xs"
+          key={detail.title}
+          id={detail.partId ? cutDetailId(detail.partId) : undefined}
+        >
           <h4>{detail.title}</h4>
           <Diagram {...common} drawing={detail} minWidth={560} label={detail.description} />
         </Stack>
@@ -92,12 +97,4 @@ export function Diagrams(props: {
       )}
     </Stack>
   );
-}
-
-/** Scrolls to an element. The hash picks the screen, so in-page jumps cannot use it. */
-function show(id: string) {
-  document.getElementById(id)?.scrollIntoView({
-    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-    block: 'start',
-  });
 }

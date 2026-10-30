@@ -146,6 +146,12 @@ export function cutAndDrillOperations(
   return ops;
 }
 
+/**
+ * The operations done while breaking boards into pieces: cutting steps go board by board (#58)
+ * and do these for each piece. Every other operation is ordered by the template's step outline.
+ */
+export const CUTTING_OPERATION_TYPES: readonly OperationType[] = ['crosscut', 'miter', 'taper'];
+
 /** Each operation type's name, in sentence case, for displays. */
 export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   crosscut: 'Square crosscut',

@@ -33,6 +33,8 @@ Template version 9 (#110) drills each bolt hole 1/16" over its bolt, as NDS 2024
 
 Template version 10 (#51) names the parts and hardware each flag and checklist item concerns (Flags, below), so a build step shows the flags for its work. No number or wording changes; a plan made before version 10 shows its flags in the structural review only until it is regenerated.
 
+Template version 11 (#58) stores the board plan's kerf and end trim, which cutting steps state. Every plan before it used 1/8" and 1/2", and reading one sets those, so nothing changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -247,13 +249,11 @@ Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd
 
 ### Build steps
 
-The template orders the operations into steps (`steps.ts`, #105); methods are chosen from the tool inventory by generic code (`ARCHITECTURE.md`, Method selection).
+Cutting goes board by board in the board plan's order (#58): generic code makes one step per board, listing its pieces in the order they come off it, with each piece's end cuts and flush cut. The template orders the steps after cutting (`steps.ts`, #105). Methods are chosen from the tool inventory by generic code (`ARCHITECTURE.md`, Method selection).
 
 | Step | Operations | Expert checks |
 |---|---|---|
-| Cut the beam | beam end cuts | |
-| Cut the legs | leg end cuts and flush cuts | |
-| Cut the crossbars and gussets | their end cuts | |
+| Cut board 1, 2, ... (one per board) | the end cuts and flush cuts of its pieces | |
 | Ease the edges of every part | ease edges, every part | from the method (dust) |
 | Dig the leg holes, or Level the pads | dig holes or level pads | load-bearing design |
 | Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes | load-bearing design |
@@ -262,6 +262,8 @@ The template orders the operations into steps (`steps.ts`, #105); methods are ch
 Each step also shows the plan's own flags for its work (Flags, below).
 
 The assembly order (frames braced first, then the beam) is Kerf's proposal and goes to the review with an experienced builder (M7). Raising the frames, backfilling, tightening, and hanging the swings have no operation type yet, so they are not steps.
+
+Worked example, the boards (`steps.test.ts`; 1/2" trim per end and 1/8" kerf per piece): the beam alone on a 12' 4x6, leaving 144 − (1 + 120.125) = 22.875; each leg on its own 12' 4x4, since two do not fit; both crossbars on a 10' 2x6 (1 + 2 · 59.118 = 119.236); both gussets on an 8' 2x8, leaving 96 − (1 + 2 · 19.627) = 55.746. A leg's cuts are done once on its board, a crossbar's twice on the board that holds both.
 
 Worked example, two inventories (`steps.test.ts`): a shop with a miter saw that cuts a 4x4, a jigsaw, and auger bits reaching 10" uses the miter saw for every end cut, the jigsaw for the flush cuts, and drills every hole from one side. A kit with a circular saw cutting 2-3/8" and spade bits reaching 6" cuts the 4x4s from two faces (2-3/8" ≥ 3-1/2" / 2), the 2x boards in one pass, drills the board holes (5") from one side and the leg-to-beam holes (8.947) from both sides (6 ≥ 4.47), and is offered the auger and longer spade bits as easier and more accurate. The angled-line offset on a 4x4 is 3.5 · tan 20° = 1.274, shown as 1-1/4"; on a 2x6, 5.5 · tan 20° = 2.002, shown as 2".
 
@@ -315,11 +317,11 @@ Each flag and checklist item names the parts and hardware it concerns (#51). A b
 | Flag | Parts | Hardware | Build step |
 |---|---|---|---|
 | Leg-to-beam bolt and flush cut | legs, beam | leg-to-beam bolts | Bolt the beam between the leg tops |
-| Thin flush cut | legs | | Cut the legs |
+| Thin flush cut | legs | | First board with a leg |
 | Built-up beam | beam | ply bolts | Bolt the beam between the leg tops |
-| Sloped ground | legs | | Cut the legs |
-| Buried legs | legs | | Cut the legs |
-| Pads | legs | ground anchors | Cut the legs |
+| Sloped ground | legs | | First board with a leg |
+| Buried legs | legs | | First board with a leg |
+| Pads | legs | ground anchors | First board with a leg |
 | Crossbar or gusset bolt distances | that board, legs | its bolts | Bolt the crossbars and gussets across the legs |
 | Projecting board ends | the boards that project | their bolts | Bolt the crossbars and gussets across the legs |
 

@@ -48,7 +48,14 @@ export const ShoppingLine = z.object({
 export type ShoppingLine = z.infer<typeof ShoppingLine>;
 
 export const LumberPlan = z.object({
+  /** Boards in the order to cut them; each board's pieces in the order they come off it (#58). */
   boards: z.array(PlannedBoard),
+  /**
+   * The saw cut and end trim the boards were planned with (BoardOptions), so cutting steps can
+   * say them. Plans made before snapshot shape 11 used the defaults, and reading one sets them.
+   */
+  kerf: z.number(),
+  trimPerEnd: z.number(),
   lines: z.array(ShoppingLine),
   /** Assumptions and tips to show with the list. */
   notes: z.array(z.string()),
@@ -137,5 +144,13 @@ export function planLumber(
   const selection = parts
     .filter((p) => p.selection && p.selection.length > 0)
     .map((p) => ({ partId: p.id, guides: [...(p.selection ?? [])] }));
-  return { boards, lines: [...counts.values()], notes, issues, selection };
+  return {
+    boards,
+    kerf: options.kerf,
+    trimPerEnd: options.trimPerEnd,
+    lines: [...counts.values()],
+    notes,
+    issues,
+    selection,
+  };
 }

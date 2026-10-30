@@ -10,10 +10,15 @@ const space = (s: Space | undefined) => (s ? `var(--space-${s})` : undefined);
 type Vars = Record<`--${string}`, string | undefined>;
 const vars = (v: Vars) => v as CSSProperties;
 
-export function Stack(props: { gap?: Space; as?: 'div' | 'section' | 'ul'; children: ReactNode }) {
+export function Stack(props: {
+  gap?: Space;
+  as?: 'div' | 'section' | 'ul';
+  id?: string;
+  children: ReactNode;
+}) {
   const Tag = props.as ?? 'div';
   return (
-    <Tag className="l-stack" style={vars({ '--stack-gap': space(props.gap) })}>
+    <Tag id={props.id} className="l-stack" style={vars({ '--stack-gap': space(props.gap) })}>
       {props.children}
     </Tag>
   );

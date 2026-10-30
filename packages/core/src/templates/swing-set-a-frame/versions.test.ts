@@ -10,6 +10,7 @@ import v5 from './snapshots/v5.json' with { type: 'json' };
 import v6 from './snapshots/v6.json' with { type: 'json' };
 import v8 from './snapshots/v8.json' with { type: 'json' };
 import v9 from './snapshots/v9.json' with { type: 'json' };
+import v10 from './snapshots/v10.json' with { type: 'json' };
 
 // What each template version changed for the worked examples, as the owner sees it in the version
 // report (decision 0008).
@@ -244,6 +245,22 @@ describe('swing-set template versions', () => {
       expect(changes.filter(notVersion10)).toEqual([]);
       expect(changes.length).toBeGreaterThan(0);
       for (const change of changes) expect(change, change.path).not.toHaveProperty('before');
+    }
+  });
+
+  // Every board plan so far used a 1/8" kerf and 1/2" of trim per end; reading a shape 10 plan sets
+  // those, which is what regenerating stores, so nothing differs.
+  it('version 11 stores the board plan kerf and trim, and changes nothing else (#58)', () => {
+    for (const stored of v10) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(10);
+      const lumber = (read.snapshot.outputs as { lumber: { kerf: number; trimPerEnd: number } })
+        .lumber;
+      expect([lumber.kerf, lumber.trimPerEnd]).toEqual([0.125, 0.5]);
+      const report = compareWithCurrent(template, read.snapshot);
+      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+      expect(report.regenerated.changes).toEqual([]);
     }
   });
 });
