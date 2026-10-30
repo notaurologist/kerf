@@ -14,12 +14,16 @@ export function shoppingText(s: ProgressSummary['shopping']): string {
   return `${s.done} of ${s.total} bought.`;
 }
 
-/** How far the building has got, in words. */
+/** True once a step is done or a piece is cut (#135). */
+const building = (s: ProgressSummary) => s.steps.done > 0 || s.pieces.done > 0;
+
+/** How far the building has got, in words; pieces cut count until the first step is done. */
 export function buildingText(s: ProgressSummary): string {
   const { done, total } = s.steps;
-  if (done === 0) return `${total} steps, not started.`;
+  if (!building(s)) return `${total} steps, not started.`;
   if (!s.nextStep) return `All ${total} steps done.`;
-  return `Step ${s.nextStep.number} of ${total} next: ${s.nextStep.title}.`;
+  const cut = done === 0 ? `${s.pieces.done} of ${s.pieces.total} pieces cut. ` : '';
+  return `${cut}Step ${s.nextStep.number} of ${total} next: ${s.nextStep.title}.`;
 }
 
 /** The Shopping and Building cards in the plan's summary, counted with ticks not sent yet. */
@@ -48,7 +52,7 @@ export function ModeCards(props: { project: Project; plan: Plan; steps: readonly
             <Text>{buildingText(summary)}</Text>
             <Cluster>
               <ButtonLink href={href({ screen: 'build', id: project.id })}>
-                {steps.done === 0
+                {!building(summary)
                   ? 'Start building'
                   : summary.nextStep
                     ? 'Resume'
@@ -71,15 +75,16 @@ export function resumeTarget(project: ProjectSummary) {
   const { progress } = project;
   if (project.status !== 'in-progress' || !progress) return null;
   const { shopping, steps, nextStep } = progress;
-  const building = steps.done > 0 || shopping.done === shopping.total;
-  if (building && nextStep) {
+  // Building has started once a step is done or a piece is cut (#135), or the shopping is done.
+  const inBuilding = building(progress) || shopping.done === shopping.total;
+  if (inBuilding && nextStep) {
     return {
       mode: 'building' as const,
       href: href({ screen: 'build-step', id: project.id, step: nextStep.id }),
       text: `Step ${nextStep.number} of ${steps.total}: ${nextStep.title}.`,
     };
   }
-  if (!building) {
+  if (!inBuilding) {
     return {
       mode: 'shopping' as const,
       href: href({ screen: 'shop', id: project.id }),

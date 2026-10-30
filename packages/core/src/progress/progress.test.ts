@@ -57,6 +57,10 @@ describe('summarizeProgress', () => {
       { description: 'Bolts', quantity: 2 },
       { description: 'Nuts', quantity: 4 },
     ],
+    cutList: [
+      { partId: 'post', quantity: 2 },
+      { partId: 'rail', quantity: 1 },
+    ],
   } as unknown as Parameters<typeof summarizeProgress>[0];
   const steps = [
     { id: 'a', title: 'Cut' },
@@ -71,9 +75,12 @@ describe('summarizeProgress', () => {
         { kind: 'step', key: 'a' },
         { kind: 'step', key: 'c' },
         { kind: 'board', key: 'b' },
+        { kind: 'part', key: 'post/1' },
       ]),
     ).toEqual({
       shopping: { done: 1, total: 3 },
+      // Each part's pieces, by quantity: post/0, post/1, rail/0.
+      pieces: { done: 1, total: 3 },
       steps: { done: 2, total: 3 },
       nextStep: { id: 'b', number: 2, title: 'Drill' },
     });

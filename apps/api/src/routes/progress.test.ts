@@ -230,13 +230,16 @@ describe('project progress', () => {
       done('shopping-line', 'hardware/Swing hangers'),
       done('step', 'board-1'),
       done('step', 'board-2'),
+      done('part', 'leg-front/0'),
     ]);
     const list = (await (await authed('/api/projects')).json()) as Json;
     const [project] = list.projects;
     expect(project).not.toHaveProperty('snapshot');
-    // The worked example: 4 lumber and 7 hardware lines, 7 board steps and 4 more.
+    // The worked example: 4 lumber and 7 hardware lines; 9 pieces (a beam and two each of back
+    // legs, front legs, crossbars, and gussets); 7 board steps and 4 more.
     expect(project.progress).toEqual({
       shopping: { done: 2, total: 11 },
+      pieces: { done: 1, total: 9 },
       steps: { done: 2, total: 11 },
       nextStep: {
         id: 'board-3',
