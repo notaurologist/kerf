@@ -187,6 +187,11 @@ export const HardwareItem = z.object({
   /** True when the item carries load and its size was confirmed with an experienced builder. */
   structural: z.boolean(),
   notes: z.array(z.string()),
+  /**
+   * Where it is found in a store, such as "Bolts and fittings" (#59): the template's words, shown
+   * as a heading on the store checklist. Absent in plans made before it; those show one group.
+   */
+  group: z.string().optional(),
 });
 export type HardwareItem = z.infer<typeof HardwareItem>;
 

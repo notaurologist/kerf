@@ -6,6 +6,13 @@ import type { SwingSetParams } from './params.ts';
 // Hardware (docs/templates/swing-set-a-frame.md, Hardware). Sizes and counts are inputs; this
 // computes quantities and grips only.
 
+/** Where each item is found in a store (#59), in the order the checklist shows them. */
+const GROUPS = {
+  bolts: 'Bolts and fittings',
+  swing: 'Swing hardware',
+  anchors: 'Ground anchors',
+} as const;
+
 const FRAMES = 2;
 /** Each frame has two legs, and the crossbar and the gusset each meet both. */
 const JOINTS = 4;
@@ -45,9 +52,11 @@ function bolts(
     // CPSC Pub. 324, p. 3: a washer at each end, a locking nut, and a cap on the exposed end.
     bolt: { diameter, grip, washers: 2, nut: 'locking', cap: true },
     structural: true,
+    // Worded as #68's audit asked (docs/design/words.html): the length after its subject.
     notes: [
-      `${formatLength(diameter)} through-bolt, at least ${formatLength(grip)} plus two washers and a locking nut long, ending no more than ${formatLength(diameter)} past the nut.`,
+      `${formatLength(diameter)} through-bolt. Length: at least ${formatLength(grip)} plus two washers and a locking nut, and no more than ${formatLength(diameter)} past the nut.`,
     ],
+    group: GROUPS.bolts,
   };
 }
 
@@ -88,6 +97,7 @@ export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry):
       quantity: 4,
       structural: true,
       notes: ['Rated for swing use. The rating is checked in the structural review.'],
+      group: GROUPS.swing,
     },
     {
       id: 'swing-seats',
@@ -97,6 +107,7 @@ export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry):
       notes: [
         `Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to ${formatLength(p.beamHeight - p.swings.seatHeight)} from pivot to seat, less the hanger's drop.`,
       ],
+      group: GROUPS.swing,
     },
   );
   if (p.burialDepth === 0 && h.anchorsPerFoot) {
@@ -106,6 +117,7 @@ export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry):
       quantity: FEET * h.anchorsPerFoot,
       structural: true,
       notes: ['Bury or cover the anchors (CPSC Pub. 324, p. 4).'],
+      group: GROUPS.anchors,
     });
   }
   return items;

@@ -1,4 +1,4 @@
-import { formatLength, shoppingLines, summarizeProgress } from '@kerf/core';
+import { formatLength, type ShoppingGroup, shoppingGroups, summarizeProgress } from '@kerf/core';
 import { type ReactNode, useEffect } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { readDrawings, readPlan, readSteps } from '../../lib/plan.ts';
@@ -87,44 +87,48 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
   const summary = summarizeProgress(plan.plan, steps, ticks.ticked());
 
   if (route.screen === 'shop') {
-    const lines = shoppingLines(plan.plan);
-    const lumber = lines.filter((l) => 'nominal' in l.line);
-    const hardware = lines.filter((l) => !('nominal' in l.line));
     const lineTick = (key: string) => ({ kind: 'shopping-line' as const, key });
-    const list = (group: typeof lines) => (
-      <PlainList>
-        {group.map(({ key, line }) => (
-          <li key={key}>
-            <Tick
-              done={ticks.isDone(lineTick(key))}
-              waiting={ticks.isWaiting(lineTick(key))}
-              onChange={(done) => ticks.set(lineTick(key), done)}
-            >
-              {'nominal' in line ? (
-                <>
-                  <b>{line.count}</b> × {line.nominal},{' '}
-                  <Measured text={formatLength(line.feet * 12, 'feet-inches')} />
-                </>
-              ) : (
-                <>
-                  <b>{line.quantity}</b> × <Measured text={line.description} />
-                </>
-              )}
-            </Tick>
-          </li>
-        ))}
-      </PlainList>
-    );
+    const bought = (lines: ShoppingGroup['lines']) =>
+      lines.filter((l) => ticks.isDone(lineTick(l.key))).length;
+    // The store checklist (#59): lumber, then the hardware groups, each with its own count.
     return frame(
       <>
         <h1>Shopping list</h1>
         <Text>
           {summary.shopping.done} of {summary.shopping.total} bought.
         </Text>
-        <h2>Lumber</h2>
-        {list(lumber)}
-        <h2>Hardware</h2>
-        {list(hardware)}
+        {shoppingGroups(plan.plan).map((group) => (
+          <Stack key={group.title} gap="xs">
+            <Cluster spread>
+              <h2>{group.title}</h2>
+              <Text>
+                {bought(group.lines)} of {group.lines.length}
+              </Text>
+            </Cluster>
+            <PlainList>
+              {group.lines.map(({ key, line }) => (
+                <li key={key}>
+                  <Tick
+                    done={ticks.isDone(lineTick(key))}
+                    waiting={ticks.isWaiting(lineTick(key))}
+                    onChange={(done) => ticks.set(lineTick(key), done)}
+                  >
+                    {'nominal' in line ? (
+                      <>
+                        <b>{line.count}</b> × {line.nominal},{' '}
+                        <Measured text={formatLength(line.feet * 12, 'feet-inches')} />
+                      </>
+                    ) : (
+                      <>
+                        <b>{line.quantity}</b> × <Measured text={line.description} />
+                      </>
+                    )}
+                  </Tick>
+                </li>
+              ))}
+            </PlainList>
+          </Stack>
+        ))}
       </>,
     );
   }

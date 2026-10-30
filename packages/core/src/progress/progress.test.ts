@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { boardIds } from '../outputs/shoppingList.ts';
-import { type ProgressItem, progressToReset, summarizeProgress } from './progress.ts';
+import {
+  type ProgressItem,
+  progressToReset,
+  shoppingGroups,
+  summarizeProgress,
+} from './progress.ts';
 
 describe('boardIds', () => {
   it('numbers each board within its line, so boards of other sizes do not shift it', () => {
@@ -77,5 +82,30 @@ describe('summarizeProgress', () => {
   it('has no next step when every step is done', () => {
     const ticked = steps.map((s) => ({ kind: 'step' as const, key: s.id }));
     expect(summarizeProgress(plan, steps, ticked).nextStep).toBeNull();
+  });
+});
+
+describe('shoppingGroups', () => {
+  it('puts lumber first, then each hardware group in the order its first line comes', () => {
+    const plan = {
+      lumber: {
+        lines: [
+          { nominal: '4x4' as const, feet: 12, count: 4 },
+          { nominal: '2x6' as const, feet: 10, count: 1 },
+        ],
+      },
+      hardware: [
+        { description: 'Bolts', quantity: 4, group: 'Bolts and fittings' },
+        { description: 'Hangers', quantity: 4, group: 'Swing hardware' },
+        { description: 'Washers', quantity: 8, group: 'Bolts and fittings' },
+        { description: 'Rope', quantity: 1 },
+      ],
+    } as unknown as Parameters<typeof shoppingGroups>[0];
+    expect(shoppingGroups(plan).map((g) => [g.title, g.lines.map((l) => l.key)])).toEqual([
+      ['Lumber', ['lumber/4x4/12', 'lumber/2x6/10']],
+      ['Bolts and fittings', ['hardware/Bolts', 'hardware/Washers']],
+      ['Swing hardware', ['hardware/Hangers']],
+      ['Hardware', ['hardware/Rope']],
+    ]);
   });
 });

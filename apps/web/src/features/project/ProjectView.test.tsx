@@ -1,4 +1,9 @@
-import { createSnapshot, findTemplate, type TemplateDefinition } from '@kerf/core';
+import {
+  createSnapshot,
+  findTemplate,
+  type HardwareLine,
+  type TemplateDefinition,
+} from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { setFlash } from '../../lib/flash.ts';
 import { readPlan } from '../../lib/plan.ts';
@@ -61,6 +66,29 @@ describe('ProjectView, from a stored snapshot', () => {
     expect(lists).toContain('138-3/8"');
     expect(lists.match(/\d+\.\d+(?!°)/g) ?? []).toEqual([]);
     expect(lists.match(/\d+\.\d{2,}°/g) ?? []).toEqual([]);
+  });
+});
+
+describe('the plan’s hardware list', () => {
+  const hardware: HardwareLine[] = [
+    { description: 'Bolts', quantity: 4, group: 'Bolts and fittings' },
+    { description: 'Hangers', quantity: 4, group: 'Swing hardware' },
+    { description: 'Washers', quantity: 8, group: 'Bolts and fittings' },
+  ];
+  const plan = readPlan(projectFrom(workedExample));
+  if (!plan.ok) throw new Error(plan.message);
+  const list = (h: HardwareLine[]) =>
+    renderText(<ShoppingList lumber={plan.plan.lumber} hardware={h} hardwareNotes={[]} />);
+
+  it('is split by store group, in the order each group first comes (#59)', () => {
+    const text = list(hardware);
+    expect(text).toMatch(/Bolts and fittings .*Bolts 4 .*Washers 8 .*Swing hardware .*Hangers 4/);
+  });
+
+  it('has no group headings for a plan made before groups', () => {
+    const text = list(hardware.map(({ description, quantity }) => ({ description, quantity })));
+    expect(text).not.toContain('Bolts and fittings');
+    expect(text).toMatch(/Bolts 4 .*Hangers 4 .*Washers 8/);
   });
 });
 

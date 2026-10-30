@@ -11,6 +11,7 @@ import v6 from './snapshots/v6.json' with { type: 'json' };
 import v8 from './snapshots/v8.json' with { type: 'json' };
 import v9 from './snapshots/v9.json' with { type: 'json' };
 import v10 from './snapshots/v10.json' with { type: 'json' };
+import v11 from './snapshots/v11.json' with { type: 'json' };
 
 // What each template version changed for the worked examples, as the owner sees it in the version
 // report (decision 0008).
@@ -58,13 +59,22 @@ const VERSION_10 = [
   /^design\.flags\[\d+\]\.(partIds|hardwareIds)$/,
   /^structuralReview\.checklist\[\d+\]\.(partIds|hardwareIds)$/,
 ];
+/**
+ * Version 12's changes (#59): each hardware item's and shopping line's store group, and each
+ * bolt's note reworded as #68's audit asked.
+ */
+const VERSION_12 = [/^design\.hardware\[\d+\]\.(group|notes\[0\])$/, /^hardware\[\d+\]\.group$/];
 const notVersion6 = (c: { path: string }) =>
-  ![...VERSION_6, ...VERSION_7, ...VERSION_9, ...VERSION_10].some((r) => r.test(c.path));
+  ![...VERSION_6, ...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12].some((r) =>
+    r.test(c.path),
+  );
 const notVersion7 = (c: { path: string }) =>
-  ![...VERSION_7, ...VERSION_9, ...VERSION_10].some((r) => r.test(c.path));
+  ![...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12].some((r) => r.test(c.path));
 const notVersion9 = (c: { path: string }) =>
-  ![...VERSION_9, ...VERSION_10].some((r) => r.test(c.path));
-const notVersion10 = (c: { path: string }) => !VERSION_10.some((r) => r.test(c.path));
+  ![...VERSION_9, ...VERSION_10, ...VERSION_12].some((r) => r.test(c.path));
+const notVersion10 = (c: { path: string }) =>
+  ![...VERSION_10, ...VERSION_12].some((r) => r.test(c.path));
+const notVersion12 = (c: { path: string }) => !VERSION_12.some((r) => r.test(c.path));
 
 describe('swing-set template versions', () => {
   it('version 2 adds sources and bases to the structural working, and changes no number (#36)', () => {
@@ -244,7 +254,9 @@ describe('swing-set template versions', () => {
       const { changes } = report.regenerated;
       expect(changes.filter(notVersion10)).toEqual([]);
       expect(changes.length).toBeGreaterThan(0);
-      for (const change of changes) expect(change, change.path).not.toHaveProperty('before');
+      for (const change of changes.filter(notVersion12)) {
+        expect(change, change.path).not.toHaveProperty('before');
+      }
     }
   });
 
@@ -260,7 +272,37 @@ describe('swing-set template versions', () => {
       expect([lumber.kerf, lumber.trimPerEnd]).toEqual([0.125, 0.5]);
       const report = compareWithCurrent(template, read.snapshot);
       if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
-      expect(report.regenerated.changes).toEqual([]);
+      expect(report.regenerated.changes.filter(notVersion12)).toEqual([]);
+    }
+  });
+
+  // A plan read from shape 11 shows its hardware as one list; regenerating puts each item and line
+  // in its store group and rewords each bolt's note. No number changes.
+  it('version 12 groups the hardware for the store and rewords the bolt notes (#59)', () => {
+    for (const stored of v11) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(11);
+      const report = compareWithCurrent(template, read.snapshot);
+      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+      const { changes } = report.regenerated;
+      expect(changes.filter(notVersion12)).toEqual([]);
+      const groups = changes.filter((c) => c.path.endsWith('.group'));
+      expect(groups.length).toBeGreaterThan(0);
+      for (const change of groups) expect(change, change.path).not.toHaveProperty('before');
+      const notes = changes.filter((c) => c.path.endsWith('.notes[0]'));
+      expect(notes.length).toBeGreaterThan(0);
+      // The worked example's leg-to-beam bolt (spec, Hardware: grip 8.947).
+      if (stored === v11[0]) {
+        expect(notes[0]?.after).toBe(
+          '1/2" through-bolt. Length: at least 8-15/16" plus two washers and a locking nut, and no more than 1/2" past the nut.',
+        );
+      }
+      // Only the wording moves: the same numbers, in the same order.
+      for (const c of notes) {
+        const numbers = (text: unknown) => String(text).match(/[\d/-]+"/g);
+        expect(numbers(c.after), c.path).toEqual(numbers(c.before));
+      }
     }
   });
 });
