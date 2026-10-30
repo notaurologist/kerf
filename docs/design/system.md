@@ -63,7 +63,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | The length you cut to | `Glance` | 51 px bold: readable across the bench (#42). |
 | A part's letter | `PartLetter` | Core's letter in a dark square with eased corners, before the part's name, as the drawings show it (#66). Prints with its square. |
 | A saw setting | `SawSetting` | The setting boxed and larger, the angle to the edge smaller and labeled. |
-| A list of measurements | `MeasureTable` | A table from about 640 px of its own width, labeled rows below it. Put the name of each row in the first column. Mark number columns `numeric`; give shortened headers a `fullLabel`. |
+| A list of measurements | `MeasureTable` | A table from about 640 px of its own width, labeled rows below it. Put the name of each row in the first column, which keeps at least 8rem. Mark number columns `numeric`; give shortened headers a `fullLabel`. Give short values `width: 'fit'` (as narrow as the value; on one line from about 900 px of the table's width, and below that breaking only between whole lengths or readings) and long text `width: 'fill'` (shares what is left equally). `equalColumns` makes every column the same width, so separate tables with the same columns line up, such as Parameters and inputs. |
 | Working, sources, detail | `Disclosure` | Closed on screen, open in print. `size="small"` for a "Source" toggle. |
 | A raised item | `Card` | One check, one checklist entry, one project. |
 | Lists | `PlainList` (no bullets) or `List` | `items` takes core's sentences and makes each an item through `Measured`. |

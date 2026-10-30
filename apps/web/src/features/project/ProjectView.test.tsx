@@ -44,6 +44,26 @@ describe('ProjectView, from a stored snapshot', () => {
     );
   });
 
+  it('keeps the cut list’s short columns narrow and gives the rest to end cuts and marks (#158)', () => {
+    const html = render(<ProjectView project={projectFrom(workedExample)} />);
+    const header = (label: string) => new RegExp(`<th scope="col"[^>]*>(?:<span[^>]*>)?${label}<`);
+    const width = (label: string) =>
+      header(label)
+        .exec(html)?.[0]
+        .match(/data-width="(\w+)"/)?.[1];
+    expect(html).toMatch(header('Part'));
+    expect(width('Part')).toBeUndefined();
+    expect(width('Qty')).toBe('fit');
+    expect(width('Stock')).toBe('fit');
+    expect(width('Length')).toBe('fit');
+    expect(width('End cuts')).toBe('fill');
+    expect(width('Marks and notes')).toBe('fill');
+    // Stock breaks only between its nominal size and its actual size.
+    expect(html).toContain(
+      '<span class="k-length">4x6</span> <span class="k-length">(3-1/2&quot; x 5-1/2&quot;)</span>',
+    );
+  });
+
   it('shows the shopping list, with board lengths and pieces through formatLength', () => {
     expect(text).toContain(`4x4 12' 0" 4`);
     expect(text).toContain(`4x6 12' 0" 1`);

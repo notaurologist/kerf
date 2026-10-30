@@ -314,6 +314,41 @@ describe('MeasureTable', () => {
   it('labels each cell, so stacked rows on a phone still say what each value is', () => {
     expect(html).toContain('<td data-label="Length" data-numeric=""><div>120&quot;</div></td>');
   });
+
+  it('marks column widths on the header and every cell, and leaves the rest to the browser', () => {
+    const sized = render(
+      <MeasureTable
+        caption="Cut list"
+        rowKey={(r) => r.part}
+        rows={[{ part: 'Beam', length: '120"', ends: 'Square' }]}
+        columns={[
+          { key: 'part', label: 'Part', cell: (r) => r.part },
+          { key: 'length', label: 'Length', numeric: true, width: 'fit', cell: (r) => r.length },
+          { key: 'ends', label: 'End cuts', width: 'fill', cell: (r) => r.ends },
+        ]}
+      />,
+    );
+    expect(sized).toContain('<th scope="col">Part</th>');
+    expect(sized).toContain('<th scope="col" data-numeric="" data-width="fit">Length</th>');
+    expect(sized).toContain('<td data-label="Length" data-numeric="" data-width="fit">');
+    expect(sized).toContain('<th scope="col" data-width="fill">End cuts</th>');
+    expect(sized).toContain('<td data-label="End cuts" data-width="fill">');
+    expect(html).not.toContain('data-width');
+  });
+
+  it('gives every column the same width when asked, so separate tables line up', () => {
+    const equal = render(
+      <MeasureTable
+        caption="Frame"
+        equalColumns
+        rowKey={(r) => r.field}
+        rows={[{ field: 'Beam length' }]}
+        columns={[{ key: 'field', label: 'Field', cell: (r) => r.field }]}
+      />,
+    );
+    expect(equal).toContain('<table class="k-table" data-equal="">');
+    expect(html).toContain('<table class="k-table">');
+  });
 });
 
 describe('Disclosure', () => {

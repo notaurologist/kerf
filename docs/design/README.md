@@ -182,6 +182,15 @@ The popover's reading order follows the button, and VoiceOver waits for #87.
 
 Sources: Heydon Pickering, "Tooltips & Toggletips", Inclusive Components (2017), https://inclusive-components.design/tooltips-toggletips/. MDN, Popover API, read October 2026, https://developer.mozilla.org/en-US/docs/Web/API/Popover_API.
 
+### Table columns (#158)
+
+`MeasureTable` used the browser's automatic table layout, so the cut list's long End cuts and Marks and notes text took width from its short columns (Stock wrapped to three lines at 1280 px), and each Parameters and inputs table chose its own Field width, so As entered started at a different place in each.
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Cut list widths | A `width` on each column: `fit` for Qty, Stock, and Length, `fill` for End cuts and Marks and notes, Part left to the browser with an 8rem minimum (the stacked layout's label width). `fit` asks for 1% so the column takes its content's width; from 56rem of table width its value stays on one line, and below that Stock breaks only between its two readings (`Readings`), since a one-line Stock pushed the table past its container at 700 px. | A `<colgroup>` with lengths: a fixed width for Stock or Part would be wrong for other templates' stock and part names. CSS written for the cut list: screens write no styles, and the shopping list and checks have the same short-and-long mix. |
+| Parameters and inputs | Separate tables, each with `equalColumns` (`table-layout: fixed`), so Field and As entered are half the width each and As entered starts at the same place in every table. | One table with a `<tbody>` per section headed by `<th scope="rowgroup">`: lines up by construction, but loses the `h4` per section that screen-reader users move by, and the stacked layout would need a rule for the group row. |
+
 ### Device accessibility pass (#87)
 
 Run in parts. The first part needs no device and was run October 2026 in the in-app browser, against a local copy with the worked example (every input entered):
