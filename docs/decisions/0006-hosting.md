@@ -28,5 +28,5 @@ From each provider's own docs on that date:
 
 Not verified until the first deploy: cold start time with Neon waking, and how much active CPU and memory a request uses on Vercel.
 
-Backups: the free plan's restore window is 6 hours, which does not cover a mistake noticed days later. `PRODUCT.md` calls for backups from Postgres; a scheduled dump is a follow-up, not part of M3.
+Backups: the free plan's restore window is 6 hours, which does not cover a mistake noticed days later. `PRODUCT.md` calls for backups from Postgres; a scheduled dump is a follow-up, not part of M3. Update, October 30, 2026 (#21): the owner chose manual dumps for now (steps in `ARCHITECTURE.md`, Backups). Neon's scheduled snapshots need a paid plan, and a free scheduled dump from GitHub Actions would need an encrypted artifact (the repository is public) and a database secret outside Vercel.
 
