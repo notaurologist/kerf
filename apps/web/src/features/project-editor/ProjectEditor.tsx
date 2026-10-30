@@ -14,6 +14,7 @@ import { api, describeError, type FieldIssue, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { setFlash } from '../../lib/flash.ts';
 import { readPlan } from '../../lib/plan.ts';
+import { describeReset } from '../../lib/progress.ts';
 import { href, navigate } from '../../lib/route.ts';
 import type { Project } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
@@ -171,7 +172,8 @@ export function ProjectEditor(props: {
         );
     setSaving(false);
     if (result.ok) {
-      setFlash(project ? 'Saved.' : 'Created.');
+      const reset = 'progressReset' in result.value ? result.value.progressReset : undefined;
+      setFlash(project ? ['Saved.', describeReset(reset)].filter(Boolean).join(' ') : 'Created.');
       navigate({ screen: 'project', id: result.value.id });
       return;
     }

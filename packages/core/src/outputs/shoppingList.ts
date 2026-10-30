@@ -69,6 +69,26 @@ export const LumberPlan = z.object({
 });
 export type LumberPlan = z.infer<typeof LumberPlan>;
 
+/** A lumber line's key: its nominal size and length, such as "2x6/12" (#57). */
+export function lumberLineKey(line: Pick<ShoppingLine, 'nominal' | 'feet'>): string {
+  return `${line.nominal}/${line.feet}`;
+}
+
+/**
+ * An ID for each board, in the board plan's order: its line's key and which board of that line it
+ * is, from 1, such as "2x6/12/2" (#57). Boards of other sizes do not shift it, so saved progress on
+ * a board survives a change that adds or removes boards of another size.
+ */
+export function boardIds(boards: readonly Pick<PlannedBoard, 'nominal' | 'feet'>[]): string[] {
+  const seen = new Map<string, number>();
+  return boards.map((board) => {
+    const line = lumberLineKey(board);
+    const n = (seen.get(line) ?? 0) + 1;
+    seen.set(line, n);
+    return `${line}/${n}`;
+  });
+}
+
 /** Length a set of pieces uses on one board: trim at both ends, plus each piece and its kerf. */
 function used(pieces: readonly PlannedPiece[], options: BoardOptions): number {
   return (

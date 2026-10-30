@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { takeFlash } from '../../lib/flash.ts';
 import { readDrawings, readPlan, readSteps } from '../../lib/plan.ts';
+import { describeReset } from '../../lib/progress.ts';
 import { href } from '../../lib/route.ts';
 import { type Project, STATUS_LABELS } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
@@ -48,8 +49,9 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
   // The part selected in a drawing or the cut list (#39, Q3); selecting it again clears it.
   const [selected, setSelected] = useState<string | null>(null);
   const select = (partId: string) => setSelected((s) => (s === partId ? null : partId));
-  // "Saved." from the editor stays until the next action (#67), not a toast that disappears.
-  const [flash] = useState(takeFlash);
+  // "Saved." from the editor stays until the next action (#67), not a toast that disappears. A
+  // regenerate that clears ticks says so the same way (#57).
+  const [flash, setFlashLine] = useState(takeFlash);
   return (
     <Stack gap="l">
       <Stack gap="2xs">
@@ -61,7 +63,13 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
         </Text>
         {flash && <StatusLine>{flash}</StatusLine>}
       </Stack>
-      <VersionNotice project={project} onRegenerated={(p) => props.onChange?.(p)} />
+      <VersionNotice
+        project={project}
+        onRegenerated={(p) => {
+          setFlashLine(describeReset(p.progressReset));
+          props.onChange?.(p);
+        }}
+      />
       {!plan.ok ? (
         <Notice>{plan.message}</Notice>
       ) : (

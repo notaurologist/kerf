@@ -6,6 +6,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
@@ -80,6 +81,28 @@ export const projectHistory = pgTable(
     recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('project_history_project_id').on(t.projectId)],
+);
+
+export const PROGRESS_KINDS = ['shopping-line', 'board', 'part', 'step'] as const;
+
+// What has been ticked off in a project (#57): shopping lines, boards, parts' pieces, and build
+// steps, by the keys core gives them (progress/). A row means done; clearing a tick deletes it.
+// When a snapshot is saved, rows whose item is gone or has other numbers are deleted in the same
+// transaction. Every device reads the same rows.
+export const projectProgress = pgTable(
+  'project_progress',
+  {
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: PROGRESS_KINDS }).notNull(),
+    key: text('key').notNull(),
+    doneAt: timestamp('done_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.projectId, t.kind, t.key] }),
+    check('project_progress_kind', sql`${t.kind} in ('shopping-line', 'board', 'part', 'step')`),
+  ],
 );
 
 // Login sessions (decision 0007). The cookie holds a random token; only its SHA-256 hash is

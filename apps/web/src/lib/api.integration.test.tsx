@@ -6,6 +6,7 @@ import { PreviewPane, previewState } from '../features/project-editor/Preview.ts
 import { renderText } from '../test/render.tsx';
 import { createClient, send } from './api.ts';
 import { readPlan } from './plan.ts';
+import { describeReset } from './progress.ts';
 
 // The web client against the real API app on PGlite: the request shapes the screens send, the
 // session cookie, and the JSON content type the API requires on every state-changing request.
@@ -131,5 +132,52 @@ describe('the web client against the API', () => {
     const read = await send(client.api.projects[':id'].$get({ param: { id } }));
     if (!read.ok) throw new Error(JSON.stringify(read.error));
     expect(read.value.snapshot).toEqual(created.value.snapshot);
+  }, 30_000);
+
+  it('saves ticks, and says which a regenerating save cleared', async () => {
+    const { app } = await createTestApp();
+    const client = browser(app);
+    await send(client.api.login.$post({ json: { password: TEST_PASSWORD } }));
+    const created = await send(
+      client.api.projects.$post({
+        json: {
+          name: 'Backyard swing set',
+          templateId: base.id,
+          params: example.params,
+          structuralInputs: example.structuralInputs,
+        },
+      }),
+    );
+    if (!created.ok) throw new Error(JSON.stringify(created.error));
+    const id = created.value.id;
+
+    const ticked = await send(
+      client.api.projects[':id'].progress.$patch({
+        param: { id },
+        json: {
+          changes: [
+            { kind: 'board', key: '2x6/10/1', done: true },
+            { kind: 'step', key: 'site', done: true },
+          ],
+        },
+      }),
+    );
+    if (!ticked.ok) throw new Error(JSON.stringify(ticked.error));
+    expect(ticked.value.progress.map((p) => p.key)).toEqual(['2x6/10/1', 'site']);
+
+    // A higher crossbar changes its board; the site work stays (core's worked example).
+    const saved = await send(
+      client.api.projects[':id'].$put({
+        param: { id },
+        json: { params: { ...(example.params as object), crossbarHeight: 44 } },
+      }),
+    );
+    if (!saved.ok) throw new Error(JSON.stringify(saved.error));
+    expect(describeReset(saved.value.progressReset)).toBe(
+      '1 item marked done was reset because its numbers changed.',
+    );
+    const read = await send(client.api.projects[':id'].progress.$get({ param: { id } }));
+    if (!read.ok) throw new Error(JSON.stringify(read.error));
+    expect(read.value.progress.map((p) => p.key)).toEqual(['site']);
   }, 30_000);
 });
