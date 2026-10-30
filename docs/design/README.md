@@ -117,6 +117,16 @@ The owner chose square corners and a 1-unit line (October 2026).
 
 A 1-unit line is 0.83 px at 20 px: crisp on a 2x screen, slightly gray on a 1x monitor. No direction separates the drill/driver from the impact driver at small sizes; the name beside the icon does (NN/g). Whether Kerf's other icons and the app's corners follow is #148.
 
+### Device accessibility pass (#87)
+
+Run in parts. The first part needs no device and was run October 2026 in the in-app browser, against a local copy with the worked example (every input entered):
+
+| Check | Result |
+|---|---|
+| Reflow at 320 px (WCAG 1.4.10) | All of these fit with no sideways scrolling: the project list, the new project form, the editor, the plan with its disclosures closed, Shopping, every Building step and part detail, and the tool list. Drawings scroll within their own box, which 1.4.10 allows. One problem: with "Show the working" open on the beam check, the page is 335 px wide, because a stacked row with a long value ("170.2 in (170-3/16")") does not wrap. That is #152. The catalog's Shell sample is also 2 px too wide there (noted in #152). |
+| Reduced motion | With the preference reported as on (the page's `matchMedia` answer stubbed, since the pane cannot switch the setting), a contents link jumps straight to its section; with it off, the page scrolls smoothly. Either way focus moves to the section's heading. Turning the reset layer's rule on by hand stops the disclosure arrow's 0.15 s turn, so the rule outranks the component's transition. Not yet seen with the device's own setting. |
+| VoiceOver on an iPhone and on the Mac | Not yet run: it needs the owner's devices. |
+
 ### Guidance and the check against "Done when" (#81)
 
 How to use the system, including which component for which job, the tokens, the layers, and how to add a component, is in `system.md`. `ARCHITECTURE.md` describes where it lives and the rule that screens write no styles.
@@ -132,7 +142,7 @@ How to use the system, including which component for which job, the tokens, the 
 | Atkinson Hyperlegible Next and Mono self-hosted with the OFL license | Met (#78). |
 | Forms follow #67's entry standard and states; strings follow #68's guide | Met (#73, #80). The core hardware note changed with template version 12 (#59). |
 | Icons in one style at the diagram line weights | Met for the M4 screens (#79). Tool icons landed in #86 in a lighter, square-cornered style (see "Tool icons (#86)" above); whether the other icons follow is #148. |
-| Accessibility beyond contrast | Partly met: keyboard, focus, roles and names, and reflow at 360 px and 640 px are checked. VoiceOver, 320 px, and reduced motion in effect are #87. Text equivalents for diagrams are built into `DiagramFrame`; the diagrams themselves are M5. |
+| Accessibility beyond contrast | Partly met: keyboard, focus, roles and names, and reflow at 360 px and 640 px are checked. 320 px and reduced motion were checked in a browser (#87, one problem in #152); VoiceOver and the device's own reduced-motion setting are still #87. Text equivalents for diagrams are built into `DiagramFrame`; the diagrams themselves are M5. |
 | A catalog page showing every component in every state, light and dark | Met (#79): `#/catalog`. No screenshot tests (the owner chose no new test dependencies). |
 | The owner is proud of the key screens on a phone in the garage, on the laptop, and printed | Met: the owner reviewed the screens in production and signed off (October 2026). Anything found later becomes an issue; the written, repeatable garage check follows in #69. |
 
