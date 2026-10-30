@@ -1,6 +1,14 @@
 import type { Inventory } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { addTool, emptyInventory, fromInventory, toInventory } from './draft.ts';
+import {
+  addTool,
+  detailsNeeded,
+  emptyInventory,
+  fromInventory,
+  matchingTypes,
+  removeTool,
+  toInventory,
+} from './draft.ts';
 
 describe('inventory drafts', () => {
   const inventory: Inventory = {
@@ -62,6 +70,28 @@ describe('inventory drafts', () => {
         { field: 'tools.2.capabilities.count', message: 'Enter a whole number.' },
       ],
     });
+  });
+
+  it('removes a tool and leaves the rest in place', () => {
+    const draft = fromInventory(inventory);
+    expect(removeTool(draft, 'circular-saw').tools.map((t) => t.toolTypeId)).toEqual(['miter-saw']);
+  });
+
+  it('finds library tools by any part of the name, ignoring case', () => {
+    expect(matchingTypes('SAW').map((t) => t.id)).toEqual([
+      'circular-saw',
+      'miter-saw',
+      'hand-saw',
+      'jigsaw',
+    ]);
+    expect(matchingTypes('  ').length).toBeGreaterThan(20);
+    expect(matchingTypes('router')).toEqual([]);
+  });
+
+  it('counts the details not entered yet', () => {
+    const draft = fromInventory(inventory);
+    expect(draft.tools.map(detailsNeeded)).toEqual([0, 2]);
+    expect(detailsNeeded({ toolTypeId: 'tape-measure', values: {} })).toBe(0);
   });
 
   it('trims other tools and asks for a name', () => {
