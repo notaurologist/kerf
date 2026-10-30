@@ -44,12 +44,15 @@ export type PartRef = z.infer<typeof PartRef>;
 const part = { part: PartRef.optional() };
 
 export const Primitive = z.discriminatedUnion('kind', [
-  /** An open polyline. Dimension lines carry arrowheads at both ends. */
+  /**
+   * An open polyline. Dimension lines carry arrowheads at both ends (`true`); a motion arrow in an
+   * action drawing at its last point only (`'end'`).
+   */
   z.object({
     kind: z.literal('line'),
     role: LineRole,
     points: z.array(Point2).min(2),
-    arrows: z.boolean().optional(),
+    arrows: z.union([z.boolean(), z.literal('end')]).optional(),
     ...part,
   }),
   /**
@@ -117,6 +120,11 @@ export const Drawing = z.object({
   primitives: z.array(Primitive),
   /** Shown under the drawing, such as the clearance sources. */
   notes: z.array(z.string()),
+  /**
+   * Parts drawn tinted and outlined heavily, as a selected part is: in an action drawing, what
+   * the step adds (#118; Stage 5, "Drawings in Building mode").
+   */
+  emphasis: z.array(z.string()).optional(),
 });
 export type Drawing = z.infer<typeof Drawing>;
 

@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import type { Drawings } from '../geometry/index.ts';
+import type { Drawings, Explode, Isometric, Scene } from '../geometry/index.ts';
 import type { Plan } from '../outputs/plan.ts';
 import type { StepOutline } from '../steps/build.ts';
 import type { TemplateForm } from './form.ts';
@@ -32,6 +32,12 @@ export interface TemplateDefinition<Params = unknown, Inputs = unknown, Outputs 
    * so they are not stored and a plan's drawings show the numbers it was made with.
    */
   drawings(outputs: Outputs): Drawings;
+  /**
+   * What the 3D views are drawn from, as data: the scene, the viewpoint, and how parts are pulled
+   * apart. Generic code draws each assembly step's action drawing from it (#118). Null for a plan
+   * made before placements, which has no 3D views.
+   */
+  assembly(outputs: Outputs): { scene: Scene; view: Isometric; explode: Explode[] } | null;
   /**
    * The order of the build steps (#105), as groups of the plan's operation IDs. Like drawings, made
    * from stored outputs on read; generic code chooses each operation's method from the inventory.

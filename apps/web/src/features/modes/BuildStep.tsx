@@ -59,6 +59,19 @@ function Position(props: { number: number; total: number; step: BuildStep; links
   );
 }
 
+/**
+ * The drawing a step sits beside: a cutting step's board, an assembly step's action drawing, or
+ * the site layout for site work. Other steps have none.
+ */
+function drawingFor(step: BuildStep, drawings: geometry.Drawings | null) {
+  if (!drawings) return undefined;
+  if (step.board) return drawings.boards?.[step.board.number - 1];
+  const action = drawings.steps?.find((s) => s.stepId === step.id)?.drawing;
+  if (action) return action;
+  const onSite = step.operations.some((o) => o.partIds.length === 0);
+  return onSite ? (drawings.siteLayout ?? undefined) : undefined;
+}
+
 /** The step and, on a wide screen, its drawing beside it. */
 function BesideDrawing(props: {
   children: ReactNode;
@@ -97,7 +110,7 @@ export function StepScreen(props: {
   const previous = steps[at - 1];
   const next = steps[at + 1];
   const nextHref = next ? links.step(next.id) : links.steps;
-  const drawing = step.board ? props.drawings?.boards?.[step.board.number - 1] : undefined;
+  const drawing = drawingFor(step, props.drawings);
   return (
     <>
       <Position number={at + 1} total={steps.length} step={step} links={links} />

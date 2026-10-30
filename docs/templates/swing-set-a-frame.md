@@ -288,6 +288,7 @@ The drawings (#90) are drawn from the stored outputs; no number in them is new.
 - **Exploded view:** the beam pulled up 30, each crossbar and gusset pulled 24 outward along the beam (−x for the left frame, +x for the right), each with a guideline from where it goes. The legs stay.
 - **Cut details:** one per part, from its cut-list data, holes, and taper.
 - **Site layout:** the clear area and swing zones as zones with their CPSC sources, the frame footprint as an outline, the beam, and the seats.
+- **Action drawings** (Building mode, #118): one per assembly step, from the same view and the exploded view's pulls. "Bolt the crossbars and gussets across the legs" adds the legs in place and the crossbars and gussets pulled 24 outward, each with an arrow back to where it goes. "Bolt the legs to the beam" adds the beam pulled up 30 with an arrow down to it, on the frames already built. The chains and seats are left out until the beam is up. Hand check: the beam's 30 pull moves it 30 · 2/√6 = 24.495 up the page; a crossbar's 24 pull toward −x moves it 24/√2 = 16.971 left and 24/√6 = 9.798 down.
 
 Hand check, worked example: the beam's top front corner at its left end, (0, −1.75, 101.5), projects to page (1.75/√2, −(−1.75 + 2·101.5)/√6) = (1.237, −82.160), with page y down.
 
