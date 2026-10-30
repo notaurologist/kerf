@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render } from '../test/render.tsx';
-import { Measured } from './numbers.tsx';
+import { Measured, Readings } from './numbers.tsx';
 
 describe('Measured', () => {
   it('keeps each length and angle on one line, leaving the text as it was', () => {
@@ -16,5 +16,16 @@ describe('Measured', () => {
         .replace(/&quot;/g, '"')
         .replace(/&#x27;/g, "'"),
     ).toBe(text);
+  });
+});
+
+describe('Readings', () => {
+  it('keeps each reading on one line, with a space to break at between them', () => {
+    expect(render(<Readings text={`170.2 in (170-3/16")`} />)).toBe(
+      '<span class="k-length">170.2 in</span> <span class="k-length">(170-3/16&quot;)</span>',
+    );
+    expect(render(<Readings text="16,214 lb·in" />)).toBe(
+      '<span class="k-length">16,214 lb·in</span>',
+    );
   });
 });

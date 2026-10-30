@@ -6,11 +6,11 @@ import {
   Code,
   Disclosure,
   FlagList,
-  Length,
   List,
   Measured,
   MeasureTable,
   PlainList,
+  Readings,
   Stack,
   Text,
 } from '../../ui/index.ts';
@@ -118,7 +118,7 @@ function Check(props: { check: CheckResult; projectId: string }) {
 }
 
 function Value(props: { q: Pick<Quantity, 'value' | 'unit'> }) {
-  return <Length>{formatQuantity(props.q)}</Length>;
+  return <Readings text={formatQuantity(props.q)} />;
 }
 
 function Working(props: { check: Extract<CheckResult, { status: 'computed' }> }) {
