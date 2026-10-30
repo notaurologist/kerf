@@ -1,4 +1,4 @@
-import { findTemplate, geometry, type Plan } from '@kerf/core';
+import { BuildSteps, findTemplate, geometry, type Plan } from '@kerf/core';
 import type { Project } from './types.ts';
 
 // A stored project's outputs as a Plan, parsed with its template's schema (hard rule 8). The
@@ -33,5 +33,14 @@ export function planOf(templateId: string, outputs: unknown): PlanResult {
  */
 export function readDrawings(project: Project): geometry.Drawings | null {
   const parsed = geometry.Drawings.safeParse(project.drawings);
+  return parsed.success ? parsed.data : null;
+}
+
+/**
+ * The plan's build steps from the API (#52), parsed with core's schema (hard rule 8): chosen from
+ * the tool inventory the key names. Null when the API sent none.
+ */
+export function readSteps(project: Project): BuildSteps | null {
+  const parsed = BuildSteps.safeParse(project.steps);
   return parsed.success ? parsed.data : null;
 }

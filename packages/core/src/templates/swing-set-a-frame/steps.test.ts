@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Inventory } from '../../inventory/tools.ts';
-import { type BuildStep, buildSteps } from '../../steps/build.ts';
-import { describeChoice } from '../../steps/select.ts';
+import { BuildStep, buildSteps } from '../../steps/build.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 
@@ -148,7 +147,7 @@ describe('swing-set build steps (#105)', () => {
       ['bolt-holes-auger-both-sides', ['easier', 'more accurate']],
     ]);
     // Spade bits that reach 8.947 (8-15/16" to the sixteenth).
-    const longer = op?.suggestions[1]?.gaps.flatMap((g) => g.anyOf.map(describeChoice));
+    const longer = op?.suggestions[1]?.gaps.flatMap((g) => g.anyOf);
     expect(longer).toEqual([
       'Spade bits with deepest hole from one side at least 8-15/16" (you entered 6")',
     ]);
@@ -164,6 +163,12 @@ describe('swing-set build steps (#105)', () => {
     expect(technique('crossbar/end-0')).toContain(
       'On the opposite edge, measure 2" from that square line toward the rest of the part and mark the short point.',
     );
+  });
+
+  it('parses with its schema, as the API sends it', () => {
+    for (const step of steps(circularSawKit)) {
+      expect(BuildStep.safeParse(JSON.parse(JSON.stringify(step))).error, step.id).toBeUndefined();
+    }
   });
 
   it('with no tools, gives every operation a step that names the tools it needs', () => {

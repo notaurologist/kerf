@@ -1,4 +1,12 @@
-import { createSnapshot, swingSetAFrame, TEMPLATES, type TemplateDefinition } from '@kerf/core';
+import {
+  BuildSteps,
+  createSnapshot,
+  type Inventory,
+  inventoryKey,
+  swingSetAFrame,
+  TEMPLATES,
+  type TemplateDefinition,
+} from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { createTestApp } from '../../test/app.ts';
@@ -103,6 +111,44 @@ describe('GET /api/projects/:id drawings', () => {
     expect(project.drawings).toEqual(JSON.parse(JSON.stringify(expected)));
     expect(project.drawings.isometric.title).toBe('Isometric view');
     expect(project.drawings.cutDetails).toHaveLength(project.snapshot.outputs.cutList.length);
+  });
+});
+
+describe('GET /api/projects/:id build steps (#52)', () => {
+  it('returns every build step in the project response, chosen from the current inventory', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const read = async () => (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
+
+    // No tools yet: every operation has a step, and none has a method.
+    const before = await read();
+    const empty = { tools: [], other: [] };
+    expect(BuildSteps.parse(before.steps).inventoryKey).toBe(inventoryKey(empty));
+    const operations = before.snapshot.outputs.design.operations;
+    const stepped = before.steps.steps.flatMap((s: Json) => s.operations);
+    expect(stepped.map((o: Json) => o.operation.id).sort()).toEqual(
+      operations.map((o: Json) => o.id).sort(),
+    );
+    expect(stepped.every((o: Json) => o.method === undefined && o.needed)).toBe(true);
+
+    // With a miter saw that cuts a 4x6, the beam's ends get the miter-saw method, and the key
+    // names the new inventory.
+    const tools: Inventory = {
+      tools: [
+        { toolTypeId: 'miter-saw', capabilities: { cutDepth: 4, crosscutWidth: 12 } },
+        { toolTypeId: 'tape-measure', capabilities: {} },
+      ],
+      other: [],
+    };
+    expect((await authed('/api/tools', { method: 'PUT', body: tools })).status).toBe(200);
+    const after = await read();
+    expect(after.steps.inventoryKey).toBe(inventoryKey(tools));
+    expect(after.steps.inventoryKey).not.toBe(before.steps.inventoryKey);
+    const beam = after.steps.steps.find((s: Json) => s.id === 'cut-beam');
+    expect(beam.operations.map((o: Json) => o.method?.id)).toEqual([
+      'crosscut-miter-saw',
+      'crosscut-miter-saw',
+    ]);
   });
 });
 

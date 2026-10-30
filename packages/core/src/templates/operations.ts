@@ -145,3 +145,14 @@ export function cutAndDrillOperations(
   }
   return ops;
 }
+
+/** Each operation type's name, in sentence case, for displays. */
+export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
+  crosscut: 'Square crosscut',
+  miter: 'Miter',
+  taper: 'Taper',
+  'bolt-holes': 'Bolt holes',
+  'ease-edges': 'Ease edges',
+  'dig-holes': 'Dig holes',
+  'level-pads': 'Level pads',
+};

@@ -2,7 +2,7 @@ import { findTemplate } from '@kerf/core';
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { takeFlash } from '../../lib/flash.ts';
-import { readDrawings, readPlan } from '../../lib/plan.ts';
+import { readDrawings, readPlan, readSteps } from '../../lib/plan.ts';
 import { href } from '../../lib/route.ts';
 import { type Project, STATUS_LABELS } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
@@ -16,6 +16,7 @@ import {
   StatusLine,
   Text,
 } from '../../ui/index.ts';
+import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { Diagrams } from '../diagrams/Diagrams.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
@@ -41,6 +42,9 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
   const template = findTemplate(project.templateId);
   const plan = readPlan(project);
   const drawings = readDrawings(project);
+  const steps = readSteps(project);
+  // Plans made before operations (template version 8) have no build steps.
+  const hasSteps = steps !== null && steps.steps.length > 0;
   // The part selected in a drawing or the cut list (#39, Q3); selecting it again clears it.
   const [selected, setSelected] = useState<string | null>(null);
   const select = (partId: string) => setSelected((s) => (s === partId ? null : partId));
@@ -64,7 +68,7 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
         <>
           <nav aria-label="Sections">
             <Cluster>
-              {SECTIONS.map((s) => (
+              {SECTIONS.filter((s) => hasSteps || s.id !== 'build-steps').map((s) => (
                 <Button key={s.id} variant="link" onClick={() => jump(s.id)}>
                   {s.title}
                 </Button>
@@ -106,6 +110,14 @@ export function ProjectView(props: { project: Project; onChange?: (project: Proj
               hardwareNotes={plan.plan.hardwareNotes}
             />
           </PlanSection>
+          {hasSteps && (
+            <PlanSection id="build-steps" title="Build steps" project={project.name}>
+              <Text tone="muted">
+                Methods are chosen from the tools in your tool list. Change the list to change them.
+              </Text>
+              <BuildSteps steps={steps?.steps ?? []} rows={plan.plan.cutList} />
+            </PlanSection>
+          )}
         </>
       )}
       <DeleteProject id={project.id} name={project.name} />
@@ -118,6 +130,7 @@ const SECTIONS = [
   { id: 'structural-review', title: 'Structural review' },
   { id: 'cut-list', title: 'Cut list' },
   { id: 'shopping-list', title: 'Shopping list' },
+  { id: 'build-steps', title: 'Build steps' },
 ];
 
 /** Scrolls to a section. The hash picks the screen, so in-page jumps cannot use it. */

@@ -1,4 +1,4 @@
-import { findTemplate, readSnapshot, TEMPLATES } from '@kerf/core';
+import { findTemplate, type Inventory, planSteps, readSnapshot, TEMPLATES } from '@kerf/core';
 import fixtures from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v1.json';
 import type { Project } from '../lib/types.ts';
 
@@ -29,6 +29,8 @@ export function projectFrom(
     version: { status: 'current', version: 1 },
     // As the API sends them: drawn by core from the stored snapshot.
     drawings: snapshot ? drawingsFor(snapshot) : null,
+    // As the API sends them: chosen from the inventory, here with no tools.
+    steps: snapshot ? stepsFor(snapshot, { tools: [], other: [] }) : null,
     ...overrides,
   } as Project;
 }
@@ -38,4 +40,14 @@ function drawingsFor(snapshot: NonNullable<Project['snapshot']>) {
   if (!template) return null;
   const outputs = template.outputs.safeParse(snapshot.outputs);
   return outputs.success ? JSON.parse(JSON.stringify(template.drawings(outputs.data))) : null;
+}
+
+/** Build steps as the API sends them: chosen by core from an inventory, through JSON. */
+export function stepsFor(snapshot: NonNullable<Project['snapshot']>, inventory: Inventory) {
+  const template = findTemplate(snapshot.templateId);
+  if (!template) return null;
+  const outputs = template.outputs.safeParse(snapshot.outputs);
+  return outputs.success
+    ? JSON.parse(JSON.stringify(planSteps(template, outputs.data, inventory)))
+    : null;
 }
