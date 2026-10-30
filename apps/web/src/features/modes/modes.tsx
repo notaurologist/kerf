@@ -8,25 +8,20 @@ import type { Project } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import { useWakeLock } from '../../lib/wakeLock.ts';
 import {
-  Button,
   ButtonLink,
   Cluster,
-  Diagram,
   Disclosure,
-  Glance,
   Loading,
   Measured,
   ModeFrame,
   Notice,
-  PartLetter,
   PlainList,
   Stack,
-  StatusLine,
   Text,
   Tick,
 } from '../../ui/index.ts';
-import { StepBody } from '../build-steps/BuildSteps.tsx';
 import { BoardCards } from './BoardCards.tsx';
+import { CutCard, StepScreen } from './BuildStep.tsx';
 
 // Shopping and Building (#61): full-screen modes launched from the plan, each under a bar with
 // the mode's name and Exit and no other navigation. A mode changes progress only, never the plan
@@ -212,90 +207,36 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
       </>,
     );
   }
-  const position = (
-    <Cluster spread>
-      <Text>
-        Step {at + 1} of {steps.length}
-      </Text>
-      <a href={stepsHref}>All steps</a>
-    </Cluster>
-  );
-
+  const links = {
+    steps: stepsHref,
+    step: stepHref,
+    piece: (stepId: string, part: string) =>
+      href({ screen: 'build-part', id: project.id, step: stepId, part }),
+  };
+  const drawings = readDrawings(project);
   if (route.screen === 'build-part') {
-    const row = plan.plan.cutList.find((r) => r.partId === route.part);
-    const detail = readDrawings(project)?.cutDetails.find((d) => d.partId === route.part);
     return frame(
-      <>
-        {position}
-        {row ? (
-          <Stack gap="s">
-            <h1>
-              <PartLetter>{row.letter}</PartLetter> {row.name}
-            </h1>
-            <Glance>{row.length}</Glance>
-            <Text>{row.stock}</Text>
-            <PlainList>
-              {row.ends.map((end, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: a part's two ends, in order.
-                <li key={i}>
-                  End {i + 1}: <Measured text={end} />
-                </li>
-              ))}
-            </PlainList>
-            {detail && <Diagram drawing={detail} minWidth={560} label={detail.description} />}
-          </Stack>
-        ) : (
-          <Notice>This plan has no part "{route.part}".</Notice>
-        )}
-        <ButtonLink variant="secondary" href={stepHref(step.id)}>
-          Back to the step
-        </ButtonLink>
-      </>,
+      <CutCard
+        step={step}
+        number={at + 1}
+        total={steps.length}
+        partId={route.part}
+        plan={plan.plan}
+        drawings={drawings}
+        ticks={ticks}
+        links={links}
+      />,
     );
   }
-
-  const tick = { kind: 'step' as const, key: step.id };
-  const done = ticks.isDone(tick);
-  const previous = steps[at - 1];
-  const next = steps[at + 1];
-  const nextHref = next ? stepHref(next.id) : stepsHref;
   return frame(
-    <>
-      {position}
-      <h1>{step.title}</h1>
-      <StepBody
-        step={step}
-        rows={plan.plan.cutList}
-        pieceHref={(part) => href({ screen: 'build-part', id: project.id, step: step.id, part })}
-      />
-      {done && (
-        <Cluster>
-          <StatusLine>Step done{ticks.isWaiting(tick) ? ', not sent yet' : ''}.</StatusLine>
-          <Button variant="link" onClick={() => ticks.set(tick, false)}>
-            Mark not done
-          </Button>
-        </Cluster>
-      )}
-      <Cluster>
-        {previous && (
-          <ButtonLink variant="secondary" href={stepHref(previous.id)}>
-            Back
-          </ButtonLink>
-        )}
-        {done ? (
-          <ButtonLink href={nextHref}>{next ? 'Next' : 'All steps'}</ButtonLink>
-        ) : (
-          <Button
-            onClick={() => {
-              ticks.set(tick, true);
-              window.location.hash = nextHref;
-            }}
-          >
-            {next ? 'Done, next' : 'Done'}
-          </Button>
-        )}
-      </Cluster>
-    </>,
+    <StepScreen
+      steps={steps}
+      at={at}
+      plan={plan.plan}
+      drawings={drawings}
+      ticks={ticks}
+      links={links}
+    />,
   );
 }
 

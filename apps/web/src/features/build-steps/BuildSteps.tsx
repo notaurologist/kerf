@@ -56,6 +56,8 @@ export function StepBody(props: {
   step: BuildStep;
   rows: readonly CutListRow[];
   pieceHref?: (partId: string) => string;
+  /** Leave the board's pieces out, for a screen that shows them its own way (#118). */
+  withoutBoard?: boolean;
 }) {
   const { step } = props;
   const parts = new Map(props.rows.map((r) => [r.partId, `${r.letter} ${r.name}`]));
@@ -63,18 +65,18 @@ export function StepBody(props: {
   const quantity = new Map(props.rows.map((r) => [r.partId, r.quantity]));
   return (
     <Stack gap="s">
-      {step.board ? (
-        <Board
-          board={step.board}
-          partName={partName}
-          quantity={quantity}
-          pieceHref={props.pieceHref}
-        />
-      ) : (
-        step.partIds.length > 0 && (
-          <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
-        )
-      )}
+      {step.board
+        ? !props.withoutBoard && (
+            <Board
+              board={step.board}
+              partName={partName}
+              quantity={quantity}
+              pieceHref={props.pieceHref}
+            />
+          )
+        : step.partIds.length > 0 && (
+            <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
+          )}
       {step.flags.length > 0 && (
         <PlainList>
           {step.flags.map((flag) => (

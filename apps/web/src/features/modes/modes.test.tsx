@@ -87,16 +87,40 @@ describe('board cards (#59)', () => {
 });
 
 describe('Building mode', () => {
-  it('shows one step with where you are, its pieces linked to their cut cards, and Done, next', () => {
-    const p = project();
+  it('shows a cutting step: its board drawn, trim and kerf, each piece at glance size (#118)', () => {
+    const p = project([{ kind: 'part', key: 'crossbar/0' }]);
     const route = { screen: 'build-step' as const, id: p.id, step: 'board-6' };
     const text = renderText(<ModeView route={route} project={p} />);
     const html = render(<ModeView route={route} project={p} />);
     expect(text).toContain('Building · Backyard swing set Exit');
-    expect(text).toContain('Step 6 of 11 All steps');
+    expect(text).toContain('Step 6 of 11 · Cutting All steps');
     expect(text).toContain("Cut board 6, a 2x6 10' long");
+    expect(text).toContain('Trim 1/2" off the factory end to square it');
+    expect(text).toContain('Each saw cut takes 1/8"');
+    // Both crossbars, each with its tick, its length to cut, and its cut card.
+    expect(text).toContain('D Crossbar, piece 1 of 2 cut 59" Cut card');
+    expect(text).toContain('D Crossbar, piece 2 of 2 cut 59" Cut card');
+    expect(html.match(/class="k-glance"/g)).toHaveLength(2);
+    expect(html.match(/checked=""/g)).toHaveLength(1);
     expect(html).toContain(`href="#/projects/${p.id}/build/board-6/crossbar"`);
+    // The board's drawing sits beside the step from the 8-column width.
+    expect(html).toContain('class="l-switcher"');
+    expect(html).toContain('A 2x6 board 10');
     expect(text).toContain('Back Done, next');
+  });
+
+  it('shows an assembly step with its methods and flags, and no board', () => {
+    const p = project();
+    const route = { screen: 'build-step' as const, id: p.id, step: 'frames' };
+    const text = renderText(<ModeView route={route} project={p} />);
+    const html = render(<ModeView route={route} project={p} />);
+    expect(text).toContain('Step 10 of 11 All steps');
+    expect(text).not.toContain('Cutting');
+    expect(text).not.toContain('Trim 1/2"');
+    // The bolted joints' expert checks (#51), on the step that drills for them.
+    expect(text).toContain('Expert check');
+    expect(text).toContain('Crossbar to leg, 2 1/2" bolts');
+    expect(html).not.toContain('class="k-glance"');
   });
 
   it('says a step is done and offers Next instead', () => {
@@ -121,17 +145,25 @@ describe('Building mode', () => {
     expect(html.match(/checked=""/g)).toHaveLength(2);
   });
 
-  it('opens a piece’s cut card: its length to cut, its ends, and its cut detail', () => {
-    const p = project();
+  it('opens a piece’s cut card: the length largest, each end as a saw setting (#118)', () => {
+    const p = project([{ kind: 'part', key: 'crossbar/1' }]);
     const route = { screen: 'build-part' as const, id: p.id, step: 'board-6', part: 'crossbar' };
     const text = renderText(<ModeView route={route} project={p} />);
-    const crossbar = (
-      snapshot.outputs as { cutList: { partId: string; length: string; ends: string[] }[] }
-    ).cutList.find((r) => r.partId === 'crossbar');
-    if (!crossbar) throw new Error('no crossbar');
-    expect(text).toContain(crossbar.length);
-    for (const end of crossbar.ends) expect(text).toContain(end);
-    expect(render(<ModeView route={route} project={p} />)).toContain('<svg');
+    const html = render(<ModeView route={route} project={p} />);
+    expect(text).toContain('Step 6 of 11 · Cutting All steps');
+    expect(text).toContain(
+      `D Crossbar 2x6 (1-1/2" x 5-1/2"). Cut 2. From board 6, a 2x6 10' 0" long.`,
+    );
+    expect(text).toContain('Length, long point to long point 59"');
+    // Each end: the saw setting boxed, the angle to the edge smaller (Stage 3, SawSetting).
+    expect(text.match(/End \d Saw at 20\.0° To the edge 70\.0°/g)).toHaveLength(2);
+    expect(text).toContain('The ends mirror each other.');
+    expect(text).toContain('Top edge: 55"');
+    expect(text).toContain('Bottom edge: 59"');
+    expect(text).toContain('Fastened to the outside face of the legs.');
+    expect(text).toContain('Piece 1 of 2 cut');
+    expect(html.match(/checked=""/g)).toHaveLength(1);
+    expect(html).toContain('<svg');
     expect(text).toContain('Back to the step');
   });
 
