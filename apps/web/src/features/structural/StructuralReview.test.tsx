@@ -34,6 +34,17 @@ describe('the structural review, worked example with every input', () => {
     );
   });
 
+  it('lets a long value break between its readings, so a stacked row fits at 320 px (#152)', () => {
+    const html = sectionOf(
+      render(<ProjectView project={projectFrom(complete)} />),
+      'structural-review',
+    );
+    expect(html).toContain(
+      '<span class="k-length">170.2 in</span> <span class="k-length">(170-3/16&quot;)</span>',
+    );
+    expect(html).not.toMatch(/class="k-length">[^<]* \(/);
+  });
+
   it('shows the checklist and the expert-check flags', () => {
     expect(review).toContain('Confirmation checklist');
     expect(review).toContain('Leg-to-beam bolt and gusset, each frame');

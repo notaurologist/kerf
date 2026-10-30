@@ -55,6 +55,7 @@ export {
   MarginLine,
   Measured,
   PartLetter,
+  Readings,
   SawSetting,
 } from './numbers.tsx';
 export { CheckStatus, FlagList } from './plan.tsx';

@@ -84,7 +84,7 @@
     --control-min: 2.75rem; /* 44 px */
     --content-max: 75rem; /* 1200 px */
     --measure: 68ch;
-    --radius: 4px;
+    --radius: 2px; /* Eased, as sandpaper eases an edge (#148). Tags use 1px. */
 
     /* Diagram lines (#44): screen widths in CSS px, never scaled with the drawing. */
     --line-visible: 1.3px;

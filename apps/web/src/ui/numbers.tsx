@@ -8,6 +8,20 @@ export function Length(props: { children: string }) {
   return <span className="k-length">{props.children}</span>;
 }
 
+/**
+ * A value core formatted with a second reading in parentheses, such as `92.5 in (92-1/2")`. Each
+ * reading stays on one line, and a narrow column can break between them (#152).
+ */
+export function Readings(props: { text: string }) {
+  const at = props.text.indexOf(' (');
+  if (at < 0) return <Length>{props.text}</Length>;
+  return (
+    <>
+      <Length>{props.text.slice(0, at)}</Length> <Length>{props.text.slice(at + 1)}</Length>
+    </>
+  );
+}
+
 const MEASURE = /\d+' \d+(?:-\d+\/\d+)?"|\d+(?:-\d+\/\d+)?"|\d+\/\d+"|\d+(?:\.\d+)?°/g;
 
 /**
@@ -40,7 +54,7 @@ export function Measured(props: { text: string }) {
 }
 
 /**
- * A part's letter, as the cut list and every drawing show it (#44, #66): a dark rounded square
+ * A part's letter, as the cut list and every drawing show it (#44, #66): a dark square with eased corners
  * with the letter in the page color. The letter comes from core; it is read out as written.
  */
 export function PartLetter(props: { children: string }) {
