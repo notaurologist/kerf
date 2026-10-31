@@ -78,13 +78,27 @@ export function previewRequest(
   return { kind: 'ask', body: { params: builtParams, structuralInputs: builtInputs } };
 }
 
+export type ReadyPreview = { kind: 'ready'; plan: Plan; changes: Changes; truncated: boolean };
+
 export type PreviewState =
   | { kind: 'saved' }
   | { kind: 'incomplete' }
   | { kind: 'waiting' }
-  | { kind: 'ready'; plan: Plan; changes: Changes; truncated: boolean }
+  | ReadyPreview
+  | { kind: 'updating'; previous: ReadyPreview }
   | { kind: 'rejected'; messages: string[] }
   | { kind: 'failed'; failure: Failure };
+
+/**
+ * The state while a new request is pending. A preview already on screen stays, marked as being
+ * for the earlier values, so its margins are never read as the current ones.
+ */
+export function pendingState(current: PreviewState, request: PreviewRequest): PreviewState {
+  if (request.kind !== 'ask') return { kind: request.kind };
+  if (current.kind === 'ready') return { kind: 'updating', previous: current };
+  if (current.kind === 'updating') return current;
+  return { kind: 'waiting' };
+}
 
 /** Asks the API for a preview a moment after the form stops changing; only the latest counts. */
 export function usePreview(
@@ -100,11 +114,8 @@ export function usePreview(
   // biome-ignore lint/correctness/useExhaustiveDependencies: `key` is the request, serialized.
   useEffect(() => {
     const id = ++latest.current;
-    if (request.kind !== 'ask') {
-      setState({ kind: request.kind });
-      return;
-    }
-    setState((s) => (s.kind === 'ready' ? s : { kind: 'waiting' }));
+    setState((s) => pendingState(s, request));
+    if (request.kind !== 'ask') return;
     const timer = setTimeout(async () => {
       const result = await send(
         project
@@ -149,7 +160,8 @@ export function previewState(templateId: string, result: PreviewResult): Preview
  */
 export function PreviewPane(props: { saved: Plan | null; state: PreviewState }) {
   const { state } = props;
-  const preview = state.kind === 'ready' ? state : null;
+  const preview =
+    state.kind === 'ready' ? state : state.kind === 'updating' ? state.previous : null;
   const plan = preview?.plan ?? props.saved;
   const changes = preview?.changes;
   const isNew = props.saved === null;
@@ -158,7 +170,11 @@ export function PreviewPane(props: { saved: Plan | null; state: PreviewState }) 
       <Stack>
         <Cluster spread>
           <h2 id="preview-heading">{preview || isNew ? 'Preview' : 'Saved plan'}</h2>
-          {preview && <StateTag>Preview, not saved</StateTag>}
+          {preview && (
+            <StateTag>
+              {state.kind === 'updating' ? 'Earlier values, not saved' : 'Preview, not saved'}
+            </StateTag>
+          )}
         </Cluster>
         <div aria-live="polite">
           <PreviewStatus state={state} isNew={isNew} />
@@ -206,6 +222,13 @@ function PreviewStatus(props: { state: PreviewState; isNew: boolean }) {
       );
     case 'waiting':
       return <Text tone="muted">Updating the preview…</Text>;
+    case 'updating':
+      return (
+        <Text tone="muted">
+          Updating the preview… Until it arrives, the numbers below are for the values before your
+          latest change.
+        </Text>
+      );
     case 'ready':
       if (props.isNew)
         return <Text tone="muted">Nothing is saved until you create the project.</Text>;
