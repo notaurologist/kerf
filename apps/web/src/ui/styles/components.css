@@ -1399,4 +1399,29 @@
   .k-figure .k-margin {
     font-size: var(--size-0);
   }
+
+  /* ---------- Moving between views (#200) ---------- */
+  /* After the diagram rules they adjust. Each moved part slides home or out; letters and
+     guidelines, laid out for one view only, fade out first and in last. */
+  .k-diagram-wrap [data-moves] {
+    transition: transform var(--duration-move) ease-in-out;
+  }
+
+  .k-diagram-wrap[data-collapsed] [data-moves] {
+    transform: translate(var(--move-x), var(--move-y));
+  }
+
+  .k-diagram-wrap .k-letter,
+  .k-diagram-wrap [data-role="guideline"] {
+    transition: opacity var(--duration-quick);
+  }
+
+  .k-diagram-wrap[data-labels="hidden"] .k-letter,
+  .k-diagram-wrap[data-labels="hidden"] [data-role="guideline"] {
+    opacity: 0;
+  }
+
+  .k-diagram-wrap[data-instant] * {
+    transition: none;
+  }
 }

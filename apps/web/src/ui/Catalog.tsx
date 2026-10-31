@@ -178,7 +178,7 @@ export function Catalog() {
 /** The same specimens in a light panel and a dark panel. */
 function Themes(props: { density?: 'shop'; children: () => ReactNode }) {
   return (
-    <Switcher threshold="60rem" gap="m">
+    <Switcher threshold="2xl" gap="m">
       {(['light', 'dark'] as const).map((theme) => (
         <section
           key={theme}

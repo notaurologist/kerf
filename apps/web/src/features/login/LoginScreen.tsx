@@ -75,7 +75,7 @@ export function LoginScreen(props: { onLoggedIn: () => void }) {
   const { busy, error, login } = useLogin(props.onLoggedIn);
   return (
     <Page>
-      <Center max="24rem">
+      <Center max="l">
         <LoginForm busy={busy} error={error} onSubmit={login} />
       </Center>
     </Page>

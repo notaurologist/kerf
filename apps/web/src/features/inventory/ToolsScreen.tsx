@@ -140,7 +140,7 @@ export function ToolsEditor(props: {
           if (types.length === 0) return null;
           return (
             <FieldGroup key={group} legend={TOOL_GROUP_LABELS[group]}>
-              <Grid min="14rem" gap="2xs">
+              <Grid min="s" gap="2xs">
                 {types.map((type) => (
                   <Tick
                     key={type.id}
@@ -276,7 +276,7 @@ function ToolDetails(props: {
         <Text tone="muted">
           {type.description} <a href={href({ screen: 'tools', tool: type.id })}>About this tool</a>
         </Text>
-        <Grid min="16rem" gap="s">
+        <Grid min="m" gap="s">
           <Field
             id={controlId(`${at}.name`)}
             label="Name"
@@ -325,7 +325,7 @@ function OtherCard(props: {
   return (
     <Card as="section">
       <Stack gap="s">
-        <Grid min="16rem" gap="s">
+        <Grid min="m" gap="s">
           <Field
             id={controlId(`${at}.name`)}
             label="Name"

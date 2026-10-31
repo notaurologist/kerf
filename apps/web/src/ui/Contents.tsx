@@ -28,7 +28,7 @@ export function WithContents(props: {
   const here = props.items[at];
   return (
     <div className="k-with-contents">
-      <Sidebar sideWidth="12rem" gap="l">
+      <Sidebar sideWidth="xs" gap="l">
         <nav className="k-contents" aria-labelledby={headingId} data-open={open || undefined}>
           {/* Shown only when the plan is narrow, where it opens and closes the list. */}
           <button

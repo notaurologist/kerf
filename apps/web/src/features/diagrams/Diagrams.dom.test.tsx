@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { createSnapshot, findTemplate, type geometry, type TemplateDefinition } from '@kerf/core';
-import { describe, expect, it } from 'vitest';
+import { act } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readDrawings, readPlan } from '../../lib/plan.ts';
 import { byText, click, mount } from '../../test/dom.tsx';
 import { projectFrom } from '../../test/projects.ts';
@@ -80,5 +81,110 @@ describe('the Diagrams section’s assembly view', () => {
     expect(container.querySelector('.k-views svg')?.getAttribute('aria-label')).toMatch(
       /^Isometric view\. /,
     );
+  });
+});
+
+describe('the move between the assembled and exploded views', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  const wrapOf = (container: HTMLElement, label: RegExp) =>
+    [...container.querySelectorAll<HTMLElement>('.k-diagram-wrap')].find((w) =>
+      label.test(w.querySelector('svg')?.getAttribute('aria-label') ?? ''),
+    ) as HTMLElement;
+  const press = (container: HTMLElement, name: string) =>
+    act(() => {
+      byText(container, 'button', name).click();
+    });
+  const advance = (ms: number) =>
+    act(() => {
+      vi.advanceTimersByTime(ms);
+    });
+
+  it('slides the parts out, then shows the letters', () => {
+    vi.useFakeTimers();
+    const { container } = mount(section());
+    const exploded = wrapOf(container, /^Exploded view/);
+    press(container, 'Exploded');
+    // Shown at once with every part home and no letters, jumping there without a transition.
+    expect(onScreen(container).label).toMatch(/^Exploded view\. /);
+    expect(exploded.dataset.collapsed).toBe('true');
+    expect(exploded.dataset.instant).toBe('true');
+    expect(exploded.dataset.labels).toBe('hidden');
+    advance(20);
+    expect(exploded.dataset.collapsed).toBeUndefined();
+    expect(exploded.dataset.instant).toBeUndefined();
+    expect(exploded.dataset.labels).toBe('hidden');
+    advance(400);
+    expect(exploded.dataset.labels).toBeUndefined();
+  });
+
+  it('slides the parts home, then shows the assembled view with its letters', () => {
+    vi.useFakeTimers();
+    const { container } = mount(section());
+    press(container, 'Exploded');
+    advance(500);
+    press(container, 'Assembled');
+    const exploded = wrapOf(container, /^Exploded view/);
+    const assembled = wrapOf(container, /^Isometric view/);
+    // The button follows at once; the exploded drawing stays while its parts slide home.
+    expect(byText(container, 'button', 'Assembled').getAttribute('aria-pressed')).toBe('true');
+    expect(onScreen(container).label).toMatch(/^Exploded view\. /);
+    expect(exploded.dataset.collapsed).toBe('true');
+    expect(exploded.dataset.instant).toBeUndefined();
+    expect(exploded.dataset.labels).toBe('hidden');
+    advance(399);
+    expect(onScreen(container).label).toMatch(/^Exploded view\. /);
+    advance(1);
+    expect(onScreen(container).label).toMatch(/^Isometric view\. /);
+    expect(assembled.dataset.labels).toBe('hidden');
+    advance(20);
+    expect(assembled.dataset.labels).toBeUndefined();
+  });
+
+  it('swaps at once under reduced motion', () => {
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) => ({ matches: query.includes('reduce') }) as MediaQueryList,
+    );
+    const { container } = mount(section());
+    press(container, 'Exploded');
+    const exploded = wrapOf(container, /^Exploded view/);
+    expect(onScreen(container).label).toMatch(/^Exploded view\. /);
+    expect(exploded.dataset.collapsed).toBeUndefined();
+    expect(exploded.dataset.labels).toBeUndefined();
+    press(container, 'Assembled');
+    expect(onScreen(container).label).toMatch(/^Isometric view\. /);
+    expect(wrapOf(container, /^Isometric view/).dataset.labels).toBeUndefined();
+  });
+
+  it('draws both views in one frame, so nothing rescales during a move', () => {
+    const { container } = mount(section());
+    const boxes = [...container.querySelectorAll('.k-views__view svg')].map((s) =>
+      s.getAttribute('viewBox'),
+    );
+    expect(boxes).toHaveLength(2);
+    expect(boxes[0]).toBe(boxes[1]);
+  });
+
+  it('gives each moved part’s shapes the way back to where it sits assembled', () => {
+    const { container } = mount(section());
+    const exploded = wrapOf(container, /^Exploded view/);
+    for (const move of worked.exploded?.moves ?? []) {
+      const shapes = [...exploded.querySelectorAll<HTMLElement>('[data-moves]')].filter(
+        (g) => g.querySelector(`[data-part="${move.partId}"]`) !== null,
+      );
+      expect(shapes.length, move.partId).toBeGreaterThan(0);
+    }
+    const beam = worked.exploded?.moves?.find((m) => m.partId === 'beam');
+    const beamShape = [...exploded.querySelectorAll<HTMLElement>('[data-moves]')].find(
+      (g) => g.querySelector('[data-part="beam"]') !== null,
+    );
+    expect(beamShape?.style.getPropertyValue('--move-y')).toBe(`${-(beam?.by.y ?? 0)}px`);
+    // Guidelines stay put; they fade instead.
+    for (const line of exploded.querySelectorAll('[data-role="guideline"]')) {
+      expect(line.closest('[data-moves]')).toBeNull();
+    }
   });
 });

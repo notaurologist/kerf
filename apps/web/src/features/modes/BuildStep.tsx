@@ -30,7 +30,7 @@ import {
   Text,
   Tick,
 } from '../../ui/index.ts';
-import { StepBody } from '../build-steps/BuildSteps.tsx';
+import { Offcut, pieceOf, StepBody } from '../build-steps/BuildSteps.tsx';
 
 // Building mode's screens (#118; design Stage 1, G-A to G-C): one step at a time in shop density,
 // the numbers you cut to set for glance distance (#42), and every word in the text color (#43,
@@ -46,9 +46,6 @@ export interface StepLinks {
   step: (stepId: string) => string;
   piece: (stepId: string, partId: string) => string;
 }
-
-/** The page grid has 8 columns from 600 px (#41): from there the step sits beside its drawing. */
-const BESIDE = '37.5rem';
 
 /** Where you are, with a way back: the step list from a step, the step from a cut card (#136). */
 function Position(props: {
@@ -92,7 +89,7 @@ function BesideDrawing(props: {
 }) {
   if (!props.drawing) return <Stack>{props.children}</Stack>;
   return (
-    <Switcher threshold={BESIDE} gap="l">
+    <Switcher threshold="xl" gap="l">
       <Stack>{props.children}</Stack>
       <Stack gap="xs">
         <Diagram
@@ -194,8 +191,6 @@ function BoardPieces(props: {
         {board.pieces.map((piece) => {
           const r = row(piece.partId);
           const t = { kind: 'part' as const, key: partProgressKey(piece.partId, piece.instance) };
-          const of =
-            (r?.quantity ?? 1) > 1 ? `, piece ${piece.instance + 1} of ${r?.quantity}` : '';
           return (
             <li key={t.key}>
               <Stack gap="2xs">
@@ -205,7 +200,7 @@ function BoardPieces(props: {
                   onChange={(done) => ticks.set(t, done)}
                 >
                   <PartLetter>{r?.letter ?? ''}</PartLetter> {r?.name ?? piece.partId}
-                  {of} cut
+                  {pieceOf(piece.instance, r?.quantity)} cut
                 </Tick>
                 <Cluster spread>
                   <Glance>{formatLength(piece.length)}</Glance>
@@ -218,9 +213,7 @@ function BoardPieces(props: {
           );
         })}
       </PlainList>
-      <Text>
-        Left over after both ends are trimmed: <Length>{formatLength(board.offcut)}</Length>.
-      </Text>
+      <Offcut length={board.offcut} />
     </Stack>
   );
 }

@@ -83,6 +83,14 @@
     --control-min: 2.75rem; /* 44 px */
     --content-max: 75rem; /* 1200 px */
     --measure: 68ch;
+    /* Widths the layout primitives take: a column's least width, a side's, a centered block's,
+       or where a row switches to a column. */
+    --width-xs: 12rem;
+    --width-s: 14rem;
+    --width-m: 16rem;
+    --width-l: 24rem;
+    --width-xl: 37.5rem; /* 600 px, where the page grid has 8 columns (#41) */
+    --width-2xl: 60rem;
     --radius: 2px; /* Eased, as sandpaper eases an edge (#148). */
     --radius-tag: 1px;
 
@@ -95,6 +103,7 @@
     --focus-offset: 2px;
 
     --duration-quick: 0.15s;
+    --duration-move: 0.4s; /* MOVE_MS in ui/assemblyMotion.ts */
     --pressed-opacity: 0.7; /* A control dims while held, as on iOS (#253). */
 
     /* Diagram lines (#44): screen widths in CSS px, never scaled with the drawing. */

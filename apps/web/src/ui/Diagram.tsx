@@ -1,5 +1,6 @@
 import type { geometry } from '@kerf/core';
-import { useEffect, useId, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useId, useRef, useState } from 'react';
+import type { Motion } from './assemblyMotion.ts';
 import { DiagramFrame } from './DiagramFrame.tsx';
 
 // Core's drawing primitives (#90) drawn as SVG (#91), in the language of the drawing standard
@@ -83,11 +84,15 @@ export function Diagram(props: {
    * detail keeps its labels apart on a phone by scrolling sideways instead of shrinking.
    */
   minWidth?: number;
+  /** Bounds to draw within in place of the drawing's own, so two drawings share one scale. */
+  frame?: Drawing['bounds'];
+  /** Where a move between an assembled and an exploded view has got to (`useAssemblyMotion`). */
+  motion?: Motion;
 }) {
   const { drawing } = props;
   const { ref, width } = useWidth(props.assumedWidth ?? ASSUMED_WIDTH);
   const hatch = `${useId().replace(/:/g, '')}-hatch`;
-  const b = drawing.bounds;
+  const b = props.frame ?? drawing.bounds;
   const narrow = width < PX.narrow;
   // Model units per CSS pixel at the shown width. Letters in one column widen the view a little,
   // so the scale is taken from the bounds; the difference is a few pixels.
@@ -114,11 +119,29 @@ export function Diagram(props: {
       y1: l.at.y + pad,
     })),
   ];
-  const minX = Math.min(b.x, ...boxes.map((r) => r.x0));
-  const maxX = Math.max(b.x + b.width, ...boxes.map((r) => r.x1));
-  const minY = Math.min(b.y, ...boxes.map((r) => r.y0));
-  const maxY = Math.max(b.y + b.height, ...boxes.map((r) => r.y1));
+  // A shared frame leaves the same room on every side, two letters wide at the sides for a
+  // column of letters, so drawings that share it share a view unless their own labels need more.
+  const [x0, x1, y0, y1] = props.frame
+    ? [b.x - 2 * pad, b.x + b.width + 2 * pad, b.y - pad, b.y + b.height + pad]
+    : [b.x, b.x + b.width, b.y, b.y + b.height];
+  const minX = Math.min(x0, ...boxes.map((r) => r.x0));
+  const maxX = Math.max(x1, ...boxes.map((r) => r.x1));
+  const minY = Math.min(y0, ...boxes.map((r) => r.y0));
+  const maxY = Math.max(y1, ...boxes.map((r) => r.y1));
   const viewBox = `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
+  // A moved part's shapes carry the way back to where it sits assembled, for a move to slide.
+  const moves = new Map(drawing.moves?.map((m) => [`${m.partId}/${m.instance}`, m.by]));
+  const movesBack = (p: {
+    role?: string;
+    part?: { partId: string; instance: number };
+  }): { 'data-moves'?: ''; style?: CSSProperties } => {
+    const by = p.part && p.role !== 'guideline' && moves.get(`${p.part.partId}/${p.part.instance}`);
+    if (!by) return {};
+    return {
+      'data-moves': '',
+      style: { '--move-x': `${-by.x}px`, '--move-y': `${-by.y}px` } as CSSProperties,
+    };
+  };
   // A selected part, and an action drawing's emphasis (#118), are tinted and outlined heavily.
   const selected = (p: { part?: { partId: string } }) =>
     p.part && (p.part.partId === props.selected || drawing.emphasis?.includes(p.part.partId))
@@ -136,7 +159,7 @@ export function Diagram(props: {
       case 'polygon': {
         const zone = p.fill === 'zone';
         return (
-          <g key={key}>
+          <g key={key} {...movesBack(p)}>
             <polygon
               className="k-shape"
               points={pts(p.points)}
@@ -168,7 +191,7 @@ export function Diagram(props: {
               ))
             : null;
         return (
-          <g key={key}>
+          <g key={key} {...movesBack(p)}>
             <polyline
               className="k-shape"
               points={pts(p.points)}
@@ -270,7 +293,14 @@ export function Diagram(props: {
   ));
 
   return (
-    <div ref={ref} className="k-diagram-wrap" data-page={props.page ?? 'portrait'}>
+    <div
+      ref={ref}
+      className="k-diagram-wrap"
+      data-page={props.page ?? 'portrait'}
+      data-collapsed={props.motion?.collapsed || undefined}
+      data-labels={props.motion?.labels === false ? 'hidden' : undefined}
+      data-instant={props.motion?.instant || undefined}
+    >
       <DiagramFrame
         label={props.label}
         describedBy={props.describedBy}
