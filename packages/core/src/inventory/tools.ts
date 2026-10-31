@@ -13,7 +13,7 @@ export const CapabilityValue = z.union([z.boolean(), z.number()]);
 export type CapabilityValue = z.infer<typeof CapabilityValue>;
 
 /** Why a value does not fit its capability, or undefined when it fits. */
-export function capabilityProblem(field: CapabilityField, value: unknown): string | undefined {
+function capabilityProblem(field: CapabilityField, value: unknown): string | undefined {
   if (field.kind === 'yes-no') return typeof value === 'boolean' ? undefined : 'Choose yes or no.';
   if (typeof value !== 'number' || !Number.isFinite(value)) return 'Enter a number.';
   if (field.kind === 'integer' && !Number.isInteger(value)) return 'Enter a whole number.';
@@ -70,29 +70,32 @@ export const OtherTool = z.object({
 export type OtherTool = z.infer<typeof OtherTool>;
 
 export const Inventory = z.object({
-  tools: z.array(Tool).superRefine((list, ctx) => {
-    list.forEach((tool, i) => {
-      const same = list.filter((t) => t.toolTypeId === tool.toolTypeId);
-      if (same.length < 2) return;
-      const type = findToolType(tool.toolTypeId)?.name.toLowerCase() ?? 'tool';
-      if (!tool.name) {
-        ctx.addIssue({
-          code: 'custom',
-          path: [i, 'name'],
-          message: `Name each one, so build steps can say which ${type} to use.`,
-        });
-      } else if (
-        same.filter((t) => t.name?.toLowerCase() === tool.name?.toLowerCase()).length > 1
-      ) {
-        ctx.addIssue({
-          code: 'custom',
-          path: [i, 'name'],
-          message: 'Give each one a different name.',
-        });
-      }
-    });
-  }),
-  other: z.array(OtherTool),
+  tools: z
+    .array(Tool)
+    .max(200)
+    .superRefine((list, ctx) => {
+      list.forEach((tool, i) => {
+        const same = list.filter((t) => t.toolTypeId === tool.toolTypeId);
+        if (same.length < 2) return;
+        const type = findToolType(tool.toolTypeId)?.name.toLowerCase() ?? 'tool';
+        if (!tool.name) {
+          ctx.addIssue({
+            code: 'custom',
+            path: [i, 'name'],
+            message: `Name each one, so build steps can say which ${type} to use.`,
+          });
+        } else if (
+          same.filter((t) => t.name?.toLowerCase() === tool.name?.toLowerCase()).length > 1
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            path: [i, 'name'],
+            message: 'Give each one a different name.',
+          });
+        }
+      });
+    }),
+  other: z.array(OtherTool).max(200),
 });
 export type Inventory = z.infer<typeof Inventory>;
 

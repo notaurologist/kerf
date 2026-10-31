@@ -8,7 +8,7 @@ import { CompactSelect, type Option } from '../ui/index.ts';
 // which 0005 allows for display preferences. index.html reads it before the first paint, so the
 // page does not flash the other scheme; keep that script in step with this file.
 
-export const THEMES = ['system', 'light', 'dark'] as const;
+const THEMES = ['system', 'light', 'dark'] as const;
 export type Theme = (typeof THEMES)[number];
 
 /** The browser storage key, also read by the script in index.html. */

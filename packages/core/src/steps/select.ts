@@ -46,7 +46,7 @@ export interface MethodFit {
 }
 
 /** Whether every gap is an owned tool whose only shortfall is a capability not entered. */
-export function onlyInputNeeded(fit: MethodFit): boolean {
+function onlyInputNeeded(fit: MethodFit): boolean {
   return (
     fit.gaps.length > 0 &&
     fit.gaps.every((g) =>
@@ -153,7 +153,7 @@ export function fitMethod(method: Method, op: Operation, inventory: Inventory): 
 }
 
 /** Every method for the operation's type, in preference order, with how well each fits. */
-export function fitMethods(op: Operation, inventory: Inventory): MethodFit[] {
+function fitMethods(op: Operation, inventory: Inventory): MethodFit[] {
   return methodsFor(op.type as OperationType).map((m) => fitMethod(m, op, inventory));
 }
 

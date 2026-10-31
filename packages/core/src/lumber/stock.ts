@@ -6,7 +6,7 @@ import { type Citation, SOURCE_LINKS } from '../design-values/sources.ts';
 // (American Softwood Lumber Standard, PS 20). Pressure-treated lumber is often sold wet and can
 // measure slightly larger until it dries; cut lists use these values and say so.
 
-export const STOCK_SIZES = {
+const STOCK_SIZES = {
   '2x4': { thickness: 1.5, width: 3.5 },
   '2x6': { thickness: 1.5, width: 5.5 },
   '2x8': { thickness: 1.5, width: 7.25 },

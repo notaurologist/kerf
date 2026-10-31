@@ -31,6 +31,30 @@ describe('/api/tools', () => {
     expect(await (await authed('/api/tools')).json()).toEqual(second);
   });
 
+  it('takes saves sent at the same moment one after the other, the last one kept', async () => {
+    const { app, sessionCookie } = await createTestApp();
+    const cookie = await sessionCookie();
+    const put = (name: string) =>
+      app.request('/api/tools', {
+        method: 'PUT',
+        headers: { cookie, 'content-type': 'application/json' },
+        body: JSON.stringify({ tools: [], other: [{ name, note: '' }] }),
+      });
+    const results = await Promise.all(['A', 'B', 'C'].map(put));
+    expect(results.map((r) => r.status)).toEqual([200, 200, 200]);
+    const stored = (await (await app.request('/api/tools', { headers: { cookie } })).json()) as {
+      other: { name: string }[];
+    };
+    expect(stored.other).toHaveLength(1);
+  });
+
+  it('refuses an inventory longer than anyone keeps', async () => {
+    const { authed } = await createTestApp();
+    const other = Array.from({ length: 201 }, (_, i) => ({ name: `Tool ${i}`, note: '' }));
+    const put = await authed('/api/tools', { method: 'PUT', body: { tools: [], other } });
+    expect(put.status).toBe(400);
+  });
+
   it('rejects unnamed repeats, IDs not in the library, and capabilities out of range, changing nothing', async () => {
     const { authed } = await createTestApp();
     const put = (body: unknown) => authed('/api/tools', { method: 'PUT', body });

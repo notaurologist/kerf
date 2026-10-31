@@ -90,7 +90,7 @@ async function readJson(res: Response): Promise<unknown> {
 }
 
 /** Turns an error response into something the UI can show. */
-export async function toError(res: Response): Promise<ApiError> {
+async function toError(res: Response): Promise<ApiError> {
   const body = await readJson(res);
   const code = isRecord(body) && typeof body.error === 'string' ? body.error : '';
   switch (res.status) {

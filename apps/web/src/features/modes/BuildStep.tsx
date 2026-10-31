@@ -3,6 +3,7 @@ import {
   type BuildStep,
   type CutListRow,
   formatAngle,
+  formatBoardLength,
   formatLength,
   type geometry,
   type Plan,
@@ -282,7 +283,7 @@ export function CutCard(props: {
         <Text>
           {row.stock}. Cut {row.quantity}.
           {step.board &&
-            ` From board ${step.board.number}, a ${step.board.nominal} ${formatLength(step.board.feet * 12, 'feet-inches')} long.`}
+            ` From board ${step.board.number}, a ${step.board.nominal} ${formatBoardLength(step.board.feet)} long.`}
         </Text>
         <Stack gap="3xs">
           <Text>Length, long point to long point</Text>
