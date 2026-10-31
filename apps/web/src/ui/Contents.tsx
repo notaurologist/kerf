@@ -80,7 +80,8 @@ export function WithContents(props: {
 
 /**
  * Previous and Next at the end of a section, each naming the section it goes to, as GOV.UK's
- * pagination block does for multi-part guides. Stacked when narrow. Not printed.
+ * pagination block does for multi-part guides. Stacked when narrow. Not printed. Left and Right
+ * do the same (`useArrowKeys`), named by a key shown with a fine pointer (#267).
  */
 export function SectionPager(props: {
   previous?: { title: string; href: string };
@@ -92,12 +93,20 @@ export function SectionPager(props: {
       <ul>
         {props.previous && (
           <li data-dir="previous">
-            <a className="k-pager__link" href={props.previous.href} rel="prev">
+            <a
+              className="k-pager__link"
+              href={props.previous.href}
+              rel="prev"
+              aria-keyshortcuts="ArrowLeft"
+            >
               <span className="k-pager__dir">
                 <span className="k-pager__arrow">
                   <Icon name="chevron" />
                 </span>{' '}
-                Previous
+                Previous{' '}
+                <span className="k-pager__key" aria-hidden="true">
+                  ←
+                </span>
               </span>
               <span className="k-pager__title">{props.previous.title}</span>
             </a>
@@ -105,8 +114,16 @@ export function SectionPager(props: {
         )}
         {props.next && (
           <li data-dir="next">
-            <a className="k-pager__link" href={props.next.href} rel="next">
+            <a
+              className="k-pager__link"
+              href={props.next.href}
+              rel="next"
+              aria-keyshortcuts="ArrowRight"
+            >
               <span className="k-pager__dir">
+                <span className="k-pager__key" aria-hidden="true">
+                  →
+                </span>{' '}
                 Next{' '}
                 <span className="k-pager__arrow">
                   <Icon name="chevron" />

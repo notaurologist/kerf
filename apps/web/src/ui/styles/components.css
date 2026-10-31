@@ -1350,6 +1350,26 @@
     transform: rotate(-90deg);
   }
 
+  /* The arrow key that does the same (#267), shown only with a fine pointer, where a keyboard is
+     likely. */
+  .k-pager__key {
+    display: none;
+    padding-inline: var(--space-3xs);
+    border: var(--border-thin) solid var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: var(--font-text);
+    font-size: var(--size--1);
+    font-weight: 400;
+    line-height: var(--leading-table);
+  }
+
+  @media (pointer: fine) {
+    .k-pager__key {
+      display: inline-block;
+    }
+  }
+
   @container (min-width: 36rem) {
     .k-pager ul {
       grid-template-columns: 1fr 1fr;

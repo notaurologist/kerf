@@ -929,14 +929,20 @@ describe('SectionPager', () => {
       />,
     );
     expect(html).toMatch(/^<nav class="k-pager" aria-label="Plan sections">/);
-    expect(textOf(html)).toBe('Previous Diagrams Next Cut list');
-    expect(html).toContain('<a class="k-pager__link" href="#/p/diagrams" rel="prev">');
-    expect(html).toContain('<a class="k-pager__link" href="#/p/cut-list" rel="next">');
+    // Each names its arrow key, hidden from screen readers, which hear aria-keyshortcuts (#267).
+    expect(textOf(html)).toBe('Previous ← Diagrams → Next Cut list');
+    expect(html).toContain(
+      '<a class="k-pager__link" href="#/p/diagrams" rel="prev" aria-keyshortcuts="ArrowLeft">',
+    );
+    expect(html).toContain(
+      '<a class="k-pager__link" href="#/p/cut-list" rel="next" aria-keyshortcuts="ArrowRight">',
+    );
+    expect(html.match(/<span class="k-pager__key" aria-hidden="true">/g)).toHaveLength(2);
   });
 
   it('gives only the side there is at either end, and nothing with neither', () => {
     expect(textOf(render(<SectionPager next={{ title: 'Diagrams', href: '#' }} />))).toBe(
-      'Next Diagrams',
+      '→ Next Diagrams',
     );
     expect(render(<SectionPager />)).toBe('');
   });

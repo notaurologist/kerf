@@ -42,6 +42,8 @@ Accepted cost: on the phone in Safari (not installed, 0005), the tab bar sits ab
 
 Build issues: #265 (the frame), #266 (moves and waiting, after #265), #267 (the keyboard).
 
+Built in #267 (October 2026): Left and Right for the plan's sections and Building's steps (`lib/arrowKeys.ts`), with the key named in `aria-keyshortcuts` and shown beside Previous and Next for a fine pointer.
+
 ## Stage 8: brand (#166)
 
 `brand.html` explores the brand in three rounds, latest first. Round 1 drew five directions: a handsaw blade, a circular blade, a board cut through at 20.0° with the kerf open, the same kerf dimensioned as a drawing, and the wordmark with a slot cut between the k's stem and arm. Round 2 explored the k further (an end cut on its stem, the end cut with the slot, the k as three boards, a cut through the whole word) and added two new marks, kerf bending and the crow's foot. Round 3 refined the chosen one. The result, and how to use it, is in `brand.md`.
