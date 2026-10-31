@@ -14,9 +14,10 @@ import { href, isMode, type Route, useRoute } from './lib/route.ts';
 import { useScreenChange } from './lib/screenChange.ts';
 import { ThemeSwitch } from './lib/theme.tsx';
 import {
+  type Back,
   Button,
   Cluster,
-  Header,
+  Frame,
   Loading,
   Notice,
   Page,
@@ -75,6 +76,32 @@ export function Screen(props: { route: Route }) {
 }
 
 const entryHref = (term: GlossaryId) => href({ screen: 'glossary', term });
+
+type PlaceId = 'projects' | 'tools' | 'glossary';
+
+/** The place a planning screen is in, whether it is the place itself, and its back link (#265). */
+export function frameFor(route: Route): { place: PlaceId; top: boolean; back?: Back } {
+  const to = (place: PlaceId) => ({
+    label: place === 'projects' ? 'Projects' : place === 'tools' ? 'Tools' : 'Glossary',
+    href: href({ screen: place }),
+  });
+  switch (route.screen) {
+    case 'projects':
+      return { place: 'projects', top: true };
+    case 'tools':
+      return route.tool
+        ? { place: 'tools', top: false, back: to('tools') }
+        : { place: 'tools', top: true };
+    case 'glossary':
+      return route.term
+        ? { place: 'glossary', top: false, back: to('glossary') }
+        : { place: 'glossary', top: true };
+    case 'edit-project':
+      return { place: 'projects', top: false, back: 'project' };
+    default:
+      return { place: 'projects', top: false, back: to('projects') };
+  }
+}
 
 /** A screen with its scope for marking the first use of each glossary term. */
 function ScreenWithTerms(props: { route: Route }) {
@@ -149,30 +176,24 @@ export function App() {
       </>
     );
   }
-  const section =
-    route.screen === 'tools' || route.screen === 'glossary'
-      ? route.screen
-      : route.screen === 'catalog'
-        ? null
-        : 'projects';
+  const frame = frameFor(route);
+  const place = (id: PlaceId, label: string) => ({
+    label,
+    href: href({ screen: id }),
+    icon: id,
+    current: frame.place === id ? (frame.top ? ('page' as const) : ('true' as const)) : undefined,
+  });
   return (
     <>
-      <Header
+      <Frame
         brandHref={href({ screen: 'projects' })}
-        nav={[
-          {
-            label: 'Projects',
-            href: href({ screen: 'projects' }),
-            current: section === 'projects',
-          },
-          { label: 'Tools', href: href({ screen: 'tools' }), current: section === 'tools' },
-          {
-            label: 'Glossary',
-            href: href({ screen: 'glossary' }),
-            current: section === 'glossary',
-          },
+        places={[
+          place('projects', 'Projects'),
+          place('tools', 'Tools'),
+          place('glossary', 'Glossary'),
         ]}
-        end={
+        back={frame.back}
+        actions={
           <>
             <ThemeSwitch />
             <Button variant="link" onClick={() => leaveGate.confirm(() => void logout())}>
@@ -180,10 +201,11 @@ export function App() {
             </Button>
           </>
         }
-      />
-      <Page>
-        <ScreenWithTerms route={route} />
-      </Page>
+      >
+        <Page>
+          <ScreenWithTerms route={route} />
+        </Page>
+      </Frame>
       {loginAgain}
     </>
   );

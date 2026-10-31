@@ -11,7 +11,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 ## Building a screen
 
-- **Frame:** the app shell supplies `Header` and `Page`. A screen returns its content: usually a `Stack` holding a `ScreenHeader`, then sections.
+- **Frame:** the app shell supplies `Frame` and `Page`. A screen returns its content: usually a `Stack` holding a `ScreenHeader`, then sections.
 - **Layout:** the primitives, which respond to the space they are given rather than to the page width (#41):
   - `Stack` for a column;
   - `Cluster` for a wrapping row, with `spread` to push items to either end;
@@ -32,7 +32,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 | Job | Component | Notes |
 |---|---|---|
-| A plan's contents | `WithContents` | The sections' titles in order, each a link to its section's own screen, with the `current` one marked (`aria-current="page"`, a bar, and bold). From 48rem of its own width they sit beside the section and stay in view; narrower, a bar such as "3 of 8 · Structural review" is a button (`aria-expanded`) that opens the list in place (#156). Not printed. |
+| A plan's contents | `WithContents` | The sections' titles in order, each a link to its section's own screen, with the `current` one marked (`aria-current="page"`, a bar, and bold). From 48rem of its own width they sit beside the section and stay in view, unless the frame's sidebar lists them (from 52.5rem of the frame's width); narrower, a bar such as "3 of 8 · Structural review" is a button (`aria-expanded`) that opens the list in place (#156). Not printed. |
 | Moving through the plan's sections | `SectionPager` | Previous and Next at the end of a section, each naming the section it goes to, in a `nav` labeled "Plan sections", as GOV.UK's pagination block does. Stacked under 36rem of its own width. Not printed. |
 | Every section with what is in it | `SectionList` | Each section a link with core's one-line digest under it (`planDigests`), for the plan's summary (#156). |
 | A glossary term in running text | `Term`, through `Measured terms` or `items` with `terms` | A button named by the words as written, opening a popover (`popover="auto"`) with the definition and a link to the glossary entry; Escape or a tap elsewhere closes it, and `aria-expanded` follows its `toggle` event. Only the first use of a term in a `TermScope` is marked: the app gives each screen one, and each `PlanSection` its own. Pass `terms` only for method text, flags, and end cuts. A dotted underline, solid while open; its target reaches the control height without moving the line. |
@@ -79,6 +79,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Leaving with changes | `useDraft(saved)` | Hold every form's values in it and render its `dialog`. While the draft differs from `saved` it asks before a link to another route (`#/…`), Back and Forward, Log out, and when the tab closes. Links within the page, such as the error summary's, do not ask; `navigate` after a save does not ask. |
 | Views of one thing in one place | `ViewSwitch` | One or two views. With two, one button whose label says what pressing it does, the other view's `action` ("Explode", "Assemble"), with no `aria-pressed`, then the view shown. The label changes as soon as it is pressed, even while a move plays. The views share one place as tall as the tallest, so switching moves nothing below. Screen-only state, with no address or history entry. Every view stays in the page, `hidden` but for one, so print shows each under its heading. One view shows alone with no button. The Diagrams section's assembled and exploded views (#200, #257), where `control` from `useAssemblyMotion` slides the parts between them and `Diagram`'s `frame` and `motion` draw both at one scale. |
 | A diagram | `Diagram`, inside `DiagramFrame` | `Diagram` draws core's primitives (#90, #91): roles to the line and diagram tokens, text at least 13 px, part letters in columns (one column when narrow), and `selected` and `onSelect` to link a part with the cut list. Give it a short `label` generated from the data and `describedBy` the cut list's id; `page="landscape"` for views that print on their own landscape page. |
+| The frame around planning screens | `Frame` | Stage 9 (#265). On a phone, a title bar (the wordmark and a Menu holding the `actions` on a place; a back link and the open project's name inside one) and a tab bar with the `places`, each an icon and a label, the current one marked with a bar, bold, and `aria-current`. From 52.5rem of its own width, one sidebar with the wordmark, the places, the `actions` at its foot, and the open project with its sections. A project's screens name the project with `useFrameProject`; the plan passes its sections, and from 52.5rem `WithContents` hides its own list. Title bar and tab bar stay in view as the page scrolls; the sidebar stays in view and scrolls on its own. Not printed. |
 | Shop modes | `ModeFrame` (or `ModeBar` alone) | The mode's name, the project's name, and Exit, over content in shop density: space times 1.5, text at 20 px (`--size-read`, and no `h4` or `h5` smaller), controls at least 56 px tall, and every word in the text color. The bar wraps rather than scroll sideways at 320 px. No other navigation (#61). |
 
 ## Tokens
@@ -113,6 +114,7 @@ Components respond to their own width (container queries), so a breakpoint is a 
 | `37.5rem` | `StepLayout`: the drawing beside the step (600 px) |
 | `40rem` | `MeasureTable`: a table rather than stacked rows (640 px) |
 | `48rem` | `WithContents`: the contents beside the sections |
+| `52.5rem` | `Frame`: one sidebar in place of the title bar and tab bar (840 px, Stage 9) |
 | `56rem` | `MeasureTable`: fit columns on one line (896 px) |
 | `60rem` | `WithAside`: the aside beside the form |
 

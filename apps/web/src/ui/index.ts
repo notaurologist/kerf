@@ -63,7 +63,7 @@ export {
 export { CheckStatus, FlagList } from './plan.tsx';
 export { ScreenHeader, ScreenHeading } from './ScreenHeader.tsx';
 export { PlanSection } from './Section.tsx';
-export { Header, ModeFrame } from './Shell.tsx';
+export { type Back, Frame, ModeFrame, useFrameProject } from './Shell.tsx';
 export { StepLayout } from './StepLayout.tsx';
 export { Term, TermScope } from './Term.tsx';
 export { Tick } from './Tick.tsx';

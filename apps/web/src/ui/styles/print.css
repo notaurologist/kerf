@@ -46,9 +46,16 @@
     }
 
     .k-button,
-    .k-header nav,
+    .k-titlebar,
+    .k-tabbar,
+    .k-frame__side,
     .k-modebar {
       display: none;
+    }
+
+    .k-frame__layout {
+      display: block;
+      min-block-size: 0;
     }
 
     /* The isometric, exploded, and site views each take a landscape page (#41). */

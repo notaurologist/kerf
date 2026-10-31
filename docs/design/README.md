@@ -42,6 +42,8 @@ Accepted cost: on the phone in Safari (not installed, 0005), the tab bar sits ab
 
 Build issues: #265 (the frame), #266 (moves and waiting, after #265), #267 (the keyboard).
 
+Built in #265 (October 2026): the frame (`Frame` in `ui/Shell.tsx`), with icons for the three places (a plan sheet, a framing square, an open book) and a Menu for the theme and Log out. Two details settled in the build: the title bar names the project only once the page has scrolled past the screen's own heading (a scroll-driven fade; where a browser lacks scroll timelines, it always shows), and the sidebar marks the open project as well as its current section.
+
 ## Stage 8: brand (#166)
 
 `brand.html` explores the brand in three rounds, latest first. Round 1 drew five directions: a handsaw blade, a circular blade, a board cut through at 20.0° with the kerf open, the same kerf dimensioned as a drawing, and the wordmark with a slot cut between the k's stem and arm. Round 2 explored the k further (an end cut on its stem, the end cut with the slot, the k as three boards, a cut through the whole word) and added two new marks, kerf bending and the crow's foot. Round 3 refined the chosen one. The result, and how to use it, is in `brand.md`.
