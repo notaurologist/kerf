@@ -46,10 +46,7 @@ export function ConfirmDialog(props: {
   );
 }
 
-/**
- * A dialog that has to be completed before anything else works, such as logging in again after
- * the session ends. Opens when rendered; Escape does not close it.
- */
+/** Escape does not close it. */
 export function BlockingDialog(props: { title: string; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {

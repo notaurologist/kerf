@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createLeaveGate } from './leave.ts';
 
-/** A gate over a fake address bar, recording what it does and each time it asks. */
 function setup(start = '#/projects/1/edit') {
   let hash = start;
   const log: string[] = [];
@@ -18,7 +17,6 @@ function setup(start = '#/projects/1/edit') {
   });
   const asked: (() => void)[] = [];
   const hold = () => gate.hold((go) => asked.push(go));
-  /** The browser changing the hash itself, as Back and Forward do. */
   const browse = (h: string) => {
     const from = hash;
     hash = h;
@@ -58,7 +56,6 @@ describe('leave gate', () => {
     t.hold();
     t.browse('#/projects');
     expect(t.hash()).toBe('#/projects/1/edit');
-    // Choosing "Keep editing" calls nothing; a later Back asks again.
     expect(t.browse('#/projects')).toBe(false);
     expect(t.asked).toHaveLength(2);
   });

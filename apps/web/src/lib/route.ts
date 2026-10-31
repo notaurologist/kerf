@@ -150,7 +150,6 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
   }
 }
 
-/** Goes to `route` without asking about unsaved changes: the app chose to go there. */
 export function navigate(route: Exclude<Route, { screen: 'not-found' }>) {
   leaveGate.pass(href(route));
 }
@@ -171,7 +170,6 @@ export function useRoute(): Route {
   const [route, setRoute] = useState(() => parseRoute(window.location.hash));
   useEffect(() => {
     let shown = window.location.hash;
-    // Back and Forward change the hash before anything can ask, so a held draft puts it back.
     const update = () => {
       if (!leaveGate.follow(shown)) return;
       shown = window.location.hash;

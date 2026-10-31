@@ -28,7 +28,7 @@ import {
 // snapshot for its sample values.
 const Catalog = lazy(() => import('./ui/Catalog.tsx').then((m) => ({ default: m.Catalog })));
 
-// `expired`: the session ended while in use. The screen stays, with login over it.
+// `expired` keeps the screen mounted under the login, so a form keeps what was typed.
 type Session = 'checking' | 'logged-out' | 'logged-in' | 'expired' | { unreachable: string };
 
 export function Screen(props: { route: Route }) {

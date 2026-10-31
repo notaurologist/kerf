@@ -20,7 +20,6 @@ export function LoginForm(props: {
   busy: boolean;
   error: ApiError | null;
   onSubmit: (password: string) => void;
-  /** The heading and what to say under it; the wordmark alone on the login screen. */
   heading?: ReactNode;
 }) {
   const [password, setPassword] = useState('');
@@ -58,7 +57,6 @@ export function LoginForm(props: {
   );
 }
 
-/** Logs in with the password; `onLoggedIn` runs once the session is set. */
 function useLogin(onLoggedIn: () => void) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -84,10 +82,6 @@ export function LoginScreen(props: { onLoggedIn: () => void }) {
   );
 }
 
-/**
- * Logging in again after the session ended mid-use, over the screen, so a form being edited keeps
- * what was typed. It cannot be dismissed: nothing works until the session is back.
- */
 export function LoginAgain(props: { onLoggedIn: () => void }) {
   const { busy, error, login } = useLogin(props.onLoggedIn);
   return (

@@ -76,7 +76,6 @@ export function StartQuestions(props: {
   const [empty] = useState(() => formValues(questions.form, {}));
   const { issues, attempt, report } = useFormIssues<FormIssues>(NO_ISSUES);
   const [suggested, setSuggested] = useState<FromAnswers | null>(null);
-  // The editor opened from the answers holds its own draft; the answers wait behind it.
   const {
     draft: values,
     setDraft: setValues,
