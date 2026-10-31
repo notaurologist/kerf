@@ -2,7 +2,7 @@
 // layout primitives; they write no classes or styles of their own.
 
 export { Button, ButtonLink, type ButtonVariant } from './Button.tsx';
-export { InlineConfirm } from './Confirm.tsx';
+export { InlineConfirm, useReturnFocus } from './Confirm.tsx';
 export { type ContentsItem, SectionList, SectionPager, WithContents } from './Contents.tsx';
 export { type Definition, DefinitionFigure, Definitions } from './Definitions.tsx';
 export { Diagram } from './Diagram.tsx';
@@ -28,6 +28,7 @@ export {
   type Failure,
   InfoNotice,
   InputNeeded,
+  LiveRegion,
   Loading,
   Notice,
   Pending,

@@ -39,7 +39,7 @@ export function ModeBar(props: {
   end?: ReactNode;
 }) {
   return (
-    <div className="k-modebar" data-density="shop">
+    <header className="k-modebar" data-density="shop">
       <span>
         <b>{props.mode}</b>
         {props.context && ` · ${props.context}`}
@@ -50,7 +50,7 @@ export function ModeBar(props: {
           Exit
         </a>
       </span>
-    </div>
+    </header>
   );
 }
 

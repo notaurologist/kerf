@@ -50,8 +50,10 @@ export function Field(props: {
   const errorId = `${id}-error`;
   const echoId = `${id}-echo`;
   const aboutId = `${id}-about`;
+  const unitId = `${id}-unit`;
   const describedBy = [
     props.error ? errorId : undefined,
+    props.unit ? unitId : undefined,
     props.hint ? hintId : undefined,
     props.echo ? echoId : undefined,
     props.about ? aboutId : undefined,
@@ -83,7 +85,7 @@ export function Field(props: {
       {props.unit ? (
         <span className="k-field__unit">
           {control}
-          <span>{props.unit}</span>
+          <span id={unitId}>{props.unit}</span>
         </span>
       ) : (
         control

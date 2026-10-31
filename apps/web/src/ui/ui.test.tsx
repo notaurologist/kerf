@@ -118,8 +118,15 @@ describe('Field', () => {
     expect(field({ width: 'medium' })).toContain('data-width="medium"');
     expect(field()).not.toContain('data-width');
     expect(field({ unit: 'lb' })).toMatch(
-      /<span class="k-field__unit"><input [^>]*><span>lb<\/span>/,
+      /<span class="k-field__unit"><input [^>]*><span id="[^"]+">lb<\/span>/,
     );
+  });
+
+  it('makes the unit part of what the control says, after any error', () => {
+    const html = field({ unit: 'lb', error: 'Enter a weight.' });
+    expect(html).toContain('<span id="f-unit">lb</span>');
+    expect(html).toContain('aria-describedby="f-error f-unit f-hint"');
+    expect(field()).not.toContain('f-unit');
   });
 
   it('gives a typed length the full keyboard with corrections off', () => {
