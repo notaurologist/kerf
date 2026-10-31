@@ -10,7 +10,7 @@ import { isValidElement, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, renderText, textOf } from '../test/render.tsx';
 import { Catalog } from './Catalog.tsx';
-import { goToField } from './feedback.tsx';
+import { goToField, reported } from './feedback.tsx';
 import { ICON_NAMES } from './Icon.tsx';
 import {
   Button,
@@ -62,6 +62,7 @@ import {
   WithContents,
   Wordmark,
 } from './index.ts';
+import { leavingFor } from './LeaveGuard.tsx';
 import { TOOL_ICON_IDS } from './ToolIcon.tsx';
 import { WORDMARK } from './wordmark-outline.ts';
 
@@ -220,11 +221,11 @@ describe('ErrorSummary', () => {
   ];
 
   it('is announced, can take focus, and links each problem to its field', () => {
-    const html = render(<ErrorSummary items={items} />);
+    const html = render(<ErrorSummary items={items} attempt={1} />);
     expect(html).toContain('role="alert"');
     expect(html).toContain('tabindex="-1"');
     expect(html).toContain('<a href="#a">Enter a length.</a>');
-    expect(renderText(<ErrorSummary items={items} />)).toContain(
+    expect(renderText(<ErrorSummary items={items} attempt={1} />)).toContain(
       '2 fields need fixing before this can be saved',
     );
   });
@@ -250,12 +251,49 @@ describe('ErrorSummary', () => {
 
   it('counts problems that are not fields as problems', () => {
     expect(
-      renderText(<ErrorSummary items={[]} general={['The plan cannot be made.']} />),
+      renderText(<ErrorSummary items={[]} general={['The plan cannot be made.']} attempt={1} />),
     ).toContain('1 problem needs fixing');
   });
 
+  it('takes focus again only when a save attempt finds problems, not when the form re-renders', () => {
+    const none: string[] = [];
+    const failed = reported({ issues: none, attempt: 0 }, ['Enter a length.'], true);
+    expect(failed.attempt).toBe(1);
+    // Typing re-renders with the same state; a later save that still finds problems moves focus.
+    expect(reported(failed, ['Enter a length.'], true).attempt).toBe(2);
+    // A save that finds nothing clears the problems without moving focus.
+    expect(reported(failed, none, false)).toEqual({ issues: none, attempt: 1 });
+  });
+
   it('shows nothing when there is nothing to fix', () => {
-    expect(render(<ErrorSummary items={[]} />)).toBe('');
+    expect(render(<ErrorSummary items={[]} attempt={1} />)).toBe('');
+  });
+});
+
+describe('leavingFor', () => {
+  /** A clicked element inside a link to `href`, matching `a[href^="…"]` as the browser would. */
+  const inLink = (href: string) =>
+    ({
+      closest: (selector: string) => {
+        const prefix = selector.match(/^a\[href\^="(.*)"\]$/)?.[1];
+        if (prefix === undefined) throw new Error(`unexpected selector ${selector}`);
+        return href.startsWith(prefix)
+          ? ({ getAttribute: () => href } as unknown as Element)
+          : null;
+      },
+    }) as Pick<Element, 'closest'>;
+
+  it('leaves for another route', () => {
+    expect(leavingFor(inLink('#/projects'), '#/projects/1/edit')).toBe('#/projects');
+  });
+
+  it("stays for a link to a field on the page, so an error summary's links keep the form", () => {
+    expect(leavingFor(inLink('#project-name'), '#/projects/1/edit')).toBeUndefined();
+  });
+
+  it('stays for a link to the current route, or a click outside any link', () => {
+    expect(leavingFor(inLink('#/projects/1/edit'), '#/projects/1/edit')).toBeUndefined();
+    expect(leavingFor(null, '#/projects/1/edit')).toBeUndefined();
   });
 });
 

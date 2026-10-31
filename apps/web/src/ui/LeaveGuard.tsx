@@ -15,9 +15,8 @@ export function useLeaveGuard(dirty: boolean) {
     // Capture clicks on in-app links before the hash changes and the screen goes away.
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
-      const link = (e.target as Element | null)?.closest?.('a[href^="#"]');
-      const target = link?.getAttribute('href');
-      if (!target || target === window.location.hash) return;
+      const target = leavingFor(e.target as Element | null, window.location.hash);
+      if (!target) return;
       e.preventDefault();
       setPending(target);
     };
@@ -52,4 +51,17 @@ export function useLeaveGuard(dirty: boolean) {
     </ConfirmDialog>
   );
   return { dialog, leave };
+}
+
+/**
+ * The route a click would leave for, or undefined when it stays on this screen. Only route links
+ * (`#/…`) leave: a link to an element on the page, such as an error summary's link to its field,
+ * keeps the form.
+ */
+export function leavingFor(
+  clicked: Pick<Element, 'closest'> | null,
+  currentHash: string,
+): string | undefined {
+  const target = clicked?.closest?.('a[href^="#/"]')?.getAttribute('href');
+  return target && target !== currentHash ? target : undefined;
 }

@@ -23,6 +23,7 @@ import {
   ScreenHeader,
   Stack,
   Text,
+  useFormIssues,
 } from '../../ui/index.ts';
 import { type FormIssues, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 
@@ -72,7 +73,7 @@ export function StartQuestions(props: {
 }) {
   const { template, questions } = props;
   const [values, setValues] = useState(() => formValues(questions.form, {}));
-  const [issues, setIssues] = useState<FormIssues>(NO_ISSUES);
+  const { issues, attempt, report } = useFormIssues<FormIssues>(NO_ISSUES);
   const [suggested, setSuggested] = useState<FromAnswers | null>(null);
 
   if (suggested) {
@@ -98,10 +99,10 @@ export function StartQuestions(props: {
     e.preventDefault();
     const result = answer(template, questions, values);
     if (result.ok) {
-      setIssues(NO_ISSUES);
+      report(NO_ISSUES, false);
       setSuggested(result.value);
     } else {
-      setIssues(placeIssues(questions.form, values, result.issues));
+      report(placeIssues(questions.form, values, result.issues), true);
     }
   };
 
@@ -119,7 +120,7 @@ export function StartQuestions(props: {
     <form onSubmit={submit} noValidate>
       <Stack gap="l">
         <ScreenHeader title={props.title} />
-        <ErrorSummary items={summary} general={issues.general} />
+        <ErrorSummary items={summary} general={issues.general} attempt={attempt} />
         {props.starts}
         <Text tone="muted">
           A few questions about who will use it and where. Kerf fills in the rest from the worked

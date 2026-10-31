@@ -47,7 +47,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Related fields | `FieldGroup` inside a `Grid`, or one after another in a `Stack` for a long form | A legend and optional help. A long form is one field per row (#164). |
 | How much of a long form is entered | `FormProgress` | "N of M entered", then the groups with an empty field, each a link to its first one. |
 | A menu in a row | `CompactSelect` | Its label is read by screen readers only, such as a project's status. |
-| Problems after a save | `ErrorSummary` at the top, `error` on each `Field` | The summary takes focus and links to each field (#67). Show errors only after a save. |
+| Problems after a save | `ErrorSummary` at the top, `error` on each `Field`, state from `useFormIssues` | The summary links to each field (#67) and takes focus once for each save that finds problems: pass the hook's `attempt`, and call `report` after every save. Show errors only after a save. |
 | An empty structural input | `needed` on `Field`, or `InputNeeded` | A question, not an error (#43, rule 4). |
 | A question for an experienced builder | `ExpertCheck` | Amber, with the flag icon and "Expert check" (#43, rule 3). |
 | A plan's or a step's flags | `FlagList` | Core's `Flag[]`, each an `ExpertCheck` labeled with its category. Nothing when there are none. |
@@ -73,7 +73,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | The name as a logo | `Wordmark` | The outlined wordmark (#166, `brand.md`), sized in em to the type around it, on the baseline, named "Kerf". In the header and as the login and connection screens' heading; in running text, write "Kerf". |
 | Formulas and IDs | `Code` | The Mono, never wrapped; scrolls within its line. |
 | Secondary text | `Text tone="muted"` | Desk screens only. Shop modes use the text color for every word (#43, rule 5). |
-| Leaving with changes | `useLeaveGuard(dirty)` | Render its `dialog`; it asks before any in-app link and when the tab closes. |
+| Leaving with changes | `useLeaveGuard(dirty)` | Render its `dialog`; it asks before any link to another route (`#/…`) and when the tab closes. Links within the page, such as the error summary's, do not ask. |
 | A diagram | `Diagram`, inside `DiagramFrame` | `Diagram` draws core's primitives (#90, #91): roles to the line and diagram tokens, text at least 13 px, part letters in columns (one column when narrow), and `selected` and `onSelect` to link a part with the cut list. Give it a short `label` generated from the data and `describedBy` the cut list's id; `page="landscape"` for views that print on their own landscape page. |
 | Shop modes | `ModeFrame` (or `ModeBar` alone) | The mode's name, the project's name, and Exit, over content in shop density: space times 1.5, controls at least 56 px tall, and every word in the text color. No other navigation (#61). |
 
