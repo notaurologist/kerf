@@ -10,6 +10,7 @@ import {
   type StepOperation,
 } from '@kerf/core';
 import { Fragment } from 'react';
+import { href } from '../../lib/route.ts';
 import {
   Card,
   FlagList,
@@ -150,10 +151,12 @@ function Operation(props: { op: StepOperation; partName: (id: string) => string 
             {method.tools.map((t, i) => (
               <Fragment key={t.toolTypeId}>
                 {i > 0 && ', '}
-                <ToolLabel toolTypeId={t.toolTypeId}>
-                  {findToolType(t.toolTypeId)?.name ?? t.toolTypeId}
-                  {t.name && ` (${t.name})`}
-                </ToolLabel>
+                <a href={href({ screen: 'glossary', term: t.toolTypeId })}>
+                  <ToolLabel toolTypeId={t.toolTypeId}>
+                    {findToolType(t.toolTypeId)?.name ?? t.toolTypeId}
+                    {t.name && ` (${t.name})`}
+                  </ToolLabel>
+                </a>
               </Fragment>
             ))}
             .

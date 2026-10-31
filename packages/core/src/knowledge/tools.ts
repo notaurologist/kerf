@@ -67,6 +67,8 @@ export const ToolType = z
     id: z.string().regex(ID, 'must be a lowercase ID like miter-saw'),
     /** The generic name, in sentence case. */
     name: z.string().min(1),
+    /** What the tool is, and what Kerf's methods use it for: its glossary entry. */
+    description: z.string().min(1),
     group: ToolGroup,
     capabilities: z.array(CapabilityField),
   })
@@ -89,10 +91,19 @@ const READ_MANUAL = "The tool's manual, or its specifications.";
  */
 export const TOOL_TYPES = [
   // Measuring and marking
-  { id: 'tape-measure', name: 'Tape measure', group: 'measuring-and-marking', capabilities: [] },
+  {
+    id: 'tape-measure',
+    name: 'Tape measure',
+    description:
+      "A steel tape that pulls out of its case and locks, for measuring lengths. Kerf's methods use it to measure and mark parts.",
+    group: 'measuring-and-marking',
+    capabilities: [],
+  },
   {
     id: 'combination-square',
     name: 'Combination square',
+    description:
+      "A ruler with a sliding head that holds it square to a board's edge, for marking square lines and checking cuts.",
     group: 'measuring-and-marking',
     capabilities: [],
   },
@@ -100,19 +111,57 @@ export const TOOL_TYPES = [
     // "Speed square" is a trademark (hard rule 11); rafter square is the generic name.
     id: 'rafter-square',
     name: 'Rafter square',
+    description:
+      'A thick triangular square with a lip along one edge that hooks over a board, for marking square and angled lines and guiding a circular saw.',
     group: 'measuring-and-marking',
     capabilities: [],
   },
-  { id: 'sliding-bevel', name: 'Sliding bevel', group: 'measuring-and-marking', capabilities: [] },
-  { id: 'chalk-line', name: 'Chalk line', group: 'measuring-and-marking', capabilities: [] },
-  { id: 'level', name: 'Level', group: 'measuring-and-marking', capabilities: [] },
-  { id: 'string-line', name: 'String line', group: 'measuring-and-marking', capabilities: [] },
-  { id: 'line-level', name: 'Line level', group: 'measuring-and-marking', capabilities: [] },
+  {
+    id: 'sliding-bevel',
+    name: 'Sliding bevel',
+    description:
+      'A blade on a handle that locks at any angle, for copying an angle or laying it out on a board.',
+    group: 'measuring-and-marking',
+    capabilities: [],
+  },
+  {
+    id: 'chalk-line',
+    name: 'Chalk line',
+    description:
+      'A string coated in chalk on a reel. Pulled tight and snapped, it marks a long straight line.',
+    group: 'measuring-and-marking',
+    capabilities: [],
+  },
+  {
+    id: 'level',
+    name: 'Level',
+    description: 'A straight bar with bubble vials that shows whether a surface is level or plumb.',
+    group: 'measuring-and-marking',
+    capabilities: [],
+  },
+  {
+    id: 'string-line',
+    name: 'String line',
+    description:
+      'String stretched tight between stakes, for laying out straight lines and points on the site, such as where holes go.',
+    group: 'measuring-and-marking',
+    capabilities: [],
+  },
+  {
+    id: 'line-level',
+    name: 'Line level',
+    description:
+      'A small bubble vial that hangs on a string line to show when the string is level, for checking heights across the site.',
+    group: 'measuring-and-marking',
+    capabilities: [],
+  },
 
   // Cutting
   {
     id: 'circular-saw',
     name: 'Circular saw',
+    description:
+      "A handheld power saw with a round blade, guided along a line or a straight board. Kerf's methods use it for crosscuts and angled cuts.",
     group: 'cutting',
     capabilities: [
       {
@@ -129,6 +178,8 @@ export const TOOL_TYPES = [
   {
     id: 'miter-saw',
     name: 'Miter saw',
+    description:
+      'A round blade on a pivoting arm over a table with a fence, set to an angle by its scales. It cuts boards to length, square or angled.',
     group: 'cutting',
     capabilities: [
       {
@@ -160,13 +211,43 @@ export const TOOL_TYPES = [
       },
     ],
   },
-  { id: 'table-saw', name: 'Table saw', group: 'cutting', capabilities: [] },
-  { id: 'track-saw', name: 'Track saw', group: 'cutting', capabilities: [] },
-  { id: 'band-saw', name: 'Band saw', group: 'cutting', capabilities: [] },
-  { id: 'hand-saw', name: 'Hand saw', group: 'cutting', capabilities: [] },
+  {
+    id: 'table-saw',
+    name: 'Table saw',
+    description:
+      'A round blade that rises through a table, with the board pushed across it, mostly for ripping.',
+    group: 'cutting',
+    capabilities: [],
+  },
+  {
+    id: 'track-saw',
+    name: 'Track saw',
+    description:
+      'A circular saw that runs along a guide rail laid on the board, for long straight cuts.',
+    group: 'cutting',
+    capabilities: [],
+  },
+  {
+    id: 'band-saw',
+    name: 'Band saw',
+    description:
+      'A thin blade in a loop that runs down through a table, for curves and cuts through thick stock.',
+    group: 'cutting',
+    capabilities: [],
+  },
+  {
+    id: 'hand-saw',
+    name: 'Hand saw',
+    description:
+      "A saw pushed and pulled by hand. Kerf's methods use it where a power saw cannot reach and to finish a cut made from two faces.",
+    group: 'cutting',
+    capabilities: [],
+  },
   {
     id: 'jigsaw',
     name: 'Jigsaw',
+    description:
+      'A handheld power saw with a short blade that moves up and down, for curves and cuts other saws cannot reach.',
     group: 'cutting',
     capabilities: [
       {
@@ -185,14 +266,31 @@ export const TOOL_TYPES = [
   {
     id: 'drill-driver',
     name: 'Drill/driver',
+    description:
+      "A drill with a clutch, for drilling holes and driving screws. Kerf's methods use it with spade and auger bits for bolt holes.",
     group: 'drilling-and-driving',
     capabilities: [],
   },
-  { id: 'impact-driver', name: 'Impact driver', group: 'drilling-and-driving', capabilities: [] },
-  { id: 'drill-press', name: 'Drill press', group: 'drilling-and-driving', capabilities: [] },
+  {
+    id: 'impact-driver',
+    name: 'Impact driver',
+    description:
+      'A driver that adds rapid blows to its turning, for driving long screws and lag screws.',
+    group: 'drilling-and-driving',
+    capabilities: [],
+  },
+  {
+    id: 'drill-press',
+    name: 'Drill press',
+    description: 'A drill mounted on a column over a table, so holes go straight into the work.',
+    group: 'drilling-and-driving',
+    capabilities: [],
+  },
   {
     id: 'spade-bits',
     name: 'Spade bits',
+    description:
+      'Flat drill bits with a center point and two cutting edges, for fast, rough holes in wood.',
     group: 'drilling-and-driving',
     capabilities: [
       {
@@ -209,6 +307,8 @@ export const TOOL_TYPES = [
   {
     id: 'auger-bits',
     name: 'Auger bits',
+    description:
+      'Drill bits with a screw tip and a spiral that pulls them through deep wood and clears the chips, for long bolt holes.',
     group: 'drilling-and-driving',
     capabilities: [
       {
@@ -222,12 +322,20 @@ export const TOOL_TYPES = [
       },
     ],
   },
-  { id: 'socket-wrench', name: 'Socket wrench', group: 'drilling-and-driving', capabilities: [] },
+  {
+    id: 'socket-wrench',
+    name: 'Socket wrench',
+    description: 'A handle with sockets that fit over nuts and bolt heads, for tightening bolts.',
+    group: 'drilling-and-driving',
+    capabilities: [],
+  },
 
   // Clamping and holding
   {
     id: 'clamps',
     name: 'Clamps',
+    description:
+      'Tools that hold a board to a bench, or parts to each other, while you cut, drill, or fasten.',
     group: 'clamping-and-holding',
     capabilities: [
       {
@@ -243,21 +351,67 @@ export const TOOL_TYPES = [
   },
 
   // Shaping
-  { id: 'router', name: 'Router', group: 'shaping', capabilities: [] },
-  { id: 'thickness-planer', name: 'Thickness planer', group: 'shaping', capabilities: [] },
-  { id: 'chisel', name: 'Chisel', group: 'shaping', capabilities: [] },
-  { id: 'block-plane', name: 'Block plane', group: 'shaping', capabilities: [] },
-  { id: 'sander', name: 'Sander', group: 'shaping', capabilities: [] },
+  {
+    id: 'router',
+    name: 'Router',
+    description:
+      'A motor that spins a shaped bit, for rounding edges, cutting grooves, and trimming.',
+    group: 'shaping',
+    capabilities: [],
+  },
+  {
+    id: 'thickness-planer',
+    name: 'Thickness planer',
+    description: 'A machine that planes a board to an even thickness, a thin layer at a time.',
+    group: 'shaping',
+    capabilities: [],
+  },
+  {
+    id: 'chisel',
+    name: 'Chisel',
+    description:
+      "A steel blade sharpened at its end, pushed or tapped to pare wood. Kerf's methods use it to bring a cut down to its line.",
+    group: 'shaping',
+    capabilities: [],
+  },
+  {
+    id: 'block-plane',
+    name: 'Block plane',
+    description: 'A small hand plane held in one hand, for trimming end grain and easing edges.',
+    group: 'shaping',
+    capabilities: [],
+  },
+  {
+    id: 'sander',
+    name: 'Sander',
+    description: 'A power tool that moves sandpaper fast, for smoothing faces and rounding edges.',
+    group: 'shaping',
+    capabilities: [],
+  },
 
   // Digging and setting
   {
     id: 'post-hole-digger',
     name: 'Post-hole digger',
+    description:
+      'Two hinged blades on long handles that dig and lift soil out of a narrow, deep hole.',
     group: 'digging-and-setting',
     capabilities: [],
   },
-  { id: 'shovel', name: 'Shovel', group: 'digging-and-setting', capabilities: [] },
-  { id: 'tamper', name: 'Tamper', group: 'digging-and-setting', capabilities: [] },
+  {
+    id: 'shovel',
+    name: 'Shovel',
+    description: 'A blade on a long handle, for digging and moving soil.',
+    group: 'digging-and-setting',
+    capabilities: [],
+  },
+  {
+    id: 'tamper',
+    name: 'Tamper',
+    description: 'A heavy flat plate on a handle, for tamping soil and gravel firm.',
+    group: 'digging-and-setting',
+    capabilities: [],
+  },
 ] as const satisfies readonly z.input<typeof ToolType>[];
 
 export type ToolTypeId = (typeof TOOL_TYPES)[number]['id'];
