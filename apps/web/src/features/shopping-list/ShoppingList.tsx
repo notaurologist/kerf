@@ -76,7 +76,7 @@ export function ShoppingList(props: {
           .
         </Text>
       )}
-      <List items={lumber.notes} />
+      <List items={lumber.notes} terms />
       <BoardSelection lumber={lumber} />
 
       <h3>Hardware</h3>
@@ -122,7 +122,7 @@ export function ShoppingList(props: {
           .
         </Text>
       )}
-      <List items={props.hardwareNotes} />
+      <List items={props.hardwareNotes} terms />
     </Stack>
   );
 }

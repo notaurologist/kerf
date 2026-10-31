@@ -53,8 +53,15 @@ describe('glossary terms in the plan (#178)', () => {
     expect(new Set(terms).size).toBe(terms.length);
   });
 
-  it('starts each section afresh: the structural review marks its own first use', () => {
-    expect(marked('structural-review')).toEqual(['gusset']);
+  it('starts each section afresh: the structural review marks its own first uses', () => {
+    expect(marked('structural-review')).toEqual(['margin', 'gusset', 'grip']);
+  });
+
+  // Terms are reachable from every section whose text uses them, not only the build steps.
+  it('marks terms in the summary, section intros, and the shopping list', () => {
+    expect(marked('summary')).toEqual(['gusset']);
+    expect(marked('cut-list')).toEqual(['long point']);
+    expect(marked('shopping-list')).toEqual(['grip']);
   });
 });
 

@@ -100,7 +100,7 @@ function lowestFigure(lowest: structural.LowestMargin, editHref?: string): Figur
         {
           label,
           value: <MarginLine margin={structural.formatMargin(lowest.check.margin)} />,
-          detail: `${lowest.check.title}: ${lowest.check.subject}`,
+          detail: <Measured text={`${lowest.check.title}: ${lowest.check.subject}`} terms />,
         },
       ];
     case 'input-needed':
@@ -143,7 +143,7 @@ function FlagSummary(props: { flags: readonly Flag[]; reviewHref?: string }) {
           {flags.map((flag) => (
             <li key={`${flag.category}/${flag.ask}`}>
               <OneLine>
-                <Measured text={flag.ask} />
+                <Measured text={flag.ask} terms />
               </OneLine>
             </li>
           ))}
