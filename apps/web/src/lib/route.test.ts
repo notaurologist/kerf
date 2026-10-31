@@ -8,6 +8,9 @@ describe('parseRoute', () => {
     ['#/', { screen: 'projects' }],
     ['#/projects', { screen: 'projects' }],
     ['#/tools', { screen: 'tools' }],
+    ['#/tools/miter-saw', { screen: 'tools', tool: 'miter-saw' }],
+    ['#/tools/elsewhere', { screen: 'not-found' }],
+    ['#/tools/miter-saw/x', { screen: 'not-found' }],
     ['#/catalog', { screen: 'catalog' }],
     ['#/catalog/x', { screen: 'not-found' }],
     ['#/glossary', { screen: 'glossary' }],
@@ -86,6 +89,7 @@ describe('parseRoute', () => {
     const routes: Exclude<Route, { screen: 'not-found' }>[] = [
       { screen: 'projects' },
       { screen: 'tools' },
+      { screen: 'tools', tool: 'post-hole-digger' },
       { screen: 'catalog' },
       { screen: 'glossary' },
       { screen: 'glossary', term: 'long-point' },

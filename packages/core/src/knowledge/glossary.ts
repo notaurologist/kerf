@@ -53,7 +53,6 @@ export const GLOSSARY_GROUPS = [
   'joints',
   'site',
   'structure',
-  'tools',
 ] as const;
 export const GlossaryGroup = z.enum(GLOSSARY_GROUPS);
 export type GlossaryGroup = z.infer<typeof GlossaryGroup>;
@@ -65,7 +64,6 @@ export const GLOSSARY_GROUP_LABELS: Record<GlossaryGroup, string> = {
   joints: 'Joints and frames',
   site: 'The site',
   structure: 'Structural checks',
-  tools: 'Tools',
 };
 
 export const GlossaryEntry = z.object({
@@ -866,25 +864,8 @@ export const GLOSSARY = [
 export type GlossaryId = (typeof GLOSSARY)[number]['id'];
 
 /** The entry for an ID, or undefined for an ID not in the glossary. */
-/**
- * An entry for each tool type, named and described by the tool library. Tools are listed and
- * linked where a method or the tool list names them, but never marked as terms in running text.
- */
-export const TOOL_ENTRIES: readonly GlossaryEntry[] = TOOL_TYPES.map((t) => ({
-  id: t.id,
-  term: t.name,
-  group: 'tools' as const,
-  forms: [],
-  definition: t.description,
-  sources: [],
-})).sort((a, b) => a.term.localeCompare(b.term));
-
-/** Every entry the glossary shows: its terms, then its tools. */
-export const GLOSSARY_ENTRIES: readonly GlossaryEntry[] = [...GLOSSARY, ...TOOL_ENTRIES];
-
-/** The entry for an ID, a term's or a tool's, or undefined for an ID not in the glossary. */
 export function findGlossaryEntry(id: string): GlossaryEntry | undefined {
-  return GLOSSARY_ENTRIES.find((e) => e.id === id);
+  return GLOSSARY.find((e) => e.id === id);
 }
 
 /** One use of a glossary term in a string: `text.slice(start, end)` is the words used. */

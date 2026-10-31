@@ -33,9 +33,9 @@ describe('ToolsEditor', () => {
     expect(html.match(/type="checkbox"[^>]*checked/g)).toHaveLength(1);
     expect(html).toContain('Remove Short');
     expect(html).toContain('Add another set of clamps');
-    // Each tool's details say what it is and link to its glossary entry; the checkbox labels
-    // above stay plain, with no link inside a label.
-    expect(html).toContain('<a href="#/glossary/clamps">Glossary entry</a>');
+    // Each tool's details say what it is and link to its page; the checkbox labels above stay
+    // plain, with no link inside a label.
+    expect(html).toContain('<a href="#/tools/clamps">About this tool</a>');
     expect(html).not.toMatch(/<label class="k-tick"(?:(?!<\/label>).)*<a /s);
   });
 

@@ -67,7 +67,7 @@ export const ToolType = z
     id: z.string().regex(ID, 'must be a lowercase ID like miter-saw'),
     /** The generic name, in sentence case. */
     name: z.string().min(1),
-    /** What the tool is, and what Kerf's methods use it for: its glossary entry. */
+    /** What the tool is, and what Kerf's methods use it for, for the tool's page. */
     description: z.string().min(1),
     group: ToolGroup,
     capabilities: z.array(CapabilityField),

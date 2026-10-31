@@ -1,6 +1,6 @@
 import {
   findGlossaryEntry,
-  GLOSSARY_ENTRIES,
+  GLOSSARY,
   GLOSSARY_GROUP_LABELS,
   GLOSSARY_GROUPS,
   type GlossaryEntry,
@@ -23,13 +23,13 @@ function Index() {
     <Stack>
       <ScreenHeader
         title="Glossary"
-        lede="The woodworking and structural terms Kerf's plans use, and the tools its methods name, by topic."
+        lede="The woodworking and structural terms Kerf's plans use, by topic."
       />
       {GLOSSARY_GROUPS.map((group) => (
         <Stack key={group} as="section" gap="xs">
           <h2>{GLOSSARY_GROUP_LABELS[group]}</h2>
           <PlainList gap="xs">
-            {GLOSSARY_ENTRIES.filter((e) => e.group === group).map((e) => (
+            {GLOSSARY.filter((e) => e.group === group).map((e) => (
               <li key={e.id}>
                 <a href={href({ screen: 'glossary', term: e.id })}>{e.term}</a>
               </li>

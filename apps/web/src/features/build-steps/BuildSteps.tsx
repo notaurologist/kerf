@@ -151,7 +151,7 @@ function Operation(props: { op: StepOperation; partName: (id: string) => string 
             {method.tools.map((t, i) => (
               <Fragment key={t.toolTypeId}>
                 {i > 0 && ', '}
-                <a href={href({ screen: 'glossary', term: t.toolTypeId })}>
+                <a href={href({ screen: 'tools', tool: t.toolTypeId })}>
                   <ToolLabel toolTypeId={t.toolTypeId}>
                     {findToolType(t.toolTypeId)?.name ?? t.toolTypeId}
                     {t.name && ` (${t.name})`}

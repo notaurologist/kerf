@@ -3,10 +3,8 @@ import {
   findGlossaryEntry,
   findTerms,
   GLOSSARY,
-  GLOSSARY_ENTRIES,
   GLOSSARY_GROUPS,
   GlossaryEntry,
-  TOOL_ENTRIES,
 } from './glossary.ts';
 import { TOOL_TYPES } from './tools.ts';
 
@@ -14,29 +12,19 @@ const used = (text: string) => findTerms(text).map((u) => [u.id, text.slice(u.st
 
 describe('glossary', () => {
   it('parses every entry with its schema', () => {
-    for (const entry of GLOSSARY_ENTRIES) {
-      expect(GlossaryEntry.safeParse(entry).error).toBeUndefined();
-    }
+    for (const entry of GLOSSARY) expect(GlossaryEntry.safeParse(entry).error).toBeUndefined();
   });
 
   it('has unique IDs, and each term and form belongs to one entry', () => {
-    expect(new Set(GLOSSARY_ENTRIES.map((e) => e.id)).size).toBe(GLOSSARY_ENTRIES.length);
+    expect(new Set(GLOSSARY.map((e) => e.id)).size).toBe(GLOSSARY.length);
     const words = GLOSSARY.flatMap((e) => [e.term, ...e.forms].map((w) => w.toLowerCase()));
     expect(new Set(words).size).toBe(words.length);
   });
 
   it('puts at least one entry in every group', () => {
     for (const group of GLOSSARY_GROUPS) {
-      expect([group, GLOSSARY_ENTRIES.some((e) => e.group === group)]).toEqual([group, true]);
+      expect([group, GLOSSARY.some((e) => e.group === group)]).toEqual([group, true]);
     }
-  });
-
-  it('has an entry for every tool type, in alphabetical order', () => {
-    expect(TOOL_ENTRIES.map((e) => e.id).sort()).toEqual(TOOL_TYPES.map((t) => t.id).sort());
-    const names = TOOL_ENTRIES.map((e) => e.term);
-    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
-    expect(TOOL_ENTRIES.every((e) => e.group === 'tools')).toBe(true);
-    expect(findGlossaryEntry('miter-saw')?.term).toBe('Miter saw');
   });
 
   it('lists the terms in alphabetical order', () => {
@@ -44,8 +32,8 @@ describe('glossary', () => {
     expect(terms).toEqual([...terms].sort((a, b) => a.localeCompare(b)));
   });
 
-  it('defines each term and tool in one or two sentences', () => {
-    for (const entry of GLOSSARY_ENTRIES) {
+  it('defines each term in one or two sentences', () => {
+    for (const entry of GLOSSARY) {
       const sentences = entry.definition.split(/(?<=\.)\s+/);
       expect([entry.id, sentences.length <= 2]).toEqual([entry.id, true]);
     }
@@ -102,7 +90,7 @@ describe('glossary', () => {
   });
 
   it('says no verdicts (hard rule 2)', () => {
-    for (const entry of GLOSSARY_ENTRIES) {
+    for (const entry of GLOSSARY) {
       expect(entry.definition).not.toMatch(/\b(safe|unsafe|pass|fail)\b/i);
     }
   });

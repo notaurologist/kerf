@@ -1,6 +1,7 @@
 import type { GlossaryId } from '@kerf/core';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { GlossaryScreen } from './features/glossary/GlossaryScreen.tsx';
+import { ToolPage } from './features/inventory/ToolPage.tsx';
 import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
 import { LoginScreen } from './features/login/LoginScreen.tsx';
 import { ModeScreen } from './features/modes/modes.tsx';
@@ -33,7 +34,7 @@ export function Screen(props: { route: Route }) {
     case 'projects':
       return <ProjectsScreen />;
     case 'tools':
-      return <ToolsScreen />;
+      return props.route.tool ? <ToolPage id={props.route.tool} /> : <ToolsScreen />;
     case 'new-project':
       return <NewProjectScreen templateId={props.route.templateId} start={props.route.start} />;
     case 'edit-project':

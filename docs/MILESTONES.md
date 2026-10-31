@@ -115,6 +115,6 @@ Woodworking terms in the plan, method text, and flags are defined where they are
 - The plan's other woodworking and engineering terms, sourced where they bear on strength, loads, treatment, or saw safety (#189).
 - Terms marked in every section of the plan, not only the build steps (#190).
 - Each entry on its own page, with a grouped index (#191).
-- Entries for tools, linked where tools are listed (#192).
+- A page for each tool under Tools, linked where methods name tools (#192).
 
 **Accept when:** every entry parses and has a unique ID and terms; tool names are never marked as terms; the first use of a term on each screen opens its definition by touch and keyboard at 375 px; and the printed plan lists the terms it uses.

@@ -118,12 +118,7 @@ export function ToolsEditor(props: {
     <Stack>
       <ScreenHeader
         title="Tools"
-        lede={
-          <>
-            The tool types you own. Build steps choose a method for each cut and joint from these.{' '}
-            <a href={href({ screen: 'glossary' })}>The glossary</a> says what each tool is.
-          </>
-        }
+        lede="The tool types you own. Build steps choose a method for each cut and joint from these."
       />
       <ErrorSummary items={summaryItems(issues)} />
 
@@ -273,8 +268,7 @@ function ToolDetails(props: {
     >
       <Stack gap="s">
         <Text tone="muted">
-          {type.description}{' '}
-          <a href={href({ screen: 'glossary', term: type.id })}>Glossary entry</a>
+          {type.description} <a href={href({ screen: 'tools', tool: type.id })}>About this tool</a>
         </Text>
         <Grid min="16rem" gap="s">
           <Field

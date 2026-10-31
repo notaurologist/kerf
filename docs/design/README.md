@@ -189,11 +189,20 @@ With 85 entries, one page listing every definition grew too long to scroll to th
 | Question | Chosen | Rejected, and why |
 |---|---|---|
 | What an entry's address shows | Only that entry (`#/glossary/<id>`): the term as the page title, its group and a link to all terms under it, then the definition, the drawing, and the source. | The whole glossary scrolled to the entry: the reader lands in a long list, and the entries around it read as part of the answer. |
-| What the index shows | Term names, each a link to its entry, under a heading for each group (Lumber, Treated lumber, Cutting and shaping, Joints and frames, The site, Structural checks, Tools) and alphabetical within it. The group is a field on each entry in core, so the index and any later screen agree. | Every definition on the index: the long page this replaces. One alphabetical list: a reader looking for a lumber defect or a structural term has to know its name first. |
+| What the index shows | Term names, each a link to its entry, under a heading for each group (Lumber, Treated lumber, Cutting and shaping, Joints and frames, The site, Structural checks) and alphabetical within it. The group is a field on each entry in core, so the index and any later screen agree. | Every definition on the index: the long page this replaces. One alphabetical list: a reader looking for a lumber defect or a structural term has to know its name first. |
 
 MDN's glossary of web terms works the same way: each of its several hundred terms has its own page, and the glossary's index is a list of links to them.
 
 Sources: MDN Web Docs, Glossary of web terms, read October 2026, https://developer.mozilla.org/en-US/docs/Glossary, and an entry such as https://developer.mozilla.org/en-US/docs/Glossary/Abstraction.
+
+### Tool pages (#192)
+
+A build step names the tools its method needs, and a reader may not know one. The owner chose a page for each tool under Tools over glossary entries for tools (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Where a tool is explained | Its own page, `#/tools/<id>`: what it is (the tool library's description), whether it is in the owner's tool list, the details Kerf asks for about it and where to read each, and the methods that can use it. | A glossary entry: the glossary is for words in the plan's text, and a tool's page can show what only the tool list knows, such as whether the owner has one. |
+| Where it is linked from | A method's tool names in the build steps, and each tool's details on the Tools screen ("About this tool"). | The tool list's checkboxes: a link inside a checkbox label is a second control in one target, and tapping the name would tick the box or leave the screen. |
 
 ### Table columns (#158)
 
