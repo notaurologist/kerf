@@ -180,6 +180,7 @@ describe('declared tokens', () => {
   });
 
   it('are caught when nothing uses them', () => {
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the sample is source that builds a token name.
     const files = ['a { gap: var(--space-${size}); color: var(--text); }'];
     expect(unused(['--text', '--space-s', '--space-s-base', '--size-read'], files)).toEqual([
       '--space-s-base',

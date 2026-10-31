@@ -1,6 +1,7 @@
 name: CI
 
-# Changes that touch only these paths can't affect lint, typecheck, or tests, so they skip CI.
+# Changes that touch only these paths can't affect lint, typecheck, tests, or the build, so they
+# skip CI. Biome does not check them either.
 on:
   push:
     branches: [main]
@@ -15,19 +16,20 @@ on:
 permissions:
   contents: read
 
+# A newer push to a pull request replaces its run; every merge to main finishes its own.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Reads the pnpm version from packageManager in package.json.
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -35,3 +37,12 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm --filter @kerf/web build
+      - name: Migrations match the schema
+        run: |
+          pnpm --filter @kerf/api exec drizzle-kit generate
+          if [ -n "$(git status --porcelain apps/api/drizzle)" ]; then
+            git status --porcelain apps/api/drizzle
+            echo "schema.ts has changes with no migration. Run: pnpm --filter @kerf/api db:generate" >&2
+            exit 1
+          fi
