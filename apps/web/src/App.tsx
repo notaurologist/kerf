@@ -14,6 +14,7 @@ import { href, isMode, type Route, useRoute } from './lib/route.ts';
 import { ThemeSwitch } from './lib/theme.tsx';
 import {
   Button,
+  Cluster,
   Header,
   Loading,
   Notice,
@@ -127,9 +128,9 @@ export function App() {
             <Wordmark />
           </h1>
           <Notice icon="connection">{session.unreachable}</Notice>
-          <div>
+          <Cluster>
             <Button onClick={check}>Try again</Button>
-          </div>
+          </Cluster>
         </Stack>
       </Page>
     );

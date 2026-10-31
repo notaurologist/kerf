@@ -61,6 +61,11 @@ export function formatLength(inches: number, style: LengthStyle = 'inches'): str
   return `${feet}' ${inchesText(total % perFoot, true)}"`;
 }
 
+/** A board's length, stored in feet, shown as feet and inches. */
+export function formatBoardLength(feet: number): string {
+  return formatLength(feet * 12, 'feet-inches');
+}
+
 export interface RoundedSum {
   /** The exact sum, rounded once. This is the total to display. */
   totalSixteenths: number;

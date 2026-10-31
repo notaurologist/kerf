@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
+import { newProjectLabel } from '../../lib/names.ts';
 import { href } from '../../lib/route.ts';
 import {
   type Project,
@@ -124,7 +125,7 @@ export function ProjectList(props: {
         title="Projects"
         actions={props.templates.map((t) => (
           <ButtonLink key={t.id} href={href({ screen: 'new-project', templateId: t.id })}>
-            New {t.name.charAt(0).toLowerCase() + t.name.slice(1)}
+            {newProjectLabel(t.name)}
           </ButtonLink>
         ))}
       />

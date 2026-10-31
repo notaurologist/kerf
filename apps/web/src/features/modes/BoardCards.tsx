@@ -1,5 +1,6 @@
 import {
   type CutListRow,
+  formatBoardLength,
   formatLength,
   type geometry,
   type LumberPlan,
@@ -65,7 +66,7 @@ export function BoardCard(props: {
       <Stack gap="xs">
         <h3>
           {drawing?.title ??
-            `Board ${props.number}: ${board.nominal}, ${formatLength(board.feet * 12, 'feet-inches')}`}
+            `Board ${props.number}: ${board.nominal}, ${formatBoardLength(board.feet)}`}
         </h3>
         {drawing && <Diagram drawing={drawing} label={drawing.description} />}
         <PlainList>

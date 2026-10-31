@@ -502,6 +502,31 @@ describe('DELETE /api/projects/:id', () => {
   });
 });
 
+describe('a stored project whose template this code no longer has', () => {
+  it('answers as the server’s problem, not the request’s', async () => {
+    const before = await createTestApp();
+    const { body } = await create(before.authed);
+    const after = await createTestApp({ database: before, templates: [] });
+    for (const [path, method, sent] of [
+      [`/api/projects/${body.id}`, 'GET', undefined],
+      [`/api/projects/${body.id}/preview`, 'POST', { name: 'x' }],
+    ] as const) {
+      const res = await after.authed(path, { method, body: sent });
+      expect({ path, status: res.status }).toEqual({ path, status: 500 });
+      expect(await res.json()).toEqual({ error: 'missing-template' });
+    }
+  });
+
+  it('refuses a template ID longer than any template has', async () => {
+    const { authed } = await createTestApp();
+    const res = await authed('/api/projects/preview', {
+      method: 'POST',
+      body: { templateId: 'x'.repeat(101), params: swingSetParams, structuralInputs: {} },
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
 describe('a project whose template version is behind', () => {
   it('reports what regenerating would change, and regenerates only when asked', async () => {
     const before = await createTestApp();
