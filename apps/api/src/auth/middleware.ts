@@ -7,11 +7,11 @@ import { findSession, SESSION_COOKIE } from './sessions.ts';
 // so a new route is protected unless it is added here on purpose.
 const PUBLIC_ROUTES = new Set(['GET /api/health', 'POST /api/login']);
 
-export function requireSession(db: Database, now: () => Date) {
+export function requireSession(db: Database, fingerprint: string, now: () => Date) {
   return createMiddleware(async (c, next) => {
     if (PUBLIC_ROUTES.has(`${c.req.method} ${c.req.path}`)) return next();
     const token = getCookie(c, SESSION_COOKIE);
-    const session = token ? await findSession(db, token, now()) : null;
+    const session = token ? await findSession(db, token, fingerprint, now()) : null;
     if (!session) return c.json({ error: 'login-required' as const }, 401);
     return next();
   });

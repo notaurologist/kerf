@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { secureHeaders } from 'hono/secure-headers';
 import { jsonBodiesOnly, requireSession } from './auth/middleware.ts';
+import { passwordFingerprint } from './auth/sessions.ts';
 import type { Database } from './db/client.ts';
 import { authRoutes } from './routes/auth.ts';
 import { projectRoutes } from './routes/projects.ts';
@@ -35,7 +36,7 @@ export function createApp(deps: AppDeps) {
         }),
       )
       .use(jsonBodiesOnly)
-      .use(requireSession(deps.db, now))
+      .use(requireSession(deps.db, passwordFingerprint(deps.passwordHash), now))
       // Deploy and uptime check. Returns no data, so it stays outside the session requirement.
       .get('/health', (c) => c.json({ ok: true }))
       .route('/', authRoutes({ db: deps.db, passwordHash: deps.passwordHash, now }))
