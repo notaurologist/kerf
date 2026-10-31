@@ -118,15 +118,26 @@ function Board(props: {
               props.partName(piece.partId)
             )}{' '}
             <Length>{formatLength(piece.length)}</Length>
-            {(props.quantity.get(piece.partId) ?? 1) > 1 &&
-              `, piece ${piece.instance + 1} of ${props.quantity.get(piece.partId)}`}
+            {pieceOf(piece.instance, props.quantity.get(piece.partId))}
           </li>
         ))}
       </List>
-      <Text tone="muted">
-        Left over after both ends are trimmed: <Length>{formatLength(board.offcut)}</Length>.
-      </Text>
+      <Offcut length={board.offcut} tone="muted" />
     </Stack>
+  );
+}
+
+/** ", piece 2 of 3" for a part cut more than once from the boards; nothing for a single piece. */
+export function pieceOf(instance: number, quantity: number | undefined): string {
+  return (quantity ?? 1) > 1 ? `, piece ${instance + 1} of ${quantity}` : '';
+}
+
+/** What a board leaves once its pieces are cut. */
+export function Offcut(props: { length: number; tone?: 'muted' }) {
+  return (
+    <Text tone={props.tone}>
+      Left over after both ends are trimmed: <Length>{formatLength(props.length)}</Length>.
+    </Text>
   );
 }
 
