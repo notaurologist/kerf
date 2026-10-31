@@ -1,6 +1,7 @@
 import {
   type CutListRow,
   createSnapshot,
+  describeBasis,
   enteredValues,
   entryEcho,
   type FormField,
@@ -413,6 +414,15 @@ function Specimens() {
             )}
           </Field>
         )}
+        <Field
+          id="catalog-suggested"
+          label={heightField.label}
+          echo={entryEcho(heightField, '96')}
+          about={describeBasis({ kind: 'example' })}
+          width="short"
+        >
+          {(c) => <TextInput {...c} value="96" onChange={() => {}} />}
+        </Field>
       </Group>
 
       <Group title="Form progress">

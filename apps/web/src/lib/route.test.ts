@@ -40,6 +40,14 @@ describe('parseRoute', () => {
       },
     ],
     [
+      '#/projects/new?template=swing-set-a-frame&questions',
+      {
+        screen: 'new-project',
+        templateId: 'swing-set-a-frame',
+        start: { kind: 'questions' },
+      },
+    ],
+    [
       '#/projects/new?template=swing-set-a-frame&example=x',
       { screen: 'new-project', templateId: 'swing-set-a-frame' },
     ],

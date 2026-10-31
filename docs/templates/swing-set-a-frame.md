@@ -296,6 +296,48 @@ Hand check, worked example: the beam's top front corner at its left end, (0, −
 
 The plan's summary (#119) opens with these, picked from the stored cut list and geometry: the beam's length and stock ("120\", 4x6"; a built-up beam says its plies, "120\", 2 plies of 2x6"), each leg's length under its cut-list name, and the legs' level cuts as a saw setting with the angle to the edge. Worked example: Beam 120", 4x6; Back leg (uphill) 131-1/2"; Front leg (downhill) 138-3/8"; Leg end cuts, saw at 20.0°, 70.0° to the edge (90° − 20°).
 
+## Starting questions
+
+A new project can start from a few plain questions (#163). Kerf asks only what it cannot know, fills in the rest from the worked example and stated rules of thumb, and opens the form filled in, with the preview. Each suggested value says where it came from. Nothing is saved until Create. `questions.ts` implements this section.
+
+| Question | Sets |
+|---|---|
+| Who will ride: only kids, or kids and adults | Beam height, from a rule of thumb, capped by the depth |
+| Heaviest rider on each swing, with seat and chain | The rider weights, a structural input, as answered (hard rule 3) |
+| Open space: length along the beam, depth front to back | Beam length and swing centers; caps the beam height |
+| Ground: level, or sloped front to back and by how much | Ground slope g (0 for level) |
+| Leg feet: on pads or buried | Burial depth d |
+
+Not suggested: hardware (every field marked confirmed: bolt sizes and counts, ply bolts, anchors), and every structural input except rider weight (species and grade, incised, moisture content, swing angle, dynamic factor, deflection limit, hanger rating). Stock comes from the worked example and is never sized from the loads; the preview shows its margin under the owner's loads (`PRODUCT.md`, Non-goals).
+
+### Rules
+
+The space means open ground with nothing in it, so the CPSC clear area and swing zones (Site layout, `DOMAIN.md`, Layout and clearances) must fit inside it.
+
+- **Beam height H.** Rule of thumb: 96 (8 ft) for kids only, 120 (10 ft) with adults. No published source gives a conventional height for home swing sets; the owner accepted a labeled rule of thumb (October 30, 2026). What was looked at: kit listings around 8 ft tall and builders' write-ups of adult-use frames at about 10 ft. The swing zones run 2·H in front of the beam and 2·H behind, so the depth D allows at most H = floor(D / 4). If that is less than the rule of thumb, Kerf suggests floor(D / 4) and says why, citing the CPSC zones. If it is under the schema's lowest beam (60), the height stays empty, saying how much depth 60 needs.
+- **Beam length L.** The worked example's 120. The clear area adds 72 at each end, so the length A allows at most floor(A − 144). If that is less than 120, Kerf suggests it and says why. Two swings need at least shortestBeam = 3·max(8 + s_w/2 + e + t, 8 + s_w) = 3·max(8 + 10 + 12 + 3.5, 28) = 100.5 with the worked example's seats, inset, and legs (the CPSC 8" seat gaps, Validation); under ceil(100.5) = 101 the length and swing centers stay empty, saying how much length 101 needs.
+- **Swing centers.** Rule of thumb: at L/3 and 2·L/3, to the nearest 1/16. The worked example is the case L = 120: 40 and 80.
+- **Crossbar height zc.** Rule of thumb: the worked example's share of the beam height, floor(H · 40/96).
+- **Ground slope, burial depth.** g as answered (0 for level). Pads give d = 0; buried legs the worked example's 24, with a note to settle the depth with an experienced builder (the plan flags it).
+- **From the worked example:** beam 4x6, one ply; legs 4x4; crossbar 2x6; gusset 2x8; splay 20° as an angle; frame inset 12; seat width 20; seat height 16 (chains adjust it, so no question). Hanger spacing is the seat width (rule of thumb: chains hang straight).
+
+The clear area stays inside the swing zones front to back for every suggestion: with α = 20°, half the footprint plus 72 is under 2·H for any H of 60 or more, even on the steepest slope. Tests generate each worked set below and check that the clear area and swing zones fit the space.
+
+### Worked examples (hand-checked)
+
+| | Kids only | Kids and adults | A small yard | No beam fits |
+|---|---|---|---|---|
+| Riders, weights | kids; 90, 110 | kids and adults; 220, 110 | kids and adults; 200, 90 | kids; 90, 0 |
+| Space, length × depth | 30' × 40' (360 × 480) | 30' × 40' | 21' × 28' (252 × 336) | 20' × 16' (240 × 192) |
+| Ground, feet | level, pads | sloped 1 in/ft, buried | level, buried | level, pads |
+| H: rule, floor(D/4) | 96; 120 → **96** | 120; 120 → **120** | 120; 84 → **84**, with a note | 96; 48 < 60 → empty |
+| L: floor(A − 144) | 216 → **120** | 216 → **120** | 108 → **108**, with a note | 96 < 101 → empty |
+| Swing centers | 40, 80 | 40, 80 | 36, 72 | empty |
+| Crossbar height | floor(96 · 40/96) = 40 | floor(120 · 40/96) = 50 | floor(84 · 40/96) = 35 | empty |
+| g, d | 0, 0 | 1, 24 | 0, 24 | 0, 0 |
+
+The small yard's beam-height note: "The usual height is 10' 0", and its swing zones need 40' 0" front to back. Your 28' 0" fits a beam up to 7' 0"." Its seats at 108 are 36 − 10 − 15.5 = 10.5 from each frame and 72 − 36 − 20 = 16 apart, both over 8.
+
 ## Validation
 
 Rejected combinations, each with a message saying which values conflict:

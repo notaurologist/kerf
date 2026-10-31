@@ -10,6 +10,7 @@ import { assembly, drawings } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';
 import { SwingSetParams } from './params.ts';
+import { SWING_SET_QUESTIONS } from './questions.ts';
 import { stepOutline } from './steps.ts';
 import {
   SwingSetStructuralInputs,
@@ -174,6 +175,7 @@ export const swingSetAFrame: TemplateDefinition<
     11: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
+  questions: SWING_SET_QUESTIONS,
   steps: (outputs) => stepOutline(outputs.design),
   plan(outputs) {
     const review = outputs.structuralReview;

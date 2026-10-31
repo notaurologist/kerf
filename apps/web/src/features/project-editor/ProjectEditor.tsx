@@ -9,6 +9,7 @@ import {
   formParts,
   formValues,
   type Plan,
+  type SuggestedField,
   type TemplateDefinition,
   visibleFields,
 } from '@kerf/core';
@@ -47,6 +48,7 @@ import {
 } from '../../ui/index.ts';
 import { belongsTo, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 import { PreviewPane, usePreview } from './Preview.tsx';
+import { StartQuestions } from './StartQuestions.tsx';
 import { sameJson } from './sameJson.ts';
 
 // Create or edit a project's parameters and structural inputs (PRODUCT.md, MVP features 2 and
@@ -78,8 +80,32 @@ function NewProject(props: { template: TemplateDefinition; start?: ProjectStart 
   return (
     <Loaded state={loaded} loading="Loading…">
       {({ earlier, source }) => {
-        const starting = startValues(template, start, source);
         const starts = <StartFrom template={template} start={start} earlier={earlier} />;
+        if (start?.kind === 'questions' && template.questions) {
+          return (
+            <StartQuestions
+              key={key}
+              template={template}
+              questions={template.questions}
+              title={newTitle(template)}
+              starts={starts}
+              editor={(suggested, changeAnswers) => (
+                <ProjectEditor
+                  template={template}
+                  initial={{ name: '', params: suggested.params, inputs: suggested.inputs }}
+                  suggested={suggested.about}
+                  starts={
+                    <>
+                      {starts}
+                      {changeAnswers}
+                    </>
+                  }
+                />
+              )}
+            />
+          );
+        }
+        const starting = startValues(template, start, source);
         if (!starting.ok) {
           return (
             <Stack gap="l">
@@ -142,6 +168,9 @@ export function startValues(
     );
     return { ok: true, initial: { name: '', params, inputs: empty } };
   }
+  if (start?.kind === 'questions') {
+    return { ok: false, message: 'This template has no starting questions.' };
+  }
   if (start?.kind === 'project') {
     if (!source || source.templateId !== template.id) {
       return { ok: false, message: "That project is not one of this template's." };
@@ -163,7 +192,10 @@ export function startValues(
   return { ok: true, initial: { name: '', params: formValues(form.params, {}), inputs: empty } };
 }
 
-/** The starts a new project can have: empty, each worked example offered as one, each earlier project. */
+/**
+ * The starts a new project can have: empty, each worked example offered as one, the template's
+ * starting questions, each earlier project.
+ */
 function StartFrom(props: {
   template: TemplateDefinition;
   start?: ProjectStart;
@@ -175,6 +207,9 @@ function StartFrom(props: {
     ...template.examples.flatMap((e, index) =>
       e.start ? [{ label: e.start, start: { kind: 'example', index } as ProjectStart }] : [],
     ),
+    ...(template.questions
+      ? [{ label: 'Answer a few questions', start: { kind: 'questions' } as ProjectStart }]
+      : []),
     ...props.earlier.map((p) => ({
       label: `A copy of ${p.name}`,
       start: { kind: 'project', id: p.id } as ProjectStart,
@@ -265,6 +300,11 @@ export function ProjectEditor(props: {
   initial: EditorValues;
   /** A new project's values copied from an earlier one, to confirm (#98). */
   copied?: Copied;
+  /**
+   * Where each suggested value came from, keyed `${from} ${path}` (#163). Shown under a field
+   * while it holds the suggestion.
+   */
+  suggested?: ReadonlyMap<string, SuggestedField>;
   /** A new project's choice of start, shown above the form. */
   starts?: ReactNode;
 }) {
@@ -423,6 +463,7 @@ export function ProjectEditor(props: {
               readOnly={saving}
               needed={from === 'structuralInputs' || field.confirmed}
               confirm={waitingFor[from].has(field.path) ? 'Copied, confirm' : undefined}
+              about={aboutField(props.suggested, from, field.path, values[from][field.path])}
               onChange={(text) => onChange[from]({ ...values[from], [field.path]: text })}
             />
           ))}
@@ -563,6 +604,17 @@ function CopiedNotice(props: {
       </Stack>
     </InfoNotice>
   );
+}
+
+/** Where a field's suggested value came from, while it still holds the suggestion. */
+function aboutField(
+  suggested: ReadonlyMap<string, SuggestedField> | undefined,
+  from: FormSource,
+  path: string,
+  text: string | undefined,
+): string | undefined {
+  const entry = suggested?.get(`${from} ${path}`);
+  return entry && entry.text === (text ?? '') ? entry.about : undefined;
 }
 
 /** A summary line that names its field, unless the message already does. */

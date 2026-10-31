@@ -29,6 +29,11 @@ export function Field(props: {
    * with this text in place of "Input needed".
    */
   confirm?: string;
+  /**
+   * Where a suggested value came from (#163), such as "Rule of thumb: …". Shown under the
+   * control while the value is the suggestion.
+   */
+  about?: string;
   /** Use a fixed id, so an error summary can link to the control. */
   id?: string;
   unit?: string;
@@ -44,10 +49,12 @@ export function Field(props: {
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
   const echoId = `${id}-echo`;
+  const aboutId = `${id}-about`;
   const describedBy = [
     props.error ? errorId : undefined,
     props.hint ? hintId : undefined,
     props.echo ? echoId : undefined,
+    props.about ? aboutId : undefined,
   ]
     .filter(Boolean)
     .join(' ');
@@ -84,6 +91,11 @@ export function Field(props: {
       {props.echo && (
         <span id={echoId} className="k-field__echo">
           {props.echo}
+        </span>
+      )}
+      {props.about && (
+        <span id={aboutId} className="k-field__about">
+          {props.about}
         </span>
       )}
     </div>

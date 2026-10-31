@@ -28,6 +28,8 @@ export function FieldInput(props: {
   needed?: boolean;
   /** A copied structural input waiting to be confirmed (#98); see `Field`. */
   confirm?: string;
+  /** Where a suggested value came from (#163); see `Field`. */
+  about?: string;
 }) {
   const { field, text } = props;
   const unit = field.unit || UNITS[field.kind];
@@ -42,6 +44,7 @@ export function FieldInput(props: {
       echo={entryEcho(field, text)}
       needed={props.needed && text.trim() === ''}
       confirm={props.confirm}
+      about={props.about}
       unit={unit}
       width={field.kind === 'choice' || field.kind === 'yes-no' ? 'medium' : 'short'}
     >
