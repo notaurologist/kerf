@@ -64,7 +64,13 @@ export function ProjectsScreen() {
   };
 
   return (
-    <Loaded state={loaded} loading="Loading projects…" onRetry={reload} title="Projects">
+    <Loaded
+      state={loaded}
+      shape="list"
+      loading="Loading projects…"
+      onRetry={reload}
+      title="Projects"
+    >
       {(value) => (
         <ProjectList
           projects={value.projects}

@@ -10,6 +10,7 @@ import { EditProjectScreen, NewProjectScreen } from './features/project-editor/P
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
 import { leaveGate } from './lib/leave.ts';
+import { changeScreen } from './lib/moves.ts';
 import { href, isMode, type Route, useRoute } from './lib/route.ts';
 import { useScreenChange } from './lib/screenChange.ts';
 import { ThemeSwitch } from './lib/theme.tsx';
@@ -120,7 +121,7 @@ async function checkSession(): Promise<Session> {
 }
 
 export function App() {
-  const route = useRoute();
+  const route = useRoute(changeScreen);
   useScreenChange(route);
   const [session, setSession] = useState<Session>('checking');
 

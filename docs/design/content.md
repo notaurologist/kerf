@@ -72,7 +72,7 @@ Everything a person acts on (steps, methods, flags, checklist items, errors, but
 
 **Buttons and links.** A verb and the thing it acts on, the same words for the same action everywhere: "Save changes", "Delete project", "Start building". A destructive button names what it destroys.
 
-**Status.** Short, saying what is happening or happened: "Saving…", "Saved.", "Loading project…". The ellipsis is one character.
+**Status.** Short, saying what is happening or happened: "Saving…", "Saved.", "Loading project…". The ellipsis is one character. A long wait says why, plainly: "Still loading. The first screen after a few idle minutes takes a few seconds."
 
 **Definitions.** A glossary entry (`knowledge/glossary.ts`) is the term, then one or two sentences: what the thing is, then, if the reader needs it, where Kerf shows it or how to work with it. No "a term for", no "refers to", and no examples a reader could mistake for a value.
 

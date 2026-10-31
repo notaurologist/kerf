@@ -131,6 +131,10 @@ export function setLoginRequiredHandler(handler: () => void) {
   onLoginRequired = handler;
 }
 
+/** When Kerf could not reach the server at all (docs/design/content.md). */
+export const CONNECTION_MESSAGE =
+  'Kerf could not reach the server. Check your connection, then try again.';
+
 /**
  * Sends a request made with the typed client and reads its body. Network failures and error
  * statuses become an `ApiError`; a missing session also tells the app to show the login screen.
@@ -147,7 +151,7 @@ export async function send<R extends ClientResponse<unknown>>(
       error: {
         kind: 'failed',
         status: 0,
-        message: 'Kerf could not reach the server. Check your connection, then try again.',
+        message: CONNECTION_MESSAGE,
       },
     };
   }
