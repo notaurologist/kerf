@@ -43,6 +43,30 @@ describe('swing-set snapshot fixtures', () => {
     expect(Object.keys(template.snapshotUpgrades).map(Number)).toEqual(versions.slice(0, -1));
   });
 
+  it.each(Object.entries(FIXTURES))('has one snapshot per worked example in shape %s', (_, f) => {
+    expect(f).toHaveLength(template.examples.length);
+  });
+
+  it('regenerates the current fixture exactly while the template version is unchanged', () => {
+    const current = FIXTURES[template.snapshotVersion] as { templateVersion: number }[];
+    const storedVersion = current[0]?.templateVersion;
+    if (storedVersion !== template.version) {
+      // A version without a new shape has no fixture of its own to compare with.
+      expect(storedVersion).toBeLessThan(template.version);
+      return;
+    }
+    const generated = template.examples.map((e) => {
+      const result = createSnapshot(template, e.params, e.structuralInputs);
+      if (!result.ok) throw new Error(e.name);
+      return JSON.parse(JSON.stringify(result.output));
+    });
+    expect(
+      generated,
+      'The worked examples generate different output at the same template version. Bump the ' +
+        "template's version, and its snapshotVersion too if the stored shape changed (decision 0008).",
+    ).toEqual(current);
+  });
+
   it.each(Object.entries(FIXTURES))('reads every snapshot stored in shape %s', (_, fixture) => {
     for (const stored of fixture) {
       const read = readSnapshot(templates, stored);
