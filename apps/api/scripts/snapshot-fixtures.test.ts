@@ -6,9 +6,9 @@ import { TEMPLATES } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 
 /**
- * The content of each fixture before a template's current shape. A fixture stands for projects
- * already stored, so a change to one is a change to what the tests promise to read. When a new
- * shape is added, pin the fixture that was current.
+ * The content of each fixture before a template's current version. A fixture stands for projects
+ * already stored, so a change to one is a change to what the tests promise to read. When the
+ * template version is bumped, pin the fixture that was current.
  */
 const PINNED: Record<string, Record<string, string>> = {
   'swing-set-a-frame': {
@@ -33,10 +33,10 @@ const templatesFolder = join(
 
 describe('snapshot fixtures', () => {
   it.each(TEMPLATES.map((t) => [t.id, t] as const))(
-    'keeps every %s fixture before the current shape exactly as committed',
+    'keeps every %s fixture before the current version exactly as committed',
     (id, template) => {
       const folder = join(templatesFolder, id, 'snapshots');
-      const current = `v${template.snapshotVersion}.json`;
+      const current = `v${template.version}.json`;
       const older = readdirSync(folder).filter((f) => f.endsWith('.json') && f !== current);
       const hashes = Object.fromEntries(
         older.map((file) => {
