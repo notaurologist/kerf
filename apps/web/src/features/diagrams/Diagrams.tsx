@@ -1,6 +1,15 @@
 import type { CutListRow, geometry } from '@kerf/core';
 import { cutDetailHeadingId, cutDetailId } from '../../lib/show.ts';
-import { Diagram, Stack, StatusLine, Text, type View, ViewSwitch } from '../../ui/index.ts';
+import {
+  Diagram,
+  Stack,
+  StatusLine,
+  sharedFrame,
+  Text,
+  useAssemblyMotion,
+  type View,
+  ViewSwitch,
+} from '../../ui/index.ts';
 
 // The plan's drawings (#91), drawn from the primitives core made from the stored snapshot (#90).
 // Each is labeled with core's description of it, which the template words for its own views,
@@ -41,6 +50,12 @@ export function Diagrams(props: {
   };
   const parts = `Parts ${lettersOf(rows)}, lettered as in the cut list.`;
   const chosen = rows.find((r) => r.partId === props.selected);
+  const motion = useAssemblyMotion();
+  // Both views at one scale, so a part can slide from one to the other.
+  const frame =
+    drawings.isometric && drawings.exploded
+      ? sharedFrame(drawings.isometric.bounds, drawings.exploded.bounds)
+      : undefined;
   const assembly: View[] = [];
   if (drawings.isometric) {
     assembly.push({
@@ -50,6 +65,8 @@ export function Diagrams(props: {
         <Diagram
           {...common}
           page="landscape"
+          frame={frame}
+          motion={frame && motion.assembled}
           drawing={drawings.isometric}
           label={`Isometric view. ${drawings.isometric.description} ${parts}`}
         />
@@ -64,6 +81,8 @@ export function Diagrams(props: {
         <Diagram
           {...common}
           page="landscape"
+          frame={frame}
+          motion={frame && motion.exploded}
           drawing={drawings.exploded}
           label={`Exploded view. ${drawings.exploded.description} ${parts}`}
         />
@@ -82,7 +101,9 @@ export function Diagrams(props: {
           <a href={props.partHref(chosen.partId)}>Show it in the cut list</a>
         </StatusLine>
       )}
-      {assembly.length > 0 && <ViewSwitch label="Assembly view" views={assembly} />}
+      {assembly.length > 0 && (
+        <ViewSwitch label="Assembly view" views={assembly} control={frame && motion.control} />
+      )}
       <h3>Cut details</h3>
       {drawings.cutDetails.map((detail) => (
         <Stack

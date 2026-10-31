@@ -125,6 +125,14 @@ export const Drawing = z.object({
    * the step adds (#118; Stage 5, "Drawings in Building mode").
    */
   emphasis: z.array(z.string()).optional(),
+  /**
+   * In an exploded view, how far each moved part instance is drawn from where it sits in the
+   * isometric view, on the page (#200). Both views share page coordinates, so a display can slide
+   * the parts from one view to the other.
+   */
+  moves: z
+    .array(z.object({ partId: z.string(), instance: z.number().int(), by: Point2 }))
+    .optional(),
 });
 export type Drawing = z.infer<typeof Drawing>;
 

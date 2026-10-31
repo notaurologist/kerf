@@ -364,7 +364,13 @@ export function explodedView(
     ];
   });
   const all = [...guidelines, ...primitives, ...letters(faces, primitives)];
-  return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [] };
+  // Projection is linear, so a part's 3D offset projects to its shift on the page.
+  const moves = explode.map((e) => ({
+    partId: e.partId,
+    instance: e.instance,
+    by: project(view, e.offset),
+  }));
+  return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [], moves };
 }
 
 /** What one assembly step shows (#118): the parts it adds and the parts already built. */
