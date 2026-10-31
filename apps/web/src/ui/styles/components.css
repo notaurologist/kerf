@@ -901,9 +901,18 @@
   }
 
   /* Opens in the top layer, centered where anchor positioning is not supported, otherwise under
-     the term (or above it near the bottom of the screen). */
+     the term (or above it near the bottom of the screen). It reads as body text wherever the term
+     sits: a one-line row, a table, or a heading would otherwise pass down their text settings. */
   .k-term__popover {
     max-inline-size: min(22rem, 100vw - 2 * var(--space-s));
+    font-family: var(--font-text);
+    font-size: var(--size-0);
+    font-weight: 400;
+    font-style: normal;
+    line-height: var(--leading-text);
+    white-space: normal;
+    text-transform: none;
+    letter-spacing: normal;
     padding: var(--space-xs) var(--space-s);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius);
