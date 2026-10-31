@@ -1,11 +1,7 @@
 // Word lists for tests that scan copy, shared so every scan applies the same rules.
 
-/**
- * Verdicts (hard rule 2): copy reports margins under assumptions instead. A bolt that passes
- * through wood, or passes without being driven, is described, not judged.
- */
-export const VERDICT_WORDS =
-  /\b(safe|safely|unsafe|fail|fails|failed|(pass|passes|passed)(?!\s+(all the way\s+through|through|without)\b))\b/i;
+/** Verdicts (hard rule 2): copy reports margins under assumptions instead. */
+export const VERDICT_WORDS = /\b(safe|safely|unsafe|fail|fails|failed|pass|passes|passed)\b/i;
 
 /**
  * Tool, hardware, and store brands (hard rule 11), including trademarks often used as generic

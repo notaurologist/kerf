@@ -381,7 +381,7 @@ export const GLOSSARY = [
     group: 'joints',
     forms: ['grips'],
     definition:
-      'The thickness of wood a bolt passes through, from where it goes in to where it comes out. The hardware list gives each bolt length from its grip.',
+      'The thickness of wood a bolt goes through, from where it goes in to where it comes out. The hardware list gives each bolt length from its grip.',
     sources: [],
   },
   {
@@ -785,7 +785,7 @@ export const GLOSSARY = [
     group: 'joints',
     forms: ['through-bolts', 'through bolt', 'through bolts'],
     definition:
-      'A bolt that passes all the way through the parts it joins, with a washer and nut on the far side.',
+      'A bolt that goes all the way through the parts it joins, with a washer and nut on the far side.',
     sources: [],
   },
   {
