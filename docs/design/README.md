@@ -352,6 +352,8 @@ Checked in the browser against a local database, with the device set to dark and
 
 The C1 values, in OKLCH, are in `color.html` (the `pal-C1-light` and `pal-C1-dark` classes) with every pairing measured. #45 turns them into tokens and adds a contrast test, so the measured ratios stay checked in code. Diagram ink roles (part, highlighted part, hidden line, dimension, clearance zone) carry into #44.
 
+#219 split the accent into roles, so one can change without the others: `--accent` for primary buttons, `--link`, `--needed` (input needed), `--changed` (the changed bar and state tags), and `--done`. Each starts at the accent's value, so their ratios are the accent's in `color.html`. The input-needed text color (`--input-text`, 9.29 and 9.73 on the input fill) was dropped: inputs have always used the text color, and applying it would have changed every input.
+
 ## Stage 3: typography (#42)
 
 `typography.html` measures each candidate typeface from its font files (digit height, tabular figures, fractions feature, weights, Latin `woff2` size) and derives its shop read and glance sizes from #41's distances. Three directions, each set in its real face at its real size, with a blur and dimming test for judging legibility:

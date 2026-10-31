@@ -117,16 +117,20 @@ function summaryHeading(fields: number, general: number): string {
 
 /** An empty structural input: a question, not an error (#43, rule 4). */
 export function InputNeeded(props: { children?: ReactNode }) {
-  return <span className="k-needed">{props.children ?? 'Input needed'}</span>;
+  return (
+    <span className="k-tag" data-tone="needed">
+      {props.children ?? 'Input needed'}
+    </span>
+  );
 }
 
 /** A question for an experienced builder (#43, rule 3): amber, the flag icon, and its label. */
 export function ExpertCheck(props: { label?: string; children: ReactNode; why?: ReactNode }) {
   return (
-    <div className="k-flag">
+    <div className="k-callout" data-tone="flag">
       <Icon name="flag" />
-      <div className="k-flag__body">
-        <span className="k-flag__label">{props.label ?? 'Expert check'}</span>
+      <div className="k-callout__body">
+        <span className="k-callout__label">{props.label ?? 'Expert check'}</span>
         <div>{props.children}</div>
         {props.why && <div>Why: {props.why}</div>}
       </div>
@@ -137,7 +141,7 @@ export function ExpertCheck(props: { label?: string; children: ReactNode; why?: 
 /** A problem that is not about a field, such as a lost connection: what happened and what to do. */
 export function Notice(props: { children: ReactNode; icon?: 'connection' | 'error' }) {
   return (
-    <div className="k-notice" role="alert">
+    <div className="k-callout" data-tone="notice" role="alert">
       <Icon name={props.icon ?? 'error'} />
       <span>{props.children}</span>
     </div>
@@ -197,9 +201,9 @@ export function SaveFailed(props: { failure: Failure; title?: string; kept?: str
  */
 export function InfoNotice(props: { children: ReactNode }) {
   return (
-    <div className="k-info" role="status">
+    <div className="k-callout" data-tone="info" role="status">
       <Icon name="info" />
-      <div className="k-info__body">{props.children}</div>
+      <div className="k-callout__body">{props.children}</div>
     </div>
   );
 }
@@ -224,7 +228,11 @@ export function StatusLine(props: { children: ReactNode }) {
  * never mistaken for the saved plan. Words in an outlined box; no meaning rests on color.
  */
 export function StateTag(props: { children: ReactNode }) {
-  return <span className="k-state-tag">{props.children}</span>;
+  return (
+    <span className="k-tag" data-tone="state">
+      {props.children}
+    </span>
+  );
 }
 
 /** Progress saved on this device and not yet sent (#57). */
