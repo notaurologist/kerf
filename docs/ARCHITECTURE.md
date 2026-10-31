@@ -209,7 +209,7 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 - `vercel.json` defines two services in one Vercel project: the web build at `/` and the API at `/api/*`, entered through `apps/api/src/vercel.ts`. The API's routes already start with `/api`, so the same paths work in development and production.
 - The API connects to Neon's pooled connection string with prepared statements off (`POOLED_CONNECTION` in `bootstrap.ts`).
 - Secrets live only in Vercel's environment settings and a local `.env`: `DATABASE_URL` and `PASSWORD_HASH` (see `.env.example`). The API refuses to start if either is missing or malformed, naming the variable but never printing its value.
-- Every production build runs `pnpm db:migrate` for the API service (`vercel.json`), while the previous deploy is still serving: a read-only check that the new code reads every stored snapshot, the Drizzle migrations, then the history backfill, all under an advisory lock (0014). It does not rewrite stored data into a newer shape. It connects through `DATABASE_URL_UNPOOLED` (Neon's direct connection) when set. Preview builds skip it. Locally, `pnpm db:migrate` does the same against `.env` or the Docker database.
+- Every production build runs `pnpm db:migrate` for the API service (`vercel.json`), while the previous deploy is still serving: a read-only check that the new code reads every stored snapshot, the Drizzle migrations, then the history backfill, all under an advisory lock (0014). It does not rewrite stored data into a newer shape. It connects through `DATABASE_URL_UNPOOLED` (Neon's direct connection) when set. Branches other than `main` do not deploy. Locally, `pnpm db:migrate` does the same against `.env` or the Docker database.
 - Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, redeploy, and delete the rows in `sessions` (0007).
 
 #### Backups (manual, for now)
@@ -236,7 +236,7 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 1. **Neon:** a free project on Postgres 18 in AWS `us-east-1`, near Vercel's default function region. Copy the pooled connection string (host ends in `-pooler`) and the direct one.
 2. **Password hash:** in a terminal, `pnpm --filter @kerf/api hash-password`; copy the printed `scrypt:...` value.
 3. **Vercel:** on the Hobby plan, import the GitHub repository with the repository root as the root directory, so `vercel.json` applies. Node.js version 24.x.
-4. **Environment variables, Production only, marked Sensitive:** `DATABASE_URL` (pooled), `DATABASE_URL_UNPOOLED` (direct), `PASSWORD_HASH`. Preview deployments get none, so they cannot reach the production database; their API does not start.
+4. **Environment variables, Production only, marked Sensitive:** `DATABASE_URL` (pooled), `DATABASE_URL_UNPOOLED` (direct), `PASSWORD_HASH`. Only `main` deploys (`git.deploymentEnabled` in `vercel.json`): a preview would get none of these, so its API would not start, and each one counts toward the Hobby plan's 100 deployments a day.
 5. **Deploy** `main`. The API's build log shows `release: migrations applied.`
 6. **Check:** `pnpm --filter @kerf/api check-deploy https://<project>.vercel.app` asks for the password without echo, then checks health, login, storing and reading a project, and logout. It leaves one project named "Deploy check".
 
