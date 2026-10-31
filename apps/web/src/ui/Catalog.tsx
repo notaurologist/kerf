@@ -5,6 +5,7 @@ import {
   entryEcho,
   type FormField,
   findGlossaryEntry,
+  formParts,
   formValues,
   parseLength,
   planDigests,
@@ -27,7 +28,7 @@ import { Diagram } from './Diagram.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
 import { ConfirmDialog } from './Dialog.tsx';
 import { Disclosure } from './Disclosure.tsx';
-import { Field, Select, TextInput, YesNo } from './Field.tsx';
+import { Field, FormProgress, Select, TextInput, YesNo } from './Field.tsx';
 import { Figures } from './Figures.tsx';
 import {
   ErrorSummary,
@@ -127,6 +128,7 @@ const numberField = template.form.structuralInputs
   .flatMap((x) => x.fields)
   .find((f) => f.kind === 'number');
 const readOnlyField = lengths[0];
+const PARTS = formParts(template.form);
 
 // A preview against a saved plan: the last worked example as the preview, the first as what was
 // saved. Both are core's output for their parameters.
@@ -327,10 +329,16 @@ function Specimens() {
           label={heightField.label}
           hint="Inches, or feet and inches."
           echo={entryEcho(heightField, text)}
+          width="short"
         >
           {(c) => <TextInput {...c} value={text} onChange={setText} />}
         </Field>
-        <Field id="catalog-unread" label={otherField.label} echo={entryEcho(otherField, '8 0')}>
+        <Field
+          id="catalog-unread"
+          label={otherField.label}
+          echo={entryEcho(otherField, '8 0')}
+          width="short"
+        >
           {(c) => <TextInput {...c} value="8 0" onChange={() => {}} />}
         </Field>
         <Field
@@ -338,16 +346,23 @@ function Specimens() {
           label={heightField.label}
           error={rangeMessage(heightField, "15'")}
           echo={entryEcho(heightField, "15'")}
+          width="short"
         >
           {(c) => <TextInput {...c} value="15'" onChange={() => {}} />}
         </Field>
         {numberField && (
-          <Field label={numberField.label} hint={numberField.help} needed>
+          <Field
+            label={numberField.label}
+            hint={numberField.help}
+            unit={numberField.unit}
+            width="short"
+            needed
+          >
             {(c) => <TextInput {...c} keyboard="decimal" value="" onChange={() => {}} />}
           </Field>
         )}
         {angleField && (
-          <Field label={angleField.label} unit="°">
+          <Field label={angleField.label} unit="°" width="short">
             {(c) => (
               <TextInput
                 {...c}
@@ -359,7 +374,7 @@ function Specimens() {
           </Field>
         )}
         {choiceField && (
-          <Field label={choiceField.label}>
+          <Field label={choiceField.label} width="medium">
             {(c) => (
               <Select
                 {...c}
@@ -374,12 +389,12 @@ function Specimens() {
           </Field>
         )}
         {yesNoField && (
-          <Field label={yesNoField.label}>
+          <Field label={yesNoField.label} width="medium">
             {(c) => <YesNo {...c} value={yes} onChange={setYes} />}
           </Field>
         )}
         {readOnlyField && (
-          <Field label={readOnlyField.label}>
+          <Field label={readOnlyField.label} width="short">
             {(c) => (
               <TextInput
                 {...c}
@@ -390,6 +405,17 @@ function Specimens() {
             )}
           </Field>
         )}
+      </Group>
+
+      <Group title="Form progress">
+        <FormProgress
+          entered={18}
+          total={32}
+          empty={[
+            { group: PARTS[0]?.title ?? '', field: 'catalog-unread' },
+            { group: PARTS[1]?.title ?? '', field: 'catalog-range' },
+          ]}
+        />
       </Group>
 
       <Group title="Errors">

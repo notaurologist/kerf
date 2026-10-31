@@ -80,7 +80,7 @@ Everything a person acts on (steps, methods, flags, checklist items, errors, but
 
 Text marks only the first use of a term on a screen, not every use. Each plan section, each Building step, and each other screen is its own screen for this. A term inside a tool's name ("miter saw", "sliding bevel") is the tool, not the term, and is never marked. On paper no definition can open, so the printed plan ends with "Terms used in this plan": every term its text uses, alphabetical, with its definition.
 
-**Headings.** Nouns for what the section holds: "Cut list", "Structural review", "Dimensions and hardware".
+**Headings.** Nouns for what the section holds: "Cut list", "Structural review", "Beam".
 
 ## Word list
 

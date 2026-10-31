@@ -1,5 +1,7 @@
 import { type ReactNode, useId } from 'react';
-import { ErrorText, InputNeeded } from './feedback.tsx';
+import { ErrorText, goToField, InputNeeded } from './feedback.tsx';
+import { Stack } from './layout.tsx';
+import { Text } from './text.tsx';
 
 // A form field (#67): label, hint, error, the control, and the line under it saying what Kerf
 // read. The error sits above the control so it is read before the value it is about. Errors
@@ -30,6 +32,11 @@ export function Field(props: {
   /** Use a fixed id, so an error summary can link to the control. */
   id?: string;
   unit?: string;
+  /**
+   * The control's width for what is typed in it: `short` for a number or length, `medium` for a
+   * name or a choice. Unset, it fills the field.
+   */
+  width?: 'short' | 'medium';
   children: (control: ControlProps) => ReactNode;
 }) {
   const generated = useId();
@@ -52,7 +59,7 @@ export function Field(props: {
     className: 'k-field__input',
   });
   return (
-    <div className="k-field" data-state={state}>
+    <div className="k-field" data-state={state} data-width={props.width}>
       <label className="k-field__label" htmlFor={id}>
         <span>{props.label}</span>
         {props.needed && !props.error && <InputNeeded />}
@@ -190,5 +197,35 @@ export function FieldGroup(props: { legend: string; help?: ReactNode; children: 
       {props.help && <p className="k-field__hint">{props.help}</p>}
       {props.children}
     </fieldset>
+  );
+}
+
+/**
+ * How much of a long form is entered, and the groups with fields still empty, each a link to its
+ * first empty field.
+ */
+export function FormProgress(props: {
+  entered: number;
+  total: number;
+  /** Each group with an empty field: its name and the id of its first empty field's control. */
+  empty: readonly { group: string; field: string }[];
+}) {
+  const links = props.empty.map((e, i) => (
+    <span key={e.group}>
+      {i === 0 ? '' : i === props.empty.length - 1 ? (i > 1 ? ', and ' : ' and ') : ', '}
+      <a href={`#${e.field}`} onClick={(event) => goToField(e.field, event, document)}>
+        {e.group}
+      </a>
+    </span>
+  ));
+  return (
+    <Stack gap="3xs">
+      <Text>
+        <b>
+          {props.entered} of {props.total} entered
+        </b>
+      </Text>
+      {links.length > 0 && <Text tone="muted">Still empty: {links}.</Text>}
+    </Stack>
   );
 }

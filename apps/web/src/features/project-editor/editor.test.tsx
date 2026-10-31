@@ -39,6 +39,51 @@ describe('a new project form', () => {
   });
 });
 
+describe('the form’s layout (#164)', () => {
+  const example = startValues(template, { kind: 'example', index: 0 }, null);
+  if (!example.ok) throw new Error(example.message);
+  const editor = <ProjectEditor template={template} initial={example.initial} />;
+  const html = render(editor);
+  const text = renderText(editor);
+
+  it('shows the fields by part, with each part’s parameters and structural inputs together', () => {
+    const legends = [...html.matchAll(/<legend>([^<]*)<\/legend>/g)].map((m) => m[1]);
+    expect(legends).toEqual(['Beam', 'Legs', 'Crossbars', 'Gussets', 'Site', 'Swings', 'Loads']);
+    const beam = html.slice(html.indexOf('<legend>Beam'), html.indexOf('<legend>Legs'));
+    expect(beam).toContain('id="p-beamLength"');
+    expect(beam).toContain('id="s-beamSpeciesGrade"');
+  });
+
+  it('marks empty hardware as input needed, as it does structural inputs (rule 3)', () => {
+    expect(html).toMatch(/Leg-to-beam bolt diameter<\/span><span class="k-needed">/);
+    expect(html).not.toMatch(/Beam length<\/span><span class="k-needed">/);
+  });
+
+  it('says how much is entered and which parts have empty fields, linking to the first of each', () => {
+    // The worked example's start: 32 fields shown, its 5 hardware fields and 9 structural
+    // inputs left empty (spec, Parameters; rule 3).
+    expect(text).toContain('18 of 32 entered');
+    expect(text).toContain('Still empty: Beam, Legs, Crossbars, Gussets, Swings, and Loads.');
+    expect(html).toContain('href="#s-beamSpeciesGrade"');
+    expect(html).toContain('href="#p-hardware.legBoltDiameter"');
+  });
+
+  it('offers Create in the header and beside the form', () => {
+    expect(html.match(/<button type="submit"[^>]*>[\s\S]*?Create project/g)).toHaveLength(2);
+    const header = html.slice(0, html.indexOf('</header>'));
+    expect(header).toContain('Create project');
+  });
+
+  it('gives numbers and lengths a short input and choices a medium one', () => {
+    expect(html).toMatch(
+      /<div class="k-field"[^>]*data-width="short"[^>]*><label[^>]*for="p-beamLength"/,
+    );
+    expect(html).toMatch(
+      /<div class="k-field"[^>]*data-width="medium"[^>]*><label[^>]*for="p-beamStock"/,
+    );
+  });
+});
+
 describe('starting a new project (#98)', () => {
   const earlier = projectFrom(storedSnapshots[0] ?? null, { name: 'First swing set' });
 

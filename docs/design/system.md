@@ -18,6 +18,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
   - `Grid` for as many columns as fit;
   - `Switcher` for side by side, switching to a column all at once;
   - `Sidebar` for a narrow side beside a wide main;
+  - `WithAside` for a main column at a form's width with an aside that stays in view beside it from 60rem, such as the editor's preview; narrower, the aside follows;
   - `Center` for a readable measure.
 
   Gaps are steps of the spacing scale (`3xs` to `xl`), never lengths.
@@ -42,8 +43,9 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | An action that fails | `ErrorText alert` under it | Announced when it appears. |
 | A question asked in place | `InlineConfirm` | The question (and any field to fill in), the action named for what it does, a "Keep …" choice, the busy label, and the error. A form, so Enter answers. Use `ConfirmDialog` only when the answer has to come before going anywhere. |
 | Going to another screen | `ButtonLink`, or a plain `a` | `ButtonLink` when it should look like an action, such as "New swing set". |
-| A field | `Field` with `TextInput`, `Select`, or `YesNo` | `Field` holds the label, hint, error, echo, and input needed. Give it an `id` when an error summary links to it. Lengths use the full keyboard (the default); numbers use `keyboard="decimal"` or `"numeric"`. |
-| Related fields | `FieldGroup` inside a `Grid` | A legend and optional help. |
+| A field | `Field` with `TextInput`, `Select`, or `YesNo` | `Field` holds the label, hint, error, echo, and input needed. Give it an `id` when an error summary links to it. Lengths use the full keyboard (the default); numbers use `keyboard="decimal"` or `"numeric"`. `width="short"` (10rem) for a number or length, `"medium"` (up to 20rem) for a name or a choice; a `unit` stays on the input's line. Input needed sits on its own line under the label. |
+| Related fields | `FieldGroup` inside a `Grid`, or one after another in a `Stack` for a long form | A legend and optional help. A long form is one field per row (#164). |
+| How much of a long form is entered | `FormProgress` | "N of M entered", then the groups with an empty field, each a link to its first one. |
 | A menu in a row | `CompactSelect` | Its label is read by screen readers only, such as a project's status. |
 | Problems after a save | `ErrorSummary` at the top, `error` on each `Field` | The summary takes focus and links to each field (#67). Show errors only after a save. |
 | An empty structural input | `needed` on `Field`, or `InputNeeded` | A question, not an error (#43, rule 4). |

@@ -118,13 +118,24 @@ describe('the plan’s header', () => {
 });
 
 describe('Parameters and inputs', () => {
-  it('closes the plan with every parameter and input as entered, labeled as in the editor', () => {
+  it('closes the plan with every parameter and input as entered, by part as in the editor', () => {
     const text = section(complete, 'parameters');
-    expect(text).toContain('Dimensions and hardware Frame');
+    const part = sectionOf(html(complete), 'parameters');
+    expect([...part.matchAll(/<h3>([^<]*)<\/h3>/g)].map((m) => m[1])).toEqual([
+      'Beam',
+      'Legs',
+      'Crossbars',
+      'Gussets',
+      'Site',
+      'Swings',
+      'Loads',
+    ]);
+    // A part's parameters and structural inputs share its table.
+    expect(text).toContain('Beam Field As entered Beam length');
+    expect(text).toMatch(/Beam plies [\s\S]*Beam species and grade/);
     expect(text).toContain(`Beam length 10' 0" · 120"`);
     expect(text).toContain('Leg angle from vertical 20.0°');
     expect(text).toContain('Beam stock 4x6');
-    expect(text).toContain('Structural inputs');
     expect(text).toContain('Edit');
     expect(text).not.toContain('Footprint depth');
   });

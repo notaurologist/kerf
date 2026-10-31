@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { enteredValues, type FormSection } from './form.ts';
+import {
+  enteredParts,
+  enteredValues,
+  type FormSection,
+  formParts,
+  type TemplateForm,
+} from './form.ts';
 
 // Reading a stored object back by its form (#119), on a made-up form: each kind of field.
 
@@ -72,5 +78,62 @@ describe('enteredValues', () => {
 
   it('leaves out fields that do not apply', () => {
     expect(read[0]?.values.some((v) => v.label === 'Depth')).toBe(false);
+  });
+});
+
+// The form shown by part (#164): sections of the same title in both objects are one part.
+const form: TemplateForm = {
+  params: [
+    {
+      title: 'Size',
+      help: 'Measured on site.',
+      fields: [{ path: 'length', label: 'Length', kind: 'length' }],
+    },
+    {
+      title: 'Bolts',
+      fields: [{ path: 'bolts', label: 'Bolts', kind: 'integer', confirmed: true }],
+    },
+  ],
+  structuralInputs: [
+    { title: 'Loads', fields: [{ path: 'weight', label: 'Weight', kind: 'number', unit: 'lb' }] },
+    {
+      title: 'Size',
+      help: 'From the grade stamp.',
+      fields: [{ path: 'grade', label: 'Grade', kind: 'integer' }],
+    },
+  ],
+};
+
+describe('formParts', () => {
+  const parts = formParts(form);
+
+  it('puts the parameters’ parts first, each with the inputs of the same title, then the rest', () => {
+    expect(parts.map((p) => p.title)).toEqual(['Size', 'Bolts', 'Loads']);
+    expect(parts[0]?.fields.map((f) => [f.from, f.field.path])).toEqual([
+      ['params', 'length'],
+      ['structuralInputs', 'grade'],
+    ]);
+  });
+
+  it('joins the help of the sections it merges', () => {
+    expect(parts[0]?.help).toBe('Measured on site. From the grade stamp.');
+    expect(parts[1]?.help).toBeUndefined();
+  });
+});
+
+describe('enteredParts', () => {
+  it('reads both objects back by part, saying where each value is from', () => {
+    const read = enteredParts(form, { length: 120, bolts: 4 }, { weight: 150 });
+    expect(read.map((p) => [p.title, p.values.map((v) => [v.from, v.label, v.text])])).toEqual([
+      [
+        'Size',
+        [
+          ['params', 'Length', `10' 0" · 120"`],
+          ['structuralInputs', 'Grade', null],
+        ],
+      ],
+      ['Bolts', [['params', 'Bolts', '4']]],
+      ['Loads', [['structuralInputs', 'Weight', '150 lb']]],
+    ]);
   });
 });

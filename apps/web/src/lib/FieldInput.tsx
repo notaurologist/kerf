@@ -43,6 +43,7 @@ export function FieldInput(props: {
       needed={props.needed && text.trim() === ''}
       confirm={props.confirm}
       unit={unit}
+      width={field.kind === 'choice' || field.kind === 'yes-no' ? 'medium' : 'short'}
     >
       {(c) =>
         field.kind === 'choice' || field.kind === 'yes-no' ? (

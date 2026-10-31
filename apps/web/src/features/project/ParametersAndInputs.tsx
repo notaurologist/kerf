@@ -1,4 +1,4 @@
-import { type EnteredValue, enteredValues, type TemplateDefinition } from '@kerf/core';
+import { enteredParts, type TemplateDefinition } from '@kerf/core';
 import type { Project } from '../../lib/types.ts';
 import {
   ButtonLink,
@@ -11,8 +11,8 @@ import {
 } from '../../ui/index.ts';
 
 // The plan's last section (#40, section order A; #119): every parameter and structural input as
-// entered, labeled as in the editor and read back through core's formatters, so the paper copy
-// says what the plan was made from.
+// entered, labeled and grouped by part as in the editor and read back through core's formatters,
+// so the paper copy says what the plan was made from.
 
 export function ParametersAndInputs(props: {
   project: Project;
@@ -21,42 +21,20 @@ export function ParametersAndInputs(props: {
 }) {
   const { snapshot } = props.project;
   if (!snapshot) return null;
-  const { form } = props.template;
+  const parts = enteredParts(props.template.form, snapshot.params, snapshot.structuralInputs);
   return (
     <Stack>
-      <h3>Dimensions and hardware</h3>
-      <Sections sections={enteredValues(form.params, snapshot.params)} />
-      <h3>Structural inputs</h3>
-      <Sections sections={enteredValues(form.structuralInputs, snapshot.structuralInputs)} needed />
-      {props.editHref && (
-        <Cluster>
-          <ButtonLink variant="secondary" href={props.editHref}>
-            Edit
-          </ButtonLink>
-        </Cluster>
-      )}
-    </Stack>
-  );
-}
-
-function Sections(props: {
-  sections: { title: string; values: EnteredValue[] }[];
-  /** Structural inputs: one not entered is input needed (#43, rule 4), never filled in. */
-  needed?: boolean;
-}) {
-  return (
-    <>
-      {props.sections
-        .filter((s) => s.values.length > 0)
-        .map((section) => (
-          <Stack key={section.title} gap="xs">
-            <h4>{section.title}</h4>
+      {parts
+        .filter((part) => part.values.length > 0)
+        .map((part) => (
+          <Stack key={part.title} gap="xs">
+            <h3>{part.title}</h3>
             <MeasureTable
-              caption={section.title}
+              caption={part.title}
               captionHidden
               equalColumns
-              rows={section.values}
-              rowKey={(v) => v.path}
+              rows={part.values}
+              rowKey={(v) => `${v.from} ${v.path}`}
               columns={[
                 { key: 'field', label: 'Field', cell: (v) => v.label },
                 {
@@ -65,7 +43,8 @@ function Sections(props: {
                   cell: (v) =>
                     v.text !== null ? (
                       <Measured text={v.text} />
-                    ) : props.needed ? (
+                    ) : v.from === 'structuralInputs' ? (
+                      // One not entered is input needed (#43, rule 4), never filled in.
                       <InputNeeded />
                     ) : (
                       <Text tone="muted" as="span">
@@ -77,6 +56,13 @@ function Sections(props: {
             />
           </Stack>
         ))}
-    </>
+      {props.editHref && (
+        <Cluster>
+          <ButtonLink variant="secondary" href={props.editHref}>
+            Edit
+          </ButtonLink>
+        </Cluster>
+      )}
+    </Stack>
   );
 }
