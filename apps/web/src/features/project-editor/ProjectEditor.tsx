@@ -21,6 +21,7 @@ import { Loaded } from '../../lib/Loaded.tsx';
 import { readPlan } from '../../lib/plan.ts';
 import { describeReset } from '../../lib/progress.ts';
 import { href, navigate, type ProjectStart } from '../../lib/route.ts';
+import { sameJson } from '../../lib/sameJson.ts';
 import type { PlanSectionId } from '../../lib/sections.ts';
 import type { Project, ProjectSummary } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
@@ -44,13 +45,13 @@ import {
   Text,
   TextInput,
   Tick,
-  useLeaveGuard,
+  useDraft,
+  useFormIssues,
   WithAside,
 } from '../../ui/index.ts';
 import { belongsTo, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 import { PreviewPane, usePreview } from './Preview.tsx';
 import { StartQuestions } from './StartQuestions.tsx';
-import { sameJson } from './sameJson.ts';
 
 // Create or edit a project's parameters and structural inputs (PRODUCT.md, MVP features 2 and
 // 7). The template describes its form as data in core; this renders any template's form. Core's
@@ -330,16 +331,18 @@ export function ProjectEditor(props: {
 }) {
   const { template, project, copied } = props;
   const form = template.form;
-  const [name, setName] = useState(props.initial.name);
-  const [params, setParams] = useState(props.initial.params);
-  const [inputs, setInputs] = useState(props.initial.inputs);
-  const [issues, setIssues] = useState({
+  const { draft, setDraft, dialog } = useDraft(props.initial);
+  const { name, params, inputs } = draft;
+  const setName = (next: string) => setDraft((d) => ({ ...d, name: next }));
+  const setParams = (next: FormValues) => setDraft((d) => ({ ...d, params: next }));
+  const setInputs = (next: FormValues) => setDraft((d) => ({ ...d, inputs: next }));
+  const { issues, attempt, report } = useFormIssues({
     name: undefined as string | undefined,
+    confirm: undefined as string | undefined,
     params: NO_ISSUES,
     inputs: NO_ISSUES,
   });
   const [confirmed, setConfirmed] = useState(false);
-  const [confirmIssue, setConfirmIssue] = useState<string | undefined>();
   const [saveState, setSaveState] = useState<SaveState>({ state: 'idle' });
   // Copied values the owner has neither changed nor confirmed, among the fields shown. Changing
   // one confirms it; clearing a structural input makes it input needed.
@@ -357,22 +360,23 @@ export function ProjectEditor(props: {
   };
   const toConfirm = unconfirmed.params.size + unconfirmed.inputs.size;
   const saving = saveState.state === 'saving';
-  const dirty =
-    name !== props.initial.name ||
-    !sameJson(params, props.initial.params) ||
-    !sameJson(inputs, props.initial.inputs);
-  const guard = useLeaveGuard(dirty && !saving);
 
-  const show = (fieldIssues: FieldIssue[], nameIssue?: string) => {
+  const show = (fieldIssues: FieldIssue[], nameIssue?: string, confirmIssue?: string) => {
     const forParams = fieldIssues.filter(
       (i) => belongsTo(form.params, i.field) || !belongsTo(form.structuralInputs, i.field),
     );
     const forInputs = fieldIssues.filter((i) => !forParams.includes(i));
-    setIssues({
-      name: nameIssue,
-      params: placeIssues(form.params, params, forParams),
-      inputs: placeIssues(form.structuralInputs, inputs, forInputs),
-    });
+    const found = fieldIssues.length > 0 || nameIssue !== undefined || confirmIssue !== undefined;
+    report(
+      {
+        name: nameIssue,
+        confirm: confirmIssue,
+        params: placeIssues(form.params, params, forParams),
+        inputs: placeIssues(form.structuralInputs, inputs, forInputs),
+      },
+      found,
+    );
+    return found;
   };
 
   const submit = async (e: FormEvent) => {
@@ -384,7 +388,6 @@ export function ProjectEditor(props: {
     const i = template.structuralInputs.safeParse(builtInputs);
     const nameIssue = name.trim() ? undefined : 'Enter a project name.';
     const copyIssue = toConfirm > 0 ? 'Confirm the copied values, or change them.' : undefined;
-    setConfirmIssue(copyIssue);
     // Text Kerf cannot read says what to type; the schema's problems cover the rest.
     const unread = [
       ...entryProblems(form.params, params),
@@ -400,8 +403,7 @@ export function ProjectEditor(props: {
           : schemaIssues(i.error, inputs, form.structuralInputs, template.structuralInputs)),
       ].filter((issue) => !unreadFields.has(issue.field)),
     ];
-    show(found, nameIssue);
-    if (found.length > 0 || nameIssue || copyIssue) return;
+    if (show(found, nameIssue, copyIssue)) return;
 
     setSaveState({ state: 'saving' });
     const result = project
@@ -445,7 +447,9 @@ export function ProjectEditor(props: {
         ? [{ field: fieldId(from, field.path), message: named(field.label, message) }]
         : [];
     }),
-    ...(confirmIssue && toConfirm > 0 ? [{ field: 'confirm-copied', message: confirmIssue }] : []),
+    ...(issues.confirm && toConfirm > 0
+      ? [{ field: 'confirm-copied', message: issues.confirm }]
+      : []),
   ];
   const general = [...issues.params.general, ...issues.inputs.general];
 
@@ -494,7 +498,7 @@ export function ProjectEditor(props: {
           from={copied.from}
           confirmed={confirmed}
           waiting={toConfirm}
-          issue={toConfirm > 0 ? confirmIssue : undefined}
+          issue={toConfirm > 0 ? issues.confirm : undefined}
           onConfirm={setConfirmed}
         />
       )}
@@ -537,7 +541,7 @@ export function ProjectEditor(props: {
           title={project ? `Edit ${project.name}` : newTitle(template)}
           actions={submitButton}
         />
-        <ErrorSummary items={summary} general={general} />
+        <ErrorSummary items={summary} general={general} attempt={attempt} />
         {props.starts}
         {project?.version?.status === 'behind' && (
           <InfoNotice>
@@ -561,7 +565,7 @@ export function ProjectEditor(props: {
           )}
         </WithAside>
       </Stack>
-      {guard.dialog}
+      {dialog}
     </form>
   );
 }

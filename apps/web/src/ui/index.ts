@@ -7,7 +7,7 @@ export { type ContentsItem, SectionList, SectionPager, WithContents } from './Co
 export { type Definition, DefinitionFigure, Definitions } from './Definitions.tsx';
 export { Diagram } from './Diagram.tsx';
 export { DiagramFrame } from './DiagramFrame.tsx';
-export { ConfirmDialog } from './Dialog.tsx';
+export { BlockingDialog, ConfirmDialog } from './Dialog.tsx';
 export { Disclosure } from './Disclosure.tsx';
 export {
   CompactSelect,
@@ -36,9 +36,10 @@ export {
   StateTag,
   StatusLine,
   type SummaryItem,
+  useFormIssues,
 } from './feedback.tsx';
 export { Icon, type IconName } from './Icon.tsx';
-export { useLeaveGuard } from './LeaveGuard.tsx';
+export { useDraft } from './LeaveGuard.tsx';
 export {
   Card,
   Center,

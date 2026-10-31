@@ -74,13 +74,6 @@
     --space-m-base: clamp(1.5rem, 1.3043rem + 0.8696vw, 2rem);
     --space-l-base: clamp(2rem, 1.6087rem + 1.7391vw, 3rem);
     --space-xl-base: clamp(3rem, 2.413rem + 2.6087vw, 4.5rem);
-    --space-3xs: calc(var(--density) * var(--space-3xs-base));
-    --space-2xs: calc(var(--density) * var(--space-2xs-base));
-    --space-xs: calc(var(--density) * var(--space-xs-base));
-    --space-s: calc(var(--density) * var(--space-s-base));
-    --space-m: calc(var(--density) * var(--space-m-base));
-    --space-l: calc(var(--density) * var(--space-l-base));
-    --space-xl: calc(var(--density) * var(--space-xl-base));
     --control-min: 2.75rem; /* 44 px */
     --content-max: 75rem; /* 1200 px */
     --measure: 68ch;
@@ -103,6 +96,19 @@
     --dash-phantom: 16 3 3 3 3 3;
     --dash-guideline: 3 3;
     --dash-zone: 8 4;
+  }
+
+  /* A var() in a custom property resolves where it is declared, so these follow the density
+     only where they are declared again. */
+  :root,
+  [data-density] {
+    --space-3xs: calc(var(--density) * var(--space-3xs-base));
+    --space-2xs: calc(var(--density) * var(--space-2xs-base));
+    --space-xs: calc(var(--density) * var(--space-xs-base));
+    --space-s: calc(var(--density) * var(--space-s-base));
+    --space-m: calc(var(--density) * var(--space-m-base));
+    --space-l: calc(var(--density) * var(--space-l-base));
+    --space-xl: calc(var(--density) * var(--space-xl-base));
   }
 
   /* Shopping and Building (#41): larger space and controls at least 56 px tall, and every word in

@@ -438,7 +438,7 @@ function Specimens() {
 
       <Group title="Errors">
         <ErrorSummary
-          takeFocus={false}
+          attempt={0}
           items={[
             { field: 'catalog-unread', message: unreadable },
             { field: 'catalog-range', message: rangeMessage(heightField, "15'") },

@@ -24,6 +24,8 @@ import {
   TextInput,
   Tick,
   ToolLabel,
+  useDraft,
+  useFormIssues,
 } from '../../ui/index.ts';
 import {
   addAnother,
@@ -61,13 +63,13 @@ export function ToolsEditor(props: {
   saved: InventoryDraft;
   onSaved?: (inventory: Parameters<typeof fromInventory>[0]) => void;
 }) {
-  const [draft, setDraft] = useState(props.saved);
-  const [issues, setIssues] = useState<FieldIssue[]>([]);
+  const { draft, setDraft, dialog } = useDraft(props.saved);
+  const { issues, attempt, report } = useFormIssues<FieldIssue[]>([]);
   const [save, setSave] = useState<SaveState>({ state: 'idle' });
   const [query, setQuery] = useState('');
   // Tools unticked by mistake come back, with what was typed, when ticked again.
   const [unticked, setUnticked] = useState<Record<string, ToolDraft[]>>({});
-  useEffect(() => setDraft(props.saved), [props.saved]);
+  useEffect(() => setDraft(props.saved), [props.saved, setDraft]);
 
   const change = (next: (d: InventoryDraft) => InventoryDraft) => {
     setDraft(next);
@@ -83,7 +85,7 @@ export function ToolsEditor(props: {
 
   const submit = async () => {
     const checked = toInventory(draft);
-    setIssues(checked.ok ? [] : checked.issues);
+    report(checked.ok ? [] : checked.issues, !checked.ok);
     if (!checked.ok) return;
     setSave({ state: 'saving' });
     const result = await send(api.api.tools.$put({ json: checked.inventory }));
@@ -91,7 +93,7 @@ export function ToolsEditor(props: {
       setSave({ state: 'saved' });
       props.onSaved?.(result.value);
     } else {
-      if (result.error.kind === 'invalid') setIssues(result.error.issues);
+      if (result.error.kind === 'invalid') report(result.error.issues, true);
       setSave({ state: 'failed', failure: failureOf(result.error) });
     }
   };
@@ -120,7 +122,7 @@ export function ToolsEditor(props: {
         title="Tools"
         lede="The tool types you own. Build steps choose a method for each cut and joint from these."
       />
-      <ErrorSummary items={summaryItems(issues)} />
+      <ErrorSummary items={summaryItems(issues)} attempt={attempt} />
 
       <Stack as="section">
         <h2>Your tools</h2>
@@ -211,6 +213,7 @@ export function ToolsEditor(props: {
       </Cluster>
       {save.state === 'saved' && <StatusLine>Saved.</StatusLine>}
       {save.state === 'failed' && issues.length === 0 && <SaveFailed failure={save.failure} />}
+      {dialog}
     </Stack>
   );
 }

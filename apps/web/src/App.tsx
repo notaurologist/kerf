@@ -3,12 +3,13 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { GlossaryScreen } from './features/glossary/GlossaryScreen.tsx';
 import { ToolPage } from './features/inventory/ToolPage.tsx';
 import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
-import { LoginScreen } from './features/login/LoginScreen.tsx';
+import { LoginAgain, LoginScreen } from './features/login/LoginScreen.tsx';
 import { ModeScreen } from './features/modes/modes.tsx';
 import { ProjectScreen } from './features/project/ProjectScreen.tsx';
 import { EditProjectScreen, NewProjectScreen } from './features/project-editor/ProjectEditor.tsx';
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
+import { leaveGate } from './lib/leave.ts';
 import { href, isMode, type Route, useRoute } from './lib/route.ts';
 import { ThemeSwitch } from './lib/theme.tsx';
 import {
@@ -27,7 +28,8 @@ import {
 // snapshot for its sample values.
 const Catalog = lazy(() => import('./ui/Catalog.tsx').then((m) => ({ default: m.Catalog })));
 
-type Session = 'checking' | 'logged-out' | 'logged-in' | { unreachable: string };
+// `expired` keeps the screen mounted under the login, so a form keeps what was typed.
+type Session = 'checking' | 'logged-out' | 'logged-in' | 'expired' | { unreachable: string };
 
 export function Screen(props: { route: Route }) {
   switch (props.route.screen) {
@@ -98,7 +100,9 @@ export function App() {
   };
 
   useEffect(() => {
-    setLoginRequiredHandler(() => setSession('logged-out'));
+    setLoginRequiredHandler(() =>
+      setSession((s) => (s === 'logged-in' || s === 'expired' ? 'expired' : 'logged-out')),
+    );
     void checkSession().then(setSession);
   }, []);
 
@@ -130,8 +134,18 @@ export function App() {
       </Page>
     );
   }
+  const loginAgain = session === 'expired' && (
+    <LoginAgain onLoggedIn={() => setSession('logged-in')} />
+  );
   // Shopping and Building fill the screen under their own bar, with no other navigation (#61).
-  if (isMode(route)) return <ScreenWithTerms route={route} />;
+  if (isMode(route)) {
+    return (
+      <>
+        <ScreenWithTerms route={route} />
+        {loginAgain}
+      </>
+    );
+  }
   const section =
     route.screen === 'tools' || route.screen === 'glossary'
       ? route.screen
@@ -158,7 +172,7 @@ export function App() {
         end={
           <>
             <ThemeSwitch />
-            <Button variant="link" onClick={() => void logout()}>
+            <Button variant="link" onClick={() => leaveGate.confirm(() => void logout())}>
               Log out
             </Button>
           </>
@@ -167,6 +181,7 @@ export function App() {
       <Page>
         <ScreenWithTerms route={route} />
       </Page>
+      {loginAgain}
     </>
   );
 }

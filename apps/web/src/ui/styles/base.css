@@ -15,6 +15,15 @@
     background: var(--bg);
   }
 
+  /* Read at arm's length, with no heading smaller than the text. */
+  [data-density="shop"] {
+    font-size: var(--size-read);
+  }
+
+  [data-density="shop"] :is(h4, h5) {
+    font-size: var(--size-read);
+  }
+
   h1,
   h2,
   h3,

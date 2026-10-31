@@ -48,7 +48,8 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | How much of a long form is entered | `FormProgress` | "N of M entered", then the groups with an empty field, each a link to its first one. |
 | A menu in a row | `CompactSelect` | Its label is read by screen readers only, such as a project's status. |
 | A screen that cannot show what was asked for | `ProblemScreen` | A heading (left out where the screen has one), a `Notice` saying what happened, Try again where that can help, and a link back. Used for load failures (through `Loaded`, which takes `useLoad`'s `reload` as `onRetry`), pages that do not exist, and the top-level error boundary, which clears on the next hash change. |
-| Problems after a save | `ErrorSummary` at the top, `error` on each `Field` | The summary takes focus and links to each field (#67). Show errors only after a save. |
+| Logging in again | `BlockingDialog` | When the session ends mid-use, login opens over the screen, so a form keeps what was typed. Escape does not close it. |
+| Problems after a save | `ErrorSummary` at the top, `error` on each `Field`, state from `useFormIssues` | The summary links to each field (#67) and takes focus once for each save that finds problems: pass the hook's `attempt`, and call `report` after every save. Show errors only after a save. |
 | An empty structural input | `needed` on `Field`, or `InputNeeded` | A question, not an error (#43, rule 4). |
 | A question for an experienced builder | `ExpertCheck` | Amber, with the flag icon and "Expert check" (#43, rule 3). |
 | A plan's or a step's flags | `FlagList` | Core's `Flag[]`, each an `ExpertCheck` labeled with its category. Nothing when there are none. |
@@ -74,9 +75,9 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | The name as a logo | `Wordmark` | The outlined wordmark (#166, `brand.md`), sized in em to the type around it, on the baseline, named "Kerf". In the header and as the login and connection screens' heading; in running text, write "Kerf". |
 | Formulas and IDs | `Code` | The Mono, never wrapped; scrolls within its line. |
 | Secondary text | `Text tone="muted"` | Desk screens only. Shop modes use the text color for every word (#43, rule 5). |
-| Leaving with changes | `useLeaveGuard(dirty)` | Render its `dialog`; it asks before any in-app link and when the tab closes. |
+| Leaving with changes | `useDraft(saved)` | Hold every form's values in it and render its `dialog`. While the draft differs from `saved` it asks before a link to another route (`#/…`), Back and Forward, Log out, and when the tab closes. Links within the page, such as the error summary's, do not ask; `navigate` after a save does not ask. |
 | A diagram | `Diagram`, inside `DiagramFrame` | `Diagram` draws core's primitives (#90, #91): roles to the line and diagram tokens, text at least 13 px, part letters in columns (one column when narrow), and `selected` and `onSelect` to link a part with the cut list. Give it a short `label` generated from the data and `describedBy` the cut list's id; `page="landscape"` for views that print on their own landscape page. |
-| Shop modes | `ModeFrame` (or `ModeBar` alone) | The mode's name, the project's name, and Exit, over content in shop density: space times 1.5, controls at least 56 px tall, and every word in the text color. No other navigation (#61). |
+| Shop modes | `ModeFrame` (or `ModeBar` alone) | The mode's name, the project's name, and Exit, over content in shop density: space times 1.5, text at 20 px (`--size-read`, and no `h4` or `h5` smaller), controls at least 56 px tall, and every word in the text color. The bar wraps rather than scroll sideways at 320 px. No other navigation (#61). |
 
 ## Tokens
 
