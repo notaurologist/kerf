@@ -260,6 +260,15 @@ describe('reading a snapshot stored in an older shape', () => {
     });
   });
 
+  it('reports a snapshot its upgrade cannot handle as malformed instead of throwing', () => {
+    const outputless = { ...storedNow, outputs: undefined };
+    expect(readSnapshot([nextShape], outputless)).toMatchObject({
+      ok: false,
+      reason: 'malformed',
+      message: expect.stringContaining('could not be upgraded'),
+    });
+  });
+
   it('refuses a snapshot stored in a newer shape than the code reads', () => {
     const newer = { ...storedNow, snapshotVersion: SHAPE + 2 };
     expect(readSnapshot([nextShape], newer)).toMatchObject({ ok: false, reason: 'newer-snapshot' });
