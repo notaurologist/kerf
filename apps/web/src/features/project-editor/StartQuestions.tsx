@@ -23,6 +23,7 @@ import {
   ScreenHeader,
   Stack,
   Text,
+  useDraft,
   useFormIssues,
 } from '../../ui/index.ts';
 import { type FormIssues, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
@@ -72,9 +73,14 @@ export function StartQuestions(props: {
   editor: (from: FromAnswers, changeAnswers: ReactNode) => ReactNode;
 }) {
   const { template, questions } = props;
-  const [values, setValues] = useState(() => formValues(questions.form, {}));
+  const [empty] = useState(() => formValues(questions.form, {}));
   const { issues, attempt, report } = useFormIssues<FormIssues>(NO_ISSUES);
   const [suggested, setSuggested] = useState<FromAnswers | null>(null);
+  const {
+    draft: values,
+    setDraft: setValues,
+    dialog,
+  } = useDraft(empty, { holding: suggested === null });
 
   if (suggested) {
     return props.editor(
@@ -150,6 +156,7 @@ export function StartQuestions(props: {
           </ButtonLink>
         </Cluster>
       </Stack>
+      {dialog}
     </form>
   );
 }
