@@ -74,5 +74,6 @@ Work is tracked in GitHub issues, grouped into milestones that match `docs/MILES
 
 - Pick up the lowest-numbered open issue in the earliest open milestone, skipping any that say "Blocked by #n" while #n is open. Issue bodies list docs to read and acceptance criteria.
 - Issues labeled `decision` need the owner's call. Research and propose; do not decide.
+- Issues labeled `owner-only` need the owner in person, on a real device, in the garage, or at the store. They sit outside milestones. Do not pick them up, list them in status updates, or suggest them as next steps unless the owner asks about them.
 - Reference the issue in the pull request with `Closes #n`.
 - If work turns up a new task or question, open an issue for it instead of expanding the current pull request.
