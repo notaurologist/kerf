@@ -28,3 +28,11 @@ describe('the web Content-Security-Policy', () => {
     expect(policy).not.toContain('unsafe-inline');
   });
 });
+
+describe('deployments', () => {
+  // A preview gets no database or password, so its API cannot start; each deploy also counts
+  // toward the plan's daily limit. `**` matches branch names with slashes, such as `claude/…`.
+  it('come from main only', () => {
+    expect(vercel.git.deploymentEnabled).toEqual({ '**': false, main: true });
+  });
+});
