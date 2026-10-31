@@ -1,57 +1,83 @@
 import { and, eq, gt, lt, sql } from 'drizzle-orm';
 import type { Database } from '../db/client.ts';
-import { loginAttempts } from '../db/schema.ts';
+import { loginFailures } from '../db/schema.ts';
 
 // Login rate limiting in Postgres, since function instances share no memory (decision 0007).
-// Failures are counted per fixed window for the whole app: there is one user, and a limit per
-// address would let anyone with many addresses keep guessing.
+// Failures are counted in fixed windows twice: per client address, so a guesser at one address
+// cannot lock the owner out from another, and for the whole app, so guessers with many
+// addresses still meet a cap.
 
-export const LOGIN_WINDOW_MINUTES = 15;
-export const MAX_FAILURES_PER_WINDOW = 10;
-const WINDOW_MS = LOGIN_WINDOW_MINUTES * 60 * 1000;
+export const ADDRESS_LIMIT = { windowMinutes: 15, maxFailures: 10 } as const;
+export const GLOBAL_LIMIT = { windowMinutes: 60, maxFailures: 100 } as const;
+const MINUTE_MS = 60 * 1000;
+const GLOBAL_SCOPE = 'all';
 
-function windowStart(now: Date): Date {
-  return new Date(Math.floor(now.getTime() / WINDOW_MS) * WINDOW_MS);
-}
+type Limit = { windowMinutes: number; maxFailures: number };
 
 export type Attempt =
   | { allowed: true; release: () => Promise<void> }
   | { allowed: false; retryAfterSeconds: number };
 
+interface Reservation {
+  scope: string;
+  start: Date;
+  over: boolean;
+  retryAfterSeconds: number;
+}
+
+async function reserve(db: Database, scope: string, limit: Limit, now: Date): Promise<Reservation> {
+  const windowMs = limit.windowMinutes * MINUTE_MS;
+  const start = new Date(Math.floor(now.getTime() / windowMs) * windowMs);
+  const [row] = await db
+    .insert(loginFailures)
+    .values({ scope, windowStart: start, failures: 1 })
+    .onConflictDoUpdate({
+      target: [loginFailures.scope, loginFailures.windowStart],
+      set: { failures: sql`${loginFailures.failures} + 1` },
+    })
+    .returning({ failures: loginFailures.failures });
+  return {
+    scope,
+    start,
+    over: (row?.failures ?? 0) > limit.maxFailures,
+    retryAfterSeconds: Math.ceil((start.getTime() + windowMs - now.getTime()) / 1000),
+  };
+}
+
+async function release(db: Database, { scope, start }: Reservation) {
+  const at = and(eq(loginFailures.scope, scope), eq(loginFailures.windowStart, start));
+  // A row keeps only windows with failures in them (its check constraint), so the last
+  // reserved attempt is taken back by deleting the row.
+  const decremented = await db
+    .update(loginFailures)
+    .set({ failures: sql`${loginFailures.failures} - 1` })
+    .where(and(at, gt(loginFailures.failures, 1)))
+    .returning({ failures: loginFailures.failures });
+  if (decremented.length === 0) {
+    await db.delete(loginFailures).where(and(at, eq(loginFailures.failures, 1)));
+  }
+}
+
 /**
  * Reserves an attempt by counting it as a failure before the password is checked, so parallel
- * requests cannot all slip under the limit. A successful login calls `release` to take it back.
+ * requests cannot all slip under the limits. A successful login calls `release` to take it back.
+ * An attempt the address limit refuses does not count against the whole app, so one address
+ * cannot use up the global cap.
  */
-export async function beginAttempt(db: Database, now: Date): Promise<Attempt> {
-  const start = windowStart(now);
-  await db.delete(loginAttempts).where(lt(loginAttempts.windowStart, start));
-  const [row] = await db
-    .insert(loginAttempts)
-    .values({ windowStart: start, failures: 1 })
-    .onConflictDoUpdate({
-      target: loginAttempts.windowStart,
-      set: { failures: sql`${loginAttempts.failures} + 1` },
-    })
-    .returning({ failures: loginAttempts.failures });
-  if ((row?.failures ?? 0) > MAX_FAILURES_PER_WINDOW) {
-    const retryAfterSeconds = Math.ceil((start.getTime() + WINDOW_MS - now.getTime()) / 1000);
-    return { allowed: false, retryAfterSeconds };
-  }
+export async function beginAttempt(db: Database, address: string, now: Date): Promise<Attempt> {
+  const longestWindow = Math.max(ADDRESS_LIMIT.windowMinutes, GLOBAL_LIMIT.windowMinutes);
+  await db
+    .delete(loginFailures)
+    .where(lt(loginFailures.windowStart, new Date(now.getTime() - longestWindow * MINUTE_MS)));
+  const perAddress = await reserve(db, `address:${address}`, ADDRESS_LIMIT, now);
+  if (perAddress.over) return { allowed: false, retryAfterSeconds: perAddress.retryAfterSeconds };
+  const global = await reserve(db, GLOBAL_SCOPE, GLOBAL_LIMIT, now);
+  if (global.over) return { allowed: false, retryAfterSeconds: global.retryAfterSeconds };
   return {
     allowed: true,
     release: async () => {
-      // The row keeps only windows with failures in them (its check constraint), so the last
-      // reserved attempt is taken back by deleting the row.
-      const decremented = await db
-        .update(loginAttempts)
-        .set({ failures: sql`${loginAttempts.failures} - 1` })
-        .where(and(eq(loginAttempts.windowStart, start), gt(loginAttempts.failures, 1)))
-        .returning({ failures: loginAttempts.failures });
-      if (decremented.length === 0) {
-        await db
-          .delete(loginAttempts)
-          .where(and(eq(loginAttempts.windowStart, start), eq(loginAttempts.failures, 1)));
-      }
+      await release(db, perAddress);
+      await release(db, global);
     },
   };
 }

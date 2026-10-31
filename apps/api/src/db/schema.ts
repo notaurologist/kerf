@@ -127,6 +127,8 @@ export const sessions = pgTable(
   'sessions',
   {
     tokenHash: text('token_hash').primaryKey(),
+    /** Of the password hash the session was created under. Null rows predate it and never match. */
+    passwordFingerprint: text('password_fingerprint'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   },
@@ -137,6 +139,22 @@ export const sessions = pgTable(
 );
 
 // Failed logins per fixed time window, for rate limiting across function instances (0007).
+// `scope` is `all` for the cap on the whole app, or `address:` and a client address (an IPv6
+// address by its /64). Rows are deleted once their window has passed.
+export const loginFailures = pgTable(
+  'login_failures',
+  {
+    scope: text('scope').notNull(),
+    windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
+    failures: integer('failures').notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.scope, t.windowStart] }),
+    check('login_failures_failures', sql`${t.failures} > 0`),
+  ],
+);
+
+// The previous deploy's login counter, kept until no running deploy uses it (0014).
 export const loginAttempts = pgTable(
   'login_attempts',
   {

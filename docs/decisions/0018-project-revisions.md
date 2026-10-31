@@ -17,7 +17,7 @@ The other option was to record last-write-wins and only read the row inside the 
 - **Each check holds for its write.** Save, regenerate, and tick each lock the project's row (`SELECT … FOR UPDATE`) in the transaction that checks the revision and writes, so two saves sent at once cannot both pass the check.
 
 ## Consequences
-- Migration 0008 adds `projects.revision` with a default of 1, which the previous deploy ignores (0014).
+- Migration 0009 adds `projects.revision` with a default of 1, which the previous deploy ignores (0014).
 - Two saves against the same revision: one succeeds and one gets 409. Checked against local Postgres 18 with eight saves sent at once (one 200, seven 409); without the row lock, two to eight went through. PGlite runs one transaction at a time, so its tests check the rule, not the race.
 - A tick made just before another device's save is lost, with a message, rather than applied to a plan it was not made on.
 - A save that changes nothing sends nothing, so it cannot be refused.

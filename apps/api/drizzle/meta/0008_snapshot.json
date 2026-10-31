@@ -1,5 +1,5 @@
 {
-  "id": "acf86ab7-1ba6-435d-9a76-e7e7f2c98cfd",
+  "id": "942a4924-2e30-42f6-a5b8-c4ed64ae2cb2",
   "prevId": "ad9b4c90-eff2-4451-9d0a-ffb176b6a646",
   "version": "7",
   "dialect": "postgresql",
@@ -30,6 +30,47 @@
         "login_attempts_failures": {
           "name": "login_attempts_failures",
           "value": "\"login_attempts\".\"failures\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.login_failures": {
+      "name": "login_failures",
+      "schema": "",
+      "columns": {
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "window_start": {
+          "name": "window_start",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "failures": {
+          "name": "failures",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "login_failures_scope_window_start_pk": {
+          "name": "login_failures_scope_window_start_pk",
+          "columns": ["scope", "window_start"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "login_failures_failures": {
+          "name": "login_failures_failures",
+          "value": "\"login_failures\".\"failures\" > 0"
         }
       },
       "isRLSEnabled": false
@@ -272,13 +313,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "revision": {
-          "name": "revision",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 1
-        },
         "snapshot": {
           "name": "snapshot",
           "type": "jsonb",
@@ -334,10 +368,6 @@
           "name": "projects_template_version",
           "value": "\"projects\".\"template_version\" > 0"
         },
-        "projects_revision": {
-          "name": "projects_revision",
-          "value": "\"projects\".\"revision\" > 0"
-        },
         "projects_template_version_matches_snapshot": {
           "name": "projects_template_version_matches_snapshot",
           "value": "\"projects\".\"template_version\" = (\"projects\".\"snapshot\"->>'templateVersion')::integer"
@@ -354,6 +384,12 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true
+        },
+        "password_fingerprint": {
+          "name": "password_fingerprint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

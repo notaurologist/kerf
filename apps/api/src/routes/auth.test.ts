@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 import { createTestDatabase } from '../../test/database.ts';
-import { LOGIN_WINDOW_MINUTES, MAX_FAILURES_PER_WINDOW } from '../auth/rateLimit.ts';
+import { hashPassword } from '../auth/password.ts';
+import { ADDRESS_LIMIT, GLOBAL_LIMIT } from '../auth/rateLimit.ts';
 import { SESSION_DAYS } from '../auth/sessions.ts';
 
 const MINUTE = 60 * 1000;
@@ -48,36 +49,114 @@ describe('POST /api/login', () => {
 });
 
 describe('login rate limiting', () => {
-  it(`allows ${MAX_FAILURES_PER_WINDOW} failures per window, then refuses even the right password`, async () => {
+  const { maxFailures, windowMinutes } = ADDRESS_LIMIT;
+
+  it(`allows ${maxFailures} failures per address per window, then refuses even the right password`, async () => {
     const { login, clock } = await createTestApp();
-    for (let i = 0; i < MAX_FAILURES_PER_WINDOW; i++) {
-      expect((await login('wrong')).status).toBe(401);
+    for (let i = 0; i < maxFailures; i++) {
+      expect((await login('wrong', '203.0.113.7')).status).toBe(401);
     }
-    const limited = await login();
+    const limited = await login(undefined, '203.0.113.7');
     expect(limited.status).toBe(429);
     expect(limited.headers.get('set-cookie')).toBeNull();
     // The window started at 12:00 and lasts 15 minutes.
-    expect(limited.headers.get('retry-after')).toBe(String(LOGIN_WINDOW_MINUTES * 60));
+    expect(limited.headers.get('retry-after')).toBe(String(windowMinutes * 60));
 
-    clock.now = new Date(clock.now.getTime() + LOGIN_WINDOW_MINUTES * MINUTE);
-    expect((await login()).status).toBe(200);
+    clock.now = new Date(clock.now.getTime() + windowMinutes * MINUTE);
+    expect((await login(undefined, '203.0.113.7')).status).toBe(200);
   });
 
-  it('does not count successful logins', async () => {
+  it('does not let failures from one address block another', async () => {
     const { login } = await createTestApp();
-    for (let i = 0; i < MAX_FAILURES_PER_WINDOW + 2; i++) {
-      expect((await login()).status).toBe(200);
+    for (let i = 0; i < maxFailures; i++) {
+      expect((await login('wrong', '203.0.113.7')).status).toBe(401);
     }
+    expect((await login(undefined, '203.0.113.7')).status).toBe(429);
+    expect((await login(undefined, '198.51.100.20')).status).toBe(200);
+    expect((await login('wrong', '198.51.100.20')).status).toBe(401);
+  });
+
+  it('counts the IPv6 addresses in one /64 together', async () => {
+    const { login } = await createTestApp();
+    for (let i = 0; i < maxFailures; i++) {
+      expect((await login('wrong', `2001:db8:1:2::${i + 1}`)).status).toBe(401);
+    }
+    expect((await login(undefined, '2001:db8:1:2:ffff:ffff:ffff:ffff')).status).toBe(429);
+    expect((await login(undefined, '2001:db8:1:3::1')).status).toBe(200);
+  });
+
+  it('counts logins without an address header together, as in local development', async () => {
+    const { login } = await createTestApp();
+    expect((await login()).status).toBe(200);
+    for (let i = 0; i < maxFailures; i++) {
+      expect((await login('wrong')).status).toBe(401);
+    }
+    expect((await login()).status).toBe(429);
+  });
+
+  it(`refuses every address after ${GLOBAL_LIMIT.maxFailures} failures in an hour`, async () => {
+    const { login, clock } = await createTestApp();
+    const addresses = GLOBAL_LIMIT.maxFailures / maxFailures;
+    for (let a = 0; a < addresses; a++) {
+      for (let i = 0; i < maxFailures; i++) {
+        expect((await login('wrong', `192.0.2.${a}`)).status).toBe(401);
+      }
+    }
+    const limited = await login(undefined, '198.51.100.20');
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get('retry-after')).toBe(String(GLOBAL_LIMIT.windowMinutes * 60));
+
+    // The address windows have passed but the hour has not.
+    clock.now = new Date(clock.now.getTime() + 45 * MINUTE);
+    expect((await login(undefined, '198.51.100.20')).status).toBe(429);
+    clock.now = new Date(clock.now.getTime() + 15 * MINUTE);
+    expect((await login(undefined, '198.51.100.20')).status).toBe(200);
+  });
+
+  it('does not count attempts an address was refused against the whole app', async () => {
+    const { login } = await createTestApp();
+    for (let i = 0; i < GLOBAL_LIMIT.maxFailures + 5; i++) {
+      await login('wrong', '203.0.113.7');
+    }
+    expect((await login(undefined, '198.51.100.20')).status).toBe(200);
+  });
+
+  it('does not count successful logins, per address or for the whole app', async () => {
+    const { login } = await createTestApp();
+    for (let a = 0; a < GLOBAL_LIMIT.maxFailures / maxFailures; a++) {
+      for (let i = 0; i < maxFailures - 1; i++) {
+        expect((await login('wrong', `192.0.2.${a}`)).status).toBe(401);
+      }
+    }
+    // 90 failures so far; ten more successes from one address would pass both limits if counted.
+    for (let i = 0; i < maxFailures + 2; i++) {
+      expect((await login(undefined, '198.51.100.20')).status).toBe(200);
+    }
+    for (let i = 0; i < GLOBAL_LIMIT.maxFailures / maxFailures; i++) {
+      expect((await login('wrong', '198.51.100.21')).status).toBe(401);
+    }
+    expect((await login(undefined, '198.51.100.22')).status).toBe(429);
   });
 
   it('counts parallel failures without letting any slip past the limit', async () => {
     const { login } = await createTestApp();
     const results = await Promise.all(
-      Array.from({ length: MAX_FAILURES_PER_WINDOW + 5 }, () => login('wrong')),
+      Array.from({ length: maxFailures + 5 }, () => login('wrong', '203.0.113.7')),
     );
     const statuses = results.map((r) => r.status);
-    expect(statuses.filter((s) => s === 401)).toHaveLength(MAX_FAILURES_PER_WINDOW);
+    expect(statuses.filter((s) => s === 401)).toHaveLength(maxFailures);
     expect(statuses.filter((s) => s === 429)).toHaveLength(5);
+  });
+
+  it('keeps no addresses once their windows have passed', async () => {
+    const { login, clock, client } = await createTestApp();
+    await login('wrong', '203.0.113.7');
+    clock.now = new Date(clock.now.getTime() + 2 * GLOBAL_LIMIT.windowMinutes * MINUTE);
+    await login('wrong', '198.51.100.20');
+    const { rows } = await client.query<{ scope: string }>(
+      'select scope from login_failures order by scope',
+    );
+    expect(rows.map((r) => r.scope)).toEqual(['address:198.51.100.20', 'all']);
   });
 });
 
@@ -109,6 +188,34 @@ describe('sessions', () => {
     expect(res.headers.get('set-cookie')).toMatch(/^kerf_session=;/);
     expect((await app.request('/api/session', { headers: { cookie } })).status).toBe(401);
     expect((await client.query('select * from sessions')).rows).toEqual([]);
+  });
+
+  it('end when the password changes', async () => {
+    const database = await createTestDatabase();
+    const before = await createTestApp({ database });
+    const cookie = await before.sessionCookie();
+    expect((await before.app.request('/api/session', { headers: { cookie } })).status).toBe(200);
+
+    const newHash = await hashPassword('a different password', { N: 1024, r: 8, p: 1 });
+    const after = await createTestApp({ database, passwordHash: newHash });
+    expect((await after.app.request('/api/session', { headers: { cookie } })).status).toBe(401);
+    expect((await after.app.request('/api/tools', { headers: { cookie } })).status).toBe(401);
+    expect((await after.login('a different password')).status).toBe(200);
+  });
+
+  it('store a short fingerprint of the password hash, never the hash', async () => {
+    const { client, sessionCookie } = await createTestApp();
+    await sessionCookie();
+    const { rows } = await client.query<Record<string, unknown>>('select * from sessions');
+    expect(rows[0]?.password_fingerprint).toMatch(/^[0-9a-f]{16}$/);
+    expect(JSON.stringify(rows)).not.toContain('scrypt');
+  });
+
+  it('from before fingerprints are refused', async () => {
+    const { app, client, sessionCookie } = await createTestApp();
+    const cookie = await sessionCookie();
+    await client.query('update sessions set password_fingerprint = null');
+    expect((await app.request('/api/session', { headers: { cookie } })).status).toBe(401);
   });
 
   it('reject a made-up token', async () => {

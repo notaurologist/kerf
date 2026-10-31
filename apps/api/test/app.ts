@@ -10,18 +10,25 @@ const passwordHash = await hashPassword(TEST_PASSWORD, { N: 1024, r: 8, p: 1 });
 
 type TestDatabase = Awaited<ReturnType<typeof createTestDatabase>>;
 
-/** Pass `database` to serve an existing test database, as a later deploy of the code would. */
+/**
+ * Pass `database` to serve an existing test database, as a later deploy of the code would, and
+ * `passwordHash` to configure another password.
+ */
 export async function createTestApp(
-  options: Pick<AppDeps, 'templates'> & { database?: TestDatabase } = {},
+  options: Partial<Pick<AppDeps, 'templates' | 'passwordHash'>> & { database?: TestDatabase } = {},
 ) {
   const { database = await createTestDatabase(), ...deps } = options;
   const clock = { now: new Date('2026-10-28T12:00:00Z') };
   const app = createApp({ db: database.db, passwordHash, now: () => clock.now, ...deps });
 
-  const login = (password = TEST_PASSWORD) =>
+  /** `address` is sent as `x-forwarded-for`, as Vercel sets it. */
+  const login = (password = TEST_PASSWORD, address?: string) =>
     app.request('/api/login', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        ...(address === undefined ? {} : { 'x-forwarded-for': address }),
+      },
       body: JSON.stringify({ password }),
     });
 

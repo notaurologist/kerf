@@ -29,11 +29,11 @@ Read `PRODUCT.md` and `DOMAIN.md` first. Decisions behind the choices here are r
  └────────┬─────────┘
           │
  ┌────────▼─────────┐
- │     Postgres     │  projects, tools, sessions, login attempts
+ │     Postgres     │  projects, tools, sessions, login failures
  └──────────────────┘
 ```
 
-The web app also imports `packages/core` for types, parameter schemas (to validate forms before submitting), and display formatting. It never calls the generation functions to produce numbers it then shows as authoritative; it shows the snapshot the API returns.
+The web app also imports `packages/core` for types, parameter schemas (to validate forms before submitting), a plan's tables from stored outputs, and display formatting. It shows the snapshot and drawings the API returns and never generates them: no call to `createSnapshot`, to a template's `generate`, `drawings`, `assembly` or `steps`, or to a core function that reaches them (`generation.test.ts`). The design system catalog reads its sample from a committed file, `ui/catalog-sample.json`, written by the API's `write-catalog-sample` script and checked against core by a test. The template definitions still carry the generation code into the web bundle; it is a small share of the main chunk, so core's exports are not split for it.
 
 ## Repository layout
 
@@ -52,7 +52,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │   │   │   ├── index.ts      # Local Node server
 │   │   │   └── vercel.ts     # Vercel entry point
 │   │   ├── scripts/          # release (runs at deploy), hash-password, check-deploy,
-│   │   │                     # write-snapshot-fixture
+│   │   │                     # write-snapshot-fixture, write-catalog-sample
 │   │   └── test/
 │   └── web/
 │       ├── public/           # Icons and the social preview image (docs/design/brand.md)
@@ -186,7 +186,8 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 
 - `PASSWORD_HASH` holds `scrypt:N:r:p:salt:hash` (base64url), made by `pnpm --filter @kerf/api hash-password` with N = 2^17, r = 8, p = 1. Verification reads the cost from the stored hash and compares in constant time.
 - The session cookie `kerf_session` holds a random 256-bit token; `sessions` stores only its SHA-256 hash, so the table alone gives no working session. Sessions last 30 days. Expired rows are deleted at the next login.
-- Rate limiting counts failed logins for the whole app in fixed 15-minute windows, at most 10 per window, then answers 429 with `Retry-After`, even for the right password. Each attempt is counted before the password is checked and taken back on success, so parallel guesses cannot slip under the limit. The limit is global rather than per address: there is one user, and a per-address limit lets anyone with many addresses keep guessing. The cost is that someone guessing can keep the owner locked out; changing that is a new decision.
+- Each session stores `password_fingerprint`, the first 64 bits of a SHA-256 of `PASSWORD_HASH`, and is accepted only while it matches the configured hash, so changing the password ends every session. Rows without one never match.
+- Rate limiting counts failed logins in fixed windows, twice: per client address, at most 10 per 15 minutes, and for the whole app, at most 100 per hour. Either limit answers 429 with `Retry-After` until its window ends, even for the right password. The address is the first entry of `x-forwarded-for`, which Vercel overwrites (`auth/clientAddress.ts`); an IPv6 address counts by its /64, and a request without the header counts as one unknown address, as in local development. Each attempt is counted before the password is checked and taken back on success, so parallel guesses cannot slip under a limit. An attempt the address limit refuses is not counted for the whole app, so one address cannot use up the global cap. Many addresses together still can, which keeps the owner from logging in for the rest of the hour but leaves existing sessions working (0007).
 - One middleware requires a session on every route except `GET /api/health` and `POST /api/login`, listed by method and path. A test walks every route the app registers and checks each answers 401 without a session.
 - `POST`, `PUT`, `PATCH`, and `DELETE` requests must have a JSON content type (415 otherwise).
 
@@ -199,8 +200,9 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 | `projects` | Name, status, template ID, template version, snapshot (JSON, holding the parameters and structural inputs), timestamps |
 | `project_history` | One row per operation in a project: operation ID and type, the method chosen (null when the inventory supported none), its skills, and the key of the inventory it was chosen from. Replaced in the same transaction whenever a snapshot is saved (create, a parameter or input change, regenerate), not on a rename or status change. A unique index on `(project_id, operation_id)` keeps it to one row per operation. The release step writes rows for projects that have none and keeps rows that exist (#106). Used later for references to past projects |
 | `project_progress` | One row per item ticked off in a project (#57): kind (`shopping-line`, `board`, `part`, `step`), key, and when it was done. Keys come from core's `progress/`: a lumber line by nominal size and length, a hardware line by its description, a board by its ID in the board plan (`boardIds`: line and which board of that line, so boards of other sizes do not shift it), a part's piece by part ID and instance, a step by its ID. When a snapshot is saved, rows whose item is gone or has other numbers are deleted in the same transaction (`progressToReset`). A piece's numbers include its part's cut detail, and a step's the cut details of its parts, so moved holes clear a tick even when the cut list does not change |
-| `sessions` | Session ID, created, expires |
-| `login_attempts` | Time window and failure count for rate limiting |
+| `sessions` | Session ID, fingerprint of the password hash, created, expires |
+| `login_failures` | Scope (`all`, or `address:` and a client address), window start, and failure count for rate limiting. Rows are deleted once their window has passed |
+| `login_attempts` | The previous login counter; no longer read or written, kept until the deploy before this one is gone (0014) |
 
 Snapshots are stored, not regenerated on every read. A project's plan therefore never changes underneath it when the template changes; the API reports the difference and regeneration is the owner's choice. Snapshots are parsed with their Zod schema when read back.
 
@@ -210,11 +212,11 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 - The API connects to Neon's pooled connection string with prepared statements off (`POOLED_CONNECTION` in `bootstrap.ts`).
 - Secrets live only in Vercel's environment settings and a local `.env`: `DATABASE_URL` and `PASSWORD_HASH` (see `.env.example`). The API refuses to start if either is missing or malformed, naming the variable but never printing its value.
 - Every production build runs `pnpm db:migrate` for the API service (`vercel.json`), while the previous deploy is still serving: a read-only check that the new code reads every stored snapshot, the Drizzle migrations, then the history backfill, all under an advisory lock (0014). It does not rewrite stored data into a newer shape. It connects through `DATABASE_URL_UNPOOLED` (Neon's direct connection) when set. Branches other than `main` do not deploy. Locally, `pnpm db:migrate` does the same against `.env` or the Docker database.
-- Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, redeploy, and delete the rows in `sessions` (0007).
+- Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, and redeploy. Sessions created under the old hash stop working (0007).
 
 #### Backups (manual, for now)
 
-There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions` and `login_attempts` but not their rows, so no live session token is written to a file.
+There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions`, `login_failures`, and `login_attempts` but not their rows, so no live session token is written to a file.
 
 1. Install the Postgres client once: `brew install libpq`, then use `/opt/homebrew/opt/libpq/bin/pg_dump`. Its version must be 18 or later (`pg_dump --version`).
 2. Copy the direct connection string (host without `-pooler`) from the Neon console, and read it into the shell without echo: `read -rs NEON_URL`.
@@ -222,7 +224,7 @@ There are no scheduled backups. Neon's free plan restores only the last 6 hours,
 
    ```
    pg_dump "$NEON_URL" -Fc --no-owner --no-acl \
-     --exclude-table-data=sessions --exclude-table-data=login_attempts \
+     --exclude-table-data=sessions --exclude-table-data=login_failures --exclude-table-data=login_attempts \
      -f ~/Backups/kerf-$(date +%F).dump
    ```
 
@@ -260,7 +262,7 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
   - **Fonts:** Atkinson Hyperlegible Next and Mono, self-hosted (decision 0015).
   - **Brand:** the `Wordmark` component and the files in `public/` (icons, social preview image) are made from the font by `docs/design/brand/make_brand.py` (#166, `docs/design/brand.md`).
   - **Screens:** built only from `ui/` components and layout primitives. They write no `className` or `style` and import no stylesheet, which `ui/screens.test.ts` enforces. A screen that needs something new gets a new component in `ui/`, with tests and a place on the catalog page.
-- Diagrams render core's 2D primitives, which the API sends with the project, as SVG through `Diagram` inside `DiagramFrame` (#91). Each primitive's role maps to the line and diagram tokens; strokes do not scale, and text, arrowheads, and part letters are sized in pixels for the width shown. Tapping a part selects it in the drawings and the cut list, whose part names are the keyboard path. The assembled and exploded views share one place on screen, drawn in one frame and switched with a control (`ViewSwitch`, #200); switching slides each pulled part by the shift core gives with the exploded drawing (`useAssemblyMotion`), or swaps at once under reduced motion. Both print. In print, each section of the plan starts a page with a title block, the isometric, exploded, and site views take landscape pages, cut details do not split, zones are hatched, and expandable working opens.
+- Diagrams render core's 2D primitives, which the API sends with the project, as SVG through `Diagram` inside `DiagramFrame` (#91). Each primitive's role maps to the line and diagram tokens; strokes do not scale, and text, arrowheads, and part letters are sized in pixels for the width shown. Tapping a part selects it in the drawings and the cut list, whose part names are the keyboard path. The assembled and exploded views share one place on screen, drawn in one frame and switched with one button, Explode or Assemble (`ViewSwitch`, #200, #257); switching slides each pulled part by the shift core gives with the exploded drawing (`useAssemblyMotion`), or swaps at once under reduced motion. Both print. In print, each section of the plan starts a page with a title block, the isometric, exploded, and site views take landscape pages, cut details do not split, zones are hatched, and expandable working opens.
 - Phone and tablet layouts are first-class: large text and one build step at a time (`PRODUCT.md`, MVP feature 9).
 
 ## Testing
@@ -272,5 +274,5 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 | `structural/` | Hand-checked worked examples for each check, including the symmetric hand-check cases and an asymmetric case; missing inputs produce "input needed" |
 | `outputs/` | Board grouping including kerf and trim; nothing silently dropped when a part is longer than any buyable length |
 | `knowledge/`, `design-values/` | Every entry parses; every reference resolves; every design value has a source |
-| `apps/api` | Every route rejects requests without a session; login rate limiting; snapshot round trip through Postgres (PGlite, 0010) |
-| `apps/web` | Forms, rendering of snapshots (rendered to a string), and effects, focus, dialogs, and address changes (in happy-dom, `*.dom.test.tsx`, 0017), and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/`; no template's ID or own words (`TemplateDefinition.ownWords`) in generic code, including the API's scripts (`generic.test.ts`); only the registry imports a template's folder (`templateFolders.test.ts`) |
+| `apps/api` | Every route rejects requests without a session; login rate limiting; snapshot round trip through Postgres (PGlite, 0010); the catalog sample matches what core generates (`scripts/catalog-sample.test.ts`) |
+| `apps/web` | Forms, rendering of snapshots (rendered to a string), and effects, focus, dialogs, and address changes (in happy-dom, `*.dom.test.tsx`, 0017), and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/`; no template's ID or own words (`TemplateDefinition.ownWords`) in generic code, including the API's scripts (`generic.test.ts`); only the registry imports a template's folder (`templateFolders.test.ts`); no generation in the web app (`generation.test.ts`) |
