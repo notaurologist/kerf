@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and waiting to be built (#265 to #267). Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -19,8 +19,28 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 6b. Sharper corners | #148 | Decided October 2026: eased | `corners.html` |
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
 | 8. Brand: logo, wordmark, icons | #166 | Decided October 2026: the end-cut k; built | `brand.html`, `brand.md` |
+| 9. An app frame, motion, loading, and the keyboard | #254 | Decided October 2026: F2, M2, L1, K1; to build (#265 to #267) | `app-frame.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 9: an app frame, motion, loading, and the keyboard (#254)
+
+The owner found that Kerf felt like a website rather than an app, for two reasons: page-style navigation (a header of links, whole pages that scroll) and no motion. `app-frame.html` draws three frames on the phone and laptop, three ways for screens to move, two ways for a screen to wait, and keyboard shortcuts, with phone demos of the frames, moves, and waits in Kerf's colors. Load times come from decision 0006: 0.12 s with the database awake, 2.8 s after Neon's 5 idle minutes. Native apps and an installed web app were set aside first: the feel is mostly design, which the web app can fix.
+
+### Choices
+
+The owner took the suggested option for each (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Frame | F2. On the phone (below 840 px), a title bar naming the screen with a back link to its parent, and a tab bar with Projects, Tools, and Glossary; the theme and Log out in a menu at the title bar's end. From 840 px, one sidebar with the same places, and the open project's sections inside it under its name, replacing the plan's contents column. Modes cover the frame. Apple: a tab bar is for navigation, stays visible except under a modal, and a sidebar shows at most two levels. | F1, the header kept and pinned: least work, but a row of text links still reads as a website, and the phone header is crowded at 320 px. F3, three panes on the laptop: a projects column that is mostly empty with one or two projects, about 350 px less for the plan, and a third layout to maintain. |
+| How screens move | M2. A 24 px shift with a fade, 0.25 s in and 0.2 s out, eased out (Material's shared axis; NN/g's 200–300 ms for a substantial screen change). Into something and Back move sideways; sections move in their order; places fade through; modes rise and drop. Reduced motion gets a fade or nothing. | M1, a full slide: native, but the longest travel, and a 900 px slide on the laptop is a lot of moving for a click. M3, a fade only: smooth, but forward and back look the same. |
+| How a screen waits | L1. The pressed control dims and the old screen holds up to 0.3 s; most loads (0.12 s) arrive in that time and the new screen moves in complete. Longer, a skeleton of the content's shape; after 1 s a pencil line, after 2 s a note that the first screen after a break takes a few seconds; after 10 s the connection problem. No kept copies (#253). | L2, a skeleton at once: simpler, but a 0.12 s load flashes a skeleton, the case Viget's study found judged slowest. Kept copies shown at once (#253): fast, but they can show something out of date. |
+| Keyboard | K1. Left and Right for the plan's sections and Building's steps, outside fields, with a hint beside Previous and Next for a fine pointer. | K2, a Command-K jump-to box as well: duplicates the sidebar while there are one or two projects; later. Single-character shortcuts: WCAG 2.1.4 would need a way to turn them off. |
+
+Accepted cost: on the phone in Safari (not installed, 0005), the tab bar sits above Safari's own bar. If that bothers the owner in the garage, the fix is the home-screen install, a change to 0005, rather than another frame. iPad portrait (768 to 834 px) gets the phone frame, so the plan's contents move from beside it to the "3 of 8" bar there.
+
+Build issues: #265 (the frame), #266 (moves and waiting, after #265), #267 (the keyboard).
 
 ## Stage 8: brand (#166)
 
@@ -491,15 +511,15 @@ Rules that hold across the structure:
 - Regenerating a project with saved progress says how much would reset before it runs.
 - Printing any view of a project prints the plan in section order A.
 
-Revised in Stage 1b (#147): on screen, each section of the plan is its own screen, reached from the contents; the order and print are unchanged.
+Revised in Stage 1b (#147): on screen, each section of the plan is its own screen, reached from the contents; the order and print are unchanged. Revised in Stage 9 (#254): the header and contents column become a tab bar on the phone and one sidebar from 840 px; the table below is updated.
 
 Navigation by device:
 
 | Device | Navigation |
 |---|---|
-| Phone | Slim header with Projects and Tools. A mode fills the screen and has only Exit and its own step controls. |
-| Tablet | The plan with a contents sidebar. Building in landscape puts the step beside its diagram. |
-| Laptop | Header with Projects and Tools; the plan with a contents sidebar; Edit opens the split screen. |
+| Phone | Title bar with a back link, and a tab bar with Projects, Tools, and Glossary (Stage 9). A mode fills the screen and has only Exit and its own step controls. |
+| Tablet | Below 840 px, as the phone; from 840 px, as the laptop (Stage 9). Building in landscape puts the step beside its diagram. |
+| Laptop | One sidebar with Projects, Tools, and Glossary, and the open project's sections inside it (Stage 9); Edit opens the split screen. |
 | Print | The plan document. |
 
 Issues: #61 (the modes, their routes, the Resume card, and status, R22, R25, R26, M7). R23 (step phases) was added to #52 and R24 (the regenerate warning) to #57. R27 (a stored current project) is not needed with IA-2.

@@ -5,7 +5,7 @@ import { add, centroid, scale, unit, type Vec3 } from './vec.ts';
 // A part instance as a solid: its outline extruded through its thickness and placed in 3D by its
 // placement (#49). Every part is a prism, so its faces are convex polygons.
 
-export interface Face {
+interface Face {
   points: Vec3[];
   /** Outward unit normal. */
   normal: Vec3;

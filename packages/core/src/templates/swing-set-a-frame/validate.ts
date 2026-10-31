@@ -6,7 +6,7 @@ import { CLEARANCES, type SwingGeometry } from './layout.ts';
 // Validation and flags (docs/templates/swing-set-a-frame.md, Validation and Flags).
 
 /** Below this much wood left at the top of the flush cut, the cut gets an expert-check flag. */
-export const THIN_FLUSH_CUT = 1;
+const THIN_FLUSH_CUT = 1;
 
 const len = (inches: number) => formatLength(inches);
 

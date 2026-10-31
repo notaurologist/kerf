@@ -18,11 +18,6 @@ export function Text(props: {
   );
 }
 
-/** Read by screen readers, not shown: a label a sighted reader gets from the layout. */
-export function VisuallyHidden(props: { children: ReactNode }) {
-  return <span className="k-visually-hidden">{props.children}</span>;
-}
-
 interface ListProps {
   children?: ReactNode;
   /** Sentences from core, each an item with its lengths kept on one line (`Measured`). */

@@ -24,8 +24,6 @@ export function createClient(fetcher: typeof fetch = (input, init) => fetch(inpu
   return hc<AppType>('/', { fetch: withJsonBodies(fetcher) });
 }
 
-export type Client = ReturnType<typeof createClient>;
-
 /** A problem with what was sent, pointed at the field it names (dotted path, '' for the whole). */
 export interface FieldIssue {
   field: string;
