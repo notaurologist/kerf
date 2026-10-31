@@ -118,6 +118,7 @@ export const GLOSSARY = [
     forms: ['bowed'],
     definition:
       "A curve along a board's length that you see sighting along its face, so the face is not flat end to end.",
+    illustration: 'bow',
     sources: [WARP],
   },
   {
@@ -170,6 +171,7 @@ export const GLOSSARY = [
     forms: ['crooks', 'crooked'],
     definition:
       "A curve along a board's length that you see sighting along its narrow edge, so the edge is not straight end to end.",
+    illustration: 'crook',
     sources: [WARP],
   },
   {
@@ -241,6 +243,7 @@ export const GLOSSARY = [
     term: 'Edge distance',
     forms: ['edge distances'],
     definition: "The distance from a bolt's center to the edge of the part, across the grain.",
+    illustration: 'bolt-distances',
     sources: [ndsChapter12('Table 12.5.1C, Edge Distance Requirements, p. 99')],
   },
   {
@@ -256,6 +259,7 @@ export const GLOSSARY = [
     term: 'End distance',
     forms: ['end distances'],
     definition: "The distance from a bolt's center to the end of the part, along the grain.",
+    illustration: 'bolt-distances',
     sources: [ndsChapter12('Table 12.5.1A, End Distance Requirements, p. 98')],
   },
   {
@@ -690,6 +694,7 @@ export const GLOSSARY = [
     forms: ['twisted'],
     definition:
       "Warp that turns a board's ends in different directions, so it rocks on a flat surface.",
+    illustration: 'twist',
     sources: [WARP],
   },
   {

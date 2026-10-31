@@ -25,6 +25,19 @@ describe('glossary illustrations', () => {
     );
   });
 
+  it('cover bow, crook, twist, and the bolt distances', () => {
+    const drawn = Object.fromEntries(
+      GLOSSARY.flatMap((e) => ('illustration' in e ? [[e.id, e.illustration]] : [])),
+    );
+    expect(drawn).toMatchObject({
+      bow: 'bow',
+      crook: 'crook',
+      twist: 'twist',
+      'edge-distance': 'bolt-distances',
+      'end-distance': 'bolt-distances',
+    });
+  });
+
   it.each(ILLUSTRATION_IDS)('%s parses as a drawing and labels in words only', (id) => {
     const drawing = ILLUSTRATIONS[id];
     expect(Drawing.safeParse(drawing).error).toBeUndefined();
@@ -44,6 +57,13 @@ describe('glossary illustrations', () => {
     expect(setting.end).toBe(90);
     expect(edge.start).toBe(0);
     expect(edge.end).toBe(setting.start);
+  });
+
+  it('shows the twisted board on its top, front, and end faces, each shaded once', () => {
+    const fills = ILLUSTRATIONS.twist.primitives.flatMap((p) =>
+      p.kind === 'polygon' && p.fill !== 'none' ? [p.fill] : [],
+    );
+    expect([...fills].sort()).toEqual([1, 2, 3]);
   });
 
   it('shades the cut end of the miter and the bevel as an end face, with the top face up', () => {
