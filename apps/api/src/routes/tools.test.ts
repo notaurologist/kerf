@@ -1,7 +1,6 @@
 import { swingSetAFrame } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
-import { upgradeStoredInventory } from '../services/tools.ts';
 
 describe('/api/tools', () => {
   it('starts empty', async () => {
@@ -60,8 +59,8 @@ describe('/api/tools', () => {
     expect(await (await authed('/api/tools')).json()).toEqual({ tools: [], other: [] });
   });
 
-  it('reads an inventory stored before the library, and the release step rewrites it', async () => {
-    const { authed, client, db } = await createTestApp();
+  it('reads an inventory stored before the library, leaving the rows as stored', async () => {
+    const { authed, client } = await createTestApp();
     // Rows as M3 to M5 stored them: free-text IDs and capability names.
     await client.query(
       `insert into tools (position, tool_type_id, capabilities) values
@@ -83,12 +82,8 @@ describe('/api/tools', () => {
     };
     expect(await (await authed('/api/tools')).json()).toEqual(expected);
 
-    const now = new Date('2026-10-29T12:00:00Z');
-    expect(await upgradeStoredInventory(db, now)).toBe(2);
-    expect(await upgradeStoredInventory(db, now)).toBe(0);
-    const stored = await client.query('select tool_type_id from tools');
-    expect(stored.rows).toEqual([{ tool_type_id: 'circular-saw' }]);
-    expect(await (await authed('/api/tools')).json()).toEqual(expected);
+    const stored = await client.query('select tool_type_id from tools order by position');
+    expect(stored.rows).toEqual([{ tool_type_id: 'circular-saw' }, { tool_type_id: 'lathe' }]);
   });
 });
 

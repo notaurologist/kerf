@@ -10,9 +10,8 @@ import {
   type TemplateDefinition,
 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { z } from 'zod';
 import { createTestApp } from '../../test/app.ts';
-import { swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
+import { nextShape, swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
 import { createProjectService } from '../services/projects.ts';
 
 const newProject: Record<string, unknown> = {
@@ -556,26 +555,6 @@ describe('a project whose template version is behind', () => {
   });
 });
 
-// A made-up next shape of the swing-set snapshot that renames outputs.cutList to outputs.cuts,
-// with its upgrade (decision 0014).
-const nextShape: TemplateDefinition = {
-  ...(swingSetAFrame.definition as TemplateDefinition),
-  snapshotVersion: SHAPE + 1,
-  outputs: z.looseObject({ cuts: z.array(z.object({ length: z.string() }).loose()) }),
-  // Its plan reads the renamed field, as a real next shape's would.
-  plan: (outputs) => {
-    const { cuts, ...rest } = outputs as { cuts: unknown };
-    return (swingSetAFrame.definition as TemplateDefinition).plan({ ...rest, cutList: cuts });
-  },
-  snapshotUpgrades: {
-    ...swingSetAFrame.definition.snapshotUpgrades,
-    [SHAPE]: (s) => {
-      const { cutList, ...outputs } = s.outputs as { cutList: unknown };
-      return { ...s, outputs: { ...outputs, cuts: cutList } };
-    },
-  },
-};
-
 describe('a project stored in an older snapshot shape', () => {
   it('reads through the upgrade, keeping the stored numbers', async () => {
     const before = await createTestApp();
@@ -585,25 +564,5 @@ describe('a project stored in an older snapshot shape', () => {
     expect(project.snapshot.snapshotVersion).toBe(SHAPE + 1);
     expect(project.snapshot.outputs.cuts[0].length).toBe('120"');
     expect(project.version).toEqual({ status: 'current', version: CURRENT });
-  });
-
-  it('is rewritten in the current shape by the release backfill, numbers and dates unchanged', async () => {
-    const before = await createTestApp();
-    const { body } = await create(before.authed);
-    const service = createProjectService({
-      db: before.db,
-      templates: [nextShape],
-      now: () => new Date('2030-01-01T00:00:00Z'),
-    });
-    expect(await service.upgradeStoredSnapshots()).toEqual({ upgraded: 1, unreadable: [] });
-    expect(await service.upgradeStoredSnapshots()).toEqual({ upgraded: 0, unreadable: [] });
-
-    const { rows } = await before.client.query<{ snapshot: Json; updated_at: Date }>(
-      'select snapshot, updated_at from projects',
-    );
-    expect(rows[0]?.snapshot.snapshotVersion).toBe(SHAPE + 1);
-    expect(rows[0]?.snapshot.outputs.cuts[0].length).toBe('120"');
-    expect(rows[0]?.snapshot.outputs).not.toHaveProperty('cutList');
-    expect(rows[0]?.updated_at.toISOString()).toBe(body.updatedAt);
   });
 });
