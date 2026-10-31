@@ -9,7 +9,7 @@ Kerf is a personal planning tool for woodworking projects. Pick a template, set 
 | `docs/PRODUCT.md` | Always, once per session. Scope, principles, non-goals. |
 | `docs/DOMAIN.md` | Anything touching lumber, geometry, units, structural checks, flags, or user-facing copy. |
 | `docs/ARCHITECTURE.md` | Any code change. |
-| `docs/templates/` | Any change to a template. Each spec is the source of truth for its template's geometry and worked examples. |
+| `docs/templates/` | Any change to a template. Each spec is the source of truth for its template's geometry and worked examples. `README.md` is how to write a new one. |
 | `docs/MILESTONES.md` | Picking up or scoping work. |
 | `docs/decisions/` | Before changing a technology or pattern. Do not relitigate recorded decisions without asking. |
 
