@@ -22,6 +22,7 @@ import {
   PartLetter,
   PlainList,
   SawSetting,
+  ScreenHeading,
   Stack,
   StatusLine,
   StepLayout,
@@ -124,7 +125,7 @@ export function StepScreen(props: {
   return (
     <>
       <Position number={at + 1} total={steps.length} step={step} links={links} />
-      <h1>{step.title}</h1>
+      <ScreenHeading title={step.title} />
       {/* On a phone the drawing follows the pieces, or the title, before the methods (#134). */}
       <StepLayout
         lead={
@@ -276,9 +277,9 @@ export function CutCard(props: {
         links={links}
         back={{ href: links.step(step.id), label: 'Back to the step' }}
       />
-      <h1>
+      <ScreenHeading title={`${row.letter} ${row.name}`}>
         <PartLetter>{row.letter}</PartLetter> {row.name}
-      </h1>
+      </ScreenHeading>
       <BesideDrawing drawing={detail} minWidth={560}>
         <Text>
           {row.stock}. Cut {row.quantity}.

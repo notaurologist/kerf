@@ -681,13 +681,13 @@ describe('ScreenHeader', () => {
     expect(renderText(header)).toBe('Backyard Edit What this is for. Planned. Saved.');
     const html = render(header);
     expect(html).toMatch(/^<header class="l-stack"/);
-    expect(html).toContain('<h1>Backyard</h1>');
+    expect(html).toContain('<h1 tabindex="-1">Backyard</h1>');
     expect(html.match(/data-tone="muted"/g)).toHaveLength(2);
   });
 
   it('is only a heading when given only a title', () => {
     expect(render(<ScreenHeader title="Tools" />)).toMatch(
-      /^<header[^>]*><h1>Tools<\/h1><\/header>$/,
+      /^<header[^>]*><h1 tabindex="-1">Tools<\/h1><\/header>$/,
     );
   });
 });
