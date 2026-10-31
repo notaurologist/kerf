@@ -45,7 +45,7 @@ describe('Screen', () => {
   it('shows one entry on its page: its definition, drawing, sources, and a way back', () => {
     for (const entry of GLOSSARY) {
       const html = renderToString(<Screen route={{ screen: 'glossary', term: entry.id }} />);
-      expect(html).toContain(`<h1>${entry.term.replaceAll("'", '&#x27;')}</h1>`);
+      expect(html).toContain(`<h1 tabindex="-1">${entry.term.replaceAll("'", '&#x27;')}</h1>`);
       expect(html).toContain(entry.definition.replaceAll("'", '&#x27;'));
       expect(html).toContain('<a href="#/glossary">All terms</a>');
       expect(html).toContain(GLOSSARY_GROUP_LABELS[entry.group]);
@@ -66,7 +66,7 @@ describe('Screen', () => {
 
   it('says when there is no page at an address, with a heading and a way back', () => {
     const html = renderToString(<Screen route={{ screen: 'not-found' }} />);
-    expect(html).toContain('<h1>Page not found</h1>');
+    expect(html).toContain('<h1 tabindex="-1">Page not found</h1>');
     expect(html).toContain('There is no page at this address.');
     expect(html).toContain('href="#/projects"');
   });

@@ -68,14 +68,6 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
   const { plan, drawings } = read;
   const steps = read.steps?.steps ?? [];
   const ticks = useTicks(project.id, project.ticks);
-  // Each step, list, or card opens at its top, not where the last one was scrolled to.
-  const address = href(route);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: runs when the address changes.
-  useEffect(() => {
-    // A block, not an expression: scrolling returns a promise in some browsers, which React
-    // would take for a cleanup.
-    window.scrollTo(0, 0);
-  }, [address]);
   const frame = (children: ReactNode) => (
     <ModeFrame mode={mode} context={project.name} exitHref={exitHref} end={<ThemeSwitch />}>
       <Stack>

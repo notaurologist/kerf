@@ -2,6 +2,7 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { Button, ButtonLink } from './Button.tsx';
 import { Icon } from './Icon.tsx';
 import { Cluster, Stack } from './layout.tsx';
+import { ScreenHeading } from './ScreenHeader.tsx';
 
 // What Kerf tells the reader about the state of things (#43, #67, #68). Every state has a second
 // signal besides color: an icon and words.
@@ -159,7 +160,7 @@ export function ProblemScreen(props: {
 }) {
   return (
     <Stack>
-      {props.title && <h1>{props.title}</h1>}
+      {props.title && <ScreenHeading title={props.title} />}
       <Notice icon={props.icon}>{props.children}</Notice>
       <Cluster>
         {props.onRetry && (

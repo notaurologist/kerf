@@ -17,7 +17,8 @@ export function ToolPage(props: { id: string }) {
   return (
     <Stack>
       <ScreenHeader
-        title={<ToolLabel toolTypeId={type.id}>{type.name}</ToolLabel>}
+        title={type.name}
+        heading={<ToolLabel toolTypeId={type.id}>{type.name}</ToolLabel>}
         meta={
           <>
             {TOOL_GROUP_LABELS[type.group]} · <a href={toolList}>All tools</a>

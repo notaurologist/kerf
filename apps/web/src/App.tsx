@@ -11,6 +11,7 @@ import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
 import { leaveGate } from './lib/leave.ts';
 import { href, isMode, type Route, useRoute } from './lib/route.ts';
+import { useScreenChange } from './lib/screenChange.ts';
 import { ThemeSwitch } from './lib/theme.tsx';
 import {
   Button,
@@ -93,6 +94,7 @@ async function checkSession(): Promise<Session> {
 
 export function App() {
   const route = useRoute();
+  useScreenChange(route);
   const [session, setSession] = useState<Session>('checking');
 
   const check = () => {

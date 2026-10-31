@@ -11,7 +11,9 @@ describe('ToolPage', () => {
     for (const type of TOOL_TYPES) {
       const html = renderToString(<ToolPage id={type.id} />);
       expect(html).toContain(type.description.replaceAll("'", '&#x27;'));
-      expect(html).toMatch(new RegExp(`<h1><span class="k-tool-label">.*${type.name}</span></h1>`));
+      expect(html).toMatch(
+        new RegExp(`<h1 tabindex="-1"><span class="k-tool-label">.*${type.name}</span></h1>`),
+      );
       expect(html).toContain('<a href="#/tools">All tools</a>');
     }
   });
