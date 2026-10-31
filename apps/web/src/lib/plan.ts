@@ -1,4 +1,5 @@
 import { BuildSteps, findTemplate, geometry, type Plan } from '@kerf/core';
+import { useMemo } from 'react';
 import type { Project } from './types.ts';
 
 // A stored project's outputs as a Plan, parsed with its template's schema (hard rule 8). The
@@ -43,4 +44,12 @@ export function readDrawings(project: Project): geometry.Drawings | null {
 export function readSteps(project: Project): BuildSteps | null {
   const parsed = BuildSteps.safeParse(project.steps);
   return parsed.success ? parsed.data : null;
+}
+
+/** The project's plan, drawings and build steps, parsed once for each response, not each render. */
+export function useReadProject(project: Project) {
+  return useMemo(
+    () => ({ plan: readPlan(project), drawings: readDrawings(project), steps: readSteps(project) }),
+    [project],
+  );
 }

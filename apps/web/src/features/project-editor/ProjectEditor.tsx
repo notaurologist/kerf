@@ -20,6 +20,7 @@ import { setFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { readPlan } from '../../lib/plan.ts';
 import { describeReset } from '../../lib/progress.ts';
+import { projectStore } from '../../lib/projectStore.ts';
 import { href, navigate, type ProjectStart } from '../../lib/route.ts';
 import { sameJson } from '../../lib/sameJson.ts';
 import type { PlanSectionId } from '../../lib/sections.ts';
@@ -422,6 +423,7 @@ export function ProjectEditor(props: {
     if (result.ok) {
       const reset = 'progressReset' in result.value ? result.value.progressReset : undefined;
       setFlash(project ? ['Saved.', describeReset(reset)].filter(Boolean).join(' ') : 'Created.');
+      projectStore.set(result.value);
       navigate({ screen: 'project', id: result.value.id, section: props.from });
       return;
     }

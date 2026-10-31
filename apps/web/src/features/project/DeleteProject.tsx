@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
+import { projectStore } from '../../lib/projectStore.ts';
 import { navigate } from '../../lib/route.ts';
 import { Button, Card, Cluster, Field, InlineConfirm, Text, TextInput } from '../../ui/index.ts';
 
@@ -38,8 +39,10 @@ export function DeleteProject(props: { id: string; name: string }) {
     setError(null);
     const result = await send(api.api.projects[':id'].$delete({ param: { id: props.id } }));
     setBusy(false);
-    if (result.ok) navigate({ screen: 'projects' });
-    else setError(describeError(result.error));
+    if (result.ok) {
+      projectStore.forget(props.id);
+      navigate({ screen: 'projects' });
+    } else setError(describeError(result.error));
   };
 
   return (

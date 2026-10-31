@@ -6,12 +6,32 @@ export type LoadState<T> =
   | { state: 'error'; error: ApiError }
   | { state: 'ready'; value: T };
 
+/** Where a screen keeps the last value it loaded, so it can show it again at once. */
+export interface Kept<T> {
+  get: () => T | undefined;
+  set: (value: T) => void;
+}
+
+/** What a finished request leaves on screen: its value, or else the kept one, or else the error. */
+export function settled<T>(result: ApiResult<T>, kept: T | undefined): LoadState<T> {
+  if (result.ok) return { state: 'ready', value: result.value };
+  return kept === undefined
+    ? { state: 'error', error: result.error }
+    : { state: 'ready', value: kept };
+}
+
+const shown = <T>(kept: Kept<T> | undefined): LoadState<T> => {
+  const value = kept?.get();
+  return value === undefined ? { state: 'loading' } : { state: 'ready', value };
+};
+
 /**
  * Loads something from the API when the screen opens and whenever `key` changes. `set` replaces
- * the value with a newer one the API returned, such as the response to a save.
+ * the value with a newer one the API returned, such as the response to a save. With `kept`, the
+ * last value shows at once and stays when a later request fails.
  */
-export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string) {
-  const [loaded, setLoaded] = useState<LoadState<T>>({ state: 'loading' });
+export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string, kept?: Kept<T>) {
+  const [loaded, setLoaded] = useState<LoadState<T>>(() => shown(kept));
   // Only the latest request may set the result, so a slow earlier one cannot overwrite it.
   const latest = useRef(0);
   // biome-ignore lint/correctness/useExhaustiveDependencies: reloads when the key changes, not when the caller passes a new closure.
@@ -19,16 +39,18 @@ export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string) {
     const request = ++latest.current;
     const result = await load();
     if (request !== latest.current) return;
-    setLoaded(
-      result.ok ? { state: 'ready', value: result.value } : { state: 'error', error: result.error },
-    );
+    if (result.ok) kept?.set(result.value);
+    setLoaded(settled(result, kept?.get()));
   }, [key]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `kept` belongs to `key`.
   useEffect(() => {
-    setLoaded({ state: 'loading' });
+    setLoaded(shown(kept));
     void reload();
   }, [reload]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `kept` belongs to `key`.
   const set = useCallback((value: T) => {
     latest.current++;
+    kept?.set(value);
     setLoaded({ state: 'ready', value });
   }, []);
   return { loaded, reload, set };
