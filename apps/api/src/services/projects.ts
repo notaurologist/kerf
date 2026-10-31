@@ -203,10 +203,22 @@ export function createProjectService(deps: {
   const { db, templates, now } = deps;
   const findTemplate = (id: string) => templates.find((t) => t.id === id);
 
+  /** Progress counted from the ticks, or null when the stored plan cannot be counted. */
+  function progressOf(row: Row, ticks: readonly ProgressEntry[]) {
+    const template = findTemplate(row.templateId);
+    const stored = template ? read(row) : undefined;
+    if (!template || !stored?.ok) return null;
+    try {
+      return progressSummary(template, template.outputs.parse(stored.snapshot.outputs), ticks);
+    } catch (error) {
+      console.error(`project ${row.id}: progress could not be counted`, error);
+      return null;
+    }
+  }
+
   /** The row's summary, with its progress counted from its ticks. */
   function summary(row: Row, ticks: readonly ProgressEntry[]): ProjectSummary {
     const template = findTemplate(row.templateId);
-    const stored = template ? read(row) : undefined;
     return {
       id: row.id,
       name: row.name,
@@ -214,10 +226,7 @@ export function createProjectService(deps: {
       templateId: row.templateId,
       templateVersion: row.templateVersion,
       templateBehind: template !== undefined && row.templateVersion < template.version,
-      progress:
-        template && stored?.ok
-          ? progressSummary(template, template.outputs.parse(stored.snapshot.outputs), ticks)
-          : null,
+      progress: progressOf(row, ticks),
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
     };

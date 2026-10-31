@@ -1,5 +1,6 @@
 import { TEMPLATES, type TemplateDefinition } from '@kerf/core';
 import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { secureHeaders } from 'hono/secure-headers';
 import { jsonBodiesOnly, requireSession } from './auth/middleware.ts';
 import type { Database } from './db/client.ts';
@@ -41,6 +42,22 @@ export function createApp(deps: AppDeps) {
       .route('/', templateRoutes(templates))
       .route('/', toolRoutes({ db: deps.db, now }))
       .route('/', projectRoutes(projects))
+      .notFound((c) => c.json({ error: 'not-found' as const }, 404))
+      .onError((error, c) => {
+        if (error instanceof HTTPException) {
+          return error.status === 400
+            ? c.json(
+                {
+                  error: 'invalid-request' as const,
+                  issues: [{ path: [], message: error.message }],
+                },
+                400,
+              )
+            : c.json({ error: 'request-refused' as const }, error.status);
+        }
+        console.error(error);
+        return c.json({ error: 'internal' as const }, 500);
+      })
   );
 }
 

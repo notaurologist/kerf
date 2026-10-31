@@ -116,7 +116,15 @@ export function readSnapshot(
         message: `No upgrade from snapshot shape ${v} to ${v + 1}.`,
       };
     }
-    current = { ...upgrade(current), snapshotVersion: v + 1 };
+    try {
+      current = { ...upgrade(current), snapshotVersion: v + 1 };
+    } catch {
+      return {
+        ok: false,
+        reason: 'malformed',
+        message: `The stored snapshot could not be upgraded from shape ${v} to ${v + 1}.`,
+      };
+    }
   }
 
   const schema = z.object({
