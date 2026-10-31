@@ -64,7 +64,10 @@ describe('Screen', () => {
     }
   });
 
-  it('says when there is no page at an address', () => {
-    expect(renderToString(<Screen route={{ screen: 'not-found' }} />)).toContain('no page here');
+  it('says when there is no page at an address, with a heading and a way back', () => {
+    const html = renderToString(<Screen route={{ screen: 'not-found' }} />);
+    expect(html).toContain('<h1>Page not found</h1>');
+    expect(html).toContain('There is no page at this address.');
+    expect(html).toContain('href="#/projects"');
   });
 });

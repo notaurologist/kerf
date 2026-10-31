@@ -41,7 +41,12 @@ export type ProjectStart =
 
 export function parseRoute(hash: string): Route {
   const [path = '', query = ''] = hash.replace(/^#/, '').split('?');
-  const parts = path.split('/').filter(Boolean).map(decodeURIComponent);
+  let parts: string[];
+  try {
+    parts = path.split('/').filter(Boolean).map(decodeURIComponent);
+  } catch {
+    return { screen: 'not-found' };
+  }
   const [first, second, third, fourth, fifth] = parts;
   const search = new URLSearchParams(query);
   if (parts.length === 0) return { screen: 'projects' };

@@ -51,9 +51,9 @@ import {
 // inventory.
 
 export function ToolsScreen() {
-  const { loaded, set } = useLoad(() => send(api.api.tools.$get()), 'tools');
+  const { loaded, set, reload } = useLoad(() => send(api.api.tools.$get()), 'tools');
   return (
-    <Loaded state={loaded} loading="Loading tools…">
+    <Loaded state={loaded} loading="Loading tools…" onRetry={reload} title="Tools">
       {(inventory) => <ToolsEditor saved={fromInventory(inventory)} onSaved={set} />}
     </Loaded>
   );

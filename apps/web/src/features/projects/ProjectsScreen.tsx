@@ -27,7 +27,7 @@ import { buildingText, ResumeCard, resumeTarget, shoppingText } from '../modes/M
 // Projects with their status (PRODUCT.md, MVP features 2 and 8), most recently updated first.
 
 export function ProjectsScreen() {
-  const { loaded, set } = useLoad(async () => {
+  const { loaded, set, reload } = useLoad(async () => {
     const [projects, templates] = await Promise.all([
       send(api.api.projects.$get()),
       send(api.api.templates.$get()),
@@ -57,7 +57,7 @@ export function ProjectsScreen() {
   };
 
   return (
-    <Loaded state={loaded} loading="Loading projects…">
+    <Loaded state={loaded} loading="Loading projects…" onRetry={reload} title="Projects">
       {(value) => (
         <ProjectList
           projects={value.projects}

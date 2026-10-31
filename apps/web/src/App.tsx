@@ -18,9 +18,9 @@ import {
   Loading,
   Notice,
   Page,
+  ProblemScreen,
   Stack,
   TermScope,
-  Text,
   Wordmark,
 } from './ui/index.ts';
 
@@ -61,7 +61,14 @@ export function Screen(props: { route: Route }) {
         </Suspense>
       );
     case 'not-found':
-      return <Text>There is no page here.</Text>;
+      return (
+        <ProblemScreen
+          title="Page not found"
+          back={{ href: href({ screen: 'projects' }), label: 'Projects' }}
+        >
+          There is no page at this address. Check it, or go back to your projects.
+        </ProblemScreen>
+      );
   }
 }
 

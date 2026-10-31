@@ -1,5 +1,7 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { Button, ButtonLink } from './Button.tsx';
 import { Icon } from './Icon.tsx';
+import { Cluster, Stack } from './layout.tsx';
 
 // What Kerf tells the reader about the state of things (#43, #67, #68). Every state has a second
 // signal besides color: an icon and words.
@@ -139,6 +141,31 @@ export function Notice(props: { children: ReactNode; icon?: 'connection' | 'erro
       <Icon name={props.icon ?? 'error'} />
       <span>{props.children}</span>
     </div>
+  );
+}
+
+/** Never a dead end: always a way back. Leave out `title` where the screen has a heading. */
+export function ProblemScreen(props: {
+  title?: string;
+  children: ReactNode;
+  icon?: 'connection' | 'error';
+  onRetry?: () => void;
+  retryLabel?: string;
+  back: { href: string; label: string };
+}) {
+  return (
+    <Stack>
+      {props.title && <h1>{props.title}</h1>}
+      <Notice icon={props.icon}>{props.children}</Notice>
+      <Cluster>
+        {props.onRetry && (
+          <Button onClick={props.onRetry}>{props.retryLabel ?? 'Try again'}</Button>
+        )}
+        <ButtonLink variant={props.onRetry ? 'secondary' : 'primary'} href={props.back.href}>
+          {props.back.label}
+        </ButtonLink>
+      </Cluster>
+    </Stack>
   );
 }
 

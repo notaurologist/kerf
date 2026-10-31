@@ -89,6 +89,8 @@ describe('parseRoute', () => {
     ['#/projects/abc/edit?from=cut-list', { screen: 'edit-project', id: 'abc', from: 'cut-list' }],
     ['#/projects/abc/edit?from=summary', { screen: 'edit-project', id: 'abc' }],
     ['#/projects/abc/edit?from=elsewhere', { screen: 'edit-project', id: 'abc' }],
+    ['#/projects/%E0', { screen: 'not-found' }],
+    ['#/tools/%', { screen: 'not-found' }],
   ])('%s', (hash, route) => {
     expect(parseRoute(hash)).toEqual(route);
   });

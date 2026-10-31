@@ -37,6 +37,7 @@ import {
   InfoNotice,
   Notice,
   PlainList,
+  ProblemScreen,
   SaveFailed,
   ScreenHeader,
   Stack,
@@ -58,7 +59,16 @@ import { StartQuestions } from './StartQuestions.tsx';
 
 export function NewProjectScreen(props: { templateId: string; start?: ProjectStart }) {
   const template = findTemplate(props.templateId);
-  if (!template) return <Notice>There is no template "{props.templateId}".</Notice>;
+  if (!template) {
+    return (
+      <ProblemScreen
+        title="New project"
+        back={{ href: href({ screen: 'projects' }), label: 'Projects' }}
+      >
+        There is no template "{props.templateId}".
+      </ProblemScreen>
+    );
+  }
   return <NewProject template={template} start={props.start} />;
 }
 
@@ -69,17 +79,20 @@ export function NewProjectScreen(props: { templateId: string; start?: ProjectSta
 function NewProject(props: { template: TemplateDefinition; start?: ProjectStart }) {
   const { template, start } = props;
   const key = `${template.id}/${JSON.stringify(start ?? null)}`;
-  const { loaded } = useLoad<{ earlier: ProjectSummary[]; source: Project | null }>(async () => {
-    const list = await send(api.api.projects.$get());
-    if (!list.ok) return list;
-    const earlier = list.value.projects.filter((p) => p.templateId === template.id);
-    if (start?.kind !== 'project') return { ok: true as const, value: { earlier, source: null } };
-    const source = await send(api.api.projects[':id'].$get({ param: { id: start.id } }));
-    if (!source.ok) return source;
-    return { ok: true as const, value: { earlier, source: source.value } };
-  }, key);
+  const { loaded, reload } = useLoad<{ earlier: ProjectSummary[]; source: Project | null }>(
+    async () => {
+      const list = await send(api.api.projects.$get());
+      if (!list.ok) return list;
+      const earlier = list.value.projects.filter((p) => p.templateId === template.id);
+      if (start?.kind !== 'project') return { ok: true as const, value: { earlier, source: null } };
+      const source = await send(api.api.projects[':id'].$get({ param: { id: start.id } }));
+      if (!source.ok) return source;
+      return { ok: true as const, value: { earlier, source: source.value } };
+    },
+    key,
+  );
   return (
-    <Loaded state={loaded} loading="Loading…">
+    <Loaded state={loaded} loading="Loading…" onRetry={reload} title={newTitle(template)}>
       {({ earlier, source }) => {
         const starts = <StartFrom template={template} start={start} earlier={earlier} />;
         if (start?.kind === 'questions' && template.questions) {
@@ -250,12 +263,12 @@ const newTitle = (template: TemplateDefinition) =>
 
 /** `from` is the plan's section Edit was opened from: Save and Cancel go back to it (#156). */
 export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
-  const { loaded } = useLoad(
+  const { loaded, reload } = useLoad(
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
   );
   return (
-    <Loaded state={loaded} loading="Loading project…">
+    <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Edit project">
       {(project) => <EditProject project={project} from={props.from} />}
     </Loaded>
   );
@@ -264,13 +277,20 @@ export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
 function EditProject(props: { project: Project; from?: PlanSectionId }) {
   const { project } = props;
   const template = findTemplate(project.templateId);
-  if (!template) return <Notice>This project's template is no longer offered.</Notice>;
+  const back = { href: href({ screen: 'project', id: project.id }), label: project.name };
+  if (!template) {
+    return (
+      <ProblemScreen title={`Edit ${project.name}`} back={back}>
+        This project's template is no longer offered.
+      </ProblemScreen>
+    );
+  }
   if (!project.snapshot) {
     return (
-      <Notice>
+      <ProblemScreen title={`Edit ${project.name}`} back={back}>
         This project's stored plan cannot be read ({project.unreadable?.message}), so it cannot be
         edited.
-      </Notice>
+      </ProblemScreen>
     );
   }
   return (

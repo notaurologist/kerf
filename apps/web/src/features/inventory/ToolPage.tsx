@@ -10,7 +10,7 @@ import { PlainList, ScreenHeader, Stack, Text, ToolLabel } from '../../ui/index.
 
 export function ToolPage(props: { id: string }) {
   const type = findToolType(props.id);
-  const { loaded } = useLoad(() => send(api.api.tools.$get()), 'tools');
+  const { loaded, reload } = useLoad(() => send(api.api.tools.$get()), 'tools');
   if (!type) return <Text>There is no page here.</Text>;
   const uses = methodsUsing(type.id);
   const toolList = href({ screen: 'tools' });
@@ -25,7 +25,7 @@ export function ToolPage(props: { id: string }) {
         }
       />
       <Text>{type.description}</Text>
-      <Loaded state={loaded} loading="Checking your tools…">
+      <Loaded state={loaded} loading="Checking your tools…" onRetry={reload}>
         {(inventory) => {
           const count = inventory.tools.filter((t) => t.toolTypeId === type.id).length;
           return (
