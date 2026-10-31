@@ -60,7 +60,7 @@ import {
 } from './numbers.tsx';
 import { CheckStatus, FlagList } from './plan.tsx';
 import { ScreenHeader } from './ScreenHeader.tsx';
-import { Header, ModeBar } from './Shell.tsx';
+import { Frame, ModeBar } from './Shell.tsx';
 import { StepLayout } from './StepLayout.tsx';
 import { TermScope } from './Term.tsx';
 import { Tick } from './Tick.tsx';
@@ -205,15 +205,23 @@ function Specimens() {
   const [dialog, setDialog] = useState(false);
   return (
     <Stack gap="l">
-      <Group title="Shell">
-        <Header
+      <Group title="Frame">
+        <Text tone="muted">
+          A title bar and tab bar below 52.5rem of the frame's width, one sidebar from it.
+        </Text>
+        <Frame
+          preview
           brandHref="#/catalog"
-          nav={[
-            { label: 'Projects', href: '#/catalog', current: true },
-            { label: 'Tools', href: '#/catalog' },
+          places={[
+            { label: 'Projects', href: '#/catalog', icon: 'projects', current: 'true' },
+            { label: 'Tools', href: '#/catalog/tools', icon: 'tools' },
+            { label: 'Glossary', href: '#/catalog/glossary', icon: 'glossary' },
           ]}
-          end={<Button variant="link">Log out</Button>}
-        />
+          back={{ label: 'Projects', href: '#/catalog' }}
+          actions={<Button variant="link">Log out</Button>}
+        >
+          <Text>The screen goes here.</Text>
+        </Frame>
       </Group>
 
       <Group title="Screen header">

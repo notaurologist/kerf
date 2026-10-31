@@ -722,14 +722,14 @@
   /* ---------- Touch (#253) ----------
      Controls answer a press by dimming, in place of the browser's gray tap flash, and a long
      press on one does not select its words. Text and numbers stay selectable. */
-  :is(.k-button, .k-header nav a, .k-header__brand, .k-tick) {
+  :is(.k-button, .k-tick, .k-titlebar a, .k-titlebar__menu, .k-sidebar a, .k-tabbar a) {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
   }
 
-  :is(.k-button, .k-header nav a, .k-header__brand, .k-tick):active {
+  :is(.k-button, .k-tick, .k-titlebar a, .k-titlebar__menu, .k-sidebar a, .k-tabbar a):active {
     opacity: var(--pressed-opacity);
   }
 
@@ -738,23 +738,266 @@
     overscroll-behavior: none;
   }
 
-  /* ---------- Shell (#40) ---------- */
-  .k-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-2xs) var(--space-s);
-    padding: var(--space-xs) var(--space-s);
+  /* ---------- Frame (Stage 9, #265) ----------
+     A phone gets a title bar and a tab bar that stay in view while the page scrolls between
+     them; from 52.5rem of the frame's width, one sidebar that stays in view. */
+  .k-frame {
+    container: frame / inline-size;
+  }
+
+  .k-frame__layout {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-block-size: 100dvh;
+  }
+
+  .k-frame[data-preview] .k-frame__layout {
+    min-block-size: 0;
+  }
+
+  .k-frame__main {
+    min-inline-size: 0;
+  }
+
+  .k-titlebar {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-xs);
+    min-block-size: var(--control-min);
+    padding-inline: var(--space-s);
     border-block-end: var(--border-thin) solid var(--border);
     background: var(--raised);
   }
 
-  .k-header__brand {
+  .k-titlebar__brand {
+    grid-column: 1;
+    justify-self: start;
+    font-size: var(--size-2);
+    line-height: 1;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .k-titlebar__back {
+    grid-column: 1;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    max-inline-size: 60vw;
+    min-block-size: var(--control-min);
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .k-titlebar__chevron {
+    display: inline-flex;
+    transform: rotate(90deg);
+  }
+
+  /* The screen's own heading names the project at the top, so the title bar names it only once
+     the page has scrolled past it, as iOS does; where scroll timelines are missing it always shows. */
+  .k-titlebar__title {
+    grid-column: 2;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: k-title-in linear both;
+    animation-timeline: scroll(root);
+    animation-range: 2rem 5rem;
+  }
+
+  @keyframes k-title-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  .k-titlebar__menu {
+    grid-column: 3;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--control-min);
+    min-block-size: var(--control-min);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--link);
+    cursor: pointer;
+  }
+
+  /* The theme and Log out: a menu under the title bar on a phone, the sidebar's foot when wide. */
+  .k-frame__actions:popover-open {
+    inset: auto;
+    inset-block-start: calc(var(--control-min) + var(--space-3xs));
+    inset-inline-end: var(--space-s);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-xs);
+    padding: var(--space-s);
+    border: var(--border-thin) solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--raised);
+    color: var(--text);
+  }
+
+  .k-frame__side {
+    display: contents;
+  }
+
+  .k-sidebar {
+    display: none;
+  }
+
+  /* The current place is marked by a bar as well as bold type; aria-current says it in words. */
+  .k-tabbar {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 2;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding-block-end: env(safe-area-inset-bottom, 0);
+    border-block-start: var(--border-thin) solid var(--border);
+    background: var(--raised);
+  }
+
+  .k-tabbar a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3xs);
+    min-block-size: var(--control-min);
+    padding-block: var(--space-2xs);
+    border-block-start: var(--border-bar) solid transparent;
+    color: var(--muted);
+    font-size: var(--size--1);
+    text-decoration: none;
+  }
+
+  .k-tabbar a[aria-current] {
+    border-block-start-color: var(--text);
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .k-frame[data-preview] :is(.k-titlebar, .k-tabbar) {
+    position: static;
+  }
+
+  .k-sidebar__brand {
     font-size: var(--size-3); /* The wordmark's k is 20.5 px tall at 29 px (#166). */
     line-height: 1;
     color: var(--text);
     text-decoration: none;
+  }
+
+  .k-sidebar ul,
+  .k-sidebar ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-3xs);
+  }
+
+  .k-sidebar li > :is(ul, ol) {
+    padding-inline-start: var(--space-s);
+  }
+
+  .k-sidebar li a {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--control-min);
+    padding-inline-start: var(--space-xs);
+    border-inline-start: var(--border-bar) solid transparent;
+    text-decoration: none;
+  }
+
+  .k-sidebar li a[aria-current] {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .k-sidebar li a[aria-current="page"] {
+    border-inline-start-color: var(--text);
+  }
+
+  @container frame (min-width: 52.5rem) {
+    .k-frame__layout {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      grid-template-rows: 1fr;
+    }
+
+    .k-titlebar,
+    .k-tabbar {
+      display: none;
+    }
+
+    .k-frame__side {
+      position: sticky;
+      inset-block-start: 0;
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-m);
+      min-block-size: 100dvh;
+      max-block-size: 100dvh;
+      overflow-y: auto;
+      padding: var(--space-s);
+      border-inline-end: var(--border-thin) solid var(--border);
+      background: var(--raised);
+    }
+
+    .k-frame[data-preview] .k-frame__side {
+      min-block-size: 0;
+    }
+
+    .k-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-s);
+    }
+
+    .k-frame__actions {
+      position: static;
+      inset: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-xs);
+      inline-size: auto;
+      block-size: auto;
+      margin: 0;
+      margin-block-start: auto;
+      padding: 0;
+      border: 0;
+      overflow: visible;
+      background: none;
+      color: inherit;
+    }
+
+    /* The plan's sections are in the sidebar, so its own contents column goes. */
+    .k-frame[data-sections] .k-with-contents .k-contents {
+      display: none;
+    }
   }
 
   /* The wordmark (#166): its box ends 12 units below the baseline, for the e's overshoot. */
@@ -762,23 +1005,6 @@
     display: inline-block;
     vertical-align: baseline;
     margin-block-end: -0.012em;
-  }
-
-  .k-header nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-s);
-  }
-
-  .k-header nav a {
-    text-decoration: none;
-  }
-
-  .k-header nav a[aria-current="page"] {
-    font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
   }
 
   /* Wraps rather than scroll sideways at narrow widths. */
