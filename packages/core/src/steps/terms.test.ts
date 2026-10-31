@@ -65,6 +65,7 @@ describe('planTerms', () => {
       'kerf',
       'long-point',
       'margin',
+      'waste-side',
     ]);
   });
 
@@ -89,7 +90,13 @@ describe('planTerms', () => {
       lumber: { notes: ['Buy extra stock.'] },
       hardwareNotes: ['Allow for the counterbore.'],
     });
-    expect(planTerms(p, []).map((e) => e.id)).toEqual(['counterbore', 'gusset', 'plumb', 'stock']);
+    expect(planTerms(p, []).map((e) => e.id)).toEqual([
+      'bending-stress',
+      'counterbore',
+      'gusset',
+      'plumb',
+      'stock',
+    ]);
   });
 
   it('includes the board selection guides the plan’s parts use, and no others', () => {
