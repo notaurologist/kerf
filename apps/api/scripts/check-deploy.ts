@@ -2,8 +2,8 @@ import { findTemplate } from '@kerf/core';
 import { readHidden } from './prompt.ts';
 
 // Checks a deployed API end to end (M3 acceptance): health, login, storing a project, reading it
-// back, and logout. Prints statuses only, never the password or the session cookie. Leaves one
-// project named "Deploy check" in the database.
+// back, logout, and security headers. Prints statuses only, never the password or the session
+// cookie. Leaves one project named "Deploy check" in the database.
 //   pnpm --filter @kerf/api check-deploy https://<project>.vercel.app
 
 const base = (process.argv[2] ?? '').replace(/\/$/, '');
@@ -22,7 +22,20 @@ const step = (name: string, res: Response, expected: number) => {
   return res.status === expected;
 };
 
-step('health', await fetch(`${base}/api/health`), 200);
+const headers = (name: string, res: Response) => {
+  const csp = res.headers.get('content-security-policy') ?? '';
+  const ok =
+    /frame-ancestors 'none'/.test(csp) && res.headers.get('x-content-type-options') === 'nosniff';
+  console.log(`${ok ? 'ok  ' : 'FAIL'} ${name} security headers`);
+  if (!ok) process.exitCode = 1;
+};
+
+const page = await fetch(`${base}/`);
+step('web app', page, 200);
+headers('web app', page);
+const health = await fetch(`${base}/api/health`);
+step('health', health, 200);
+headers('health', health);
 step('projects without a session', await fetch(`${base}/api/projects`), 401);
 
 const password = await readHidden('Password: ');

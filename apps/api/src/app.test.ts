@@ -41,3 +41,16 @@ describe('api', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('security headers', () => {
+  it('forbid loading or framing anything from an API response, with or without a session', async () => {
+    const { app, authed } = await createTestApp();
+    for (const res of [await app.request('/api/health'), await authed('/api/projects')]) {
+      expect(res.headers.get('content-security-policy')).toBe(
+        "default-src 'none'; frame-ancestors 'none'",
+      );
+      expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+      expect(res.headers.get('referrer-policy')).toBe('no-referrer');
+    }
+  });
+});

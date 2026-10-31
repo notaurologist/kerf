@@ -1,5 +1,6 @@
 import { TEMPLATES, type TemplateDefinition } from '@kerf/core';
 import { Hono } from 'hono';
+import { secureHeaders } from 'hono/secure-headers';
 import { jsonBodiesOnly, requireSession } from './auth/middleware.ts';
 import type { Database } from './db/client.ts';
 import { authRoutes } from './routes/auth.ts';
@@ -26,6 +27,12 @@ export function createApp(deps: AppDeps) {
   return (
     new Hono()
       .basePath('/api')
+      .use(
+        secureHeaders({
+          contentSecurityPolicy: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
+          referrerPolicy: 'no-referrer',
+        }),
+      )
       .use(jsonBodiesOnly)
       .use(requireSession(deps.db, now))
       // Deploy and uptime check. Returns no data, so it stays outside the session requirement.
