@@ -63,10 +63,7 @@ export const Operation = z.discriminatedUnion('type', [
     /** Every part the holes pass through, in the order of the parts list. */
     partIds: z.array(z.string()).min(1),
     boltDiameter: z.number(),
-    /**
-     * The hole to drill (#110). Plans made before template version 9 drilled at the bolt's
-     * diameter, and reading them sets this to `boltDiameter` (snapshot shape 9).
-     */
+    /** The hole to drill (#110). */
     holeDiameter: z.number(),
     depth: z.number(),
   }),
@@ -109,7 +106,7 @@ export function cutAndDrillOperations(
           : { id, type: 'miter', setting: cut.setting, ...at },
       );
     });
-    (part.tapers ?? []).forEach((t, i) => {
+    part.tapers.forEach((t, i) => {
       ops.push({
         id: `${part.id}/taper-${i}`,
         type: 'taper',
@@ -127,8 +124,8 @@ export function cutAndDrillOperations(
     const partIds = parts
       .filter(
         (p) =>
-          p.holes?.some((h) => h.hardwareId === item.id) ||
-          p.boltAreas?.some((a) => a.hardwareId === item.id),
+          p.holes.some((h) => h.hardwareId === item.id) ||
+          p.boltAreas.some((a) => a.hardwareId === item.id),
       )
       .map((p) => p.id);
     if (partIds.length === 0) continue;

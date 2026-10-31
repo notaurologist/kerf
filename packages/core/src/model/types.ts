@@ -3,7 +3,9 @@ import { FlagCategory } from '../knowledge/categories.ts';
 import { Stock } from '../lumber/stock.ts';
 
 // Shared shapes of template output. Each is a Zod schema with its type inferred from it, so the
-// same definition types the code and parses a stored project snapshot (decision 0003).
+// same definition types the code and parses a project snapshot (decision 0003). These are what a
+// template generates now, so every field is required. A template whose older snapshots lack a
+// field relaxes it in its own stored-output schema (`TemplateDefinition.storedOutputs`).
 
 /** A problem with the parameters that stops generation. */
 export const Issue = z.object({
@@ -17,11 +19,11 @@ export type Issue = z.infer<typeof Issue>;
 /**
  * The parts and hardware items a flag or checklist item concerns, by ID (#51), so a cut card or
  * build step can show it without matching on its words. Both are empty when it concerns the whole
- * design. Plans made before snapshot shape 10 do not say.
+ * design.
  */
 const concerns = {
-  partIds: z.array(z.string()).optional(),
-  hardwareIds: z.array(z.string()).optional(),
+  partIds: z.array(z.string()),
+  hardwareIds: z.array(z.string()),
 };
 
 /** Something to ask an experienced builder about, and why (DOMAIN.md, Expert-check categories). */
@@ -41,9 +43,9 @@ export const EndCut = z.object({
   /**
    * Which the angle is laid out from (DOMAIN.md, Units): `reference-edge` for a miter, drawn on
    * the face and measured from the reference edge; `reference-face` for a bevel, drawn on the edge
-   * and measured from the face. Plans made before template version 4 do not say.
+   * and measured from the face.
    */
-  measuredFrom: z.enum(['reference-edge', 'reference-face']).optional(),
+  measuredFrom: z.enum(['reference-edge', 'reference-face']),
 });
 export type EndCut = z.infer<typeof EndCut>;
 
@@ -59,10 +61,7 @@ export const Hole = z.object({
   hardwareId: z.string(),
   /** The hole to drill: the bolt's diameter plus the oversize NDS 12.1.3.2 allows (#110). */
   diameter: z.number(),
-  /**
-   * The bolt that goes through it. Plans made before template version 9 drilled at the bolt's
-   * diameter, and reading them sets this to `diameter` (snapshot shape 9).
-   */
+  /** The bolt that goes through it. */
   boltDiameter: z.number(),
   /** Where the drill enters, in the part's frame. */
   entry: LocalPoint,
@@ -125,14 +124,14 @@ export const Part = z.object({
   notes: z.array(z.string()),
   /**
    * What to look for when choosing its board: IDs of guides in the knowledge base
-   * (knowledge/boardSelection.ts), most general first. Absent in plans made before #53.
+   * (knowledge/boardSelection.ts), most general first.
    */
-  selection: z.array(z.string()).optional(),
+  selection: z.array(z.string()),
   /** The edge `across` starts from (Placement), in words, such as "inner edge, against the beam". */
-  referenceEdge: z.string().optional(),
-  holes: z.array(Hole).optional(),
-  boltAreas: z.array(BoltArea).optional(),
-  tapers: z.array(Taper).optional(),
+  referenceEdge: z.string(),
+  holes: z.array(Hole),
+  boltAreas: z.array(BoltArea),
+  tapers: z.array(Taper),
 });
 export type Part = z.infer<typeof Part>;
 
@@ -189,9 +188,9 @@ export const HardwareItem = z.object({
   notes: z.array(z.string()),
   /**
    * Where it is found in a store, such as "Bolts and fittings" (#59): the template's words, shown
-   * as a heading on the store checklist. Absent in plans made before it; those show one group.
+   * as a heading on the store checklist.
    */
-  group: z.string().optional(),
+  group: z.string(),
 });
 export type HardwareItem = z.infer<typeof HardwareItem>;
 

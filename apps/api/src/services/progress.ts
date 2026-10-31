@@ -40,7 +40,7 @@ export interface ProgressEntry {
 
 /** A snapshot's progress items, from its template; read already, so its outputs parse. */
 export function itemsOf(template: TemplateDefinition, snapshot: ProjectSnapshot) {
-  return progressItems(template, template.outputs.parse(snapshot.outputs));
+  return progressItems(template, template.storedOutputs.parse(snapshot.outputs));
 }
 
 type ProgressRow = typeof projectProgress.$inferSelect;

@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import type { TemplateDefinition } from '../../model/definition.ts';
+import { ChecklistItem, Flag, Part } from '../../model/types.ts';
+import { LumberPlan } from '../../outputs/shoppingList.ts';
 import { shapeOf } from '../../snapshot/shape.ts';
 import { createSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
-import type { TemplateDefinition } from '../definition.ts';
 import { swingSetAFrame } from './definition.ts';
+import { drawnPart } from './outputs.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
 import v2 from './snapshots/v2.json' with { type: 'json' };
 import v3 from './snapshots/v3.json' with { type: 'json' };
@@ -82,6 +85,23 @@ describe('swing-set snapshot fixtures', () => {
         const original = stored as { templateVersion: number; params: unknown };
         expect(read.snapshot.templateVersion).toBe(original.templateVersion);
         expect(read.snapshot.params).toEqual(original.params);
+      }
+    },
+  );
+
+  it.each(Object.entries(FIXTURES))(
+    'fills in what generic code reads for a plan stored at template version %s',
+    (_, fixture) => {
+      for (const stored of fixture) {
+        const read = readSnapshot(templates, stored);
+        if (!read.ok) throw new Error(read.message);
+        const outputs = swingSetAFrame.storedOutputs.parse(read.snapshot.outputs);
+        const plan = swingSetAFrame.plan(outputs);
+        for (const flag of plan.flags) Flag.parse(flag);
+        for (const item of plan.checklist) ChecklistItem.parse(item);
+        LumberPlan.parse(plan.lumber);
+        for (const part of outputs.design.parts) Part.parse(drawnPart(part));
+        expect(swingSetAFrame.drawings(outputs).cutDetails).toHaveLength(plan.cutList.length);
       }
     },
   );

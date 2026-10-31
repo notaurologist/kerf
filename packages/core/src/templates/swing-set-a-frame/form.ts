@@ -1,7 +1,7 @@
 import { SPECIES_GRADES } from '../../design-values/sawnLumber.ts';
 import { NOMINAL_SIZES } from '../../lumber/stock.ts';
+import type { FieldOption, FormField, TemplateForm } from '../../model/form.ts';
 import { formatLength } from '../../units/length.ts';
-import type { FieldOption, FormField, TemplateForm } from '../form.ts';
 import { STRUCTURAL_INPUT_LABELS as INPUT } from './structural.ts';
 
 // How the swing set's parameters and structural inputs are entered (spec, Parameters and

@@ -1,4 +1,4 @@
-import type { Vec3 } from '../templates/types.ts';
+import type { Vec3 } from '../model/types.ts';
 
 // Small vector helpers for drawing geometry. Points and directions in a template's 3D
 // coordinates, decimal inches.

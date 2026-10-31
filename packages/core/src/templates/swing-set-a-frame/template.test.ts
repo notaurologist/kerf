@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Part } from '../types.ts';
+import type { Part } from '../../model/types.ts';
 import type { SwingSetParams } from './params.ts';
 import { generate, type SwingSetOutput } from './template.ts';
 

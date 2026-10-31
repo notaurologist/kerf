@@ -1,5 +1,7 @@
-import type { TemplateDefinition } from './definition.ts';
+import type { TemplateDefinition } from '../model/definition.ts';
 import { swingSetAFrame } from './swing-set-a-frame/definition.ts';
+
+export * as swingSetAFrame from './swing-set-a-frame/index.ts';
 
 /** Every template the app offers, at its current version. */
 export const TEMPLATES: readonly TemplateDefinition[] = [swingSetAFrame];

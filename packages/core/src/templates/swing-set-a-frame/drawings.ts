@@ -9,8 +9,8 @@ import {
   planView,
   type Scene,
 } from '../../geometry/index.ts';
-import type { Placement } from '../types.ts';
-import type { SwingSetOutputs } from './definition.ts';
+import type { Placement } from '../../model/types.ts';
+import { drawnPart, type StoredSwingSetOutputs } from './outputs.ts';
 
 // The swing set's drawings (#90): what the generic views need from this template, as data. The
 // views draw from the stored parts, placements, and site layout, so a plan's drawings show the
@@ -41,7 +41,7 @@ export function explodeOffsets(placements: readonly Placement[]): Explode[] {
  * apart. Null for a plan made before placements.
  */
 export function assembly(
-  outputs: SwingSetOutputs,
+  outputs: StoredSwingSetOutputs,
 ): { scene: Scene; view: typeof VIEW; explode: Explode[] } | null {
   const { design } = outputs;
   const p = design.params;
@@ -51,7 +51,7 @@ export function assembly(
   const H = p.beamHeight;
   const seat = p.swings.seatHeight;
   const scene: Scene = {
-    parts: design.parts,
+    parts: design.parts.map(drawnPart),
     placements,
     // The ground rises k per inch toward the back, through the point under the beam (spec,
     // Coordinates): z = k·y.
@@ -70,7 +70,7 @@ export function assembly(
   return { scene, view: VIEW, explode: explodeOffsets(placements) };
 }
 
-export function drawings(outputs: SwingSetOutputs): Drawings {
+export function drawings(outputs: StoredSwingSetOutputs): Drawings {
   const { design } = outputs;
   const p = design.params;
   const views = assembly(outputs);
@@ -93,7 +93,7 @@ export function drawings(outputs: SwingSetOutputs): Drawings {
           'The beam lifted, and the crossbars and gussets pulled out along the beam, with guidelines to where each goes.',
         )
       : null,
-    cutDetails: design.parts.map((part) => cutDetail(part)),
+    cutDetails: design.parts.map((part) => cutDetail(drawnPart(part))),
     siteLayout: planView(
       areas,
       [

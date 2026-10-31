@@ -8,7 +8,7 @@ import { PlainList } from './text.tsx';
 // principle 6); every word and number in them comes from core.
 
 /** A plan's or a step's expert checks, each labeled with its category (#43, rule 3). */
-export function FlagList(props: { flags: readonly Flag[] }) {
+export function FlagList(props: { flags: readonly Pick<Flag, 'category' | 'ask' | 'why'>[] }) {
   if (props.flags.length === 0) return null;
   return (
     <PlainList>

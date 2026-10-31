@@ -6,7 +6,7 @@ import {
   type ToolRequirement,
 } from '../knowledge/methods.ts';
 import { findToolType } from '../knowledge/tools.ts';
-import type { Operation, OperationType } from '../templates/operations.ts';
+import type { Operation, OperationType } from '../model/operations.ts';
 import { formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
 

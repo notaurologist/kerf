@@ -1,4 +1,4 @@
-import type { Part } from '../templates/types.ts';
+import type { Part } from '../model/types.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
 import { clipPolygon } from './clip.ts';
@@ -36,8 +36,8 @@ function windows(part: Part, outline: readonly UV[]): Window[] {
   const spans = [
     [min, min + reach],
     [max - reach, max],
-    ...(part.holes ?? []).map((h) => [h.entry.u - W, h.entry.u + W]),
-    ...(part.tapers ?? []).map((tp) => [min, Math.max(tp.start.u, tp.end.u) + W]),
+    ...part.holes.map((h) => [h.entry.u - W, h.entry.u + W]),
+    ...part.tapers.map((tp) => [min, Math.max(tp.start.u, tp.end.u) + W]),
   ]
     .map(([a, b]) => [Math.max(min, a as number), Math.min(max, b as number)] as const)
     .sort((a, b) => a[0] - b[0]);
@@ -117,7 +117,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   }
 
   // A taper's waste, dashed.
-  for (const taper of part.tapers ?? []) {
+  for (const taper of part.tapers) {
     const corner = blank[0] as UV;
     prims.push({
       kind: 'polygon',
@@ -130,7 +130,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
 
   // Holes: through the face, a circle with center lines; in the face's plane, hidden lines along
   // the bore with its center line.
-  for (const hole of part.holes ?? []) {
+  for (const hole of part.holes) {
     const r = hole.diameter / 2;
     const c = page(hole.entry);
     if (Math.abs(hole.direction.n) > 0.5) {
@@ -212,7 +212,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   }
 
   // Hole positions, from the first end's long point along the reference edge.
-  const holes = part.holes ?? [];
+  const holes = part.holes;
   if (holes.length > 0) {
     const y = 1.6 * W;
     for (const hole of holes) {
@@ -306,8 +306,8 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   // and tapers: the first of each piece's middle and quarter points that is at least a width
   // from both.
   const busy = [
-    ...(part.holes ?? []).map((h) => h.entry.u),
-    ...(part.tapers ?? []).flatMap((t) => [t.start.u, t.end.u, 0]),
+    ...part.holes.map((h) => h.entry.u),
+    ...part.tapers.flatMap((t) => [t.start.u, t.end.u, 0]),
   ];
   const candidates = ws.flatMap((w) => [0.5, 0.25, 0.75].map((f) => w.u0 + f * (w.u1 - w.u0)));
   const clear =
@@ -325,11 +325,11 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   return {
     title,
     partId: part.id,
-    description: `Cut detail for ${part.letter}, ${part.name}: ${formatLength(part.length)} overall${angles.length > 0 ? `, ends cut at ${angles.join(' and ')}` : ', ends square'}${(part.holes ?? []).length > 0 ? `, ${(part.holes ?? []).length} holes` : ''}.`,
+    description: `Cut detail for ${part.letter}, ${part.name}: ${formatLength(part.length)} overall${angles.length > 0 ? `, ends cut at ${angles.join(' and ')}` : ', ends square'}${part.holes.length > 0 ? `, ${part.holes.length} holes` : ''}.`,
     bounds: boundsOf(prims, 0.3 * W),
     primitives: prims,
     notes: [
-      `The face shown is the reference face (the loop). Angles are measured from the ${part.referenceEdge ?? 'reference edge'}, at the bottom.`,
+      `The face shown is the reference face (the loop). Angles are measured from the ${part.referenceEdge}, at the bottom.`,
       ...(holes.length > 0
         ? [
             "Hole positions are measured from the first end's long point, on the left, along the reference edge.",

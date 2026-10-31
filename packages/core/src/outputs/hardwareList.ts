@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { HardwareItem } from '../templates/types.ts';
+import type { HardwareItem } from '../model/types.ts';
 import { formatLength, toSixteenths } from '../units/length.ts';
 
 // Hardware lines for the shopping list (PRODUCT.md, MVP feature 4). Bolts with the same diameter
@@ -21,7 +21,7 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
     string,
     {
       diameter: number;
-      group: string | undefined;
+      group: string;
       washers: number;
       locking: number;
       plain: number;
@@ -29,25 +29,23 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
     }
   >();
   const others: HardwareLine[] = [];
-  const inGroup = (group: string | undefined) => (group === undefined ? {} : { group });
-
   for (const item of items) {
     if (!item.bolt) {
-      others.push({ description: item.name, quantity: item.quantity, ...inGroup(item.group) });
+      others.push({ description: item.name, quantity: item.quantity, group: item.group });
       continue;
     }
     const { diameter, grip, washers, nut, cap } = item.bolt;
     // Grip is grouped as displayed, so two bolts that print the same share one line.
-    const key = `${item.group ?? ''}/${diameter}/${toSixteenths(grip)}`;
+    const key = `${item.group}/${diameter}/${toSixteenths(grip)}`;
     const line = boltLines.get(key) ?? {
       description: `${formatLength(diameter)} through-bolt, grip ${formatLength(grip)}`,
       quantity: 0,
-      ...inGroup(item.group),
+      group: item.group,
     };
     line.quantity += item.quantity;
     boltLines.set(key, line);
 
-    const fittingKey = `${item.group ?? ''}/${diameter}`;
+    const fittingKey = `${item.group}/${diameter}`;
     const f = fittings.get(fittingKey) ?? {
       diameter,
       group: item.group,
@@ -68,7 +66,7 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
     const size = formatLength(f.diameter);
     const add = (description: string, quantity: number) => {
       if (quantity > 0) {
-        fittingLines.push({ description: `${size} ${description}`, quantity, ...inGroup(f.group) });
+        fittingLines.push({ description: `${size} ${description}`, quantity, group: f.group });
       }
     };
     add('flat washers', f.washers);

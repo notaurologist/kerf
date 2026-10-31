@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { type CapabilityField, findToolType, type ToolType } from '../knowledge/tools.ts';
-import type { FormSection } from '../templates/form.ts';
+import type { FormSection } from '../model/form.ts';
 import { formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
 

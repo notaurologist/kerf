@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import type { Part } from '../../model/types.ts';
 import { cutList } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { planLumber } from '../../outputs/shoppingList.ts';
-import type { Part } from '../types.ts';
 import { EXAMPLES } from './examples.ts';
 import type { SwingSetParams } from './params.ts';
 import { generate } from './template.ts';
@@ -205,26 +205,26 @@ describe('hardwareList', () => {
     });
   });
 
-  it('keeps lines from different groups apart, and lists items with no group as they are', () => {
-    const bolt = (group?: string) => ({
+  it('keeps lines from different groups apart', () => {
+    const bolt = (group: string) => ({
       id: 'b',
       name: 'B',
       quantity: 1,
       bolt: { diameter: 0.5, grip: 5, washers: 2, nut: 'locking' as const, cap: false },
       structural: true,
       notes: [],
-      ...(group ? { group } : {}),
+      group,
     });
-    expect(hardwareList([bolt('A'), bolt('B'), bolt()]).map((l) => l.group)).toEqual([
+    expect(hardwareList([bolt('A'), bolt('B'), bolt('C')]).map((l) => l.group)).toEqual([
       'A',
       'B',
-      undefined,
+      'C',
       'A',
       'A',
       'B',
       'B',
-      undefined,
-      undefined,
+      'C',
+      'C',
     ]);
   });
 

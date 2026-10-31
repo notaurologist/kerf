@@ -7,7 +7,7 @@ import { createSnapshot, findTemplate } from '@kerf/core';
 // snapshots, stored as JSON the way Postgres holds them. Run once each time a template's version
 // is bumped; an existing fixture is never overwritten, because it stands for projects already
 // stored by that version.
-//   pnpm --filter @kerf/api write-snapshot-fixture swing-set-a-frame
+//   pnpm --filter @kerf/api write-snapshot-fixture <template-id>
 
 const id = process.argv[2] ?? '';
 const template = findTemplate(id);

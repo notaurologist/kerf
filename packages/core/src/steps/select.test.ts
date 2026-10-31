@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Inventory } from '../inventory/tools.ts';
 import { findMethod } from '../knowledge/methods.ts';
-import type { Operation } from '../templates/operations.ts';
+import type { Operation } from '../model/operations.ts';
 import { buildSteps, inventoryKey } from './build.ts';
 import { describeChoice, fitMethod, meetingTool, selectMethod } from './select.ts';
 
@@ -170,6 +170,7 @@ describe('buildSteps', () => {
     lines: [],
     notes: [],
     issues: [],
+    selection: [],
   });
   const plan = (operations: Operation[], boards = [oneBoard]) => ({
     operations,

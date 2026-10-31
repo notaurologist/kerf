@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { stock } from '../lumber/stock.ts';
-import type { Part, Placement } from '../templates/types.ts';
+import type { Part, Placement } from '../model/types.ts';
 import { formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
 import { cutDetail } from './cutDetail.ts';
@@ -26,11 +26,16 @@ const board = (over: Partial<Part> = {}): Part => ({
   length: 30,
   markLengths: [],
   ends: [
-    { setting: 20, description: 'Angled' },
-    { setting: 20, description: 'Angled' },
+    { setting: 20, description: 'Angled', measuredFrom: 'reference-edge' },
+    { setting: 20, description: 'Angled', measuredFrom: 'reference-edge' },
   ],
   endsParallel: false,
   notes: [],
+  selection: [],
+  referenceEdge: 'reference edge',
+  holes: [],
+  boltAreas: [],
+  tapers: [],
   ...over,
 });
 

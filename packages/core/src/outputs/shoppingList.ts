@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { NOMINAL_SIZES, type NominalSize } from '../lumber/stock.ts';
-import { Issue, type Part } from '../templates/types.ts';
+import { Issue, type Part } from '../model/types.ts';
 import { formatLength } from '../units/length.ts';
 
 // Groups parts into boards to buy (PRODUCT.md, MVP feature 4; DOMAIN.md, Buyable lengths).
@@ -52,7 +52,7 @@ export const LumberPlan = z.object({
   boards: z.array(PlannedBoard),
   /**
    * The saw cut and end trim the boards were planned with (BoardOptions), so cutting steps can
-   * say them. Plans made before snapshot shape 11 used the defaults, and reading one sets them.
+   * say them.
    */
   kerf: z.number(),
   trimPerEnd: z.number(),
@@ -63,9 +63,9 @@ export const LumberPlan = z.object({
   issues: z.array(Issue),
   /**
    * What to look for when choosing each part's board, by part ID: guide IDs from the knowledge
-   * base, as the part lists them. Absent in plans made before #53.
+   * base, as the part lists them.
    */
-  selection: z.array(z.object({ partId: z.string(), guides: z.array(z.string()) })).optional(),
+  selection: z.array(z.object({ partId: z.string(), guides: z.array(z.string()) })),
 });
 export type LumberPlan = z.infer<typeof LumberPlan>;
 
@@ -162,8 +162,8 @@ export function planLumber(
   }
 
   const selection = parts
-    .filter((p) => p.selection && p.selection.length > 0)
-    .map((p) => ({ partId: p.id, guides: [...(p.selection ?? [])] }));
+    .filter((p) => p.selection.length > 0)
+    .map((p) => ({ partId: p.id, guides: [...p.selection] }));
   return {
     boards,
     kerf: options.kerf,

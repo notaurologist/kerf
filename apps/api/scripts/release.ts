@@ -6,7 +6,7 @@ import { migrate as migratePostgres } from 'drizzle-orm/postgres-js/migrator';
 import { LOCAL_DATABASE_URL } from '../drizzle.config.ts';
 import { createDatabase, type Database } from '../src/db/client.ts';
 import { projects } from '../src/db/schema.ts';
-import { createProjectService } from '../src/services/projects.ts';
+import { backfillHistory } from '../src/services/history.ts';
 
 // Runs while the previous deploy still serves, so it never rewrites stored data into a newer
 // shape; reads upgrade it (decision 0014).
@@ -80,8 +80,7 @@ export async function release(options: {
       log('release: every stored project reads.');
       await migrate();
       log('release: migrations applied.');
-      const service = createProjectService({ db, templates, now });
-      const history = await service.backfillHistory();
+      const history = await backfillHistory({ db, templates, now });
       log(
         `release: history written for ${history.projects} projects (${history.rows} operations).`,
       );

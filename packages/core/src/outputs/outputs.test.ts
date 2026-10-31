@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { stock } from '../lumber/stock.ts';
-import type { HardwareItem, Part } from '../templates/types.ts';
+import type { HardwareItem, Part } from '../model/types.ts';
 import { cutList } from './cutList.ts';
 import { hardwareList } from './hardwareList.ts';
 import { planLumber } from './shoppingList.ts';
@@ -19,11 +19,16 @@ describe('cutList', () => {
     length: 30.03,
     markLengths: [{ label: 'Short edge', value: 27.4 }],
     ends: [
-      { setting: 0, description: 'Square' },
-      { setting: 15, description: 'Miter' },
+      { setting: 0, description: 'Square', measuredFrom: 'reference-edge' },
+      { setting: 15, description: 'Miter', measuredFrom: 'reference-edge' },
     ],
     endsParallel: false,
     notes: ['A note'],
+    selection: [],
+    referenceEdge: 'reference edge',
+    holes: [],
+    boltAreas: [],
+    tapers: [],
   };
 
   it('formats stock, length, ends, and marks', () => {
@@ -55,11 +60,16 @@ describe('planLumber, edge cases', () => {
     length,
     markLengths: [],
     ends: [
-      { setting: 0, description: 'Square' },
-      { setting: 0, description: 'Square' },
+      { setting: 0, description: 'Square', measuredFrom: 'reference-edge' },
+      { setting: 0, description: 'Square', measuredFrom: 'reference-edge' },
     ],
     endsParallel: true,
     notes: [],
+    selection: [],
+    referenceEdge: 'reference edge',
+    holes: [],
+    boltAreas: [],
+    tapers: [],
   });
 
   it('reports a part longer than any board instead of dropping it', () => {
@@ -94,6 +104,7 @@ describe('hardwareList', () => {
     bolt: { diameter, grip, washers: 2, nut: 'standard', cap: false, ...fittings },
     structural: true,
     notes: [],
+    group: 'Bolts',
   });
 
   it('groups bolts by diameter and displayed grip', () => {
@@ -103,8 +114,8 @@ describe('hardwareList', () => {
       bolt('c', 1, 0.5, 6),
     ]);
     expect(lines.slice(0, 2)).toEqual([
-      { description: '1/2" through-bolt, grip 5"', quantity: 5 },
-      { description: '1/2" through-bolt, grip 6"', quantity: 1 },
+      { description: '1/2" through-bolt, grip 5"', quantity: 5, group: 'Bolts' },
+      { description: '1/2" through-bolt, grip 6"', quantity: 1, group: 'Bolts' },
     ]);
   });
 
@@ -115,19 +126,19 @@ describe('hardwareList', () => {
       bolt('c', 1, 0.375, 4, { washers: 0 }),
     ]);
     expect(lines.slice(3)).toEqual([
-      { description: '3/8" nuts', quantity: 1 },
-      { description: '1/2" flat washers', quantity: 8 },
-      { description: '1/2" locking nuts', quantity: 2 },
-      { description: '1/2" nuts', quantity: 3 },
-      { description: '1/2" bolt caps', quantity: 2 },
+      { description: '3/8" nuts', quantity: 1, group: 'Bolts' },
+      { description: '1/2" flat washers', quantity: 8, group: 'Bolts' },
+      { description: '1/2" locking nuts', quantity: 2, group: 'Bolts' },
+      { description: '1/2" nuts', quantity: 3, group: 'Bolts' },
+      { description: '1/2" bolt caps', quantity: 2, group: 'Bolts' },
     ]);
   });
 
   it('lists other items by name after the bolts and fittings', () => {
     const lines = hardwareList([
-      { id: 'x', name: 'Hinge', quantity: 2, structural: false, notes: [] },
+      { id: 'x', name: 'Hinge', quantity: 2, structural: false, notes: [], group: 'Other' },
       bolt('a', 1, 0.5, 5),
     ]);
-    expect(lines.at(-1)).toEqual({ description: 'Hinge', quantity: 2 });
+    expect(lines.at(-1)).toEqual({ description: 'Hinge', quantity: 2, group: 'Other' });
   });
 });

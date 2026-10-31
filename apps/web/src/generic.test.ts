@@ -5,21 +5,18 @@ import { describe, expect, it } from 'vitest';
 
 // Generic code stays generic (AGENTS.md, hard rule 7; ARCHITECTURE.md, principle 6): only a
 // template's own folder knows what it builds. This reads every source file outside those folders
-// (core, the API, and the web app) and fails on a template's ID or the words only the swing set's
-// folder should use. Tests and test helpers are exempt: they exercise the worked examples. So is
-// the template registry, which lists the templates. "Beam", "ply", and "gusset" are generic
-// structural members, and "frame" names DiagramFrame, so they are allowed.
+// (core, the API and its scripts, and the web app) and fails on a template's ID or its own words
+// (`TemplateDefinition.ownWords`). Tests and test helpers are exempt: they exercise the worked
+// examples. So is the template registry, which lists the templates. "Beam", "ply", and "gusset"
+// are generic structural members, and "frame" names DiagramFrame, so no template claims them.
 
 const root = new URL('../../..', import.meta.url).pathname;
 
-/** Words only the swing set's folder uses. Add a template's own words when it is added. */
-const SWING_SET_WORDS = ['swing', 'crossbar', 'hanger', 'leg', 'legs', 'a-frame', 'cpsc'];
-
-const forbidden = [
-  ...TEMPLATES.map((t) => t.id),
-  ...TEMPLATES.map((t) => t.id.replace(/-./g, (m) => (m[1] ?? '').toUpperCase())),
-  ...SWING_SET_WORDS,
-];
+const forbidden = TEMPLATES.flatMap((t) => [
+  t.id,
+  t.id.replace(/-./g, (m) => (m[1] ?? '').toUpperCase()),
+  ...t.ownWords,
+]);
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -35,19 +32,25 @@ function files(dir: string): string[] {
   });
 }
 
-const registry = [
-  join('packages', 'core', 'src', 'templates', 'index.ts'),
-  join('packages', 'core', 'src', 'index.ts'),
-];
-const sources = ['packages/core/src', 'apps/api/src', 'apps/web/src']
+const registry = [join('packages', 'core', 'src', 'templates', 'index.ts')];
+const sources = ['packages/core/src', 'apps/api/src', 'apps/api/scripts', 'apps/web/src']
   .flatMap((d) => files(join(root, d)))
   .map((f) => relative(root, f))
   .filter((f) => !registry.includes(f));
 
 describe('generic code', () => {
-  it('covers core, the API, and the web app', () => {
+  it('covers core, the API and its scripts, and the web app', () => {
     expect(sources.length).toBeGreaterThan(60);
+    expect(sources).toContain(join('apps', 'api', 'scripts', 'check-deploy.ts'));
+    expect(sources).toContain(join('packages', 'core', 'src', 'index.ts'));
     expect(sources.some((f) => f.includes('templates/swing-set-a-frame/'))).toBe(false);
+  });
+
+  it("forbids every template's ID and own words", () => {
+    for (const t of TEMPLATES) {
+      expect(t.ownWords.length).toBeGreaterThan(0);
+      expect(forbidden).toEqual(expect.arrayContaining([t.id, ...t.ownWords]));
+    }
   });
 
   it.each(sources)('%s names no template and none of its parts', (file) => {

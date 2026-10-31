@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import type { Drawings } from '../geometry/index.ts';
+import type { TemplateDefinition } from '../model/definition.ts';
+import { CUTTING_OPERATION_TYPES } from '../model/operations.ts';
 import type { Plan } from '../outputs/plan.ts';
 import { boardIds, lumberLineKey } from '../outputs/shoppingList.ts';
 import { type StepOutline, stepContents } from '../steps/build.ts';
-import type { TemplateDefinition } from '../templates/definition.ts';
-import { CUTTING_OPERATION_TYPES } from '../templates/operations.ts';
 
 // Saved progress (#57): what can be ticked off in a plan, each under a key that stays the same
 // across regenerations, with the numbers it was ticked against. When a project regenerates, a

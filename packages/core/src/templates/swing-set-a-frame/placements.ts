@@ -1,4 +1,4 @@
-import type { Placement, Vec3 } from '../types.ts';
+import type { Placement, Vec3 } from '../../model/types.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
 
 // Where each part instance sits in 3D (spec, Placements; template version 3). Coordinates as in

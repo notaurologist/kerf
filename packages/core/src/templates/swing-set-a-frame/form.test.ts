@@ -8,7 +8,7 @@ import {
   formValues,
   schemaProblemMessage,
   visibleFields,
-} from '../form.ts';
+} from '../../model/form.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';

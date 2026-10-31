@@ -15,7 +15,7 @@ export function BoardSelection(props: {
   heading?: { level: 3 | 4; text: string };
 }) {
   const only = props.partIds;
-  const selection = (props.lumber.selection ?? []).filter((s) => !only || only.includes(s.partId));
+  const selection = props.lumber.selection.filter((s) => !only || only.includes(s.partId));
   if (selection.length === 0) return null;
   const names = new Map(
     props.lumber.boards.flatMap((b) => b.pieces.map((p) => [p.partId, p.name])),
