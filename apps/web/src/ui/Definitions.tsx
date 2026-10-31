@@ -14,6 +14,11 @@ export interface Definition {
   detail?: ReactNode;
 }
 
+/** A drawing that explains a term, kept to the width it reads well at. */
+export function DefinitionFigure(props: { children: ReactNode }) {
+  return <div className="k-definition__figure">{props.children}</div>;
+}
+
 export function Definitions(props: { items: readonly Definition[] }) {
   return (
     <dl className="k-definitions">

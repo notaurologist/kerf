@@ -182,6 +182,19 @@ The popover's reading order follows the button, and VoiceOver waits for #87.
 
 Sources: Heydon Pickering, "Tooltips & Toggletips", Inclusive Components (2017), https://inclusive-components.design/tooltips-toggletips/. MDN, Popover API, read October 2026, https://developer.mozilla.org/en-US/docs/Web/API/Popover_API.
 
+### Glossary entry pages (#191)
+
+With 85 entries, one page listing every definition grew too long to scroll to the one a reader came for, and a term's popover already gives the definition in place, so its link is for the rest: the drawing and the source.
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| What an entry's address shows | Only that entry (`#/glossary/<id>`): the term as the page title, its group and a link to all terms under it, then the definition, the drawing, and the source. | The whole glossary scrolled to the entry: the reader lands in a long list, and the entries around it read as part of the answer. |
+| What the index shows | Term names, each a link to its entry, under a heading for each group (Lumber, Treated lumber, Cutting and shaping, Joints and frames, The site, Structural checks) and alphabetical within it. The group is a field on each entry in core, so the index and any later screen agree. | Every definition on the index: the long page this replaces. One alphabetical list: a reader looking for a lumber defect or a structural term has to know its name first. |
+
+MDN's glossary of web terms works the same way: each of its several hundred terms has its own page, and the glossary's index is a list of links to them.
+
+Sources: MDN Web Docs, Glossary of web terms, read October 2026, https://developer.mozilla.org/en-US/docs/Glossary, and an entry such as https://developer.mozilla.org/en-US/docs/Glossary/Abstraction.
+
 ### Table columns (#158)
 
 `MeasureTable` used the browser's automatic table layout, so the cut list's long End cuts and Marks and notes text took width from its short columns (Stock wrapped to three lines at 1280 px), and each Parameters and inputs table chose its own Field width, so As entered started at a different place in each.

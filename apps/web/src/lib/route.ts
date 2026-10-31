@@ -22,8 +22,7 @@ export type Route =
   | { screen: 'build-step'; id: string; step: string }
   | { screen: 'build-part'; id: string; step: string; part: string }
   | { screen: 'tools' }
-  // `term` is the entry brought into view. The address names it, since a bare `#id` would replace
-  // the route.
+  // With `term`, that entry's own page; without, the index.
   | { screen: 'glossary'; term?: string }
   | { screen: 'catalog' }
   | { screen: 'not-found' };

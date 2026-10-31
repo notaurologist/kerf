@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { findGlossaryEntry, findTerms, GLOSSARY, GlossaryEntry } from './glossary.ts';
+import {
+  findGlossaryEntry,
+  findTerms,
+  GLOSSARY,
+  GLOSSARY_GROUPS,
+  GlossaryEntry,
+} from './glossary.ts';
 import { TOOL_TYPES } from './tools.ts';
 
 const used = (text: string) => findTerms(text).map((u) => [u.id, text.slice(u.start, u.end)]);
@@ -13,6 +19,12 @@ describe('glossary', () => {
     expect(new Set(GLOSSARY.map((e) => e.id)).size).toBe(GLOSSARY.length);
     const words = GLOSSARY.flatMap((e) => [e.term, ...e.forms].map((w) => w.toLowerCase()));
     expect(new Set(words).size).toBe(words.length);
+  });
+
+  it('puts at least one entry in every group', () => {
+    for (const group of GLOSSARY_GROUPS) {
+      expect([group, GLOSSARY.some((e) => e.group === group)]).toEqual([group, true]);
+    }
   });
 
   it('lists the terms in alphabetical order', () => {
