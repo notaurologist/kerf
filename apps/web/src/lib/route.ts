@@ -1,5 +1,6 @@
 import { findGlossaryEntry, findToolType } from '@kerf/core';
 import { useEffect, useState } from 'react';
+import { leaveGate } from './leave.ts';
 import { isPlanSection, type PlanSectionId } from './sections.ts';
 
 // Screens are chosen from the URL hash, so links, reload, and the back button work without a
@@ -149,13 +150,16 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
   }
 }
 
+/** Goes to `route` without asking about unsaved changes: the app chose to go there. */
 export function navigate(route: Exclude<Route, { screen: 'not-found' }>) {
-  window.location.hash = href(route);
+  leaveGate.pass(href(route));
 }
 
 /** Goes to `route` in place of the current entry, so Back skips the one left. */
 export function redirect(route: Exclude<Route, { screen: 'not-found' }>) {
-  window.location.replace(href(route));
+  const target = href(route);
+  leaveGate.allow(target);
+  window.location.replace(target);
 }
 
 /** True for Shopping and Building, which fill the screen under their own bar (#61). */
@@ -166,7 +170,13 @@ export function isMode(route: Route): boolean {
 export function useRoute(): Route {
   const [route, setRoute] = useState(() => parseRoute(window.location.hash));
   useEffect(() => {
-    const update = () => setRoute(parseRoute(window.location.hash));
+    let shown = window.location.hash;
+    // Back and Forward change the hash before anything can ask, so a held draft puts it back.
+    const update = () => {
+      if (!leaveGate.follow(shown)) return;
+      shown = window.location.hash;
+      setRoute(parseRoute(shown));
+    };
     window.addEventListener('hashchange', update);
     return () => window.removeEventListener('hashchange', update);
   }, []);

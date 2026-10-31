@@ -24,6 +24,7 @@ import {
   TextInput,
   Tick,
   ToolLabel,
+  useDraft,
   useFormIssues,
 } from '../../ui/index.ts';
 import {
@@ -62,13 +63,13 @@ export function ToolsEditor(props: {
   saved: InventoryDraft;
   onSaved?: (inventory: Parameters<typeof fromInventory>[0]) => void;
 }) {
-  const [draft, setDraft] = useState(props.saved);
+  const { draft, setDraft, dialog } = useDraft(props.saved);
   const { issues, attempt, report } = useFormIssues<FieldIssue[]>([]);
   const [save, setSave] = useState<SaveState>({ state: 'idle' });
   const [query, setQuery] = useState('');
   // Tools unticked by mistake come back, with what was typed, when ticked again.
   const [unticked, setUnticked] = useState<Record<string, ToolDraft[]>>({});
-  useEffect(() => setDraft(props.saved), [props.saved]);
+  useEffect(() => setDraft(props.saved), [props.saved, setDraft]);
 
   const change = (next: (d: InventoryDraft) => InventoryDraft) => {
     setDraft(next);
@@ -212,6 +213,7 @@ export function ToolsEditor(props: {
       </Cluster>
       {save.state === 'saved' && <StatusLine>Saved.</StatusLine>}
       {save.state === 'failed' && issues.length === 0 && <SaveFailed failure={save.failure} />}
+      {dialog}
     </Stack>
   );
 }

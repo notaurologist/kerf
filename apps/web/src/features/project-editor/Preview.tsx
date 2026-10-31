@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { type ApiResult, api, failureOf, send } from '../../lib/api.ts';
 import { type Changes, indexChanges } from '../../lib/changes.tsx';
 import { planOf } from '../../lib/plan.ts';
+import { sameJson } from '../../lib/sameJson.ts';
 import type { Project } from '../../lib/types.ts';
 import {
   Card,
@@ -25,7 +26,6 @@ import {
 } from '../../ui/index.ts';
 import { CutList } from '../cut-list/CutList.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
-import { sameJson } from './sameJson.ts';
 
 // The edit screen's output side (#39, L-A; #56): a moment after typing stops, the server
 // generates a snapshot from the form without saving it and says what differs from the saved
