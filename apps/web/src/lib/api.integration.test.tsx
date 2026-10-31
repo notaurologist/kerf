@@ -77,7 +77,7 @@ describe('the web client against the API', () => {
     if (!read.ok) throw new Error(JSON.stringify(read.error));
     expect(read.value.version?.status).toBe('behind');
     const notice = renderText(<VersionNotice project={read.value} onRegenerated={() => {}} />);
-    expect(notice).toContain('cutList[0].length 120" 121"');
+    expect(notice).toContain('121" was 120"');
 
     // Regenerate sends no body; the client still sends JSON, so the API accepts it.
     const regenerated = await send(v2.api.projects[':id'].regenerate.$post({ param: { id } }));

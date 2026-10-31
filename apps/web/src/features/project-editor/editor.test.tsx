@@ -198,7 +198,7 @@ describe('a project made with an older template version', () => {
       status: 'behind',
       storedVersion: 1,
       currentVersion: 2,
-      regenerated: { ok: true, changes: [], truncated: false },
+      regenerated: { ok: true, outputs: snapshot?.outputs, changes: [], truncated: false },
     } as Project['version'];
     const project = projectFrom(snapshot, { version, templateBehind: true });
     const editor = (

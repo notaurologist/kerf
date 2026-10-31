@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { compareWithCurrent, createSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
+import { diff } from '../../snapshot/diff.ts';
+import { createSnapshot, type ProjectSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
 import type { TemplateDefinition } from '../definition.ts';
 import { swingSetAFrame } from './definition.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
@@ -13,12 +14,19 @@ import v9 from './snapshots/v9.json' with { type: 'json' };
 import v10 from './snapshots/v10.json' with { type: 'json' };
 import v11 from './snapshots/v11.json' with { type: 'json' };
 
-// What each template version changed for the worked examples, as the owner sees it in the version
-// report (decision 0008).
+// What each template version changed in the stored outputs of the worked examples (decision 0008).
 
 const template = swingSetAFrame as TemplateDefinition;
 
-/** The value at a report path such as 'structuralReview.beam.bending.inputs[1]'. */
+/** What regenerating with the current version changes in the stored outputs, field by field. */
+function regenerated(snapshot: ProjectSnapshot) {
+  const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
+  if (!current.ok) throw new Error('worked example no longer generates');
+  const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+  return diff(json(snapshot.outputs), json(current.output.outputs), 1000);
+}
+
+/** The value at an outputs path such as 'structuralReview.beam.bending.inputs[1]'. */
 function at(value: unknown, path: string): unknown {
   return path
     .split(/\.|\[(\d+)\]/)
@@ -84,14 +92,13 @@ describe('swing-set template versions', () => {
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(1);
 
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
-      expect(report.regenerated.truncated).toBe(false);
+      const result = regenerated(read.snapshot);
+      expect(result.truncated).toBe(false);
 
       const now = createSnapshot(template, read.snapshot.params, read.snapshot.structuralInputs);
       if (!now.ok) throw new Error('worked example no longer generates');
       // Later versions' changes are checked in their own tests below.
-      const fromVersion2 = report.regenerated.changes
+      const fromVersion2 = result.changes
         .filter(notVersion10)
         .filter((c) => c.path.startsWith('structuralReview.'));
       for (const change of fromVersion2) {
@@ -111,14 +118,13 @@ describe('swing-set template versions', () => {
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(2);
 
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+      const result = regenerated(read.snapshot);
       // One new field, the whole list of placements; nothing that was there before changes.
       // (Version 4's changes to parts and notes are checked in their own test.)
-      const placements = report.regenerated.changes.filter((c) => c.path === 'design.placements');
+      const placements = result.changes.filter((c) => c.path === 'design.placements');
       expect(placements).toHaveLength(1);
       expect(placements[0]).not.toHaveProperty('before');
-      const others = report.regenerated.changes
+      const others = result.changes
         .filter(notVersion6)
         .filter((c) => c.path !== 'design.placements');
       expect(others.every((c) => /^(design\.parts|cutList)\[/.test(c.path))).toBe(true);
@@ -129,10 +135,9 @@ describe('swing-set template versions', () => {
     for (const stored of v3) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+      const result = regenerated(read.snapshot);
 
-      for (const change of report.regenerated.changes.filter(notVersion6)) {
+      for (const change of result.changes.filter(notVersion6)) {
         if ('before' in change) {
           // The only changed values: the legs' flush-cut note, in the parts and the cut list.
           expect(change.path).toMatch(/^(design\.parts|cutList)\[\d\]\.notes\[0\]$/);
@@ -153,11 +158,10 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(4);
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+      const result = regenerated(read.snapshot);
       // The upgrade letters stored parts in their order, which is what regenerating does, and
       // version 5 changes nothing else.
-      expect(report.regenerated.changes.filter(notVersion6)).toEqual([]);
+      expect(result.changes.filter(notVersion6)).toEqual([]);
       const outputs = read.snapshot.outputs as {
         design: { parts: { letter: string }[] };
         cutList: { letter: string }[];
@@ -173,10 +177,9 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(5);
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
-      expect(report.regenerated.truncated).toBe(false);
-      const { changes } = report.regenerated;
+      const result = regenerated(read.snapshot);
+      expect(result.truncated).toBe(false);
+      const { changes } = result;
       // Nothing outside version 6's list changes: not the beam, the legs' lengths, the hardware,
       // or the structural review.
       expect(changes.filter(notVersion6)).toEqual([]);
@@ -201,9 +204,8 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(6);
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
-      const { changes } = report.regenerated;
+      const result = regenerated(read.snapshot);
+      const { changes } = result;
       expect(changes.filter(notVersion7)).toEqual([]);
       // Every change is a new field: no number or word that was there before changes.
       expect(changes.length).toBeGreaterThan(0);
@@ -230,9 +232,8 @@ describe('swing-set template versions', () => {
       for (const op of design.operations.filter((o) => o.type === 'bolt-holes')) {
         expect(op.holeDiameter).toBe(op.boltDiameter);
       }
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
-      const { changes } = report.regenerated;
+      const result = regenerated(read.snapshot);
+      const { changes } = result;
       expect(changes.filter(notVersion9)).toEqual([]);
       expect(changes.length).toBeGreaterThan(0);
       for (const change of changes.filter(notVersion10)) {
@@ -249,9 +250,8 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(9);
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
-      const { changes } = report.regenerated;
+      const result = regenerated(read.snapshot);
+      const { changes } = result;
       expect(changes.filter(notVersion10)).toEqual([]);
       expect(changes.length).toBeGreaterThan(0);
       for (const change of changes.filter(notVersion12)) {
@@ -270,9 +270,8 @@ describe('swing-set template versions', () => {
       const lumber = (read.snapshot.outputs as { lumber: { kerf: number; trimPerEnd: number } })
         .lumber;
       expect([lumber.kerf, lumber.trimPerEnd]).toEqual([0.125, 0.5]);
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
-      expect(report.regenerated.changes.filter(notVersion12)).toEqual([]);
+      const result = regenerated(read.snapshot);
+      expect(result.changes.filter(notVersion12)).toEqual([]);
     }
   });
 
@@ -283,9 +282,8 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(11);
-      const report = compareWithCurrent(template, read.snapshot);
-      if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
-      const { changes } = report.regenerated;
+      const result = regenerated(read.snapshot);
+      const { changes } = result;
       expect(changes.filter(notVersion12)).toEqual([]);
       const groups = changes.filter((c) => c.path.endsWith('.group'));
       expect(groups.length).toBeGreaterThan(0);

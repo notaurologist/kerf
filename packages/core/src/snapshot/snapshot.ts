@@ -149,8 +149,11 @@ export type VersionReport =
       status: 'behind';
       storedVersion: number;
       currentVersion: number;
-      /** What regenerating with the current version would change, or why it cannot. */
-      regenerated: ({ ok: true } & Diff) | { ok: false; issues: Issue[] };
+      /**
+       * What regenerating with the current version would change, in the paths of the plan every
+       * display shares, with the outputs it would store; or why it cannot.
+       */
+      regenerated: ({ ok: true; outputs: unknown } & Diff) | { ok: false; issues: Issue[] };
     };
 
 /**
@@ -179,7 +182,11 @@ export function compareWithCurrent(
     storedVersion: snapshot.templateVersion,
     currentVersion: template.version,
     regenerated: current.ok
-      ? { ok: true, ...diff(asJson(snapshot.outputs), asJson(current.output.outputs), limit) }
+      ? {
+          ok: true,
+          outputs: current.output.outputs,
+          ...compareSnapshots(template, snapshot, current.output, limit),
+        }
       : { ok: false, issues: current.issues },
   };
 }
