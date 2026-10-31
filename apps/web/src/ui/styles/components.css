@@ -266,6 +266,18 @@
     padding-inline-start: var(--space-2xs);
   }
 
+  /* The unit stays on the input's line. */
+  .k-field__unit {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+  }
+
+  .k-field__unit > .k-field__input {
+    flex: 0 1 auto;
+    min-inline-size: 0;
+  }
+
   .k-field[data-state="error"] .k-field__input {
     border: 2px solid var(--error);
   }
@@ -283,18 +295,6 @@
 
   .k-field[data-width="medium"] .k-field__input {
     max-inline-size: 20rem;
-  }
-
-  /* The unit stays on the input's line. */
-  .k-field__unit {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2xs);
-  }
-
-  .k-field__unit > .k-field__input {
-    flex: 0 1 auto;
-    min-inline-size: 0;
   }
 
   .k-field__unit > span {

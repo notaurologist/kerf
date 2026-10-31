@@ -10,6 +10,10 @@ The owner uses free tiers only. GitHub Actions on standard runners is free for p
 - Every test must make at least one assertion (`expect.requireAssertions`, set in each package's Vitest config), so a check inside a loop over nothing fails instead of passing empty.
 - `pnpm check` runs lint, typecheck, and tests. A git pre-push hook (`.githooks/pre-push`) runs it; `pnpm install` turns the hook on through the root `prepare` script.
 - **GitHub Actions** runs `pnpm check` on pull requests and pushes to `main`, as long as it stays free.
+- CI also builds the web app and fails when `schema.ts` has changes with no committed migration. Changes that touch only Markdown or `docs/` skip CI, and Biome does not check them.
+- Lint warnings fail `pnpm lint`, and focused or skipped tests (`.only`, `.skip`) are errors.
+- Actions are pinned to commit SHAs, with the version in a comment. A newer push cancels a pull request's run in progress; runs on `main` always finish.
+- Every dependency version is exact and `engineStrict` is set; a test checks each `package.json`.
 - **Database tests use PGlite** in process, with the committed Drizzle migrations applied to a fresh database. Docker Compose Postgres 18 is for local development only.
 
 ## Consequences

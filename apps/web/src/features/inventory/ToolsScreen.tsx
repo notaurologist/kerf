@@ -162,7 +162,7 @@ export function ToolsEditor(props: {
           </Text>
           {withDetails.map(({ tool, t, repeated }) => (
             <ToolDetails
-              // biome-ignore lint/suspicious/noArrayIndexKey: tools are edited in place by position; names can be blank or repeated while typing.
+              // Keyed by position: names can be blank or repeated while typing.
               key={t}
               tool={tool}
               index={t}

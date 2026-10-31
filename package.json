@@ -10,7 +10,7 @@
     "dev": "pnpm -r --parallel dev",
     "test": "vitest run",
     "typecheck": "tsc -p . && pnpm -r typecheck",
-    "lint": "biome check .",
+    "lint": "biome check --error-on-warnings .",
     "format": "biome format --write .",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "prepare": "git config core.hooksPath .githooks",
