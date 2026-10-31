@@ -319,7 +319,16 @@ The drawing standard M5 builds to (line roles, screen and print widths, patterns
 
 ### One assembly diagram on screen (#200)
 
-The Diagrams section shows the assembled and exploded views as one diagram with a control, Assembled and Exploded, in place of two full drawings one after the other: on a phone the pair took two screens of scrolling, and switching in place keeps the selected part where it was, so it is easier to see where an exploded part goes. The control is a group of toggle buttons with `aria-pressed`; the view shown is filled, the others outlined. The views share one place as tall as the tallest, so switching moves nothing else on the page. It changes only the screen, with no address or history entry, and opens on Assembled. Print shows both views on their own landscape pages, each under its heading, whichever is on screen. A template with one of the two shows it alone, with no control. Built without motion first; the move between views follows.
+The Diagrams section shows the assembled and exploded views as one diagram with a control, Assembled and Exploded, in place of two full drawings one after the other: on a phone the pair took two screens of scrolling, and switching in place keeps the selected part where it was, so it is easier to see where an exploded part goes. The control is a group of toggle buttons with `aria-pressed`; the view shown is filled, the others outlined. The views share one place as tall as the tallest, so switching moves nothing else on the page. It changes only the screen, with no address or history entry, and opens on Assembled. Print shows both views on their own landscape pages, each under its heading, whichever is on screen. A template with one of the two shows it alone, with no control.
+
+Switching moves the parts (the owner's choice, October 2026). Each pulled part slides between where it sits and where the exploded view draws it, over 400 ms, so you see where it goes; the part letters and guidelines, which each view lays out for itself, fade out before the move and back in after it. The isometric projection is parallel, so a part's 3D explode offset is one fixed shift on the page, which core gives with the exploded drawing (`moves`). Both views are drawn in one frame, the bounds of the two together, so nothing rescales during a move. The rejected options:
+
+| Option | Why not |
+|---|---|
+| Crossfade between the two finished drawings | Always drawn right, but it shows nothing moving, so it does not show where a part goes, which is why the views share a place. |
+| Sort faces again at each step of the move | Correct overlap throughout, but a BSP sort per frame in the browser is geometry the web app should not compute (hard rule 6), for a move under half a second. |
+
+Parts slide in the exploded view's paint order, so for part of a move a part can pass in front of one it should be behind; at the end the finished drawing is shown. Under `prefers-reduced-motion: reduce` the views swap at once.
 
 ## Stage 4: color (#43)
 

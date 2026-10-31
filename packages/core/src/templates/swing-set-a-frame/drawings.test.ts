@@ -144,6 +144,39 @@ describe.each(EXAMPLES.map((e, i) => [e.name, i] as const))('%s', (_, i) => {
     expect(guidelines).toHaveLength(moved.length);
   });
 
+  it('says how far each pulled part moves on the page, from the isometric view to the exploded', () => {
+    // Hand-checked for the view from the front left, above (isometric(-1, -1)): the page's right
+    // is (1, -1, 0)/√2 and its up (1, 1, 2)/√6, and page y grows downward. The beam's 30" lift
+    // moves it 60/√6 = 24.495 up; a crossbar or gusset pulled 24" along x moves 24/√2 = 16.971
+    // across and 24/√6 = 9.798 down (instance 0, toward -x) or up (instance 1).
+    const by = (partId: string, instance: number) =>
+      drawings.exploded?.moves?.find((m) => m.partId === partId && m.instance === instance)?.by;
+    expect(by('beam', 0)?.x).toBeCloseTo(0, 9);
+    expect(by('beam', 0)?.y).toBeCloseTo(-24.4949, 4);
+    for (const id of ['crossbar', 'gusset']) {
+      expect(by(id, 0)?.x).toBeCloseTo(-16.9706, 4);
+      expect(by(id, 0)?.y).toBeCloseTo(9.798, 4);
+      expect(by(id, 1)?.x).toBeCloseTo(16.9706, 4);
+      expect(by(id, 1)?.y).toBeCloseTo(-9.798, 4);
+    }
+    const moved = placements.filter((pl) => ['beam', 'crossbar', 'gusset'].includes(pl.partId));
+    expect(drawings.exploded?.moves).toHaveLength(moved.length);
+    // Each move is where the part's guideline goes: from its place to where it is drawn.
+    for (const move of drawings.exploded?.moves ?? []) {
+      const guideline = drawings.exploded?.primitives.find(
+        (p) =>
+          p.kind === 'line' &&
+          p.role === 'guideline' &&
+          p.part?.partId === move.partId &&
+          p.part.instance === move.instance,
+      );
+      if (guideline?.kind !== 'line') throw new Error(`no guideline for ${move.partId}`);
+      const [from, to] = guideline.points;
+      expect((to?.x ?? 0) - (from?.x ?? 0)).toBeCloseTo(move.by.x, 9);
+      expect((to?.y ?? 0) - (from?.y ?? 0)).toBeCloseTo(move.by.y, 9);
+    }
+  });
+
   it("gives every part a cut detail whose edge dimensions are the cut list's marks", () => {
     expect(drawings.cutDetails.map((d) => d.title)).toEqual(
       parts.map((p) => `${p.letter} · ${p.name}`),

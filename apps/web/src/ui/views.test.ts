@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { MOVE_MS } from './assemblyMotion.ts';
 
 const read = (file: string) =>
   readFileSync(new URL(`./styles/${file}`, import.meta.url), 'utf8').replace(
@@ -8,6 +9,7 @@ const read = (file: string) =>
   );
 const screen = read('components.css');
 const print = read('print.css');
+const tokens = read('tokens.css');
 
 /** A property of the rule whose selector list includes `selector`. */
 function propertyOf(css: string, selector: string, property: string): string | undefined {
@@ -35,5 +37,32 @@ describe('views on paper', () => {
     expect(propertyOf(print, '.k-views__stage', 'display')).toBe('block');
     expect(propertyOf(print, '.k-views__heading', 'display')).toBe('block');
     expect(propertyOf(print, '.k-views__view[hidden]', 'visibility')).toBe('visible');
+  });
+});
+
+describe('the move between views', () => {
+  it('slides moved parts for as long as the timers wait', () => {
+    const seconds = /--duration-move:\s*([\d.]+)s;/.exec(tokens)?.[1];
+    expect(Number(seconds) * 1000).toBe(MOVE_MS);
+    expect(propertyOf(screen, '.k-diagram-wrap [data-moves]', 'transition')).toBe(
+      'transform var(--duration-move) ease-in-out',
+    );
+  });
+
+  it('draws collapsed parts back by their move, and hides letters and guidelines', () => {
+    expect(propertyOf(screen, '.k-diagram-wrap[data-collapsed] [data-moves]', 'transform')).toBe(
+      'translate(var(--move-x), var(--move-y))',
+    );
+    expect(propertyOf(screen, '.k-diagram-wrap[data-labels="hidden"] .k-letter', 'opacity')).toBe(
+      '0',
+    );
+    expect(
+      propertyOf(
+        screen,
+        '.k-diagram-wrap[data-labels="hidden"] [data-role="guideline"]',
+        'opacity',
+      ),
+    ).toBe('0');
+    expect(propertyOf(screen, '.k-diagram-wrap[data-instant] *', 'transition')).toBe('none');
   });
 });

@@ -18,8 +18,16 @@ export function ViewSwitch(props: {
   views: readonly View[];
   /** The heading level each view's label takes on paper, under the section's own. */
   headingLevel?: 3 | 4;
+  /**
+   * For a switch that moves between views (`useAssemblyMotion`): the view asked for, the view on
+   * screen while a move plays, and what a press asks. Without them the switch keeps its own.
+   */
+  control?: { pressed: string; shown: string; press: (id: string) => void };
 }) {
-  const [shown, setShown] = useState(props.views[0]?.id);
+  const [own, setOwn] = useState(props.views[0]?.id);
+  const pressed = props.control?.pressed ?? own;
+  const shown = props.control?.shown ?? own;
+  const press = props.control?.press ?? setOwn;
   const Heading = `h${props.headingLevel ?? 3}` as const;
   if (props.views.length === 1) {
     const [view] = props.views;
@@ -40,8 +48,8 @@ export function ViewSwitch(props: {
           <Button
             key={view.id}
             variant="secondary"
-            pressed={view.id === shown}
-            onClick={() => setShown(view.id)}
+            pressed={view.id === pressed}
+            onClick={() => press(view.id)}
           >
             {view.label}
           </Button>
