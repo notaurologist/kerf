@@ -55,6 +55,25 @@ export function Sidebar(props: {
   );
 }
 
+/**
+ * A main column with an aside beside it that stays in view as the page scrolls, from 60rem of
+ * width, such as a form and its preview. The aside's `head`, such as the form's actions, stays
+ * at its top while the rest of the aside scrolls. Narrower, the aside follows the main column.
+ */
+export function WithAside(props: { head?: ReactNode; children: [ReactNode, ReactNode] }) {
+  return (
+    <div className="l-with-aside">
+      <div>
+        <div>{props.children[0]}</div>
+        <div>
+          {props.head && <div className="l-with-aside__head">{props.head}</div>}
+          {props.children[1]}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Side by side, all switching to a column at once below `threshold` of container width. */
 export function Switcher(props: { threshold?: string; gap?: Space; children: ReactNode }) {
   return (

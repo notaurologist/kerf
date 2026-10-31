@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildFromForm,
+  confirmedPaths,
   entryEcho,
   entryProblems,
+  formParts,
   formValues,
   schemaProblemMessage,
   visibleFields,
@@ -26,6 +28,32 @@ describe('the swing-set form', () => {
       );
     },
   );
+
+  it('shows the fields by part of the swing set, each once', () => {
+    const parts = formParts(SWING_SET_FORM);
+    expect(parts.map((p) => p.title)).toEqual([
+      'Beam',
+      'Legs',
+      'Crossbars',
+      'Gussets',
+      'Site',
+      'Swings',
+      'Loads',
+    ]);
+    const shown = parts.flatMap((p) => p.fields.map((f) => `${f.from} ${f.field.path}`));
+    expect(new Set(shown).size).toBe(shown.length);
+    expect(parts.find((p) => p.title === 'Beam')?.fields.map((f) => f.field.path)).toContain(
+      'beamSpeciesGrade',
+    );
+  });
+
+  it('asks the owner to enter or confirm every hardware size and count, and nothing else', () => {
+    const fields = SWING_SET_FORM.params.flatMap((s) => s.fields.map((f) => f.path));
+    expect([...confirmedPaths(SWING_SET_FORM.params)]).toEqual(
+      fields.filter((p) => p.startsWith('hardware.')),
+    );
+    expect(fields.filter((p) => p.startsWith('hardware.'))).toHaveLength(8);
+  });
 
   it('starts with every field empty, so nothing is entered for the owner', () => {
     for (const sections of [SWING_SET_FORM.params, SWING_SET_FORM.structuralInputs]) {

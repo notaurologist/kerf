@@ -217,12 +217,12 @@
     min-inline-size: 0;
   }
 
+  /* The badge sits on its own line under the label, so every field has the same shape. */
   .k-field__label {
     font-weight: 600;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-2xs);
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3xs);
   }
 
   .k-field__hint {
@@ -266,14 +266,32 @@
     border: 2px dashed var(--accent);
   }
 
+  /* Inputs sized to what is typed in them (GOV.UK, Text input: fixed-width inputs), never
+     wider than the field. */
+  .k-field[data-width="short"] .k-field__input {
+    inline-size: 10rem;
+    max-inline-size: 100%;
+  }
+
+  .k-field[data-width="medium"] .k-field__input {
+    max-inline-size: 20rem;
+  }
+
+  /* The unit stays on the input's line. */
   .k-field__unit {
     display: flex;
     align-items: center;
     gap: var(--space-2xs);
   }
 
+  .k-field__unit > .k-field__input {
+    flex: 0 1 auto;
+    min-inline-size: 0;
+  }
+
   .k-field__unit > span {
     color: var(--muted);
+    white-space: nowrap;
   }
 
   .k-field__input[readonly] {

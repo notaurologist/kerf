@@ -6,7 +6,8 @@ import { STRUCTURAL_INPUT_LABELS as INPUT } from './structural.ts';
 
 // How the swing set's parameters and structural inputs are entered (spec, Parameters and
 // Structural model, Inputs). Every field starts empty: geometry, hardware, and structural
-// inputs are all the owner's to enter (hard rule 3).
+// inputs are all the owner's to enter (hard rule 3). Sections are parts of the swing set, so a
+// part's size, lumber, bolts, and structural inputs are entered together.
 
 const stock: FieldOption[] = NOMINAL_SIZES.map((n) => ({ value: n, label: n }));
 
@@ -20,14 +21,27 @@ const onPads = (value: (path: string) => string) =>
   value('burialDepth').trim() !== '' && Number(value('burialDepth')) === 0;
 
 const bolts = (path: string, label: string, help: string): FormField[] => [
-  { path: `${path}.diameter`, label: `${label}, diameter`, kind: 'choice', options: boltDiameters },
-  { path: `${path}.perJoint`, label: `${label}, per joint`, kind: 'integer', help },
+  {
+    path: `${path}.diameter`,
+    label: `${label}, diameter`,
+    kind: 'choice',
+    options: boltDiameters,
+    confirmed: true,
+  },
+  {
+    path: `${path}.perJoint`,
+    label: `${label}, per joint`,
+    kind: 'integer',
+    help,
+    confirmed: true,
+  },
 ];
 
 export const SWING_SET_FORM: TemplateForm = {
+  help: 'Confirm bolt sizes and counts with an experienced builder. They decide whether the frame holds.',
   params: [
     {
-      title: 'Frame',
+      title: 'Beam',
       fields: [
         {
           path: 'beamLength',
@@ -41,6 +55,45 @@ export const SWING_SET_FORM: TemplateForm = {
           kind: 'length',
           help: 'Underside of the beam above the ground directly under it: the height the swings hang from.',
         },
+        {
+          path: 'beamStock',
+          label: 'Beam stock',
+          kind: 'choice',
+          options: stock,
+          help: 'Stands on edge.',
+        },
+        {
+          path: 'beamPlies',
+          label: 'Beam plies',
+          kind: 'choice',
+          options: [
+            { value: 1, label: '1 (solid beam)' },
+            { value: 2, label: '2 (built-up)' },
+            { value: 3, label: '3 (built-up)' },
+          ],
+          help: 'A built-up beam is 2x boards fastened face to face.',
+        },
+        {
+          path: 'hardware.plyBolts.diameter',
+          label: 'Ply bolts, diameter',
+          kind: 'choice',
+          options: boltDiameters,
+          when: builtUp,
+          confirmed: true,
+        },
+        {
+          path: 'hardware.plyBolts.count',
+          label: 'Ply bolts, count',
+          kind: 'integer',
+          help: 'Bolts fastening the beam plies together, over the whole beam.',
+          when: builtUp,
+          confirmed: true,
+        },
+      ],
+    },
+    {
+      title: 'Legs',
+      fields: [
         {
           path: 'splay.kind',
           label: 'Leg splay entered as',
@@ -69,30 +122,19 @@ export const SWING_SET_FORM: TemplateForm = {
           kind: 'length',
           help: "Beam end to the outside face of that frame's legs (the overhang).",
         },
+        { path: 'legStock', label: 'Leg stock', kind: 'choice', options: stock },
+        {
+          path: 'hardware.legBoltDiameter',
+          label: 'Leg-to-beam bolt diameter',
+          kind: 'choice',
+          options: boltDiameters,
+          confirmed: true,
+        },
       ],
     },
     {
-      title: 'Lumber',
+      title: 'Crossbars',
       fields: [
-        {
-          path: 'beamStock',
-          label: 'Beam stock',
-          kind: 'choice',
-          options: stock,
-          help: 'Stands on edge.',
-        },
-        {
-          path: 'beamPlies',
-          label: 'Beam plies',
-          kind: 'choice',
-          options: [
-            { value: 1, label: '1 (solid beam)' },
-            { value: 2, label: '2 (built-up)' },
-            { value: 3, label: '3 (built-up)' },
-          ],
-          help: 'A built-up beam is 2x boards fastened face to face.',
-        },
-        { path: 'legStock', label: 'Leg stock', kind: 'choice', options: stock },
         { path: 'crossbarStock', label: 'Crossbar stock', kind: 'choice', options: stock },
         {
           path: 'crossbarHeight',
@@ -100,7 +142,18 @@ export const SWING_SET_FORM: TemplateForm = {
           kind: 'length',
           help: 'Top edge of the crossbar above the ground under the beam.',
         },
+        ...bolts('hardware.crossbarBolts', 'Crossbar bolts', 'Bolts at each end of each crossbar.'),
+      ],
+    },
+    {
+      title: 'Gussets',
+      fields: [
         { path: 'gussetStock', label: 'Gusset stock', kind: 'choice', options: stock },
+        ...bolts(
+          'hardware.gussetBolts',
+          'Gusset bolts',
+          'Bolts through the gusset into each side.',
+        ),
       ],
     },
     {
@@ -119,6 +172,13 @@ export const SWING_SET_FORM: TemplateForm = {
           label: 'Burial depth',
           kind: 'length',
           help: 'How far each leg goes below grade, measured vertically. 0 for legs on pads.',
+        },
+        {
+          path: 'hardware.anchorsPerFoot',
+          label: 'Ground anchors per leg foot',
+          kind: 'integer',
+          when: onPads,
+          confirmed: true,
         },
       ],
     },
@@ -152,49 +212,10 @@ export const SWING_SET_FORM: TemplateForm = {
         },
       ],
     },
-    {
-      title: 'Hardware',
-      confirmed: true,
-      help: 'Bolt sizes and counts confirmed with an experienced builder. They decide whether the frame holds, so none is filled in for you.',
-      fields: [
-        {
-          path: 'hardware.legBoltDiameter',
-          label: 'Leg-to-beam bolt diameter',
-          kind: 'choice',
-          options: boltDiameters,
-        },
-        ...bolts('hardware.crossbarBolts', 'Crossbar bolts', 'Bolts at each end of each crossbar.'),
-        ...bolts(
-          'hardware.gussetBolts',
-          'Gusset bolts',
-          'Bolts through the gusset into each side.',
-        ),
-        {
-          path: 'hardware.plyBolts.diameter',
-          label: 'Ply bolts, diameter',
-          kind: 'choice',
-          options: boltDiameters,
-          when: builtUp,
-        },
-        {
-          path: 'hardware.plyBolts.count',
-          label: 'Ply bolts, count',
-          kind: 'integer',
-          help: 'Bolts fastening the beam plies together, over the whole beam.',
-          when: builtUp,
-        },
-        {
-          path: 'hardware.anchorsPerFoot',
-          label: 'Ground anchors per leg foot',
-          kind: 'integer',
-          when: onPads,
-        },
-      ],
-    },
   ],
   structuralInputs: [
     {
-      title: 'Beam lumber',
+      title: 'Beam',
       fields: [
         {
           path: 'beamSpeciesGrade',
@@ -215,6 +236,25 @@ export const SWING_SET_FORM: TemplateForm = {
           kind: 'number',
           unit: '%',
           help: "Percent of oven-dry weight, for the beam's own weight. Pressure-treated lumber is often sold above 30%.",
+        },
+        {
+          path: 'deflectionLimit',
+          label: INPUT.deflectionLimit,
+          kind: 'number',
+          unit: '',
+          help: 'Allowed sag is the span divided by this number, such as 240.',
+        },
+      ],
+    },
+    {
+      title: 'Swings',
+      fields: [
+        {
+          path: 'hangerRating',
+          label: INPUT.hangerRating,
+          kind: 'number',
+          unit: 'lb',
+          help: "From the manufacturer's specification for one hanger.",
         },
       ],
     },
@@ -247,25 +287,6 @@ export const SWING_SET_FORM: TemplateForm = {
           kind: 'number',
           unit: '',
           help: 'Multiplier on the smooth pendulum load for snap loads from slack chains. Choose it with an experienced builder.',
-        },
-      ],
-    },
-    {
-      title: 'Limits and ratings',
-      fields: [
-        {
-          path: 'deflectionLimit',
-          label: INPUT.deflectionLimit,
-          kind: 'number',
-          unit: '',
-          help: 'Allowed sag is the span divided by this number, such as 240.',
-        },
-        {
-          path: 'hangerRating',
-          label: INPUT.hangerRating,
-          kind: 'number',
-          unit: 'lb',
-          help: "From the manufacturer's specification for one hanger.",
         },
       ],
     },

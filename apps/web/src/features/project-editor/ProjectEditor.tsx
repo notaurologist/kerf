@@ -3,8 +3,10 @@ import {
   confirmedPaths,
   entryProblems,
   type FormSection,
+  type FormSource,
   type FormValues,
   findTemplate,
+  formParts,
   formValues,
   type Plan,
   type TemplateDefinition,
@@ -29,21 +31,21 @@ import {
   ErrorText,
   Field,
   FieldGroup,
-  Grid,
+  FormProgress,
   InfoNotice,
   Notice,
   PlainList,
   SaveFailed,
   ScreenHeader,
-  Sidebar,
   Stack,
   type SummaryItem,
   Text,
   TextInput,
   Tick,
   useLeaveGuard,
+  WithAside,
 } from '../../ui/index.ts';
-import { belongsTo, type FormIssues, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
+import { belongsTo, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 import { PreviewPane, usePreview } from './Preview.tsx';
 import { sameJson } from './sameJson.ts';
 
@@ -103,7 +105,7 @@ function NewProject(props: { template: TemplateDefinition; start?: ProjectStart 
 
 /**
  * Values copied from an earlier project that the owner confirms before saving (#98, hard rule 3):
- * the parameters in the form's confirmed sections, such as hardware sizes, and the structural
+ * the form's confirmed parameters, such as hardware sizes, and the structural
  * inputs.
  */
 interface Copied {
@@ -368,61 +370,64 @@ export function ProjectEditor(props: {
     setSaveState({ state: 'failed', failure: failureOf(result.error) });
   };
 
-  const fieldLabel = (path: string) =>
-    [...form.params, ...form.structuralInputs].flatMap((s) => s.fields).find((f) => f.path === path)
-      ?.label;
+  const values = { params, structuralInputs: inputs };
+  const onChange = { params: setParams, structuralInputs: setInputs };
+  const fieldIssues = { params: issues.params, structuralInputs: issues.inputs };
+  const waitingFor = { params: unconfirmed.params, structuralInputs: unconfirmed.inputs };
+  const parts = shownParts(template, params, inputs);
+  const shown = parts.flatMap((p) => p.fields);
   const summary: SummaryItem[] = [
     ...(issues.name ? [{ field: 'project-name', message: issues.name }] : []),
+    // In the order the fields are on the screen.
+    ...shown.flatMap(({ from, field }) => {
+      const message = fieldIssues[from].fields[field.path];
+      return message
+        ? [{ field: fieldId(from, field.path), message: named(field.label, message) }]
+        : [];
+    }),
     ...(confirmIssue && toConfirm > 0 ? [{ field: 'confirm-copied', message: confirmIssue }] : []),
-    ...Object.entries(issues.params.fields).map(([path, message]) => ({
-      field: `p-${path}`,
-      message: named(fieldLabel(path), message),
-    })),
-    ...Object.entries(issues.inputs.fields).map(([path, message]) => ({
-      field: `s-${path}`,
-      message: named(fieldLabel(path), message),
-    })),
   ];
   const general = [...issues.params.general, ...issues.inputs.general];
 
-  // A saved project's output shows beside the form, previewed before saving (#39, L-A; #56).
-  const saved = project ? readPlan(project) : null;
+  const empty = ({ from, field }: (typeof shown)[number]) =>
+    (values[from][field.path] ?? '').trim() === '';
+  const submitLabel = project ? 'Save changes' : 'Create project';
+  const submitButton = (
+    <Button type="submit" busy={saving} busyLabel="Saving…">
+      {submitLabel}
+    </Button>
+  );
+
   const editing = (
     <Stack gap="l">
-      <Field id="project-name" label="Project name" error={issues.name}>
+      <Field id="project-name" label="Project name" error={issues.name} width="medium">
         {(c) => <TextInput {...c} value={name} onChange={setName} readOnly={saving} />}
       </Field>
-
-      <h2>Dimensions and hardware</h2>
-      <FormSections
-        sections={form.params}
-        values={params}
-        issues={issues.params}
-        onChange={setParams}
-        prefix="p"
-        readOnly={saving}
-        unconfirmed={unconfirmed.params}
-      />
-
-      <h2>Structural inputs</h2>
-      <Text tone="muted">
-        These decide the structural checks. Leave any you have not settled empty; the checks that
-        need them will say "Input needed".{' '}
-        {copied
-          ? `Values copied from ${copied.from} say so until you confirm them below.`
-          : 'Nothing here is filled in for you.'}
-      </Text>
-      <FormSections
-        sections={form.structuralInputs}
-        values={inputs}
-        issues={issues.inputs}
-        onChange={setInputs}
-        prefix="s"
-        readOnly={saving}
-        structural
-        unconfirmed={unconfirmed.inputs}
-      />
-
+      <Stack gap="xs">
+        <Text tone="muted">
+          Fields marked "Input needed" are never filled in for you. Structural inputs can wait:
+          leave any you have not settled empty, and the checks that need it will say "Input needed".{' '}
+          {copied && `Values copied from ${copied.from} say so until you confirm them below.`}
+        </Text>
+        {form.help && <Text tone="muted">{form.help}</Text>}
+      </Stack>
+      {parts.map((part) => (
+        <FieldGroup key={part.title} legend={part.title} help={part.help}>
+          {part.fields.map(({ from, field }) => (
+            <FieldInput
+              key={`${from} ${field.path}`}
+              id={fieldId(from, field.path)}
+              field={field}
+              text={values[from][field.path] ?? ''}
+              issue={fieldIssues[from].fields[field.path]}
+              readOnly={saving}
+              needed={from === 'structuralInputs' || field.confirmed}
+              confirm={waitingFor[from].has(field.path) ? 'Copied, confirm' : undefined}
+              onChange={(text) => onChange[from]({ ...values[from], [field.path]: text })}
+            />
+          ))}
+        </FieldGroup>
+      ))}
       {copied && (
         <CopiedNotice
           from={copied.from}
@@ -432,12 +437,24 @@ export function ProjectEditor(props: {
           onConfirm={setConfirmed}
         />
       )}
+    </Stack>
+  );
 
+  // A saved project's output shows beside the form, previewed before saving (#39, L-A; #56).
+  const saved = project ? readPlan(project) : null;
+  const actions = (
+    <Stack gap="s">
+      <FormProgress
+        entered={shown.length - shown.filter(empty).length}
+        total={shown.length}
+        empty={parts.flatMap((part) => {
+          const first = part.fields.find(empty);
+          return first ? [{ group: part.title, field: fieldId(first.from, first.field.path) }] : [];
+        })}
+      />
       {saveState.state === 'failed' && <SaveFailed failure={saveState.failure} />}
       <Cluster>
-        <Button type="submit" busy={saving} busyLabel="Saving…">
-          {project ? 'Save changes' : 'Create project'}
-        </Button>
+        {submitButton}
         <ButtonLink
           variant="secondary"
           href={
@@ -455,7 +472,10 @@ export function ProjectEditor(props: {
   return (
     <form onSubmit={submit} noValidate>
       <Stack gap="l">
-        <ScreenHeader title={project ? `Edit ${project.name}` : newTitle(template)} />
+        <ScreenHeader
+          title={project ? `Edit ${project.name}` : newTitle(template)}
+          actions={submitButton}
+        />
         <ErrorSummary items={summary} general={general} />
         {props.starts}
         {project?.version?.status === 'behind' && (
@@ -467,9 +487,9 @@ export function ProjectEditor(props: {
             </Text>
           </InfoNotice>
         )}
-        {saved?.ok || !project ? (
-          <Sidebar sideWidth="24rem" gap="l">
-            {editing}
+        <WithAside head={actions}>
+          {editing}
+          {(saved?.ok || !project) && (
             <EditPreview
               template={template}
               project={project ?? null}
@@ -477,14 +497,31 @@ export function ProjectEditor(props: {
               params={params}
               inputs={inputs}
             />
-          </Sidebar>
-        ) : (
-          editing
-        )}
+          )}
+        </WithAside>
       </Stack>
       {guard.dialog}
     </form>
   );
+}
+
+/** The id of a field's control, which the error summary and the progress links point to. */
+const fieldId = (from: FormSource, path: string) => `${from === 'params' ? 'p' : 's'}-${path}`;
+
+/** The form's parts with only the fields that apply to the values typed so far. */
+export function shownParts(template: TemplateDefinition, params: FormValues, inputs: FormValues) {
+  const visible = new Set([
+    ...visibleFields(template.form.params, params).map((f) => `params ${f.path}`),
+    ...visibleFields(template.form.structuralInputs, inputs).map(
+      (f) => `structuralInputs ${f.path}`,
+    ),
+  ]);
+  return formParts(template.form)
+    .map((part) => ({
+      ...part,
+      fields: part.fields.filter((f) => visible.has(`${f.from} ${f.field.path}`)),
+    }))
+    .filter((part) => part.fields.length > 0);
 }
 
 function EditPreview(props: {
@@ -561,44 +598,4 @@ async function save(
   const changes = changesFor(project, name, params, inputs);
   if (Object.keys(changes).length === 0) return { ok: true as const, value: project };
   return send(api.api.projects[':id'].$put({ param: { id: project.id }, json: changes }));
-}
-
-export function FormSections(props: {
-  sections: readonly FormSection[];
-  values: FormValues;
-  issues: FormIssues;
-  onChange: (values: FormValues) => void;
-  prefix: string;
-  readOnly?: boolean;
-  /** Structural inputs: an empty one is shown as input needed, never filled in (#43, rule 4). */
-  structural?: boolean;
-  /** Paths of copied values not confirmed yet (#98), marked "Copied, confirm". */
-  unconfirmed?: ReadonlySet<string>;
-}) {
-  const visible = new Set(visibleFields(props.sections, props.values).map((f) => f.path));
-  return (
-    <Stack gap="l">
-      {props.sections.map((section) => (
-        <FieldGroup key={section.title} legend={section.title} help={section.help}>
-          <Grid>
-            {section.fields
-              .filter((f) => visible.has(f.path))
-              .map((field) => (
-                <FieldInput
-                  key={field.path}
-                  id={`${props.prefix}-${field.path}`}
-                  field={field}
-                  text={props.values[field.path] ?? ''}
-                  issue={props.issues.fields[field.path]}
-                  readOnly={props.readOnly}
-                  needed={props.structural}
-                  confirm={props.unconfirmed?.has(field.path) ? 'Copied, confirm' : undefined}
-                  onChange={(text) => props.onChange({ ...props.values, [field.path]: text })}
-                />
-              ))}
-          </Grid>
-        </FieldGroup>
-      ))}
-    </Stack>
-  );
 }

@@ -46,24 +46,67 @@ export interface FormField {
    * A field with no `when` always applies.
    */
   when?: (value: (path: string) => string) => boolean;
+  /**
+   * A parameter the owner enters or confirms (hard rule 3), such as a hardware size. A new
+   * project started from a worked example leaves it empty, and one copied from an earlier project
+   * asks the owner to confirm it (#98). Structural inputs are always treated this way.
+   */
+  confirmed?: true;
 }
 
 export interface FormSection {
+  /**
+   * The part of the project the fields describe. A section in the parameters and one in the
+   * structural inputs with the same title are one part of the form (`formParts`).
+   */
   title: string;
   help?: string;
   fields: readonly FormField[];
-  /**
-   * Parameters the owner enters or confirms (hard rule 3), such as hardware sizes. A new project
-   * started from a worked example leaves them empty, and one copied from an earlier project asks
-   * the owner to confirm them (#98). Structural inputs are always treated this way.
-   */
-  confirmed?: true;
 }
 
 export interface TemplateForm {
   params: readonly FormSection[];
   /** Every structural input is optional to enter; a missing one makes its checks "input needed". */
   structuralInputs: readonly FormSection[];
+  /** Shown once above the form, for what applies to fields in several parts. */
+  help?: string;
+}
+
+/** Which object a field's value belongs to. */
+export type FormSource = 'params' | 'structuralInputs';
+
+/** A part of the project and its fields from both objects: parameters first, then inputs. */
+export interface FormPart {
+  title: string;
+  help?: string;
+  fields: readonly { from: FormSource; field: FormField }[];
+}
+
+/**
+ * The form as it is shown, by part of the project: the parameters' sections in order, each with
+ * the structural inputs' section of the same title, then the inputs' sections no parameter
+ * section shares a title with.
+ */
+export function formParts(form: TemplateForm): FormPart[] {
+  const parts = new Map<
+    string,
+    { title: string; help: string[]; fields: FormPart['fields'][number][] }
+  >();
+  const add = (from: FormSource, sections: readonly FormSection[]) => {
+    for (const section of sections) {
+      const part = parts.get(section.title) ?? { title: section.title, help: [], fields: [] };
+      if (section.help) part.help.push(section.help);
+      part.fields.push(...section.fields.map((field) => ({ from, field })));
+      parts.set(section.title, part);
+    }
+  };
+  add('params', form.params);
+  add('structuralInputs', form.structuralInputs);
+  return [...parts.values()].map(({ title, help, fields }) => ({
+    title,
+    ...(help.length > 0 ? { help: help.join(' ') } : {}),
+    fields,
+  }));
 }
 
 /** The form's text for each field path. Empty text means not entered. */
@@ -71,9 +114,9 @@ export type FormValues = Readonly<Record<string, string>>;
 
 const getter = (values: FormValues) => (path: string) => values[path] ?? '';
 
-/** The paths of fields the owner enters or confirms in these parameter sections (#98). */
+/** The paths of the parameters the owner enters or confirms (#98). */
 export function confirmedPaths(sections: readonly FormSection[]): Set<string> {
-  return new Set(sections.filter((s) => s.confirmed).flatMap((s) => s.fields.map((f) => f.path)));
+  return new Set(sections.flatMap((s) => s.fields.filter((f) => f.confirmed).map((f) => f.path)));
 }
 
 /** The fields that apply to the current values, in order. */
@@ -223,6 +266,31 @@ export function enteredValues(
         label: field.label,
         text: enteredText(field, readPath(object, field.path)),
       })),
+  }));
+}
+
+/**
+ * Every field that applies to stored parameters and inputs, by part of the project
+ * (`formParts`), as `enteredValues` reads them back, each saying which object it is from.
+ */
+export function enteredParts(
+  form: TemplateForm,
+  params: unknown,
+  inputs: unknown,
+): { title: string; values: (EnteredValue & { from: FormSource })[] }[] {
+  const read = new Map(
+    (
+      [
+        ['params', enteredValues(form.params, params)],
+        ['structuralInputs', enteredValues(form.structuralInputs, inputs)],
+      ] as const
+    ).flatMap(([from, sections]) =>
+      sections.flatMap((s) => s.values.map((v) => [`${from} ${v.path}`, { ...v, from }] as const)),
+    ),
+  );
+  return formParts(form).map((part) => ({
+    title: part.title,
+    values: part.fields.flatMap(({ from, field }) => read.get(`${from} ${field.path}`) ?? []),
   }));
 }
 

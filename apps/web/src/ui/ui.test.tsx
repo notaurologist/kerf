@@ -25,6 +25,7 @@ import {
   Field,
   Figures,
   FlagList,
+  FormProgress,
   Glance,
   Header,
   Icon,
@@ -57,6 +58,7 @@ import {
   Tick,
   ToolIcon,
   ToolLabel,
+  WithAside,
   WithContents,
   Wordmark,
 } from './index.ts';
@@ -104,9 +106,65 @@ describe('Field', () => {
     expect(html).not.toContain('aria-invalid');
   });
 
+  it('puts input needed on its own line under the label', () => {
+    expect(field({ needed: true })).toMatch(
+      /<label class="k-field__label" for="f"><span>Beam height<\/span><span class="k-needed">/,
+    );
+  });
+
+  it('sizes the control by what is typed in it, and keeps a unit beside it', () => {
+    expect(field({ width: 'short' })).toContain('<div class="k-field" data-width="short">');
+    expect(field({ width: 'medium' })).toContain('data-width="medium"');
+    expect(field()).not.toContain('data-width');
+    expect(field({ unit: 'lb' })).toMatch(
+      /<span class="k-field__unit"><input [^>]*><span>lb<\/span>/,
+    );
+  });
+
   it('gives a typed length the full keyboard with corrections off', () => {
     expect(field()).toMatch(
       /inputMode="text" autoCapitalize="off" autoCorrect="off" spellCheck="false"/,
+    );
+  });
+});
+
+describe('FormProgress', () => {
+  const progress = (empty: { group: string; field: string }[]) =>
+    render(<FormProgress entered={18} total={32} empty={empty} />);
+
+  it('counts what is entered and links each group with an empty field to its first one', () => {
+    const html = progress([
+      { group: 'Beam', field: 's-grade' },
+      { group: 'Legs', field: 'p-bolt' },
+      { group: 'Loads', field: 's-riders' },
+    ]);
+    expect(textOf(html)).toBe('18 of 32 entered Still empty: Beam, Legs, and Loads.');
+    expect(html).toContain('<a href="#s-grade">Beam</a>');
+  });
+
+  it('joins two groups with and, and leaves the line out when nothing is empty', () => {
+    expect(
+      textOf(
+        progress([
+          { group: 'A', field: 'a' },
+          { group: 'B', field: 'b' },
+        ]),
+      ),
+    ).toContain('Still empty: A and B.');
+    expect(textOf(progress([]))).toBe('18 of 32 entered');
+  });
+});
+
+describe('WithAside', () => {
+  it('puts the main column first and the aside after it, with its head at the top', () => {
+    const html = render(
+      <WithAside head={<p>Create</p>}>
+        <p>Form</p>
+        <p>Preview</p>
+      </WithAside>,
+    );
+    expect(html).toBe(
+      '<div class="l-with-aside"><div><div><p>Form</p></div><div><div class="l-with-aside__head"><p>Create</p></div><p>Preview</p></div></div></div>',
     );
   });
 });

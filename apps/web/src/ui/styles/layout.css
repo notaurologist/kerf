@@ -90,6 +90,49 @@
     min-inline-size: var(--sidebar-content-min, 60%);
   }
 
+  /* With aside: a main column at a readable form width and an aside that takes the rest and
+     stays in view (position: sticky), scrolling on its own when taller than the screen. */
+  .l-with-aside {
+    container-type: inline-size;
+  }
+
+  .l-with-aside > div,
+  .l-with-aside > div > :last-child {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-l);
+  }
+
+  .l-with-aside > div > :first-child {
+    max-inline-size: var(--measure);
+  }
+
+  @container (width >= 60rem) {
+    .l-with-aside > div {
+      display: grid;
+      grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .l-with-aside > div > :last-child {
+      position: sticky;
+      inset-block-start: var(--space-s);
+      max-block-size: calc(100dvh - 2 * var(--space-s));
+      overflow-y: auto;
+      /* Room for focus outlines inside the scrolling box. */
+      padding: var(--space-3xs);
+    }
+
+    .l-with-aside__head {
+      position: sticky;
+      inset-block-start: calc(-1 * var(--space-3xs));
+      z-index: 1;
+      padding-block: var(--space-3xs) var(--space-s);
+      border-block-end: 1px solid var(--border);
+      background: var(--bg);
+    }
+  }
+
   /* Switcher: children side by side, all switching to a column at once below
      --switcher-threshold of container width. */
   .l-switcher {
