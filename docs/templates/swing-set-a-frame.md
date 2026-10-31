@@ -37,6 +37,8 @@ Template version 11 (#58) stores the board plan's kerf and end trim, which cutti
 
 Template version 12 (#59) puts each hardware item in a store group (Hardware, below), so the store checklist reads lumber, then bolts and fittings, then swing hardware, then ground anchors. It also rewords each bolt's note as #68's audit asked ("1/2" through-bolt. Length: at least ..."). No number changes; a plan made before version 12 shows its hardware as one list until it is regenerated.
 
+Template version 13 gives the bending check's position of the largest moment its own working step, in inches through the length formatter like every other length, instead of a three-decimal number in the moment's label. No number changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates

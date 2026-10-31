@@ -34,7 +34,7 @@ import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 // A new project (#98) has no saved plan, so its preview marks nothing.
 
 /** How long typing has to stop before the preview is asked for. */
-export const PREVIEW_DELAY_MS = 500;
+const PREVIEW_DELAY_MS = 500;
 
 export type PreviewRequest =
   | { kind: 'saved' }

@@ -13,6 +13,7 @@ import v8 from './snapshots/v8.json' with { type: 'json' };
 import v9 from './snapshots/v9.json' with { type: 'json' };
 import v10 from './snapshots/v10.json' with { type: 'json' };
 import v11 from './snapshots/v11.json' with { type: 'json' };
+import v12 from './snapshots/v12.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -72,17 +73,23 @@ const VERSION_10 = [
  * bolt's note reworded as #68's audit asked.
  */
 const VERSION_12 = [/^design\.hardware\[\d+\]\.(group|notes\[0\])$/, /^hardware\[\d+\]\.group$/];
+/** Version 13's change: the bending check's moment position as its own step, in inches. */
+const VERSION_13 = [/^structuralReview\.\w+\.bending\.steps\[\d+\](\.label)?$/];
 const notVersion6 = (c: { path: string }) =>
-  ![...VERSION_6, ...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12].some((r) =>
-    r.test(c.path),
+  ![...VERSION_6, ...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13].some(
+    (r) => r.test(c.path),
   );
 const notVersion7 = (c: { path: string }) =>
-  ![...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12].some((r) => r.test(c.path));
+  ![...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13].some((r) =>
+    r.test(c.path),
+  );
 const notVersion9 = (c: { path: string }) =>
-  ![...VERSION_9, ...VERSION_10, ...VERSION_12].some((r) => r.test(c.path));
+  ![...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13].some((r) => r.test(c.path));
 const notVersion10 = (c: { path: string }) =>
-  ![...VERSION_10, ...VERSION_12].some((r) => r.test(c.path));
-const notVersion12 = (c: { path: string }) => !VERSION_12.some((r) => r.test(c.path));
+  ![...VERSION_10, ...VERSION_12, ...VERSION_13].some((r) => r.test(c.path));
+const notVersion12 = (c: { path: string }) =>
+  ![...VERSION_12, ...VERSION_13].some((r) => r.test(c.path));
+const notVersion13 = (c: { path: string }) => !VERSION_13.some((r) => r.test(c.path));
 
 describe('swing-set template versions', () => {
   it('version 2 adds sources and bases to the structural working, and changes no number (#36)', () => {
@@ -302,5 +309,29 @@ describe('swing-set template versions', () => {
         expect(numbers(c.after), c.path).toEqual(numbers(c.before));
       }
     }
+  });
+
+  it("version 13 gives the largest moment's position its own step, in inches", () => {
+    let checked = 0;
+    for (const stored of v12) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(12);
+      const { changes } = regenerated(read.snapshot);
+      expect(changes.filter(notVersion13)).toEqual([]);
+      for (const label of changes.filter((c) => c.path.endsWith('.label'))) {
+        // The label loses its three-decimal position and nothing else.
+        expect(String(label.before)).toMatch(/^Largest moment( per ply)?, at \d+\.\d{3} in$/);
+        expect(label.after).toBe(String(label.before).replace(/, at .*$/, ''));
+        const added = changes.find((c) => !c.path.endsWith('.label'));
+        const position = added?.after as { label: string; value: number; unit: string };
+        expect(position.label).toBe(`Position of largest moment${String(label.after).slice(14)}`);
+        expect(position.unit).toBe('in');
+        expect(position.value.toFixed(3)).toBe(String(label.before).match(/at (\S+) in/)?.[1]);
+        checked += 1;
+      }
+    }
+    // The two worked examples with a bending check: a solid beam and a built-up one.
+    expect(checked).toBe(2);
   });
 });

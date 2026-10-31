@@ -94,7 +94,7 @@ export function savedFirst(
   return [saved, ...projects.filter((p) => p.id !== saved.id)];
 }
 
-export function toSummary(project: Project): ProjectSummary {
+function toSummary(project: Project): ProjectSummary {
   const { id, name, status, templateId, templateVersion, templateBehind, progress } = project;
   const { createdAt, updatedAt } = project;
   return {
