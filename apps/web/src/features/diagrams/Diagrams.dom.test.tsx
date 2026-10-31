@@ -48,19 +48,23 @@ function onScreen(container: HTMLElement) {
 }
 
 describe('the Diagrams section’s assembly view', () => {
-  it('opens on the assembled view with the selected part highlighted', () => {
+  it('opens on the assembled view with the selected part highlighted, and one button to explode it', () => {
     const { container } = mount(section());
     const view = onScreen(container);
     expect(view.label).toMatch(/^Isometric view\. /);
     expect(view.highlighted).toBe(true);
+    const buttons = [...container.querySelectorAll('.k-views button')];
+    expect(buttons.map((b) => b.textContent)).toEqual(['Explode']);
+    expect(buttons[0]?.hasAttribute('aria-pressed')).toBe(false);
   });
 
   it('keeps the part selected, and the label follows the view, when switched', async () => {
     const { container } = mount(section());
-    await click(byText(container, 'button', 'Exploded'));
+    await click(byText(container, 'button', 'Explode'));
     const view = onScreen(container);
     expect(view.label).toMatch(/^Exploded view\. /);
     expect(view.highlighted).toBe(true);
+    expect(byText(container, 'button', 'Assemble').hasAttribute('aria-pressed')).toBe(false);
   });
 
   it('keeps both views in the page for print', () => {
@@ -75,12 +79,20 @@ describe('the Diagrams section’s assembly view', () => {
     ]);
   });
 
-  it('shows a template’s only assembly drawing with no control', () => {
-    const { container } = mount(section({ ...worked, exploded: null }));
-    expect(container.querySelector('.k-views [role="group"]')).toBeNull();
-    expect(container.querySelector('.k-views svg')?.getAttribute('aria-label')).toMatch(
-      /^Isometric view\. /,
-    );
+  it('shows a template’s only assembly drawing with no button', () => {
+    for (const [lone, label] of [
+      [{ ...worked, exploded: null }, /^Isometric view\. /],
+      [{ ...worked, isometric: null }, /^Exploded view\. /],
+    ] as const) {
+      const { container } = mount(section(lone));
+      expect(container.querySelector('.k-views button')).toBeNull();
+      expect(container.querySelector('.k-views svg')?.getAttribute('aria-label')).toMatch(label);
+    }
+  });
+
+  it('shows no assembly drawing when the template has neither', () => {
+    const { container } = mount(section({ ...worked, isometric: null, exploded: null }));
+    expect(container.querySelector('.k-views')).toBeNull();
   });
 });
 
@@ -107,7 +119,7 @@ describe('the move between the assembled and exploded views', () => {
     vi.useFakeTimers();
     const { container } = mount(section());
     const exploded = wrapOf(container, /^Exploded view/);
-    press(container, 'Exploded');
+    press(container, 'Explode');
     // Shown at once with every part home and no letters, jumping there without a transition.
     expect(onScreen(container).label).toMatch(/^Exploded view\. /);
     expect(exploded.dataset.collapsed).toBe('true');
@@ -124,13 +136,15 @@ describe('the move between the assembled and exploded views', () => {
   it('slides the parts home, then shows the assembled view with its letters', () => {
     vi.useFakeTimers();
     const { container } = mount(section());
-    press(container, 'Exploded');
+    press(container, 'Explode');
     advance(500);
-    press(container, 'Assembled');
+    press(container, 'Assemble');
     const exploded = wrapOf(container, /^Exploded view/);
     const assembled = wrapOf(container, /^Isometric view/);
     // The button follows at once; the exploded drawing stays while its parts slide home.
-    expect(byText(container, 'button', 'Assembled').getAttribute('aria-pressed')).toBe('true');
+    expect([...container.querySelectorAll('.k-views button')].map((b) => b.textContent)).toEqual([
+      'Explode',
+    ]);
     expect(onScreen(container).label).toMatch(/^Exploded view\. /);
     expect(exploded.dataset.collapsed).toBe('true');
     expect(exploded.dataset.instant).toBeUndefined();
@@ -149,12 +163,12 @@ describe('the move between the assembled and exploded views', () => {
       (query: string) => ({ matches: query.includes('reduce') }) as MediaQueryList,
     );
     const { container } = mount(section());
-    press(container, 'Exploded');
+    press(container, 'Explode');
     const exploded = wrapOf(container, /^Exploded view/);
     expect(onScreen(container).label).toMatch(/^Exploded view\. /);
     expect(exploded.dataset.collapsed).toBeUndefined();
     expect(exploded.dataset.labels).toBeUndefined();
-    press(container, 'Assembled');
+    press(container, 'Assemble');
     expect(onScreen(container).label).toMatch(/^Isometric view\. /);
     expect(wrapOf(container, /^Isometric view/).dataset.labels).toBeUndefined();
   });
