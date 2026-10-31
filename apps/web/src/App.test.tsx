@@ -1,4 +1,4 @@
-import { GLOSSARY, ILLUSTRATIONS } from '@kerf/core';
+import { GLOSSARY, GLOSSARY_GROUP_LABELS, GLOSSARY_GROUPS, ILLUSTRATIONS } from '@kerf/core';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { Screen } from './App.tsx';
@@ -26,28 +26,42 @@ describe('LoginForm', () => {
 });
 
 describe('Screen', () => {
-  it('lists every glossary entry, in order, each term a dfn at its own id', () => {
+  it('indexes every glossary entry once, by group, each linking to its own page', () => {
     const html = renderToString(<Screen route={{ screen: 'glossary' }} />);
-    const terms = [...html.matchAll(/<div id="term-([a-z0-9-]+)"[^>]*><dt><dfn>([^<]+)<\/dfn>/g)];
-    expect(terms.map((m) => [m[1], m[2]])).toEqual(GLOSSARY.map((e) => [e.id, e.term]));
-    for (const entry of GLOSSARY) {
-      expect(html).toContain(entry.definition.replaceAll("'", '&#x27;'));
+    const headings = [...html.matchAll(/<h2>([^<]+)<\/h2>/g)].map((m) => m[1]);
+    expect(headings).toEqual(GLOSSARY_GROUPS.map((g) => GLOSSARY_GROUP_LABELS[g]));
+    const links = [...html.matchAll(/<a href="#\/glossary\/([a-z0-9-]+)">([^<]+)<\/a>/g)];
+    const byGroup = GLOSSARY_GROUPS.flatMap((g) =>
+      GLOSSARY.filter((e) => e.group === g).map((e) => [e.id, e.term]),
+    );
+    expect(links.map((m) => [m[1], m[2]])).toEqual(byGroup);
+    // Alphabetical within each group, since GLOSSARY is.
+    for (const g of GLOSSARY_GROUPS) {
+      const terms = GLOSSARY.filter((e) => e.group === g).map((e) => e.term);
+      expect(terms).toEqual([...terms].sort((a, b) => a.localeCompare(b)));
     }
   });
 
-  it('shows each illustrated entry with its drawing', () => {
-    const html = renderToString(<Screen route={{ screen: 'glossary' }} />);
-    GLOSSARY.forEach((entry, i) => {
-      const start = html.indexOf(`<div id="term-${entry.id}"`);
-      const next = GLOSSARY[i + 1];
-      const block = html.slice(start, next ? html.indexOf(`<div id="term-${next.id}"`) : undefined);
+  it('shows one entry on its page: its definition, drawing, sources, and a way back', () => {
+    for (const entry of GLOSSARY) {
+      const html = renderToString(<Screen route={{ screen: 'glossary', term: entry.id }} />);
+      expect(html).toContain(`<h1>${entry.term.replaceAll("'", '&#x27;')}</h1>`);
+      expect(html).toContain(entry.definition.replaceAll("'", '&#x27;'));
+      expect(html).toContain('<a href="#/glossary">All terms</a>');
+      expect(html).toContain(GLOSSARY_GROUP_LABELS[entry.group]);
       const drawing = 'illustration' in entry ? ILLUSTRATIONS[entry.illustration] : undefined;
       if (drawing) {
-        expect(block).toContain(`aria-label="${drawing.description.replaceAll("'", '&#x27;')}"`);
+        expect(html).toContain(`aria-label="${drawing.description.replaceAll("'", '&#x27;')}"`);
       } else {
-        expect(block).not.toContain('role="img"');
+        expect(html).not.toContain('role="img"');
       }
-    });
+      expect(html.includes('>Source<')).toBe(entry.sources.length > 0);
+      // No other entry's definition on this page.
+      const other = GLOSSARY.find(
+        (e) => e.id !== entry.id && !entry.definition.includes(e.definition),
+      );
+      if (other) expect(html).not.toContain(other.definition.replaceAll("'", '&#x27;'));
+    }
   });
 
   it('says when there is no page at an address', () => {

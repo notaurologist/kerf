@@ -1,44 +1,67 @@
-import { GLOSSARY, ILLUSTRATIONS } from '@kerf/core';
-import { useEffect } from 'react';
-import { Definitions, Diagram, ScreenHeader, Stack } from '../../ui/index.ts';
+import {
+  findGlossaryEntry,
+  GLOSSARY,
+  GLOSSARY_GROUP_LABELS,
+  GLOSSARY_GROUPS,
+  type GlossaryEntry,
+  ILLUSTRATIONS,
+} from '@kerf/core';
+import { href } from '../../lib/route.ts';
+import { DefinitionFigure, Diagram, PlainList, ScreenHeader, Stack, Text } from '../../ui/index.ts';
 import { SourceToggle } from '../structural/Citation.tsx';
 
-// Every glossary term, in alphabetical order, each at its own address (#/glossary/<id>) so text
-// that uses a term can link to its entry.
-
-/** The element id of a term's entry on this screen. */
-export function entryId(term: string): string {
-  return `term-${term}`;
-}
+// The glossary: an index of every term by group, and a page for each entry (#/glossary/<id>), so
+// a term's popover links to that one entry rather than to a long list.
 
 export function GlossaryScreen(props: { term?: string }) {
-  useEffect(() => {
-    const target = props.term ? document.getElementById(entryId(props.term)) : null;
-    if (!target) return;
-    target.focus({ preventScroll: true });
-    target.scrollIntoView({ block: 'start' });
-  }, [props.term]);
+  const entry = props.term ? findGlossaryEntry(props.term) : undefined;
+  return entry ? <EntryPage entry={entry} /> : <Index />;
+}
 
+function Index() {
   return (
     <Stack>
       <ScreenHeader
         title="Glossary"
-        lede="The woodworking terms Kerf's plans use, in alphabetical order."
+        lede="The woodworking and structural terms Kerf's plans use, by topic."
       />
-      <Definitions
-        items={GLOSSARY.map((entry) => ({
-          id: entryId(entry.id),
-          term: entry.term,
-          definition: entry.definition,
-          figure: 'illustration' in entry && (
-            <Diagram
-              drawing={ILLUSTRATIONS[entry.illustration]}
-              label={ILLUSTRATIONS[entry.illustration].description}
-            />
-          ),
-          detail: entry.sources.length > 0 && <SourceToggle citations={entry.sources} />,
-        }))}
+      {GLOSSARY_GROUPS.map((group) => (
+        <Stack key={group} as="section" gap="xs">
+          <h2>{GLOSSARY_GROUP_LABELS[group]}</h2>
+          <PlainList gap="xs">
+            {GLOSSARY.filter((e) => e.group === group).map((e) => (
+              <li key={e.id}>
+                <a href={href({ screen: 'glossary', term: e.id })}>{e.term}</a>
+              </li>
+            ))}
+          </PlainList>
+        </Stack>
+      ))}
+    </Stack>
+  );
+}
+
+function EntryPage(props: { entry: GlossaryEntry }) {
+  const { entry } = props;
+  const drawing = entry.illustration ? ILLUSTRATIONS[entry.illustration] : undefined;
+  return (
+    <Stack>
+      <ScreenHeader
+        title={entry.term}
+        meta={
+          <>
+            {GLOSSARY_GROUP_LABELS[entry.group]} ·{' '}
+            <a href={href({ screen: 'glossary' })}>All terms</a>
+          </>
+        }
       />
+      <Text>{entry.definition}</Text>
+      {drawing && (
+        <DefinitionFigure>
+          <Diagram drawing={drawing} label={drawing.description} />
+        </DefinitionFigure>
+      )}
+      <SourceToggle citations={entry.sources} />
     </Stack>
   );
 }
