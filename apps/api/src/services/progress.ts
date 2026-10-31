@@ -18,6 +18,8 @@ import { type PROJECT_STATUSES, projectProgress } from '../db/schema.ts';
 // client can retry writes queued through a dropped connection.
 
 export const ProgressChanges = z.object({
+  /** The project's revision the ticks were made against (#207). */
+  revision: z.number().int().positive(),
   changes: z
     .array(
       z.object({

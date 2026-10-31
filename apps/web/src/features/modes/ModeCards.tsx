@@ -29,7 +29,7 @@ export function buildingText(s: ProgressSummary): string {
 /** The Shopping and Building cards in the plan's summary (under its h2), counted with ticks not sent yet. */
 export function ModeCards(props: { project: Project; plan: Plan; steps: readonly BuildStep[] }) {
   const { project } = props;
-  const ticks = useTicks(project.id, project.ticks);
+  const ticks = useTicks(project.id, project.ticks, project.revision);
   const summary = summarizeProgress(props.plan, props.steps, ticks.ticked());
   const { shopping, steps } = summary;
   return (

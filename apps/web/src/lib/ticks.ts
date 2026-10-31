@@ -35,9 +35,16 @@ export interface TicksState {
   offline: boolean;
 }
 
+/** Sends changes made against one revision of the project's plan (#207). */
 export type TickSender = (
   changes: TickChange[],
+  revision: number,
 ) => Promise<ApiResult<{ ticks: SavedTick[]; status: ProjectStatus }>>;
+
+/** A waiting change, with the revision of the plan it was made on. */
+interface Waiting extends TickChange {
+  revision: number;
+}
 
 interface Timers {
   set: (fn: () => void, ms: number) => unknown;
@@ -50,7 +57,9 @@ const LAST_RETRY_MS = 30_000;
 /** One project's ticks: what the server saved, and changes waiting to reach it. */
 export class TickQueue {
   private saved = new Set<string>();
-  private changes = new Map<string, TickChange>();
+  private changes = new Map<string, Waiting>();
+  /** The revision of the plan the screen shows, which new ticks are made on. */
+  private revision = 1;
   private sending = false;
   private retryMs = FIRST_RETRY_MS;
   private timer: unknown = null;
@@ -79,13 +88,19 @@ export class TickQueue {
    * The ticks the server sent with the project. Waiting changes still count over them. Called
    * while a screen renders the response, so it tells no other listener: they show the same one.
    */
-  seed(ticks: readonly Tick[]) {
+  seed(ticks: readonly Tick[], revision: number) {
     this.saved = new Set(ticks.map(progressId));
+    this.revision = revision;
     this.state = this.snapshot();
   }
 
   set(tick: Tick, done: boolean) {
-    this.changes.set(progressId(tick), { kind: tick.kind, key: tick.key, done });
+    this.changes.set(progressId(tick), {
+      kind: tick.kind,
+      key: tick.key,
+      done,
+      revision: this.revision,
+    });
     this.dropped = null;
     this.emit();
     void this.flush();
@@ -101,8 +116,13 @@ export class TickQueue {
     if (this.timer !== null) this.timers.clear(this.timer);
     this.timer = null;
     this.sending = true;
-    const batch = new Map(this.changes);
-    const result = await this.sendChanges([...batch.values()]);
+    // One revision at a time: changes made on an older plan go, and are refused, on their own.
+    const revision = [...this.changes.values()][0]?.revision ?? this.revision;
+    const batch = new Map([...this.changes].filter(([, c]) => c.revision === revision));
+    const result = await this.sendChanges(
+      [...batch.values()].map(({ kind, key, done }) => ({ kind, key, done })),
+      revision,
+    );
     this.sending = false;
     // A change made while the batch was out replaces the one sent; only drop what was sent.
     const drop = (id: string) => {
@@ -115,6 +135,16 @@ export class TickQueue {
       this.problem = null;
       this.offline = false;
       this.retryMs = FIRST_RETRY_MS;
+    } else if (result.error.kind === 'stale') {
+      // Made on a plan another device has since changed: an item's key can outlive a change to
+      // its numbers, so these are dropped rather than applied to the new plan.
+      for (const id of batch.keys()) drop(id);
+      this.dropped =
+        batch.size === 1
+          ? '1 change was not saved: the plan changed on another device. Reload to see it.'
+          : `${batch.size} changes were not saved: the plan changed on another device. Reload to see it.`;
+      this.problem = null;
+      this.offline = false;
     } else if (result.error.kind === 'invalid' || result.error.kind === 'not-found') {
       // Sending again would be refused again. A tick on an item the plan no longer has (the plan
       // was regenerated elsewhere) is dropped and said; the rest of the batch goes again.
@@ -173,8 +203,13 @@ export class TickQueue {
 const queues = new Map<string, TickQueue>();
 
 function sendTo(projectId: string): TickSender {
-  return async (changes) =>
-    send(api.api.projects[':id'].progress.$patch({ param: { id: projectId }, json: { changes } }));
+  return async (changes, revision) =>
+    send(
+      api.api.projects[':id'].progress.$patch({
+        param: { id: projectId },
+        json: { revision, changes },
+      }),
+    );
 }
 
 /** Asks before a reload or closing the tab while any project has ticks waiting. */
@@ -186,14 +221,14 @@ function warnBeforeUnload() {
 }
 
 /** The project's queue, seeded with the ticks of the latest project response. */
-function ticksFor(projectId: string, seed: readonly Tick[]): TickQueue {
+function ticksFor(projectId: string, seed: readonly Tick[], revision: number): TickQueue {
   let queue = queues.get(projectId);
   if (!queue) {
     if (queues.size === 0) warnBeforeUnload();
     queue = new TickQueue(sendTo(projectId));
     queues.set(projectId, queue);
   }
-  queue.seed(seed);
+  queue.seed(seed, revision);
   return queue;
 }
 
@@ -202,8 +237,8 @@ function ticksFor(projectId: string, seed: readonly Tick[]): TickQueue {
  * item. `seed` is the ticks the project response carried; a fresh response replaces the saved
  * ticks, and waiting changes still count over them.
  */
-export function useTicks(projectId: string, seed: readonly Tick[]) {
-  const queue = useMemo(() => ticksFor(projectId, seed), [projectId, seed]);
+export function useTicks(projectId: string, seed: readonly Tick[], revision: number) {
+  const queue = useMemo(() => ticksFor(projectId, seed, revision), [projectId, seed, revision]);
   useEffect(() => {
     const retry = () => void queue.flush();
     window.addEventListener('online', retry);

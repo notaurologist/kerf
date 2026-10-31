@@ -64,6 +64,13 @@
       "when": 1793474904299,
       "tag": "0008_sessions_end_with_password_and_login_limit_per_address",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793476925858,
+      "tag": "0009_project_revision",
+      "breakpoints": true
     }
   ]
 }
