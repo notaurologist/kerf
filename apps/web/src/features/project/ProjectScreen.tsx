@@ -1,16 +1,15 @@
 import { findTemplate, planTerms } from '@kerf/core';
-import { useEffect, useState } from 'react';
-import { api, send } from '../../lib/api.ts';
+import { useEffect, useMemo, useState } from 'react';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
-import { readDrawings, readPlan, readSteps } from '../../lib/plan.ts';
+import { useReadProject } from '../../lib/plan.ts';
 import { usePlanMoves } from '../../lib/planMoves.ts';
 import { describeReset } from '../../lib/progress.ts';
+import { useProject } from '../../lib/projectStore.ts';
 import { href, redirect } from '../../lib/route.ts';
 import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { cutDetailHeadingId, cutListPartId } from '../../lib/show.ts';
 import { type Project, STATUS_LABELS } from '../../lib/types.ts';
-import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
   ButtonLink,
@@ -42,10 +41,7 @@ const BUILD_STEPS_INTRO =
   'Methods are chosen from the tools in your tool list. Change the list to change them.';
 
 export function ProjectScreen(props: { id: string; section?: PlanSectionId; part?: string }) {
-  const { loaded, set, reload } = useLoad(
-    () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
-    props.id,
-  );
+  const { loaded, set, reload } = useProject(props.id);
   return (
     <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Project">
       {(project) => (
@@ -65,11 +61,20 @@ export function ProjectView(props: {
 }) {
   const { project } = props;
   const template = findTemplate(project.templateId);
-  const plan = readPlan(project);
-  const drawings = readDrawings(project);
-  const steps = readSteps(project);
+  const { plan, drawings, steps } = useReadProject(project);
   // Plans made before operations (template version 8) have no build steps.
   const hasSteps = steps !== null && steps.steps.length > 0;
+  const terms = useMemo(
+    () =>
+      plan.ok
+        ? planTerms(plan.plan, steps?.steps ?? [], [
+            STRUCTURAL_REVIEW_INTRO,
+            CUT_LIST_INTRO,
+            ...(hasSteps ? [BUILD_STEPS_INTRO] : []),
+          ])
+        : [],
+    [plan, steps, hasSteps],
+  );
   const shown = (id: PlanSectionId) =>
     (id !== 'diagrams' || drawings !== null) &&
     (id !== 'build-steps' || hasSteps) &&
@@ -234,14 +239,7 @@ export function ProjectView(props: {
           )}
           {/* A term's popover cannot open on paper, so the printed plan ends with the terms it
               uses. Never shown on screen, where each term opens in place (#178). */}
-          <TermsUsed
-            terms={planTerms(plan.plan, steps?.steps ?? [], [
-              STRUCTURAL_REVIEW_INTRO,
-              CUT_LIST_INTRO,
-              ...(hasSteps ? [BUILD_STEPS_INTRO] : []),
-            ])}
-            project={project.name}
-          />
+          <TermsUsed terms={terms} project={project.name} />
           <SectionPager
             previous={previous && { title: previous.title, href: at(previous.id) }}
             next={next && { title: next.title, href: at(next.id) }}

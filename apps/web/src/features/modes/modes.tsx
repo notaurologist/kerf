@@ -5,14 +5,13 @@ import {
   summarizeProgress,
 } from '@kerf/core';
 import { type ReactNode, useEffect } from 'react';
-import { api, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
-import { readDrawings, readPlan, readSteps } from '../../lib/plan.ts';
+import { useReadProject } from '../../lib/plan.ts';
+import { useProject } from '../../lib/projectStore.ts';
 import { href, type Route, redirect } from '../../lib/route.ts';
 import { ThemeSwitch } from '../../lib/theme.tsx';
 import { describeWaiting, useTicks } from '../../lib/ticks.ts';
 import type { Project } from '../../lib/types.ts';
-import { useLoad } from '../../lib/useLoad.ts';
 import { useWakeLock } from '../../lib/wakeLock.ts';
 import {
   ButtonLink,
@@ -49,10 +48,7 @@ export function ModeScreen(props: { route: ModeRoute }) {
   // step and card to card, so the lock is held for the whole visit, not asked for at each step.
   useWakeLock();
   const { id } = props.route;
-  const { loaded, reload } = useLoad(
-    () => send(api.api.projects[':id'].$get({ param: { id } })),
-    id,
-  );
+  const { loaded, reload } = useProject(id);
   const mode = props.route.screen === 'shop' ? 'Shopping' : 'Building';
   if (loaded.state !== 'ready') {
     return (
@@ -68,8 +64,9 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
   const { route, project } = props;
   const exitHref = href({ screen: 'project', id: project.id });
   const mode = route.screen === 'shop' ? 'Shopping' : 'Building';
-  const plan = readPlan(project);
-  const steps = readSteps(project)?.steps ?? [];
+  const read = useReadProject(project);
+  const { plan, drawings } = read;
+  const steps = read.steps?.steps ?? [];
   const ticks = useTicks(project.id, project.ticks);
   // Each step, list, or card opens at its top, not where the last one was scrolled to.
   const address = href(route);
@@ -96,7 +93,7 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
       lines.filter((l) => ticks.isDone(lineTick(l.key))).length;
     // The store checklist (#59): lumber, then the hardware groups, each with its own count. Each
     // lumber line opens its board cards.
-    const boardDrawings = readDrawings(project)?.boards ?? [];
+    const boardDrawings = drawings?.boards ?? [];
     return frame(
       <>
         <ScreenHeader
@@ -225,7 +222,6 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
     piece: (stepId: string, part: string) =>
       href({ screen: 'build-part', id: project.id, step: stepId, part }),
   };
-  const drawings = readDrawings(project);
   if (route.screen === 'build-part') {
     return frame(
       <CutCard
