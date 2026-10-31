@@ -29,7 +29,7 @@ Read `PRODUCT.md` and `DOMAIN.md` first. Decisions behind the choices here are r
  └────────┬─────────┘
           │
  ┌────────▼─────────┐
- │     Postgres     │  projects, tools, sessions, login attempts
+ │     Postgres     │  projects, tools, sessions, login failures
  └──────────────────┘
 ```
 
@@ -186,7 +186,8 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 
 - `PASSWORD_HASH` holds `scrypt:N:r:p:salt:hash` (base64url), made by `pnpm --filter @kerf/api hash-password` with N = 2^17, r = 8, p = 1. Verification reads the cost from the stored hash and compares in constant time.
 - The session cookie `kerf_session` holds a random 256-bit token; `sessions` stores only its SHA-256 hash, so the table alone gives no working session. Sessions last 30 days. Expired rows are deleted at the next login.
-- Rate limiting counts failed logins for the whole app in fixed 15-minute windows, at most 10 per window, then answers 429 with `Retry-After`, even for the right password. Each attempt is counted before the password is checked and taken back on success, so parallel guesses cannot slip under the limit. The limit is global rather than per address: there is one user, and a per-address limit lets anyone with many addresses keep guessing. The cost is that someone guessing can keep the owner locked out; changing that is a new decision.
+- Each session stores `password_fingerprint`, the first 64 bits of a SHA-256 of `PASSWORD_HASH`, and is accepted only while it matches the configured hash, so changing the password ends every session. Rows without one never match.
+- Rate limiting counts failed logins in fixed windows, twice: per client address, at most 10 per 15 minutes, and for the whole app, at most 100 per hour. Either limit answers 429 with `Retry-After` until its window ends, even for the right password. The address is the first entry of `x-forwarded-for`, which Vercel overwrites (`auth/clientAddress.ts`); an IPv6 address counts by its /64, and a request without the header counts as one unknown address, as in local development. Each attempt is counted before the password is checked and taken back on success, so parallel guesses cannot slip under a limit. An attempt the address limit refuses is not counted for the whole app, so one address cannot use up the global cap. Many addresses together still can, which keeps the owner from logging in for the rest of the hour but leaves existing sessions working (0007).
 - One middleware requires a session on every route except `GET /api/health` and `POST /api/login`, listed by method and path. A test walks every route the app registers and checks each answers 401 without a session.
 - `POST`, `PUT`, `PATCH`, and `DELETE` requests must have a JSON content type (415 otherwise).
 
@@ -199,8 +200,9 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 | `projects` | Name, status, template ID, template version, snapshot (JSON, holding the parameters and structural inputs), timestamps |
 | `project_history` | One row per operation in a project: operation ID and type, the method chosen (null when the inventory supported none), its skills, and the key of the inventory it was chosen from. Replaced in the same transaction whenever a snapshot is saved (create, a parameter or input change, regenerate), not on a rename or status change. A unique index on `(project_id, operation_id)` keeps it to one row per operation. The release step writes rows for projects that have none and keeps rows that exist (#106). Used later for references to past projects |
 | `project_progress` | One row per item ticked off in a project (#57): kind (`shopping-line`, `board`, `part`, `step`), key, and when it was done. Keys come from core's `progress/`: a lumber line by nominal size and length, a hardware line by its description, a board by its ID in the board plan (`boardIds`: line and which board of that line, so boards of other sizes do not shift it), a part's piece by part ID and instance, a step by its ID. When a snapshot is saved, rows whose item is gone or has other numbers are deleted in the same transaction (`progressToReset`). A piece's numbers include its part's cut detail, and a step's the cut details of its parts, so moved holes clear a tick even when the cut list does not change |
-| `sessions` | Session ID, created, expires |
-| `login_attempts` | Time window and failure count for rate limiting |
+| `sessions` | Session ID, fingerprint of the password hash, created, expires |
+| `login_failures` | Scope (`all`, or `address:` and a client address), window start, and failure count for rate limiting. Rows are deleted once their window has passed |
+| `login_attempts` | The previous login counter; no longer read or written, kept until the deploy before this one is gone (0014) |
 
 Snapshots are stored, not regenerated on every read. A project's plan therefore never changes underneath it when the template changes; the API reports the difference and regeneration is the owner's choice. Snapshots are parsed with their Zod schema when read back.
 
@@ -210,11 +212,11 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 - The API connects to Neon's pooled connection string with prepared statements off (`POOLED_CONNECTION` in `bootstrap.ts`).
 - Secrets live only in Vercel's environment settings and a local `.env`: `DATABASE_URL` and `PASSWORD_HASH` (see `.env.example`). The API refuses to start if either is missing or malformed, naming the variable but never printing its value.
 - Every production build runs `pnpm db:migrate` for the API service (`vercel.json`), while the previous deploy is still serving: a read-only check that the new code reads every stored snapshot, the Drizzle migrations, then the history backfill, all under an advisory lock (0014). It does not rewrite stored data into a newer shape. It connects through `DATABASE_URL_UNPOOLED` (Neon's direct connection) when set. Branches other than `main` do not deploy. Locally, `pnpm db:migrate` does the same against `.env` or the Docker database.
-- Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, redeploy, and delete the rows in `sessions` (0007).
+- Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, and redeploy. Sessions created under the old hash stop working (0007).
 
 #### Backups (manual, for now)
 
-There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions` and `login_attempts` but not their rows, so no live session token is written to a file.
+There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions`, `login_failures`, and `login_attempts` but not their rows, so no live session token is written to a file.
 
 1. Install the Postgres client once: `brew install libpq`, then use `/opt/homebrew/opt/libpq/bin/pg_dump`. Its version must be 18 or later (`pg_dump --version`).
 2. Copy the direct connection string (host without `-pooler`) from the Neon console, and read it into the shell without echo: `read -rs NEON_URL`.
@@ -222,7 +224,7 @@ There are no scheduled backups. Neon's free plan restores only the last 6 hours,
 
    ```
    pg_dump "$NEON_URL" -Fc --no-owner --no-acl \
-     --exclude-table-data=sessions --exclude-table-data=login_attempts \
+     --exclude-table-data=sessions --exclude-table-data=login_failures --exclude-table-data=login_attempts \
      -f ~/Backups/kerf-$(date +%F).dump
    ```
 
