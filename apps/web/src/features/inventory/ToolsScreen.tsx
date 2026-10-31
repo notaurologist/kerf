@@ -4,7 +4,7 @@ import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { href } from '../../lib/route.ts';
-import { useLoad } from '../../lib/useLoad.ts';
+import { keep, useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
   Card,
@@ -50,8 +50,11 @@ import {
 // does not have go under "Other tools", which build steps do not use. Saving replaces the whole
 // inventory.
 
+/** The last inventory loaded, shared with the tool pages, so either shows it at once. */
+export const keptTools = keep<Parameters<typeof fromInventory>[0]>();
+
 export function ToolsScreen() {
-  const { loaded, set, reload } = useLoad(() => send(api.api.tools.$get()), 'tools');
+  const { loaded, set, reload } = useLoad(() => send(api.api.tools.$get()), 'tools', keptTools);
   return (
     <Loaded state={loaded} loading="Loading tools…" onRetry={reload} title="Tools">
       {(inventory) => <ToolsEditor saved={fromInventory(inventory)} onSaved={set} />}

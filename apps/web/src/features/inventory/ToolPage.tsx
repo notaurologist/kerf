@@ -4,13 +4,14 @@ import { Loaded } from '../../lib/Loaded.tsx';
 import { href } from '../../lib/route.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import { PlainList, ScreenHeader, Stack, Text, ToolLabel } from '../../ui/index.ts';
+import { keptTools } from './ToolsScreen.tsx';
 
 // A tool type's own page (#/tools/<id>): what it is, whether the owner has one, the details Kerf
 // asks for about it, and the methods that can use it. A method's tool names link here.
 
 export function ToolPage(props: { id: string }) {
   const type = findToolType(props.id);
-  const { loaded, reload } = useLoad(() => send(api.api.tools.$get()), 'tools');
+  const { loaded, reload } = useLoad(() => send(api.api.tools.$get()), 'tools', keptTools);
   if (!type) return <Text>There is no page here.</Text>;
   const uses = methodsUsing(type.id);
   const toolList = href({ screen: 'tools' });

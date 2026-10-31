@@ -95,6 +95,7 @@
     --focus-offset: 2px;
 
     --duration-quick: 0.15s;
+    --pressed-opacity: 0.7; /* A control dims while held, as on iOS (#253). */
 
     /* Diagram lines (#44): screen widths in CSS px, never scaled with the drawing. */
     --line-visible: 1.3px;
