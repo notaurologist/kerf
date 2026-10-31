@@ -14,6 +14,10 @@ export const ILLUSTRATION_IDS = [
   'miter',
   'bevel',
   'saw-setting',
+  'bow',
+  'crook',
+  'twist',
+  'bolt-distances',
 ] as const;
 export const IllustrationId = z.enum(ILLUSTRATION_IDS);
 export type IllustrationId = z.infer<typeof IllustrationId>;
@@ -35,7 +39,10 @@ function leader(from: Point2, to: Point2): Primitive {
   return { kind: 'line', role: 'leader', points: [from, to] };
 }
 
-function line(role: 'visible' | 'extension' | 'break', ...points: Point2[]): Primitive {
+function line(
+  role: 'visible' | 'extension' | 'break' | 'center' | 'phantom',
+  ...points: Point2[]
+): Primitive {
   return { kind: 'line', role, points };
 }
 
@@ -201,6 +208,120 @@ function sawSetting(): Drawing {
   );
 }
 
+/** How far warp is drawn from straight: far more than a board worth choosing has, so it shows. */
+const WARP = 0.9;
+const WARP_NOTE = 'The warp is drawn far larger than in a board worth choosing, so it shows.';
+
+/**
+ * A board seen from one side, curving up away from a straight line between its ends: `depth` is
+ * the board's size across the view, its thickness for bow and its width for crook.
+ */
+function curved(title: string, description: string, depth: number, seen: string): Drawing {
+  const length = 16;
+  const steps = 24;
+  const rise = (x: number) => WARP * Math.sin((Math.PI * x) / length);
+  const lower = Array.from({ length: steps + 1 }, (_, i) => {
+    const x = (length * i) / steps;
+    return { x, y: -rise(x) };
+  });
+  const upper = lower.map((p) => ({ x: p.x, y: p.y - depth })).reverse();
+  const middle = { x: length / 2, y: -WARP };
+  return drawing(
+    title,
+    description,
+    [
+      { kind: 'polygon', role: 'visible', points: [...lower, ...upper], fill: 2 },
+      line('phantom', { x: -0.6, y: 0 }, { x: length + 0.6, y: 0 }),
+      ...labeled('Straight line', { x: length + 0.8, y: 1.1 }, { x: length + 0.3, y: 0 }, 'start'),
+      ...labeled(title, { x: middle.x - 2.5, y: 1.6 }, middle, 'end'),
+      text({ x: length / 2, y: -WARP - depth - 0.7 }, seen, 'middle'),
+    ],
+    [WARP_NOTE],
+  );
+}
+
+function bow(): Drawing {
+  return curved(
+    'Bow',
+    'A board seen from its narrow edge, curving away from a straight line between its ends: its wide face is not flat from end to end.',
+    T,
+    'Seen from the narrow edge',
+  );
+}
+
+function crook(): Drawing {
+  return curved(
+    'Crook',
+    'A board seen from its wide face, curving away from a straight line between its ends: its narrow edge is not straight from end to end.',
+    W,
+    'Seen from the wide face',
+  );
+}
+
+function boltDistances(): Drawing {
+  const length = 10;
+  const end = 2.6;
+  const hole = { x: end, y: -W / 2 };
+  const below = 0.9;
+  const across = 5;
+  const grain = -W - 0.9;
+  return drawing(
+    'Edge distance and end distance',
+    'The end of a part with a bolt hole. The end distance runs along the grain from the end of the part to the bolt’s center; the edge distance runs across the grain from the edge to the bolt’s center.',
+    [
+      {
+        kind: 'polygon',
+        role: 'visible',
+        points: [
+          { x: 0, y: 0 },
+          { x: length, y: 0 },
+          { x: length, y: -W },
+          { x: 0, y: -W },
+        ],
+        fill: 2,
+      },
+      breakLine(length),
+      { kind: 'circle', role: 'visible', center: hole, radius: 0.3 },
+      line('center', { x: hole.x, y: -W - 0.3 }, { x: hole.x, y: below + 0.15 }),
+      line('center', { x: hole.x - 0.6, y: hole.y }, { x: across + 0.3, y: hole.y }),
+      // Along the grain: the end of the part to the bolt's center, below the part.
+      line('extension', { x: 0, y: 0.15 }, { x: 0, y: below + 0.15 }),
+      {
+        kind: 'line',
+        role: 'dimension',
+        points: [
+          { x: 0, y: below },
+          { x: hole.x, y: below },
+        ],
+        arrows: true,
+      },
+      text({ x: hole.x / 2, y: below + 0.6 }, 'End distance', 'middle'),
+      // Across the grain: the edge to the bolt's center, beside the hole.
+      {
+        kind: 'line',
+        role: 'dimension',
+        points: [
+          { x: across, y: 0 },
+          { x: across, y: hole.y },
+        ],
+        arrows: true,
+      },
+      text({ x: across + 0.3, y: hole.y / 2 + 0.2 }, 'Edge distance', 'start'),
+      {
+        kind: 'line',
+        role: 'leader',
+        points: [
+          { x: 4, y: grain },
+          { x: 7.5, y: grain },
+        ],
+        arrows: 'end',
+      },
+      text({ x: 3.6, y: grain + 0.2 }, 'Grain', 'end'),
+    ],
+    [],
+  );
+}
+
 // Isometric views: a short length of board lying on its wide face, length along x, width along
 // y, thickness up z, seen from above the cut end.
 
@@ -210,12 +331,16 @@ const VIEW = isometric(1, -1);
 function prism(base: readonly Vec3[], along: Vec3): Primitive[] {
   const top = base.map((p) => add(p, along));
   const n = base.length;
-  const faces = [
+  return shaded([
     [...base].reverse(),
     top,
     ...base.map((p, i) => [p, base[(i + 1) % n] as Vec3, top[(i + 1) % n] as Vec3, top[i] as Vec3]),
-  ];
-  const all = [...base, ...top];
+  ]);
+}
+
+/** The faces of a closed solid that face the viewer, shaded by which way they point. */
+function shaded(faces: readonly (readonly Vec3[])[]): Primitive[] {
+  const all = faces.flat();
   const centre = {
     x: all.reduce((s, p) => s + p.x, 0) / all.length,
     y: all.reduce((s, p) => s + p.y, 0) / all.length,
@@ -245,6 +370,59 @@ function centreOf(points: readonly Vec3[]): Point2 {
     x: pts.reduce((s, p) => s + p.x, 0) / pts.length,
     y: pts.reduce((s, p) => s + p.y, 0) / pts.length,
   };
+}
+
+function twist(): Drawing {
+  const length = 12;
+  const lift = 1.4;
+  // The corners of the board's bottom face, the far corner of its near edge lifted off the surface.
+  const b = [
+    { x: 0, y: 0, z: 0 },
+    { x: length, y: 0, z: lift },
+    { x: length, y: W, z: 0 },
+    { x: 0, y: W, z: 0 },
+  ] as const;
+  const t = b.map((p) => ({ ...p, z: p.z + T }));
+  const [b0, b1, b2, b3] = b;
+  const [t0, t1, t2, t3] = t as [Vec3, Vec3, Vec3, Vec3];
+  const surface: Vec3[] = [
+    { x: -1.5, y: -1.5, z: 0 },
+    { x: length + 2, y: -1.5, z: 0 },
+    { x: length + 2, y: W + 1.5, z: 0 },
+    { x: -1.5, y: W + 1.5, z: 0 },
+  ];
+  const gap = project(VIEW, { x: length, y: 0, z: lift / 2 });
+  const corner = project(VIEW, { x: 0, y: -1.5, z: 0 });
+  return drawing(
+    'Twist',
+    'A twisted board on a flat surface: it rests on three corners, and the fourth lifts off because its ends are turned in different directions.',
+    [
+      {
+        kind: 'polygon',
+        role: 'guideline',
+        points: surface.map((p) => project(VIEW, p)),
+        fill: 'none',
+      },
+      // Where the near edge would rest, so the gap under the lifted corner shows.
+      line(
+        'extension',
+        project(VIEW, b0),
+        project(VIEW, { x: length, y: 0, z: 0 }),
+        project(VIEW, b1),
+      ),
+      ...shaded([
+        [b0, b3, b2, b1],
+        [t0, t1, t2, t3],
+        [b0, b1, t1, t0],
+        [b1, b2, t2, t1],
+        [b2, b3, t3, t2],
+        [b3, b0, t0, t3],
+      ]),
+      ...labeled('Lifts off', { x: gap.x + 2.2, y: gap.y + 1.6 }, gap, 'start'),
+      ...labeled('Flat surface', { x: corner.x - 1, y: corner.y + 1.6 }, corner, 'end'),
+    ],
+    [WARP_NOTE],
+  );
 }
 
 function miter(): Drawing {
@@ -306,4 +484,8 @@ export const ILLUSTRATIONS: Record<IllustrationId, Drawing> = {
   miter: miter(),
   bevel: bevel(),
   'saw-setting': sawSetting(),
+  bow: bow(),
+  crook: crook(),
+  twist: twist(),
+  'bolt-distances': boltDistances(),
 };

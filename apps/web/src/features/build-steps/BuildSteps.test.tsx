@@ -49,19 +49,69 @@ describe('glossary terms in the plan (#178)', () => {
 
   it("marks each term's first use in the build steps once, in method text and flags", () => {
     const terms = marked('build-steps');
-    expect(terms).toEqual(expect.arrayContaining(['miter', 'bevel', 'margins']));
+    expect(terms).toEqual(expect.arrayContaining(['miter', 'bevel', 'margins', 'waste side']));
     expect(new Set(terms).size).toBe(terms.length);
   });
 
   it('starts each section afresh: the structural review marks its own first uses', () => {
-    expect(marked('structural-review')).toEqual(['margin', 'gusset', 'grip']);
+    expect(marked('structural-review')).toEqual([
+      'margin',
+      'bending',
+      'dynamic factor',
+      'shear',
+      'deflection',
+      'flush',
+      'gusset',
+      'burial depth',
+      'ground contact',
+      'edge distance',
+      'nds',
+      'end distance',
+      'grip',
+      'racking',
+      'backfill',
+      'knots',
+      'midspan',
+      'grain',
+      'wane',
+      'design values',
+      'pressure-treated',
+    ]);
   });
 
   // Terms are reachable from every section whose text uses them, not only the build steps.
   it('marks terms in the summary, section intros, and the shopping list', () => {
-    expect(marked('summary')).toEqual(['gusset']);
-    expect(marked('cut-list')).toEqual(['long point']);
-    expect(marked('shopping-list')).toEqual(['grip']);
+    expect(marked('summary')).toEqual([
+      'bending',
+      'flush',
+      'burial depth',
+      'ground contact',
+      'edge distance',
+      'gusset',
+      'end distance',
+    ]);
+    expect(marked('cut-list')).toEqual(['long point', 'level cut']);
+    expect(marked('shopping-list')).toEqual([
+      'grade stamp',
+      'species and grade',
+      'design values',
+      'bow',
+      'crook',
+      'twist',
+      'warped',
+      'grain',
+      'knots',
+      'span',
+      'shake',
+      'shear',
+      'crown',
+      'bending',
+      'end tag',
+      'awpa u1',
+      'use category',
+      'ground contact',
+      'grip',
+    ]);
   });
 });
 

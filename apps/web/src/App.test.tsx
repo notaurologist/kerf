@@ -28,7 +28,7 @@ describe('LoginForm', () => {
 describe('Screen', () => {
   it('lists every glossary entry, in order, each term a dfn at its own id', () => {
     const html = renderToString(<Screen route={{ screen: 'glossary' }} />);
-    const terms = [...html.matchAll(/<div id="term-([a-z-]+)"[^>]*><dt><dfn>([^<]+)<\/dfn>/g)];
+    const terms = [...html.matchAll(/<div id="term-([a-z0-9-]+)"[^>]*><dt><dfn>([^<]+)<\/dfn>/g)];
     expect(terms.map((m) => [m[1], m[2]])).toEqual(GLOSSARY.map((e) => [e.id, e.term]));
     for (const entry of GLOSSARY) {
       expect(html).toContain(entry.definition.replaceAll("'", '&#x27;'));

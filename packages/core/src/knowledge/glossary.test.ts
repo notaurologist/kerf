@@ -27,7 +27,53 @@ describe('glossary', () => {
     }
   });
 
-  it('sources the margin, whose definition is safety-relevant (hard rule 5)', () => {
+  // Shop terms and plain descriptions that no number or structural result depends on. Anything
+  // about strength, stiffness, loads, treatment, or saw safety cites its source (hard rule 5).
+  it('cites a source for every entry except the listed shop terms', () => {
+    expect(GLOSSARY.filter((e) => e.sources.length === 0).map((e) => e.id)).toEqual([
+      'angle-to-the-edge',
+      'backfill',
+      'bevel',
+      'built-up-beam',
+      'burial-depth',
+      'chamfer',
+      'counterbore',
+      'crosscut',
+      'crown',
+      'dado',
+      'dynamic-factor',
+      'end-cut',
+      'end-grain',
+      'flush',
+      'footprint',
+      'grade-stamp',
+      'grip',
+      'gusset',
+      'kerf',
+      'level-cut',
+      'load-bearing',
+      'long-point',
+      'miter',
+      'offcut',
+      'pare',
+      'plumb',
+      'ply',
+      'proud',
+      'racking',
+      'rated-working-load',
+      'reference-face',
+      'rip',
+      'saw-setting',
+      'short-point',
+      'species-and-grade',
+      'splay',
+      'stock',
+      'tamp',
+      'through-bolt',
+      'undisturbed-ground',
+      'wane',
+      'waste-side',
+    ]);
     expect(findGlossaryEntry('margin')?.sources).not.toEqual([]);
   });
 
@@ -81,6 +127,28 @@ describe('findTerms', () => {
     for (const tool of TOOL_TYPES) {
       expect([tool.id, used(`Use the ${tool.name}.`)]).toEqual([tool.id, []]);
     }
+  });
+
+  // Words with an everyday or other Kerf meaning are terms only inside a longer phrase.
+  it('leaves check, grade, level, split, and square unmarked on their own', () => {
+    expect(used('Check the level and the grade; square it, then split it.')).toEqual([]);
+    expect(used('Read the grade stamp for the species and grade.')).toEqual([
+      ['grade-stamp', 'grade stamp'],
+      ['species-and-grade', 'species and grade'],
+    ]);
+    expect(used('A level cut, checked with a level.')).toEqual([['level-cut', 'level cut']]);
+  });
+
+  it('takes the longer of two terms that share words', () => {
+    expect(used('End grain, cross-grain, and grain.')).toEqual([
+      ['end-grain', 'End grain'],
+      ['cross-grain', 'cross-grain'],
+      ['grain', 'grain'],
+    ]);
+    expect(used('The reference design value and the load duration factor.')).toEqual([
+      ['design-value', 'reference design value'],
+      ['load-duration-factor', 'load duration factor'],
+    ]);
   });
 
   it('reads "Kerf" with a capital as the app, and any other case as the term', () => {
