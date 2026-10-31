@@ -1,6 +1,5 @@
 import {
   type CutListRow,
-  createSnapshot,
   describeBasis,
   enteredValues,
   entryEcho,
@@ -8,8 +7,10 @@ import {
   findGlossaryEntry,
   formParts,
   formValues,
+  geometry,
   parseLength,
   planDigests,
+  readSnapshot,
   schemaProblemMessage,
   structural,
   TEMPLATES,
@@ -24,6 +25,7 @@ import { type ReactNode, useState } from 'react';
 import { Button, ButtonLink } from './Button.tsx';
 import { InlineConfirm } from './Confirm.tsx';
 import { SectionList, SectionPager, WithContents } from './Contents.tsx';
+import sample from './catalog-sample.json';
 import { Definitions } from './Definitions.tsx';
 import { Diagram } from './Diagram.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
@@ -67,20 +69,20 @@ import { List, OneLine, Text } from './text.tsx';
 import { ViewSwitch } from './ViewSwitch.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
-// (#45). Sample values are core's output for the first template's worked examples, formatted by
-// core, chosen by what the data holds rather than by name, so the design system knows no
-// template (ARCHITECTURE.md, principle 6). Nothing here is made up.
+// (#45). Sample values are core's output for the first template's worked examples, as the API
+// would send them (catalog-sample.json, written by the API's write-catalog-sample script), chosen
+// by what the data holds rather than by name, so the design system knows no template
+// (ARCHITECTURE.md, principle 6). Nothing here is made up.
 
 const template = TEMPLATES[0] as TemplateDefinition;
-function made(index: number) {
-  const example = template.examples[index];
-  const result = createSnapshot(template, example?.params, example?.structuralInputs);
-  if (!result.ok) throw new Error(`The worked example ${index} does not generate.`);
-  const outputs = template.outputs.parse(result.output.outputs);
-  return { outputs, plan: template.plan(outputs) };
+/** A stored snapshot from the sample, read as the API reads one, with its plan. */
+function read(stored: unknown) {
+  const result = readSnapshot(TEMPLATES, stored);
+  if (!result.ok) throw new Error(`The catalog sample does not read: ${result.message}`);
+  return { plan: template.plan(template.storedOutputs.parse(result.snapshot.outputs)) };
 }
-const first = made(0);
-const last = made(template.examples.length - 1);
+const first = read(sample.first);
+const last = read(sample.last);
 const rows = first.plan.cutList;
 /** A part with an angled end and a marked length, for the cut-card samples. */
 function samplePart(): CutListRow {
@@ -99,8 +101,8 @@ const check = computed(first.plan);
 const margin = check ? structural.formatMargin(check.margin) : '';
 const sampleFlag = first.plan.flags[0];
 const digests = planDigests(first.plan);
-// The worked example's drawings, drawn by core from its outputs (#90), as the API does.
-const drawings = template.drawings(first.outputs);
+// The worked example's drawings, drawn by core from its outputs (#90).
+const drawings = geometry.Drawings.parse(sample.drawings);
 const partDetail = drawings.cutDetails.find((d) => d.title.endsWith(part.name));
 /** Length fields from the template's form, for the field samples. */
 const lengths = template.form.params.flatMap((s) => s.fields).filter((f) => f.kind === 'length');
@@ -138,14 +140,7 @@ const previewPart = last.plan.cutList.find((r) => r.partId === part.partId);
 const lastCheck = computed(last.plan);
 const previewMargin = lastCheck ? structural.formatMargin(lastCheck.margin) : '';
 /** The first example's parameters with no structural inputs entered: every check needs input. */
-function unentered() {
-  const result = createSnapshot(template, template.examples[0]?.params, {});
-  if (!result.ok) return undefined;
-  return template
-    .plan(template.outputs.parse(result.output.outputs))
-    .checks.find((c) => c.status === 'input-needed');
-}
-const needsInput = unentered();
+const needsInput = read(sample.unentered).plan.checks.find((c) => c.status === 'input-needed');
 /** A check core could not compute, if a worked example has one. */
 const notComputed = [...first.plan.checks, ...last.plan.checks].find(
   (c) => c.status === 'not-computed',
