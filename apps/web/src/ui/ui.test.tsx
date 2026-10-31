@@ -259,9 +259,7 @@ describe('ErrorSummary', () => {
     const none: string[] = [];
     const failed = reported({ issues: none, attempt: 0 }, ['Enter a length.'], true);
     expect(failed.attempt).toBe(1);
-    // Typing re-renders with the same state; a later save that still finds problems moves focus.
     expect(reported(failed, ['Enter a length.'], true).attempt).toBe(2);
-    // A save that finds nothing clears the problems without moving focus.
     expect(reported(failed, none, false)).toEqual({ issues: none, attempt: 1 });
   });
 
@@ -271,7 +269,6 @@ describe('ErrorSummary', () => {
 });
 
 describe('leavingFor', () => {
-  /** A clicked element inside a link to `href`, matching `a[href^="…"]` as the browser would. */
   const inLink = (href: string) =>
     ({
       closest: (selector: string) => {

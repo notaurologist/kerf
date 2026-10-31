@@ -53,11 +53,7 @@ export function useLeaveGuard(dirty: boolean) {
   return { dialog, leave };
 }
 
-/**
- * The route a click would leave for, or undefined when it stays on this screen. Only route links
- * (`#/…`) leave: a link to an element on the page, such as an error summary's link to its field,
- * keeps the form.
- */
+/** Only route links (`#/…`) leave; links within the page, such as an error summary's, do not. */
 export function leavingFor(
   clicked: Pick<Element, 'closest'> | null,
   currentHash: string,

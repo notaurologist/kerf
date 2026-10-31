@@ -344,7 +344,6 @@ export function ProjectEditor(props: {
     !sameJson(inputs, props.initial.inputs);
   const guard = useLeaveGuard(dirty && !saving);
 
-  /** Shows what a save attempt found; returns whether it found anything. */
   const show = (fieldIssues: FieldIssue[], nameIssue?: string, confirmIssue?: string) => {
     const forParams = fieldIssues.filter(
       (i) => belongsTo(form.params, i.field) || !belongsTo(form.structuralInputs, i.field),

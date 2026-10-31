@@ -25,11 +25,7 @@ export interface SummaryItem {
   message: string;
 }
 
-/**
- * A form's problems and how many save attempts have found some. `report` records each attempt's
- * outcome; the attempt count goes up only when it found problems, which is when the summary takes
- * focus. Typing re-renders the form without changing the count, so focus stays in the field.
- */
+/** `attempt` goes up only when a save finds problems, so re-renders while typing keep focus. */
 export function useFormIssues<T>(none: T) {
   const [state, setState] = useState({ issues: none, attempt: 0 });
   const report = useCallback(
@@ -49,13 +45,13 @@ export function reported<T>(
 
 /**
  * The problems a failed save found, at the top of the form, each a link to its field. Takes
- * focus once for each save attempt that found problems, so a screen reader reads it and a
- * keyboard user starts from it (GOV.UK), and never while the owner is typing a fix.
+ * focus when a save finds problems, so a screen reader reads it and a keyboard user starts from
+ * it (GOV.UK).
  */
 export function ErrorSummary(props: {
   items: readonly SummaryItem[];
   general?: readonly string[];
-  /** From `useFormIssues`. 0, as for a specimen in the catalog, never takes focus. */
+  /** From `useFormIssues`; 0 never takes focus. */
   attempt: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
