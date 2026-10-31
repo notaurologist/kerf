@@ -547,10 +547,12 @@ describe('a project whose template version is behind', () => {
       currentVersion: CURRENT + 1,
       regenerated: {
         ok: true,
+        outputs: expect.objectContaining({ cutList: expect.any(Array) }),
         changes: [{ path: 'cutList[0].length', before: '120"', after: '121"' }],
         truncated: false,
       },
     });
+    expect(project.version.regenerated.outputs.cutList[0].length).toBe('121"');
     // The stored plan is still the earlier version's.
     expect(project.snapshot.outputs.cutList[0].length).toBe('120"');
 

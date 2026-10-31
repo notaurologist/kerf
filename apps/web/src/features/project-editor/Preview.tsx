@@ -186,7 +186,8 @@ export function PreviewPane(props: { saved: Plan | null; state: PreviewState }) 
   );
 }
 
-function PlanOutputs(props: { plan: Plan; changes: Changes | undefined }) {
+/** The outputs an edit most often moves, each changed value marked with the one it replaces. */
+export function PlanOutputs(props: { plan: Plan; changes: Changes | undefined }) {
   const { plan, changes } = props;
   return (
     <>

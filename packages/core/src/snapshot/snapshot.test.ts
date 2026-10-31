@@ -3,6 +3,9 @@ import { z } from 'zod';
 import type { TemplateDefinition } from '../templates/definition.ts';
 import { swingSetAFrame } from '../templates/swing-set-a-frame/definition.ts';
 import type { SwingSetParams } from '../templates/swing-set-a-frame/params.ts';
+import previousVersion from '../templates/swing-set-a-frame/snapshots/v11.json' with {
+  type: 'json',
+};
 import type { SwingSetStructuralInputs } from '../templates/swing-set-a-frame/structural.ts';
 import {
   compareSnapshots,
@@ -125,6 +128,16 @@ describe('readSnapshot', () => {
   });
 });
 
+const asJson = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
+
+/** The value at a path such as 'cutList[0].length'. */
+function valueAt(value: unknown, path: string): unknown {
+  return path
+    .split(/\.|\[(\d+)\]/)
+    .filter(Boolean)
+    .reduce<unknown>((v, key) => (v as Record<string, unknown> | undefined)?.[key], value);
+}
+
 // Versions relative to the template's current one, so these tests outlive real version bumps.
 const CURRENT = swingSetAFrame.version;
 const SHAPE = swingSetAFrame.snapshotVersion;
@@ -165,10 +178,29 @@ describe('compareWithCurrent', () => {
       currentVersion: CURRENT + 1,
       regenerated: {
         ok: true,
+        outputs: expect.objectContaining({ cutList: expect.any(Array) }),
         changes: [{ path: 'cutList[0].length', before: '120"', after: '121"' }],
         truncated: false,
       },
     });
+  });
+
+  it('reports changes in the plan every display reads, for a plan stored by an older version', () => {
+    const template = swingSetAFrame as TemplateDefinition;
+    const [stored] = previousVersion as unknown[];
+    const read = readSnapshot([template], stored);
+    if (!read.ok) throw new Error(read.message);
+    const report = compareWithCurrent(template, read.snapshot);
+    if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+    const { changes, outputs } = report.regenerated;
+    expect(changes.length).toBeGreaterThan(0);
+    const before = asJson(template.plan(template.outputs.parse(read.snapshot.outputs)));
+    const after = asJson(template.plan(template.outputs.parse(outputs)));
+    for (const change of changes) {
+      if ('before' in change)
+        expect(valueAt(before, change.path), change.path).toEqual(change.before);
+      if ('after' in change) expect(valueAt(after, change.path), change.path).toEqual(change.after);
+    }
   });
 
   it('reports when the newer version rejects the stored parameters', () => {

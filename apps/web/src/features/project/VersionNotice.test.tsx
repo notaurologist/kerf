@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
-import { reportValue, VersionNotice } from './VersionNotice.tsx';
+import { VersionNotice } from './VersionNotice.tsx';
 
 const snapshot = storedSnapshots[0] ?? null;
+const outputs = snapshot?.outputs as { cutList: { length: string }[] };
+/** What a newer version would store: the stored outputs with the first cut 1" longer. */
+const lengthened = {
+  ...outputs,
+  cutList: outputs.cutList.map((row, i) => (i === 0 ? { ...row, length: '121"' } : row)),
+};
 const withReport = (version: Project['version']) =>
   projectFrom(snapshot, { version, templateBehind: version?.status === 'behind' });
 const show = (version: Project['version']) =>
@@ -22,38 +28,43 @@ describe('VersionNotice', () => {
     ).toBe('');
   });
 
-  it('lists what regenerating would change, before and after, and offers to regenerate', () => {
+  it('shows the regenerated plan with each changed value marked, and offers to regenerate', () => {
+    const version = {
+      status: 'behind' as const,
+      storedVersion: 1,
+      currentVersion: 2,
+      regenerated: {
+        ok: true as const,
+        outputs: lengthened,
+        changes: [{ path: 'cutList[0].length', before: '120"', after: '121"' }],
+        truncated: false,
+      },
+    };
+    const text = show(version);
+    const html = render(<VersionNotice project={withReport(version)} onRegenerated={() => {}} />);
+    expect(text).toContain('This plan was made with version 1; the current version is 2.');
+    expect(text).toContain('Regenerating would change 1 values');
+    expect(text).toContain("These are version 2's values.");
+    expect(text).toContain('121" was 120"');
+    expect(html.match(/<tr data-changed="">/g)).toHaveLength(1);
+    expect(text).not.toMatch(/cutList|\[0\]/);
+    expect(text).toContain('Regenerate with version 2');
+  });
+
+  it('says when more values changed than it can list', () => {
     const text = show({
       status: 'behind',
       storedVersion: 1,
       currentVersion: 2,
       regenerated: {
         ok: true,
-        changes: [
-          { path: 'cutList[0].length', before: '120"', after: '121"' },
-          { path: 'lumber.boards[0].offcut', before: 22.875, after: 21.875 },
-          { path: 'design.flags[3]', after: { category: 'load-bearing' } },
-        ],
-        truncated: false,
+        outputs: lengthened,
+        changes: [{ path: 'cutList[0].length', before: '120"', after: '121"' }],
+        truncated: true,
       },
     });
-    expect(text).toContain('This plan was made with version 1; the current version is 2.');
-    expect(text).toContain('Regenerating would change 3 values');
-    expect(text).toContain('cutList[0].length 120" 121"');
-    expect(text).toContain('lumber.boards[0].offcut 22.9 21.9');
-    expect(text).toContain('design.flags[3] (none)');
-    expect(text).toContain('Regenerate with version 2');
-  });
-
-  it('says when the list of changes is cut short', () => {
-    const text = show({
-      status: 'behind',
-      storedVersion: 1,
-      currentVersion: 2,
-      regenerated: { ok: true, changes: [{ path: 'a', before: 1, after: 2 }], truncated: true },
-    });
     expect(text).toContain('Regenerating would change 1 or more values');
-    expect(text).toContain('Only the first 1 changes are listed.');
+    expect(text).toContain('More values changed than can be listed');
   });
 
   it('gives the issues, and no regenerate button, when the new version cannot make the plan', () => {
@@ -84,13 +95,5 @@ describe('VersionNotice', () => {
       />,
     );
     expect(html).toMatch(/^<div class="k-info" role="status">/);
-  });
-});
-
-describe('reportValue', () => {
-  it('shows text as stored and numbers through core', () => {
-    expect(reportValue('8-15/16"')).toBe('8-15/16"');
-    expect(reportValue(138.35412783771903)).toBe('138.4');
-    expect(reportValue(undefined)).toBe('(none)');
   });
 });

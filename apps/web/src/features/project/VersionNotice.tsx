@@ -1,32 +1,25 @@
-import { structural } from '@kerf/core';
+import type { Change } from '@kerf/core';
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
+import { indexChanges } from '../../lib/changes.tsx';
+import { planOf } from '../../lib/plan.ts';
 import type { Project } from '../../lib/types.ts';
 import {
   Button,
   Card,
   Cluster,
-  Code,
   Disclosure,
   InfoNotice,
   InlineConfirm,
   List,
-  MeasureTable,
   Stack,
   Text,
   useReturnFocus,
 } from '../../ui/index.ts';
+import { PlanOutputs } from '../project-editor/Preview.tsx';
 
 // Tells the owner when a project's template has a newer version, what regenerating would change,
 // and regenerates only when asked (decision 0008). The stored plan is never replaced otherwise.
-
-/** A value from the version report: text as stored, numbers through core's formatter. */
-export function reportValue(value: unknown): string {
-  if (value === undefined) return '(none)';
-  if (typeof value === 'number') return structural.formatNumber(value);
-  if (typeof value === 'string') return value;
-  return JSON.stringify(value);
-}
 
 export function VersionNotice(props: {
   project: Project;
@@ -81,22 +74,13 @@ export function VersionNotice(props: {
             <Disclosure
               summary={`Regenerating would change ${regenerated.changes.length}${regenerated.truncated ? ' or more' : ''} values`}
             >
-              <MeasureTable
-                caption="Values regenerating would change"
-                captionHidden
-                rows={regenerated.changes}
-                rowKey={(c) => c.path}
-                columns={[
-                  { key: 'value', label: 'Value', cell: (c) => <Code>{c.path}</Code> },
-                  { key: 'now', label: 'Now', cell: (c) => reportValue(c.before) },
-                  { key: 'after', label: 'After regenerating', cell: (c) => reportValue(c.after) },
-                ]}
+              <RegeneratedPlan
+                templateId={project.templateId}
+                outputs={regenerated.outputs}
+                changes={regenerated.changes}
+                truncated={regenerated.truncated}
+                currentVersion={report.currentVersion}
               />
-              {regenerated.truncated && (
-                <Text tone="muted">
-                  Only the first {regenerated.changes.length} changes are listed.
-                </Text>
-              )}
             </Disclosure>
           )
         ) : (
@@ -138,5 +122,27 @@ export function VersionNotice(props: {
           ))}
       </Stack>
     </Card>
+  );
+}
+
+/** The plan regenerating would store, each changed value marked with this plan's value. */
+function RegeneratedPlan(props: {
+  templateId: string;
+  outputs: unknown;
+  changes: readonly Change[];
+  truncated: boolean;
+  currentVersion: number;
+}) {
+  const plan = planOf(props.templateId, props.outputs);
+  if (!plan.ok) return <Text>{plan.message}</Text>;
+  return (
+    <Stack gap="xs">
+      <Text tone="muted">
+        These are version {props.currentVersion}'s values. Each changed value shows this plan's
+        value under it.
+        {props.truncated && ' More values changed than can be listed; regenerate to see them all.'}
+      </Text>
+      <PlanOutputs plan={plan.plan} changes={indexChanges(props.changes)} />
+    </Stack>
   );
 }
