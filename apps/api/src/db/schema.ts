@@ -59,6 +59,11 @@ export const projects = pgTable(
     check('projects_status', sql`${t.status} in ('planned', 'in-progress', 'built')`),
     check('projects_name', sql`length(trim(${t.name})) > 0`),
     check('projects_template_version', sql`${t.templateVersion} > 0`),
+    // The list reads the version from this column without parsing every snapshot.
+    check(
+      'projects_template_version_matches_snapshot',
+      sql`${t.templateVersion} = (${t.snapshot}->>'templateVersion')::integer`,
+    ),
     index('projects_updated_at').on(t.updatedAt),
   ],
 );

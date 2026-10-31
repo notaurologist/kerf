@@ -16,18 +16,24 @@
     --muted: light-dark(#545860, #aaaeb4);
     --border: light-dark(#d7d4ce, #2f3339);
     --border-strong: light-dark(#70757c, #82868e);
+    /* Primary buttons; the roles below start at the same blue and can move apart. */
     --accent: light-dark(#0e5caf, #70b3f7);
     --on-accent: light-dark(#ffffff, #0c121a);
+    --link: light-dark(#0e5caf, #70b3f7);
+    --needed: light-dark(#0e5caf, #70b3f7);
+    --changed: light-dark(#0e5caf, #70b3f7);
     --focus: light-dark(#1570d1, #73bdff);
     --flag-bg: light-dark(#ffe8be, #3e290f);
     --flag-border: light-dark(#bb7400, #dea143);
     --flag-text: light-dark(#5b3106, #f7dba1);
     --input-bg: light-dark(#ffffff, #1a1d23);
     --input-border: light-dark(#2e64a6, #6da9e7);
-    --input-text: light-dark(#0e4786, #97c9fd);
     --done: light-dark(#0e5caf, #70b3f7);
     --error: light-dark(#aa295f, #ea7ca1);
     --error-bg: light-dark(#ffebf1, #3d1e28);
+    --scrim: rgb(0 0 0 / 0.4);
+    /* Print is on white paper, whatever the page color. */
+    --paper: #ffffff;
 
     /* C1: diagram ink (#44). */
     --ink: light-dark(#1a1d23, #edebe7);
@@ -77,7 +83,18 @@
     --control-min: 2.75rem; /* 44 px */
     --content-max: 75rem; /* 1200 px */
     --measure: 68ch;
-    --radius: 2px; /* Eased, as sandpaper eases an edge (#148). Tags use 1px. */
+    --radius: 2px; /* Eased, as sandpaper eases an edge (#148). */
+    --radius-tag: 1px;
+
+    /* Borders and bars, from a box's edge to the bar that marks a change. */
+    --border-thin: 1px;
+    --border-mid: 1.5px;
+    --border-thick: 2px;
+    --border-bar: 3px;
+    --focus-width: 3px;
+    --focus-offset: 2px;
+
+    --duration-quick: 0.15s;
 
     /* Diagram lines (#44): screen widths in CSS px, never scaled with the drawing. */
     --line-visible: 1.3px;
@@ -91,6 +108,9 @@
     --line-break: 1px;
     --line-grade: 2px;
     --line-zone: 1.5px;
+    --line-hatch: 1px;
+    /* The page-color halo behind drawing text. */
+    --line-halo: 3px;
     --dash-hidden: 5 3;
     --dash-center: 16 3 4 3;
     --dash-phantom: 16 3 3 3 3 3;

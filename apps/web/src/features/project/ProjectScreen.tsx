@@ -1,5 +1,5 @@
 import { findTemplate, planTerms } from '@kerf/core';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
@@ -106,14 +106,6 @@ export function ProjectView(props: {
       })
     : undefined;
 
-  useEffect(() => {
-    const before = document.title;
-    document.title = `${current.title} · ${project.name} · Kerf`;
-    return () => {
-      document.title = before;
-    };
-  }, [current.title, project.name]);
-
   // After a move, focus goes to the section's heading; arriving with a part goes to it instead.
   usePlanMoves(
     current.id,
@@ -139,6 +131,7 @@ export function ProjectView(props: {
     <Stack gap="l">
       <ScreenHeader
         title={project.name}
+        pageTitle={`${current.title} · ${project.name}`}
         actions={
           plan.ok && (
             <>

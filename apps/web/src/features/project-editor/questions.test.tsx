@@ -88,7 +88,9 @@ describe('the form filled in from the answers', () => {
     for (const path of confirmedPaths(template.form.params)) expect(params[path]).toBe('');
     const filled = Object.entries(inputs).filter(([, t]) => t !== '');
     expect(filled.map(([path]) => path)).toEqual(['riderWeights.0', 'riderWeights.1']);
-    expect(html).toMatch(/Leg-to-beam bolt diameter<\/span><span class="k-needed">/);
+    expect(html).toMatch(
+      /Leg-to-beam bolt diameter<\/span><span class="k-tag" data-tone="needed">/,
+    );
   });
 
   it('stops saying where a value came from once the owner changes it', () => {

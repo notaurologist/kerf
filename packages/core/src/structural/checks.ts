@@ -354,14 +354,15 @@ function strengthCheck(
       steps: [
         ...prepared.steps,
         ...reactionSteps,
-        {
-          symbol: 'M',
-          label: `Largest moment${per}, at ${(x + input.member.supportsX[0]).toFixed(3)} in`,
-          value: M,
-          unit: 'lb·in',
-        },
+        { symbol: 'M', label: `Largest moment${per}`, value: M, unit: 'lb·in' },
         { symbol: 'S', label: 'Section modulus', value: S, unit: 'in³' },
         ...adjusted.stabilitySteps,
+        {
+          symbol: 'x_M',
+          label: `Position of largest moment${per}`,
+          value: x + input.member.supportsX[0],
+          unit: 'in',
+        },
       ],
       factors: factorsFor(adjusted, 'Fb'),
       sources: [...SOURCES.superposition, SOURCES.bending],

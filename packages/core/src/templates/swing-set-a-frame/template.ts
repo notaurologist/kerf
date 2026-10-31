@@ -55,7 +55,7 @@ import { flags, validate, validateSwings } from './validate.ts';
  * puts each hardware item and shopping line in a store group (#59), and rewords each bolt's note
  * as #68's audit asked; no number changes.
  */
-export const TEMPLATE_VERSION = 12;
+export const TEMPLATE_VERSION = 13;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

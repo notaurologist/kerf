@@ -23,6 +23,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
   Gaps are steps of the spacing scale (`3xs` to `xl`), never lengths.
 - **Headings:** plain `h1` to `h5`, which the base styles size. Sections of the plan use `PlanSection`, which also gives each its printed page and title block, and an `intro` line under the heading when the section needs one. `newPage={false}` lets the first section share the printed page with the title. Each section is its own screen (#156): pass `hidden` for every section but the current one, so they stay in the page and print in order A. After a move between sections, focus goes to its heading (`usePlanMoves`, `lib/planMoves.ts`).
+- **Moving between screens:** a new screen opens at its top with focus on its `h1`, and the document title names it (`useScreenChange` in App, `lib/screenChange.ts`). Give every screen's `h1` through `ScreenHeader`'s `title`, or `ScreenHeading` where a screen has no header, such as a build step; a plain `h1` takes no focus and names nothing. Moves between the plan's sections are not screen changes.
 - **Loading and errors:** render `useLoad`'s state through `Loaded` (`lib/Loaded.tsx`), which shows `Loading` while data loads (it waits 300 ms, so a fast load does not flash) and a `Notice` if it did not load. Use `Notice` for any other problem that is not about a field, with `icon="connection"` when the server cannot be reached; `failureOf` (`lib/api.ts`) says which.
 - **Announcing:** screens never write `role="alert"` or `role="status"`. `ErrorText alert`, `Notice`, `SaveFailed`, `StatusLine`, `InfoNotice`, and `Loading` own their live regions; `ui/screens.test.ts` fails if a screen writes one.
 - **A lone action:** a single button or link goes in a `Cluster`, so it keeps its own width instead of stretching across a `Stack`.
@@ -38,7 +39,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Terms with their definitions | `Definitions` | Each term a `dfn` in a description list, with an optional `figure` (a `Diagram`) under the definition, no wider than 28rem, each entry with its own `id` that takes focus, so a link can bring it into view. The glossary (`#/glossary`). An entry does not split across printed pages. |
 | Key figures at a glance | `Figures` | A label over each value, with an optional `detail` line, as many to a row as fit. The plan's summary. |
 | One line of a longer text | `OneLine` | Cut short with an ellipsis, with the full text in the page; only where the full text is a link away. |
-| The top of a screen | `ScreenHeader` | The `h1` with the screen's `actions` beside it (wrapping under it when narrow), then a `lede`, a `meta` line of facts, and a `status` such as a `StatusLine`. |
+| The top of a screen | `ScreenHeader` | The `h1` with the screen's `actions` beside it (wrapping under it when narrow), then a `lede`, a `meta` line of facts, and a `status` such as a `StatusLine`. `title` is a required string: the heading and the document title. `heading` shows richer markup in its place, such as an icon, and `pageTitle` says more in the document title, such as the plan's section. |
 | An action | `Button` | `primary` for the main action, `secondary` for the others, `destructive` for one that destroys (named for what it destroys), `link` for a quiet action in running text. `busy` while working, with `busyLabel` saying what is happening ("Saving…"). |
 | An action that fails | `ErrorText alert` under it | Announced when it appears. |
 | A question asked in place | `InlineConfirm` | The question (and any field to fill in), the action named for what it does, a "Keep …" choice, the busy label, and the error. A form, so Enter answers. Use `ConfirmDialog` only when the answer has to come before going anywhere. |
@@ -85,13 +86,33 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 | Group | Names | From |
 |---|---|---|
-| Color | `--bg`, `--raised`, `--sunken`, `--text`, `--muted`, `--border`, `--border-strong`, `--accent`, `--on-accent`, `--focus`, `--flag-bg`, `--flag-border`, `--flag-text`, `--input-bg`, `--input-border`, `--input-text`, `--done`, `--error`, `--error-bg` | C1 (#43). Each is `light-dark(light, dark)`. |
+| Color | `--bg`, `--raised`, `--sunken`, `--text`, `--muted`, `--border`, `--border-strong`, `--accent`, `--on-accent`, `--link`, `--needed`, `--changed`, `--done`, `--focus`, `--flag-bg`, `--flag-border`, `--flag-text`, `--input-bg`, `--input-border`, `--error`, `--error-bg` | C1 (#43). Each is `light-dark(light, dark)`. |
+| Color roles | `--accent` primary buttons; `--link` links, link buttons, and disclosure toggles; `--needed` input needed; `--changed` the bar beside a changed value and state tags; `--done` ticks and the status icon | All start at C1's accent blue, so each can move without the others. |
+| Other color | `--scrim` behind a dialog; `--paper` the printed page (white) | |
 | Diagram ink | `--ink`, `--dim`, `--hidden`, `--highlight`, `--zone`, `--zone-line`, `--tone-1` to `--tone-3`, `--highlight-1` to `--highlight-3` | #44 |
 | Type | `--font-text`, `--font-mono`, `--size--1` to `--size-3`, `--size-read`, `--size-glance`, `--size-saw`, `--size-edge`, `--leading-*` | #42, decision 0015 |
-| Space and corners | `--space-3xs` to `--space-xl`, `--density`, `--control-min`, `--content-max`, `--measure`; `--radius` (2 px, eased; 1 px on small tags) | #41, #148 |
+| Space and corners | `--space-3xs` to `--space-xl`, `--density`, `--control-min`, `--content-max`, `--measure`; `--radius` (2 px, eased), `--radius-tag` (1 px, small tags) | #41, #148 |
+| Borders and focus | `--border-thin` (1 px: cards, tables, rules), `--border-mid` (1.5 px: inputs, callouts, tags), `--border-thick` (2 px: buttons, errors, input needed), `--border-bar` (3 px: the changed bar, the current section, a suggested value's source), `--focus-width` (3 px), `--focus-offset` (2 px) | #43 |
+| Motion | `--duration-quick` (0.15 s, a chevron turning) | Reduced motion turns it off (`reset.css`). |
 | Lines | `--line-*` (screen widths; print widths in print), `--dash-*` | #44 |
 
-`tokens.test.ts` checks every contrast ratio recorded in `color.html` against these values. When a color changes, measure the new pairing and update both the value and the recorded ratio.
+`tokens.test.ts` checks every contrast ratio recorded in `color.html` against these values, and that every token is used. When a color changes, measure the new pairing and update both the value and the recorded ratio.
+
+`styles.test.ts` keeps the stylesheets to the tokens: `components.css` writes no hex, `rgb(`, or px value (only the 1 px box that hides an element from sight), every `k-` and `l-` class is named in a source file, and print rules are only in `print.css`.
+
+## Breakpoints
+
+Components respond to their own width (container queries), so a breakpoint is a width of the component, not the page. Use one of these; `styles.test.ts` fails on any other.
+
+| Width | Used by |
+|---|---|
+| `30rem` | `Diagram`: part letters in one column below 480 px |
+| `36rem` | `SectionPager`: Previous and Next side by side |
+| `37.5rem` | `StepLayout`: the drawing beside the step (600 px) |
+| `40rem` | `MeasureTable`: a table rather than stacked rows (640 px) |
+| `48rem` | `WithContents`: the contents beside the sections |
+| `56rem` | `MeasureTable`: fit columns on one line (896 px) |
+| `60rem` | `WithAside`: the aside beside the form |
 
 ## Layers
 
@@ -106,15 +127,15 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 ## Adding a component
 
 1. **Check first.** Make sure no existing component or primitive does the job, and that the need traces to a recorded design choice. A new visual idea goes to the owner first.
-2. **Write the code.** Add the component to `ui/`, with its styles as a `k-` block in `styles/components.css`, states as `data-` attributes, and colors, sizes, and space from tokens only.
+2. **Write the code.** Add the component to `ui/`, with its styles as a `k-` block in `styles/components.css`, states as `data-` attributes, and colors, sizes, borders, and space from tokens only. A box with an icon and words is a `k-callout` with a `data-tone`; a few words in an outlined box is a `k-tag` with a `data-tone`. Print rules go in `styles/print.css`.
 3. **Export it** from `ui/index.ts`.
-4. **Test it.** Add render tests to `ui.test.tsx`: each state, its accessible name and role, and that no meaning rests on color.
+4. **Test it.** Add render tests to `ui.test.tsx`: each state, its accessible name and role, and that no meaning rests on color. If it has an effect, moves focus, or handles events, also add a `*.dom.test.tsx` beside it that mounts it with `test/dom.tsx` and checks what happens (0017).
 5. **Show it** on the catalog page in each state.
 6. **Document it.** Add it to the table above.
 
 ## Icons
 
-Corners are eased everywhere (#148): boxes, fields, buttons, the dialog, and the part letter use `--radius` (2 px), and small tags 1 px. Drawings stop lines where they are drawn (butt ends) and round their joins. Use `--radius` rather than a new literal value.
+Corners are eased everywhere (#148): boxes, fields, buttons, the dialog, and the part letter use `--radius` (2 px), and small tags `--radius-tag` (1 px). Drawings stop lines where they are drawn (butt ends) and round their joins. Use `--radius` rather than a new literal value.
 
 Kerf's icons (`ui/Icon.tsx`) are drawn on a 16-unit grid with a 1-unit line on half units, with round ends and joins, to match the tool icons. They are always decorative.
 

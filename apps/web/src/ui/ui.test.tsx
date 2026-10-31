@@ -32,6 +32,7 @@ import {
   Icon,
   InfoNotice,
   InlineConfirm,
+  InputNeeded,
   Length,
   List,
   Loading,
@@ -110,7 +111,7 @@ describe('Field', () => {
 
   it('puts input needed on its own line under the label', () => {
     expect(field({ needed: true })).toMatch(
-      /<label class="k-field__label" for="f"><span>Beam height<\/span><span class="k-needed">/,
+      /<label class="k-field__label" for="f"><span>Beam height<\/span><span class="k-tag" data-tone="needed">/,
     );
   });
 
@@ -314,6 +315,23 @@ describe('notices', () => {
   it('announces status without moving focus, and problems as alerts', () => {
     expect(render(<StatusLine>Saved.</StatusLine>)).toContain('role="status"');
     expect(render(<Notice>Not saved.</Notice>)).toContain('role="alert"');
+  });
+
+  it('share one callout box, told apart by tone', () => {
+    expect(render(<ExpertCheck>y</ExpertCheck>)).toMatch(
+      /^<div class="k-callout" data-tone="flag">/,
+    );
+    expect(render(<Notice>x</Notice>)).toMatch(/^<div class="k-callout" data-tone="notice"/);
+    expect(render(<InfoNotice>x</InfoNotice>)).toMatch(/^<div class="k-callout" data-tone="info"/);
+  });
+
+  it('share one tag box, told apart by tone', () => {
+    expect(render(<InputNeeded />)).toBe(
+      '<span class="k-tag" data-tone="needed">Input needed</span>',
+    );
+    expect(render(<StateTag>Preview</StateTag>)).toBe(
+      '<span class="k-tag" data-tone="state">Preview</span>',
+    );
   });
 
   it('waits before showing loading text, so a fast load does not flash', () => {
@@ -681,13 +699,13 @@ describe('ScreenHeader', () => {
     expect(renderText(header)).toBe('Backyard Edit What this is for. Planned. Saved.');
     const html = render(header);
     expect(html).toMatch(/^<header class="l-stack"/);
-    expect(html).toContain('<h1>Backyard</h1>');
+    expect(html).toContain('<h1 tabindex="-1">Backyard</h1>');
     expect(html.match(/data-tone="muted"/g)).toHaveLength(2);
   });
 
   it('is only a heading when given only a title', () => {
     expect(render(<ScreenHeader title="Tools" />)).toMatch(
-      /^<header[^>]*><h1>Tools<\/h1><\/header>$/,
+      /^<header[^>]*><h1 tabindex="-1">Tools<\/h1><\/header>$/,
     );
   });
 });
