@@ -56,39 +56,39 @@ export function Diagrams(props: {
     drawings.isometric && drawings.exploded
       ? sharedFrame(drawings.isometric.bounds, drawings.exploded.bounds)
       : undefined;
-  const assembly: View[] = [];
-  if (drawings.isometric) {
-    assembly.push({
-      id: 'assembled',
-      label: 'Assembled',
-      content: (
-        <Diagram
-          {...common}
-          page="landscape"
-          frame={frame}
-          motion={frame && motion.assembled}
-          drawing={drawings.isometric}
-          label={`Isometric view. ${drawings.isometric.description} ${parts}`}
-        />
-      ),
-    });
-  }
-  if (drawings.exploded) {
-    assembly.push({
-      id: 'exploded',
-      label: 'Exploded',
-      content: (
-        <Diagram
-          {...common}
-          page="landscape"
-          frame={frame}
-          motion={frame && motion.exploded}
-          drawing={drawings.exploded}
-          label={`Exploded view. ${drawings.exploded.description} ${parts}`}
-        />
-      ),
-    });
-  }
+  const assembled: View | null = drawings.isometric && {
+    id: 'assembled',
+    label: 'Assembled',
+    action: 'Assemble',
+    content: (
+      <Diagram
+        {...common}
+        page="landscape"
+        frame={frame}
+        motion={frame && motion.assembled}
+        drawing={drawings.isometric}
+        label={`Isometric view. ${drawings.isometric.description} ${parts}`}
+      />
+    ),
+  };
+  const exploded: View | null = drawings.exploded && {
+    id: 'exploded',
+    label: 'Exploded',
+    action: 'Explode',
+    content: (
+      <Diagram
+        {...common}
+        page="landscape"
+        frame={frame}
+        motion={frame && motion.exploded}
+        drawing={drawings.exploded}
+        label={`Exploded view. ${drawings.exploded.description} ${parts}`}
+      />
+    ),
+  };
+  const lone = assembled ?? exploded;
+  const assembly =
+    assembled && exploded ? ([assembled, exploded] as const) : lone && ([lone] as const);
   return (
     <Stack gap="l">
       <Text tone="muted">
@@ -101,9 +101,7 @@ export function Diagrams(props: {
           <a href={props.partHref(chosen.partId)}>Show it in the cut list</a>
         </StatusLine>
       )}
-      {assembly.length > 0 && (
-        <ViewSwitch label="Assembly view" views={assembly} control={frame && motion.control} />
-      )}
+      {assembly && <ViewSwitch views={assembly} control={frame && motion.control} />}
       <h3>Cut details</h3>
       {drawings.cutDetails.map((detail) => (
         <Stack

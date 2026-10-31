@@ -699,41 +699,36 @@ function Specimens() {
       </Group>
 
       <Group title="View switch">
-        <ViewSwitch
-          label="Assembly view"
-          views={[
-            ...(drawings.isometric
-              ? [
-                  {
-                    id: 'assembled',
-                    label: 'Assembled',
-                    content: (
-                      <Diagram
-                        drawing={drawings.isometric}
-                        label={`Isometric view. ${drawings.isometric.description}`}
-                        selected={other.partId}
-                      />
-                    ),
-                  },
-                ]
-              : []),
-            ...(drawings.exploded
-              ? [
-                  {
-                    id: 'exploded',
-                    label: 'Exploded',
-                    content: (
-                      <Diagram
-                        drawing={drawings.exploded}
-                        label={`Exploded view. ${drawings.exploded.description}`}
-                        selected={other.partId}
-                      />
-                    ),
-                  },
-                ]
-              : []),
-          ]}
-        />
+        {drawings.isometric && drawings.exploded && (
+          <ViewSwitch
+            views={[
+              {
+                id: 'assembled',
+                label: 'Assembled',
+                action: 'Assemble',
+                content: (
+                  <Diagram
+                    drawing={drawings.isometric}
+                    label={`Isometric view. ${drawings.isometric.description}`}
+                    selected={other.partId}
+                  />
+                ),
+              },
+              {
+                id: 'exploded',
+                label: 'Exploded',
+                action: 'Explode',
+                content: (
+                  <Diagram
+                    drawing={drawings.exploded}
+                    label={`Exploded view. ${drawings.exploded.description}`}
+                    selected={other.partId}
+                  />
+                ),
+              },
+            ]}
+          />
+        )}
       </Group>
 
       <Group title="Diagram frame">
