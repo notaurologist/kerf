@@ -219,7 +219,7 @@ export function ToolsEditor(props: {
 }
 
 /** The control an issue's path points at, such as a capability or an other tool's name. */
-export function controlId(path: string): string {
+function controlId(path: string): string {
   return `tool-${path.replace(/\./g, '-')}`;
 }
 

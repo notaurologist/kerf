@@ -1,4 +1,4 @@
-import type { FormEvent, ReactNode } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useRef } from 'react';
 import { Button } from './Button.tsx';
 import { ErrorText } from './feedback.tsx';
 import { Cluster, Stack } from './layout.tsx';
@@ -24,13 +24,21 @@ export function InlineConfirm(props: {
   onConfirm: () => void;
   onKeep: () => void;
 }) {
+  // Opening replaces the button that asked, so focus moves to the first field, or to the choice
+  // that changes nothing when there is no field.
+  const form = useRef<HTMLFormElement>(null);
+  const keep = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const field = form.current?.querySelector<HTMLElement>('input, select, textarea');
+    (field ?? keep.current)?.focus();
+  }, []);
   // A form, so Enter in a field answers the question.
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!props.busy) props.onConfirm();
   };
   return (
-    <form onSubmit={submit} noValidate>
+    <form ref={form} onSubmit={submit} noValidate>
       <Stack gap="s">
         {props.children}
         <Cluster>
@@ -42,7 +50,7 @@ export function InlineConfirm(props: {
           >
             {props.confirm}
           </Button>
-          <Button variant="secondary" onClick={props.onKeep}>
+          <Button ref={keep} variant="secondary" onClick={props.onKeep}>
             {props.keep}
           </Button>
         </Cluster>
@@ -50,4 +58,15 @@ export function InlineConfirm(props: {
       </Stack>
     </form>
   );
+}
+
+/** For the button that opens an inline question: focused again when the question closes. */
+export function useReturnFocus(open: boolean) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(open);
+  useEffect(() => {
+    if (wasOpen.current && !open) ref.current?.focus();
+    wasOpen.current = open;
+  }, [open]);
+  return ref;
 }

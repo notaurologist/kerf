@@ -24,6 +24,17 @@ describe('sources', () => {
   it('parse', () => {
     for (const source of Object.values(SOURCES)) expect(() => Source.parse(source)).not.toThrow();
   });
+
+  it('link only over https', () => {
+    const [source] = Object.values(SOURCES);
+    for (const url of ['javascript:alert(1)', 'http://example.com/', 'data:text/html,x']) {
+      expect(Source.safeParse({ ...source, url }).success, url).toBe(false);
+      expect(Citation.safeParse({ source: 'nds-2024', locator: 'Table 4A', url }).success).toBe(
+        false,
+      );
+    }
+    expect(Source.safeParse({ ...source, url: 'https://awc.org/' }).success).toBe(true);
+  });
 });
 
 describe('species and grades', () => {

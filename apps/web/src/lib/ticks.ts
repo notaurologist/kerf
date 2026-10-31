@@ -186,7 +186,7 @@ function warnBeforeUnload() {
 }
 
 /** The project's queue, seeded with the ticks of the latest project response. */
-export function ticksFor(projectId: string, seed: readonly Tick[]): TickQueue {
+function ticksFor(projectId: string, seed: readonly Tick[]): TickQueue {
   let queue = queues.get(projectId);
   if (!queue) {
     if (queues.size === 0) warnBeforeUnload();

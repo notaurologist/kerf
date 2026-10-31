@@ -18,6 +18,7 @@ import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { setFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
+import { newProjectLabel } from '../../lib/names.ts';
 import { readPlan } from '../../lib/plan.ts';
 import { describeReset } from '../../lib/progress.ts';
 import { href, navigate, type ProjectStart } from '../../lib/route.ts';
@@ -258,8 +259,7 @@ function StartFrom(props: {
   );
 }
 
-const newTitle = (template: TemplateDefinition) =>
-  `New ${template.name.charAt(0).toLowerCase()}${template.name.slice(1)}`;
+const newTitle = (template: TemplateDefinition) => newProjectLabel(template.name);
 
 /** `from` is the plan's section Edit was opened from: Save and Cancel go back to it (#156). */
 export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
@@ -574,7 +574,7 @@ export function ProjectEditor(props: {
 const fieldId = (from: FormSource, path: string) => `${from === 'params' ? 'p' : 's'}-${path}`;
 
 /** The form's parts with only the fields that apply to the values typed so far. */
-export function shownParts(template: TemplateDefinition, params: FormValues, inputs: FormValues) {
+function shownParts(template: TemplateDefinition, params: FormValues, inputs: FormValues) {
   const visible = new Set([
     ...visibleFields(template.form.params, params).map((f) => `params ${f.path}`),
     ...visibleFields(template.form.structuralInputs, inputs).map(

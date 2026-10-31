@@ -1,6 +1,7 @@
 export { angleToEdge, formatAngle, settingFromEdgeAngle } from './angle.ts';
 export {
   compareRoundedSum,
+  formatBoardLength,
   formatLength,
   type LengthStyle,
   type RoundedSum,

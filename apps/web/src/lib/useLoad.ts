@@ -31,5 +31,10 @@ export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string) {
     latest.current++;
     setLoaded({ state: 'ready', value });
   }, []);
-  return { loaded, reload, set };
+  /** Changes the value on screen from the latest one, such as for a change still being sent. */
+  const update = useCallback((change: (value: T) => T) => {
+    latest.current++;
+    setLoaded((s) => (s.state === 'ready' ? { state: 'ready', value: change(s.value) } : s));
+  }, []);
+  return { loaded, reload, set, update };
 }

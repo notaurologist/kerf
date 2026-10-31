@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ProjectSummary } from '../../lib/types.ts';
-import { render as renderHtml } from '../../test/render.tsx';
-import { ProjectList } from './ProjectsScreen.tsx';
+import { render as renderHtml, textOf } from '../../test/render.tsx';
+import { ProjectList, savedFirst, withStatus } from './ProjectsScreen.tsx';
 
 const templates = [{ id: 'swing-set-a-frame', version: 2, name: 'Two-swing A-frame swing set' }];
 
@@ -41,5 +41,37 @@ describe('ProjectList', () => {
     expect(render([project({ templateVersion: 1, templateBehind: true })])).toContain(
       'The template has a newer version.',
     );
+  });
+});
+
+describe('changing a status', () => {
+  const first = project();
+  const second = project({ id: '6f1c2a3e-0000-4000-8000-000000000002', name: 'Bench' });
+
+  it('shows the new status in place at once', () => {
+    expect(withStatus([first, second], second.id, 'built')).toEqual([
+      first,
+      { ...second, status: 'built' },
+    ]);
+  });
+
+  it('moves the saved project to the top, as the API orders the list', () => {
+    const saved = { ...second, status: 'built' as const };
+    expect(savedFirst([first, second], saved)).toEqual([saved, first]);
+  });
+
+  it('says on the row why a change did not go through', () => {
+    const html = renderHtml(
+      <ProjectList
+        projects={[first, second]}
+        templates={templates}
+        errors={{ [second.id]: 'The server could not be reached.' }}
+        onStatus={() => {}}
+      />,
+    );
+    const rows = html.split('<li').slice(1).map(textOf);
+    expect(rows[0]).not.toContain('Status not changed');
+    expect(rows[1]).toContain('Status not changed. The server could not be reached.');
+    expect(html).toContain('role="alert"');
   });
 });

@@ -38,9 +38,9 @@ export const progressId = (item: Pick<ProgressItem, 'kind' | 'key'>) => `${item.
 export const partProgressKey = (partId: string, instance: number) => `${partId}/${instance}`;
 
 /** A shopping line's key; lumber and hardware lines never share one. */
-export const lumberProgressKey = (line: Parameters<typeof lumberLineKey>[0]) =>
+const lumberProgressKey = (line: Parameters<typeof lumberLineKey>[0]) =>
   `lumber/${lumberLineKey(line)}`;
-export const hardwareProgressKey = (description: string) => `hardware/${description}`;
+const hardwareProgressKey = (description: string) => `hardware/${description}`;
 
 const json = (value: unknown) => JSON.stringify(value);
 
@@ -48,7 +48,7 @@ const json = (value: unknown) => JSON.stringify(value);
  * The shopping lines as they are ticked: lumber, then hardware, each with its key. Two hardware
  * lines with one description would share a tick, so only the first is kept.
  */
-export function shoppingLines(
+function shoppingLines(
   plan: Pick<Plan, 'lumber' | 'hardware'>,
 ): { key: string; line: Plan['lumber']['lines'][number] | Plan['hardware'][number] }[] {
   const lines: { key: string; line: Plan['lumber']['lines'][number] | Plan['hardware'][number] }[] =
@@ -66,7 +66,7 @@ export function shoppingLines(
  * part's cut detail, and a step's the cut details of the parts it works on and, for site work, the
  * site layout. Needs no inventory: which method does a step does not change what the step is.
  */
-export function planProgressItems(
+function planProgressItems(
   outline: readonly StepOutline[],
   plan: Pick<Plan, 'operations' | 'lumber' | 'hardware' | 'cutList'>,
   drawings: Pick<Drawings, 'cutDetails' | 'siteLayout'>,
@@ -186,7 +186,7 @@ export interface ShoppingGroup {
 }
 
 /** The heading for hardware a plan made before store groups did not place (#59). */
-export const UNGROUPED_HARDWARE = 'Hardware';
+const UNGROUPED_HARDWARE = 'Hardware';
 
 /**
  * The shopping lines as the store checklist shows them (#59): lumber first, then each hardware

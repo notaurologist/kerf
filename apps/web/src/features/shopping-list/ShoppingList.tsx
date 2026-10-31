@@ -1,4 +1,4 @@
-import { formatLength, groupHardware, type HardwareLine, type LumberPlan } from '@kerf/core';
+import { formatBoardLength, groupHardware, type HardwareLine, type LumberPlan } from '@kerf/core';
 import { type Changes, marked, NO_CHANGES } from '../../lib/changes.tsx';
 import { ErrorText, Length, List, Measured, MeasureTable, Stack, Text } from '../../ui/index.ts';
 import { BoardSelection } from './BoardSelection.tsx';
@@ -7,9 +7,6 @@ import { BoardSelection } from './BoardSelection.tsx';
 // hardware. Which parts come from which board is the plan's Boards section (#119). Board and piece lengths are stored in inches or feet and shown through core's
 // formatLength, so they round the same way as the cut list. In a preview (#56), `changes` marks
 // each line that differs from the saved plan with the saved value.
-
-/** A board length in feet, shown as feet and inches. */
-const feet = (f: number) => formatLength(f * 12, 'feet-inches');
 
 export function ShoppingList(props: {
   lumber: LumberPlan;
@@ -55,8 +52,8 @@ export function ShoppingList(props: {
               marked(
                 changes,
                 `${line(l, lumber.lines, 'lumber.lines')}.feet`,
-                <Length>{feet(l.feet)}</Length>,
-                (before) => feet(before as number),
+                <Length>{formatBoardLength(l.feet)}</Length>,
+                (before) => formatBoardLength(before as number),
               ),
           },
           {
@@ -71,7 +68,9 @@ export function ShoppingList(props: {
         <Text>
           No longer bought:{' '}
           <Measured
-            text={removedLumber.map((l) => `${l.count} x ${l.nominal}, ${feet(l.feet)}`).join('; ')}
+            text={removedLumber
+              .map((l) => `${l.count} x ${l.nominal}, ${formatBoardLength(l.feet)}`)
+              .join('; ')}
           />
           .
         </Text>

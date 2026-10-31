@@ -18,6 +18,7 @@ import {
   CheckStatus,
   Cluster,
   type Failure,
+  LiveRegion,
   Notice,
   SaveFailed,
   Stack,
@@ -160,9 +161,9 @@ export function PreviewPane(props: { saved: Plan | null; state: PreviewState }) 
           <h2 id="preview-heading">{preview || isNew ? 'Preview' : 'Saved plan'}</h2>
           {preview && <StateTag>Preview, not saved</StateTag>}
         </Cluster>
-        <div aria-live="polite">
+        <LiveRegion>
           <PreviewStatus state={state} isNew={isNew} />
-        </div>
+        </LiveRegion>
         {plan && <PlanOutputs plan={plan} changes={changes} />}
       </Stack>
     </section>

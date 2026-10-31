@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "test": "vitest run",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "tsc -p . && pnpm -r typecheck",
     "lint": "biome check --error-on-warnings .",
     "format": "biome format --write .",
     "check": "pnpm lint && pnpm typecheck && pnpm test",

@@ -19,6 +19,7 @@ function fakeHost(options: { refuse?: boolean } = {}) {
     },
   };
   let n = 0;
+  const locks: { release(): Promise<void> }[] = [];
   const host = {
     wakeLock: {
       request: async () => {
@@ -26,11 +27,18 @@ function fakeHost(options: { refuse?: boolean } = {}) {
         log.push(`request ${n}`);
         if (options.refuse) throw new DOMException('Not allowed', 'NotAllowedError');
         const id = n;
-        return {
+        const onRelease: (() => void)[] = [];
+        const lock = {
           release: async () => {
             log.push(`release ${id}`);
+            for (const fn of onRelease) fn();
+          },
+          addEventListener: (_: 'release', fn: () => void) => {
+            onRelease.push(fn);
           },
         };
+        locks.push(lock);
+        return lock;
       },
     },
     document,
@@ -39,7 +47,9 @@ function fakeHost(options: { refuse?: boolean } = {}) {
     document.visibilityState = visible ? 'visible' : 'hidden';
     listener?.();
   };
-  return { host, log, setVisible, listening: () => listener !== null };
+  /** The browser letting go of the lock on its own, as when the battery runs low. */
+  const browserReleases = () => locks.at(-1)?.release();
+  return { host, log, setVisible, browserReleases, listening: () => listener !== null };
 }
 
 describe('holdWakeLock', () => {
@@ -52,6 +62,18 @@ describe('holdWakeLock', () => {
     await settle();
     expect(log).toEqual(['request 1', 'release 1']);
     expect(listening()).toBe(false);
+  });
+
+  it('asks again when the browser releases the lock while the page is still shown', async () => {
+    const { host, log, browserReleases } = fakeHost();
+    const stop = holdWakeLock(host);
+    await settle();
+    await browserReleases();
+    await settle();
+    expect(log).toEqual(['request 1', 'release 1', 'request 2']);
+    stop();
+    await settle();
+    expect(log).toEqual(['request 1', 'release 1', 'request 2', 'release 2']);
   });
 
   it('asks again when the page is shown after being hidden', async () => {
