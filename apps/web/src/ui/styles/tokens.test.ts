@@ -104,7 +104,6 @@ describe('D2 face tones', () => {
   });
 });
 
-/** The innermost rule blocks of a stylesheet, without comments: selectors and declarations. */
 function blocksOf(source: string) {
   const plain = source.replace(/\/\*[\s\S]*?\*\//g, '');
   return [...plain.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
@@ -116,11 +115,7 @@ function blocksOf(source: string) {
   }));
 }
 
-/**
- * Tokens whose value uses a token that another block sets again, declared only where the new
- * value does not reach them. A custom property is resolved where it is declared, so a token that
- * uses `--density` must be declared again under `[data-density]` to follow it there.
- */
+/** Tokens using a token that another block changes, not declared again where it changes. */
 function stale(source: string): string[] {
   const blocks = blocksOf(source);
   return blocks.flatMap((block) =>
@@ -155,7 +150,6 @@ describe('tokens that depend on other tokens', () => {
   });
 });
 
-/** Every non-test source file in the web app, where a token can be used. */
 const sources = readdirSync(new URL('../../', import.meta.url), {
   recursive: true,
   encoding: 'utf8',
@@ -163,7 +157,7 @@ const sources = readdirSync(new URL('../../', import.meta.url), {
   .filter((f) => /\.(css|ts|tsx)$/.test(f) && !/\.test\.tsx?$/.test(f))
   .map((f) => readFileSync(new URL(`../../${f}`, import.meta.url), 'utf8'));
 
-/** Declared tokens no source reads with var(), counting `var(--space-${size})` as every size. */
+/** Counts `var(--space-${size})` as using every size. */
 function unused(declared: readonly string[], files: readonly string[]): string[] {
   const text = files.join('\n');
   const used = new Set([...text.matchAll(/var\((--[a-z0-9-]+)/g)].map((m) => m[1]));
@@ -178,8 +172,7 @@ function unused(declared: readonly string[], files: readonly string[]): string[]
 describe('declared tokens', () => {
   const declared = [...new Set(blocksOf(css).flatMap((b) => b.declarations.map((d) => d.name)))];
 
-  // Measured with the C1 colors but not applied yet: inputs use --text. Whether inputs take it
-  // or it goes, with its recorded ratio, is still open.
+  // Measured but not applied: inputs use --text.
   const NOT_YET_USED = ['--input-text'];
 
   it('are each used somewhere', () => {

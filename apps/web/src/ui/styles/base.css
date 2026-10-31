@@ -15,7 +15,7 @@
     background: var(--bg);
   }
 
-  /* Shop density reads at arm's length (#42): 20 px text, and no heading smaller than it. */
+  /* Read at arm's length, with no heading smaller than the text. */
   [data-density="shop"] {
     font-size: var(--size-read);
   }

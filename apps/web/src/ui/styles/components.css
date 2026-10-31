@@ -773,8 +773,7 @@
     text-underline-offset: 0.2em;
   }
 
-  /* Wraps rather than scroll sideways: at 320 px the shop text and space leave no room for the
-     mode's name, its controls, and Exit on one line. */
+  /* Wraps rather than scroll sideways at narrow widths. */
   .k-modebar {
     display: flex;
     flex-wrap: wrap;

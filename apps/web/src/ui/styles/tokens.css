@@ -98,8 +98,8 @@
     --dash-zone: 8 4;
   }
 
-  /* A custom property that uses var() is resolved where it is declared and inherited resolved, so
-     the space tokens are declared again wherever the density can change. */
+  /* A var() in a custom property resolves where it is declared, so these follow the density
+     only where they are declared again. */
   :root,
   [data-density] {
     --space-3xs: calc(var(--density) * var(--space-3xs-base));
@@ -111,9 +111,8 @@
     --space-xl: calc(var(--density) * var(--space-xl-base));
   }
 
-  /* Shopping and Building (#41): larger space, controls at least 56 px tall, text at the 20 px read
-     size (#42, set in base.css), and every word in the text color (#43, rule 5), so text a desk
-     screen mutes reads at arm's length. */
+  /* Shopping and Building (#41): larger space and controls at least 56 px tall, and every word in
+     the text color (#43, rule 5), so text a desk screen mutes reads at arm's length. */
   [data-density="shop"] {
     --density: 1.5;
     --control-min: 3.5rem;
