@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { Loaded } from '../../lib/Loaded.tsx';
+import { href } from '../../lib/route.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
@@ -266,6 +267,9 @@ function ToolDetails(props: {
       }
     >
       <Stack gap="s">
+        <Text tone="muted">
+          {type.description} <a href={href({ screen: 'tools', tool: type.id })}>About this tool</a>
+        </Text>
         <Grid min="16rem" gap="s">
           <Field
             id={controlId(`${at}.name`)}

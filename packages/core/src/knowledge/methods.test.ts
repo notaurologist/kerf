@@ -8,6 +8,7 @@ import {
   METHODS,
   Method,
   methodsFor,
+  methodsUsing,
   placeholders,
 } from './methods.ts';
 import { findSkill, SKILLS, Skill } from './skills.ts';
@@ -164,5 +165,22 @@ describe('expert-check categories', () => {
     expect(EXPERT_CHECK_CATEGORIES.filter((c) => c.sources.length === 0).map((c) => c.id)).toEqual([
       'load-bearing',
     ]);
+  });
+});
+
+describe('methodsUsing', () => {
+  it('lists each method that can use a tool, with what the tool does there', () => {
+    const uses = methodsUsing('miter-saw');
+    expect(uses.map((u) => [u.method.operation, u.method.name])).toEqual([
+      ['crosscut', 'With a miter saw'],
+      ['miter', 'With a miter saw'],
+    ]);
+    expect(uses[0]?.use).toBe('cutting');
+    // A tool that can stand in for another in a requirement counts too.
+    expect(methodsUsing('rafter-square').length).toBe(methodsUsing('combination-square').length);
+  });
+
+  it('lists none for a tool no method uses', () => {
+    expect(methodsUsing('table-saw')).toEqual([]);
   });
 });

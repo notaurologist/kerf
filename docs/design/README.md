@@ -195,6 +195,15 @@ MDN's glossary of web terms works the same way: each of its several hundred term
 
 Sources: MDN Web Docs, Glossary of web terms, read October 2026, https://developer.mozilla.org/en-US/docs/Glossary, and an entry such as https://developer.mozilla.org/en-US/docs/Glossary/Abstraction.
 
+### Tool pages (#192)
+
+A build step names the tools its method needs, and a reader may not know one. The owner chose a page for each tool under Tools over glossary entries for tools (October 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Where a tool is explained | Its own page, `#/tools/<id>`: what it is (the tool library's description), whether it is in the owner's tool list, the details Kerf asks for about it and where to read each, and the methods that can use it. | A glossary entry: the glossary is for words in the plan's text, and a tool's page can show what only the tool list knows, such as whether the owner has one. |
+| Where it is linked from | A method's tool names in the build steps, and each tool's details on the Tools screen ("About this tool"). | The tool list's checkboxes: a link inside a checkbox label is a second control in one target, and tapping the name would tick the box or leave the screen. |
+
 ### Table columns (#158)
 
 `MeasureTable` used the browser's automatic table layout, so the cut list's long End cuts and Marks and notes text took width from its short columns (Stock wrapped to three lines at 1280 px), and each Parameters and inputs table chose its own Field width, so As entered started at a different place in each.

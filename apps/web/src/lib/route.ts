@@ -1,4 +1,4 @@
-import { findGlossaryEntry } from '@kerf/core';
+import { findGlossaryEntry, findToolType } from '@kerf/core';
 import { useEffect, useState } from 'react';
 import { isPlanSection, type PlanSectionId } from './sections.ts';
 
@@ -21,7 +21,8 @@ export type Route =
   | { screen: 'build-steps'; id: string }
   | { screen: 'build-step'; id: string; step: string }
   | { screen: 'build-part'; id: string; step: string; part: string }
-  | { screen: 'tools' }
+  // With `tool`, that tool type's own page; without, the owner's tool list.
+  | { screen: 'tools'; tool?: string }
   // With `term`, that entry's own page; without, the index.
   | { screen: 'glossary'; term?: string }
   | { screen: 'catalog' }
@@ -37,6 +38,9 @@ export function parseRoute(hash: string): Route {
   const search = new URLSearchParams(query);
   if (parts.length === 0) return { screen: 'projects' };
   if (first === 'tools' && parts.length === 1) return { screen: 'tools' };
+  if (first === 'tools' && parts.length === 2 && second && findToolType(second)) {
+    return { screen: 'tools', tool: second };
+  }
   if (first === 'catalog' && parts.length === 1) return { screen: 'catalog' };
   if (first === 'glossary' && parts.length === 1) return { screen: 'glossary' };
   if (first === 'glossary' && parts.length === 2 && second && findGlossaryEntry(second)) {
@@ -127,7 +131,7 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
     case 'build-part':
       return `#/projects/${encodeURIComponent(route.id)}/build/${encodeURIComponent(route.step)}/${encodeURIComponent(route.part)}`;
     case 'tools':
-      return '#/tools';
+      return route.tool ? `#/tools/${encodeURIComponent(route.tool)}` : '#/tools';
     case 'glossary':
       return route.term ? `#/glossary/${encodeURIComponent(route.term)}` : '#/glossary';
     case 'catalog':

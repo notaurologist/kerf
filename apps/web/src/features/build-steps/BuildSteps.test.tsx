@@ -168,6 +168,12 @@ describe('build steps in the project view (#52)', () => {
     );
   });
 
+  it("links each of a method's tools to its page", () => {
+    const html = render(<ProjectView project={project(shop)} />);
+    expect(html).toMatch(/<a href="#\/tools\/miter-saw"><span class="k-tool-label">/);
+    expect(html).toMatch(/<a href="#\/tools\/tape-measure"><span class="k-tool-label">/);
+  });
+
   it('says which inventory the steps were chosen from, so a stale list can be found', () => {
     const withShop = readSteps(project(shop));
     const withNone = readSteps(project({ tools: [], other: [] }));

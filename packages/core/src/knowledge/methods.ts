@@ -1015,3 +1015,17 @@ export function findMethod(id: string): Method | undefined {
   const found = METHODS.find((m) => m.id === id);
   return found ? Method.parse(found) : undefined;
 }
+
+/** A method that can use a tool type, and what the tool does in it ("marking the line"). */
+export interface ToolUse {
+  method: Method;
+  use: string;
+}
+
+/** Every method that can use a tool type, in the methods' order, for that tool's page. */
+export function methodsUsing(toolTypeId: string): ToolUse[] {
+  return METHODS.flatMap((m) => {
+    const req = m.tools.find((r) => r.anyOf.some((c) => c.tool === toolTypeId));
+    return req ? [{ method: Method.parse(m), use: req.use }] : [];
+  });
+}
