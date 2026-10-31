@@ -57,12 +57,12 @@ describe('arrowTarget', () => {
   });
 });
 
-describe('useArrowKeys', () => {
-  function Section() {
-    useArrowKeys(targets);
-    return null;
-  }
+function Section() {
+  useArrowKeys(targets);
+  return null;
+}
 
+describe('useArrowKeys', () => {
   it('goes to the address while the screen is open, and stops when it closes', () => {
     const view = mount(createElement(Section));
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', cancelable: true }));
