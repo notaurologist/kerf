@@ -14,6 +14,7 @@ The owner uses free tiers only. GitHub Actions on standard runners is free for p
 - Lint warnings fail `pnpm lint`, and focused or skipped tests (`.only`, `.skip`) are errors.
 - Actions are pinned to commit SHAs, with the version in a comment. A newer push cancels a pull request's run in progress; runs on `main` always finish.
 - Every dependency version is exact and `engineStrict` is set; a test checks each `package.json`.
+- **Web interaction tests use happy-dom** (0017); the rest render to a string in Node.
 - **Database tests use PGlite** in process, with the committed Drizzle migrations applied to a fresh database. Docker Compose Postgres 18 is for local development only.
 
 ## Consequences
