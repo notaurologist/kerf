@@ -30,6 +30,7 @@ export function projectFrom(
     status: 'planned',
     templateId: 'swing-set-a-frame',
     templateVersion: 1,
+    revision: 1,
     templateBehind: false,
     createdAt: '2026-10-28T12:00:00.000Z',
     updatedAt: '2026-10-28T12:00:00.000Z',

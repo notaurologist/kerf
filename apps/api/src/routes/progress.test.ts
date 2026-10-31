@@ -23,10 +23,12 @@ async function setup() {
     },
   });
   const { id } = (await res.json()) as { id: string };
+  const revision = async () =>
+    ((await (await test.authed(`/api/projects/${id}`)).json()) as Json).revision as number;
   const tick = async (changes: { kind: string; key: string; done: boolean }[]) => {
     const res = await test.authed(`/api/projects/${id}/progress`, {
       method: 'PATCH',
-      body: { changes },
+      body: { revision: await revision(), changes },
     });
     return { status: res.status, body: (await res.json()) as Json };
   };
@@ -34,7 +36,13 @@ async function setup() {
     const res = await test.authed(`/api/projects/${id}/progress`);
     return ((await res.json()) as Json).ticks as { kind: string; key: string }[];
   };
-  return { ...test, id, tick, progress };
+  /** A save made against the project's current revision. */
+  const save = async (body: Record<string, unknown>) =>
+    test.authed(`/api/projects/${id}`, {
+      method: 'PUT',
+      body: { ...body, revision: await revision() },
+    });
+  return { ...test, id, tick, progress, save, revision };
 }
 
 const done = (kind: string, key: string) => ({ kind, key, done: true });
@@ -121,7 +129,7 @@ describe('project progress', () => {
     expect((await authed(`/api/projects/${missing}/progress`)).status).toBe(404);
     const res = await authed(`/api/projects/${missing}/progress`, {
       method: 'PATCH',
-      body: { changes: [done('step', 'site')] },
+      body: { revision: 1, changes: [done('step', 'site')] },
     });
     expect(res.status).toBe(404);
   });
@@ -130,7 +138,7 @@ describe('project progress', () => {
     // Core's worked example (swing-set-a-frame/progress.test.ts): raising the crossbar from 40 to
     // 44 shortens the crossbars and moves the legs' crossbar holes. The 2x6 line, the beam's board
     // and step, and the site work keep the same numbers.
-    const { tick, progress, authed, id } = await setup();
+    const { tick, progress, save } = await setup();
     await tick([
       done('shopping-line', 'lumber/2x6/10'),
       done('board', '4x6/12/1'),
@@ -141,10 +149,7 @@ describe('project progress', () => {
       done('step', 'site'),
       done('step', 'frames'),
     ]);
-    const res = await authed(`/api/projects/${id}`, {
-      method: 'PUT',
-      body: { params: { ...swingSetParams, crossbarHeight: 44 } },
-    });
+    const res = await save({ params: { ...swingSetParams, crossbarHeight: 44 } });
     expect(res.status).toBe(200);
     const project = (await res.json()) as Json;
     expect(project.progressReset).toEqual([
@@ -162,12 +167,9 @@ describe('project progress', () => {
   });
 
   it('reports removed items when a stock change drops a line', async () => {
-    const { tick, authed, id } = await setup();
+    const { tick, save } = await setup();
     await tick([done('shopping-line', 'lumber/2x6/10'), done('step', 'board-7')]);
-    const res = await authed(`/api/projects/${id}`, {
-      method: 'PUT',
-      body: { params: { ...swingSetParams, crossbarStock: '2x8' } },
-    });
+    const res = await save({ params: { ...swingSetParams, crossbarStock: '2x8' } });
     expect(((await res.json()) as Json).progressReset).toEqual([
       { kind: 'shopping-line', key: 'lumber/2x6/10', reason: 'removed' },
       { kind: 'step', key: 'board-7', reason: 'removed' },
@@ -175,12 +177,9 @@ describe('project progress', () => {
   });
 
   it('keeps every tick through a rename and a regenerate that changes nothing', async () => {
-    const { tick, progress, authed, id } = await setup();
+    const { tick, progress, authed, id, save } = await setup();
     await tick([done('step', 'frames')]);
-    const renamed = await authed(`/api/projects/${id}`, {
-      method: 'PUT',
-      body: { name: 'Swing set' },
-    });
+    const renamed = await save({ name: 'Swing set' });
     expect((await renamed.json()) as Json).not.toHaveProperty('progressReset');
     const regenerated = await authed(`/api/projects/${id}/regenerate`, {
       method: 'POST',

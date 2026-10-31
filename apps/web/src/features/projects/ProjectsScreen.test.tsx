@@ -11,6 +11,7 @@ const project = (overrides: Partial<ProjectSummary> = {}): ProjectSummary => ({
   status: 'in-progress',
   templateId: 'swing-set-a-frame',
   templateVersion: 2,
+  revision: 1,
   templateBehind: false,
   progress: null,
   createdAt: '2026-10-28T12:00:00.000Z',

@@ -67,7 +67,7 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
   const read = useReadProject(project);
   const { plan, drawings } = read;
   const steps = read.steps?.steps ?? [];
-  const ticks = useTicks(project.id, project.ticks);
+  const ticks = useTicks(project.id, project.ticks, project.revision);
   const frame = (children: ReactNode) => (
     <ModeFrame mode={mode} context={project.name} exitHref={exitHref} end={<ThemeSwitch />}>
       <Stack>

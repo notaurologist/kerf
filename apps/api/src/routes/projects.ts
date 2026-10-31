@@ -2,7 +2,12 @@ import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { ProgressChanges } from '../services/progress.ts';
-import { NewProject, NewProjectPreview, ProjectChanges } from '../services/projectBodies.ts';
+import {
+  NewProject,
+  NewProjectPreview,
+  ProjectChanges,
+  ProjectSave,
+} from '../services/projectBodies.ts';
 import type { ProjectService, Result } from '../services/projects.ts';
 import { valid } from './validate.ts';
 
@@ -22,6 +27,8 @@ function failure(c: Context, result: Extract<Result<unknown>, { ok: false }>) {
       return c.json({ error: result.error, issues: result.issues }, 422);
     case 'unknown-progress':
       return c.json({ error: result.error, items: result.items }, 422);
+    case 'stale-project':
+      return c.json({ error: result.error, revision: result.revision }, 409);
   }
 }
 
@@ -40,7 +47,7 @@ export function projectRoutes(projects: ProjectService) {
       const result = await projects.get(c.req.valid('param').id);
       return result.ok ? c.json(result.value, 200) : failure(c, result);
     })
-    .put('/projects/:id', valid('param', ById), valid('json', ProjectChanges), async (c) => {
+    .put('/projects/:id', valid('param', ById), valid('json', ProjectSave), async (c) => {
       const result = await projects.update(c.req.valid('param').id, c.req.valid('json'));
       return result.ok ? c.json(result.value, 200) : failure(c, result);
     })

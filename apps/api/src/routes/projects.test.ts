@@ -202,12 +202,18 @@ describe('project history (#106)', () => {
     expect((await authed('/api/tools', { method: 'PUT', body: miterSaw })).status).toBe(200);
 
     // A rename keeps the snapshot, so its history stands.
-    await authed(`/api/projects/${body.id}`, { method: 'PUT', body: { name: 'Renamed' } });
+    await authed(`/api/projects/${body.id}`, {
+      method: 'PUT',
+      body: { name: 'Renamed', revision: 1 },
+    });
     expect(await history(client, body.id)).toEqual(before);
 
     // New parameters save a new snapshot: the rows are rewritten from the current tools.
     const params = { ...swingSetParams, beamHeight: swingSetParams.beamHeight - 1 };
-    const updated = await authed(`/api/projects/${body.id}`, { method: 'PUT', body: { params } });
+    const updated = await authed(`/api/projects/${body.id}`, {
+      method: 'PUT',
+      body: { params, revision: 2 },
+    });
     expect(updated.status).toBe(200);
     const after = await history(client, body.id);
     expect(after).toHaveLength(before.length);
@@ -276,7 +282,7 @@ describe('PUT /api/projects/:id', () => {
     );
     const res = await authed(`/api/projects/${body.id}`, {
       method: 'PUT',
-      body: { name: 'Swing set', status: 'in-progress' },
+      body: { name: 'Swing set', status: 'in-progress', revision: 1 },
     });
     const updated = (await res.json()) as Json;
     expect(updated).toMatchObject({ name: 'Swing set', status: 'in-progress' });
@@ -288,7 +294,7 @@ describe('PUT /api/projects/:id', () => {
     const { body } = await create(authed, { ...newProject, structuralInputs: {} });
     const res = await authed(`/api/projects/${body.id}`, {
       method: 'PUT',
-      body: { structuralInputs: swingSetInputs },
+      body: { structuralInputs: swingSetInputs, revision: 1 },
     });
     const updated = (await res.json()) as Json;
     expect(updated.snapshot.structuralInputs).toEqual(swingSetInputs);
@@ -300,7 +306,7 @@ describe('PUT /api/projects/:id', () => {
     const { body } = await create(authed);
     const res = await authed(`/api/projects/${body.id}`, {
       method: 'PUT',
-      body: { params: { ...swingSetParams, beamHeight: 1 } },
+      body: { params: { ...swingSetParams, beamHeight: 1 }, revision: 1 },
     });
     expect(res.status).toBe(422);
     const read = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;

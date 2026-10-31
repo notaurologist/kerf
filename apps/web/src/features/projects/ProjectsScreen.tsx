@@ -95,7 +95,8 @@ export function savedFirst(
 }
 
 function toSummary(project: Project): ProjectSummary {
-  const { id, name, status, templateId, templateVersion, templateBehind, progress } = project;
+  const { id, name, status, templateId, templateVersion, revision, templateBehind, progress } =
+    project;
   const { createdAt, updatedAt } = project;
   return {
     id,
@@ -103,6 +104,7 @@ function toSummary(project: Project): ProjectSummary {
     status,
     templateId,
     templateVersion,
+    revision,
     templateBehind,
     progress,
     createdAt,

@@ -155,6 +155,7 @@ describe('the web client against the API', () => {
       client.api.projects[':id'].progress.$patch({
         param: { id },
         json: {
+          revision: created.value.revision,
           changes: [
             { kind: 'board', key: '2x6/10/1', done: true },
             { kind: 'step', key: 'site', done: true },
@@ -169,7 +170,10 @@ describe('the web client against the API', () => {
     const saved = await send(
       client.api.projects[':id'].$put({
         param: { id },
-        json: { params: { ...(example.params as object), crossbarHeight: 44 } },
+        json: {
+          params: { ...(example.params as object), crossbarHeight: 44 },
+          revision: created.value.revision,
+        },
       }),
     );
     if (!saved.ok) throw new Error(JSON.stringify(saved.error));

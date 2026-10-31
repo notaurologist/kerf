@@ -24,13 +24,30 @@ export const NewProjectPreview = NewProject.pick({
 });
 export type NewProjectPreview = z.infer<typeof NewProjectPreview>;
 
+const Revision = z.number().int().positive();
+
 export const ProjectChanges = z
   .object({
     name: z.string().trim().min(1).max(200),
     status: ProjectStatus,
     params: z.unknown(),
     structuralInputs: z.unknown(),
+    /** The project's revision the changes were made against. */
+    revision: Revision,
   })
   .partial()
-  .refine((c) => Object.values(c).some((v) => v !== undefined), 'changes nothing');
+  .refine(
+    (c) => [c.name, c.status, c.params, c.structuralInputs].some((v) => v !== undefined),
+    'changes nothing',
+  );
 export type ProjectChanges = z.infer<typeof ProjectChanges>;
+
+/** True when a save changes the plan, so it must say which revision it was made against. */
+export const changesPlan = (c: ProjectChanges) =>
+  c.name !== undefined || c.params !== undefined || c.structuralInputs !== undefined;
+
+/** A save: changes to the plan name the revision they were made against (#207). */
+export const ProjectSave = ProjectChanges.refine(
+  (c) => !changesPlan(c) || c.revision !== undefined,
+  { message: 'revision is required to change the name, parameters, or inputs', path: ['revision'] },
+);

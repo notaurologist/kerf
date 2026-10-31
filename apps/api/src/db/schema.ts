@@ -51,6 +51,12 @@ export const projects = pgTable(
     status: text('status', { enum: PROJECT_STATUSES }).notNull(),
     templateId: text('template_id').notNull(),
     templateVersion: integer('template_version').notNull(),
+    /**
+     * Counts saves that change the plan: its name, parameters, structural inputs, or a
+     * regeneration. A save or tick made against an older count is refused (#207), so two devices
+     * cannot overwrite each other. Status changes and ticks leave it.
+     */
+    revision: integer('revision').notNull().default(1),
     /** Parameters and structural inputs live in the snapshot, the one copy upgrades keep current. */
     snapshot: jsonb('snapshot').notNull(),
     ...timestamps,
@@ -59,6 +65,7 @@ export const projects = pgTable(
     check('projects_status', sql`${t.status} in ('planned', 'in-progress', 'built')`),
     check('projects_name', sql`length(trim(${t.name})) > 0`),
     check('projects_template_version', sql`${t.templateVersion} > 0`),
+    check('projects_revision', sql`${t.revision} > 0`),
     // The list reads the version from this column without parsing every snapshot.
     check(
       'projects_template_version_matches_snapshot',

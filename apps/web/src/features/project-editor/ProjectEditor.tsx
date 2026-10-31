@@ -270,12 +270,15 @@ export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
   );
   return (
     <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Edit project">
-      {(project) => <EditProject project={project} from={props.from} />}
+      {(project) => (
+        // A newer revision, loaded after a save was refused, starts the form again from it.
+        <EditProject key={project.revision} project={project} from={props.from} onReload={reload} />
+      )}
     </Loaded>
   );
 }
 
-function EditProject(props: { project: Project; from?: PlanSectionId }) {
+function EditProject(props: { project: Project; from?: PlanSectionId; onReload: () => void }) {
   const { project } = props;
   const template = findTemplate(project.templateId);
   const back = { href: href({ screen: 'project', id: project.id }), label: project.name };
@@ -299,6 +302,7 @@ function EditProject(props: { project: Project; from?: PlanSectionId }) {
       template={template}
       project={project}
       from={props.from}
+      onReload={props.onReload}
       initial={{
         name: project.name,
         params: formValues(template.form.params, project.snapshot.params),
@@ -319,6 +323,8 @@ export function ProjectEditor(props: {
   project?: Project;
   /** The plan's section to return to after Save or Cancel; the summary when absent. */
   from?: PlanSectionId;
+  /** Loads the project again, for when another device saved it after this form opened. */
+  onReload?: () => void;
   initial: EditorValues;
   /** A new project's values copied from an earlier one, to confirm (#98). */
   copied?: Copied;
@@ -344,7 +350,9 @@ export function ProjectEditor(props: {
     inputs: NO_ISSUES,
   });
   const [confirmed, setConfirmed] = useState(false);
-  const [saveState, setSaveState] = useState<SaveState>({ state: 'idle' });
+  const [saveState, setSaveState] = useState<SaveState | { state: 'stale'; revision: number }>({
+    state: 'idle',
+  });
   // Copied values the owner has neither changed nor confirmed, among the fields shown. Changing
   // one confirms it; clearing a structural input makes it input needed.
   const waiting = (sections: readonly FormSection[], values: FormValues, from: FormValues) =>
@@ -380,8 +388,9 @@ export function ProjectEditor(props: {
     return found;
   };
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
+  /** `revision` is the plan the changes are saved against: the one opened, unless overridden. */
+  const submit = async (e?: FormEvent, revision = project?.revision) => {
+    e?.preventDefault();
     setSaveState({ state: 'idle' });
     const builtParams = buildFromForm(form.params, params);
     const builtInputs = buildFromForm(form.structuralInputs, inputs);
@@ -408,7 +417,7 @@ export function ProjectEditor(props: {
 
     setSaveState({ state: 'saving' });
     const result = project
-      ? await save(project, name.trim(), builtParams, builtInputs)
+      ? await save(project, revision ?? project.revision, name.trim(), builtParams, builtInputs)
       : await send(
           api.api.projects.$post({
             json: {
@@ -429,6 +438,10 @@ export function ProjectEditor(props: {
     }
     if (result.error.kind === 'invalid') {
       show(result.error.issues);
+      return;
+    }
+    if (result.error.kind === 'stale') {
+      setSaveState({ state: 'stale', revision: result.error.revision });
       return;
     }
     setSaveState({ state: 'failed', failure: failureOf(result.error) });
@@ -520,6 +533,29 @@ export function ProjectEditor(props: {
         })}
       />
       {saveState.state === 'failed' && <SaveFailed failure={saveState.failure} />}
+      {saveState.state === 'stale' && (
+        <Stack gap="xs">
+          <Notice>
+            <b>Changed on another device.</b> This project was saved somewhere else after you opened
+            it here. Your changes are still in the form.
+          </Notice>
+          <Cluster>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                void submit(undefined, saveState.state === 'stale' ? saveState.revision : undefined)
+              }
+            >
+              Save my changes over it
+            </Button>
+            {props.onReload && (
+              <Button variant="secondary" onClick={props.onReload}>
+                Load the newer version
+              </Button>
+            )}
+          </Cluster>
+        </Stack>
+      )}
       <Cluster>
         {submitButton}
         <ButtonLink
@@ -667,13 +703,17 @@ export function changesFor(
   };
 }
 
+/** Saves the changed fields against `revision`; another device's other changes stand. */
 async function save(
   project: Project,
+  revision: number,
   name: string,
   params: Record<string, unknown>,
   inputs: Record<string, unknown>,
 ) {
   const changes = changesFor(project, name, params, inputs);
   if (Object.keys(changes).length === 0) return { ok: true as const, value: project };
-  return send(api.api.projects[':id'].$put({ param: { id: project.id }, json: changes }));
+  return send(
+    api.api.projects[':id'].$put({ param: { id: project.id }, json: { ...changes, revision } }),
+  );
 }

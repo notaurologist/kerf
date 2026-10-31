@@ -16,9 +16,11 @@ const OFFLINE: Answer = {
 /** A server that answers each request with the next answer given, recording what it was sent. */
 function fakeServer(...answers: Answer[]) {
   const sent: TickChange[][] = [];
+  const revisions: number[] = [];
   const saved = new Map<string, SavedTick>();
-  const sender = async (changes: TickChange[]): Promise<Answer> => {
+  const sender = async (changes: TickChange[], revision: number): Promise<Answer> => {
     sent.push(changes);
+    revisions.push(revision);
     const answer = answers.shift();
     if (answer) return answer;
     for (const c of changes) {
@@ -28,7 +30,7 @@ function fakeServer(...answers: Answer[]) {
     }
     return { ok: true, value: { ticks: [...saved.values()], status: 'in-progress' } };
   };
-  return { sent, sender };
+  return { sent, revisions, sender };
 }
 
 /** Timers the test fires by hand. */
@@ -122,7 +124,7 @@ describe('TickQueue', () => {
 
   it('counts waiting changes over the ticks the server sent', () => {
     const queue = new TickQueue(fakeServer(OFFLINE).sender, manualTimers().timers);
-    queue.seed([beam, site]);
+    queue.seed([beam, site], 1);
     queue.set(site, false);
     expect([...queue.getState().done]).toEqual(['step:beam']);
   });
@@ -131,5 +133,41 @@ describe('TickQueue', () => {
 describe('describeWaiting', () => {
   it('says nothing when nothing waits', () => {
     expect(describeWaiting({ waiting: new Set(), offline: false })).toBeNull();
+  });
+
+  it('sends each tick with the revision of the plan it was made on', async () => {
+    const server = fakeServer();
+    const queue = new TickQueue(server.sender);
+    queue.seed([], 3);
+    queue.set(beam, true);
+    await queue.flush();
+    expect(server.revisions).toEqual([3]);
+  });
+
+  it('drops ticks made on a plan another device changed, says so, and sends the newer ones', async () => {
+    const STALE: Answer = { ok: false, error: { kind: 'stale', revision: 2 } };
+    const server = fakeServer(OFFLINE, STALE);
+    const { timers, due } = manualTimers();
+    const queue = new TickQueue(server.sender, timers);
+    queue.seed([], 1);
+    queue.set(beam, true);
+    await queue.flush();
+    // Offline: the tick waits. The screen then shows the plan regenerated elsewhere.
+    queue.seed([], 2);
+    queue.set(site, true);
+    due.shift()?.fn();
+    await Promise.resolve();
+    await queue.flush();
+    // The tick made on revision 1 went alone and was refused; the one made on revision 2 went
+    // next, on its own revision.
+    expect(server.revisions).toEqual([1, 1, 2]);
+    expect(server.sent.at(-1)).toEqual([{ kind: 'step', key: 'site', done: true }]);
+    const state = queue.getState();
+    expect(state.waiting.size).toBe(0);
+    expect(state.done.has('step:beam')).toBe(false);
+    expect(state.done.has('step:site')).toBe(true);
+    expect(state.dropped).toBe(
+      '1 change was not saved: the plan changed on another device. Reload to see it.',
+    );
   });
 });

@@ -32,6 +32,7 @@ import {
   writeProgress,
 } from './progress.ts';
 import {
+  changesPlan,
   type NewProject,
   type NewProjectPreview,
   type ProjectChanges,
@@ -50,6 +51,8 @@ export interface ProjectSummary {
   status: z.infer<typeof ProjectStatus>;
   templateId: string;
   templateVersion: number;
+  /** Counts saves that changed the plan; a save or tick names the one it was made against. */
+  revision: number;
   /** True when the template has a newer version than the one the snapshot was made with. */
   templateBehind: boolean;
   /**
@@ -105,7 +108,9 @@ export type Result<T> =
       error: 'not-found' | 'unknown-template' | 'missing-template' | 'unreadable-snapshot';
     }
   | { ok: false; error: 'invalid-project'; issues: Issue[] }
-  | { ok: false; error: 'unknown-progress'; items: { kind: string; key: string }[] };
+  | { ok: false; error: 'unknown-progress'; items: { kind: string; key: string }[] }
+  /** Another save changed the plan since this one's revision; `revision` is the current one. */
+  | { ok: false; error: 'stale-project'; revision: number };
 
 type Row = typeof projects.$inferSelect;
 
@@ -152,6 +157,7 @@ export function createProjectService(deps: {
       status: ProjectStatus.parse(row.status),
       templateId: row.templateId,
       templateVersion: row.templateVersion,
+      revision: row.revision,
       templateBehind: template !== undefined && row.templateVersion < template.version,
       progress: progressOf(row, ticks),
       createdAt: row.createdAt.toISOString(),
@@ -212,6 +218,19 @@ export function createProjectService(deps: {
     return row;
   }
 
+  /** The row, locked until the transaction ends, so a check against it holds for the write. */
+  async function lock(tx: Database, id: string): Promise<Row | undefined> {
+    const [row] = await tx.select().from(projects).where(eq(projects.id, id)).for('update');
+    return row;
+  }
+
+  type Failure = Exclude<Result<never>, { ok: true }>;
+  const stale = (row: Row): Failure => ({
+    ok: false,
+    error: 'stale-project',
+    revision: row.revision,
+  });
+
   return {
     async list(): Promise<ProjectSummary[]> {
       const rows = await db.select().from(projects).orderBy(desc(projects.updatedAt));
@@ -247,48 +266,55 @@ export function createProjectService(deps: {
       return view(row);
     },
 
-    /** Changing parameters or inputs regenerates with the template's current version. */
+    /**
+     * Changing parameters or inputs regenerates with the template's current version. A change to
+     * the plan made against an older revision is refused (#207); a status change alone is not.
+     */
     async update(id: string, changes: ProjectChanges): Promise<Result<Project>> {
-      const row = await load(id);
-      if (!row) return { ok: false, error: 'not-found' };
-      let regenerated = {};
-      let saved: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
-      let before: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
-      if (changes.params !== undefined || changes.structuralInputs !== undefined) {
-        const stored = read(row);
-        if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-        const generated = generate(
-          row.templateId,
-          changes.params ?? stored.snapshot.params,
-          changes.structuralInputs ?? stored.snapshot.structuralInputs,
-        );
-        if (!generated.ok) return generated;
-        regenerated = snapshotColumns(generated.snapshot);
-        saved = generated;
-        before = { snapshot: stored.snapshot, template: generated.template };
-      }
+      const plan = changesPlan(changes);
       const at = now();
       let progressReset: ProgressReset[] | undefined;
-      const updated = await db.transaction(async (tx) => {
-        const [row] = await tx
+      const outcome = await db.transaction(async (tx): Promise<Row | Failure> => {
+        const row = await lock(tx, id);
+        if (!row) return { ok: false, error: 'not-found' };
+        if (plan && changes.revision !== row.revision) return stale(row);
+        let regenerated = {};
+        let saved: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
+        let before: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
+        if (changes.params !== undefined || changes.structuralInputs !== undefined) {
+          const stored = read(row);
+          if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+          const generated = generate(
+            row.templateId,
+            changes.params ?? stored.snapshot.params,
+            changes.structuralInputs ?? stored.snapshot.structuralInputs,
+          );
+          if (!generated.ok) return generated;
+          regenerated = snapshotColumns(generated.snapshot);
+          saved = generated;
+          before = { snapshot: stored.snapshot, template: generated.template };
+        }
+        const [updated] = await tx
           .update(projects)
           .set({
             ...(changes.name !== undefined ? { name: changes.name } : {}),
             ...(changes.status !== undefined ? { status: changes.status } : {}),
             ...regenerated,
+            ...(plan ? { revision: row.revision + 1 } : {}),
             updatedAt: at,
           })
           .where(eq(projects.id, id))
           .returning();
+        if (!updated) return { ok: false, error: 'not-found' };
         // A name or status change keeps the snapshot, so its history and progress stand.
-        if (row && saved && before) {
+        if (saved && before) {
           await writeHistory(tx, saved.template, id, saved.snapshot, at);
           progressReset = await resetProgress(tx, id, before, saved);
         }
-        return row;
+        return updated;
       });
-      if (!updated) return { ok: false, error: 'not-found' };
-      return withReset(await view(updated), progressReset);
+      if ('ok' in outcome) return outcome;
+      return withReset(await view(outcome), progressReset);
     },
 
     /**
@@ -328,39 +354,45 @@ export function createProjectService(deps: {
       return { ok: true, value: { snapshot: generated.snapshot, changes: [], truncated: false } };
     },
 
-    /** Regenerates from the stored parameters and inputs with the current template version. */
+    /**
+     * Regenerates from the stored parameters and inputs with the current template version. The
+     * plan changes, so its revision does too.
+     */
     async regenerate(id: string): Promise<Result<Project>> {
-      const row = await load(id);
-      if (!row) return { ok: false, error: 'not-found' };
-      const stored = read(row);
-      if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-      const generated = generate(
-        row.templateId,
-        stored.snapshot.params,
-        stored.snapshot.structuralInputs,
-      );
-      if (!generated.ok) return generated;
       const at = now();
       let progressReset: ProgressReset[] | undefined;
-      const updated = await db.transaction(async (tx) => {
-        const [row] = await tx
+      const outcome = await db.transaction(async (tx): Promise<Row | Failure> => {
+        const row = await lock(tx, id);
+        if (!row) return { ok: false, error: 'not-found' };
+        const stored = read(row);
+        if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+        const generated = generate(
+          row.templateId,
+          stored.snapshot.params,
+          stored.snapshot.structuralInputs,
+        );
+        if (!generated.ok) return generated;
+        const [updated] = await tx
           .update(projects)
-          .set({ ...snapshotColumns(generated.snapshot), updatedAt: at })
+          .set({
+            ...snapshotColumns(generated.snapshot),
+            revision: row.revision + 1,
+            updatedAt: at,
+          })
           .where(eq(projects.id, id))
           .returning();
-        if (row) {
-          await writeHistory(tx, generated.template, id, generated.snapshot, at);
-          progressReset = await resetProgress(
-            tx,
-            id,
-            { snapshot: stored.snapshot, template: generated.template },
-            generated,
-          );
-        }
-        return row;
+        if (!updated) return { ok: false, error: 'not-found' };
+        await writeHistory(tx, generated.template, id, generated.snapshot, at);
+        progressReset = await resetProgress(
+          tx,
+          id,
+          { snapshot: stored.snapshot, template: generated.template },
+          generated,
+        );
+        return updated;
       });
-      if (!updated) return { ok: false, error: 'not-found' };
-      return withReset(await view(updated), progressReset);
+      if ('ok' in outcome) return outcome;
+      return withReset(await view(outcome), progressReset);
     },
 
     /** What has been ticked off in a project (#57). */
@@ -370,46 +402,51 @@ export function createProjectService(deps: {
     },
 
     /**
-     * Sets and clears ticks, and returns every tick. A tick on an item the stored plan does not
-     * have is refused, with nothing saved, so a client learns which queued ticks went stale.
-     * Clearing one is allowed: it leaves no tick either way. Status follows (`statusAfterTicks`),
-     * and the response carries it.
+     * Sets and clears ticks, and returns every tick. Ticks made against an older revision of the
+     * plan are refused (#207): an item's key can outlive a change to its numbers. A tick on an
+     * item the stored plan does not have is refused too, with nothing saved, so a client learns
+     * which queued ticks went stale. Clearing one is allowed: it leaves no tick either way. Status
+     * follows (`statusAfterTicks`), and the response carries it. The check, the write, and the
+     * status move together.
      */
     async setProgress(
       id: string,
       changes: ProgressChanges,
     ): Promise<Result<{ ticks: ProgressEntry[]; status: ProjectSummary['status'] }>> {
-      const row = await load(id);
-      if (!row) return { ok: false, error: 'not-found' };
-      const template = findTemplate(row.templateId);
-      if (!template) return { ok: false, error: 'missing-template' };
-      const stored = read(row);
-      if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-      const known = new Set(itemsOf(template, stored.snapshot).map(progressId));
-      const unknown = changes.changes.filter((c) => c.done && !known.has(progressId(c)));
-      if (unknown.length > 0) {
-        return {
-          ok: false,
-          error: 'unknown-progress',
-          items: unknown.map(({ kind, key }) => ({ kind, key })),
-        };
-      }
-      const outputs = template.storedOutputs.parse(stored.snapshot.outputs);
-      const before = progressSummary(template, outputs, await readProgress(db, id));
-      const at = now();
-      await writeProgress(db, id, changes.changes, at);
-      const ticks = await readProgress(db, id);
-      const current = ProjectStatus.parse(row.status);
-      const status = statusAfterTicks(
-        current,
-        changes.changes,
-        before,
-        progressSummary(template, outputs, ticks),
-      );
-      if (status !== current) {
-        await db.update(projects).set({ status, updatedAt: at }).where(eq(projects.id, id));
-      }
-      return { ok: true, value: { ticks, status } };
+      return db.transaction(async (tx) => {
+        const row = await lock(tx, id);
+        if (!row) return { ok: false, error: 'not-found' };
+        if (changes.revision !== row.revision) return stale(row);
+        const template = findTemplate(row.templateId);
+        if (!template) return { ok: false, error: 'missing-template' };
+        const stored = read(row);
+        if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+        const known = new Set(itemsOf(template, stored.snapshot).map(progressId));
+        const unknown = changes.changes.filter((c) => c.done && !known.has(progressId(c)));
+        if (unknown.length > 0) {
+          return {
+            ok: false,
+            error: 'unknown-progress',
+            items: unknown.map(({ kind, key }) => ({ kind, key })),
+          };
+        }
+        const outputs = template.storedOutputs.parse(stored.snapshot.outputs);
+        const before = progressSummary(template, outputs, await readProgress(tx, id));
+        const at = now();
+        await writeProgress(tx, id, changes.changes, at);
+        const ticks = await readProgress(tx, id);
+        const current = ProjectStatus.parse(row.status);
+        const status = statusAfterTicks(
+          current,
+          changes.changes,
+          before,
+          progressSummary(template, outputs, ticks),
+        );
+        if (status !== current) {
+          await tx.update(projects).set({ status, updatedAt: at }).where(eq(projects.id, id));
+        }
+        return { ok: true, value: { ticks, status } };
+      });
     },
 
     /** Permanent: the project's history and progress rows go with it (they cascade). */
