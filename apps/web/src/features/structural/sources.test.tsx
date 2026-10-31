@@ -18,7 +18,11 @@ describe.each(storedSnapshots.map((s, i) => [i, s] as const))(
     );
 
     it('links every citation in the checks to its source', () => {
-      for (const c of citationsIn(checks)) {
+      const citations = citationsIn(checks);
+      if (citations.length === 0) {
+        expect(checks.every((c) => c.status === 'input-needed')).toBe(true);
+      }
+      for (const c of citations) {
         const url = c.url ?? designValues.SOURCES[c.source].url;
         expect(url).toMatch(/^https:\/\//);
         expect(html).toContain(`href="${url.replace(/&/g, '&amp;')}"`);

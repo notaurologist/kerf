@@ -3,10 +3,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createSnapshot, findTemplate } from '@kerf/core';
 
-// Writes the fixture for a template's current snapshot shape (decision 0014): its worked examples
-// as snapshots, stored as JSON the way Postgres holds them. Run once when a template's
-// snapshotVersion is bumped; an existing fixture is never overwritten, because it stands for
-// projects already stored in that shape.
+// Writes the fixture for a template's current version (decision 0014): its worked examples as
+// snapshots, stored as JSON the way Postgres holds them. Run once each time a template's version
+// is bumped; an existing fixture is never overwritten, because it stands for projects already
+// stored by that version.
 //   pnpm --filter @kerf/api write-snapshot-fixture swing-set-a-frame
 
 const id = process.argv[2] ?? '';
@@ -22,10 +22,10 @@ const file = join(
   'packages/core/src/templates',
   template.id,
   'snapshots',
-  `v${template.snapshotVersion}.json`,
+  `v${template.version}.json`,
 );
 if (existsSync(file)) {
-  console.error(`${file} exists. Fixtures are never rewritten; bump snapshotVersion instead.`);
+  console.error(`${file} exists. Fixtures are never rewritten; bump the template version instead.`);
   process.exit(1);
 }
 

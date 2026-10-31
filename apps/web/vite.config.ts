@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig, type Plugin } from 'vite';
+import type { Plugin } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 // Every screen uses the text font, so the built page fetches it with the CSS rather than after
 // the first render finds it. Its file name carries a hash, known only once the bundle is written.
@@ -28,5 +29,8 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:3000',
     },
+  },
+  test: {
+    expect: { requireAssertions: true },
   },
 });
