@@ -66,7 +66,7 @@ export function dimensions(p: SwingSetParams): Dimensions {
   };
 }
 
-export const LegGeometry = z.object({
+const LegGeometry = z.object({
   /** Height where the leg's centerline meets the ground (spec, Where the leg meets the ground). */
   groundZ: z.number(),
   /** Height of the foot's level cut. */
@@ -80,7 +80,7 @@ export const LegGeometry = z.object({
   /** Plan-view distance from the beam's centerline to the leg's outer face at grade. */
   outerAtGrade: z.number(),
 });
-export type LegGeometry = z.infer<typeof LegGeometry>;
+type LegGeometry = z.infer<typeof LegGeometry>;
 
 export const FrameGeometry = z.object({
   /** Splay from vertical, degrees. */
@@ -133,7 +133,7 @@ function outerFaceY(dims: Dimensions, splay: number, z: number): number {
  * goes far enough past it for the full-value end distance whichever way the bolt bears (NDS 2024
  * Table 12.5.1A, softwood: 7D). Never less than flush.
  */
-export function pastLeg(dims: Dimensions, splay: number, diameter: number): number {
+function pastLeg(dims: Dimensions, splay: number, diameter: number): number {
   const a = splay * RAD;
   return Math.max(0, fullValueEndDistance(diameter, 'softwood') - dims.w / (2 * Math.cos(a)));
 }
@@ -211,7 +211,7 @@ export function frameGeometry(dims: Dimensions, splay: number): FrameGeometry {
   };
 }
 
-export const SPLAY_RANGE = { min: 5, max: 35 } as const;
+const SPLAY_RANGE = { min: 5, max: 35 } as const;
 
 /**
  * Splay angle that gives a footprint depth (spec, Footprint at grade), or null when the footprint

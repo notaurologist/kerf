@@ -191,7 +191,7 @@ function pointLoads(hangersX: readonly number[], perHanger: number[]): PointLoad
 }
 
 /** Conditions of use for the top beam (DOMAIN.md, Swing set specifics, Service conditions). */
-export const BEAM_CONDITIONS: ServiceConditions = {
+const BEAM_CONDITIONS: ServiceConditions = {
   wet: {
     value: true,
     reason: 'The beam is outdoors and uncovered, so its moisture content can stay above 19%.',
@@ -386,7 +386,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
 }
 
 /** Swing-set items to confirm with an experienced builder (DOMAIN.md, Swing set, Loads). */
-export function checklist(output: SwingSetOutput): ChecklistItem[] {
+function checklist(output: SwingSetOutput): ChecklistItem[] {
   const p = output.params;
   const g = output.geometry;
   const h = p.hardware;

@@ -2,17 +2,15 @@
 // layout primitives; they write no classes or styles of their own.
 
 export { sharedFrame, useAssemblyMotion } from './assemblyMotion.ts';
-export { Button, ButtonLink, type ButtonVariant } from './Button.tsx';
+export { Button, ButtonLink } from './Button.tsx';
 export { InlineConfirm, useReturnFocus } from './Confirm.tsx';
-export { type ContentsItem, SectionList, SectionPager, WithContents } from './Contents.tsx';
-export { type Definition, DefinitionFigure, Definitions } from './Definitions.tsx';
+export { SectionList, SectionPager, WithContents } from './Contents.tsx';
+export { DefinitionFigure, Definitions } from './Definitions.tsx';
 export { Diagram } from './Diagram.tsx';
-export { DiagramFrame } from './DiagramFrame.tsx';
-export { BlockingDialog, ConfirmDialog } from './Dialog.tsx';
+export { BlockingDialog } from './Dialog.tsx';
 export { Disclosure } from './Disclosure.tsx';
 export {
   CompactSelect,
-  type ControlProps,
   Field,
   FieldGroup,
   FormProgress,
@@ -32,7 +30,6 @@ export {
   LiveRegion,
   Loading,
   Notice,
-  Pending,
   ProblemScreen,
   SaveFailed,
   StateTag,
@@ -40,7 +37,7 @@ export {
   type SummaryItem,
   useFormIssues,
 } from './feedback.tsx';
-export { Icon, type IconName } from './Icon.tsx';
+export { Icon } from './Icon.tsx';
 export { useDraft } from './LeaveGuard.tsx';
 export {
   Card,
@@ -48,13 +45,11 @@ export {
   Cluster,
   Grid,
   Page,
-  Sidebar,
-  type Space,
   Stack,
   Switcher,
   WithAside,
 } from './layout.tsx';
-export { type Column, MeasureTable } from './MeasureTable.tsx';
+export { MeasureTable } from './MeasureTable.tsx';
 export {
   Changed,
   Glance,
@@ -68,11 +63,11 @@ export {
 export { CheckStatus, FlagList } from './plan.tsx';
 export { ScreenHeader, ScreenHeading } from './ScreenHeader.tsx';
 export { PlanSection } from './Section.tsx';
-export { Header, ModeBar, ModeFrame, type NavItem } from './Shell.tsx';
+export { Header, ModeFrame } from './Shell.tsx';
 export { StepLayout } from './StepLayout.tsx';
 export { Term, TermScope } from './Term.tsx';
 export { Tick } from './Tick.tsx';
 export { ToolIcon, ToolLabel } from './ToolIcon.tsx';
-export { Code, List, OneLine, PlainList, Text, VisuallyHidden } from './text.tsx';
+export { Code, List, OneLine, PlainList, Text } from './text.tsx';
 export { type View, ViewSwitch } from './ViewSwitch.tsx';
 export { Wordmark } from './Wordmark.tsx';

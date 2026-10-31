@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 export const MOVE_MS = 400;
 
 type Bounds = geometry.Drawing['bounds'];
-export type AssemblyView = 'assembled' | 'exploded';
+type AssemblyView = 'assembled' | 'exploded';
 
 /** What a drawing in the move shows now. */
 export interface Motion {
