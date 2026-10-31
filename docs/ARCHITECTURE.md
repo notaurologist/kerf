@@ -51,13 +51,16 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │   │   │   ├── app.ts        # Hono app and exported AppType; no server, so tests call app.request()
 │   │   │   ├── index.ts      # Local Node server
 │   │   │   └── vercel.ts     # Vercel entry point
-│   │   ├── scripts/          # hash-password
+│   │   ├── scripts/          # release (runs at deploy), hash-password, check-deploy,
+│   │   │                     # write-snapshot-fixture
 │   │   └── test/
 │   └── web/
 │       ├── public/           # Icons and the social preview image (docs/design/brand.md)
 │       └── src/
-│           ├── features/     # inventory/, project-editor/, cut-list/, shopping-list/,
-│           │                 # diagrams/, build-steps/, structural/, login/
+│           ├── features/     # One folder per screen or plan section: projects/, project/,
+│           │                 # project-editor/, modes/, boards/, cut-list/, shopping-list/,
+│           │                 # diagrams/, build-steps/, structural/, glossary/, inventory/,
+│           │                 # login/
 │           ├── ui/           # The design system: tokens, layout primitives, components,
 │           │                 # icons, fonts, and the catalog page (docs/design/system.md)
 │           ├── lib/          # API client, routes, display helpers

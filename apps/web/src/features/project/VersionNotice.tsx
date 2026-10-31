@@ -14,6 +14,7 @@ import {
   MeasureTable,
   Stack,
   Text,
+  useReturnFocus,
 } from '../../ui/index.ts';
 
 // Tells the owner when a project's template has a newer version, what regenerating would change,
@@ -36,6 +37,7 @@ export function VersionNotice(props: {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const trigger = useReturnFocus(confirming);
   if (!report || report.status === 'current') return null;
 
   if (report.status === 'ahead') {
@@ -129,7 +131,7 @@ export function VersionNotice(props: {
             </InlineConfirm>
           ) : (
             <Cluster>
-              <Button variant="secondary" onClick={() => setConfirming(true)}>
+              <Button ref={trigger} variant="secondary" onClick={() => setConfirming(true)}>
                 Regenerate with version {report.currentVersion}
               </Button>
             </Cluster>

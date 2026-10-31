@@ -1,5 +1,5 @@
 import { entryEcho, type FormField } from '@kerf/core';
-import { Field, Select, TextInput } from '../ui/index.ts';
+import { Field, Select, TextInput, YesNo } from '../ui/index.ts';
 
 // One field of a form described as data (core's FormField): a template's parameters and inputs,
 // or a tool's capabilities. Core reads what is typed; this renders it.
@@ -49,19 +49,14 @@ export function FieldInput(props: {
       width={field.kind === 'choice' || field.kind === 'yes-no' ? 'medium' : 'short'}
     >
       {(c) =>
-        field.kind === 'choice' || field.kind === 'yes-no' ? (
+        field.kind === 'yes-no' ? (
+          <YesNo {...c} value={text} onChange={props.onChange} />
+        ) : field.kind === 'choice' ? (
           <Select
             {...c}
             value={text}
             onChange={props.onChange}
-            options={
-              field.kind === 'yes-no'
-                ? [
-                    { value: 'true', label: 'Yes' },
-                    { value: 'false', label: 'No' },
-                  ]
-                : (field.options ?? []).map((o) => ({ value: String(o.value), label: o.label }))
-            }
+            options={(field.options ?? []).map((o) => ({ value: String(o.value), label: o.label }))}
           />
         ) : (
           <TextInput

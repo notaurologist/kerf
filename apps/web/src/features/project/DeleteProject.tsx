@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { navigate } from '../../lib/route.ts';
-import { Button, Card, Cluster, Field, InlineConfirm, Text, TextInput } from '../../ui/index.ts';
+import {
+  Button,
+  Card,
+  Cluster,
+  Field,
+  InlineConfirm,
+  Text,
+  TextInput,
+  useReturnFocus,
+} from '../../ui/index.ts';
 
 // Deleting a project is permanent (issue #22): there is no archive and, until backups exist, no
 // way back. The owner confirms by typing the project's name.
@@ -17,11 +26,12 @@ export function DeleteProject(props: { id: string; name: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | undefined>(undefined);
+  const trigger = useReturnFocus(open);
 
   if (!open) {
     return (
       <Cluster>
-        <Button variant="destructive" onClick={() => setOpen(true)}>
+        <Button ref={trigger} variant="destructive" onClick={() => setOpen(true)}>
           Delete project
         </Button>
       </Cluster>

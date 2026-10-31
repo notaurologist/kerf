@@ -1,4 +1,9 @@
-import { formatLength, type ShoppingGroup, shoppingGroups, summarizeProgress } from '@kerf/core';
+import {
+  formatBoardLength,
+  type ShoppingGroup,
+  shoppingGroups,
+  summarizeProgress,
+} from '@kerf/core';
 import { type ReactNode, useEffect } from 'react';
 import { api, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
@@ -117,7 +122,7 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
                     {'nominal' in line ? (
                       <>
                         <b>{line.count}</b> × {line.nominal},{' '}
-                        <Measured text={formatLength(line.feet * 12, 'feet-inches')} />
+                        <Measured text={formatBoardLength(line.feet)} />
                       </>
                     ) : (
                       <>

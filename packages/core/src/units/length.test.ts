@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compareRoundedSum, formatLength, toSixteenths } from './length.ts';
+import { compareRoundedSum, formatBoardLength, formatLength, toSixteenths } from './length.ts';
 
 describe('toSixteenths', () => {
   it('rounds to the nearest sixteenth', () => {
@@ -85,5 +85,12 @@ describe('compareRoundedSum', () => {
 
   it('rejects invalid parts', () => {
     expect(() => compareRoundedSum([1, -1])).toThrow(RangeError);
+  });
+});
+
+describe('formatBoardLength', () => {
+  it('shows a board length in feet as feet and inches', () => {
+    expect(formatBoardLength(12)).toBe(`12' 0"`);
+    expect(formatBoardLength(8.5)).toBe(`8' 6"`);
   });
 });
