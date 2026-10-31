@@ -36,6 +36,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm knip
       - run: pnpm test
       - run: pnpm --filter @kerf/web build
       - name: Migrations match the schema

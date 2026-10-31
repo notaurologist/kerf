@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/knip@6.43.0/schema.json",
+  "workspaces": {
+    "apps/api": {
+      "entry": ["src/vercel.ts", "scripts/*.ts"]
+    }
+  }
+}

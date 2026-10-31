@@ -4,7 +4,7 @@ import { Disclosure, List, Text } from '../../ui/index.ts';
 type CitationData = designValues.Citation;
 
 /** Where a value or formula came from, linked to the source (AWC's free copies where they exist). */
-export function Citation(props: { citation: CitationData }) {
+function Citation(props: { citation: CitationData }) {
   const { citation } = props;
   const source = designValues.SOURCES[citation.source];
   return (

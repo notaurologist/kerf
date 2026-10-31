@@ -30,7 +30,7 @@ export const SwingGeometry = z.object({
 });
 export type SwingGeometry = z.infer<typeof SwingGeometry>;
 
-export const PlanRect = z.object({
+const PlanRect = z.object({
   label: z.string(),
   xMin: z.number(),
   xMax: z.number(),
@@ -38,7 +38,7 @@ export const PlanRect = z.object({
   yMax: z.number(),
   source: z.string().optional(),
 });
-export type PlanRect = z.infer<typeof PlanRect>;
+type PlanRect = z.infer<typeof PlanRect>;
 
 export const SiteLayout = z.object({
   footprint: PlanRect,

@@ -46,7 +46,8 @@ pnpm test           # Vitest, every package
 pnpm typecheck      # tsc in every package
 pnpm lint           # Biome check (code and config, not Markdown)
 pnpm format         # Biome format, writes changes
-pnpm check          # lint, typecheck, test; what the pre-push hook and CI run
+pnpm knip           # unused files, exports, and dependencies (knip.json lists entry points it cannot infer)
+pnpm check          # lint, typecheck, knip, test; what the pre-push hook and CI run
 pnpm db:migrate     # check stored snapshots read, apply Drizzle migrations, backfill history (0014); defaults to the local container
 pnpm --filter @kerf/api db:generate  # after changing apps/api/src/db/schema.ts; commit the new migration
 pnpm --filter @kerf/api write-snapshot-fixture <template-id>  # after bumping a template's version (0014)
