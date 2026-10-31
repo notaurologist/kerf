@@ -50,6 +50,13 @@
       "when": 1793450625512,
       "tag": "0006_history_operation_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793470157577,
+      "tag": "0007_template_version_matches_snapshot",
+      "breakpoints": true
     }
   ]
 }
