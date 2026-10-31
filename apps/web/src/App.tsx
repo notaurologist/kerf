@@ -26,8 +26,8 @@ import {
   Wordmark,
 } from './ui/index.ts';
 
-// The design system's catalog (#45), loaded only when opened: it carries the worked example's
-// snapshot for its sample values.
+// The design system's catalog (#45), loaded only when opened: it carries the worked examples'
+// snapshots and drawings for its sample values.
 const Catalog = lazy(() => import('./ui/Catalog.tsx').then((m) => ({ default: m.Catalog })));
 
 // `expired` keeps the screen mounted under the login, so a form keeps what was typed.

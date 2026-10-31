@@ -14,6 +14,7 @@
     "db:migrate": "node scripts/release.ts",
     "hash-password": "node scripts/hash-password.ts",
     "write-snapshot-fixture": "node scripts/write-snapshot-fixture.ts",
+    "write-catalog-sample": "node scripts/write-catalog-sample.ts",
     "check-deploy": "node scripts/check-deploy.ts"
   },
   "dependencies": {

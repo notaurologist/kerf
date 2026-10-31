@@ -33,7 +33,7 @@ Read `PRODUCT.md` and `DOMAIN.md` first. Decisions behind the choices here are r
  └──────────────────┘
 ```
 
-The web app also imports `packages/core` for types, parameter schemas (to validate forms before submitting), and display formatting. It never calls the generation functions to produce numbers it then shows as authoritative; it shows the snapshot the API returns.
+The web app also imports `packages/core` for types, parameter schemas (to validate forms before submitting), a plan's tables from stored outputs, and display formatting. It shows the snapshot and drawings the API returns and never generates them: no call to `createSnapshot`, to a template's `generate`, `drawings`, `assembly` or `steps`, or to a core function that reaches them (`generation.test.ts`). The design system catalog reads its sample from a committed file, `ui/catalog-sample.json`, written by the API's `write-catalog-sample` script and checked against core by a test. The template definitions still carry the generation code into the web bundle; it is a small share of the main chunk, so core's exports are not split for it.
 
 ## Repository layout
 
@@ -52,7 +52,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │   │   │   ├── index.ts      # Local Node server
 │   │   │   └── vercel.ts     # Vercel entry point
 │   │   ├── scripts/          # release (runs at deploy), hash-password, check-deploy,
-│   │   │                     # write-snapshot-fixture
+│   │   │                     # write-snapshot-fixture, write-catalog-sample
 │   │   └── test/
 │   └── web/
 │       ├── public/           # Icons and the social preview image (docs/design/brand.md)
@@ -272,5 +272,5 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 | `structural/` | Hand-checked worked examples for each check, including the symmetric hand-check cases and an asymmetric case; missing inputs produce "input needed" |
 | `outputs/` | Board grouping including kerf and trim; nothing silently dropped when a part is longer than any buyable length |
 | `knowledge/`, `design-values/` | Every entry parses; every reference resolves; every design value has a source |
-| `apps/api` | Every route rejects requests without a session; login rate limiting; snapshot round trip through Postgres (PGlite, 0010) |
-| `apps/web` | Forms, rendering of snapshots (rendered to a string), and effects, focus, dialogs, and address changes (in happy-dom, `*.dom.test.tsx`, 0017), and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/`; no template's ID or own words (`TemplateDefinition.ownWords`) in generic code, including the API's scripts (`generic.test.ts`); only the registry imports a template's folder (`templateFolders.test.ts`) |
+| `apps/api` | Every route rejects requests without a session; login rate limiting; snapshot round trip through Postgres (PGlite, 0010); the catalog sample matches what core generates (`scripts/catalog-sample.test.ts`) |
+| `apps/web` | Forms, rendering of snapshots (rendered to a string), and effects, focus, dialogs, and address changes (in happy-dom, `*.dom.test.tsx`, 0017), and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/`; no template's ID or own words (`TemplateDefinition.ownWords`) in generic code, including the API's scripts (`generic.test.ts`); only the registry imports a template's folder (`templateFolders.test.ts`); no generation in the web app (`generation.test.ts`) |
