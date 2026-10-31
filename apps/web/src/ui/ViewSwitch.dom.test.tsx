@@ -38,12 +38,6 @@ describe('ViewSwitch', () => {
     expect(shownText(container)).toEqual(['Drawing A']);
   });
 
-  it('gives every button room for the tick, which shows on the pressed one', () => {
-    const { container } = mount(<ViewSwitch label="Assembly view" views={views} />);
-    expect(byText(container, 'button', 'Assembled').querySelector('.k-icon')).not.toBeNull();
-    expect(byText(container, 'button', 'Exploded').querySelector('.k-icon')).not.toBeNull();
-  });
-
   it('shows a lone view under its heading, with no control', () => {
     const { container } = mount(<ViewSwitch label="Assembly view" views={views.slice(1)} />);
     expect(container.querySelector('[role="group"]')).toBeNull();

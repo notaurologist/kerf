@@ -27,12 +27,6 @@ describe('views on screen', () => {
     expect(propertyOf(screen, '.k-views__view[hidden]', 'display')).toBe('block');
     expect(propertyOf(screen, '.k-views__view[hidden]', 'visibility')).toBe('hidden');
   });
-
-  it('keep the tick’s room in an unpressed button', () => {
-    expect(
-      propertyOf(screen, '.k-views__control .k-button[aria-pressed="false"] .k-icon', 'visibility'),
-    ).toBe('hidden');
-  });
 });
 
 describe('views on paper', () => {

@@ -1,6 +1,5 @@
 import { type ReactNode, useState } from 'react';
 import { Button } from './Button.tsx';
-import { Icon } from './Icon.tsx';
 
 // Two or more views of one thing in one place, such as a drawing assembled and exploded (#200).
 // The control changes only what the screen shows: no address, no history entry. Every view
@@ -44,7 +43,6 @@ export function ViewSwitch(props: {
             pressed={view.id === shown}
             onClick={() => setShown(view.id)}
           >
-            <Icon name="done" />
             {view.label}
           </Button>
         ))}
