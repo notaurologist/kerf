@@ -104,6 +104,7 @@
 
     --duration-quick: 0.15s;
     --duration-move: 0.4s; /* MOVE_MS in ui/assemblyMotion.ts */
+    --pressed-opacity: 0.7; /* A control dims while held, as on iOS (#253). */
 
     /* Diagram lines (#44): screen widths in CSS px, never scaled with the drawing. */
     --line-visible: 1.3px;

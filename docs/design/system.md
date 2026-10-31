@@ -95,6 +95,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Space and corners | `--space-3xs` to `--space-xl`, `--density`, `--control-min`, `--content-max`, `--measure`; `--radius` (2 px, eased), `--radius-tag` (1 px, small tags) | #41, #148 |
 | Borders and focus | `--border-thin` (1 px: cards, tables, rules), `--border-mid` (1.5 px: inputs, callouts, tags), `--border-thick` (2 px: buttons, errors, input needed), `--border-bar` (3 px: the changed bar, the current section, a suggested value's source), `--focus-width` (3 px), `--focus-offset` (2 px) | #43 |
 | Motion | `--duration-quick` (0.15 s, a chevron turning) | Reduced motion turns it off (`reset.css`). |
+| Pressed | `--pressed-opacity` (0.7) | Buttons, the header's links, and ticks dim while held, as on iOS, in place of the browser's gray tap flash. A long press on them selects no text; text and numbers stay selectable. A shop mode does not bounce when pulled past its ends (#253). |
 | Lines | `--line-*` (screen widths; print widths in print), `--dash-*` | #44 |
 
 `tokens.test.ts` checks every contrast ratio recorded in `color.html` against these values, and that every token is used. When a color changes, measure the new pairing and update both the value and the recorded ratio.

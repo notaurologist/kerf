@@ -719,6 +719,25 @@
     background: var(--raised);
   }
 
+  /* ---------- Touch (#253) ----------
+     Controls answer a press by dimming, in place of the browser's gray tap flash, and a long
+     press on one does not select its words. Text and numbers stay selectable. */
+  :is(.k-button, .k-header nav a, .k-header__brand, .k-tick) {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  :is(.k-button, .k-header nav a, .k-header__brand, .k-tick):active {
+    opacity: var(--pressed-opacity);
+  }
+
+  /* A shop mode fills the screen, so pulling past its ends does not bounce the page. */
+  :root:has(.k-modebar) {
+    overscroll-behavior: none;
+  }
+
   /* ---------- Shell (#40) ---------- */
   .k-header {
     display: flex;
