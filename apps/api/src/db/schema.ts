@@ -9,6 +9,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -83,7 +84,7 @@ export const projectHistory = pgTable(
     inventoryKey: text('inventory_key').notNull(),
     recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('project_history_project_id').on(t.projectId)],
+  (t) => [uniqueIndex('project_history_operation').on(t.projectId, t.operationId)],
 );
 
 export const PROGRESS_KINDS = ['shopping-line', 'board', 'part', 'step'] as const;

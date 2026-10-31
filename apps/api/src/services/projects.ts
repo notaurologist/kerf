@@ -274,49 +274,34 @@ export function createProjectService(deps: {
 
   return {
     /**
-     * Rewrites every snapshot stored in an older shape in the current one (decision 0014). Runs
-     * at each release, after the database migrations. Numbers and timestamps are left alone.
-     */
-    async upgradeStoredSnapshots(): Promise<{ upgraded: number; unreadable: string[] }> {
-      const rows = await db.select().from(projects);
-      let upgraded = 0;
-      const unreadable: string[] = [];
-      for (const row of rows) {
-        const result = read(row);
-        if (!result.ok) unreadable.push(row.id);
-        else if (result.upgradedFrom !== undefined) {
-          await db
-            .update(projects)
-            .set({ snapshot: result.snapshot })
-            .where(eq(projects.id, row.id));
-          upgraded++;
-        }
-      }
-      return { upgraded, unreadable };
-    },
-
-    /**
-     * Writes history rows for every readable project that has none (#106): projects saved before
-     * rows were written, or whose plan has no operations yet. Runs at each release, after the
-     * snapshot upgrade. Rows that exist were written when their snapshot was saved and are kept.
+     * Writes history for projects that have none. Each is locked and read again first, so a save
+     * made meanwhile wins.
      */
     async backfillHistory(): Promise<{ projects: number; rows: number }> {
-      const rows = await db.select().from(projects);
       const withRows = new Set(
         (await db.selectDistinct({ id: projectHistory.projectId }).from(projectHistory)).map(
           (r) => r.id,
         ),
       );
+      const candidates = (await db.select({ id: projects.id }).from(projects)).filter(
+        (r) => !withRows.has(r.id),
+      );
       let written = 0;
       let count = 0;
-      for (const row of rows) {
-        if (withRows.has(row.id)) continue;
-        const template = findTemplate(row.templateId);
-        const result = read(row);
-        if (!template || !result.ok) continue;
-        const n = await db.transaction((tx) =>
-          writeHistory(tx, template, row.id, result.snapshot, now()),
-        );
+      for (const { id } of candidates) {
+        const n = await db.transaction(async (tx) => {
+          const [row] = await tx.select().from(projects).where(eq(projects.id, id)).for('update');
+          if (!row) return 0;
+          const [existing] = await tx
+            .select({ id: projectHistory.id })
+            .from(projectHistory)
+            .where(eq(projectHistory.projectId, id))
+            .limit(1);
+          const template = findTemplate(row.templateId);
+          const result = read(row);
+          if (existing || !template || !result.ok) return 0;
+          return writeHistory(tx, template, id, result.snapshot, now());
+        });
         if (n > 0) {
           written++;
           count += n;
