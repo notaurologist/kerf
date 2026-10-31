@@ -44,7 +44,7 @@ const BUILD_STEPS_INTRO =
 export function ProjectScreen(props: { id: string; section?: PlanSectionId; part?: string }) {
   const { loaded, set, reload } = useProject(props.id);
   return (
-    <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Project">
+    <Loaded state={loaded} shape="plan" loading="Loading project…" onRetry={reload} title="Project">
       {(project) => (
         <ProjectView project={project} section={props.section} part={props.part} onChange={set} />
       )}

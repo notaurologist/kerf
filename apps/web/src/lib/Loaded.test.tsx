@@ -5,10 +5,19 @@ import { Loaded } from './Loaded.tsx';
 describe('Loaded', () => {
   const show = (value: string) => <b>{value}</b>;
 
-  it('says it is loading, after the usual delay', () => {
-    expect(
-      render(<Loaded state={{ state: 'loading' }} loading="Loading project…" onRetry={() => {}} />),
-    ).toBe('<p class="k-loading" role="status"></p>');
+  it('shows a skeleton in the shape of the screen, named for screen readers, hidden until the hold ends', () => {
+    const html = render(
+      <Loaded
+        state={{ state: 'loading' }}
+        shape="plan"
+        loading="Loading project…"
+        onRetry={() => {}}
+      />,
+    );
+    expect(html).toMatch(/^<div class="k-skeleton" data-shape="plan" role="status">/);
+    expect(html).toContain('<span class="k-visually-hidden">Loading project…</span>');
+    expect(html).not.toContain('data-shown');
+    expect(html.match(/data-block="block"/g)).toHaveLength(3);
   });
 
   it('gives the problem and a way back, with Try again and the connection icon when the server was not reached', () => {
