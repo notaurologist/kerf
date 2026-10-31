@@ -1,0 +1,972 @@
+<title>Kerf App Frame</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+/* Additions for the Stage 9 page: the frames, and the demos drawn in Kerf's own colors so motion and
+   loading can be judged as they would look. The demo colors are copied from
+   apps/web/src/ui/styles/tokens.css; the demos use the system font, not Atkinson Hyperlegible. */
+.frames { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: start; }
+.frames .phone { margin-inline: 0; }
+.laptop.short { min-height: 0; }
+.wf .side { border-right: 1px solid var(--line); padding: 12px 10px; display: grid; gap: 6px; align-content: start; }
+.wf .side .h { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-top: 6px; }
+.wf .side span { padding: 2px 0 2px 8px; border-left: 3px solid transparent; }
+.wf .side span.on { border-left-color: var(--wf-ink); font-weight: 650; }
+.wf .side span.in { margin-left: 12px; }
+.wf .side .foot { margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--muted); }
+.wf .titlebar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .titlebar .c { font-weight: 650; text-align: center; }
+.wf .titlebar .r { justify-self: end; }
+.wf .body { padding: 12px; display: grid; gap: 9px; align-content: start; }
+.wf .row { display: flex; gap: 8px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 7px; }
+.wf .cols { display: grid; height: 100%; }
+.wf .safari { height: 30px; border-top: 1px solid var(--line); display: flex; justify-content: center; align-items: center; color: var(--muted); font-size: 10px; background: var(--wf-soft); }
+.callout { font-size: var(--step--1); color: var(--blue); font-family: var(--mono); }
+.verdict-row td:first-child { font-weight: 600; }
+
+/* ---------- Demos ---------- */
+.demo { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); align-items: start; }
+.demo .controls { display: grid; gap: 14px; align-content: start; }
+.demo fieldset { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px 12px; margin: 0; display: grid; gap: 6px; }
+.demo legend { font-size: var(--step--1); font-weight: 600; color: var(--muted); padding: 0 4px; }
+.demo label { display: flex; gap: 8px; align-items: baseline; font-size: 0.95rem; }
+.demo .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.demo button.act { font: inherit; font-size: 0.9rem; padding: 6px 10px; border: 1.5px solid var(--blue); background: var(--wf-bg); color: var(--blue); border-radius: 4px; cursor: pointer; }
+.demo button.act:disabled { opacity: 0.45; cursor: default; }
+.demo .readout { font-family: var(--mono); font-size: var(--step--1); color: var(--muted); min-height: 1.5em; }
+
+.kd {
+  --k-bg: #fbf9f5; --k-raised: #ffffff; --k-sunken: #f2efe9; --k-text: #1a1d23; --k-muted: #545860;
+  --k-border: #d7d4ce; --k-accent: #0e5caf; --k-on-accent: #ffffff; --k-skel: #e9e5dd;
+  width: min(320px, 100%); height: 620px; margin-inline: auto; border: 1.5px solid var(--wf-ink); border-radius: 26px; overflow: hidden;
+  display: grid; grid-template-rows: 22px auto 1fr auto; background: var(--k-bg); color: var(--k-text);
+  font-family: var(--sans); font-size: 14px; line-height: 1.45; position: relative;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .kd {
+    --k-bg: #111418; --k-raised: #1a1d23; --k-sunken: #0b0d12; --k-text: #edebe7; --k-muted: #aaaeb4;
+    --k-border: #2f3339; --k-accent: #70b3f7; --k-on-accent: #0c121a; --k-skel: #23272e;
+  }
+}
+:root[data-theme="dark"] .kd {
+  --k-bg: #111418; --k-raised: #1a1d23; --k-sunken: #0b0d12; --k-text: #edebe7; --k-muted: #aaaeb4;
+  --k-border: #2f3339; --k-accent: #70b3f7; --k-on-accent: #0c121a; --k-skel: #23272e;
+}
+.kd .notch { display: flex; justify-content: center; align-items: center; background: var(--k-raised); }
+.kd .notch::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--k-text); opacity: 0.8; }
+.kd .top { background: var(--k-raised); border-bottom: 1px solid var(--k-border); min-height: 44px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 12px; gap: 8px; position: relative; z-index: 2; }
+.kd .top .l { justify-self: start; color: var(--k-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.kd .top .c { font-weight: 700; white-space: nowrap; }
+.kd .top .r { justify-self: end; color: var(--k-muted); }
+.kd .top.header { grid-template-columns: auto 1fr; }
+.kd .top.header .nav { justify-self: end; display: flex; gap: 12px; color: var(--k-accent); font-size: 13px; }
+.kd .top.header .nav b { text-decoration: underline; text-underline-offset: 3px; }
+.kd .top.modebar { background: var(--k-text); color: var(--k-bg); border-bottom: 0; grid-template-columns: 1fr auto; }
+.kd .top.modebar .r { color: var(--k-bg); border: 1.5px solid var(--k-bg); border-radius: 2px; padding: 2px 8px; font-weight: 700; }
+.kd .wordmark { font-weight: 800; font-size: 20px; letter-spacing: -0.02em; }
+.kd .stage { position: relative; overflow: hidden; }
+.kd .pane { position: absolute; inset: 0; overflow: hidden; padding: 16px 16px 24px; display: grid; gap: 12px; align-content: start; background: var(--k-bg); }
+.kd .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--k-border); background: var(--k-raised); position: relative; z-index: 2; }
+.kd .tabs span { text-align: center; padding: 8px 2px 18px; font-size: 11px; color: var(--k-muted); display: grid; justify-items: center; gap: 2px; }
+.kd .tabs span::before { content: ""; width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 3px; }
+.kd .tabs span.on { color: var(--k-accent); font-weight: 700; }
+.kd .tabs span.on::before { background: currentColor; }
+.kd h3 { font-size: 22px; line-height: 1.15; }
+.kd h4 { font-size: 16px; }
+.kd .muted { color: var(--k-muted); font-size: 13px; }
+.kd .card { background: var(--k-raised); border: 1px solid var(--k-border); border-radius: 2px; padding: 12px; display: grid; gap: 6px; }
+.kd .btn { display: inline-block; background: var(--k-accent); color: var(--k-on-accent); font-weight: 700; padding: 8px 12px; border-radius: 2px; justify-self: start; }
+.kd .btn.sec { background: transparent; color: var(--k-accent); border: 2px solid var(--k-accent); padding: 6px 10px; }
+.kd .link { color: var(--k-accent); text-decoration: underline; text-underline-offset: 2px; }
+.kd .bar { font-size: 13px; color: var(--k-muted); border-bottom: 1px solid var(--k-border); padding-bottom: 8px; display: flex; justify-content: space-between; }
+.kd .lines { display: grid; gap: 8px; }
+.kd .ln { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--k-border); padding-bottom: 7px; }
+.kd .val { display: inline-block; width: 64px; height: 12px; background: var(--k-text); opacity: 0.75; border-radius: 1px; align-self: center; }
+.kd .pn { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid var(--k-border); padding-top: 10px; font-size: 13px; }
+.kd .tick { display: flex; gap: 10px; align-items: center; min-height: 48px; border-bottom: 1px solid var(--k-border); font-size: 16px; }
+.kd .tick::before { content: ""; width: 24px; height: 24px; border: 2px solid var(--k-text); border-radius: 2px; flex: none; }
+.kd .glance { font-size: 34px; font-weight: 800; letter-spacing: -0.01em; }
+.kd .skel { background: var(--k-skel); border-radius: 2px; }
+.kd .skel.t { height: 24px; width: 70%; }
+.kd .skel.s { height: 12px; width: 45%; }
+.kd .skel.r { height: 54px; }
+.kd .shimmer { background: linear-gradient(90deg, var(--k-skel) 0 40%, var(--k-sunken) 50%, var(--k-skel) 60% 100%); background-size: 300% 100%; animation: shimmer 1.6s ease-in-out infinite; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.kd .pencil { height: 2px; background: var(--k-text); opacity: 0.55; width: 0; border-radius: 1px; }
+.kd .note { font-size: 13px; color: var(--k-muted); opacity: 0; transition: opacity 0.3s; }
+.kd .note.on { opacity: 1; }
+.kd .loadingtext { color: var(--k-muted); }
+.kd .pressed { opacity: 0.7; }
+.kd .hit { cursor: pointer; }
+.kd.reduce .shimmer { animation: none; }
+.answers .pick { white-space: normal; }
+</style>
+
+<main>
+
+<header class="stack">
+  <p class="eyebrow">Design · Stage 9 · #254</p>
+  <h1>An app frame, motion, loading, and the keyboard</h1>
+  <div class="prose stack">
+    <p>Kerf works, but it feels like a website. You named two causes: navigation is page-style (a row of links in a header, whole pages that scroll) and nothing moves, so changing screens has no direction. This stage draws three frames to hold the screens, a way for screens to move, a gentler way to show loading, and keyboard use on the laptop.</p>
+    <p>The structure from Stage 1 stays: the project is the plan, and Shopping and Building are full-screen modes. What changes is the frame around the screens, which amends Stage 1's navigation-by-device table.</p>
+    <p class="muted small">The demos below are drawn in Kerf's colors, light or dark with your device, but in the system font. Tap the buttons beside each phone to try them. Under the "Reduce motion" setting, each demo behaves as Kerf would.</p>
+  </div>
+</header>
+
+<section class="answers" aria-labelledby="answers-h">
+  <h2 id="answers-h" style="font-size: var(--step-1)">What to choose</h2>
+  <ol>
+    <li><b>The frame.</b> <span class="pick">F1</span> the header kept, held in place; <span class="pick">F2</span> a tab bar on the phone and one sidebar on the laptop and iPad; or <span class="pick">F3</span> F2's phone with three panes on the laptop. Suggested: <b>F2</b>.</li>
+    <li><b>How screens move.</b> <span class="pick">M1</span> a full slide, as iOS pushes a screen; <span class="pick">M2</span> a short shift with a fade; or <span class="pick">M3</span> a fade only. Suggested: <b>M2</b>.</li>
+    <li><b>How a screen waits.</b> <span class="pick">L1</span> the old screen holds for a moment, then a skeleton; or <span class="pick">L2</span> a skeleton at once. Either way, a long wait adds a pencil line and a note. Suggested: <b>L1</b>.</li>
+    <li><b>The keyboard.</b> <span class="pick">K1</span> arrow keys for sections and steps; or <span class="pick">K2</span> K1 plus a jump-to box on Command-K. Suggested: <b>K1</b> now.</li>
+  </ol>
+</section>
+
+<section class="stack-lg">
+  <h2>What is there now</h2>
+  <div class="prose stack">
+    <p>Every planning screen sits under one header: the wordmark, then Projects, Tools, Glossary, the theme menu, and Log out. The header scrolls away with the page. Links change the address and the new screen replaces the old at once, scrolled to the top, with focus on its heading (<code>lib/screenChange.ts</code>). A screen that loads data shows nothing for 300 ms, then "Loading…" until the data arrives (<code>Loading</code> in <code>ui/feedback.tsx</code>). The plan has its contents beside it on the laptop and a "3 of 8" bar on the phone (Stage 1b). Shopping and Building replace the header with a dark mode bar and Exit.</p>
+    <p>The only motion is a disclosure arrow turning (0.15 s) and the parts sliding between the assembled and exploded drawings (0.4 s, #200).</p>
+  </div>
+</section>
+
+<section class="stack">
+  <h2>What stays the same in every direction</h2>
+  <ul class="prose stack" style="padding-left: 1.2em; margin: 0">
+    <li>IA-2: the project is the plan; Shopping and Building fill the screen with only their bar and Exit. No frame shows inside a mode.</li>
+    <li>Addresses and the browser's Back and Forward. Each screen keeps its <code>#/</code> address, and Back plays the move in reverse.</li>
+    <li>Focus goes to the new screen's heading and the page title names it, after the move ends.</li>
+    <li>Reduced motion: screens swap with a quick fade or at once, and no skeleton shimmers. The reset layer's rule still outranks every component (WCAG 2.3.3).</li>
+    <li>Print gives the whole plan in order A, with no frame.</li>
+    <li>No sideways scrolling at 320 px; shop density keeps its 56 px controls.</li>
+    <li>Styles only in <code>ui/</code>; the frame is a component like any other.</li>
+    <li>No new dependency. Screen moves use the browser's View Transitions (Safari 18, Chrome 111, Firefox 144); an older browser changes screens at once.</li>
+    <li>A screen shows data the API has just sent. Nothing shows an old copy while it waits (#253).</li>
+  </ul>
+</section>
+
+<section class="stack-lg" aria-labelledby="try-h">
+  <div class="place">
+    <h2 id="try-h">Try the frames and the moves</h2>
+    <p class="prose muted">Pick a frame and a move, then walk through: open the project, step through sections, start Building, switch to Tools, and go back. The laptop frames are drawn further down.</p>
+  </div>
+  <div class="demo" id="nav-demo">
+    <div class="kd" id="nav-phone" aria-label="Phone demo" role="group">
+      <div class="notch"></div>
+      <div class="top"></div>
+      <div class="stage"></div>
+      <div class="tabs"></div>
+    </div>
+    <div class="controls">
+      <fieldset>
+        <legend>Frame</legend>
+        <label><input type="radio" name="frame" value="F1"> F1, the header kept</label>
+        <label><input type="radio" name="frame" value="F2" checked> F2 or F3, a tab bar (same on the phone)</label>
+      </fieldset>
+      <fieldset>
+        <legend>Move</legend>
+        <label><input type="radio" name="move" value="M1"> M1, a full slide (0.35 s)</label>
+        <label><input type="radio" name="move" value="M2" checked> M2, a short shift with a fade (0.25 s)</label>
+        <label><input type="radio" name="move" value="M3"> M3, a fade only (0.15 s)</label>
+        <label><input type="checkbox" name="reduce"> Reduce motion</label>
+      </fieldset>
+      <fieldset>
+        <legend>Go</legend>
+        <div class="acts" id="nav-acts"></div>
+        <p class="readout" id="nav-readout" aria-live="polite"></p>
+      </fieldset>
+    </div>
+  </div>
+</section>
+
+<!-- ============ F1 ============ -->
+<section class="stack-lg">
+  <div class="place">
+    <h2><span class="letter">F1</span> The header kept, held in place</h2>
+    <div class="where"><span>Phone: header pinned at the top</span><span>Laptop: header and contents pinned</span></div>
+  </div>
+  <div class="prose stack">
+    <p>The smallest change. The header stays, but it no longer scrolls away: it is pinned to the top, and screens move beneath it. On the phone the header has to hold the wordmark and three links, so the theme menu and Log out move into a menu at its end. The plan keeps its contents beside it on the laptop and its "3 of 8" bar on the phone.</p>
+  </div>
+  <div class="frames">
+    <div class="wf phone">
+      <div class="status"></div>
+      <div class="screen">
+        <div class="bar"><b>kerf</b><span class="grow"></span><span>Projects</span><span>Tools</span><span>Glossary</span><span>⋯</span></div>
+        <div class="body">
+          <div class="bar" style="border:0;padding:0"><span class="muted">3 of 8 · Structural review</span><span class="grow"></span><span>▾</span></div>
+          <b style="font-size:15px">Structural review</b>
+          <div class="blk" style="width:80%"></div><div class="blk" style="width:60%"></div>
+          <div class="flag"><span class="k">Check</span><span>Top beam carries two swings</span></div>
+          <div class="blk" style="width:70%"></div><div class="blk" style="width:50%"></div>
+        </div>
+      </div>
+      <div class="safari">Safari's own bar</div>
+    </div>
+    <div class="scroll"><div class="wf laptop short" style="min-height:360px">
+      <div class="bar"><b>kerf</b><span class="grow"></span><span>Projects</span><span>Tools</span><span>Glossary</span><span>Theme</span><span>Log out</span></div>
+      <div class="cols" style="grid-template-columns: 220px 1fr">
+        <div class="side"><span class="h">Backyard swing set</span><span>Summary</span><span>Diagrams</span><span class="on">Structural review</span><span>Cut list</span><span>Boards</span><span>Shopping list</span><span>Build steps</span><span>Parameters and inputs</span></div>
+        <div class="body"><b style="font-size:15px">Structural review</b><div class="blk" style="width:60%"></div><div class="blk" style="width:75%"></div><div class="flag"><span class="k">Check</span><span>Top beam carries two swings</span></div><div class="blk" style="width:55%"></div></div>
+      </div>
+    </div></div>
+  </div>
+  <div class="critique verdict">
+    <dl>
+      <dt>For</dt>
+      <dd>Least work and least risk. Nothing in Stage 1's structure moves, and the motion alone answers half of what you named.</dd>
+      <dt>Against</dt>
+      <dd>It still reads as a website: a row of text links at the top is the web's navigation, not an app's. On the phone the header gets crowded at 320 px, with three links and a menu beside the wordmark.</dd>
+      <dt>Precedent</dt>
+      <dd>Most document sites (GOV.UK's guides, which Stage 1b drew on) keep a header; apps on the phone rarely do.</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ F2 ============ -->
+<section class="stack-lg">
+  <div class="place">
+    <h2><span class="letter">F2</span> A tab bar on the phone, one sidebar on the laptop and iPad</h2>
+    <div class="where"><span>Phone: title bar and tab bar</span><span>From 840 px: one sidebar with the open project's sections inside it</span></div>
+  </div>
+  <div class="prose stack">
+    <p>On the phone, a title bar names the screen and has a back link ("‹ Projects"), and a tab bar at the bottom holds Projects, Tools, and Glossary. Apple's guidance is to use a tab bar "to support navigation, not to provide actions", and to keep it visible "when people navigate to different sections", except under a modal view, "because a modal is temporary and self-contained". Shopping and Building are that modal case: they cover the tab bar, as they cover the header now. The theme and Log out, being actions, sit in a small menu at the end of the title bar on top-level screens.</p>
+    <p>From 840 px, the same three places are a sidebar. When a project is open, its sections appear inside the sidebar under its name, so the laptop has one column of navigation, not a sidebar beside a contents list. That is two levels, the most Apple suggests for a sidebar.</p>
+  </div>
+  <div class="frames">
+    <div class="wf phone">
+      <div class="status"></div>
+      <div class="screen">
+        <div class="titlebar"><span style="color:var(--blue)">‹ Projects</span><span class="c">Swing set</span><span class="r"></span></div>
+        <div class="body">
+          <div class="bar" style="border:0;padding:0"><span class="muted">3 of 8 · Structural review</span><span class="grow"></span><span>▾</span></div>
+          <b style="font-size:15px">Structural review</b>
+          <div class="blk" style="width:80%"></div><div class="blk" style="width:60%"></div>
+          <div class="flag"><span class="k">Check</span><span>Top beam carries two swings</span></div>
+          <div class="blk" style="width:70%"></div>
+        </div>
+      </div>
+      <div class="tabs"><span class="on">Projects</span><span>Tools</span><span>Glossary</span></div>
+      <div class="safari">Safari's own bar</div>
+    </div>
+    <div class="scroll"><div class="wf laptop short" style="min-height:380px; grid-template-rows: 1fr">
+      <div class="cols" style="grid-template-columns: 230px 1fr">
+        <div class="side">
+          <b style="font-size:15px">kerf</b>
+          <span class="on">Projects</span>
+          <span class="in">Backyard swing set</span>
+          <span class="in" style="margin-left:24px">Summary</span>
+          <span class="in" style="margin-left:24px">Diagrams</span>
+          <span class="in on" style="margin-left:24px">Structural review</span>
+          <span class="in" style="margin-left:24px">Cut list · Boards · …</span>
+          <span>Tools</span>
+          <span>Glossary</span>
+          <span class="foot">Theme · Log out</span>
+        </div>
+        <div class="body"><b style="font-size:15px">Structural review</b><div class="blk" style="width:60%"></div><div class="blk" style="width:75%"></div><div class="flag"><span class="k">Check</span><span>Top beam carries two swings</span></div><div class="blk" style="width:55%"></div><div class="blk" style="width:65%"></div></div>
+      </div>
+    </div></div>
+  </div>
+  <div class="critique verdict">
+    <dl>
+      <dt>For</dt>
+      <dd>The strongest signal of an app on the phone, and the frame stays still while screens move inside it. One sidebar on the laptop is simpler than today's header plus contents, and it shows where you are in the app and in the plan at once.</dd>
+      <dt>Against</dt>
+      <dd>In Safari, not installed (0005), the tab bar sits just above Safari's own bar, so the phone has two bars at the bottom. Safari's bar shrinks while scrolling, but the pair takes about 90 px when both show. Installing to the home screen would remove Safari's, which is the 0005 amendment held back earlier. The sidebar must not crowd the plan: at 840 px it leaves about 600 px for the section.</dd>
+      <dt>Stage 1 changes</dt>
+      <dd>The phone's "slim header with Projects and Tools" becomes the title bar and tab bar; the laptop's header and contents sidebar become one sidebar. The plan's Previous and Next and the "3 of 8" bar stay.</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ F3 ============ -->
+<section class="stack-lg">
+  <div class="place">
+    <h2><span class="letter">F3</span> Three panes on the laptop</h2>
+    <div class="where"><span>Phone: as F2</span><span>From 1280 px: places · projects · the open project</span></div>
+  </div>
+  <div class="prose stack">
+    <p>As F2 on the phone. On a wide laptop the screen splits like Mail: the three places, then the projects list, then the open project with its contents. Apple suggests this split view when a hierarchy is deeper than two levels. Below 1280 px it falls back to F2.</p>
+  </div>
+  <div class="scroll"><div class="wf laptop short" style="min-height:360px; width: 1040px; grid-template-rows: 1fr">
+    <div class="cols" style="grid-template-columns: 130px 220px 180px 1fr">
+      <div class="side"><b style="font-size:15px">kerf</b><span class="on">Projects</span><span>Tools</span><span>Glossary</span><span class="foot">Theme · Log out</span></div>
+      <div class="side"><span class="h">Projects</span><span class="on">Backyard swing set<br><span class="muted small">In progress</span></span><span>Second swing set<br><span class="muted small">Planned</span></span></div>
+      <div class="side"><span class="h">Contents</span><span>Summary</span><span>Diagrams</span><span class="on">Structural review</span><span>Cut list</span><span>Boards</span><span>Shopping list</span><span>Build steps</span><span>Parameters</span></div>
+      <div class="body"><b style="font-size:15px">Structural review</b><div class="blk" style="width:60%"></div><div class="blk" style="width:75%"></div><div class="flag"><span class="k">Check</span><span>Top beam carries two swings</span></div><div class="blk" style="width:55%"></div></div>
+    </div>
+  </div></div>
+  <p class="scroll-hint">Scroll sideways to see the whole laptop.</p>
+  <div class="critique verdict">
+    <dl>
+      <dt>For</dt>
+      <dd>Moving between projects takes one click and no screen change. The most "desktop app" of the three.</dd>
+      <dt>Against</dt>
+      <dd>Kerf has one or two projects at a time, so a column for the list is mostly empty. The plan's widest parts (the cut list table, the drawings, the structural working) lose about 350 px. The editor's split screen (form beside preview) has nowhere to go but over the panes. Three layouts to keep right instead of two.</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ Motion ============ -->
+<section class="stack-lg">
+  <div class="place">
+    <h2>How screens move</h2>
+  </div>
+  <div class="prose stack">
+    <p>A move should say where you went. Material names the patterns: a shared axis for screens with "a spatial or navigational relationship" (forward and back, or the sections in order), a fade through for places with no strong relationship (switching tabs), and a fade for things that appear within the screen. Apple asks for motion that is purposeful, brief, optional, and never in the way: "don't make people wait for an animation to complete."</p>
+  </div>
+  <div class="req-wrap"><table class="req">
+    <thead><tr><th>When</th><th>What moves</th><th>Pattern</th></tr></thead>
+    <tbody>
+      <tr><td>Into something</td><td>Projects to a project, Tools to a tool, a term to its entry. The new screen comes from the right; Back sends it out to the right.</td><td>Shared axis, sideways</td></tr>
+      <tr><td>Section to section</td><td>Previous and Next in the plan, or the contents. Later sections come from the right, earlier from the left.</td><td>Shared axis, sideways</td></tr>
+      <tr><td>Between places</td><td>Projects, Tools, Glossary. The old fades out, the new fades in; nothing slides, since the places have no order.</td><td>Fade through</td></tr>
+      <tr><td>Into a mode</td><td>Shopping or Building rises from the bottom over everything, frame included; Exit drops it.</td><td>Shared axis, vertical</td></tr>
+      <tr><td>Within a screen</td><td>A disclosure, a dialog, the assembled and exploded drawings. Unchanged.</td><td>As now</td></tr>
+    </tbody>
+  </table></div>
+  <div class="directions">
+    <div class="direction">
+      <header><span class="letter">M1</span><h3>A full slide</h3></header>
+      <p>The new screen slides the full width over the old, as iOS pushes a screen; 0.35 s. The most familiar from native apps.</p>
+      <p class="muted small">Longest travel, so the longest time. NN/g puts most animations at 100 to 500 ms and keeps 400 ms for "big movements across large screens". On a laptop, a 900 px slide is a lot of moving for a click.</p>
+    </div>
+    <div class="direction">
+      <header><span class="letter">M2</span><h3>A short shift with a fade</h3></header>
+      <p>The old screen fades as it shifts 24 px; the new one fades in from 24 px the other side; 0.25 s in, 0.2 s out. Material's shared axis, on screens of any width.</p>
+      <p class="muted small">Inside NN/g's "200–300 ms" for a substantial screen change. Says direction without moving much, so it works the same on a phone and a laptop.</p>
+    </div>
+    <div class="direction">
+      <header><span class="letter">M3</span><h3>A fade only</h3></header>
+      <p>The screens cross-fade; 0.15 s. Smooth, but no direction: forward and back look the same.</p>
+      <p class="muted small">This is what reduced motion gets in M1 and M2 anyway.</p>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p><b>In every move:</b> ease out, never linear (NN/g). Durations as tokens beside <code>--duration-quick</code> and <code>--duration-move</code>. A tap during a move is not held up: the move ends at once and the next screen starts. Under reduced motion every move is a 0.15 s fade, or none, which the reset layer must cover for the view-transition pseudo-elements as well (they are not matched by <code>*</code>).</p>
+  </div>
+</section>
+
+<!-- ============ Loading ============ -->
+<section class="stack-lg" aria-labelledby="load-h">
+  <div class="place">
+    <h2 id="load-h">How a screen waits</h2>
+  </div>
+  <div class="prose stack">
+    <p>How long screens take, from decision 0006 and re-checked October 31, 2026:</p>
+    <ul style="padding-left:1.2em; margin:0" class="stack">
+      <li><b>0.12 s</b> with the database awake. Most screens.</li>
+      <li><b>2.8 s</b> with it asleep. Neon sleeps after 5 idle minutes, so this is the first screen after any break. In the shop that is common.</li>
+    </ul>
+    <p>NN/g: under a second needs no indicator; a full screen loading for up to 10 seconds suits a skeleton that shows the content's shape (not just the frame). The evidence on skeletons is mixed: in Viget's test (136 people), the skeleton was judged the slowest of a skeleton, a spinner, and a blank screen. So the plan below shows a skeleton only when the wait is long enough to need one.</p>
+  </div>
+  <div class="demo" id="load-demo">
+    <div class="kd" id="load-phone" aria-label="Loading demo" role="group">
+      <div class="notch"></div>
+      <div class="top"><span class="l">‹ Projects</span><span class="c">Swing set</span><span class="r"></span></div>
+      <div class="stage"></div>
+      <div class="tabs"><span class="on">Projects</span><span>Tools</span><span>Glossary</span></div>
+    </div>
+    <div class="controls">
+      <fieldset>
+        <legend>Way of waiting</legend>
+        <label><input type="radio" name="wait" value="now"> Today: blank, then "Loading…" after 0.3 s</label>
+        <label><input type="radio" name="wait" value="L1" checked> L1, the old screen holds, then a skeleton</label>
+        <label><input type="radio" name="wait" value="L2"> L2, a skeleton at once</label>
+        <label><input type="checkbox" name="reduce"> Reduce motion</label>
+      </fieldset>
+      <fieldset>
+        <legend>Open the project, with the database…</legend>
+        <div class="acts">
+          <button class="act" type="button" data-ms="120">Awake (0.12 s)</button>
+          <button class="act" type="button" data-ms="800">Slow (0.8 s)</button>
+          <button class="act" type="button" data-ms="2800">Asleep (2.8 s)</button>
+        </div>
+        <p class="readout" id="load-readout" aria-live="polite"></p>
+      </fieldset>
+    </div>
+  </div>
+  <div class="directions">
+    <div class="direction">
+      <header><span class="letter">L1</span><h3>The old screen holds, then a skeleton</h3></header>
+      <p>The link you pressed dims, and the old screen stays for up to 0.3 s. If the data arrives in that time, which is most of the time, the new screen moves in complete: no blank, no placeholder. If not, it moves in as a skeleton of its own shape, and the content fades into place.</p>
+      <p class="muted small">Native apps and many web frameworks keep the old screen until the next is ready. In code, React's transitions can hold the old screen while the new one loads; the screens' loading (<code>useLoad</code>) would change to fit. More work than L2.</p>
+    </div>
+    <div class="direction">
+      <header><span class="letter">L2</span><h3>A skeleton at once</h3></header>
+      <p>The new screen moves in at once as a skeleton, and the content replaces it when it arrives. Simple, and the move starts the moment you tap.</p>
+      <p class="muted small">On a fast load (0.12 s) the skeleton shows for a blink before the content, which is the flash Viget's result warns about. Try "Awake" with L2.</p>
+    </div>
+  </div>
+  <div class="prose stack">
+    <p><b>A long wait, in either:</b> after 1 s, a pencil line starts along the top, as a line is drawn against a straightedge, slowing as it goes; it makes no claim about how much is left. After 2 s a note says what is happening: "Still loading. The first screen after a few idle minutes takes a few seconds." When the data arrives the line finishes and the content fades in. The skeleton shimmers gently; under reduced motion it is still, there is no line, and the note appears alone. Screen readers hear one "Loading" status, as now.</p>
+    <p class="muted small">After 10 s the note changes to the connection problem Kerf shows today, with Try again.</p>
+  </div>
+</section>
+
+<!-- ============ Keyboard ============ -->
+<section class="stack-lg">
+  <div class="place"><h2>The keyboard on the laptop</h2></div>
+  <div class="prose stack">
+    <p>Tab, Enter, and Escape already work everywhere (Stage 6). The question is shortcuts for moving. Apple asks for custom shortcuts only for the most common actions, without taking over the system's own. WCAG 2.1.4 asks that a shortcut of a single letter, number, or symbol can be turned off or only works with focus on it, which rules out Gmail-style single keys unless Kerf adds a setting.</p>
+  </div>
+  <div class="directions">
+    <div class="direction">
+      <header><span class="letter">K1</span><h3>Arrow keys</h3></header>
+      <p>In the plan, Left and Right go to the previous and next section. In Building, Left and Right go to the previous and next step (looking, not marking done). Only when focus is not in a field. Each is shown beside Previous and Next as a small hint.</p>
+    </div>
+    <div class="direction">
+      <header><span class="letter">K2</span><h3>K1 and a jump-to box</h3></header>
+      <p>Command-K (Control-K elsewhere) opens a box to type a project, a section, a tool, or a glossary term, and Enter goes there.</p>
+      <p class="muted small">Useful once there are many projects and templates. With one or two projects it duplicates the sidebar, so it can wait.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Compared ============ -->
+<section class="stack-lg">
+  <h2>The frames compared</h2>
+  <div class="req-wrap"><table class="req">
+    <thead><tr><th></th><th>F1 header kept</th><th>F2 tab bar and sidebar</th><th>F3 three panes</th></tr></thead>
+    <tbody>
+      <tr class="verdict-row"><td>Feels like an app on the phone</td><td>A little</td><td>Yes</td><td>Yes</td></tr>
+      <tr class="verdict-row"><td>Feels like an app on the laptop</td><td>A little</td><td>Yes</td><td>Most</td></tr>
+      <tr class="verdict-row"><td>Room for the plan on the laptop</td><td>As now</td><td>As now (one column replaces the contents)</td><td>About 350 px less</td></tr>
+      <tr class="verdict-row"><td>Phone in Safari, not installed</td><td>One bar at the bottom (Safari's)</td><td>Two bars at the bottom</td><td>Two bars at the bottom</td></tr>
+      <tr class="verdict-row"><td>Stage 1 table changes</td><td>Phone header only</td><td>Phone and laptop</td><td>Phone and laptop, plus a third layout</td></tr>
+      <tr class="verdict-row"><td>Work</td><td>Small</td><td>Medium</td><td>Large</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="stack">
+  <h2>Suggested: F2, M2, L1, K1</h2>
+  <div class="prose stack">
+    <p>F2 answers "page-style navigation" directly and keeps one column of navigation on the laptop. M2 gives every move a direction without much travel, on any screen. L1 means the usual 0.12 s load shows no loading state at all, and the 2.8 s wake-up gets a skeleton, the pencil line, and an honest note. K1 covers the moves you make most, with nothing to remember.</p>
+    <p>The two bars at the bottom of the phone in Safari are the cost of F2. If they bother you in the garage check, the fix is the home-screen install (amending 0005), not a different frame.</p>
+    <p>Built as three pull requests after your choice: the frame; moves and waiting; the keyboard.</p>
+  </div>
+</section>
+
+<section class="stack">
+  <h2>Sources behind these directions</h2>
+  <ul class="prose stack small" style="padding-left:1.2em; margin:0">
+    <li>Apple, Human Interface Guidelines: <a href="https://developer.apple.com/design/human-interface-guidelines/tab-bars">Tab bars</a> (navigation not actions; visible except under a modal; iPad tab bar that converts to a sidebar), <a href="https://developer.apple.com/design/human-interface-guidelines/sidebars">Sidebars</a> (no more than two levels; split view for deeper), <a href="https://developer.apple.com/design/human-interface-guidelines/motion">Motion</a> (purposeful, optional, brief, cancellable). Read October 31, 2026.</li>
+    <li>Material Design, <a href="https://github.com/material-components/material-components-android/blob/master/docs/theming/Motion.md">Motion</a>: container transform, shared axis (x, y, z), fade through for bottom navigation, fade.</li>
+    <li>Page Laubheimer, <a href="https://www.nngroup.com/articles/animation-duration/">Executing UX Animations: Duration and Motion Characteristics</a>, NN/g, 2020: 100–500 ms, 200–300 ms for substantial screen changes, ease out, entering a little longer than exiting.</li>
+    <li>Samhita Tankala, <a href="https://www.nngroup.com/articles/skeleton-screens/">Skeleton Screens 101</a>, NN/g, 2023: none under 1 s, skeletons for full-screen loads under 10 s, frame-only skeletons are not progress indicators.</li>
+    <li>Viget, <a href="https://www.viget.com/articles/a-bone-to-pick-with-skeleton-screens/">A Bone to Pick with Skeleton Screens</a>: 136 participants; the skeleton was judged slowest.</li>
+    <li>W3C, <a href="https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html">Understanding SC 2.3.3 Animation from Interactions</a> (AAA), and SC 2.1.4 Character Key Shortcuts (A).</li>
+    <li>MDN, <a href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API">View Transition API</a>; Chrome, <a href="https://developer.chrome.com/docs/web-platform/view-transitions/same-document">Same-document view transitions</a> (types for forward and back); <a href="https://caniuse.com/view-transitions">Can I use</a>: Safari 18, Chrome 111, Firefox 144.</li>
+    <li>Kerf: decision 0006 (cold and warm timings), decision 0005, Stage 1 and 1b in <code>docs/design/README.md</code>.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+// The two demos. Moves are played with the Web Animations API on two panes, which shows the same
+// motion the app would get from View Transitions without depending on them in a review page.
+(() => {
+  const EASE_OUT = 'cubic-bezier(0.2, 0, 0, 1)';
+  const SECTIONS = ['Summary', 'Diagrams', 'Structural review', 'Cut list', 'Boards', 'Shopping list', 'Build steps', 'Parameters and inputs'];
+  const systemReduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const el = (html) => {
+    const t = document.createElement('template');
+    t.innerHTML = html.trim();
+    return t.content.firstElementChild;
+  };
+
+  // ---------- Screens ----------
+  const screens = {
+    projects: () => `<div class="pane">
+      <h3>Projects</h3>
+      <span class="btn">New two-swing A-frame swing set</span>
+      <div class="card hit" data-row><b>Resume building</b><span class="muted">Backyard swing set · next step</span></div>
+      <div class="card hit" data-row><b>Backyard swing set</b><span class="muted">Two-swing A-frame · In progress</span></div>
+    </div>`,
+    summary: () => `<div class="pane">
+      <span class="bar"><span>1 of 8 · Summary</span><span>▾</span></span>
+      <h3>Backyard swing set</h3>
+      <span class="muted">Two-swing A-frame · In progress</span>
+      <div class="card"><h4>Shopping</h4><span class="muted">Lines bought so far</span><span class="btn sec">Start shopping</span></div>
+      <div class="card"><h4>Building</h4><span class="muted">Steps done so far</span><span class="btn">Start building</span></div>
+      <div class="lines"><span class="ln"><span>Diagrams</span><span class="muted">drawings</span></span><span class="ln"><span>Structural review</span><span class="muted">margins</span></span><span class="ln"><span>Cut list</span><span class="muted">parts</span></span></div>
+    </div>`,
+    section: (i) => `<div class="pane">
+      <span class="bar"><span>${i + 1} of 8 · ${SECTIONS[i]}</span><span>▾</span></span>
+      <h3>${SECTIONS[i]}</h3>
+      <div class="lines">
+        <span class="ln"><span>Leg</span><span class="val"></span></span>
+        <span class="ln"><span>Top beam</span><span class="val"></span></span>
+        <span class="ln"><span>Brace</span><span class="val"></span></span>
+        <span class="ln"><span>Ground stake</span><span class="val"></span></span>
+      </div>
+      <div class="pn"><span>‹ ${SECTIONS[i - 1] ?? ''}</span><span>${SECTIONS[i + 1] ? SECTIONS[i + 1] + ' ›' : ''}</span></div>
+    </div>`,
+    tools: () => `<div class="pane">
+      <h3>Tools</h3>
+      <span class="muted">Tick the tools you own.</span>
+      <div class="lines"><span class="tick">Circular saw</span><span class="tick">Drill/driver</span><span class="tick">Rafter square</span><span class="tick">Tape measure</span></div>
+    </div>`,
+    building: () => `<div class="pane" style="font-size:16px">
+      <span class="muted">A cutting step</span>
+      <h3>Cut the legs</h3>
+      <span class="glance"><span class="val" style="width:150px;height:30px"></span></span>
+      <span class="muted">Miter saw setting <span class="val" style="width:40px"></span></span>
+      <span class="tick">Leg 1</span><span class="tick">Leg 2</span>
+    </div>`,
+    skeleton: (shimmer) => `<div class="pane">
+      <span class="pencil" data-pencil></span>
+      <span class="skel s ${shimmer}"></span>
+      <span class="skel t ${shimmer}"></span>
+      <span class="skel s ${shimmer}" style="width:60%"></span>
+      <span class="skel r ${shimmer}"></span>
+      <span class="skel r ${shimmer}"></span>
+      <span class="skel s ${shimmer}" style="width:80%"></span>
+      <span class="note" data-note>Still loading. The first screen after a few idle minutes takes a few seconds.</span>
+    </div>`,
+  };
+
+  // ---------- Moves ----------
+  const DURATION = { M1: 350, M2: 250, M3: 150 };
+  let running = [];
+  const finishRunning = () => {
+    for (const a of running) a.finish();
+    running = [];
+  };
+
+  /** Replaces the pane in `stage` with `next`, moving as `kind` says. */
+  function move(stage, next, kind, opts) {
+    finishRunning();
+    const old = stage.querySelector('.pane:last-child');
+    stage.append(next);
+    const { style, reduce } = opts;
+    const done = () => old?.remove();
+    if (!old) return Promise.resolve();
+    const play = (target, frames, options) => {
+      const a = target.animate(frames, { easing: EASE_OUT, fill: 'both', ...options });
+      running.push(a);
+      return a.finished.catch(() => {});
+    };
+    if (reduce || style === 'M3' || kind === 'none') {
+      const d = reduce ? 150 : DURATION.M3;
+      if (kind === 'none') { done(); return Promise.resolve(); }
+      play(old, [{ opacity: 1 }, { opacity: 0 }], { duration: d });
+      return play(next, [{ opacity: 0 }, { opacity: 1 }], { duration: d }).then(done);
+    }
+    if (kind === 'fade-through') {
+      play(old, [{ opacity: 1 }, { opacity: 0 }], { duration: 90 });
+      return play(next, [{ opacity: 0, transform: 'scale(0.985)' }, { opacity: 1, transform: 'none' }], { duration: 210, delay: 90 }).then(done);
+    }
+    const dir = kind === 'forward' ? 1 : -1;
+    if (style === 'M1') {
+      const d = DURATION.M1;
+      if (dir > 0) {
+        play(old, [{ transform: 'none' }, { transform: 'translateX(-30%)' }], { duration: d });
+        return play(next, [{ transform: 'translateX(100%)' }, { transform: 'none' }], { duration: d }).then(done);
+      }
+      stage.insertBefore(next, old);
+      play(next, [{ transform: 'translateX(-30%)' }, { transform: 'none' }], { duration: d });
+      return play(old, [{ transform: 'none' }, { transform: 'translateX(100%)' }], { duration: d }).then(done);
+    }
+    // M2: a 24 px shared-axis shift with a fade; the entering screen a little slower than the leaving one.
+    play(old, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-24 * dir}px)` }], { duration: 200 });
+    return play(next, [{ opacity: 0, transform: `translateX(${24 * dir}px)` }, { opacity: 1, transform: 'none' }], { duration: 250, delay: 50 }).then(done);
+  }
+
+  // ---------- Navigation demo ----------
+  const nav = document.getElementById('nav-demo');
+  const phone = document.getElementById('nav-phone');
+  const top = phone.querySelector('.top');
+  const stage = phone.querySelector('.stage');
+  const tabs = phone.querySelector('.tabs');
+  const acts = document.getElementById('nav-acts');
+  const readout = document.getElementById('nav-readout');
+  const reduceBox = nav.querySelector('input[name="reduce"]');
+  reduceBox.checked = systemReduce;
+  const opts = () => ({
+    style: nav.querySelector('input[name="move"]:checked').value,
+    reduce: reduceBox.checked,
+    frame: nav.querySelector('input[name="frame"]:checked').value,
+  });
+
+  let at = { screen: 'projects' };
+  let overlay = null;
+
+  function frameFor(place, title, back) {
+    const { frame } = opts();
+    if (frame === 'F1') {
+      top.className = 'top header';
+      const link = (name) => (name === place ? `<b>${name}</b>` : name);
+      top.innerHTML = `<span class="wordmark">kerf</span><span class="nav">${['Projects', 'Tools', 'Glossary'].map(link).join('')}<span>⋯</span></span>`;
+      tabs.hidden = true;
+    } else {
+      top.className = 'top';
+      top.innerHTML = `<span class="l">${back ? '‹ ' + back : ''}</span><span class="c">${title}</span><span class="r">${back ? '' : '⋯'}</span>`;
+      tabs.hidden = false;
+      tabs.innerHTML = ['Projects', 'Tools', 'Glossary'].map((t) => `<span class="${t === place ? 'on' : ''}">${t}</span>`).join('');
+    }
+  }
+
+  function render(state) {
+    if (state.screen === 'projects') { frameFor('Projects', 'Projects'); return el(screens.projects()); }
+    if (state.screen === 'tools') { frameFor('Tools', 'Tools'); return el(screens.tools()); }
+    const i = state.section;
+    frameFor('Projects', 'Swing set', 'Projects');
+    return el(i === 0 ? screens.summary() : screens.section(i));
+  }
+
+  function go(state, kind, label) {
+    const o = opts();
+    const next = render(state);
+    at = state;
+    readout.textContent = label;
+    move(stage, next, kind, o);
+    drawActions();
+  }
+
+  function enterMode() {
+    const o = opts();
+    overlay = el(`<div style="position:absolute; inset:22px 0 0; display:grid; grid-template-rows:auto 1fr; background:var(--k-bg); z-index:5">
+      <div class="top modebar"><span><b>Building</b> · Swing set</span><span class="r hit" data-exit>Exit</span></div>
+      <div class="stage">${screens.building()}</div></div>`);
+    phone.append(overlay);
+    finishRunning();
+    if (o.reduce || o.style === 'M3') {
+      running.push(overlay.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: EASE_OUT }));
+    } else {
+      running.push(overlay.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: o.style === 'M1' ? 400 : 300, easing: EASE_OUT }));
+    }
+    at = { ...at, mode: true };
+    readout.textContent = 'Into a mode: Building rises over everything, frame included.';
+    drawActions();
+  }
+
+  function exitMode() {
+    const o = opts();
+    const leaving = overlay;
+    overlay = null;
+    finishRunning();
+    const a = o.reduce || o.style === 'M3'
+      ? leaving.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, easing: EASE_OUT, fill: 'both' })
+      : leaving.animate([{ transform: 'none' }, { transform: 'translateY(100%)' }], { duration: o.style === 'M1' ? 350 : 250, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'both' });
+    a.finished.then(() => leaving.remove()).catch(() => leaving.remove());
+    at = { ...at, mode: false };
+    readout.textContent = 'Exit: the mode drops away; the plan was there all along.';
+    drawActions();
+  }
+
+  function drawActions() {
+    const list = [];
+    if (at.mode) list.push(['Exit Building', exitMode]);
+    else if (at.screen === 'projects') {
+      list.push(['Open the swing set', () => go({ screen: 'project', section: 0 }, 'forward', 'Into something: the project comes from the right.')]);
+      list.push(['Tools', () => go({ screen: 'tools' }, 'fade-through', 'Between places: a fade through, no slide.')]);
+    } else if (at.screen === 'tools') {
+      list.push(['Projects', () => go({ screen: 'projects' }, 'fade-through', 'Between places: a fade through, no slide.')]);
+    } else {
+      const i = at.section;
+      if (i > 0) list.push(['Previous section', () => go({ screen: 'project', section: i - 1 }, 'back', 'Section to section: an earlier section comes from the left.')]);
+      if (i < SECTIONS.length - 1) list.push(['Next section', () => go({ screen: 'project', section: i + 1 }, 'forward', 'Section to section: a later section comes from the right.')]);
+      if (i === 0) list.push(['Start building', enterMode]);
+      list.push(['Back to Projects', () => go({ screen: 'projects' }, 'back', 'Back: the move in reverse.')]);
+      list.push(['Tools', () => go({ screen: 'tools' }, 'fade-through', 'Between places: a fade through, no slide.')]);
+    }
+    acts.replaceChildren(...list.map(([label, fn]) => {
+      const b = el(`<button class="act" type="button">${label}</button>`);
+      b.addEventListener('click', fn);
+      return b;
+    }));
+  }
+
+  stage.append(render(at));
+  drawActions();
+  nav.querySelectorAll('input[name="frame"]').forEach((r) => r.addEventListener('change', () => {
+    if (overlay) { overlay.remove(); overlay = null; at = { ...at, mode: false }; }
+    stage.replaceChildren(render(at));
+    drawActions();
+  }));
+
+  // ---------- Loading demo ----------
+  const load = document.getElementById('load-demo');
+  const lstage = load.querySelector('.stage');
+  const ltop = load.querySelector('.top');
+  const titled = (project) => {
+    ltop.innerHTML = project
+      ? '<span class="l">‹ Projects</span><span class="c">Swing set</span><span class="r"></span>'
+      : '<span class="l"></span><span class="c">Projects</span><span class="r">⋯</span>';
+  };
+  const lreadout = document.getElementById('load-readout');
+  const lreduce = load.querySelector('input[name="reduce"]');
+  lreduce.checked = systemReduce;
+  const waitMode = () => load.querySelector('input[name="wait"]:checked').value;
+  let timers = [];
+  let pencilAnim = null;
+  const later = (ms, fn) => timers.push(setTimeout(fn, ms));
+  const reset = () => {
+    timers.forEach(clearTimeout);
+    timers = [];
+    pencilAnim?.cancel();
+    pencilAnim = null;
+    finishRunning();
+    lstage.replaceChildren(el(screens.projects()));
+    titled(false);
+  };
+  reset();
+
+  load.querySelectorAll('button[data-ms]').forEach((b) => b.addEventListener('click', () => {
+    reset();
+    const ms = Number(b.dataset.ms);
+    const mode = waitMode();
+    const reduce = lreduce.checked;
+    const o = { style: 'M2', reduce };
+    const log = ['0.00 s tap'];
+    const stamp = (t, what) => { log.push(`${(t / 1000).toFixed(2)} s ${what}`); lreadout.textContent = log.join(' · '); };
+    lreadout.textContent = log[0];
+    const row = lstage.querySelector('[data-row]:last-child');
+
+    const content = () => el(screens.summary());
+    let skeleton = null;
+    const showSkeleton = (t) => {
+      skeleton = el(screens.skeleton(reduce ? '' : 'shimmer'));
+      titled(true);
+      move(lstage, skeleton, 'forward', o);
+      stamp(t, 'skeleton');
+      later(1000 - t, () => {
+        if (reduce) return;
+        const p = skeleton.querySelector('[data-pencil]');
+        pencilAnim = p.animate([{ width: '0%' }, { width: '92%' }], { duration: 6000, easing: 'cubic-bezier(0.1, 0.7, 0.3, 1)', fill: 'forwards' });
+        stamp(1000, 'pencil line');
+      });
+      later(2000 - t, () => { skeleton.querySelector('[data-note]').classList.add('on'); stamp(2000, 'note'); });
+    };
+    const fillIn = (t) => {
+      timers.forEach(clearTimeout);
+      timers = [];
+      const c = content();
+      const finish = () => {
+        lstage.replaceChildren(c);
+        if (!reduce) c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: EASE_OUT });
+        stamp(t, 'content');
+      };
+      if (pencilAnim) {
+        const p = skeleton.querySelector('[data-pencil]');
+        const w = getComputedStyle(p).width;
+        pencilAnim.cancel();
+        p.animate([{ width: w }, { width: '100%' }], { duration: 150, easing: EASE_OUT, fill: 'forwards' }).finished.then(finish);
+      } else finish();
+    };
+
+    if (mode === 'now') {
+      lstage.replaceChildren(el('<div class="pane"></div>'));
+      titled(true);
+      if (ms > 300) later(300, () => { lstage.replaceChildren(el('<div class="pane"><p class="loadingtext">Loading project…</p></div>')); stamp(300, '"Loading…"'); });
+      later(ms, () => { lstage.replaceChildren(content()); stamp(ms, 'content'); });
+      return;
+    }
+    if (mode === 'L1') {
+      row?.classList.add('pressed');
+      if (ms <= 300) {
+        later(ms, () => { titled(true); move(lstage, content(), 'forward', o); stamp(ms, 'content moves in'); });
+        return;
+      }
+      later(300, () => showSkeleton(300));
+      later(ms, () => fillIn(ms));
+      return;
+    }
+    showSkeleton(0);
+    later(ms, () => fillIn(ms));
+  }));
+  load.querySelectorAll('input').forEach((i) => i.addEventListener('change', reset));
+})();
+</script>

@@ -19,6 +19,7 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 6b. Sharper corners | #148 | Decided October 2026: eased | `corners.html` |
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
 | 8. Brand: logo, wordmark, icons | #166 | Decided October 2026: the end-cut k; built | `brand.html`, `brand.md` |
+| 9. An app frame, motion, loading, and the keyboard | #254 | Exploring: F1 to F3, M1 to M3, L1 and L2, K1 and K2 | `app-frame.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
 
