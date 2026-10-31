@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 // The C1 colors were chosen with every pairing measured (docs/design/color.html, #43). This test
@@ -101,5 +101,96 @@ describe('D2 face tones', () => {
       expect(l('tone-1')).toBeGreaterThan(l('tone-2'));
       expect(l('tone-2')).toBeGreaterThan(l('tone-3'));
     }
+  });
+});
+
+/** The innermost rule blocks of a stylesheet, without comments: selectors and declarations. */
+function blocksOf(source: string) {
+  const plain = source.replace(/\/\*[\s\S]*?\*\//g, '');
+  return [...plain.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
+    selectors: (m[1] ?? '').split(',').map((s) => s.trim()),
+    declarations: [...(m[2] ?? '').matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)].map((d) => ({
+      name: d[1] ?? '',
+      value: d[2] ?? '',
+    })),
+  }));
+}
+
+/**
+ * Tokens whose value uses a token that another block sets again, declared only where the new
+ * value does not reach them. A custom property is resolved where it is declared, so a token that
+ * uses `--density` must be declared again under `[data-density]` to follow it there.
+ */
+function stale(source: string): string[] {
+  const blocks = blocksOf(source);
+  return blocks.flatMap((block) =>
+    block.declarations.flatMap(({ name, value }) =>
+      [...value.matchAll(/var\((--[a-z0-9-]+)/g)].flatMap(([, used]) =>
+        blocks
+          .filter((other) => other !== block && other.declarations.some((d) => d.name === used))
+          .flatMap((other) => other.selectors)
+          .filter((s) => s !== ':root' && !s.startsWith('[data-theme'))
+          .filter((s) => {
+            const attribute = s.match(/^\[([a-z-]+)/)?.[1];
+            return !block.selectors.some((own) => own === s || own === `[${attribute}]`);
+          })
+          .map((s) => `${name} uses ${used}, which ${s} sets`),
+      ),
+    ),
+  );
+}
+
+describe('tokens that depend on other tokens', () => {
+  it('are declared again wherever what they depend on changes', () => {
+    expect(stale(css)).toEqual([]);
+  });
+
+  it('are caught when declared only on :root', () => {
+    const shop = '[data-density="shop"] { --density: 1.5; }';
+    const rootOnly = `:root { --density: 1; --space-s: calc(var(--density) * 1rem); } ${shop}`;
+    expect(stale(rootOnly)).toEqual(['--space-s uses --density, which [data-density="shop"] sets']);
+    const followed = `:root { --density: 1; }
+      :root, [data-density] { --space-s: calc(var(--density) * 1rem); } ${shop}`;
+    expect(stale(followed)).toEqual([]);
+  });
+});
+
+/** Every non-test source file in the web app, where a token can be used. */
+const sources = readdirSync(new URL('../../', import.meta.url), {
+  recursive: true,
+  encoding: 'utf8',
+})
+  .filter((f) => /\.(css|ts|tsx)$/.test(f) && !/\.test\.tsx?$/.test(f))
+  .map((f) => readFileSync(new URL(`../../${f}`, import.meta.url), 'utf8'));
+
+/** Declared tokens no source reads with var(), counting `var(--space-${size})` as every size. */
+function unused(declared: readonly string[], files: readonly string[]): string[] {
+  const text = files.join('\n');
+  const used = new Set([...text.matchAll(/var\((--[a-z0-9-]+)/g)].map((m) => m[1]));
+  const prefixes = [...text.matchAll(/var\((--[a-z0-9-]+-)\$\{/g)].map((m) => m[1] ?? '');
+  return declared.filter(
+    (name) =>
+      !used.has(name) &&
+      !prefixes.some((p) => name.startsWith(p) && !name.slice(p.length).includes('-')),
+  );
+}
+
+describe('declared tokens', () => {
+  const declared = [...new Set(blocksOf(css).flatMap((b) => b.declarations.map((d) => d.name)))];
+
+  // Measured with the C1 colors but not applied yet: inputs use --text. Whether inputs take it
+  // or it goes, with its recorded ratio, is still open.
+  const NOT_YET_USED = ['--input-text'];
+
+  it('are each used somewhere', () => {
+    expect(unused(declared, sources)).toEqual(NOT_YET_USED);
+  });
+
+  it('are caught when nothing uses them', () => {
+    const files = ['a { gap: var(--space-${size}); color: var(--text); }'];
+    expect(unused(['--text', '--space-s', '--space-s-base', '--size-read'], files)).toEqual([
+      '--space-s-base',
+      '--size-read',
+    ]);
   });
 });

@@ -15,6 +15,15 @@
     background: var(--bg);
   }
 
+  /* Shop density reads at arm's length (#42): 20 px text, and no heading smaller than it. */
+  [data-density="shop"] {
+    font-size: var(--size-read);
+  }
+
+  [data-density="shop"] :is(h4, h5) {
+    font-size: var(--size-read);
+  }
+
   h1,
   h2,
   h3,

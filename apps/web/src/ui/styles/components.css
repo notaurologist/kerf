@@ -773,8 +773,11 @@
     text-underline-offset: 0.2em;
   }
 
+  /* Wraps rather than scroll sideways: at 320 px the shop text and space leave no room for the
+     mode's name, its controls, and Exit on one line. */
   .k-modebar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-s);
@@ -785,6 +788,7 @@
 
   .k-modebar__end {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-xs);
   }
