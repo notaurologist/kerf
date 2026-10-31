@@ -2,8 +2,8 @@ import { findTemplate } from '@kerf/core';
 import { readHidden } from './prompt.ts';
 
 // Checks a deployed API end to end (M3 acceptance): health, login, storing a project, reading it
-// back, and logout, and that the web app and the API send their security headers. Prints statuses only, never the password or the session cookie. Leaves one
-// project named "Deploy check" in the database.
+// back, logout, and security headers. Prints statuses only, never the password or the session
+// cookie. Leaves one project named "Deploy check" in the database.
 //   pnpm --filter @kerf/api check-deploy https://<project>.vercel.app
 
 const base = (process.argv[2] ?? '').replace(/\/$/, '');
