@@ -1,4 +1,5 @@
 import { Inventory, readStoredTools } from '@kerf/core';
+import { sql } from 'drizzle-orm';
 import type { Database } from '../db/client.ts';
 import { otherTools, tools } from '../db/schema.ts';
 
@@ -17,9 +18,13 @@ export async function getInventory(db: Database): Promise<Inventory> {
   });
 }
 
-/** Replaces the whole inventory in one transaction. */
+/**
+ * Replaces the whole inventory in one transaction. Saves that arrive together take turns, so each
+ * replaces the last instead of colliding on positions; reads are not blocked.
+ */
 export async function replaceInventory(db: Database, inventory: Inventory, now: Date) {
   await db.transaction(async (tx) => {
+    await tx.execute(sql`lock table ${tools}, ${otherTools} in exclusive mode`);
     await tx.delete(tools);
     await tx.delete(otherTools);
     if (inventory.tools.length > 0) {

@@ -234,7 +234,8 @@ describe('Building mode', () => {
 
   it('is served without the app header', () => {
     const html = render(<Screen route={{ screen: 'shop', id: 'x' }} />);
-    expect(html).toContain('k-modebar');
+    // The bar is the page's banner landmark, so Exit is inside one.
+    expect(html).toContain('<header class="k-modebar"');
     expect(html).not.toContain('k-header');
   });
 });

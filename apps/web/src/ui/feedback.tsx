@@ -204,6 +204,11 @@ export function InfoNotice(props: { children: ReactNode }) {
   );
 }
 
+/** Says its contents again whenever they change, without taking focus. */
+export function LiveRegion(props: { children: ReactNode }) {
+  return <div aria-live="polite">{props.children}</div>;
+}
+
 /** A line that says what just happened, such as "Saved.", and stays until the next action. */
 export function StatusLine(props: { children: ReactNode }) {
   return (

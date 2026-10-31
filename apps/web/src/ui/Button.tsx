@@ -1,4 +1,4 @@
-import type { MouseEvent, ReactNode } from 'react';
+import type { MouseEvent, ReactNode, Ref } from 'react';
 
 // Buttons say what they do: a verb and the thing it acts on (docs/design/content.md).
 
@@ -15,6 +15,7 @@ export function Button(props: {
   /** For a toggle, such as selecting a part: whether it is on. */
   pressed?: boolean;
   onClick?: () => void;
+  ref?: Ref<HTMLButtonElement>;
 }) {
   const click = (e: MouseEvent) => {
     if (props.busy) {
@@ -25,6 +26,7 @@ export function Button(props: {
   };
   return (
     <button
+      ref={props.ref}
       type={props.type ?? 'button'}
       className="k-button"
       data-variant={props.variant ?? 'primary'}

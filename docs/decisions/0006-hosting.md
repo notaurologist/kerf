@@ -35,3 +35,12 @@ From each provider's own docs on that date:
 
 Backups: the free plan's restore window is 6 hours, which does not cover a mistake noticed days later. `PRODUCT.md` calls for backups from Postgres; a scheduled dump is a follow-up, not part of M3. Update, October 30, 2026 (#21): the owner chose manual dumps for now (steps in `ARCHITECTURE.md`, Backups). Neon's scheduled snapshots need a paid plan, and a free scheduled dump from GitHub Actions would need an encrypted artifact (the repository is public) and a database secret outside Vercel.
 
+
+## Requests that keep the database awake, checked October 31, 2026 (#211)
+
+Neon's compute stays awake while requests reach it, and suspends only after 5 idle minutes. One request every 4 minutes would keep it awake all month: about 720 hours at 0.25 CU, or 180 CU-hours against the free plan's 100. When the allowance is used up, compute is suspended until the next billing period.
+
+- **Made-up session cookies** no longer reach the database. A cookie that is not the shape the API issues (43 base64url characters) is refused without a query.
+- **Remaining:** every `POST /api/login` still writes to the database for rate limiting, and a cookie of the right shape is still looked up. Both are reachable without a password.
+- **Neon usage alerts:** none found for the free plan. Neon's [free plan FAQ](https://neon.com/faqs/free-plan-limits-and-quotas) says compute is suspended when the CU-hours run out and mentions no notification. [Spending notifications](https://neon.com/docs/introduction/spending-notifications) are for paid plans, and the [Slack usage app](https://neon.com/blog/monitor-your-neon-usage-via-slack-alerts) was deprecated in November 2025. Usage can be checked by hand on the project's Monitoring page.
+- **Vercel Firewall:** [WAF rate limiting](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting) is available on Hobby (page updated August 28, 2026): one rate-limit rule per project, keyed by IP or JA4 digest, with a fixed window of 10 seconds to 10 minutes and 1,000,000 allowed requests included. A rule on `POST /api/login` per IP would cap one source's login requests before they reach the API. It is set in the Vercel dashboard, not in `vercel.json`, and does not stop requests spread across many addresses.

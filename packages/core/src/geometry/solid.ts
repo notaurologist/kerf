@@ -18,7 +18,7 @@ export interface Solid {
 }
 
 /** A point in a part's frame, in template coordinates. */
-export function toWorld(pl: Placement, u: number, v: number, n = 0): Vec3 {
+function toWorld(pl: Placement, u: number, v: number, n = 0): Vec3 {
   return add(add(add(pl.origin, scale(pl.along, u)), scale(pl.across, v)), scale(pl.through, n));
 }
 

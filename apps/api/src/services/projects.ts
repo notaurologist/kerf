@@ -43,7 +43,7 @@ export const ProjectStatus = z.enum(PROJECT_STATUSES);
 
 export const NewProject = z.object({
   name: z.string().trim().min(1).max(200),
-  templateId: z.string(),
+  templateId: z.string().max(100),
   status: ProjectStatus.default('planned'),
   params: z.unknown(),
   /** Structural inputs have no defaults; an empty object leaves every check "input needed". */
@@ -125,7 +125,11 @@ export interface Preview {
 
 export type Result<T> =
   | { ok: true; value: T }
-  | { ok: false; error: 'not-found' | 'unknown-template' | 'unreadable-snapshot' }
+  | {
+      ok: false;
+      /** `missing-template`: a stored project names a template this code no longer has. */
+      error: 'not-found' | 'unknown-template' | 'missing-template' | 'unreadable-snapshot';
+    }
   | { ok: false; error: 'invalid-project'; issues: Issue[] }
   | { ok: false; error: 'unknown-progress'; items: { kind: string; key: string }[] };
 
@@ -224,7 +228,7 @@ export function createProjectService(deps: {
 
   async function view(row: Row): Promise<Result<Project>> {
     const template = findTemplate(row.templateId);
-    if (!template) return { ok: false, error: 'unknown-template' };
+    if (!template) return { ok: false, error: 'missing-template' };
     const result = read(row);
     const ticks = await readProgress(db, row.id);
     if (!result.ok) {
@@ -397,7 +401,7 @@ export function createProjectService(deps: {
       const row = await load(id);
       if (!row) return { ok: false, error: 'not-found' };
       const template = findTemplate(row.templateId);
-      if (!template) return { ok: false, error: 'unknown-template' };
+      if (!template) return { ok: false, error: 'missing-template' };
       const stored = read(row);
       if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
       const generated = generate(
@@ -479,7 +483,7 @@ export function createProjectService(deps: {
       const row = await load(id);
       if (!row) return { ok: false, error: 'not-found' };
       const template = findTemplate(row.templateId);
-      if (!template) return { ok: false, error: 'unknown-template' };
+      if (!template) return { ok: false, error: 'missing-template' };
       const stored = read(row);
       if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
       const known = new Set(itemsOf(template, stored.snapshot).map(progressId));

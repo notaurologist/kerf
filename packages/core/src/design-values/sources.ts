@@ -9,7 +9,7 @@ export const Source = z.object({
   publisher: z.string().min(1),
   edition: z.string().min(1),
   /** Where to read it. AWC links are its free view-only copies. */
-  url: z.url(),
+  url: z.url({ protocol: /^https$/ }),
   note: z.string().optional(),
 });
 export type Source = z.infer<typeof Source>;
@@ -113,7 +113,7 @@ export const Citation = z.object({
   source: z.enum(SOURCE_IDS),
   /** Table, section, equation, or figure, with the printed page number where useful. */
   locator: z.string().min(1),
-  url: z.url().optional(),
+  url: z.url({ protocol: /^https$/ }).optional(),
 });
 export type Citation = z.infer<typeof Citation>;
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
+import { createTestDatabase } from '../../test/database.ts';
 import { LOGIN_WINDOW_MINUTES, MAX_FAILURES_PER_WINDOW } from '../auth/rateLimit.ts';
 import { SESSION_DAYS } from '../auth/sessions.ts';
 
@@ -116,5 +117,32 @@ describe('sessions', () => {
       headers: { cookie: 'kerf_session=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' },
     });
     expect(res.status).toBe(401);
+  });
+
+  it('reject a token that is not one Kerf makes without querying the database', async () => {
+    const database = await createTestDatabase();
+    let queries = 0;
+    const counted = new Set(['select', 'selectDistinct', 'insert', 'update', 'delete', 'execute']);
+    const db = new Proxy(database.db, {
+      get(target, key) {
+        const value = Reflect.get(target, key);
+        if (typeof value !== 'function') return value;
+        return (...args: unknown[]) => {
+          if (counted.has(String(key))) queries++;
+          return value.apply(target, args);
+        };
+      },
+    });
+    const { app } = await createTestApp({ database: { ...database, db } });
+    const asking = (token: string) =>
+      app.request('/api/session', { headers: { cookie: `kerf_session=${token}` } });
+
+    for (const token of ['x', 'A'.repeat(42), 'A'.repeat(44), `${'A'.repeat(42)}+`]) {
+      expect((await asking(token)).status).toBe(401);
+    }
+    expect(queries).toBe(0);
+    // A token of the right shape is looked up, so the count would have seen a query.
+    expect((await asking('A'.repeat(43))).status).toBe(401);
+    expect(queries).toBe(1);
   });
 });

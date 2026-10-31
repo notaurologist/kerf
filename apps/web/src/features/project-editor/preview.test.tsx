@@ -10,7 +10,13 @@ import { indexChanges } from '../../lib/changes.tsx';
 import { planOf } from '../../lib/plan.ts';
 import { projectFrom } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
-import { PreviewPane, previewRequest, previewState } from './Preview.tsx';
+import {
+  PreviewPane,
+  pendingState,
+  previewRequest,
+  previewState,
+  type ReadyPreview,
+} from './Preview.tsx';
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const example = template.examples[0];
@@ -88,6 +94,30 @@ describe('previewState', () => {
   });
 });
 
+describe('pendingState', () => {
+  const plan = planFrom(project.snapshot as { outputs: unknown });
+  const ready: ReadyPreview = { kind: 'ready', plan, changes: indexChanges([]), truncated: false };
+  const ask = { kind: 'ask' as const, body: { params: {}, structuralInputs: {} } };
+
+  it('marks a preview on screen as for the earlier values when a new request is pending', () => {
+    expect(pendingState(ready, ask)).toEqual({ kind: 'updating', previous: ready });
+    expect(pendingState({ kind: 'updating', previous: ready }, ask)).toEqual({
+      kind: 'updating',
+      previous: ready,
+    });
+  });
+
+  it('waits with nothing to show when no preview is on screen', () => {
+    expect(pendingState({ kind: 'saved' }, ask)).toEqual({ kind: 'waiting' });
+    expect(pendingState({ kind: 'rejected', messages: [] }, ask)).toEqual({ kind: 'waiting' });
+  });
+
+  it('drops the preview when the form returns to the saved plan or cannot be read', () => {
+    expect(pendingState(ready, { kind: 'saved' })).toEqual({ kind: 'saved' });
+    expect(pendingState(ready, { kind: 'incomplete' })).toEqual({ kind: 'incomplete' });
+  });
+});
+
 describe('the preview pane', () => {
   const saved = planFrom(project.snapshot as { outputs: unknown });
 
@@ -116,6 +146,26 @@ describe('the preview pane', () => {
     expect(text).toContain('was margin 1.1x');
     // Only the beam's row is marked; the legs are unchanged.
     expect(html.match(/<tr data-changed="">/g)).toHaveLength(1);
+  });
+
+  it('says in words that the numbers are for the earlier values while a preview updates', () => {
+    const plan = planFrom(snapshotOf({ ...params, beamLength: 132 }));
+    const previous: ReadyPreview = {
+      kind: 'ready',
+      plan,
+      changes: indexChanges([]),
+      truncated: false,
+    };
+    const after = pendingState(previous, {
+      kind: 'ask',
+      body: { params: { ...params, beamLength: 144 }, structuralInputs: {} },
+    });
+    const text = renderText(<PreviewPane saved={saved} state={after} />);
+    expect(text).toContain('Earlier values, not saved');
+    expect(text).not.toContain('Preview, not saved');
+    expect(text).toContain('Updating the preview');
+    expect(text).toContain('the numbers below are for the values before your latest change');
+    expect(text).toContain('132"');
   });
 
   it('keeps the saved plan in view and says why when the server rejects the values', () => {

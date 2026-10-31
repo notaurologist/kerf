@@ -10,6 +10,10 @@ export const SESSION_COOKIE = 'kerf_session';
 export const SESSION_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// The shape createSession issues. Anything else is refused without a query, so made-up cookies
+// cannot keep the database awake.
+const TOKEN = /^[A-Za-z0-9_-]{43}$/;
+
 function tokenHash(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
@@ -32,6 +36,7 @@ export async function findSession(
   token: string,
   now: Date,
 ): Promise<{ expiresAt: Date } | null> {
+  if (!TOKEN.test(token)) return null;
   const [row] = await db
     .select({ expiresAt: sessions.expiresAt })
     .from(sessions)

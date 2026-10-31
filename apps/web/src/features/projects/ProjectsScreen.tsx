@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
+import { newProjectLabel } from '../../lib/names.ts';
 import { href } from '../../lib/route.ts';
 import {
   type Project,
@@ -16,7 +17,7 @@ import {
   Card,
   Cluster,
   CompactSelect,
-  Notice,
+  ErrorText,
   PlainList,
   ScreenHeader,
   Stack,
@@ -27,7 +28,7 @@ import { buildingText, ResumeCard, resumeTarget, shoppingText } from '../modes/M
 // Projects with their status (PRODUCT.md, MVP features 2 and 8), most recently updated first.
 
 export function ProjectsScreen() {
-  const { loaded, set, reload } = useLoad(async () => {
+  const { loaded, update, reload } = useLoad(async () => {
     const [projects, templates] = await Promise.all([
       send(api.api.projects.$get()),
       send(api.api.templates.$get()),
@@ -39,21 +40,27 @@ export function ProjectsScreen() {
       value: { projects: projects.value.projects, templates: templates.value.templates },
     };
   }, 'projects');
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  // The latest change sent for each project, so an earlier answer cannot undo a later choice.
+  const sent = useRef(new Map<string, number>());
+  type Listed = { projects: ProjectSummary[]; templates: TemplateSummary[] };
+  const change = (edit: (projects: ProjectSummary[]) => ProjectSummary[]) =>
+    update((value: Listed) => ({ ...value, projects: edit(value.projects) }));
 
-  const changeStatus = async (
-    { projects, templates }: { projects: ProjectSummary[]; templates: TemplateSummary[] },
-    id: string,
-    status: ProjectStatus,
-  ) => {
-    setError(null);
+  // Shown at once and sent; put back, with the reason on the row, if the server refuses it.
+  const changeStatus = async (id: string, status: ProjectStatus, before: ProjectStatus) => {
+    const n = (sent.current.get(id) ?? 0) + 1;
+    sent.current.set(id, n);
+    setErrors(({ [id]: _, ...rest }) => rest);
+    change((projects) => withStatus(projects, id, status));
     const result = await send(api.api.projects[':id'].$put({ param: { id }, json: { status } }));
+    if (sent.current.get(id) !== n) return;
     if (!result.ok) {
-      setError(describeError(result.error));
+      change((projects) => withStatus(projects, id, before));
+      setErrors((e) => ({ ...e, [id]: describeError(result.error) }));
       return;
     }
-    // The API moves an updated project to the top; keep the list in the order it would return.
-    set({ templates, projects: [toSummary(result.value), ...projects.filter((p) => p.id !== id)] });
+    change((projects) => savedFirst(projects, toSummary(result.value)));
   };
 
   return (
@@ -62,12 +69,29 @@ export function ProjectsScreen() {
         <ProjectList
           projects={value.projects}
           templates={value.templates}
-          error={error}
-          onStatus={(id, status) => void changeStatus(value, id, status)}
+          errors={errors}
+          onStatus={(id, status, before) => void changeStatus(id, status, before)}
         />
       )}
     </Loaded>
   );
+}
+
+/** The list with one project's status changed in place. */
+export function withStatus(
+  projects: readonly ProjectSummary[],
+  id: string,
+  status: ProjectStatus,
+): ProjectSummary[] {
+  return projects.map((p) => (p.id === id ? { ...p, status } : p));
+}
+
+/** The list as the API would return it after a save: the saved project first. */
+export function savedFirst(
+  projects: readonly ProjectSummary[],
+  saved: ProjectSummary,
+): ProjectSummary[] {
+  return [saved, ...projects.filter((p) => p.id !== saved.id)];
 }
 
 export function toSummary(project: Project): ProjectSummary {
@@ -89,8 +113,9 @@ export function toSummary(project: Project): ProjectSummary {
 export function ProjectList(props: {
   projects: ProjectSummary[];
   templates: TemplateSummary[];
-  error?: string | null;
-  onStatus: (id: string, status: ProjectStatus) => void;
+  /** Why a project's status change did not go through, by project. */
+  errors?: Readonly<Record<string, string>>;
+  onStatus: (id: string, status: ProjectStatus, before: ProjectStatus) => void;
 }) {
   const resuming = props.projects.find((p) => resumeTarget(p) !== null);
   const templateName = (id: string) => props.templates.find((t) => t.id === id)?.name ?? id;
@@ -100,11 +125,10 @@ export function ProjectList(props: {
         title="Projects"
         actions={props.templates.map((t) => (
           <ButtonLink key={t.id} href={href({ screen: 'new-project', templateId: t.id })}>
-            New {t.name.charAt(0).toLowerCase() + t.name.slice(1)}
+            {newProjectLabel(t.name)}
           </ButtonLink>
         ))}
       />
-      {props.error && <Notice>{props.error}</Notice>}
       {/* One Resume card (#40): the most recently updated project that has somewhere to resume. */}
       {resuming && <ResumeCard project={resuming} />}
       {props.projects.length === 0 ? (
@@ -122,9 +146,12 @@ export function ProjectList(props: {
                     label={`Status of ${p.name}`}
                     value={p.status}
                     options={STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
-                    onChange={(status) => props.onStatus(p.id, status as ProjectStatus)}
+                    onChange={(status) => props.onStatus(p.id, status as ProjectStatus, p.status)}
                   />
                 </Cluster>
+                {props.errors?.[p.id] && (
+                  <ErrorText alert>Status not changed. {props.errors[p.id]}</ErrorText>
+                )}
                 {p.progress && p.status !== 'planned' && (
                   <Text>
                     Shopping: {shoppingText(p.progress.shopping)}{' '}
