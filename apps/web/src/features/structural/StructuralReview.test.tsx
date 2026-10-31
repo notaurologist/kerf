@@ -1,3 +1,4 @@
+import { VERDICT_WORDS } from '@kerf/core/testing';
 import { describe, expect, it } from 'vitest';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, sectionOf, textOf } from '../../test/render.tsx';
@@ -70,7 +71,7 @@ describe('every stored worked example', () => {
     'example %i has no verdict words and no unrounded numbers',
     (_i, snapshot) => {
       const review = text(snapshot);
-      expect(review).not.toMatch(/\b(safe|unsafe|pass|passes|passed|fail|fails|failed)\b/i);
+      expect(review).not.toMatch(VERDICT_WORDS);
       expect(review.match(/\d+\.\d{4,}/g) ?? []).toEqual([]);
     },
   );

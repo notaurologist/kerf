@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { VERDICT_WORDS } from '../testing.ts';
 import {
   findGlossaryEntry,
   findTerms,
@@ -91,7 +92,7 @@ describe('glossary', () => {
 
   it('says no verdicts (hard rule 2)', () => {
     for (const entry of GLOSSARY) {
-      expect(entry.definition).not.toMatch(/\b(safe|unsafe|pass|fail)\b/i);
+      expect(entry.definition).not.toMatch(VERDICT_WORDS);
     }
   });
 });

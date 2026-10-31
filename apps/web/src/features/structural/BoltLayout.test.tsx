@@ -1,4 +1,5 @@
 import { createSnapshot, findTemplate, type TemplateDefinition } from '@kerf/core';
+import { VERDICT_WORDS } from '@kerf/core/testing';
 import { describe, expect, it } from 'vitest';
 import { planOf } from '../../lib/plan.ts';
 import { renderText } from '../../test/render.tsx';
@@ -34,7 +35,8 @@ describe('the bolt layout, worked example', () => {
     expect(text).toContain(
       'Leg edge distance 1-3/4" 3.5D Under: 4D (2") for minimum, the edge the load pushes toward',
     );
-    expect(text).not.toMatch(/\b(safe|unsafe|pass|fail|OK)\b/);
+    expect(text).not.toMatch(VERDICT_WORDS);
+    expect(text).not.toMatch(/\bOK\b/);
   });
 
   it('shows nothing for a plan made before bolt layouts', () => {

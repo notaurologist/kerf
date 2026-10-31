@@ -6,6 +6,7 @@ import {
   TEMPLATES,
   TOOL_TYPES,
 } from '@kerf/core';
+import { VERDICT_WORDS } from '@kerf/core/testing';
 import { isValidElement, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, renderText, textOf } from '../test/render.tsx';
@@ -1048,7 +1049,8 @@ describe('the catalog', () => {
   });
 
   it('follows the word list (docs/design/content.md)', () => {
-    expect(text).not.toMatch(/\b(safe|unsafe|pass|fail|invalid|oops|please|just|simply|sanity)\b/i);
+    expect(text).not.toMatch(VERDICT_WORDS);
+    expect(text).not.toMatch(/\b(invalid|oops|please|just|simply|sanity)\b/i);
   });
 });
 

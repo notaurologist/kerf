@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { STOCK_SIZE_SOURCES } from '../lumber/stock.ts';
+import { VERDICT_WORDS } from '../testing.ts';
 import {
   deflectionTimesEIAt,
   maxDeflectionTimesEI,
@@ -338,6 +339,6 @@ describe('hardware check', () => {
 describe('wording', () => {
   it('never says safe, unsafe, pass, or fail', () => {
     const text = JSON.stringify([beamChecks(rail()), beamChecks(rail({ nominal: '6x6' }))]);
-    expect(text).not.toMatch(/\b(safe|unsafe|pass|passes|fail|fails)\b/i);
+    expect(text).not.toMatch(VERDICT_WORDS);
   });
 });

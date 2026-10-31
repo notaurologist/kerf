@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TEMPLATES } from '../templates/index.ts';
 import type { Operation, OperationType } from '../templates/operations.ts';
+import { VERDICT_WORDS } from '../testing.ts';
 import { EXPERT_CHECK_CATEGORIES, ExpertCheckCategory, FLAG_CATEGORY_IDS } from './categories.ts';
 import {
   fillMethodText,
@@ -98,9 +99,13 @@ describe('methods', () => {
 
   // docs/design/content.md, Word list.
   it('uses none of the words the content guide rules out', () => {
-    const never =
-      /\b(safe|unsafe|pass|fail|simply|just|easy|obviously|please|warning|danger|caution|default)\b/i;
-    for (const m of methods) for (const text of texts(m)) expect(text, m.id).not.toMatch(never);
+    const never = /\b(simply|just|easy|obviously|please|warning|danger|caution|default)\b/i;
+    for (const m of methods) {
+      for (const text of texts(m)) {
+        expect(text, m.id).not.toMatch(never);
+        expect(text, m.id).not.toMatch(VERDICT_WORDS);
+      }
+    }
   });
 
   // The angled line's short point, from the long point: width · tan(setting). Hand check for a
