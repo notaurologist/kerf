@@ -62,7 +62,7 @@ import { StepLayout } from './StepLayout.tsx';
 import { TermScope } from './Term.tsx';
 import { Tick } from './Tick.tsx';
 import { ToolLabel } from './ToolIcon.tsx';
-import { List, Text } from './text.tsx';
+import { List, OneLine, Text } from './text.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
 // (#45). Sample values are core's output for the first template's worked examples, formatted by
@@ -273,6 +273,14 @@ function Specimens() {
             ]}
             terms
           />
+          <OneLine>
+            <Measured
+              text={
+                'Gusset bolts, 2 1/2": confirm the distance from each bolt to the nearest edge of the board.'
+              }
+              terms
+            />
+          </OneLine>
         </TermScope>
       </Group>
 
