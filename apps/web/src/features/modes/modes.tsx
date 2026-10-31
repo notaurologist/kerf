@@ -44,12 +44,15 @@ export function ModeScreen(props: { route: ModeRoute }) {
   // step and card to card, so the lock is held for the whole visit, not asked for at each step.
   useWakeLock();
   const { id } = props.route;
-  const { loaded } = useLoad(() => send(api.api.projects[':id'].$get({ param: { id } })), id);
+  const { loaded, reload } = useLoad(
+    () => send(api.api.projects[':id'].$get({ param: { id } })),
+    id,
+  );
   const mode = props.route.screen === 'shop' ? 'Shopping' : 'Building';
   if (loaded.state !== 'ready') {
     return (
       <ModeFrame mode={mode} exitHref={href({ screen: 'project', id })} end={<ThemeSwitch />}>
-        <Loaded state={loaded} loading="Loading project…" />
+        <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Project" />
       </ModeFrame>
     );
   }

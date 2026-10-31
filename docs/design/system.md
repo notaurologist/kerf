@@ -47,6 +47,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 | Related fields | `FieldGroup` inside a `Grid`, or one after another in a `Stack` for a long form | A legend and optional help. A long form is one field per row (#164). |
 | How much of a long form is entered | `FormProgress` | "N of M entered", then the groups with an empty field, each a link to its first one. |
 | A menu in a row | `CompactSelect` | Its label is read by screen readers only, such as a project's status. |
+| A screen that cannot show what was asked for | `ProblemScreen` | A heading (left out where the screen has one), a `Notice` saying what happened, Try again where that can help, and a link back. Used for load failures (through `Loaded`, which takes `useLoad`'s `reload` as `onRetry`), pages that do not exist, and the top-level error boundary, which clears on the next hash change. |
 | Problems after a save | `ErrorSummary` at the top, `error` on each `Field` | The summary takes focus and links to each field (#67). Show errors only after a save. |
 | An empty structural input | `needed` on `Field`, or `InputNeeded` | A question, not an error (#43, rule 4). |
 | A question for an experienced builder | `ExpertCheck` | Amber, with the flag icon and "Expert check" (#43, rule 3). |

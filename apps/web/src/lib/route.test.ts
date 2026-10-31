@@ -89,6 +89,9 @@ describe('parseRoute', () => {
     ['#/projects/abc/edit?from=cut-list', { screen: 'edit-project', id: 'abc', from: 'cut-list' }],
     ['#/projects/abc/edit?from=summary', { screen: 'edit-project', id: 'abc' }],
     ['#/projects/abc/edit?from=elsewhere', { screen: 'edit-project', id: 'abc' }],
+    // A malformed escape, typed or cut short, is a page that does not exist, not a crash.
+    ['#/projects/%E0', { screen: 'not-found' }],
+    ['#/tools/%', { screen: 'not-found' }],
   ])('%s', (hash, route) => {
     expect(parseRoute(hash)).toEqual(route);
   });

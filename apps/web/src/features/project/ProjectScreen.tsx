@@ -42,12 +42,12 @@ const BUILD_STEPS_INTRO =
   'Methods are chosen from the tools in your tool list. Change the list to change them.';
 
 export function ProjectScreen(props: { id: string; section?: PlanSectionId; part?: string }) {
-  const { loaded, set } = useLoad(
+  const { loaded, set, reload } = useLoad(
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
   );
   return (
-    <Loaded state={loaded} loading="Loading project…">
+    <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Project">
       {(project) => (
         <ProjectView project={project} section={props.section} part={props.part} onChange={set} />
       )}
