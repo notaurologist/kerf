@@ -10,11 +10,7 @@ const KEY_LENGTH = 32;
 const SALT_LENGTH = 16;
 export const MIN_PASSWORD_LENGTH = 12;
 
-/**
- * The lowest N a configured hash may use. `hashPassword` writes 2^17; this floor catches a hash
- * made with a test cost or edited by hand. Tests hash with a cheaper N and skip the config check,
- * so `verifyPassword` checks the shape and lengths but not this.
- */
+/** Only the config check enforces this, so tests can hash cheaply. */
 const MIN_CONFIGURED_N = 2 ** 15;
 
 const FORMAT = /^scrypt:(\d+):(\d+):(\d+):([A-Za-z0-9_-]+):([A-Za-z0-9_-]+)$/;
@@ -27,11 +23,7 @@ interface StoredHash {
   hash: Buffer;
 }
 
-/**
- * A stored hash in the shape `hashPassword` writes, or undefined. The lengths matter: a hash
- * segment cut short decodes to fewer bytes, and a key that short can be guessed, or with 0 bytes
- * matches every password.
- */
+/** A key cut short is guessable, and an empty one matches every password, so lengths are exact. */
 function parse(value: string): StoredHash | undefined {
   const match = FORMAT.exec(value);
   if (!match) return undefined;
@@ -71,7 +63,6 @@ export async function hashPassword(
   ].join(':');
 }
 
-/** True for a hash fit to configure: the shape `hashPassword` writes, at a cost of at least 2^15. */
 export function isPasswordHash(value: string): boolean {
   const stored = parse(value);
   return stored !== undefined && stored.N >= MIN_CONFIGURED_N;
