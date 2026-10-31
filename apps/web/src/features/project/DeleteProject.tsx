@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
-import { projectList, projectStore } from '../../lib/projectStore.ts';
+import { projectStore } from '../../lib/projectStore.ts';
 import { navigate } from '../../lib/route.ts';
 import {
   Button,
@@ -51,7 +51,6 @@ export function DeleteProject(props: { id: string; name: string }) {
     setBusy(false);
     if (result.ok) {
       projectStore.forget(props.id);
-      projectList.forget();
       navigate({ screen: 'projects' });
     } else setError(describeError(result.error));
   };

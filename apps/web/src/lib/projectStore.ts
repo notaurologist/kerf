@@ -1,6 +1,6 @@
 import { api, send } from './api.ts';
-import type { Project, ProjectSummary, TemplateSummary } from './types.ts';
-import { type Kept, keep, useLoad } from './useLoad.ts';
+import type { Project } from './types.ts';
+import { type Kept, useLoad } from './useLoad.ts';
 
 // The last project the API returned. Moving between the plan and a mode shows it at once and
 // keeps it readable when the request to refresh it fails, as an open project should when the
@@ -17,15 +17,6 @@ export const projectStore = {
     if (last?.id === id) last = undefined;
   },
 };
-
-export type Listed = { projects: ProjectSummary[]; templates: TemplateSummary[] };
-
-/**
- * The last projects list shown, so coming back to Projects shows it at once while it refreshes.
- * Creating, saving, or deleting a project forgets it, so the list never shows a project that is
- * gone or a name that has changed.
- */
-export const projectList = keep<Listed>();
 
 /** The project, from the store at once if it is there, refreshed from the API. */
 export function useProject(id: string) {

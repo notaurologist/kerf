@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { newProjectLabel } from '../../lib/names.ts';
-import { type Listed, projectList } from '../../lib/projectStore.ts';
 import { href } from '../../lib/route.ts';
 import {
   type Project,
@@ -29,25 +28,22 @@ import { buildingText, ResumeCard, resumeTarget, shoppingText } from '../modes/M
 // Projects with their status (PRODUCT.md, MVP features 2 and 8), most recently updated first.
 
 export function ProjectsScreen() {
-  const { loaded, update, reload } = useLoad(
-    async () => {
-      const [projects, templates] = await Promise.all([
-        send(api.api.projects.$get()),
-        send(api.api.templates.$get()),
-      ]);
-      if (!projects.ok) return projects;
-      if (!templates.ok) return templates;
-      return {
-        ok: true,
-        value: { projects: projects.value.projects, templates: templates.value.templates },
-      };
-    },
-    'projects',
-    projectList,
-  );
+  const { loaded, update, reload } = useLoad(async () => {
+    const [projects, templates] = await Promise.all([
+      send(api.api.projects.$get()),
+      send(api.api.templates.$get()),
+    ]);
+    if (!projects.ok) return projects;
+    if (!templates.ok) return templates;
+    return {
+      ok: true,
+      value: { projects: projects.value.projects, templates: templates.value.templates },
+    };
+  }, 'projects');
   const [errors, setErrors] = useState<Record<string, string>>({});
   // The latest change sent for each project, so an earlier answer cannot undo a later choice.
   const sent = useRef(new Map<string, number>());
+  type Listed = { projects: ProjectSummary[]; templates: TemplateSummary[] };
   const change = (edit: (projects: ProjectSummary[]) => ProjectSummary[]) =>
     update((value: Listed) => ({ ...value, projects: edit(value.projects) }));
 

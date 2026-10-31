@@ -21,7 +21,7 @@ import { Loaded } from '../../lib/Loaded.tsx';
 import { newProjectLabel } from '../../lib/names.ts';
 import { readPlan } from '../../lib/plan.ts';
 import { describeReset } from '../../lib/progress.ts';
-import { projectList, projectStore, useProject } from '../../lib/projectStore.ts';
+import { projectStore } from '../../lib/projectStore.ts';
 import { href, navigate, type ProjectStart } from '../../lib/route.ts';
 import { sameJson } from '../../lib/sameJson.ts';
 import type { PlanSectionId } from '../../lib/sections.ts';
@@ -264,12 +264,13 @@ const newTitle = (template: TemplateDefinition) => newProjectLabel(template.name
 
 /** `from` is the plan's section Edit was opened from: Save and Cancel go back to it (#156). */
 export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
-  const { loaded, reload } = useProject(props.id);
-  // A refresh that brings a newer project, saved from another device, starts the form again from
-  // it rather than saving old values over it.
+  const { loaded, reload } = useLoad(
+    () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
+    props.id,
+  );
   return (
     <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Edit project">
-      {(project) => <EditProject key={project.updatedAt} project={project} from={props.from} />}
+      {(project) => <EditProject project={project} from={props.from} />}
     </Loaded>
   );
 }
@@ -423,7 +424,6 @@ export function ProjectEditor(props: {
       const reset = 'progressReset' in result.value ? result.value.progressReset : undefined;
       setFlash(project ? ['Saved.', describeReset(reset)].filter(Boolean).join(' ') : 'Created.');
       projectStore.set(result.value);
-      projectList.forget();
       navigate({ screen: 'project', id: result.value.id, section: props.from });
       return;
     }
