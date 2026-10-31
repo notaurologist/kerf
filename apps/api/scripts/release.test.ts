@@ -15,7 +15,6 @@ const migrationsFolder = join(dirname(fileURLToPath(import.meta.url)), '..', 'dr
 const production = { VERCEL: '1', VERCEL_ENV: 'production', DATABASE_URL: 'postgres://db' };
 const now = () => new Date('2026-11-01T12:00:00Z');
 
-/** Releases against a PGlite database, recording what it logs and whether it migrated. */
 async function releaseOn(
   client: PGlite,
   templates = TEMPLATES,
@@ -46,7 +45,6 @@ async function releaseOn(
   return { result, calls, logs };
 }
 
-/** Every row of every table, to show a release left the database as it was. */
 async function contents(client: PGlite) {
   const tables = ['projects', 'project_history', 'project_progress', 'tools', 'other_tools'];
   return Promise.all(tables.map(async (t) => (await client.query(`select * from ${t}`)).rows));
@@ -113,7 +111,7 @@ describe('release', () => {
     const { client, db, id, close } = await storedProject();
     const [before] = (await client.query('select snapshot from projects')).rows;
 
-    // The release of code with a made-up next shape, while the current code still serves.
+    // Released by code with the next shape; read by the current code, still serving.
     const { result } = await releaseOn(client, [nextShape]);
     expect(result.status).toBe('released');
 

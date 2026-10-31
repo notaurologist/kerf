@@ -3,9 +3,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-// The release migrates while the previous deploy is still serving (decision 0014), so a migration
-// must not remove or change anything that deploy reads or writes. Statements that can do that are
-// allowed only with a comment saying why the previous deploy no longer depends on what they change.
+// Migrations run while the previous deploy still serves (decision 0014). A statement that could
+// break it needs a comment saying why it does not.
 
 const migrationsFolder = join(dirname(fileURLToPath(import.meta.url)), '..', 'drizzle');
 
@@ -20,7 +19,6 @@ const RISKY: { name: string; pattern: RegExp }[] = [
   },
 ];
 
-/** Each statement that needs a comment and has none, with what makes it need one. */
 function uncommentedRiskyStatements(migration: string): string[] {
   return migration.split('--> statement-breakpoint').flatMap((chunk) => {
     const lines = chunk.split('\n');

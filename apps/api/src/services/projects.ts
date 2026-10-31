@@ -274,10 +274,8 @@ export function createProjectService(deps: {
 
   return {
     /**
-     * Writes history rows for every readable project that has none (#106): projects saved before
-     * rows were written, or whose plan has no operations yet. Runs at each release, after the
-     * migrations. Rows that exist were written when their snapshot was saved and are kept. Each
-     * project is locked and read again before writing, so a save made meanwhile wins.
+     * Writes history for projects that have none. Each is locked and read again first, so a save
+     * made meanwhile wins.
      */
     async backfillHistory(): Promise<{ projects: number; rows: number }> {
       const withRows = new Set(

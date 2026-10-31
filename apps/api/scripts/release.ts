@@ -8,18 +8,9 @@ import { createDatabase, type Database } from '../src/db/client.ts';
 import { projects } from '../src/db/schema.ts';
 import { createProjectService } from '../src/services/projects.ts';
 
-// Brings the database up to date with this code (decision 0014). Vercel runs it in every
-// production build (vercel.json) while the previous deploy is still serving; locally it is
-// `pnpm db:migrate`. Safe to re-run.
-//
-// It never rewrites stored data into a newer shape, since the previous deploy would then fail to
-// read it: reads upgrade older shapes as they go. In order, it checks that this code can read every
-// stored project, applies the committed Drizzle migrations, and writes history rows for projects
-// that have none. Migrations use Neon's direct connection when one is set, since Neon advises
-// against schema changes through the pooler.
-
-/** Any number, fixed, so that two releases against one database run one after the other. */
-const RELEASE_LOCK = 0x6b657266;
+// Runs while the previous deploy still serves, so it never rewrites stored data into a newer
+// shape; reads upgrade it (decision 0014).
+const RELEASE_LOCK = 1;
 
 export interface ReleaseConnection {
   db: Database;
@@ -33,7 +24,6 @@ export type ReleaseResult =
   | { status: 'unreadable'; projects: { id: string; reason: string }[] }
   | { status: 'released'; history: { projects: number; rows: number } };
 
-/** Why this build does not release, or undefined when it does. Only production builds release. */
 function skipReason(env: Record<string, string | undefined>): string | undefined {
   if (env.VERCEL && env.VERCEL_ENV !== 'production') {
     return `a ${env.VERCEL_ENV ?? 'unknown'} deployment`;
@@ -41,14 +31,13 @@ function skipReason(env: Record<string, string | undefined>): string | undefined
   return undefined;
 }
 
-/** Stored projects this code cannot read. Writes nothing; an empty database has none. */
 async function unreadableProjects(db: Database, templates: readonly TemplateDefinition[]) {
   const [table] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(sql`information_schema.tables`)
     .where(sql`table_schema = current_schema() and table_name = 'projects'`);
   if (!table?.count) return [];
-  // Only the columns every migration has had, since this runs before migrating.
+  // Runs before migrating, so it names only columns every migration has had.
   const rows = await db.select({ id: projects.id, snapshot: projects.snapshot }).from(projects);
   return rows.flatMap((row) => {
     const result = readSnapshot(templates, row.snapshot);
@@ -70,6 +59,7 @@ export async function release(options: {
     return { status: 'skipped', reason: skip };
   }
 
+  // Neon advises schema changes over the direct connection, not the pooler.
   const url = env.DATABASE_URL_UNPOOLED || env.DATABASE_URL || LOCAL_DATABASE_URL;
   if (!/^postgres(ql)?:\/\//.test(url)) {
     log('release: DATABASE_URL_UNPOOLED or DATABASE_URL must be a postgres:// URL.');
@@ -78,13 +68,11 @@ export async function release(options: {
 
   const { db, migrate, close } = connect(url);
   try {
-    // A session lock, held on the one connection every step below uses.
+    // Session-level, which holds because every step uses this one connection.
     await db.execute(sql`select pg_advisory_lock(${RELEASE_LOCK})`);
     try {
       const unreadable = await unreadableProjects(db, templates);
       if (unreadable.length > 0) {
-        // Stops the deploy before anything is written, so the previous deploy keeps serving
-        // the database as it was.
         const list = unreadable.map((p) => `${p.id} (${p.reason})`).join(', ');
         log(`release: projects this code cannot read: ${list}`);
         return { status: 'unreadable', projects: unreadable };
