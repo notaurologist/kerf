@@ -44,17 +44,19 @@ export function ViewSwitch(props: {
             pressed={view.id === shown}
             onClick={() => setShown(view.id)}
           >
-            {view.id === shown && <Icon name="done" />}
+            <Icon name="done" />
             {view.label}
           </Button>
         ))}
       </div>
-      {props.views.map((view) => (
-        <div key={view.id} className="k-views__view" hidden={view.id !== shown}>
-          <Heading className="k-views__heading">{view.label}</Heading>
-          {view.content}
-        </div>
-      ))}
+      <div className="k-views__stage">
+        {props.views.map((view) => (
+          <div key={view.id} className="k-views__view" hidden={view.id !== shown}>
+            <Heading className="k-views__heading">{view.label}</Heading>
+            {view.content}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

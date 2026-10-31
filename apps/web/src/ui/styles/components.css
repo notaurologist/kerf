@@ -982,10 +982,29 @@
     gap: var(--space-2xs);
   }
 
-  /* The view shown is filled and ticked; the others are outlined. */
+  /* The view shown is filled and ticked; the others are outlined. Every button keeps room for
+     the tick, so switching moves neither. */
   .k-views__control .k-button[aria-pressed="true"] {
     background: var(--accent);
     color: var(--on-accent);
+  }
+
+  .k-views__control .k-button[aria-pressed="false"] .k-icon {
+    visibility: hidden;
+  }
+
+  /* The views share one place, as tall as the tallest, so switching moves nothing below. */
+  .k-views__stage {
+    display: grid;
+  }
+
+  .k-views__view {
+    grid-area: 1 / 1;
+  }
+
+  .k-views__view[hidden] {
+    display: block;
+    visibility: hidden;
   }
 
   /* On screen the control names the view; on paper each view has its heading. */
