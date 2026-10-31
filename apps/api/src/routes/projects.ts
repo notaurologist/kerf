@@ -2,13 +2,8 @@ import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { ProgressChanges } from '../services/progress.ts';
-import {
-  NewProject,
-  NewProjectPreview,
-  ProjectChanges,
-  type ProjectService,
-  type Result,
-} from '../services/projects.ts';
+import { NewProject, NewProjectPreview, ProjectChanges } from '../services/projectBodies.ts';
+import type { ProjectService, Result } from '../services/projects.ts';
 import { valid } from './validate.ts';
 
 const ById = z.object({ id: z.uuid() });

@@ -1,4 +1,4 @@
-import type { Part, Placement } from '../templates/types.ts';
+import type { Part, Placement } from '../model/types.ts';
 import { signedArea2 } from './clip.ts';
 import type { Drawing, PartRef, Point2, Primitive, Tone } from './primitives.ts';
 import { boundsOf } from './primitives.ts';

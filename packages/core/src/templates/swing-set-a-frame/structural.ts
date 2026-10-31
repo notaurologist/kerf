@@ -3,6 +3,7 @@ import { DENSITY_SOURCES, woodDensity } from '../../design-values/density.ts';
 import { referenceRow, SPECIES_GRADE_IDS, speciesGrade } from '../../design-values/sawnLumber.ts';
 import type { Citation } from '../../design-values/sources.ts';
 import { STOCK_SIZE_SOURCES, stock } from '../../lumber/stock.ts';
+import { ChecklistItem, type Issue } from '../../model/types.ts';
 import {
   BeamChecks,
   beamChecks,
@@ -18,7 +19,6 @@ import {
   type Quantity,
 } from '../../structural/types.ts';
 import { formatLength } from '../../units/length.ts';
-import { ChecklistItem, type Issue } from '../types.ts';
 import type { SwingSetOutput } from './template.ts';
 import { LEG_IDS } from './validate.ts';
 

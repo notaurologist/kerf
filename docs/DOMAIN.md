@@ -21,7 +21,7 @@ Background for anyone (human or agent) working on this project. This is not auth
 
 ## Operations
 
-Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods. Operation types in code (`templates/operations.ts`) cover what templates use: crosscut, miter, taper, bolt holes, ease edges, dig holes, and level pads.
+Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods. Operation types in code (`model/operations.ts`) cover what templates use: crosscut, miter, taper, bolt holes, ease edges, dig holes, and level pads.
 
 | Operation | Example methods by tool |
 |---|---|

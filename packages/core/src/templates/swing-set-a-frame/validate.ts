@@ -1,5 +1,5 @@
+import type { Flag, Issue } from '../../model/types.ts';
 import { formatLength } from '../../units/length.ts';
-import type { Flag, Issue } from '../types.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
 import { CLEARANCES, type SwingGeometry } from './layout.ts';
 

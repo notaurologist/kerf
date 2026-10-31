@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { BOARD_GUIDES } from '../knowledge/boardSelection.ts';
+import type { ChecklistItem, Flag } from '../model/types.ts';
 import type { CutListRow } from '../outputs/cutList.ts';
 import type { LumberPlan } from '../outputs/shoppingList.ts';
 import type { CheckResult } from '../structural/types.ts';
-import type { ChecklistItem, Flag } from '../templates/types.ts';
 import type { BuildStep, FilledMethod } from './build.ts';
 import { planTerms, planText } from './terms.ts';
 
@@ -21,7 +21,7 @@ const plan = (p: {
   checks: (p.checks ?? []) as CheckResult[],
   checklist: (p.checklist ?? []) as ChecklistItem[],
   cutList: p.cutList ?? [],
-  lumber: (p.lumber ?? { notes: [] }) as LumberPlan,
+  lumber: (p.lumber ?? { notes: [], selection: [] }) as LumberPlan,
   hardwareNotes: p.hardwareNotes ?? [],
 });
 const method = (m: Partial<FilledMethod>): FilledMethod => ({
@@ -87,7 +87,7 @@ describe('planTerms', () => {
     const p = plan({
       checks: [{ title: 'Bending', subject: 'Gusset', loadCase: 'Both riders' }],
       checklist: [{ confirm: 'Confirm the plumb leg.', why: 'Why.' }],
-      lumber: { notes: ['Buy extra stock.'] },
+      lumber: { notes: ['Buy extra stock.'], selection: [] },
       hardwareNotes: ['Allow for the counterbore.'],
     });
     expect(planTerms(p, []).map((e) => e.id)).toEqual([

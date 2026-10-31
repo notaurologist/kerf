@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { findToolType } from '../knowledge/tools.ts';
-import { buildFromForm, entryProblems, formValues } from '../templates/form.ts';
+import { buildFromForm, entryProblems, formValues } from '../model/form.ts';
 import { capabilityForm, Inventory, missingCapabilities, readStoredTools, Tool } from './tools.ts';
 
 const messages = (result: { error?: { issues: { path: PropertyKey[]; message: string }[] } }) =>

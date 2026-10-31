@@ -1,11 +1,10 @@
 import {
   findTemplate,
-  geometry,
   type Inventory,
   planSteps,
   progressSummary,
+  projectDrawings,
   readSnapshot,
-  stepDrawings,
   TEMPLATES,
 } from '@kerf/core';
 import fixtures from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v1.json';
@@ -49,31 +48,23 @@ export function projectFrom(
 /** The progress summary as the API sends it, counted by core from the ticks. */
 function summaryFor(snapshot: NonNullable<Project['snapshot']>, ticks: Project['ticks']) {
   const template = findTemplate(snapshot.templateId);
-  const outputs = template?.outputs.safeParse(snapshot.outputs);
+  const outputs = template?.storedOutputs.safeParse(snapshot.outputs);
   return template && outputs?.success ? progressSummary(template, outputs.data, ticks) : null;
 }
 
 function drawingsFor(snapshot: NonNullable<Project['snapshot']>) {
   const template = findTemplate(snapshot.templateId);
   if (!template) return null;
-  const outputs = template.outputs.safeParse(snapshot.outputs);
+  const outputs = template.storedOutputs.safeParse(snapshot.outputs);
   if (!outputs.success) return null;
-  // As the API composes them: the template's drawings, the board cards' (#59), and the action
-  // drawings (#118).
-  const plan = template.plan(outputs.data);
-  const drawings = {
-    ...template.drawings(outputs.data),
-    boards: geometry.boardDrawings(plan.lumber, plan.cutList),
-    steps: stepDrawings(template, outputs.data),
-  };
-  return JSON.parse(JSON.stringify(drawings));
+  return JSON.parse(JSON.stringify(projectDrawings(template, outputs.data)));
 }
 
 /** Build steps as the API sends them: chosen by core from an inventory, through JSON. */
 export function stepsFor(snapshot: NonNullable<Project['snapshot']>, inventory: Inventory) {
   const template = findTemplate(snapshot.templateId);
   if (!template) return null;
-  const outputs = template.outputs.safeParse(snapshot.outputs);
+  const outputs = template.storedOutputs.safeParse(snapshot.outputs);
   return outputs.success
     ? JSON.parse(JSON.stringify(planSteps(template, outputs.data, inventory)))
     : null;

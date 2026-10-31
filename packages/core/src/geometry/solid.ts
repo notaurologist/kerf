@@ -1,4 +1,4 @@
-import type { Part, Placement } from '../templates/types.ts';
+import type { Part, Placement } from '../model/types.ts';
 import { partOutline, type UV } from './outline.ts';
 import { add, centroid, scale, unit, type Vec3 } from './vec.ts';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Operation } from '../operations.ts';
+import type { Operation } from '../../model/operations.ts';
 import type { SwingSetParams } from './params.ts';
 import { generate } from './template.ts';
 

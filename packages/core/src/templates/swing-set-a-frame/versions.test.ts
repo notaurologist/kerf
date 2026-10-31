@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import type { TemplateDefinition } from '../../model/definition.ts';
 import { diff } from '../../snapshot/diff.ts';
 import { createSnapshot, type ProjectSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
-import type { TemplateDefinition } from '../definition.ts';
 import { swingSetAFrame } from './definition.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
 import v2 from './snapshots/v2.json' with { type: 'json' };

@@ -1,5 +1,5 @@
+import type { HardwareItem, Issue } from '../../model/types.ts';
 import { formatLength } from '../../units/length.ts';
-import type { HardwareItem, Issue } from '../types.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
 import type { SwingSetParams } from './params.ts';
 

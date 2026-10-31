@@ -42,7 +42,7 @@ const swingSet = swingSetAFrame.definition as TemplateDefinition;
 export const nextShape: TemplateDefinition = {
   ...swingSet,
   snapshotVersion: swingSet.snapshotVersion + 1,
-  outputs: z.looseObject({ cuts: z.array(z.object({ length: z.string() }).loose()) }),
+  storedOutputs: z.looseObject({ cuts: z.array(z.object({ length: z.string() }).loose()) }),
   // Its plan reads the renamed field, as a real next shape's would.
   plan: (outputs) => {
     const { cuts, ...rest } = outputs as { cuts: unknown };

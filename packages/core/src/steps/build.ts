@@ -4,11 +4,11 @@ import type { Inventory } from '../inventory/tools.ts';
 import { FlagCategory, findExpertCheckCategory } from '../knowledge/categories.ts';
 import { fillMethodText, findMethod, type Method } from '../knowledge/methods.ts';
 import { SkillIdSchema } from '../knowledge/skills.ts';
+import type { TemplateDefinition } from '../model/definition.ts';
+import { CUTTING_OPERATION_TYPES, Operation } from '../model/operations.ts';
+import type { Flag } from '../model/types.ts';
 import type { Plan } from '../outputs/plan.ts';
 import { boardIds, PlannedBoard } from '../outputs/shoppingList.ts';
-import type { TemplateDefinition } from '../templates/definition.ts';
-import { CUTTING_OPERATION_TYPES, Operation } from '../templates/operations.ts';
-import type { Flag } from '../templates/types.ts';
 import {
   describeChoice,
   type MethodFit,
@@ -191,11 +191,11 @@ function stepOperation(op: Operation, inventory: Inventory): [StepOperation, Met
 /**
  * The step a plan flag is shown on (#51): the first that drills for hardware it names, or else
  * the first that works on a part it names, so it is asked before the work it concerns. A flag
- * that names neither, or was stored before flags named them, stays on the plan only.
+ * that names neither stays on the plan only.
  */
 function stepForFlag(flag: Flag, steps: readonly { operations: StepOperation[] }[]): number {
-  const hardware = flag.hardwareIds ?? [];
-  const parts = flag.partIds ?? [];
+  const hardware = flag.hardwareIds;
+  const parts = flag.partIds;
   const drills = steps.findIndex((s) =>
     s.operations.some(
       (o) => 'hardwareId' in o.operation && hardware.includes(o.operation.hardwareId),

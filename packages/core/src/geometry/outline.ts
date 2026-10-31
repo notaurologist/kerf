@@ -1,6 +1,6 @@
-import type { Part } from '../templates/types.ts';
+import type { Part } from '../model/types.ts';
 
-// A part's face outline in its own frame (DOMAIN.md, Geometry; Placement in templates/types.ts):
+// A part's face outline in its own frame (DOMAIN.md, Geometry; Placement in model/types.ts):
 // u along the part from its first end's long point, v across from its reference edge. The
 // outline follows from the cut-list data alone (spec, Placements):
 //
@@ -36,7 +36,7 @@ export function blankOutline(part: Part): UV[] {
 export function partOutline(part: Part): UV[] {
   const [first, ...rest] = blankOutline(part);
   if (!first) return [];
-  const taper = part.tapers?.[0];
+  const taper = part.tapers[0];
   if (!taper) return [first, ...rest];
   // The taper replaces the first corner: from its start on the reference edge, around the
   // blank, back to its end on the first end cut.

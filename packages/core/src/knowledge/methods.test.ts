@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { Operation, OperationType } from '../model/operations.ts';
 import { TEMPLATES } from '../templates/index.ts';
-import type { Operation, OperationType } from '../templates/operations.ts';
 import { VERDICT_WORDS } from '../testing.ts';
 import { EXPERT_CHECK_CATEGORIES, ExpertCheckCategory, FLAG_CATEGORY_IDS } from './categories.ts';
 import {

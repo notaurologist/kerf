@@ -1,12 +1,19 @@
 import { z } from 'zod';
 import type { BoardGuideId } from '../../knowledge/boardSelection.ts';
 import { stock } from '../../lumber/stock.ts';
+import { withLetters } from '../../model/letters.ts';
+import { cutAndDrillOperations, Operation } from '../../model/operations.ts';
+import {
+  Flag,
+  type GenerateResult,
+  HardwareItem,
+  type Issue,
+  Part,
+  Placement,
+} from '../../model/types.ts';
 import { BoltJoint } from '../../structural/boltDistances.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
-import { withLetters } from '../letters.ts';
-import { cutAndDrillOperations, Operation } from '../operations.ts';
-import { Flag, type GenerateResult, HardwareItem, type Issue, Part, Placement } from '../types.ts';
 import {
   type BoardBolts,
   boardBolts,

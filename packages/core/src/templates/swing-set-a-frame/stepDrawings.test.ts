@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { boardDrawings } from '../../geometry/boards.ts';
 import { project } from '../../geometry/projection.ts';
-import { stepDrawings } from '../../steps/drawings.ts';
+import { projectDrawings, stepDrawings } from '../../steps/drawings.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 
@@ -100,5 +101,19 @@ describe('action drawings for the worked example', () => {
   it('draws nothing for a plan made before placements', () => {
     const old = { ...generated.output, design: { ...generated.output.design, placements: [] } };
     expect(stepDrawings(swingSetAFrame, old)).toEqual([]);
+  });
+});
+
+describe('projectDrawings', () => {
+  it("adds the board cards and action drawings to the template's own", () => {
+    const all = projectDrawings(swingSetAFrame, generated.output);
+    const plan = swingSetAFrame.plan(generated.output);
+    expect(all).toEqual({
+      ...swingSetAFrame.drawings(generated.output),
+      boards: boardDrawings(plan.lumber, plan.cutList),
+      steps: stepDrawings(swingSetAFrame, generated.output),
+    });
+    expect(all.boards).toHaveLength(plan.lumber.boards.length);
+    expect(all.steps).not.toHaveLength(0);
   });
 });

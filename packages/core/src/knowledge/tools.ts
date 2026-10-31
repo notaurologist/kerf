@@ -31,7 +31,7 @@ export const TOOL_GROUP_LABELS: Record<ToolGroup, string> = {
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /**
- * A capability's kind sets its type and unit, as in a template's form (templates/form.ts):
+ * A capability's kind sets its type and unit, as in a template's form (model/form.ts):
  * `length` is decimal inches, `angle` is degrees, `integer` is a count in `unit`, and `yes-no` is
  * a boolean chosen explicitly.
  */

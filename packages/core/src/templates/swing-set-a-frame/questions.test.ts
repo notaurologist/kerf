@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildFromForm, confirmedPaths, entryProblems, formValues } from '../form.ts';
-import { describeBasis, type Suggestion, suggestedValues } from '../questions.ts';
+import { buildFromForm, confirmedPaths, entryProblems, formValues } from '../../model/form.ts';
+import { describeBasis, type Suggestion, suggestedValues } from '../../model/questions.ts';
 import { swingSetAFrame } from './definition.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';

@@ -1,3 +1,4 @@
+import type { BoltArea, Flag, Hole, Taper } from '../../model/types.ts';
 import {
   type BoltJoint,
   edgeDistance,
@@ -11,7 +12,6 @@ import {
 import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
-import type { BoltArea, Flag, Hole, Taper } from '../types.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
 import type { SwingSetParams } from './params.ts';
 import { LEG_IDS } from './validate.ts';

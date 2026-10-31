@@ -171,7 +171,7 @@ Worked example (1/2" bolts, two per joint): p = 1.638; crossbar bolts 1.375 and 
 
 ### Placements
 
-Where each part instance sits in 3D, for drawing (template version 3). Each part has a local frame (`DOMAIN.md`, Geometry; `Placement` in `templates/types.ts`):
+Where each part instance sits in 3D, for drawing (template version 3). Each part has a local frame (`DOMAIN.md`, Geometry; `Placement` in `model/types.ts`):
 
 - **along**: the part's length, from its first end to its second (the cut list's end order);
 - **across**: its width, from its reference edge (the edge on which the first end cut has its long point);

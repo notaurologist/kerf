@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { stock } from '../../lumber/stock.ts';
+import type { FormSection } from '../../model/form.ts';
+import { type Suggestion, type SuggestionBasis, startingQuestions } from '../../model/questions.ts';
 import { formatLength } from '../../units/length.ts';
-import type { FormSection } from '../form.ts';
-import { type Suggestion, type SuggestionBasis, startingQuestions } from '../questions.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
 import { CLEARANCES } from './layout.ts';
 import { BEAM_HEIGHT } from './params.ts';

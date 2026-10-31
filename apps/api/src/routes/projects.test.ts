@@ -1,10 +1,9 @@
 import {
   BuildSteps,
   createSnapshot,
-  geometry,
   type Inventory,
   inventoryKey,
-  stepDrawings,
+  projectDrawings,
   swingSetAFrame,
   TEMPLATES,
   type TemplateDefinition,
@@ -12,7 +11,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 import { nextShape, swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
-import { createProjectService } from '../services/projects.ts';
+import { backfillHistory } from '../services/history.ts';
 
 const newProject: Record<string, unknown> = {
   name: 'Backyard swing set',
@@ -106,15 +105,9 @@ describe('GET /api/projects/:id drawings', () => {
     const { authed } = await createTestApp();
     const { body } = await create(authed);
     const project = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
-    const outputs = swingSetAFrame.definition.outputs.parse(project.snapshot.outputs);
+    const outputs = swingSetAFrame.definition.storedOutputs.parse(project.snapshot.outputs);
     const plan = swingSetAFrame.definition.plan(outputs);
-    // The template's drawings, the board cards' from the board plan (#59), and the assembly
-    // steps' action drawings (#118).
-    const expected = {
-      ...swingSetAFrame.definition.drawings(outputs),
-      boards: geometry.boardDrawings(plan.lumber, plan.cutList),
-      steps: stepDrawings(swingSetAFrame.definition, outputs),
-    };
+    const expected = projectDrawings(swingSetAFrame.definition, outputs);
     expect(project.drawings).toEqual(JSON.parse(JSON.stringify(expected)));
     expect(project.drawings.boards).toHaveLength(plan.lumber.boards.length);
     expect(project.drawings.isometric.title).toBe('Isometric view');
@@ -243,15 +236,15 @@ describe('project history (#106)', () => {
     const kept = await history(client, second.body.id);
     await authed('/api/tools', { method: 'PUT', body: miterSaw });
 
-    const service = createProjectService({ db, templates: TEMPLATES, now: () => new Date() });
-    const result = await service.backfillHistory();
+    const backfill = () => backfillHistory({ db, templates: TEMPLATES, now: () => new Date() });
+    const result = await backfill();
     expect(result.projects).toBe(1);
     const filled = await history(client, first.body.id);
     expect(result.rows).toBe(filled.length);
     expect(filled.length).toBe(kept.length);
     expect(filled[0]?.inventory_key).toBe(inventoryKey(miterSaw));
     expect(await history(client, second.body.id)).toEqual(kept);
-    expect(await service.backfillHistory()).toEqual({ projects: 0, rows: 0 });
+    expect(await backfill()).toEqual({ projects: 0, rows: 0 });
   });
 });
 

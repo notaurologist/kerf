@@ -1,7 +1,7 @@
+import type { Operation } from '../model/operations.ts';
+import type { ChecklistItem, EndCut, Flag } from '../model/types.ts';
 import type { BoltJoint } from '../structural/boltDistances.ts';
 import type { CheckResult } from '../structural/types.ts';
-import type { Operation } from '../templates/operations.ts';
-import type { ChecklistItem, EndCut, Flag } from '../templates/types.ts';
 import type { CutListRow } from './cutList.ts';
 import type { HardwareLine } from './hardwareList.ts';
 import type { LumberPlan } from './shoppingList.ts';
@@ -42,12 +42,13 @@ export interface Plan {
   /**
    * Each part's end cuts as the template describes them, and the edge its angles are laid out
    * from, for the cut card (#132). Picked from the stored parts; the cut list holds the same ends
-   * already formatted.
+   * already formatted. A stored plan that does not say which edge, or what an angle is measured
+   * from, leaves it out, and the cut card does not say either.
    */
   cutEnds: {
     partId: string;
-    /** Such as "inner edge, against the beam". Absent in plans made before template version 4. */
+    /** Such as "inner edge, against the beam". */
     referenceEdge?: string;
-    ends: Pick<EndCut, 'description' | 'measuredFrom'>[];
+    ends: { description: string; measuredFrom?: EndCut['measuredFrom'] }[];
   }[];
 }

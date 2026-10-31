@@ -1,4 +1,4 @@
-import { findTemplate } from '@kerf/core';
+import { TEMPLATES } from '@kerf/core';
 import { readHidden } from './prompt.ts';
 
 // Checks a deployed API end to end (M3 acceptance): health, login, storing a project, reading it
@@ -11,9 +11,9 @@ if (!/^https:\/\//.test(base)) {
   console.error('Give the deployment URL, starting with https://');
   process.exit(1);
 }
-const template = findTemplate('swing-set-a-frame');
+const template = TEMPLATES[0];
 const example = template?.examples[0];
-if (!template || !example) throw new Error('The swing-set template and its examples are missing.');
+if (!template || !example) throw new Error('No template with a worked example to store.');
 
 const json = { 'content-type': 'application/json' };
 const step = (name: string, res: Response, expected: number) => {

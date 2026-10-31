@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Citation } from '../design-values/sources.ts';
-import type { Operation, OperationType } from '../templates/operations.ts';
+import type { Operation, OperationType } from '../model/operations.ts';
 import { formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
 import { FlagCategory } from './categories.ts';

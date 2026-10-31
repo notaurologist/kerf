@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { TemplateDefinition } from '../templates/definition.ts';
-import type { GenerateResult, Issue } from '../templates/types.ts';
+import type { TemplateDefinition } from '../model/definition.ts';
+import type { GenerateResult, Issue } from '../model/types.ts';
 import { type Diff, diff } from './diff.ts';
 
 const asJson = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
@@ -133,7 +133,7 @@ export function readSnapshot(
     snapshotVersion: z.literal(template.snapshotVersion),
     params: template.params,
     structuralInputs: template.structuralInputs,
-    outputs: template.outputs,
+    outputs: template.storedOutputs,
   });
   const parsed = schema.safeParse(current);
   if (!parsed.success) {
@@ -214,7 +214,7 @@ export function compareSnapshots(
   // Key results repeat values the plan already holds (#119), so they are left out rather than
   // counted twice.
   const plan = (s: ProjectSnapshot) => {
-    const { keyResults: _, ...rest } = template.plan(template.outputs.parse(s.outputs));
+    const { keyResults: _, ...rest } = template.plan(template.storedOutputs.parse(s.outputs));
     return asJson(rest);
   };
   return diff(plan(saved), plan(preview), limit);

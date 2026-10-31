@@ -15,7 +15,7 @@ type PlanWithText = Pick<
 
 /** The plan's text that can use glossary terms. */
 export function planText(plan: PlanWithText, steps: readonly BuildStep[]): string[] {
-  const guides = new Set(plan.lumber.selection?.flatMap((s) => s.guides));
+  const guides = new Set(plan.lumber.selection.flatMap((s) => s.guides));
   return [
     ...plan.flags.flatMap((f) => [f.ask, f.why]),
     ...plan.checks.flatMap((c) => [`${c.title}: ${c.subject}`, c.loadCase]),

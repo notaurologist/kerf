@@ -62,7 +62,7 @@ export function ProjectView(props: {
   const { project } = props;
   const template = findTemplate(project.templateId);
   const { plan, drawings, steps } = useReadProject(project);
-  // Plans made before operations (template version 8) have no build steps.
+  // Plans made before operations have no build steps.
   const hasSteps = steps !== null && steps.steps.length > 0;
   const terms = useMemo(
     () =>

@@ -21,7 +21,7 @@ export function readPlan(project: Project): PlanResult {
 export function planOf(templateId: string, outputs: unknown): PlanResult {
   const template = findTemplate(templateId);
   if (!template) return { ok: false, message: 'This project’s template is no longer offered.' };
-  const parsed = template.outputs.safeParse(outputs);
+  const parsed = template.storedOutputs.safeParse(outputs);
   if (!parsed.success) {
     return { ok: false, message: 'The plan the server sent does not match this template’s shape.' };
   }

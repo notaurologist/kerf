@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import type { TemplateDefinition } from '../templates/definition.ts';
+import type { TemplateDefinition } from '../model/definition.ts';
 import { swingSetAFrame } from '../templates/swing-set-a-frame/definition.ts';
 import type { SwingSetParams } from '../templates/swing-set-a-frame/params.ts';
 import previousVersion from '../templates/swing-set-a-frame/snapshots/v11.json' with {
@@ -194,8 +194,8 @@ describe('compareWithCurrent', () => {
     if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
     const { changes, outputs } = report.regenerated;
     expect(changes.length).toBeGreaterThan(0);
-    const before = asJson(template.plan(template.outputs.parse(read.snapshot.outputs)));
-    const after = asJson(template.plan(template.outputs.parse(outputs)));
+    const before = asJson(template.plan(template.storedOutputs.parse(read.snapshot.outputs)));
+    const after = asJson(template.plan(template.storedOutputs.parse(outputs)));
     for (const change of changes) {
       if ('before' in change)
         expect(valueAt(before, change.path), change.path).toEqual(change.before);
@@ -258,7 +258,7 @@ describe('compareSnapshots', () => {
 const nextShape: TemplateDefinition = {
   ...(swingSetAFrame as TemplateDefinition),
   snapshotVersion: SHAPE + 1,
-  outputs: z.looseObject({ cuts: z.array(z.unknown()) }),
+  storedOutputs: z.looseObject({ cuts: z.array(z.unknown()) }),
   snapshotUpgrades: {
     ...swingSetAFrame.snapshotUpgrades,
     [SHAPE]: (s) => {

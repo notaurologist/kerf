@@ -1,33 +1,19 @@
-import { z } from 'zod';
-import { CutListRow, cutList } from '../../outputs/cutList.ts';
-import { HardwareLine, hardwareList } from '../../outputs/hardwareList.ts';
+import type { SnapshotUpgrade, TemplateDefinition } from '../../model/definition.ts';
+import { withLetters } from '../../model/letters.ts';
+import { cutList } from '../../outputs/cutList.ts';
+import { hardwareList } from '../../outputs/hardwareList.ts';
 import type { KeyResult } from '../../outputs/plan.ts';
-import { DEFAULT_BOARD_OPTIONS, LumberPlan, planLumber } from '../../outputs/shoppingList.ts';
+import { DEFAULT_BOARD_OPTIONS, planLumber } from '../../outputs/shoppingList.ts';
 import { angleToEdge, formatAngle } from '../../units/angle.ts';
-import type { SnapshotUpgrade, TemplateDefinition } from '../definition.ts';
-import { withLetters } from '../letters.ts';
 import { assembly, drawings } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';
+import { StoredSwingSetOutputs, SwingSetOutputs, withConcerns } from './outputs.ts';
 import { SwingSetParams } from './params.ts';
 import { SWING_SET_QUESTIONS } from './questions.ts';
 import { stepOutline } from './steps.ts';
-import {
-  SwingSetStructuralInputs,
-  SwingSetStructuralReview,
-  structuralReview,
-} from './structural.ts';
-import { generate, SwingSetOutput, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
-
-/** Everything a swing-set project snapshot holds besides its parameters and inputs. */
-export const SwingSetOutputs = z.object({
-  design: SwingSetOutput,
-  cutList: z.array(CutListRow),
-  lumber: LumberPlan,
-  hardware: z.array(HardwareLine),
-  structuralReview: SwingSetStructuralReview,
-});
-export type SwingSetOutputs = z.infer<typeof SwingSetOutputs>;
+import { SwingSetStructuralInputs, structuralReview } from './structural.ts';
+import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
 
 /**
  * Shape 4 to 5: letters each stored part and its cut-list row by position. The cut list is made
@@ -107,7 +93,7 @@ const addHoleSizes: SnapshotUpgrade = (snapshot) => {
  * plan): the beam's length and stock, each leg's length, and the saw setting for the legs' level
  * cuts. Picked from the stored cut list and geometry, so a stored plan shows its own numbers.
  */
-function keyResults(outputs: SwingSetOutputs): KeyResult[] {
+function keyResults(outputs: StoredSwingSetOutputs): KeyResult[] {
   const { design } = outputs;
   const row = (id: string) => outputs.cutList.find((r) => r.partId === id);
   const beam = row('beam');
@@ -137,14 +123,17 @@ function keyResults(outputs: SwingSetOutputs): KeyResult[] {
 export const swingSetAFrame: TemplateDefinition<
   SwingSetParams,
   SwingSetStructuralInputs,
+  StoredSwingSetOutputs,
   SwingSetOutputs
 > = {
   id: TEMPLATE_ID,
   version: TEMPLATE_VERSION,
   name: 'Two-swing A-frame swing set',
+  ownWords: ['swing', 'crossbar', 'hanger', 'leg', 'legs', 'a-frame', 'cpsc'],
   params: SwingSetParams,
   structuralInputs: SwingSetStructuralInputs,
   outputs: SwingSetOutputs,
+  storedOutputs: StoredSwingSetOutputs,
   form: SWING_SET_FORM,
   // One fixture per stored shape, snapshots/v<n>.json (decision 0014). Shape 2 adds sources to
   // the hanger check's inputs (#36). Shape 3 adds part placements (#49). Shape 4 adds holes,
@@ -182,12 +171,12 @@ export const swingSetAFrame: TemplateDefinition<
     return {
       keyResults: keyResults(outputs),
       cutList: outputs.cutList,
-      lumber: outputs.lumber,
+      lumber: { ...outputs.lumber, selection: outputs.lumber.selection ?? [] },
       hardware: outputs.hardware,
       hardwareNotes: outputs.design.hardwareNotes,
-      flags: outputs.design.flags,
+      flags: outputs.design.flags.map(withConcerns),
       checks: [review.beam.bending, review.beam.shear, review.beam.deflection, review.hanger],
-      checklist: review.checklist,
+      checklist: review.checklist.map(withConcerns),
       boltLayout: outputs.design.boltLayout ?? [],
       operations: outputs.design.operations ?? [],
       cutEnds: outputs.design.parts.map((part) => ({

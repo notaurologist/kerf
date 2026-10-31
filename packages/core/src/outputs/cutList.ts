@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Part } from '../templates/types.ts';
+import type { Part } from '../model/types.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
 

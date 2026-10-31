@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { enteredValues } from '../../model/form.ts';
 import { planDigests } from '../../outputs/digests.ts';
 import { createSnapshot } from '../../snapshot/index.ts';
 import { buildSteps } from '../../steps/build.ts';
-import { enteredValues } from '../form.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 

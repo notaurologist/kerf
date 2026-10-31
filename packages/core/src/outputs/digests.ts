@@ -1,8 +1,8 @@
 import type { Drawings } from '../geometry/index.ts';
+import type { EnteredValue } from '../model/form.ts';
 import type { BuildStep } from '../steps/build.ts';
 import { lowestMargin } from '../structural/lowest.ts';
 import { formatMargin } from '../structural/types.ts';
-import type { EnteredValue } from '../templates/form.ts';
 import type { Plan } from './plan.ts';
 
 // One line for each section of the plan, for the summary's list of sections (#147, #156): counts

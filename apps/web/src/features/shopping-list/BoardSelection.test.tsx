@@ -23,8 +23,8 @@ describe('BoardSelection', () => {
     expect(html).toContain('AWPA U1');
   });
 
-  it('shows nothing for a plan made before board selection guides', () => {
-    const { selection: _, ...older } = firstExampleLumber();
-    expect(renderToString(<BoardSelection lumber={older} />)).toBe('');
+  it('shows nothing when no part lists board selection guides', () => {
+    const none = { ...firstExampleLumber(), selection: [] };
+    expect(renderToString(<BoardSelection lumber={none} />)).toBe('');
   });
 });

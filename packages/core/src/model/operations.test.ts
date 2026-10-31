@@ -17,6 +17,10 @@ const post: Part = {
   ends: [square, { setting: 15, description: 'Angled', measuredFrom: 'reference-edge' }],
   endsParallel: false,
   notes: [],
+  selection: [],
+  referenceEdge: 'bottom edge',
+  holes: [],
+  boltAreas: [],
   tapers: [
     { description: 'Taper', start: { u: 4, v: 0 }, end: { u: 0, v: 3 }, angleToEdge: 36.87 },
   ],
@@ -28,7 +32,7 @@ const rail: Part = {
   quantity: 1,
   stock: stock('2x6'),
   ends: [square, square],
-  tapers: undefined,
+  tapers: [],
   boltAreas: [
     {
       hardwareId: 'bolts',
@@ -50,6 +54,7 @@ const bolts: HardwareItem = {
   bolt: { diameter: 0.375, grip: 5, washers: 2, nut: 'locking', cap: false },
   structural: true,
   notes: [],
+  group: 'Bolts',
 };
 const screws: HardwareItem = {
   id: 'screws',
@@ -57,6 +62,7 @@ const screws: HardwareItem = {
   quantity: 20,
   structural: false,
   notes: [],
+  group: 'Screws',
 };
 
 describe('cutAndDrillOperations', () => {

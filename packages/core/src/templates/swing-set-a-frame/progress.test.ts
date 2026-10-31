@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import type { TemplateDefinition } from '../../model/definition.ts';
 import { progressItems, progressToReset } from '../../progress/progress.ts';
 import { readSnapshot } from '../../snapshot/snapshot.ts';
-import type { TemplateDefinition } from '../definition.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 import type { SwingSetParams } from './params.ts';
@@ -133,7 +133,7 @@ describe('progress across the version 12 regeneration (#59)', () => {
   it('keeps ticks on shopping lines when only their store group is added', () => {
     const read = readSnapshot([swingSetAFrame as TemplateDefinition], v11[0]);
     if (!read.ok) throw new Error('v11 fixture does not read');
-    const stored = swingSetAFrame.outputs.parse(read.snapshot.outputs);
+    const stored = swingSetAFrame.storedOutputs.parse(read.snapshot.outputs);
     const old = progressItems(swingSetAFrame, stored).filter((i) => i.kind === 'shopping-line');
     expect(progressToReset(old, old, before)).toEqual([]);
   });

@@ -1,5 +1,5 @@
-import { actionView, type Drawing } from '../geometry/index.ts';
-import type { TemplateDefinition } from '../templates/definition.ts';
+import { actionView, boardDrawings, type Drawing, type Drawings } from '../geometry/index.ts';
+import type { TemplateDefinition } from '../model/definition.ts';
 import { stepContents } from './build.ts';
 
 // Action drawings for Building mode (#118; design Stage 5, "Drawings in Building mode"): one for
@@ -58,4 +58,24 @@ export function stepDrawings<O>(
     for (const id of added) built.add(id);
   }
   return drawings;
+}
+
+/**
+ * Every drawing a project shows: the template's own, drawn from stored outputs, then the two that
+ * every template's data supports, the board cards' from the board plan (#59) and the assembly
+ * steps' action drawings (#118). The outputs must already parse with the template's schema.
+ */
+export function projectDrawings<O>(
+  template: Pick<
+    TemplateDefinition<unknown, unknown, O>,
+    'drawings' | 'steps' | 'plan' | 'assembly'
+  >,
+  outputs: O,
+): Drawings {
+  const plan = template.plan(outputs);
+  return {
+    ...template.drawings(outputs),
+    boards: boardDrawings(plan.lumber, plan.cutList),
+    steps: stepDrawings(template, outputs),
+  };
 }
