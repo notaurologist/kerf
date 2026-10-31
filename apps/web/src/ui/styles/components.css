@@ -986,14 +986,6 @@
 
   .k-views__control {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2xs);
-  }
-
-  /* The view shown is filled; the others are outlined. */
-  .k-views__control .k-button[aria-pressed="true"] {
-    background: var(--accent);
-    color: var(--on-accent);
   }
 
   /* The views share one place, as tall as the tallest, so switching moves nothing below. */
@@ -1010,7 +1002,7 @@
     visibility: hidden;
   }
 
-  /* On screen the control names the view; on paper each view has its heading. */
+  /* On paper each view has its heading; on screen the drawing shows which it is. */
   .k-views__heading {
     display: none;
   }

@@ -9,6 +9,7 @@ describe('createTestDatabase', () => {
     );
     expect(tables.rows.map((r) => r.tablename)).toEqual([
       'login_attempts',
+      'login_failures',
       'other_tools',
       'project_history',
       'project_progress',
@@ -32,6 +33,11 @@ describe('createTestDatabase', () => {
     await expect(
       client.query('insert into login_attempts (window_start, failures) values (now(), 0)'),
     ).rejects.toThrow(/login_attempts_failures/);
+    await expect(
+      client.query(
+        "insert into login_failures (scope, window_start, failures) values ('all', now(), 0)",
+      ),
+    ).rejects.toThrow(/login_failures_failures/);
     await close();
   });
 

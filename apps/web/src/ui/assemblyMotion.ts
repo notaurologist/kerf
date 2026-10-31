@@ -24,14 +24,14 @@ export interface Motion {
 }
 
 interface State {
-  pressed: AssemblyView;
+  asked: AssemblyView;
   shown: AssemblyView;
   exploded: Motion;
   assembledLabels: boolean;
 }
 
 const AT_REST = (view: AssemblyView): State => ({
-  pressed: view,
+  asked: view,
   shown: view,
   exploded: { collapsed: false, labels: true, instant: true },
   assembledLabels: true,
@@ -73,7 +73,7 @@ export function useAssemblyMotion() {
 
   const press = (id: string) => {
     const to: AssemblyView = id === 'exploded' ? 'exploded' : 'assembled';
-    if (to === state.pressed) return;
+    if (to === state.asked) return;
     clear();
     if (reducedMotion()) {
       setState(AT_REST(to));
@@ -82,7 +82,7 @@ export function useAssemblyMotion() {
     if (to === 'exploded') {
       // Shown with every part home, then, a frame later, sliding out; letters follow.
       setState({
-        pressed: to,
+        asked: to,
         shown: to,
         exploded: { collapsed: true, labels: false, instant: true },
         assembledLabels: true,
@@ -93,11 +93,11 @@ export function useAssemblyMotion() {
       // Letters out and parts home, then the assembled drawing, whose letters fade in.
       setState((s) => ({
         ...s,
-        pressed: to,
+        asked: to,
         exploded: { collapsed: true, labels: false, instant: false },
       }));
       later(MOVE_MS, () => ({
-        pressed: to,
+        asked: to,
         shown: to,
         exploded: { collapsed: false, labels: true, instant: true },
         assembledLabels: false,
@@ -107,7 +107,7 @@ export function useAssemblyMotion() {
   };
 
   return {
-    control: { pressed: state.pressed, shown: state.shown, press },
+    control: { asked: state.asked, shown: state.shown, press },
     exploded: state.exploded,
     assembled: { collapsed: false, labels: state.assembledLabels, instant: false } as Motion,
   };
