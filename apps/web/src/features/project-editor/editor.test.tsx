@@ -55,8 +55,10 @@ describe('the form’s layout (#164)', () => {
   });
 
   it('marks empty hardware as input needed, as it does structural inputs (rule 3)', () => {
-    expect(html).toMatch(/Leg-to-beam bolt diameter<\/span><span class="k-needed">/);
-    expect(html).not.toMatch(/Beam length<\/span><span class="k-needed">/);
+    expect(html).toMatch(
+      /Leg-to-beam bolt diameter<\/span><span class="k-tag" data-tone="needed">/,
+    );
+    expect(html).not.toMatch(/Beam length<\/span><span class="k-tag" data-tone="needed">/);
   });
 
   it('says how much is entered and which parts have empty fields, linking to the first of each', () => {
@@ -155,11 +157,15 @@ describe('starting a new project (#98)', () => {
     expect(text).toContain('The values marked "Copied, confirm" are from First swing set.');
     expect(text).toContain('The copied values are right for this project');
     const html = render(editor);
-    expect(html).toMatch(/Leg-to-beam bolt diameter<\/span><span class="k-needed">Copied, confirm/);
+    expect(html).toMatch(
+      /Leg-to-beam bolt diameter<\/span><span class="k-tag" data-tone="needed">Copied, confirm/,
+    );
     // Every shown hardware field and every entered structural input, and nothing else.
     const hardware = [...confirmedPaths(sections)].filter((p) => html.includes(`id="p-${p}"`));
     const inputs = Object.values(start.initial.inputs).filter((v) => v !== '').length;
-    expect(html.match(/class="k-needed">Copied, confirm/g)).toHaveLength(hardware.length + inputs);
+    expect(html.match(/class="k-tag" data-tone="needed">Copied, confirm/g)).toHaveLength(
+      hardware.length + inputs,
+    );
   });
 
   it('shows a preview beside a new form, waiting until the entries can be read', () => {
@@ -212,7 +218,7 @@ describe('a project made with an older template version', () => {
         }}
       />
     );
-    expect(render(editor)).toMatch(/<div class="k-info" role="status">/);
+    expect(render(editor)).toMatch(/<div class="k-callout" data-tone="info" role="status">/);
     expect(renderText(editor)).toContain(
       'Saving changed parameters or structural inputs regenerates this plan with template version 2. It was made with version 1.',
     );

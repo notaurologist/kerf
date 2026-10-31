@@ -51,14 +51,14 @@
   }
 
   a {
-    color: var(--accent);
+    color: var(--link);
     text-underline-offset: 0.15em;
   }
 
   /* One focus ring everywhere, in the focus color, outside the element (#43). */
   :focus-visible {
-    outline: 3px solid var(--focus);
-    outline-offset: 2px;
+    outline: var(--focus-width) solid var(--focus);
+    outline-offset: var(--focus-offset);
   }
 
   code,

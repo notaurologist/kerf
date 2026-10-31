@@ -42,10 +42,15 @@ const PAIRS: [string, string, 'text' | 'ui', number, number][] = [
   ['accent', 'bg', 'text', 6.28, 8.35],
   ['accent', 'raised', 'text', 6.62, 7.63],
   ['on-accent', 'accent', 'text', 6.62, 8.5],
+  ['link', 'bg', 'text', 6.28, 8.35],
+  ['link', 'raised', 'text', 6.62, 7.63],
+  ['needed', 'bg', 'text', 6.28, 8.35],
+  ['needed', 'raised', 'text', 6.62, 7.63],
+  ['changed', 'bg', 'text', 6.28, 8.35],
+  ['changed', 'raised', 'text', 6.62, 7.63],
   ['flag-text', 'flag-bg', 'text', 9.26, 10.18],
   ['flag-border', 'bg', 'ui', 3.56, 8.15],
   ['flag-border', 'raised', 'ui', 3.75, 7.45],
-  ['input-text', 'input-bg', 'text', 9.29, 9.73],
   ['input-border', 'bg', 'ui', 5.72, 7.49],
   ['error', 'bg', 'text', 6.27, 6.96],
   ['error', 'error-bg', 'text', 5.8, 5.62],
@@ -172,11 +177,8 @@ function unused(declared: readonly string[], files: readonly string[]): string[]
 describe('declared tokens', () => {
   const declared = [...new Set(blocksOf(css).flatMap((b) => b.declarations.map((d) => d.name)))];
 
-  // Measured but not applied: inputs use --text.
-  const NOT_YET_USED = ['--input-text'];
-
   it('are each used somewhere', () => {
-    expect(unused(declared, sources)).toEqual(NOT_YET_USED);
+    expect(unused(declared, sources)).toEqual([]);
   });
 
   it('are caught when nothing uses them', () => {

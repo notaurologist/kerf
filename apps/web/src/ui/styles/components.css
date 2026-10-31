@@ -1,8 +1,8 @@
 /*
  * Component blocks (Stage 6, DS1). Each block has a k- prefix; states are data attributes, so the
  * catalog can show them one by one. Colors follow #43's rules: errors crimson beside fields
- * only, flags amber with an icon and a label, input needed a dashed accent outline, and never
- * color alone.
+ * only, flags amber with an icon and a label, input needed a dashed outline, and never color
+ * alone.
  */
 @layer components {
   /* ---------- Text ---------- */
@@ -73,7 +73,7 @@
   }
 
   .k-section > h2:focus-visible {
-    outline: 3px solid var(--focus);
+    outline: var(--focus-width) solid var(--focus);
   }
 
   /* ---------- Figures (#119): a label over a value, as many to a row as fit ---------- */
@@ -89,7 +89,7 @@
     align-content: start;
     gap: var(--space-3xs);
     padding: var(--space-xs) var(--space-s);
-    border: 1px solid var(--border);
+    border: var(--border-thin) solid var(--border);
     border-radius: var(--radius);
     background: var(--raised);
   }
@@ -171,7 +171,7 @@
     gap: var(--space-2xs);
     min-block-size: var(--control-min);
     padding-inline: var(--space-s);
-    border: 2px solid var(--accent);
+    border: var(--border-thick) solid var(--accent);
     border-radius: var(--radius);
     background: var(--accent);
     color: var(--on-accent);
@@ -198,7 +198,7 @@
     padding: 0;
     border: 0;
     background: none;
-    color: var(--accent);
+    color: var(--link);
     font-weight: inherit;
     text-decoration: underline;
     text-underline-offset: 0.15em;
@@ -234,7 +234,7 @@
     inline-size: 100%;
     min-block-size: var(--control-min);
     padding-inline: var(--space-xs);
-    border: 1.5px solid var(--border-strong);
+    border: var(--border-mid) solid var(--border-strong);
     border-radius: var(--radius);
     background: var(--input-bg);
     color: var(--text);
@@ -262,7 +262,7 @@
   .k-field__about {
     color: var(--muted);
     font-size: var(--size--1);
-    border-inline-start: 3px solid var(--border-strong);
+    border-inline-start: var(--border-bar) solid var(--border-strong);
     padding-inline-start: var(--space-2xs);
   }
 
@@ -279,11 +279,11 @@
   }
 
   .k-field[data-state="error"] .k-field__input {
-    border: 2px solid var(--error);
+    border: var(--border-thick) solid var(--error);
   }
 
   .k-field[data-state="needed"] .k-field__input {
-    border: 2px dashed var(--accent);
+    border: var(--border-thick) dashed var(--needed);
   }
 
   /* Inputs sized to what is typed in them (GOV.UK, Text input: fixed-width inputs), never
@@ -339,7 +339,7 @@
     display: grid;
     gap: var(--space-2xs);
     padding: var(--space-s);
-    border: 2px solid var(--error);
+    border: var(--border-thick) solid var(--error);
     border-radius: var(--radius);
     background: var(--error-bg);
   }
@@ -361,74 +361,73 @@
     font-weight: 600;
   }
 
-  /* ---------- Input needed (#43, rule 4) ---------- */
-  .k-needed {
-    display: inline-block;
-    padding-inline: var(--space-3xs);
-    border: 1.5px dashed var(--accent);
-    border-radius: 1px;
-    color: var(--accent);
-    font-size: var(--size--1);
-    font-weight: 700;
-  }
-
-  /* ---------- Expert check (#43, rule 3) ---------- */
-  .k-flag {
+  /* ---------- Callouts: an icon beside words in a box, in one of three tones ---------- */
+  .k-callout {
     display: flex;
     gap: var(--space-2xs);
     padding: var(--space-xs) var(--space-s);
-    border: 1.5px solid var(--flag-border);
+    border: var(--border-mid) solid var(--border-strong);
     border-radius: var(--radius);
-    background: var(--flag-bg);
-    color: var(--flag-text);
   }
 
-  .k-flag .k-icon {
-    margin-block-start: 0.25em;
+  .k-callout > .k-icon {
+    margin-block-start: 0.2em;
   }
 
-  .k-flag__body {
+  .k-callout__body {
     flex: 1;
     min-inline-size: 0;
     display: grid;
     gap: var(--space-3xs);
   }
 
-  .k-flag__label {
+  .k-callout__label {
     font-weight: 700;
   }
 
-  /* ---------- Notices and status ---------- */
-  .k-notice {
-    display: flex;
-    gap: var(--space-2xs);
-    padding: var(--space-xs) var(--space-s);
-    border: 1.5px solid var(--border-strong);
-    border-radius: var(--radius);
+  /* Expert check (#43, rule 3). */
+  .k-callout[data-tone="flag"] {
+    border-color: var(--flag-border);
+    background: var(--flag-bg);
+    color: var(--flag-text);
   }
 
-  .k-notice .k-icon {
-    margin-block-start: 0.2em;
+  /* Tones written with :where keep an icon rule at the base's specificity. */
+  .k-callout:where([data-tone="flag"]) > .k-icon {
+    margin-block-start: 0.25em;
   }
 
   /* Something to know that is not a problem: quieter than a notice, announced as status. */
-  .k-info {
-    display: flex;
-    gap: var(--space-2xs);
-    padding: var(--space-xs) var(--space-s);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+  .k-callout[data-tone="info"] {
+    border-width: var(--border-thin);
+    border-color: var(--border);
     background: var(--sunken);
   }
 
-  .k-info .k-icon {
-    margin-block-start: 0.2em;
+  .k-callout:where([data-tone="info"]) > .k-icon {
     color: var(--accent);
   }
 
-  .k-info__body {
-    display: grid;
-    gap: var(--space-3xs);
+  /* ---------- Tags: a few words in an outlined box ---------- */
+  .k-tag {
+    display: inline-block;
+    border: var(--border-mid) solid;
+    border-radius: var(--radius-tag);
+    font-size: var(--size--1);
+    font-weight: 700;
+  }
+
+  /* Input needed (#43, rule 4): a question, so dashed rather than an error's solid line. */
+  .k-tag[data-tone="needed"] {
+    padding-inline: var(--space-3xs);
+    border-style: dashed;
+    color: var(--needed);
+  }
+
+  /* The state of the numbers beside it, such as a preview (#56). */
+  .k-tag[data-tone="state"] {
+    padding: var(--space-3xs) var(--space-2xs);
+    color: var(--changed);
   }
 
   .k-status {
@@ -487,7 +486,7 @@
   .k-saw__setting {
     display: grid;
     padding: var(--space-3xs) var(--space-xs);
-    border: 2px solid var(--text);
+    border: var(--border-thick) solid var(--text);
     border-radius: var(--radius);
   }
 
@@ -535,18 +534,8 @@
 
   .k-margin[data-changed],
   .k-table tr[data-changed] > :first-child {
-    box-shadow: inset 3px 0 0 var(--accent);
+    box-shadow: inset var(--border-bar) 0 0 var(--changed);
     padding-inline-start: var(--space-xs);
-  }
-
-  .k-state-tag {
-    display: inline-block;
-    padding: var(--space-3xs) var(--space-2xs);
-    border: 1.5px solid var(--accent);
-    border-radius: 1px;
-    color: var(--accent);
-    font-size: var(--size--1);
-    font-weight: 700;
   }
 
   /* ---------- Measurement table (#41): rows stack on a narrow container ---------- */
@@ -570,7 +559,7 @@
     text-align: start;
     vertical-align: top;
     padding: var(--space-2xs) var(--space-xs);
-    border-block-end: 1px solid var(--border);
+    border-block-end: var(--border-thin) solid var(--border);
   }
 
   .k-table th {
@@ -625,7 +614,7 @@
       display: grid;
       gap: var(--space-3xs);
       padding-block: var(--space-xs);
-      border-block-end: 1px solid var(--border);
+      border-block-end: var(--border-thin) solid var(--border);
     }
 
     .k-table td {
@@ -638,7 +627,7 @@
 
     /* Stacked, the whole row carries the bar. */
     .k-table tr[data-changed] {
-      box-shadow: inset 3px 0 0 var(--accent);
+      box-shadow: inset var(--border-bar) 0 0 var(--changed);
       padding-inline-start: var(--space-xs);
     }
 
@@ -676,7 +665,7 @@
     gap: var(--space-2xs);
     align-items: center;
     min-block-size: var(--control-min);
-    color: var(--accent);
+    color: var(--link);
     text-decoration: underline;
     text-underline-offset: 0.15em;
     cursor: pointer;
@@ -688,7 +677,7 @@
   }
 
   .k-disclosure > summary .k-icon {
-    transition: transform 0.15s;
+    transition: transform var(--duration-quick);
   }
 
   .k-disclosure[open] > summary .k-icon {
@@ -725,7 +714,7 @@
   /* ---------- Card ---------- */
   .k-card {
     padding: var(--space-s);
-    border: 1px solid var(--border);
+    border: var(--border-thin) solid var(--border);
     border-radius: var(--radius);
     background: var(--raised);
   }
@@ -738,7 +727,7 @@
     justify-content: space-between;
     gap: var(--space-2xs) var(--space-s);
     padding: var(--space-xs) var(--space-s);
-    border-block-end: 1px solid var(--border);
+    border-block-end: var(--border-thin) solid var(--border);
     background: var(--raised);
   }
 
@@ -813,7 +802,7 @@
     inline-size: 1.5em;
     block-size: 1.5em;
     margin: 0;
-    accent-color: var(--accent);
+    accent-color: var(--done);
   }
 
   .k-tick__label {
@@ -873,14 +862,14 @@
   .k-dialog {
     max-inline-size: min(28rem, 100% - 2 * var(--space-s));
     padding: var(--space-m);
-    border: 1px solid var(--border-strong);
+    border: var(--border-thin) solid var(--border-strong);
     border-radius: var(--radius);
     background: var(--bg);
     color: var(--text);
   }
 
   .k-dialog::backdrop {
-    background: rgb(0 0 0 / 0.4);
+    background: var(--scrim);
   }
 
   /* ---------- Term ---------- */
@@ -895,7 +884,7 @@
     font: inherit;
     text-align: inherit;
     text-decoration: underline dotted;
-    text-decoration-thickness: 1px;
+    text-decoration-thickness: var(--border-thin);
     text-underline-offset: 0.2em;
     cursor: pointer;
   }
@@ -925,7 +914,7 @@
     text-transform: none;
     letter-spacing: normal;
     padding: var(--space-xs) var(--space-s);
-    border: 1px solid var(--border-strong);
+    border: var(--border-thin) solid var(--border-strong);
     border-radius: var(--radius);
     background: var(--raised);
     color: var(--text);
@@ -950,7 +939,7 @@
   /* ---------- Catalog ---------- */
   .k-catalog__panel {
     padding: var(--space-m);
-    border: 1px solid var(--border);
+    border: var(--border-thin) solid var(--border);
     border-radius: var(--radius);
     background: var(--bg);
     color: var(--text);
@@ -1092,7 +1081,7 @@
     fill: var(--ink);
     paint-order: stroke;
     stroke: var(--bg);
-    stroke-width: 3px;
+    stroke-width: var(--line-halo);
     stroke-linejoin: round;
   }
 
@@ -1126,7 +1115,7 @@
 
   .k-hatch__line {
     stroke: var(--zone-line);
-    stroke-width: 1px;
+    stroke-width: var(--line-hatch);
   }
 
   .k-diagram__notes {
@@ -1167,7 +1156,7 @@
     align-items: center;
     min-block-size: var(--control-min);
     padding-inline-start: var(--space-xs);
-    border-inline-start: 3px solid transparent;
+    border-inline-start: var(--border-bar) solid transparent;
   }
 
   .k-contents li > a[aria-current="page"] {
@@ -1190,7 +1179,7 @@
     inline-size: 100%;
     min-block-size: var(--control-min);
     padding-inline: var(--space-s);
-    border: 1.5px solid var(--border-strong);
+    border: var(--border-mid) solid var(--border-strong);
     border-radius: var(--radius);
     background: var(--raised);
     color: var(--text);
@@ -1208,14 +1197,14 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-3xs);
-    color: var(--accent);
+    color: var(--link);
     font-weight: 700;
     white-space: nowrap;
   }
 
   .k-contents__chevron {
     display: inline-flex;
-    transition: transform 0.15s;
+    transition: transform var(--duration-quick);
   }
 
   .k-contents[data-open] .k-contents__chevron {
@@ -1270,7 +1259,7 @@
   .k-pager {
     container-type: inline-size;
     padding-block-start: var(--space-s);
-    border-block-start: 1px solid var(--border);
+    border-block-start: var(--border-thin) solid var(--border);
   }
 
   .k-pager ul {
@@ -1353,53 +1342,5 @@
   /* Placed after the blocks they adjust (#119). */
   .k-figure .k-margin {
     font-size: var(--size-0);
-  }
-}
-
-@layer print {
-  @media print {
-    /* Each section of the plan starts a page with its title block (#41). */
-    .k-section {
-      break-before: page;
-    }
-
-    .k-section[data-page="same"] {
-      break-before: auto;
-    }
-
-    /* Paper has no contents to tap; the plan prints in section order A, every section of it,
-       whichever is on screen (#156). */
-    .k-contents,
-    .k-pager {
-      display: none;
-    }
-
-    .k-section[hidden] {
-      display: grid;
-    }
-
-    .k-section__title-block {
-      display: block;
-      padding-block-end: 4pt;
-      border-block-end: 1px solid var(--text);
-      font-size: 9pt;
-    }
-
-    .k-card,
-    .k-flag,
-    .k-definition,
-    .k-table tr {
-      break-inside: avoid;
-    }
-
-    .k-disclosure > summary .k-icon {
-      display: none;
-    }
-
-    .k-button,
-    .k-header nav,
-    .k-modebar {
-      display: none;
-    }
   }
 }

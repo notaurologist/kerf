@@ -4,8 +4,7 @@
  * so a component can tighten or loosen it without new rules.
  */
 @layer layout {
-  /* The page: side margins from the spacing scale and content up to 1200 px, with named lines
-     so a diagram can break out to the full width. */
+  /* The page: side margins from the spacing scale and content up to 1200 px. */
   .l-page {
     display: grid;
     padding-block: var(--space-m) var(--space-xl);
@@ -17,42 +16,6 @@
 
   .l-page > * {
     grid-column: content;
-  }
-
-  .l-page > .l-full {
-    grid-column: full;
-  }
-
-  /* Page columns where they help (#41): 4 below 600 px, 8 from 600, 12 from 840. Children
-     span columns with --span; subgrid lets a component align to them. */
-  .l-columns {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-s);
-  }
-
-  .l-columns > * {
-    grid-column: span min(var(--span, 4), 4);
-  }
-
-  @media (min-width: 600px) {
-    .l-columns {
-      grid-template-columns: repeat(8, minmax(0, 1fr));
-    }
-
-    .l-columns > * {
-      grid-column: span min(var(--span-md, var(--span, 8)), 8);
-    }
-  }
-
-  @media (min-width: 840px) {
-    .l-columns {
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-    }
-
-    .l-columns > * {
-      grid-column: span min(var(--span-lg, var(--span-md, var(--span, 12))), 12);
-    }
   }
 
   /* Stack: children in a column, evenly spaced. */
@@ -128,7 +91,7 @@
       inset-block-start: calc(-1 * var(--space-3xs));
       z-index: 1;
       padding-block: var(--space-3xs) var(--space-s);
-      border-block-end: 1px solid var(--border);
+      border-block-end: var(--border-thin) solid var(--border);
       background: var(--bg);
     }
   }
@@ -159,10 +122,5 @@
     box-sizing: content-box;
     max-inline-size: var(--center-max, var(--measure));
     margin-inline: auto;
-  }
-
-  /* Components that respond to their own width are containers. */
-  .l-container {
-    container-type: inline-size;
   }
 }

@@ -85,13 +85,33 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 | Group | Names | From |
 |---|---|---|
-| Color | `--bg`, `--raised`, `--sunken`, `--text`, `--muted`, `--border`, `--border-strong`, `--accent`, `--on-accent`, `--focus`, `--flag-bg`, `--flag-border`, `--flag-text`, `--input-bg`, `--input-border`, `--input-text`, `--done`, `--error`, `--error-bg` | C1 (#43). Each is `light-dark(light, dark)`. |
+| Color | `--bg`, `--raised`, `--sunken`, `--text`, `--muted`, `--border`, `--border-strong`, `--accent`, `--on-accent`, `--link`, `--needed`, `--changed`, `--done`, `--focus`, `--flag-bg`, `--flag-border`, `--flag-text`, `--input-bg`, `--input-border`, `--error`, `--error-bg` | C1 (#43). Each is `light-dark(light, dark)`. |
+| Color roles | `--accent` primary buttons; `--link` links, link buttons, and disclosure toggles; `--needed` input needed; `--changed` the bar beside a changed value and state tags; `--done` ticks and the status icon | All start at C1's accent blue, so each can move without the others. |
+| Other color | `--scrim` behind a dialog; `--paper` the printed page (white) | |
 | Diagram ink | `--ink`, `--dim`, `--hidden`, `--highlight`, `--zone`, `--zone-line`, `--tone-1` to `--tone-3`, `--highlight-1` to `--highlight-3` | #44 |
 | Type | `--font-text`, `--font-mono`, `--size--1` to `--size-3`, `--size-read`, `--size-glance`, `--size-saw`, `--size-edge`, `--leading-*` | #42, decision 0015 |
-| Space and corners | `--space-3xs` to `--space-xl`, `--density`, `--control-min`, `--content-max`, `--measure`; `--radius` (2 px, eased; 1 px on small tags) | #41, #148 |
+| Space and corners | `--space-3xs` to `--space-xl`, `--density`, `--control-min`, `--content-max`, `--measure`; `--radius` (2 px, eased), `--radius-tag` (1 px, small tags) | #41, #148 |
+| Borders and focus | `--border-thin` (1 px: cards, tables, rules), `--border-mid` (1.5 px: inputs, callouts, tags), `--border-thick` (2 px: buttons, errors, input needed), `--border-bar` (3 px: the changed bar, the current section, a suggested value's source), `--focus-width` (3 px), `--focus-offset` (2 px) | #43 |
+| Motion | `--duration-quick` (0.15 s, a chevron turning) | Reduced motion turns it off (`reset.css`). |
 | Lines | `--line-*` (screen widths; print widths in print), `--dash-*` | #44 |
 
-`tokens.test.ts` checks every contrast ratio recorded in `color.html` against these values. When a color changes, measure the new pairing and update both the value and the recorded ratio.
+`tokens.test.ts` checks every contrast ratio recorded in `color.html` against these values, and that every token is used. When a color changes, measure the new pairing and update both the value and the recorded ratio.
+
+`styles.test.ts` keeps the stylesheets to the tokens: `components.css` writes no hex, `rgb(`, or px value (only the 1 px box that hides an element from sight), every `k-` and `l-` class is named in a source file, and print rules are only in `print.css`.
+
+## Breakpoints
+
+Components respond to their own width (container queries), so a breakpoint is a width of the component, not the page. Use one of these; `styles.test.ts` fails on any other.
+
+| Width | Used by |
+|---|---|
+| `30rem` | `Diagram`: part letters in one column below 480 px |
+| `36rem` | `SectionPager`: Previous and Next side by side |
+| `37.5rem` | `StepLayout`: the drawing beside the step (600 px) |
+| `40rem` | `MeasureTable`: a table rather than stacked rows (640 px) |
+| `48rem` | `WithContents`: the contents beside the sections |
+| `56rem` | `MeasureTable`: fit columns on one line (896 px) |
+| `60rem` | `WithAside`: the aside beside the form |
 
 ## Layers
 
@@ -106,7 +126,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 ## Adding a component
 
 1. **Check first.** Make sure no existing component or primitive does the job, and that the need traces to a recorded design choice. A new visual idea goes to the owner first.
-2. **Write the code.** Add the component to `ui/`, with its styles as a `k-` block in `styles/components.css`, states as `data-` attributes, and colors, sizes, and space from tokens only.
+2. **Write the code.** Add the component to `ui/`, with its styles as a `k-` block in `styles/components.css`, states as `data-` attributes, and colors, sizes, borders, and space from tokens only. A box with an icon and words is a `k-callout` with a `data-tone`; a few words in an outlined box is a `k-tag` with a `data-tone`. Print rules go in `styles/print.css`.
 3. **Export it** from `ui/index.ts`.
 4. **Test it.** Add render tests to `ui.test.tsx`: each state, its accessible name and role, and that no meaning rests on color.
 5. **Show it** on the catalog page in each state.
@@ -114,7 +134,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 ## Icons
 
-Corners are eased everywhere (#148): boxes, fields, buttons, the dialog, and the part letter use `--radius` (2 px), and small tags 1 px. Drawings stop lines where they are drawn (butt ends) and round their joins. Use `--radius` rather than a new literal value.
+Corners are eased everywhere (#148): boxes, fields, buttons, the dialog, and the part letter use `--radius` (2 px), and small tags `--radius-tag` (1 px). Drawings stop lines where they are drawn (butt ends) and round their joins. Use `--radius` rather than a new literal value.
 
 Kerf's icons (`ui/Icon.tsx`) are drawn on a 16-unit grid with a 1-unit line on half units, with round ends and joins, to match the tool icons. They are always decorative.
 

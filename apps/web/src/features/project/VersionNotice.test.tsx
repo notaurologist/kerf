@@ -94,6 +94,6 @@ describe('VersionNotice', () => {
         onRegenerated={() => {}}
       />,
     );
-    expect(html).toMatch(/^<div class="k-info" role="status">/);
+    expect(html).toMatch(/^<div class="k-callout" data-tone="info" role="status">/);
   });
 });

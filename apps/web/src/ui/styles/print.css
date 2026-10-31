@@ -1,10 +1,54 @@
-/* Print (#41): US Letter portrait with 1/2" margins, always light, 10.5 pt body. Page breaks by
-   section and title blocks come with the screens (#80). */
+/* Print (#41): US Letter portrait with 1/2" margins, always light, 10.5 pt body, each section on
+   its own page with its title block (#80). Every print rule is here. */
 @layer print {
   @media print {
     @page {
       size: letter portrait;
       margin: 0.5in;
+    }
+
+    /* Each section of the plan starts a page with its title block (#41). */
+    .k-section {
+      break-before: page;
+    }
+
+    .k-section[data-page="same"] {
+      break-before: auto;
+    }
+
+    /* Paper has no contents to tap; the plan prints in section order A, every section of it,
+       whichever is on screen (#156). */
+    .k-contents,
+    .k-pager {
+      display: none;
+    }
+
+    .k-section[hidden] {
+      display: grid;
+    }
+
+    .k-section__title-block {
+      display: block;
+      padding-block-end: 4pt;
+      border-block-end: var(--border-thin) solid var(--text);
+      font-size: 9pt;
+    }
+
+    .k-card,
+    .k-callout[data-tone="flag"],
+    .k-definition,
+    .k-table tr {
+      break-inside: avoid;
+    }
+
+    .k-disclosure > summary .k-icon {
+      display: none;
+    }
+
+    .k-button,
+    .k-header nav,
+    .k-modebar {
+      display: none;
     }
 
     /* The isometric, exploded, and site views each take a landscape page (#41). */
@@ -48,7 +92,7 @@
     }
 
     body {
-      background: #ffffff;
+      background: var(--paper);
     }
 
     /* Browsers leave out backgrounds when printing; a part letter is its dark square (#66). */
