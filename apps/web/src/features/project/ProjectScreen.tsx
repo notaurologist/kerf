@@ -1,5 +1,6 @@
 import { findTemplate, planTerms } from '@kerf/core';
 import { useMemo, useState } from 'react';
+import { useArrowKeys } from '../../lib/arrowKeys.ts';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
@@ -119,6 +120,10 @@ export function ProjectView(props: {
   const index = sections.indexOf(current);
   const previous = sections[index - 1];
   const next = sections[index + 1];
+  useArrowKeys({
+    previous: plan.ok && previous ? at(previous.id) : undefined,
+    next: plan.ok && next ? at(next.id) : undefined,
+  });
   // Every section stays in the page, so print gives the whole plan in order A from any of them;
   // on screen only the current one shows.
   const section = (id: PlanSectionId) => ({

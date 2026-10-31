@@ -40,9 +40,20 @@ export function Button(props: {
 }
 
 /** A link that looks like a button, for actions that go to another screen. */
-export function ButtonLink(props: { children: ReactNode; href: string; variant?: ButtonVariant }) {
+export function ButtonLink(props: {
+  children: ReactNode;
+  href: string;
+  variant?: ButtonVariant;
+  /** The key that does the same, for assistive technology, such as `ArrowLeft`. */
+  keyshortcuts?: string;
+}) {
   return (
-    <a className="k-button" data-variant={props.variant ?? 'primary'} href={props.href}>
+    <a
+      className="k-button"
+      data-variant={props.variant ?? 'primary'}
+      href={props.href}
+      aria-keyshortcuts={props.keyshortcuts}
+    >
       {props.children}
     </a>
   );
