@@ -10,7 +10,31 @@ const KEY_LENGTH = 32;
 const SALT_LENGTH = 16;
 export const MIN_PASSWORD_LENGTH = 12;
 
+/** Only the config check enforces this, so tests can hash cheaply. */
+const MIN_CONFIGURED_N = 2 ** 15;
+
 const FORMAT = /^scrypt:(\d+):(\d+):(\d+):([A-Za-z0-9_-]+):([A-Za-z0-9_-]+)$/;
+
+interface StoredHash {
+  N: number;
+  r: number;
+  p: number;
+  salt: Buffer;
+  hash: Buffer;
+}
+
+/** A key cut short is guessable, and an empty one matches every password, so lengths are exact. */
+function parse(value: string): StoredHash | undefined {
+  const match = FORMAT.exec(value);
+  if (!match) return undefined;
+  const [N, r, p] = [match[1], match[2], match[3]].map(Number) as [number, number, number];
+  const salt = Buffer.from(match[4] ?? '', 'base64url');
+  const hash = Buffer.from(match[5] ?? '', 'base64url');
+  const powerOfTwo = Number.isSafeInteger(N) && N >= 2 && Number.isInteger(Math.log2(N));
+  if (!powerOfTwo || r !== COST.r || p < 1) return undefined;
+  if (salt.length !== SALT_LENGTH || hash.length !== KEY_LENGTH) return undefined;
+  return { N, r, p, salt, hash };
+}
 
 function derive(password: string, salt: Buffer, length: number, cost: ScryptOptions) {
   // scrypt needs 128·N·r bytes; allow twice that so the default 32 MiB cap does not stop it.
@@ -40,19 +64,15 @@ export async function hashPassword(
 }
 
 export function isPasswordHash(value: string): boolean {
-  return FORMAT.test(value);
+  const stored = parse(value);
+  return stored !== undefined && stored.N >= MIN_CONFIGURED_N;
 }
 
 /** Compares in constant time. A malformed stored hash never matches. */
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
-  const match = FORMAT.exec(stored);
-  if (!match) return false;
-  const [, N, r, p, salt, hash] = match;
-  const expected = Buffer.from(hash ?? '', 'base64url');
-  const key = await derive(password, Buffer.from(salt ?? '', 'base64url'), expected.length, {
-    N: Number(N),
-    r: Number(r),
-    p: Number(p),
-  });
-  return timingSafeEqual(key, expected);
+  const parsed = parse(stored);
+  if (!parsed) return false;
+  const { N, r, p, salt, hash } = parsed;
+  const key = await derive(password, salt, KEY_LENGTH, { N, r, p });
+  return timingSafeEqual(key, hash);
 }

@@ -6,7 +6,6 @@ const CHEAP = { N: 1024, r: 8, p: 1 };
 describe('password hashes', () => {
   it('verify the password they were made from, and no other', async () => {
     const hash = await hashPassword('a long test password', CHEAP);
-    expect(isPasswordHash(hash)).toBe(true);
     expect(hash).toMatch(/^scrypt:1024:8:1:/);
     expect(await verifyPassword('a long test password', hash)).toBe(true);
     expect(await verifyPassword('a long test passwore', hash)).toBe(false);
@@ -23,6 +22,27 @@ describe('password hashes', () => {
   it('never match a malformed hash', async () => {
     expect(isPasswordHash('plain text')).toBe(false);
     expect(await verifyPassword('plain text', 'plain text')).toBe(false);
+  });
+
+  it('are refused for configuration below N = 2^15, or with the wrong lengths or r', async () => {
+    const real = await hashPassword('a long test password', { N: 2 ** 15, r: 8, p: 1 });
+    expect(isPasswordHash(real)).toBe(true);
+    const [, , , , salt, key] = real.split(':');
+    const made = (N: number, r: number, p: number, s = salt, k = key) =>
+      ['scrypt', N, r, p, s, k].join(':');
+    expect(isPasswordHash(made(2 ** 14, 8, 1))).toBe(false);
+    expect(isPasswordHash(made(3 * 2 ** 14, 8, 1))).toBe(false);
+    expect(isPasswordHash(made(2 ** 15, 4, 1))).toBe(false);
+    expect(isPasswordHash(made(2 ** 15, 8, 0))).toBe(false);
+    expect(isPasswordHash(made(2 ** 15, 8, 1, salt?.slice(0, -2)))).toBe(false);
+    expect(isPasswordHash(made(2 ** 15, 8, 1, salt, key?.slice(0, -10)))).toBe(false);
+    expect(isPasswordHash('scrypt:2:1:1:A:A')).toBe(false);
+  });
+
+  it('never match a stored hash shorter than 32 bytes, even the password it was cut from', async () => {
+    const hash = await hashPassword('a long test password', CHEAP);
+    expect(await verifyPassword('a long test password', hash.slice(0, -10))).toBe(false);
+    expect(await verifyPassword('anything at all', 'scrypt:2:1:1:A:A')).toBe(false);
   });
 
   it('treat composed and decomposed accents as the same password', async () => {
