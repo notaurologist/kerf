@@ -73,4 +73,5 @@ export { Term, TermScope } from './Term.tsx';
 export { Tick } from './Tick.tsx';
 export { ToolIcon, ToolLabel } from './ToolIcon.tsx';
 export { Code, List, OneLine, PlainList, Text, VisuallyHidden } from './text.tsx';
+export { type View, ViewSwitch } from './ViewSwitch.tsx';
 export { Wordmark } from './Wordmark.tsx';

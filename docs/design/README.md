@@ -317,6 +317,10 @@ The owner took the suggested option for each (October 2026).
 
 The drawing standard M5 builds to (line roles, screen and print widths, patterns, color roles, face tones, text sizes, letters, reference face marks, cut details, site layout) is the "Chosen" section of `diagrams.html`. Drawing primitives carry a line role, not a color or width (#49). The ASME print widths come from published summaries and should be checked against the standard before M5 fixes them. The D2 face tones in dark mode need their own values, since mixing toward the ink lightens instead of darkening; #45 sets them as tokens with the rest of C1.
 
+### One assembly diagram on screen (#200)
+
+The Diagrams section shows the assembled and exploded views as one diagram with a control, Assembled and Exploded, in place of two full drawings one after the other: on a phone the pair took two screens of scrolling, and switching in place keeps the selected part where it was, so it is easier to see where an exploded part goes. The control is a group of toggle buttons with `aria-pressed`; the view shown is filled and ticked. It changes only the screen, with no address or history entry, and opens on Assembled. Print shows both views on their own landscape pages, each under its heading, whichever is on screen. A template with one of the two shows it alone, with no control. Built without motion first; the move between views follows.
+
 ## Stage 4: color (#43)
 
 `color.html` proposes six rules for what color may say (margins have no color; no red or green near structural results; flags amber with icon and label; input needed is not an error; no secondary text in the shop modes; never color alone), and three palettes built in OKLCH and mapped into sRGB:

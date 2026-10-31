@@ -12,6 +12,16 @@
       size: letter landscape;
     }
 
+    /* Every view prints, whichever is on screen (#200). */
+    .k-views__control {
+      display: none;
+    }
+
+    .k-views__view[hidden],
+    .k-views__heading {
+      display: block;
+    }
+
     .k-diagram-wrap[data-page="landscape"] {
       page: landscape;
       break-before: page;
