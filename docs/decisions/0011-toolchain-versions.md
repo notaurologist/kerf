@@ -21,7 +21,7 @@ Pin these as installed on October 28, 2026. `package.json` files hold the exact 
 | Vitest | 5.0.5 | Root config lists each package as a project. |
 | Biome | 2.6.3 | |
 
-Added later with the milestone that needs them: Zod (M1), Drizzle, the Postgres driver, and PGlite (M3).
+Added later with the milestone that needs them: Zod (M1), Drizzle, the Postgres driver, and PGlite (M3), and happy-dom 21.0.4 for interaction tests (0017).
 
 ## Consequences
 - TypeScript settings that follow from Node type stripping: `erasableSyntaxOnly` (no enums or parameter properties), `allowImportingTsExtensions`, and relative imports written with `.ts`.

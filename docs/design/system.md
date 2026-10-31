@@ -108,7 +108,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 1. **Check first.** Make sure no existing component or primitive does the job, and that the need traces to a recorded design choice. A new visual idea goes to the owner first.
 2. **Write the code.** Add the component to `ui/`, with its styles as a `k-` block in `styles/components.css`, states as `data-` attributes, and colors, sizes, and space from tokens only.
 3. **Export it** from `ui/index.ts`.
-4. **Test it.** Add render tests to `ui.test.tsx`: each state, its accessible name and role, and that no meaning rests on color.
+4. **Test it.** Add render tests to `ui.test.tsx`: each state, its accessible name and role, and that no meaning rests on color. If it has an effect, moves focus, or handles events, also add a `*.dom.test.tsx` beside it that mounts it with `test/dom.tsx` and checks what happens (0017).
 5. **Show it** on the catalog page in each state.
 6. **Document it.** Add it to the table above.
 
