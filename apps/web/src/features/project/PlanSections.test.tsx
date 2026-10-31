@@ -202,10 +202,12 @@ describe('the terms the plan uses, for print (#180)', () => {
   it("lists the worked example's terms with their definitions, in alphabetical order", () => {
     const steps = project.steps?.steps ?? [];
     const plan = template.plan(outputs);
-    const expected = planTerms(plan, steps);
-    // With no tools, no method is chosen: the terms come from the flags.
-    expect(expected.map((e) => e.term)).toEqual(['Gusset', 'Margin']);
+    // With no tools, no method is chosen: the plan's terms come from its flags and checklist.
+    expect(planTerms(plan, steps).map((e) => e.term)).toEqual(['Grip', 'Gusset', 'Margin']);
+    // The cut list's intro adds its own.
+    const expected = planTerms(plan, steps, ['Lengths are long point to long point.']);
     const listed = [...terms.matchAll(/<dfn>([^<]+)<\/dfn>/g)].map((m) => m[1]);
+    expect(listed).toEqual(['Grip', 'Gusset', 'Long point', 'Margin']);
     expect(listed).toEqual(expected.map((e) => e.term));
     for (const entry of expected) expect(textOf(terms)).toContain(textOf(entry.definition));
     expect(textOf(terms)).toContain('Terms used in this plan');

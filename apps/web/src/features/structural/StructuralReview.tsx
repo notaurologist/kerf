@@ -22,6 +22,10 @@ import { CitationList, SourceList, SourceToggle } from './Citation.tsx';
 // the design's expert checks, and the confirmation checklist. Results are margins under stated
 // assumptions, never verdicts (decision 0001). Every number comes formatted from core.
 
+/** The review's opening line, exported so the printed plan's terms include it. */
+export const STRUCTURAL_REVIEW_INTRO =
+  'Structural checks, not an engineered design. A margin is the allowable value divided by the computed one, under the assumptions listed with it. Judge each one with an experienced builder.';
+
 type CheckResult = structural.CheckResult;
 type Quantity = structural.Quantity;
 const { formatMargin, formatQuantity } = structural;
@@ -36,9 +40,7 @@ export function StructuralReview(props: {
   return (
     <Stack>
       <Text tone="muted">
-        Structural checks, not an engineered design. A margin is the allowable value divided by the
-        computed one, under the assumptions listed with it. Judge each one with an experienced
-        builder.
+        <Measured text={STRUCTURAL_REVIEW_INTRO} terms />
       </Text>
       <h3>Structural checks</h3>
       <Stack>
@@ -72,10 +74,10 @@ export function StructuralReview(props: {
               </Text>
               <b>{item.element}</b>
               <Text>
-                <Measured text={item.confirm} />
+                <Measured text={item.confirm} terms />
               </Text>
               <Text tone="muted">
-                <Measured text={item.why} />
+                <Measured text={item.why} terms />
               </Text>
             </Stack>
           </Card>
@@ -91,9 +93,11 @@ function Check(props: { check: CheckResult; projectId: string }) {
     <Card as="section">
       <Stack gap="xs">
         <h4>
-          {check.title}: {check.subject}
+          <Measured text={`${check.title}: ${check.subject}`} terms />
         </h4>
-        <Text tone="muted">{check.loadCase}</Text>
+        <Text tone="muted">
+          <Measured text={check.loadCase} terms />
+        </Text>
         <CheckStatus check={check} />
         {check.status === 'computed' && (
           <>

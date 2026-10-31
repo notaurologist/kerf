@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Measured } from './numbers.tsx';
 import { TermScope } from './Term.tsx';
 import { Text } from './text.tsx';
 
@@ -15,7 +16,7 @@ export function PlanSection(props: {
   /** False for the section that opens the plan: on paper it shares the first page (#119). */
   newPage?: boolean;
   /** A line under the heading saying how to read the section, such as what lengths measure. */
-  intro?: ReactNode;
+  intro?: string;
   /** Not the section on screen: hidden on screen, printed with the rest. */
   hidden?: boolean;
   children: ReactNode;
@@ -39,7 +40,11 @@ export function PlanSection(props: {
       {/* Each section is its own screen, so the first use of a term is marked again in it. */}
       <TermScope>
         <div className="l-stack">
-          {props.intro && <Text tone="muted">{props.intro}</Text>}
+          {props.intro && (
+            <Text tone="muted">
+              <Measured text={props.intro} terms />
+            </Text>
+          )}
           {props.children}
         </div>
       </TermScope>

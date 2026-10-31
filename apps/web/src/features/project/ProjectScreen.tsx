@@ -28,7 +28,7 @@ import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { Diagrams } from '../diagrams/Diagrams.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
-import { StructuralReview } from '../structural/StructuralReview.tsx';
+import { STRUCTURAL_REVIEW_INTRO, StructuralReview } from '../structural/StructuralReview.tsx';
 import { DeleteProject } from './DeleteProject.tsx';
 import { ParametersAndInputs } from './ParametersAndInputs.tsx';
 import { PlanSummary } from './PlanSummary.tsx';
@@ -36,6 +36,10 @@ import { VersionNotice } from './VersionNotice.tsx';
 
 // One project, rendered from the snapshot the API returns (ARCHITECTURE.md, apps/web). The
 // stored plan is shown as stored; the web app computes none of its numbers.
+
+const CUT_LIST_INTRO = `Lengths are long point to long point, rounded to 1/16". Angles are miter-saw settings (0° is square), with the angle to the board's edge for a protractor or sliding bevel.`;
+const BUILD_STEPS_INTRO =
+  'Methods are chosen from the tools in your tool list. Change the list to change them.';
 
 export function ProjectScreen(props: { id: string; section?: PlanSectionId; part?: string }) {
   const { loaded, set } = useLoad(
@@ -193,10 +197,7 @@ export function ProjectView(props: {
               boltLayout={plan.plan.boltLayout}
             />
           </PlanSection>
-          <PlanSection
-            {...section('cut-list')}
-            intro={`Lengths are long point to long point, rounded to 1/16". Angles are miter-saw settings (0° is square), with the angle to the board's edge for a protractor or sliding bevel.`}
-          >
+          <PlanSection {...section('cut-list')} intro={CUT_LIST_INTRO}>
             <CutList
               rows={plan.plan.cutList}
               selected={selected}
@@ -218,10 +219,7 @@ export function ProjectView(props: {
             />
           </PlanSection>
           {hasSteps && (
-            <PlanSection
-              {...section('build-steps')}
-              intro="Methods are chosen from the tools in your tool list. Change the list to change them."
-            >
+            <PlanSection {...section('build-steps')} intro={BUILD_STEPS_INTRO}>
               <BuildSteps
                 steps={steps?.steps ?? []}
                 rows={plan.plan.cutList}
@@ -236,7 +234,14 @@ export function ProjectView(props: {
           )}
           {/* A term's popover cannot open on paper, so the printed plan ends with the terms it
               uses. Never shown on screen, where each term opens in place (#178). */}
-          <TermsUsed terms={planTerms(plan.plan, steps?.steps ?? [])} project={project.name} />
+          <TermsUsed
+            terms={planTerms(plan.plan, steps?.steps ?? [], [
+              STRUCTURAL_REVIEW_INTRO,
+              CUT_LIST_INTRO,
+              ...(hasSteps ? [BUILD_STEPS_INTRO] : []),
+            ])}
+            project={project.name}
+          />
           <SectionPager
             previous={previous && { title: previous.title, href: at(previous.id) }}
             next={next && { title: next.title, href: at(next.id) }}

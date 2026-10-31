@@ -1,5 +1,5 @@
 import { BOARD_GUIDES, type LumberPlan } from '@kerf/core';
-import { List, Stack, Text } from '../../ui/index.ts';
+import { List, Measured, Stack, Text } from '../../ui/index.ts';
 import { SourceToggle } from '../structural/Citation.tsx';
 
 // What to look for when choosing boards at the store (#53): each guide the plan's parts use, in
@@ -40,9 +40,11 @@ export function BoardSelection(props: {
             {guide.checks.map((check) => (
               <li key={check.look}>
                 <Stack gap="3xs">
-                  <span>{check.look}</span>
+                  <span>
+                    <Measured text={check.look} terms />
+                  </span>
                   <Text tone="muted" as="span">
-                    Why: {check.why}
+                    Why: <Measured text={check.why} terms />
                   </Text>
                   <SourceToggle citations={check.sources} />
                 </Stack>
