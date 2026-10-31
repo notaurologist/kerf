@@ -118,3 +118,15 @@ Woodworking terms in the plan, method text, and flags are defined where they are
 - A page for each tool under Tools, linked where methods name tools (#192).
 
 **Accept when:** every entry parses and has a unique ID and terms; tool names are never marked as terms; the first use of a term on each screen opens its definition by touch and keyboard at 375 px; and the printed plan lists the terms it uses.
+
+## Hardening
+
+From the five-lens engineering review of October 31, 2026 (architecture, backend, frontend, security, verification). The review found the plan's numbers well checked, but the app's behaviour over time unchecked: during a deploy, between two devices, across a session expiry, and in a running browser. Issues #201 to #224, plus backups (#21).
+
+- The release step leaves the previous deploy able to read every stored project, and fails before writing anything if a project cannot be read (#201).
+- Unsaved edits survive Back, Log out, and session expiry, and focus and density behave as the design system says (#202 to #204, #220).
+- Owner decisions on a DOM test environment (#205), a client entry point for core (#206), concurrent saves (#207), and login lockout and password rotation (#212).
+- Login and deploy hardening: password-hash validation, security headers, and anonymous database wake-ups (#208, #210, #211).
+- Gates that would have caught these: release and migration tests, fixture locks, the web build in CI, and token tests (#215, #216, #219, #223).
+
+**Accept when:** every High and Medium finding is fixed or closed with a recorded reason; each fix that the review marked as enforceable has its test or check; and the decisions are recorded in `docs/decisions/`.
