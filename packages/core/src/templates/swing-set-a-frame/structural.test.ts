@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CheckResult, ComputedCheck } from '../../structural/types.ts';
+import { VERDICT_WORDS } from '../../testing.ts';
 import type { SwingSetParams } from './params.ts';
 import { pendulumFactor, type SwingSetStructuralReview, structuralReview } from './structural.ts';
 import { generate, type SwingSetOutput } from './template.ts';
@@ -241,6 +242,6 @@ describe('checklist', () => {
 describe('wording', () => {
   it('never says safe, unsafe, pass, or fail', () => {
     const text = JSON.stringify([review(params, inputs), review(twoPly, {})]);
-    expect(text).not.toMatch(/\b(safe|unsafe|pass|passes|fail|fails)\b/i);
+    expect(text).not.toMatch(VERDICT_WORDS);
   });
 });

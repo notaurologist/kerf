@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { BRAND_NAMES, withoutBrandExceptions } from '../testing.ts';
 import { METHODS } from './methods.ts';
 import { findToolType, TOOL_GROUPS, TOOL_TYPES, ToolType } from './tools.ts';
 
@@ -78,10 +79,8 @@ describe('tool-type library', () => {
   });
 
   it('names no brands (hard rule 11)', () => {
-    // Trademarks that are often used as generic tool names.
-    const brands = /speed square|skil|sawzall|shop-?vac|dremel|kreg/i;
     for (const type of TOOL_TYPES) {
-      expect(JSON.stringify(type)).not.toMatch(brands);
+      expect(withoutBrandExceptions(JSON.stringify(type))).not.toMatch(BRAND_NAMES);
     }
   });
 

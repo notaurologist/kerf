@@ -785,7 +785,7 @@ export const METHODS = [
       'Mark each hole center from the cut detail on both outer faces, measured from the same end and edge.',
       'Drill square to the face, past halfway through the {depth} of wood.',
       'Drill from the other face at its mark until the holes meet.',
-      'Push the bolt through to check that it passes without being driven.',
+      'Push the bolt through to check that it goes through without being driven.',
       'Drill {count} holes this way.',
     ],
     mistakes: [
@@ -824,7 +824,7 @@ export const METHODS = [
       'Mark each hole center from the cut detail on both outer faces, measured from the same end and edge.',
       'Start the bit at low speed so its point does not wander, then drill square to the face, past halfway through the {depth} of wood.',
       'Drill from the other face at its mark until the holes meet.',
-      'Push the bolt through to check that it passes without being driven.',
+      'Push the bolt through to check that it goes through without being driven.',
       'Drill {count} holes this way.',
     ],
     mistakes: [
