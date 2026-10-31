@@ -258,6 +258,14 @@
     font-weight: 700;
   }
 
+  /* Where a suggested value came from (#163): read after the value, quieter than the echo. */
+  .k-field__about {
+    color: var(--muted);
+    font-size: var(--size--1);
+    border-inline-start: 3px solid var(--border-strong);
+    padding-inline-start: var(--space-2xs);
+  }
+
   .k-field[data-state="error"] .k-field__input {
     border: 2px solid var(--error);
   }

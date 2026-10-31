@@ -7,7 +7,8 @@ import { isPlanSection, type PlanSectionId } from './sections.ts';
 
 export type Route =
   | { screen: 'projects' }
-  // `start` fills the form from a worked example or an earlier project (#98); none is empty.
+  // `start` fills the form from a worked example or an earlier project (#98), or from answers to
+  // the template's starting questions (#163); none is empty.
   | { screen: 'new-project'; templateId: string; start?: ProjectStart }
   // The plan, one section per screen (#156). No section is the summary. `part` is the part
   // selected in the drawings and the cut list, kept in the address so a reload keeps it.
@@ -28,8 +29,14 @@ export type Route =
   | { screen: 'catalog' }
   | { screen: 'not-found' };
 
-/** Where a new project's form starts: a template's worked example, or an earlier project. */
-export type ProjectStart = { kind: 'example'; index: number } | { kind: 'project'; id: string };
+/**
+ * Where a new project's form starts: a template's worked example, an earlier project, or the
+ * template's starting questions.
+ */
+export type ProjectStart =
+  | { kind: 'example'; index: number }
+  | { kind: 'project'; id: string }
+  | { kind: 'questions' };
 
 export function parseRoute(hash: string): Route {
   const [path = '', query = ''] = hash.replace(/^#/, '').split('?');
@@ -84,7 +91,8 @@ function startOf(search: URLSearchParams): ProjectStart | undefined {
   const example = search.get('example');
   if (example !== null && /^\d+$/.test(example)) return { kind: 'example', index: Number(example) };
   const project = search.get('project');
-  return project ? { kind: 'project', id: project } : undefined;
+  if (project) return { kind: 'project', id: project };
+  return search.has('questions') ? { kind: 'questions' } : undefined;
 }
 
 function project(id: string, section: PlanSectionId | undefined, part: string | null): Route {
@@ -106,7 +114,9 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
           ? `&example=${route.start.index}`
           : route.start?.kind === 'project'
             ? `&project=${encodeURIComponent(route.start.id)}`
-            : '';
+            : route.start?.kind === 'questions'
+              ? '&questions'
+              : '';
       return `#/projects/new?template=${encodeURIComponent(route.templateId)}${start}`;
     }
     case 'project': {

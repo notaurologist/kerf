@@ -3,6 +3,7 @@ import type { Drawings, Explode, Isometric, Scene } from '../geometry/index.ts';
 import type { Plan } from '../outputs/plan.ts';
 import type { StepOutline } from '../steps/build.ts';
 import type { TemplateForm } from './form.ts';
+import type { StartingQuestions } from './questions.ts';
 import type { GenerateResult } from './types.ts';
 
 /** Turns a stored snapshot of one shape version into the next (decision 0014). */
@@ -67,4 +68,10 @@ export interface TemplateDefinition<Params = unknown, Inputs = unknown, Outputs 
     params: Params;
     structuralInputs: Inputs;
   }[];
+  /**
+   * A few plain questions whose answers suggest starting parameters (#163). Offered as a new
+   * project's start when present. Only the answers that are structural inputs themselves are
+   * filled in as inputs; hardware and the other inputs are never suggested (hard rule 3).
+   */
+  questions?: StartingQuestions;
 }

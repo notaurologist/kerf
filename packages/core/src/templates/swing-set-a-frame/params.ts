@@ -16,10 +16,13 @@ const Splay = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('footprint'), depth: z.number().positive() }),
 ]);
 
+/** Inches; the starting questions keep their suggestions inside this (#163). */
+export const BEAM_HEIGHT = { min: 60, max: 144 } as const;
+
 export const SwingSetParams = z.object({
   beamLength: z.number().min(48).max(240),
   /** Height of the underside of the beam above the ground directly under it. */
-  beamHeight: z.number().min(60).max(144),
+  beamHeight: z.number().min(BEAM_HEIGHT.min).max(BEAM_HEIGHT.max),
   splay: Splay,
   /** Stands on edge: thickness is its width, width is its depth. */
   beamStock: Nominal,

@@ -6,7 +6,7 @@ import type { SwingSetStructuralInputs } from './structural.ts';
 // together they reach every optional part of the output: complete and missing structural inputs,
 // solid and built-up beams, buried legs and pads.
 
-const workedExample: SwingSetParams = {
+export const WORKED_EXAMPLE: SwingSetParams = {
   beamLength: 120,
   beamHeight: 96,
   splay: { kind: 'angle', degrees: 20 },
@@ -47,22 +47,22 @@ export const EXAMPLES: readonly {
   {
     name: 'Worked example, every input entered',
     start: "The spec's worked example: one beam, two swings, legs buried",
-    params: workedExample,
+    params: WORKED_EXAMPLE,
     structuralInputs: allInputs,
   },
-  { name: 'Worked example, no structural inputs', params: workedExample, structuralInputs: {} },
+  { name: 'Worked example, no structural inputs', params: WORKED_EXAMPLE, structuralInputs: {} },
   {
     name: 'Two-ply 2x6 beam on pads, level ground, footprint depth',
     start: 'A two-ply 2x6 beam, legs on pads, level ground',
     params: {
-      ...workedExample,
+      ...WORKED_EXAMPLE,
       beamStock: '2x6',
       beamPlies: 2,
       groundSlope: 0,
       burialDepth: 0,
       splay: { kind: 'footprint', depth: 80 },
       hardware: {
-        ...workedExample.hardware,
+        ...WORKED_EXAMPLE.hardware,
         plyBolts: { diameter: 0.5, count: 6 },
         anchorsPerFoot: 1,
       },
