@@ -35,6 +35,7 @@ export {
   StateTag,
   StatusLine,
   type SummaryItem,
+  useFormIssues,
 } from './feedback.tsx';
 export { Icon, type IconName } from './Icon.tsx';
 export { useLeaveGuard } from './LeaveGuard.tsx';

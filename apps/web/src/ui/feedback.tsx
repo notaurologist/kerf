@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon.tsx';
 
 // What Kerf tells the reader about the state of things (#43, #67, #68). Every state has a second
@@ -25,22 +25,40 @@ export interface SummaryItem {
   message: string;
 }
 
+/** `attempt` goes up only when a save finds problems, so re-renders while typing keep focus. */
+export function useFormIssues<T>(none: T) {
+  const [state, setState] = useState({ issues: none, attempt: 0 });
+  const report = useCallback(
+    (issues: T, found: boolean) => setState((s) => reported(s, issues, found)),
+    [],
+  );
+  return { issues: state.issues, attempt: state.attempt, report };
+}
+
+export function reported<T>(
+  state: { issues: T; attempt: number },
+  issues: T,
+  found: boolean,
+): { issues: T; attempt: number } {
+  return { issues, attempt: found ? state.attempt + 1 : state.attempt };
+}
+
 /**
  * The problems a failed save found, at the top of the form, each a link to its field. Takes
- * focus when it appears, so a screen reader reads it and a keyboard user starts from it (GOV.UK).
+ * focus when a save finds problems, so a screen reader reads it and a keyboard user starts from
+ * it (GOV.UK).
  */
 export function ErrorSummary(props: {
   items: readonly SummaryItem[];
   general?: readonly string[];
-  /** False only where the summary is a specimen, such as the catalog. */
-  takeFocus?: boolean;
+  /** From `useFormIssues`; 0 never takes focus. */
+  attempt: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const count = props.items.length + (props.general?.length ?? 0);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: focus again for each new set of problems.
   useEffect(() => {
-    if (props.takeFocus !== false) ref.current?.focus();
-  }, [props.items, props.general]);
+    if (props.attempt > 0) ref.current?.focus();
+  }, [props.attempt]);
   if (count === 0) return null;
   return (
     <div ref={ref} className="k-error-summary" role="alert" tabIndex={-1}>
