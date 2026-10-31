@@ -37,7 +37,6 @@ describe('Loaded', () => {
         {show}
       </Loaded>
     );
-    // Trying again cannot find what is not there, so only the way back is offered.
     expect(renderText(missing)).toBe('Not found. Projects');
     expect(render(missing)).toContain('href="#/projects"');
     expect(render(missing)).not.toContain('M2 2l12 12');

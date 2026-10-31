@@ -126,17 +126,12 @@ export function Notice(props: { children: ReactNode; icon?: 'connection' | 'erro
   );
 }
 
-/**
- * A screen that cannot show what was asked for: what happened, a way to try again where that can
- * help, and a way back, so a failure is never a dead end. `title` is the screen's heading; leave
- * it out where the screen already has one.
- */
+/** Never a dead end: always a way back. Leave out `title` where the screen has a heading. */
 export function ProblemScreen(props: {
   title?: string;
   children: ReactNode;
   icon?: 'connection' | 'error';
   onRetry?: () => void;
-  /** "Try again" unless given, such as "Reload". */
   retryLabel?: string;
   back: { href: string; label: string };
 }) {

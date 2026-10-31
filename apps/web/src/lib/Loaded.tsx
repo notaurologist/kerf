@@ -6,16 +6,15 @@ import type { LoadState } from './useLoad.ts';
 
 /**
  * What `useLoad` has so far: `loading` while it loads (after Loading's short delay), the problem
- * if it did not load, with Try again when the server could not be reached or failed, and
+ * if it did not load, with the connection icon when the server could not be reached, and
  * otherwise `children` with the value.
  */
 export function Loaded<T>(props: {
   state: LoadState<T>;
   /** Such as "Loading project…" (docs/design/content.md, Status). */
   loading: string;
-  /** `useLoad`'s `reload`. */
   onRetry: () => void;
-  /** The heading for the problem, where the screen has none of its own while loading. */
+  /** For screens with no heading of their own while loading. */
   title?: string;
   children?: (value: T) => ReactNode;
 }) {

@@ -44,7 +44,6 @@ export function parseRoute(hash: string): Route {
   try {
     parts = path.split('/').filter(Boolean).map(decodeURIComponent);
   } catch {
-    // A malformed escape such as %E0, typed or cut short.
     return { screen: 'not-found' };
   }
   const [first, second, third, fourth, fifth] = parts;

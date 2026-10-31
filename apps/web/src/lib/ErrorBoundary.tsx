@@ -2,8 +2,7 @@ import { Component, type ReactNode } from 'react';
 import { Page, ProblemScreen } from '../ui/index.ts';
 import { href } from './route.ts';
 
-// Catches an error while rendering any screen, so a bug shows a way back instead of a blank page.
-// Following a link or going Back clears it and tries the new screen.
+// Clears on the next hashchange, so following a link or going Back tries the new screen.
 
 export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   override state = { failed: false };
