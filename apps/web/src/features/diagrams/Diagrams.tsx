@@ -1,6 +1,6 @@
 import type { CutListRow, geometry } from '@kerf/core';
 import { cutDetailHeadingId, cutDetailId } from '../../lib/show.ts';
-import { Diagram, Stack, StatusLine, Text } from '../../ui/index.ts';
+import { Diagram, Stack, StatusLine, Text, type View, ViewSwitch } from '../../ui/index.ts';
 
 // The plan's drawings (#91), drawn from the primitives core made from the stored snapshot (#90).
 // Each is labeled with core's description of it, which the template words for its own views,
@@ -41,6 +41,35 @@ export function Diagrams(props: {
   };
   const parts = `Parts ${lettersOf(rows)}, lettered as in the cut list.`;
   const chosen = rows.find((r) => r.partId === props.selected);
+  const assembly: View[] = [];
+  if (drawings.isometric) {
+    assembly.push({
+      id: 'assembled',
+      label: 'Assembled',
+      content: (
+        <Diagram
+          {...common}
+          page="landscape"
+          drawing={drawings.isometric}
+          label={`Isometric view. ${drawings.isometric.description} ${parts}`}
+        />
+      ),
+    });
+  }
+  if (drawings.exploded) {
+    assembly.push({
+      id: 'exploded',
+      label: 'Exploded',
+      content: (
+        <Diagram
+          {...common}
+          page="landscape"
+          drawing={drawings.exploded}
+          label={`Exploded view. ${drawings.exploded.description} ${parts}`}
+        />
+      ),
+    });
+  }
   return (
     <Stack gap="l">
       <Text tone="muted">
@@ -53,28 +82,7 @@ export function Diagrams(props: {
           <a href={props.partHref(chosen.partId)}>Show it in the cut list</a>
         </StatusLine>
       )}
-      {drawings.isometric && (
-        <Stack gap="xs">
-          <h3>Assembled</h3>
-          <Diagram
-            {...common}
-            page="landscape"
-            drawing={drawings.isometric}
-            label={`Isometric view. ${drawings.isometric.description} ${parts}`}
-          />
-        </Stack>
-      )}
-      {drawings.exploded && (
-        <Stack gap="xs">
-          <h3>Exploded</h3>
-          <Diagram
-            {...common}
-            page="landscape"
-            drawing={drawings.exploded}
-            label={`Exploded view. ${drawings.exploded.description} ${parts}`}
-          />
-        </Stack>
-      )}
+      {assembly.length > 0 && <ViewSwitch label="Assembly view" views={assembly} />}
       <h3>Cut details</h3>
       {drawings.cutDetails.map((detail) => (
         <Stack

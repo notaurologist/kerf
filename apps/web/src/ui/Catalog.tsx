@@ -64,6 +64,7 @@ import { TermScope } from './Term.tsx';
 import { Tick } from './Tick.tsx';
 import { ToolLabel } from './ToolIcon.tsx';
 import { List, OneLine, Text } from './text.tsx';
+import { ViewSwitch } from './ViewSwitch.tsx';
 
 // Every component in every state, in light and dark and in shop density, so drift is visible
 // (#45). Sample values are core's output for the first template's worked examples, formatted by
@@ -695,6 +696,44 @@ function Specimens() {
           />
         )}
         {partDetail && <Diagram drawing={partDetail} label={partDetail.description} />}
+      </Group>
+
+      <Group title="View switch">
+        <ViewSwitch
+          label="Assembly view"
+          views={[
+            ...(drawings.isometric
+              ? [
+                  {
+                    id: 'assembled',
+                    label: 'Assembled',
+                    content: (
+                      <Diagram
+                        drawing={drawings.isometric}
+                        label={`Isometric view. ${drawings.isometric.description}`}
+                        selected={other.partId}
+                      />
+                    ),
+                  },
+                ]
+              : []),
+            ...(drawings.exploded
+              ? [
+                  {
+                    id: 'exploded',
+                    label: 'Exploded',
+                    content: (
+                      <Diagram
+                        drawing={drawings.exploded}
+                        label={`Exploded view. ${drawings.exploded.description}`}
+                        selected={other.partId}
+                      />
+                    ),
+                  },
+                ]
+              : []),
+          ]}
+        />
       </Group>
 
       <Group title="Diagram frame">
