@@ -34,7 +34,7 @@ export function ModeCards(props: { project: Project; plan: Plan; steps: readonly
   const { shopping, steps } = summary;
   return (
     <Grid>
-      <Card as="section">
+      <Card as="section" mode="shopping">
         <Stack gap="xs">
           <h3>Shopping</h3>
           <Text>{shoppingText(shopping)}</Text>
@@ -46,7 +46,7 @@ export function ModeCards(props: { project: Project; plan: Plan; steps: readonly
         </Stack>
       </Card>
       {steps.total > 0 && (
-        <Card as="section">
+        <Card as="section" mode="building">
           <Stack gap="xs">
             <h3>Building</h3>
             <Text>{buildingText(summary)}</Text>
@@ -99,7 +99,7 @@ export function ResumeCard(props: { project: ProjectSummary }) {
   const target = resumeTarget(props.project);
   if (!target) return null;
   return (
-    <Card as="section">
+    <Card as="section" mode={target.mode}>
       <Stack gap="xs">
         <h2>Resume {target.mode}</h2>
         <Text>

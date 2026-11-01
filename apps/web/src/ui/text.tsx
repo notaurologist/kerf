@@ -67,3 +67,8 @@ export function OneLine(props: { children: ReactNode }) {
 export function Code(props: { children: ReactNode }) {
   return <code className="k-code">{props.children}</code>;
 }
+
+/** What a group is made of, as a swatch: wood for lumber, steel for hardware (Stage 10). */
+export function Material(props: { kind: 'wood' | 'steel' }) {
+  return <span className="k-material" data-material={props.kind} aria-hidden="true" />;
+}

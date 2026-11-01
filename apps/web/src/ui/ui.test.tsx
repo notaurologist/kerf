@@ -15,6 +15,7 @@ import { goToField, reported } from './feedback.tsx';
 import { ICON_NAMES } from './Icon.tsx';
 import {
   Button,
+  Card,
   Changed,
   CheckStatus,
   Definitions,
@@ -37,6 +38,7 @@ import {
   List,
   Loading,
   MarginLine,
+  Material,
   Measured,
   MeasureTable,
   ModeFrame,
@@ -559,6 +561,32 @@ describe('ModeFrame', () => {
         </ModeFrame>,
       ),
     ).toContain('Building Theme menu Exit');
+  });
+
+  it('marks its bar with the mode, for the mode color', () => {
+    const bar = (mode: 'Shopping' | 'Building') =>
+      render(
+        <ModeFrame mode={mode} exitHref="#/projects/1">
+          x
+        </ModeFrame>,
+      );
+    expect(bar('Shopping')).toContain('class="k-modebar" data-density="shop" data-mode="shopping"');
+    expect(bar('Building')).toContain('class="k-modebar" data-density="shop" data-mode="building"');
+  });
+});
+
+describe('Card and Material', () => {
+  it('marks a way into a mode with the mode, and a plain card with nothing', () => {
+    expect(render(<Card mode="shopping">x</Card>)).toBe(
+      '<div class="k-card" data-mode="shopping">x</div>',
+    );
+    expect(render(<Card>x</Card>)).toBe('<div class="k-card">x</div>');
+  });
+
+  it('shows what a group is made of as a swatch hidden from assistive technology', () => {
+    expect(render(<Material kind="wood" />)).toBe(
+      '<span class="k-material" data-material="wood" aria-hidden="true"></span>',
+    );
   });
 });
 

@@ -1,6 +1,7 @@
 /*
  * Design tokens. Every value traces to a recorded choice in docs/design/README.md:
- * colors to Stage 4 (#43, C1, measured in color.html), diagram tones and lines to Stage 5 (#44),
+ * colors to Stage 4 (#43, C1, measured in color.html) and Stage 10 (#226, roles and W5, measured
+ * in look.html), diagram lines to Stage 5 (#44),
  * type to Stage 3 (#42, decision 0015), space and density to Stage 2 (#41).
  * tokens.test.ts checks every recorded contrast ratio against these values.
  */
@@ -16,22 +17,30 @@
     --muted: light-dark(#545860, #aaaeb4);
     --border: light-dark(#d7d4ce, #2f3339);
     --border-strong: light-dark(#70757c, #82868e);
-    /* Primary buttons; the roles below start at the same blue and can move apart. */
-    --accent: light-dark(#0e5caf, #70b3f7);
-    --on-accent: light-dark(#ffffff, #0c121a);
-    --link: light-dark(#0e5caf, #70b3f7);
+    /* Stage 10: actions are graphite, and blue is kept for what needs attention. */
+    --accent: light-dark(#1a1d23, #edebe7);
+    --on-accent: light-dark(#fbf9f5, #111418);
+    --link: light-dark(#1a1d23, #edebe7);
     --needed: light-dark(#0e5caf, #70b3f7);
-    --changed: light-dark(#0e5caf, #70b3f7);
+    --here: light-dark(#0e5caf, #70b3f7);
+    --changed: light-dark(#70757c, #82868e);
     --focus: light-dark(#1570d1, #73bdff);
     --flag-bg: light-dark(#ffe8be, #3e290f);
     --flag-border: light-dark(#bb7400, #dea143);
     --flag-text: light-dark(#5b3106, #f7dba1);
     --input-bg: light-dark(#ffffff, #1a1d23);
     --input-border: light-dark(#2e64a6, #6da9e7);
-    --done: light-dark(#0e5caf, #70b3f7);
+    --done: light-dark(#1a1d23, #edebe7);
     --error: light-dark(#aa295f, #ea7ca1);
     --error-bg: light-dark(#ffebf1, #3d1e28);
     --scrim: rgb(0 0 0 / 0.4);
+    /* Stage 10, W5: each shop mode has a color, for its bar and for marks that lead into it.
+       The bars are dark in both themes; a mark on a dark page is the light end of the same hue. */
+    --mode-shopping: light-dark(#39346a, #2b2458);
+    --mode-building: light-dark(#4c311e, #3c220f);
+    --on-mode: light-dark(#fbf9f5, #edebe7);
+    --mode-shopping-mark: light-dark(#39346a, #a4a1ee);
+    --mode-building-mark: light-dark(#4c311e, #cea081);
     /* Print is on white paper, whatever the page color. */
     --paper: #ffffff;
 
@@ -43,11 +52,13 @@
     --zone: light-dark(#dbeede, #1e2d21);
     --zone-line: light-dark(#488055, #75ae81);
 
-    /* D2 face tones: top, sides, ends. The selected part uses the highlight in the same steps.
-       Mixed in OKLCH from --raised toward --ink by 0%, 13%, and 27%. */
-    --tone-1: light-dark(#ffffff, #474f51);
-    --tone-2: light-dark(#dddedf, #2e3439);
-    --tone-3: light-dark(#babbbd, #1a1d23);
+    /* Stage 10, W5: the lumber is pine, in D2's three faces (top, sides, ends), each a step
+       darker in OKLCH (L 0.92, 0.86, 0.79 light; 0.47, 0.41, 0.35 dark). The selected part uses
+       the highlight in the same steps. Hardware is steel. */
+    --wood-1: light-dark(#f6e2c0, #6a583a);
+    --wood-2: light-dark(#e3cead, #59472a);
+    --wood-3: light-dark(#ccb897, #48381a);
+    --steel: light-dark(#8e949b, #6b7178);
     --highlight-1: light-dark(#bfe1ff, #1d456b);
     --highlight-2: light-dark(#a8c4df, #255e75);
     --highlight-3: light-dark(#8fa6be, #3f777d);
@@ -168,8 +179,7 @@
 
   /* Colors follow the device (#43): each is light-dark(light value, dark value), picked by the
      element's color-scheme. A panel can force one with data-theme, as the catalog does. In
-     dark, mixing toward the ink lightens, so D2's tone order flips: the face toward the light
-     stays lightest. */
+     both themes the face toward the light stays lightest. */
   [data-theme="light"] {
     color-scheme: light;
   }

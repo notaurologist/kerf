@@ -18,6 +18,7 @@ import {
   Cluster,
   Disclosure,
   Loading,
+  Material,
   Measured,
   ModeFrame,
   Notice,
@@ -95,7 +96,12 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
         {shoppingGroups(plan.plan).map((group) => (
           <Stack key={group.title} gap="xs">
             <Cluster spread>
-              <h2>{group.title}</h2>
+              <h2>
+                <Material
+                  kind={group.lines.some(({ line }) => 'nominal' in line) ? 'wood' : 'steel'}
+                />
+                {group.title}
+              </h2>
               <Text>
                 {bought(group.lines)} of {group.lines.length}
               </Text>

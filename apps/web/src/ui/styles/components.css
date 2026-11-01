@@ -427,7 +427,7 @@
   /* The state of the numbers beside it, such as a preview (#56). */
   .k-tag[data-tone="state"] {
     padding: var(--space-3xs) var(--space-2xs);
-    color: var(--changed);
+    border-color: var(--changed);
   }
 
   .k-status {
@@ -719,6 +719,30 @@
     background: var(--raised);
   }
 
+  /* A way into a mode carries the mode's color as a bar along its start (Stage 10). */
+  .k-card[data-mode] {
+    border-inline-start: var(--border-bar) solid var(--mode-building-mark);
+  }
+
+  .k-card[data-mode="shopping"] {
+    border-inline-start-color: var(--mode-shopping-mark);
+  }
+
+  /* What a group is made of, as a swatch beside its heading: wood for lumber, steel for hardware. */
+  .k-material {
+    display: inline-block;
+    inline-size: 0.8em;
+    block-size: 0.8em;
+    margin-inline-end: var(--space-2xs);
+    border: var(--border-thin) solid var(--text);
+    border-radius: var(--radius-tag);
+    background: var(--wood-2);
+  }
+
+  .k-material[data-material="steel"] {
+    background: var(--steel);
+  }
+
   /* ---------- Touch (#253) ----------
      Controls answer a press by dimming, in place of the browser's gray tap flash, and a long
      press on one does not select its words. Text and numbers stay selectable. */
@@ -893,7 +917,7 @@
   }
 
   .k-tabbar a[aria-current] {
-    border-block-start-color: var(--text);
+    border-block-start-color: var(--here);
     color: var(--text);
     font-weight: 700;
   }
@@ -937,7 +961,7 @@
   }
 
   .k-sidebar li a[aria-current="page"] {
-    border-inline-start-color: var(--text);
+    border-inline-start-color: var(--here);
   }
 
   @container frame (min-width: 52.5rem) {
@@ -1249,8 +1273,13 @@
     justify-content: space-between;
     gap: var(--space-s);
     padding: var(--space-xs) var(--space-s);
-    background: var(--text);
-    color: var(--bg);
+    background: var(--mode-building);
+    color: var(--on-mode);
+  }
+
+  /* Each mode has its own color (Stage 10), so the mode shows from across the garage. */
+  .k-modebar[data-mode="shopping"] {
+    background: var(--mode-shopping);
   }
 
   .k-modebar__end {
@@ -1261,8 +1290,8 @@
   }
 
   .k-modebar .k-button {
-    border-color: var(--bg);
-    color: var(--bg);
+    border-color: var(--on-mode);
+    color: var(--on-mode);
     background: transparent;
   }
 
@@ -1494,15 +1523,15 @@
   }
 
   .k-shape[data-fill="1"] {
-    fill: var(--tone-1);
+    fill: var(--wood-1);
   }
 
   .k-shape[data-fill="2"] {
-    fill: var(--tone-2);
+    fill: var(--wood-2);
   }
 
   .k-shape[data-fill="3"] {
-    fill: var(--tone-3);
+    fill: var(--wood-3);
   }
 
   .k-shape[data-fill="1"][data-selected] {
@@ -1668,7 +1697,7 @@
   }
 
   .k-contents li > a[aria-current="page"] {
-    border-inline-start-color: var(--text);
+    border-inline-start-color: var(--here);
     color: var(--text);
     font-weight: 700;
     text-decoration: none;
