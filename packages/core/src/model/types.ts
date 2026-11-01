@@ -147,6 +147,39 @@ export const Cutout = z.object({
 });
 export type Cutout = z.infer<typeof Cutout>;
 
+/**
+ * A rectangular pocket that houses another part's tenon (Tenon), cut into a face or an edge. It
+ * runs along the part from `u0` to `u1`, and across its side from `a0` to `a1`: v on a face (from
+ * the reference edge), n on an edge (from the near face). `depth` is into the part, square to its
+ * side.
+ */
+export const Mortise = z.object({
+  /** The part whose tenon it houses. */
+  withPart: z.string(),
+  /** Faces are at n = 0 (`near`) and n = the stock's thickness (`far`); edges at v = 0 and v = W. */
+  side: z.enum(['near', 'far', 'reference-edge', 'far-edge']),
+  u0: z.number(),
+  u1: z.number(),
+  a0: z.number(),
+  a1: z.number(),
+  depth: z.number(),
+});
+export type Mortise = z.infer<typeof Mortise>;
+
+/**
+ * A tongue on a square end that fits a mortise: `length` out from its shoulders, `thickness` from
+ * n0 (the near face), and `width` from v0 (the reference edge). The part's length includes it.
+ */
+export const Tenon = z.object({
+  end,
+  length: z.number(),
+  n0: z.number(),
+  thickness: z.number(),
+  v0: z.number(),
+  width: z.number(),
+});
+export type Tenon = z.infer<typeof Tenon>;
+
 export const Part = z.object({
   id: z.string(),
   /** Names the part in the cut list and every drawing, assigned in cut-list order (#66). */
@@ -180,6 +213,9 @@ export const Part = z.object({
   dadoes: z.array(Dado),
   notches: z.array(Notch),
   cutouts: z.array(Cutout),
+  /** Left out when there are none, so parts stored before them read unchanged. */
+  mortises: z.array(Mortise).optional(),
+  tenons: z.array(Tenon).optional(),
 });
 export type Part = z.infer<typeof Part>;
 
