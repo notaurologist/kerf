@@ -1,4 +1,10 @@
-import { CHECKLIST_CATEGORY_LABELS, type ChecklistItem, type Flag, structural } from '@kerf/core';
+import {
+  CHECKLIST_CATEGORY_LABELS,
+  type ChecklistItem,
+  type Flag,
+  type movement,
+  structural,
+} from '@kerf/core';
 import { href } from '../../lib/route.ts';
 import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
 import {
@@ -22,11 +28,16 @@ import { CitationList, SourceList, SourceToggle } from './Citation.tsx';
 // the design's expert checks, and the confirmation checklist. Results are margins under stated
 // assumptions, never verdicts (decision 0001). Every number comes formatted from core.
 
+/** The wood movement subsection's opening line, exported for the printed plan's terms too. */
+export const WOOD_MOVEMENT_INTRO =
+  'How much each part is expected to change across its grain between the lowest and highest moisture content you entered. These are estimates for leaving room, not checks, so they have no margin.';
+
 /** The review's opening line, exported so the printed plan's terms include it. */
 export const STRUCTURAL_REVIEW_INTRO =
   'Structural checks, not an engineered design. A margin is the allowable value divided by the computed one, under the assumptions listed with it. Judge each one with an experienced builder.';
 
 type CheckResult = structural.CheckResult;
+type MovementResult = movement.MovementResult;
 type Quantity = structural.Quantity;
 const { formatMargin, formatQuantity } = structural;
 
@@ -36,7 +47,9 @@ export function StructuralReview(props: {
   flags: readonly Flag[];
   checklist: readonly ChecklistItem[];
   boltLayout?: readonly structural.BoltJoint[];
+  movement?: readonly MovementResult[];
 }) {
+  const movement = props.movement ?? [];
   return (
     <Stack>
       <Text tone="muted">
@@ -48,6 +61,20 @@ export function StructuralReview(props: {
           <Check key={`${check.kind}/${check.subject}`} check={check} projectId={props.projectId} />
         ))}
       </Rows>
+
+      {movement.length > 0 && (
+        <>
+          <h3>Wood movement</h3>
+          <Text tone="muted">
+            <Measured text={WOOD_MOVEMENT_INTRO} terms />
+          </Text>
+          <Rows>
+            {movement.map((m) => (
+              <Movement key={m.subject} result={m} projectId={props.projectId} />
+            ))}
+          </Rows>
+        </>
+      )}
 
       <BoltLayout joints={props.boltLayout ?? []} />
 
@@ -61,7 +88,7 @@ export function StructuralReview(props: {
         </>
       )}
 
-      <SourcesUsed checks={props.checks} />
+      <SourcesUsed checks={props.checks} movement={movement} />
 
       <h3>Confirmation checklist</h3>
       <Text tone="muted">Not computed. Confirm each with an experienced builder.</Text>
@@ -112,19 +139,76 @@ function Check(props: { check: CheckResult; projectId: string }) {
         {check.status === 'input-needed' && (
           <>
             <List items={check.missing.map((m) => m.label)} />
-            <a
-              href={href({
-                screen: 'edit-project',
-                id: props.projectId,
-                from: 'structural-review',
-              })}
-            >
-              Enter structural inputs
-            </a>
+            <EnterInputs projectId={props.projectId} />
           </>
         )}
         {check.status === 'not-computed' && check.sources.length > 0 && (
           <CitationList citations={check.sources} />
+        )}
+      </Stack>
+    </Row>
+  );
+}
+
+function EnterInputs(props: { projectId: string }) {
+  return (
+    <a href={href({ screen: 'edit-project', id: props.projectId, from: 'structural-review' })}>
+      Enter structural inputs
+    </a>
+  );
+}
+
+function Movement(props: { result: MovementResult; projectId: string }) {
+  const { result } = props;
+  return (
+    <Row as="section">
+      <Stack gap="xs">
+        <h4>
+          <Measured text={result.subject} terms />
+        </h4>
+        {result.status === 'computed' && (
+          <>
+            <Text>
+              Changes about{' '}
+              <b>
+                <Value q={result.change} />
+              </b>{' '}
+              across the grain.
+            </Text>
+            <Disclosure summary="Show the working">
+              <Stack>
+                <h5>Inputs</h5>
+                <Quantities caption="Inputs" list={result.inputs} />
+                <h5>Formula</h5>
+                <List ordered>
+                  {result.formulas.map((f) => (
+                    <li key={f}>
+                      <Code>{f}</Code>
+                    </li>
+                  ))}
+                </List>
+                <Text tone="muted">From:</Text>
+                <CitationList citations={result.sources} />
+                <h5>Result</h5>
+                <Quantities caption="Result" list={[result.change]} />
+                <h5>Assumptions</h5>
+                <List items={result.assumptions} />
+              </Stack>
+            </Disclosure>
+          </>
+        )}
+        {result.status === 'input-needed' && (
+          <>
+            <Text>Input needed:</Text>
+            <List items={result.missing.map((m) => m.label)} />
+            <EnterInputs projectId={props.projectId} />
+          </>
+        )}
+        {result.status === 'not-computed' && (
+          <>
+            <Text>Not computed. {result.reason}</Text>
+            <CitationList citations={result.sources} />
+          </>
         )}
       </Stack>
     </Row>
@@ -260,8 +344,20 @@ export function citationsIn(checks: readonly CheckResult[]) {
   });
 }
 
-function SourcesUsed(props: { checks: readonly CheckResult[] }) {
-  const citations = citationsIn(props.checks);
+/** Every citation in the movement estimates: on each, and on its values. */
+function citationsInMovement(results: readonly MovementResult[]) {
+  return results.flatMap((m) => {
+    if (m.status === 'input-needed') return [];
+    if (m.status === 'not-computed') return m.sources;
+    return [...m.sources, ...[...m.inputs, m.change].flatMap((q) => q.sources ?? [])];
+  });
+}
+
+function SourcesUsed(props: {
+  checks: readonly CheckResult[];
+  movement: readonly MovementResult[];
+}) {
+  const citations = [...citationsIn(props.checks), ...citationsInMovement(props.movement)];
   if (citations.length === 0) return null;
   return (
     <Disclosure summary="Publications these checks draw on">

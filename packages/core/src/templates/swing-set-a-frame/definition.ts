@@ -179,6 +179,7 @@ export const swingSetAFrame: TemplateDefinition<
       hardwareNotes: outputs.design.hardwareNotes,
       flags: outputs.design.flags.map(withConcerns),
       checks: [review.beam.bending, review.beam.shear, review.beam.deflection, review.hanger],
+      movement: [],
       checklist: review.checklist.map(withConcerns),
       boltLayout: outputs.design.boltLayout ?? [],
       operations: outputs.design.operations ?? [],

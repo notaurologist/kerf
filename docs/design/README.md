@@ -41,7 +41,7 @@ What fits as is:
 Gaps opened as issues:
 - #302: elevations and a section view, with section lining added to the drawing standard.
 - #303: notches, cutouts, and dadoes in cut details and 3D, which aren't the convex prisms `geometry/solid.ts` assumed. Built: a concave face is drawn as convex pieces, and a dado as its outline on its face. A part whose joinery makes it handed, such as a left and a right side, is listed as two parts, one per hand: a placement is right-handed, so one part's data can't describe both.
-- #304: wood movement in the plan.
+- #304: wood movement in the plan. Built as a "Wood movement" subsection of the structural review, after the checks, so the plan keeps its eight sections: each part's expected change across the grain, its working behind "Show the working" like a check's, input needed with a link to enter it, or why it wasn't computed. The intro says they are estimates for leaving room, not checks, so they show no margin. The review's digest counts them.
 - #305: panels in the cut list, cut card, and Building mode.
 
 ### Choices

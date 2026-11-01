@@ -1,8 +1,10 @@
+import { movement } from '@kerf/core';
 import { VERDICT_WORDS } from '@kerf/core/testing';
 import { describe, expect, it } from 'vitest';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from '../project/ProjectScreen.tsx';
+import { StructuralReview } from './StructuralReview.tsx';
 
 const [complete, noInputs, builtUp] = storedSnapshots;
 if (!complete || !noInputs || !builtUp) throw new Error('fixture has three worked examples');
@@ -75,4 +77,67 @@ describe('every stored worked example', () => {
       expect(review.match(/\d+\.\d{4,}/g) ?? []).toEqual([]);
     },
   );
+});
+
+describe('wood movement in the structural review', () => {
+  const missing = (label: string) => ({ missing: [{ key: label, label }] });
+  const results = [
+    // A 15" cherry panel, flatsawn, 6% to 10%: 15 · 0.00248 · 4 = 0.1488 in (movement.test.ts in core).
+    movement.woodMovement({
+      subject: 'Left side',
+      width: 15,
+      species: { value: 'black-cherry' },
+      orientation: { value: 'flatsawn' },
+      moisture: { value: { low: 6, high: 10 } },
+    }),
+    movement.woodMovement({
+      subject: 'Top',
+      width: 15.75,
+      species: missing('Species'),
+      orientation: { value: 'unknown' },
+      moisture: { value: { low: 6, high: 10 } },
+    }),
+    movement.woodMovement({
+      subject: 'Back rail',
+      width: 3,
+      species: { value: 'black-cherry' },
+      orientation: { value: 'flatsawn' },
+      moisture: { value: { low: 4, high: 10 } },
+    }),
+  ];
+  const html = render(
+    <StructuralReview projectId="p" checks={[]} flags={[]} checklist={[]} movement={results} />,
+  );
+  const review = textOf(html);
+
+  it('shows each estimate with its working, and says it is not a check', () => {
+    expect(review).toContain('Wood movement');
+    expect(review).toContain('not checks, so they have no margin');
+    expect(review).toContain('Left side');
+    expect(review).toContain('Changes about 0.149 in across the grain');
+    expect(review).toContain('ΔD = D · C_T · (M_F − M_I)');
+    expect(review).toContain('Coefficients are species averages');
+  });
+
+  it('asks for a missing input, and says why one is not computed', () => {
+    expect(review).toContain('Input needed: Species');
+    expect(html).toContain('Enter structural inputs');
+    expect(review).toContain('Not computed. Moisture content from 4% to 10% is outside 6% to 14%');
+  });
+
+  it('lists its sources with the checks', () => {
+    expect(review).toContain('Publications these checks draw on');
+    expect(review).toContain('Wood Handbook');
+  });
+
+  it('says no verdicts', () => {
+    expect(review).not.toMatch(VERDICT_WORDS);
+  });
+
+  it('leaves the subsection out when the plan has no estimates', () => {
+    const none = textOf(
+      render(<StructuralReview projectId="p" checks={[]} flags={[]} checklist={[]} />),
+    );
+    expect(none).not.toContain('Wood movement');
+  });
 });
