@@ -1,10 +1,13 @@
 import type { Part, Placement } from '../model/types.ts';
+import { formatLength } from '../units/length.ts';
 import { signedArea2 } from './clip.ts';
+import { convexPieces } from './convex.ts';
+import { partOutline, type UV } from './outline.ts';
 import type { Drawing, PartRef, Point2, Primitive, Tone } from './primitives.ts';
 import { boundsOf } from './primitives.ts';
 import { depth, depthOnPlane, type Isometric, project } from './projection.ts';
 import { type Solid, solid, solidCentroid } from './solid.ts';
-import { add, dot, length, sub, type Vec3 } from './vec.ts';
+import { add, dot, length, scale, sub, type Vec3 } from './vec.ts';
 
 // The isometric and exploded views (#90): every part instance as a solid, faces facing the viewer
 // drawn in depth order and toned by which way they point (D2), edges below grade hidden, and part
@@ -169,12 +172,23 @@ function refFor(scene: Scene, pl: Placement): PartRef {
   return { partId: pl.partId, instance: pl.instance, letter: part?.letter ?? '' };
 }
 
-/** Draws solids: faces in paint order, hidden edges below grade, grade lines, phantoms. */
+/** A section plane: a point on it and its unit normal, pointing toward the viewer. */
+export interface SectionPlane {
+  point: Vec3;
+  normal: Vec3;
+}
+
+/**
+ * Draws solids: faces in paint order, hidden edges below grade, grade lines, phantoms. With a
+ * section plane, only what lies behind it is drawn.
+ */
 function drawSolids(
   scene: Scene,
   view: Isometric,
   solids: readonly { solid: Solid; ref: PartRef }[],
+  section?: SectionPlane,
 ): { primitives: Primitive[]; faces: Drawn[] } {
+  const behind = (p: Vec3) => (section ? -dot(sub(p, section.point), section.normal) : 1);
   const ground = scene.ground;
   const above = (p: Vec3) => (ground ? dot(sub(p, ground.point), ground.up) : 1);
   const pieces: Piece[] = [];
@@ -182,7 +196,7 @@ function drawSolids(
   solids.forEach(({ solid: s, ref }, index) => {
     for (const face of s.faces) {
       if (dot(face.normal, view.toViewer) <= EPS) continue;
-      const whole: Piece = {
+      const full: Piece = {
         points: face.points,
         edge: face.edge ?? face.points.map(() => true),
         ...(face.decal ? { decal: face.decal } : {}),
@@ -191,6 +205,8 @@ function drawSolids(
         part: ref,
         solid: index,
       };
+      const whole = section ? keep(full, behind, 0) : full;
+      if (!whole) continue;
       const up = keep(whole, above, 0);
       if (up) pieces.push(up);
       if (!ground) continue;
@@ -444,4 +460,155 @@ function placedSolids(
     if (!part) return [];
     return [{ solid: solid(part, pl, offsetOf(pl)), ref: refFor(scene, pl) }];
   });
+}
+
+/**
+ * Where a section plane cuts a part instance, as polygons in 3D. The plane must contain the
+ * part's through direction, cutting across its thickness, or be parallel to its faces; a part
+ * cut at another angle is refused. A part the plane misses gives none.
+ */
+export function sectionCuts(part: Part, pl: Placement, plane: SectionPlane): Vec3[][] {
+  const T = part.stock.thickness;
+  const N = plane.normal;
+  const a = dot(pl.along, N);
+  const b = dot(pl.across, N);
+  const c = dot(pl.through, N);
+  const d = -dot(sub(pl.origin, plane.point), N);
+  const world = (u: number, v: number, n: number) =>
+    add(add(add(pl.origin, scale(pl.along, u)), scale(pl.across, v)), scale(pl.through, n));
+  const outline = partOutline(part);
+  if (Math.abs(c) < 1e-9) {
+    // The plane meets the face in the line a·u + b·v = d: pair its crossings with the outline.
+    const f = (p: UV) => a * p.u + b * p.v - d;
+    const dir = { u: -b, v: a };
+    const along = (p: UV) => p.u * dir.u + p.v * dir.v;
+    const crossings: UV[] = [];
+    outline.forEach((p, i) => {
+      const q = outline[(i + 1) % outline.length] as UV;
+      const fp = f(p);
+      const fq = f(q);
+      if (fp < 0 !== fq < 0) {
+        const t = fp / (fp - fq);
+        crossings.push({ u: p.u + (q.u - p.u) * t, v: p.v + (q.v - p.v) * t });
+      }
+    });
+    crossings.sort((x, y) => along(x) - along(y));
+    const cuts: Vec3[][] = [];
+    for (let i = 0; i + 1 < crossings.length; i += 2) {
+      const p = crossings[i] as UV;
+      const q = crossings[i + 1] as UV;
+      cuts.push([world(p.u, p.v, 0), world(q.u, q.v, 0), world(q.u, q.v, T), world(p.u, p.v, T)]);
+    }
+    return cuts;
+  }
+  if (Math.abs(a) < 1e-9 && Math.abs(b) < 1e-9) {
+    const n = d / c;
+    if (n <= 0 || n >= T) return [];
+    return convexPieces(outline).map((piece) => piece.points.map((p) => world(p.u, p.v, n)));
+  }
+  throw new Error(`a section plane cuts ${part.id} at an angle; only square sections are drawn`);
+}
+
+/** Chained dimensions along the page between projected points, on one side of the drawing. */
+export interface DimensionChain {
+  points: readonly Vec3[];
+  /** Below or above the drawing for horizontal chains, left or right for vertical ones. */
+  side: 'below' | 'above' | 'left' | 'right';
+  /** Distance from the drawing's edge to the dimension line, in inches at the drawing's scale. */
+  offset: number;
+}
+
+function chains(
+  view: Isometric,
+  list: readonly DimensionChain[],
+  box: Drawing['bounds'],
+): Primitive[] {
+  return list.flatMap((chain) => {
+    const page = chain.points.map((p) => project(view, p));
+    const horizontal = chain.side === 'below' || chain.side === 'above';
+    const sorted = [...page].sort((p, q) => (horizontal ? p.x - q.x : p.y - q.y));
+    const line =
+      chain.side === 'below'
+        ? box.y + box.height + chain.offset
+        : chain.side === 'above'
+          ? box.y - chain.offset
+          : chain.side === 'left'
+            ? box.x - chain.offset
+            : box.x + box.width + chain.offset;
+    const out: Primitive[] = [];
+    for (const p of sorted) {
+      out.push({
+        kind: 'line',
+        role: 'extension',
+        points: horizontal ? [p, { x: p.x, y: line }] : [p, { x: line, y: p.y }],
+      });
+    }
+    for (let i = 0; i + 1 < sorted.length; i++) {
+      const p = sorted[i] as Point2;
+      const q = sorted[i + 1] as Point2;
+      const span = horizontal ? q.x - p.x : q.y - p.y;
+      if (span < 1e-9) continue;
+      const from = horizontal ? { x: p.x, y: line } : { x: line, y: p.y };
+      const to = horizontal ? { x: q.x, y: line } : { x: line, y: q.y };
+      out.push({ kind: 'line', role: 'dimension', points: [from, to], arrows: true });
+      out.push({
+        kind: 'text',
+        role: 'dimension',
+        at: horizontal
+          ? { x: (p.x + q.x) / 2, y: line + (chain.side === 'below' ? 0.9 : -0.3) }
+          : { x: line + (chain.side === 'right' ? 0.3 : -0.3), y: (p.y + q.y) / 2 },
+        text: formatLength(span),
+        anchor: horizontal ? 'middle' : chain.side === 'right' ? 'start' : 'end',
+      });
+    }
+    return out;
+  });
+}
+
+/**
+ * An elevation (#302): the model seen straight from one side with `orthographic`, faces toned by
+ * which way they point, part letters, and chained dimensions the template asks for. Edges hidden
+ * behind other parts are not drawn.
+ */
+export function elevationView(
+  scene: Scene,
+  view: Isometric,
+  description: string,
+  title: string,
+  dimensions: readonly DimensionChain[] = [],
+): Drawing {
+  const { primitives, faces } = drawSolids(scene, view, placedSolids(scene));
+  const box = boundsOf(primitives);
+  const all = [...primitives, ...chains(view, dimensions, box), ...letters(faces, primitives)];
+  return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [] };
+}
+
+/**
+ * A section (#302): an elevation of what lies behind a plane, with the faces the plane cuts drawn
+ * in section lining over everything else, since they are nearest.
+ */
+export function sectionView(
+  scene: Scene,
+  view: Isometric,
+  plane: SectionPlane,
+  description: string,
+  title: string,
+  dimensions: readonly DimensionChain[] = [],
+): Drawing {
+  const { primitives, faces } = drawSolids(scene, view, placedSolids(scene), plane);
+  const cuts = scene.placements.flatMap((pl): Primitive[] => {
+    const part = scene.parts.find((p) => p.id === pl.partId);
+    if (!part) return [];
+    return sectionCuts(part, pl, plane).map((points) => ({
+      kind: 'polygon',
+      role: 'visible',
+      points: points.map((p) => project(view, p)),
+      fill: 'section',
+      part: refFor(scene, pl),
+    }));
+  });
+  const drawn = [...primitives, ...cuts];
+  const box = boundsOf(drawn);
+  const all = [...drawn, ...chains(view, dimensions, box), ...letters(faces, drawn)];
+  return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [] };
 }

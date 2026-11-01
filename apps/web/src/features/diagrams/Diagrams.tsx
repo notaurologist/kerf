@@ -102,6 +102,22 @@ export function Diagrams(props: {
         </StatusLine>
       )}
       {assembly && <ViewSwitch views={assembly} control={frame && motion.control} />}
+      {(drawings.elevations ?? []).length > 0 && (
+        <>
+          <h3>Elevations and sections</h3>
+          {(drawings.elevations ?? []).map((view) => (
+            <Stack gap="xs" key={view.title}>
+              <h4>{view.title}</h4>
+              <Diagram
+                {...common}
+                drawing={view}
+                minWidth={560}
+                label={`${view.description} Dimensions ${dimensions(view).join(', ')}.`}
+              />
+            </Stack>
+          ))}
+        </>
+      )}
       <h3>Cut details</h3>
       {drawings.cutDetails.map((detail) => (
         <Stack
