@@ -169,18 +169,22 @@ export function Frame(props: {
   );
 }
 
+/** The two shop modes, by the names their bars show. */
+export type Mode = 'Shopping' | 'Building';
+
 /**
  * Shop modes fill the screen under this bar (#40): the mode's name, what it is working on (the
- * project's name), and a way out. `end` sits before Exit, as the theme menu does (#155).
+ * project's name), and a way out, in the mode's own color (Stage 10). `end` sits before Exit, as
+ * the theme menu does (#155).
  */
 export function ModeBar(props: {
-  mode: string;
+  mode: Mode;
   context?: string;
   exitHref: string;
   end?: ReactNode;
 }) {
   return (
-    <header className="k-modebar" data-density="shop">
+    <header className="k-modebar" data-density="shop" data-mode={props.mode.toLowerCase()}>
       <span>
         <b>{props.mode}</b>
         {props.context && ` · ${props.context}`}
@@ -200,7 +204,7 @@ export function ModeBar(props: {
  * density. It has no other navigation, so the mode is signalled twice (NN/g, modes).
  */
 export function ModeFrame(props: {
-  mode: string;
+  mode: Mode;
   context?: string;
   exitHref: string;
   end?: ReactNode;

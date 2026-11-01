@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-// The C1 colors were chosen with every pairing measured (docs/design/color.html, #43). This test
+// The colors were chosen with every pairing measured: C1 in docs/design/color.html (#43), and the
+// Stage 10 roles and W5 in docs/design/look.html (#226). This test
 // keeps those measurements true of the tokens: each pairing still meets its WCAG 2.2 minimum,
 // and still has the ratio recorded when it was chosen, so a changed token cannot pass unnoticed.
 
@@ -31,7 +32,8 @@ function ratio(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-// [foreground, background, kind, recorded light ratio, recorded dark ratio], from color.html.
+// [foreground, background, kind, recorded light ratio, recorded dark ratio], from color.html and
+// look.html.
 // Text needs 4.5:1 (WCAG 1.4.3); lines, borders, and focus rings need 3:1 (1.4.11).
 const PAIRS: [string, string, 'text' | 'ui', number, number][] = [
   ['text', 'bg', 'text', 16.04, 15.49],
@@ -39,22 +41,30 @@ const PAIRS: [string, string, 'text' | 'ui', number, number][] = [
   ['text', 'sunken', 'text', 14.68, 16.28],
   ['muted', 'bg', 'text', 6.76, 8.3],
   ['muted', 'raised', 'text', 7.12, 7.59],
-  ['accent', 'bg', 'text', 6.28, 8.35],
-  ['accent', 'raised', 'text', 6.62, 7.63],
-  ['on-accent', 'accent', 'text', 6.62, 8.5],
-  ['link', 'bg', 'text', 6.28, 8.35],
-  ['link', 'raised', 'text', 6.62, 7.63],
+  ['accent', 'bg', 'text', 16.05, 15.51],
+  ['accent', 'raised', 'text', 16.88, 14.18],
+  ['on-accent', 'accent', 'text', 16.05, 15.51],
+  ['link', 'bg', 'text', 16.05, 15.51],
+  ['link', 'raised', 'text', 16.88, 14.18],
   ['needed', 'bg', 'text', 6.28, 8.35],
   ['needed', 'raised', 'text', 6.62, 7.63],
-  ['changed', 'bg', 'text', 6.28, 8.35],
-  ['changed', 'raised', 'text', 6.62, 7.63],
+  ['here', 'bg', 'ui', 6.3, 8.34],
+  ['here', 'raised', 'ui', 6.63, 7.62],
+  ['changed', 'bg', 'ui', 4.41, 5.06],
+  ['changed', 'raised', 'ui', 4.64, 4.62],
+  ['on-mode', 'mode-shopping', 'text', 10.66, 11.79],
+  ['on-mode', 'mode-building', 'text', 11.31, 12.35],
+  ['mode-shopping-mark', 'raised', 'ui', 11.21, 7.16],
+  ['mode-building-mark', 'raised', 'ui', 11.9, 7.21],
+  ['mode-shopping-mark', 'bg', 'ui', 10.66, 7.84],
+  ['mode-building-mark', 'bg', 'ui', 11.31, 7.89],
   ['flag-text', 'flag-bg', 'text', 9.26, 10.18],
   ['flag-border', 'bg', 'ui', 3.56, 8.15],
   ['flag-border', 'raised', 'ui', 3.75, 7.45],
   ['input-border', 'bg', 'ui', 5.72, 7.49],
   ['error', 'bg', 'text', 6.27, 6.96],
   ['error', 'error-bg', 'text', 5.8, 5.62],
-  ['done', 'raised', 'ui', 6.62, 7.63],
+  ['done', 'raised', 'ui', 16.88, 14.18],
   ['focus', 'bg', 'ui', 4.67, 9.18],
   ['focus', 'raised', 'ui', 4.92, 8.4],
   ['border-strong', 'bg', 'ui', 4.42, 5.07],
@@ -67,10 +77,11 @@ const PAIRS: [string, string, 'text' | 'ui', number, number][] = [
   ['ink', 'zone', 'text', 13.89, 12.1],
 ];
 
-// D2's face tones (#44): the ink on the darkest face, as recorded in diagrams.html.
+// D2's three faces in W5's pine (Stage 10): the ink on the faces it is least distinct from, as
+// recorded in look.html.
 const TONES: [string, string, number, number][] = [
-  ['ink', 'tone-3', 8.8, 0],
-  ['ink', 'tone-1', 0, 7.0],
+  ['ink', 'wood-3', 8.74, 0],
+  ['ink', 'wood-1', 0, 5.75],
 ];
 
 const MINIMUM = { text: 4.5, ui: 3 };
@@ -88,7 +99,7 @@ describe.each(['light', 'dark'] as const)('C1 %s', (theme) => {
   });
 });
 
-describe('D2 face tones', () => {
+describe('wood faces', () => {
   it.each(TONES)('%s on %s', (fg, bg, light, dark) => {
     for (const [theme, recorded] of [
       ['light', light],
@@ -103,8 +114,8 @@ describe('D2 face tones', () => {
   it('keeps the face toward the light lightest, in both themes', () => {
     for (const t of Object.values(themes)) {
       const l = (n: string) => luminance(t[n] ?? '');
-      expect(l('tone-1')).toBeGreaterThan(l('tone-2'));
-      expect(l('tone-2')).toBeGreaterThan(l('tone-3'));
+      expect(l('wood-1')).toBeGreaterThan(l('wood-2'));
+      expect(l('wood-2')).toBeGreaterThan(l('wood-3'));
     }
   });
 });

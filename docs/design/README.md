@@ -47,6 +47,10 @@ For the next garage check (#69, #70): the colored mode bars under glare (bar tex
 
 Build issues: #279 (color), #280 (surfaces), #281 (the mode bar on a phone and Shopping's guide).
 
+Built in #279 (October 2026): the color roles and W5 (`tokens.css`; `Card`'s `mode`, `Material`, and `ModeBar`'s mode color in `ui/`). Two details settled in the build:
+- Kerf's project states are Planned, In progress and Built, not the two modes, so the mode colors do not go on the state menu. The summary's mode cards and the Resume card carry them instead.
+- Drawings have no hardware shapes yet (core draws lumber, zones and outlines), so steel appears only as Shopping's hardware swatch.
+
 ## Stage 9: an app frame, motion, loading, and the keyboard (#254)
 
 The owner found that Kerf felt like a website rather than an app, for two reasons: page-style navigation (a header of links, whole pages that scroll) and no motion. `app-frame.html` draws three frames on the phone and laptop, three ways for screens to move, two ways for a screen to wait, and keyboard shortcuts, with phone demos of the frames, moves, and waits in Kerf's colors. Load times come from decision 0006: 0.12 s with the database awake, 2.8 s after Neon's 5 idle minutes. Native apps and an installed web app were set aside first: the feel is mostly design, which the web app can fix.
@@ -365,7 +369,7 @@ The owner took the suggested option for each (October 2026).
 | How drawings name parts | Letters matching the cut list (A to E for the swing set), one per part, shared by both instances of a pair, in the cut list's first column and on every drawing. Core assigns them (#66). | Item numbers in balloons: numbers sit beside lengths and quantities everywhere in Kerf, so "2" could read as a count. Names written out: "Back leg" takes about 70 px, a third of a phone drawing's width. |
 | Drawings in Building mode | Action steps in D2's language: only what the step adds, pulled away from where it goes with a motion arrow; everything already built in D2's face tones and ink, not a light line, so it holds up under glare; the step's part tinted and outlined heavily. Agrawala et al. (2003) found people assembled faster and with fewer errors from action diagrams. Needs each step's parts (#52). | The exploded view with the step's parts highlighted: nothing new to build, but every step shows every part and the reader has to work out what changed. |
 
-The drawing standard M5 builds to (line roles, screen and print widths, patterns, color roles, face tones, text sizes, letters, reference face marks, cut details, site layout) is the "Chosen" section of `diagrams.html`. Drawing primitives carry a line role, not a color or width (#49). The ASME print widths come from published summaries and should be checked against the standard before M5 fixes them. The D2 face tones in dark mode need their own values, since mixing toward the ink lightens instead of darkening; #45 sets them as tokens with the rest of C1.
+The drawing standard M5 builds to (line roles, screen and print widths, patterns, color roles, face tones, text sizes, letters, reference face marks, cut details, site layout) is the "Chosen" section of `diagrams.html`. Drawing primitives carry a line role, not a color or width (#49). The ASME print widths come from published summaries and should be checked against the standard before M5 fixes them. The D2 face tones in dark mode need their own values, since mixing toward the ink lightens instead of darkening; #45 sets them as tokens with the rest of C1. Stage 10 (#226) replaced the gray faces with pine in the same three steps (`--wood-1` to `--wood-3`); ink on the darkest face measures 8.7:1 light, and on the lightest 5.8:1 dark.
 
 ### One assembly diagram on screen (#200)
 
@@ -422,7 +426,7 @@ Checked in the browser against a local database, with the device set to dark and
 
 The C1 values, in OKLCH, are in `color.html` (the `pal-C1-light` and `pal-C1-dark` classes) with every pairing measured. #45 turns them into tokens and adds a contrast test, so the measured ratios stay checked in code. Diagram ink roles (part, highlighted part, hidden line, dimension, clearance zone) carry into #44.
 
-#219 split the accent into roles, so one can change without the others: `--accent` for primary buttons, `--link`, `--needed` (input needed), `--changed` (the changed bar and state tags), and `--done`. Each starts at the accent's value, so their ratios are the accent's in `color.html`. The input-needed text color (`--input-text`, 9.29 and 9.73 on the input fill) was dropped: inputs have always used the text color, and applying it would have changed every input.
+#219 split the accent into roles, so one can change without the others: `--accent` for primary buttons, `--link`, `--needed` (input needed), `--changed` (the changed bar and state tags), and `--done`. Each starts at the accent's value, so their ratios are the accent's in `color.html`. Stage 10 (#226) moved the action roles to graphite, kept blue for attention, added `--here` and the mode colors, and made the drawing faces pine; its ratios are in `look.html`. The input-needed text color (`--input-text`, 9.29 and 9.73 on the input fill) was dropped: inputs have always used the text color, and applying it would have changed every input.
 
 ## Stage 3: typography (#42)
 

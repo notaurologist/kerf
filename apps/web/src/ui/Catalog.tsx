@@ -745,7 +745,7 @@ function Specimens() {
             y="40"
             width="200"
             height="24"
-            fill="var(--tone-2)"
+            fill="var(--wood-2)"
             stroke="var(--ink)"
             strokeWidth="var(--line-visible)"
           />

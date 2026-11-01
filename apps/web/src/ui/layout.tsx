@@ -118,7 +118,16 @@ export function Page(props: { children: ReactNode }) {
 }
 
 /** A raised panel for one item, such as a structural check or a checklist entry. */
-export function Card(props: { as?: 'div' | 'section' | 'li'; children: ReactNode }) {
+export function Card(props: {
+  as?: 'div' | 'section' | 'li';
+  /** A way into a shop mode, marked in that mode's color (Stage 10). */
+  mode?: 'shopping' | 'building';
+  children: ReactNode;
+}) {
   const Tag = props.as ?? 'div';
-  return <Tag className="k-card">{props.children}</Tag>;
+  return (
+    <Tag className="k-card" data-mode={props.mode}>
+      {props.children}
+    </Tag>
+  );
 }
