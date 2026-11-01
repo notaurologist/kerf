@@ -1,4 +1,4 @@
-import type { Part } from '../model/types.ts';
+import { type Part, widthTapers } from '../model/types.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
 import { clipPolygon } from './clip.ts';
@@ -118,8 +118,8 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     }
   }
 
-  // A taper's waste, dashed.
-  for (const taper of part.tapers) {
+  // A taper's waste, dashed. One that takes off thickness is on the back face, so it is noted.
+  for (const taper of widthTapers(part.tapers)) {
     const corner = blank[0] as UV;
     prims.push({
       kind: 'polygon',
@@ -482,6 +482,12 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       return `Mortise ${formatLength(m.u0)} from the first end, in ${where}: ${formatLength(m.u1 - m.u0)} long, ${formatLength(m.a1 - m.a0)} wide, ${formatLength(m.depth)} deep, starting ${formatLength(m.a0)} from ${from}.`;
     }),
     ...screwNotes(part),
+    ...part.tapers
+      .filter((t) => t.plane)
+      .map(
+        (t) =>
+          `Taper the back face too: from full thickness ${formatLength(t.start.u)} from the first end to ${formatLength(t.end.v)} thinner at the first end.`,
+      ),
     ...(part.tenons ?? []).map(
       (t) =>
         `Tenon at the ${endName(t.end)}: ${formatLength(t.length)} long, ${formatLength(t.thickness)} thick, ${formatLength(t.width)} wide, ${formatLength(t.n0)} from the back face and ${formatLength(t.v0)} from the ${part.referenceEdge}.`,

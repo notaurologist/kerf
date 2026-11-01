@@ -1,4 +1,4 @@
-import type { Notch, Part } from '../model/types.ts';
+import { type Notch, type Part, widthTapers } from '../model/types.ts';
 
 // A part's face outline in its own frame (DOMAIN.md, Geometry; Placement in model/types.ts):
 // u along the part from its first end's long point, v across from its reference edge. The
@@ -98,7 +98,7 @@ export function partOutline(part: Part): UV[] {
   const [a, b, c, d] = blankOutline(part) as [UV, UV, UV, UV];
   const second = endPath(part, 1, b) ?? [b, c];
   const first = endPath(part, 0, a) ?? [d, a];
-  const taper = part.tapers[0];
+  const taper = widthTapers(part.tapers)[0];
   if (!taper) return [first[first.length - 1] as UV, ...second, ...first.slice(0, -1)];
   if (first.length > 2)
     throw new Error(`${part.id} has a taper and a notch or cutout at its first end`);

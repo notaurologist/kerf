@@ -99,8 +99,16 @@ export const Taper = z.object({
   end: z.object({ u: z.number(), v: z.number() }),
   /** The angle between the taper and the reference edge, in degrees. */
   angleToEdge: z.number(),
+  /**
+   * Set when the taper takes off thickness rather than width: it is cut into the near face, through
+   * the width, and `start` and `end` give n in place of v. Left out for one that takes off width.
+   */
+  plane: z.literal('thickness').optional(),
 });
 export type Taper = z.infer<typeof Taper>;
+
+/** Tapers that take off width, which the face outline shows. */
+export const widthTapers = (tapers: readonly Taper[]) => tapers.filter((t) => !t.plane);
 
 const end = z.union([z.literal(0), z.literal(1)]);
 

@@ -261,7 +261,8 @@ export function cutAndDrillOperations(
         taper: i,
         angleToEdge: t.angleToEdge,
         length: Math.hypot(t.end.u - t.start.u, t.end.v - t.start.v),
-        thickness,
+        // A taper that takes off thickness is cut through the width.
+        thickness: t.plane ? width : thickness,
       });
     });
     ops.push(...part.dadoes.map((d, i) => dadoOperation(part, d, i)));

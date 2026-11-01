@@ -1,8 +1,8 @@
 import type { Part, Placement } from '../model/types.ts';
 import { clipPolygon } from './clip.ts';
-import { convexPieces } from './convex.ts';
+import { convexPieces, isConvex } from './convex.ts';
 import { partOutline, type UV } from './outline.ts';
-import { add, centroid, scale, unit, type Vec3 } from './vec.ts';
+import { add, centroid, cross, scale, sub, unit, type Vec3 } from './vec.ts';
 
 // A part instance as a solid: its outline extruded through its thickness and placed in 3D by its
 // placement (#49). Every part is a prism, but for a tenon thinner than the part, which is a box of
@@ -46,6 +46,13 @@ export function solid(part: Part, pl: Placement, offset: Vec3 = { x: 0, y: 0, z:
     partOutline(part),
   );
   const at = (p: UV, n: number) => add(toWorld(pl, p.u, p.v, n), offset);
+  // A taper that takes off thickness lowers the near face toward the first end: its n at each u.
+  const thin = part.tapers.find((t) => t.plane);
+  const near = (u: number) =>
+    !thin || u >= thin.start.u
+      ? 0
+      : (thin.end.v * (thin.start.u - u)) / (thin.start.u - thin.end.u);
+  if (thin) return tapered(part, pl, outline, near, at);
   const pieces = convexPieces(outline);
   const faces: Face[] = pieces.flatMap((piece) => [
     {
@@ -112,6 +119,57 @@ export function solid(part: Part, pl: Placement, offset: Vec3 = { x: 0, y: 0, z:
     const b = outline[(i + 1) % outline.length] as UV;
     const normal = unit(add(scale(pl.along, b.v - a.v), scale(pl.across, -(b.u - a.u))));
     faces.push({ points: [at(a, 0), at(b, 0), at(b, T), at(a, T)], normal });
+  }
+  return { partId: pl.partId, instance: pl.instance, faces };
+}
+
+/**
+ * A part whose near face is lowered by a taper (Taper.plane): its face outline, convex, split
+ * where the taper starts so each part of the near face is flat, and its sides following the near
+ * face down. Joinery is not drawn on such a part.
+ */
+function tapered(
+  part: Part,
+  pl: Placement,
+  outline: readonly UV[],
+  near: (u: number) => number,
+  at: (p: UV, n: number) => Vec3,
+): Solid {
+  if (!isConvex(outline)) throw new Error(`${part.id} has a thickness taper and a concave face`);
+  const T = part.stock.thickness;
+  const s = part.tapers.find((t) => t.plane)?.start.u ?? 0;
+  const lerp = (a: UV, b: UV, f: number): UV => ({
+    u: a.u + (b.u - a.u) * f,
+    v: a.v + (b.v - a.v) * f,
+  });
+  // The outline with a point wherever an edge crosses u = s, so every side face is flat.
+  const points = outline.flatMap((a, i) => {
+    const b = outline[(i + 1) % outline.length] as UV;
+    const crosses = (a.u - s) * (b.u - s) < -1e-12;
+    return crosses ? [a, lerp(a, b, (s - a.u) / (b.u - a.u))] : [a];
+  });
+  // Clipping through a corner on the line repeats it, so repeated points are dropped.
+  const distinct = (ps: UV[]) =>
+    ps.filter((p, i) => {
+      const q = ps[(i + 1) % ps.length] as UV;
+      return Math.abs(p.u - q.u) > 1e-12 || Math.abs(p.v - q.v) > 1e-12;
+    });
+  const halves = [
+    distinct(clipPolygon(points, (p) => s - p.u, lerp)),
+    distinct(clipPolygon(points, (p) => p.u - s, lerp)),
+  ].filter((h) => h.length >= 3);
+  const normalOf = (ps: Vec3[]) =>
+    unit(cross(sub(ps[1] as Vec3, ps[0] as Vec3), sub(ps[2] as Vec3, ps[0] as Vec3)));
+  const faces: Face[] = halves.map((h) => {
+    const ps = h.map((p) => at(p, near(p.u))).reverse();
+    return { points: ps, normal: normalOf(ps) };
+  });
+  faces.push({ points: points.map((p) => at(p, T)), normal: pl.through });
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i] as UV;
+    const b = points[(i + 1) % points.length] as UV;
+    const normal = unit(add(scale(pl.along, b.v - a.v), scale(pl.across, -(b.u - a.u))));
+    faces.push({ points: [at(a, near(a.u)), at(b, near(b.u)), at(b, T), at(a, T)], normal });
   }
   return { partId: pl.partId, instance: pl.instance, faces };
 }
