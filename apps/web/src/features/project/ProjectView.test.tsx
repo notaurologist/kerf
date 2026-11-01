@@ -135,6 +135,8 @@ describe('ProjectView, when the plan cannot be shown', () => {
       'The stored plan cannot be read: The stored snapshot is not a snapshot.',
     );
     expect(text).not.toContain('Edit');
+    // With no Edit to reach it through, Delete stays here.
+    expect(text).toContain('Delete project');
   });
 
   it('refuses outputs that do not match the template’s schema', () => {
@@ -147,6 +149,10 @@ describe('ProjectView, when the plan cannot be shown', () => {
 
 describe('ProjectView, as a document (#40, #41)', () => {
   const project = projectFrom(workedExample);
+
+  it('leaves Delete to the Edit screen, away from Previous and Next', () => {
+    expect(renderText(<ProjectView project={project} />)).not.toContain('Delete');
+  });
 
   it('reads in section order A: diagrams, structural review, cut list, shopping list', () => {
     const text = renderText(<ProjectView project={project} />);

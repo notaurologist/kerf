@@ -48,7 +48,7 @@ describe('ProjectList', () => {
     expect(render([])).toContain('data-variant="primary" href="#/projects/new?');
     const resuming = project({
       progress: {
-        shopping: { done: 0, total: 3 },
+        shopping: { done: 1, total: 3 },
         pieces: { done: 0, total: 2 },
         steps: { done: 0, total: 2 },
         nextStep: { id: 's1', number: 1, title: 'Cut' },

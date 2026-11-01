@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { CompactSelect, type Option } from '../ui/index.ts';
+import { useState, useSyncExternalStore } from 'react';
+import { IconSelect } from '../ui/index.ts';
 
 // Light, dark, or the device's own setting (#155). The colors are light-dark() tokens picked by
 // color-scheme (tokens.css), so a choice only sets data-theme on the page's root, which forces
@@ -14,7 +14,7 @@ export type Theme = (typeof THEMES)[number];
 /** The browser storage key, also read by the script in index.html. */
 export const THEME_KEY = 'kerf-theme';
 
-const OPTIONS: readonly Option[] = [
+const OPTIONS: readonly { value: Theme; label: string }[] = [
   { value: 'system', label: 'System theme' },
   { value: 'light', label: 'Light theme' },
   { value: 'dark', label: 'Dark theme' },
@@ -64,22 +64,34 @@ export function chooseTheme(host: ThemeHost, theme: Theme): void {
   }
 }
 
+/** Every theme menu on the page, told when one of them changes the choice. */
+const listeners = new Set<() => void>();
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+};
+
+/** The choice showing on the page, which outlasts storage that is blocked. */
+const shown = (host: ThemeHost) => parseTheme(host.root.dataset.theme ?? readTheme(host));
+
 /**
- * The theme menu, in the header and in the shop modes' bar. Its visible value names the choice,
- * so the label is read by screen readers only.
+ * The theme menu, in the title bar, the sidebar, and the shop modes' bar: an icon for the
+ * choice over the device's own menu, so a tap opens the native picker. The frame draws it twice
+ * (title bar and sidebar), so every copy follows one choice.
  */
 export function ThemeSwitch(props: { host?: ThemeHost }) {
   const [host] = useState(() => props.host ?? browserHost());
-  const [theme, setTheme] = useState(() => readTheme(host));
+  const read = () => shown(host);
+  const theme = useSyncExternalStore(subscribe, read, read);
   return (
-    <CompactSelect
+    <IconSelect
       label="Theme"
       value={theme}
+      icon={`theme-${theme}`}
       options={OPTIONS}
       onChange={(value) => {
-        const next = parseTheme(value);
-        chooseTheme(host, next);
-        setTheme(next);
+        chooseTheme(host, parseTheme(value));
+        for (const listener of listeners) listener();
       }}
     />
   );

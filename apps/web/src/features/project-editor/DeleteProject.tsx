@@ -8,13 +8,15 @@ import {
   Cluster,
   Field,
   InlineConfirm,
+  Stack,
   Text,
   TextInput,
   useReturnFocus,
 } from '../../ui/index.ts';
 
 // Deleting a project is permanent (issue #22): there is no archive and, until backups exist, no
-// way back. The owner confirms by typing the project's name.
+// way back. The owner confirms by typing the project's name. It sits at the foot of the Edit
+// screen, away from the plan's Previous and Next, so it is never tapped on the way somewhere else.
 
 /** True when what was typed names the project, ignoring spaces at either end. */
 export function confirmsName(typed: string, name: string): boolean {
@@ -31,11 +33,14 @@ export function DeleteProject(props: { id: string; name: string }) {
 
   if (!open) {
     return (
-      <Cluster>
-        <Button ref={trigger} variant="destructive" onClick={() => setOpen(true)}>
-          Delete project
-        </Button>
-      </Cluster>
+      <Stack as="section" gap="xs">
+        <h2>Delete this project</h2>
+        <Cluster>
+          <Button ref={trigger} variant="destructive" onClick={() => setOpen(true)}>
+            Delete project
+          </Button>
+        </Cluster>
+      </Stack>
     );
   }
 

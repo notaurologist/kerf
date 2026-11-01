@@ -10,7 +10,7 @@ import type { Project } from '../../lib/types.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
 import { placeIssues, schemaIssues } from './issues.ts';
-import { changesFor, ProjectEditor, startValues } from './ProjectEditor.tsx';
+import { changesFor, EditProject, ProjectEditor, startValues } from './ProjectEditor.tsx';
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const { params: sections } = template.form;
@@ -194,6 +194,32 @@ describe('an existing project in the form', () => {
     // The beam length, read back through core's formatter.
     expect(html).toContain('10&#x27; 0&quot;');
     expect(html).toMatch(/<option value="southern-pine-no2" selected="">Southern Pine No.2</);
+  });
+});
+
+describe('deleting from the Edit screen', () => {
+  const [complete] = storedSnapshots;
+  if (!complete) throw new Error('fixture has the worked examples');
+
+  it('puts Delete after the form, outside it, so Enter in its name field never saves', () => {
+    const html = render(<EditProject project={projectFrom(complete)} onReload={() => {}} />);
+    const formEnd = html.indexOf('</form>');
+    expect(formEnd).toBeGreaterThan(html.indexOf('Save changes'));
+    expect(html.indexOf('Delete this project')).toBeGreaterThan(formEnd);
+  });
+
+  it('still offers Delete when the plan cannot be edited', () => {
+    const text = renderText(
+      <EditProject
+        project={projectFrom(null, {
+          unreadable: { reason: 'malformed', message: 'The stored snapshot is not a snapshot.' },
+          version: null,
+        })}
+        onReload={() => {}}
+      />,
+    );
+    expect(text).toContain('so it cannot be edited.');
+    expect(text).toContain('Delete this project Delete project');
   });
 });
 

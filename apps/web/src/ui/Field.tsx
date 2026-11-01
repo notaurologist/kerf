@@ -1,5 +1,6 @@
 import { type ReactNode, useId } from 'react';
 import { ErrorText, goToField, InputNeeded } from './feedback.tsx';
+import { Icon, type IconName } from './Icon.tsx';
 import { Stack } from './layout.tsx';
 import { Text } from './text.tsx';
 
@@ -180,6 +181,32 @@ export function CompactSelect(props: {
         value={props.value}
         onChange={(e) => props.onChange(e.target.value)}
       >
+        {props.options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+/**
+ * A menu shown as an icon for its value, over the device's own menu, which takes the tap, for a
+ * bar with no room for words. `label` is read by screen readers and shown as a tooltip.
+ */
+export function IconSelect<V extends string>(props: {
+  label: string;
+  value: V;
+  icon: IconName;
+  options: readonly { value: V; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="k-icon-select" title={props.label}>
+      <Icon name={props.icon} />
+      <span className="k-visually-hidden">{props.label}</span>
+      <select value={props.value} onChange={(e) => props.onChange(e.target.value)}>
         {props.options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}

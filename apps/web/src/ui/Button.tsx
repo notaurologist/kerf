@@ -1,4 +1,5 @@
 import type { MouseEvent, ReactNode, Ref } from 'react';
+import { Icon, type IconName } from './Icon.tsx';
 
 // Buttons say what they do: a verb and the thing it acts on (docs/design/content.md).
 
@@ -55,6 +56,55 @@ export function ButtonLink(props: {
       aria-keyshortcuts={props.keyshortcuts}
     >
       {props.children}
+    </a>
+  );
+}
+
+/** `quiet` draws no box, for a bar that is itself the frame, such as the title bar. */
+type IconButtonVariant = 'secondary' | 'quiet';
+
+/**
+ * An icon in place of words, for a common action whose icon is well known, at a full control's
+ * size. `label` names it for screen readers and as a tooltip.
+ */
+export function IconButton(props: {
+  icon: IconName;
+  label: string;
+  variant?: IconButtonVariant;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="k-button"
+      data-variant={props.variant ?? 'secondary'}
+      data-icon-only=""
+      title={props.label}
+      onClick={props.onClick}
+    >
+      <Icon name={props.icon} />
+      <span className="k-visually-hidden">{props.label}</span>
+    </button>
+  );
+}
+
+/** An `IconButton` that goes to another screen. */
+export function IconButtonLink(props: {
+  icon: IconName;
+  label: string;
+  href: string;
+  variant?: IconButtonVariant;
+}) {
+  return (
+    <a
+      className="k-button"
+      data-variant={props.variant ?? 'secondary'}
+      data-icon-only=""
+      title={props.label}
+      href={props.href}
+    >
+      <Icon name={props.icon} />
+      <span className="k-visually-hidden">{props.label}</span>
     </a>
   );
 }

@@ -19,6 +19,7 @@ import {
   Button,
   Cluster,
   Frame,
+  IconButton,
   Loading,
   Notice,
   Page,
@@ -197,9 +198,12 @@ export function App() {
         actions={
           <>
             <ThemeSwitch />
-            <Button variant="link" onClick={() => leaveGate.confirm(() => void logout())}>
-              Log out
-            </Button>
+            <IconButton
+              icon="log-out"
+              label="Log out"
+              variant="quiet"
+              onClick={() => leaveGate.confirm(() => void logout())}
+            />
           </>
         }
       >

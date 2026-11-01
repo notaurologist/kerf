@@ -67,15 +67,6 @@
     display: none;
   }
 
-  /* A heading the contents moves focus to shows where focus went without a box around it. */
-  .k-section > h2:focus {
-    outline: none;
-  }
-
-  .k-section > h2:focus-visible {
-    outline: var(--focus-width) solid var(--focus);
-  }
-
   /* ---------- Figures (#119): a label over a value, as many to a row as fit ---------- */
   /* The plan's headline figures (Stage 10): ruled like a drawing's title block, and set large so
      the summary reads as the answer. */
@@ -209,6 +200,51 @@
     font-weight: inherit;
     text-decoration: underline;
     text-underline-offset: 0.15em;
+  }
+
+  /* An icon in place of words, square at a full control's size. */
+  .k-button[data-icon-only] {
+    min-inline-size: var(--control-min);
+    padding-inline: 0;
+  }
+
+  .k-button:where([data-icon-only]) .k-icon,
+  .k-icon-select .k-icon {
+    inline-size: 1.25em;
+    block-size: 1.25em;
+  }
+
+  .k-button[data-variant="quiet"] {
+    border-color: transparent;
+    background: none;
+    color: var(--link);
+  }
+
+  /* The theme menu: the choice's icon over the device's own menu, which takes the tap. */
+  .k-icon-select {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--control-min);
+    min-block-size: var(--control-min);
+    border-radius: var(--radius);
+    color: var(--link);
+  }
+
+  .k-icon-select select {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    opacity: 0;
+    font-size: var(--size-0);
+    cursor: pointer;
+  }
+
+  .k-icon-select:has(select:focus-visible) {
+    outline: var(--focus-width) solid var(--focus);
+    outline-offset: var(--focus-offset);
   }
 
   /* Busy: says what is happening and cannot be pressed twice, without the faded look of
@@ -801,30 +837,14 @@
   /* ---------- Touch (#253) ----------
      Controls answer a press by dimming, in place of the browser's gray tap flash, and a long
      press on one does not select its words. Text and numbers stay selectable. */
-  :is(
-    .k-button,
-    .k-tick,
-    .k-titlebar a,
-    .k-titlebar__menu,
-    .k-modebar__menu,
-    .k-sidebar a,
-    .k-tabbar a
-  ) {
+  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a, .k-tabbar a) {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
   }
 
-  :is(
-    .k-button,
-    .k-tick,
-    .k-titlebar a,
-    .k-titlebar__menu,
-    .k-modebar__menu,
-    .k-sidebar a,
-    .k-tabbar a
-  ):active {
+  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a, .k-tabbar a):active {
     opacity: var(--pressed-opacity);
   }
 
@@ -921,36 +941,16 @@
     }
   }
 
-  .k-titlebar__menu {
+  .k-titlebar__actions {
     grid-column: 3;
     justify-self: end;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    min-inline-size: var(--control-min);
-    min-block-size: var(--control-min);
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--link);
-    cursor: pointer;
   }
 
-  /* The theme and Log out: a menu under the title bar on a phone, the sidebar's foot when wide. */
-  .k-frame__actions:popover-open {
-    inset: auto;
-    inset-block-start: calc(var(--control-min) + var(--space-3xs));
-    inset-inline-end: var(--space-s);
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-xs);
-    padding: var(--space-s);
-    border: var(--border-thin) solid var(--border-strong);
-    border-radius: var(--radius);
-    background: var(--raised);
-    color: var(--text);
+  /* The same actions at the sidebar's foot, shown only when the frame is wide. */
+  .k-frame__actions {
+    display: none;
   }
 
   .k-frame__side {
@@ -1072,21 +1072,10 @@
     }
 
     .k-frame__actions {
-      position: static;
-      inset: auto;
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       gap: var(--space-xs);
-      inline-size: auto;
-      block-size: auto;
-      margin: 0;
       margin-block-start: auto;
-      padding: 0;
-      border: 0;
-      overflow: visible;
-      background: none;
-      color: inherit;
     }
 
     /* The plan's sections are in the sidebar, so its own contents column goes. */
@@ -1373,30 +1362,9 @@
     gap: var(--space-xs);
   }
 
-  .k-modebar__menu {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-inline-size: var(--control-min);
-    min-block-size: var(--control-min);
-    padding: 0;
+  .k-modebar .k-icon-select {
     border: var(--border-thick) solid var(--on-mode);
-    border-radius: var(--radius);
-    background: none;
     color: var(--on-mode);
-    cursor: pointer;
-  }
-
-  .k-modebar__actions:popover-open {
-    inset: auto;
-    inset-block-start: calc(var(--control-min) + var(--space-s));
-    inset-inline-end: var(--space-s);
-    margin: 0;
-    padding: var(--space-s);
-    border: var(--border-thin) solid var(--border-strong);
-    border-radius: var(--radius);
-    background: var(--raised);
-    color: var(--text);
   }
 
   .k-modebar .k-button {
