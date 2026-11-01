@@ -303,6 +303,7 @@ describe('buildSteps with a panel', () => {
       count: 2,
       width: 16.25,
       length: 21.4375,
+      thickness: 0.75,
     },
     {
       id: 'side/rip',
@@ -451,9 +452,10 @@ describe('dadoes', () => {
       },
       inventory(['router'], ...marking),
     )[0];
-    expect(op?.operations[0]?.method?.setup[0]).toBe(
+    expect(op?.operations[0]?.method?.setup.slice(0, 2)).toEqual([
+      'Measure the thickness of the part the dado holds, and cut the dado to that, not to the plan\'s 3/4": a flattened panel can come out a little thinner.',
       'Fit a straight bit no wider than the dado, 3/4", and set it to cut 3/16" deep, in shallow cuts if the bit is small.',
-    );
+    ]);
     expect(op?.flags.map((f) => f.category)).toEqual(['router']);
   });
 });

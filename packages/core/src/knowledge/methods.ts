@@ -142,6 +142,7 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     count,
     width: { kind: 'length', of: (op) => op.width },
     length: { kind: 'length', of: (op) => op.length },
+    thickness: { kind: 'length', of: (op) => op.thickness },
   },
   rip: {
     count,
@@ -377,6 +378,10 @@ const MITER_SAW_THROUGH = [
  * build steps use the first method the inventory supports. Stationary and guided power tools come
  * first because they hold the angle and the line for you; hand tools come last.
  */
+/** The plan gives the housed part's thickness; the part as made is what the dado must fit. */
+const DADO_FROM_THE_PART =
+  "Measure the thickness of the part the dado holds, and cut the dado to that, not to the plan's {width}: a flattened panel can come out a little thinner.";
+
 export const METHODS = [
   // Crosscut (square)
   {
@@ -990,7 +995,7 @@ export const METHODS = [
     ],
     technique: [
       'Feed the panel with the grain, taking light cuts and turning it over each time so both faces come down evenly.',
-      'Stop when a straightedge laid across the {width} panel touches everywhere.',
+      'Stop when a straightedge laid across the {width} panel touches everywhere, and plane both faces evenly down to {thickness}.',
       'Flatten {count} this way.',
     ],
     mistakes: [
@@ -1014,7 +1019,7 @@ export const METHODS = [
     ],
     technique: [
       'Sand across each joint until the faces are level, then sand the whole face with the grain.',
-      'Check with a straightedge laid across the {width} panel as you go.',
+      'Check with a straightedge laid across the {width} panel as you go. Stop once it touches everywhere: the panel should still be at least {thickness} thick.',
       'Flatten {count} this way.',
     ],
     mistakes: [
@@ -1110,6 +1115,7 @@ export const METHODS = [
     tools: [{ use: 'cutting the dado', anyOf: [{ tool: 'router' }] }, TAPE, SQUARE, CLAMPS],
     skills: ['measure-and-mark', 'square-a-line', 'rout-along-a-guide'],
     setup: [
+      DADO_FROM_THE_PART,
       'Fit a straight bit no wider than the dado, {width}, and set it to cut {depth} deep, in shallow cuts if the bit is small.',
       'Measure from the bit to the edge of the router base, to set the guide back by that much.',
     ],
@@ -1145,6 +1151,7 @@ export const METHODS = [
     ],
     skills: ['measure-and-mark', 'square-a-line', 'guide-a-circular-saw', 'pare-to-a-line'],
     setup: [
+      DADO_FROM_THE_PART,
       'Set the blade to cut {depth} deep, and check it on scrap.',
       'Clamp the part to the bench with the dado clear of the clamps.',
     ],
@@ -1175,7 +1182,7 @@ export const METHODS = [
       CLAMPS,
     ],
     skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'pare-to-a-line'],
-    setup: ['Clamp the part flat to the bench.'],
+    setup: [DADO_FROM_THE_PART, 'Clamp the part flat to the bench.'],
     technique: [
       'Mark both walls of the dado across the face, and its depth, {depth}, on both edges.',
       'Saw each wall on the waste side of its line, down to the depth lines on both edges.',
@@ -1205,6 +1212,7 @@ export const METHODS = [
     ],
     skills: ['measure-and-mark', 'square-a-line', 'rout-along-a-guide', 'pare-to-a-line'],
     setup: [
+      DADO_FROM_THE_PART,
       'Fit a straight bit no wider than the dado, {width}, and set it to cut {depth} deep, in shallow cuts if the bit is small.',
       'Measure from the bit to the edge of the router base, to set the guide and the stop back by that much.',
     ],
@@ -1235,7 +1243,7 @@ export const METHODS = [
       CLAMPS,
     ],
     skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'pare-to-a-line'],
-    setup: ['Clamp the part flat to the bench.'],
+    setup: [DADO_FROM_THE_PART, 'Clamp the part flat to the bench.'],
     technique: [
       'Mark both walls, the stopped end {length} in from the open edge, and the depth, {depth}, on the open edge.',
       'Chop a small recess at the stopped end, to the full depth, so the saw has room to work.',

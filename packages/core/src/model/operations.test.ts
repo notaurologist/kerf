@@ -137,7 +137,7 @@ describe('cutAndDrillOperations', () => {
 
 describe('panel operations', () => {
   const cherry = { nominal: '1x6 cherry', thickness: 0.75, width: 5.5, buyableFeet: [4, 6, 8] };
-  const allowances = { jointPerEdge: 1 / 16, rip: 0.5, trimPerEnd: 1 };
+  const allowances = { jointPerEdge: 1 / 16, rip: 0.5, trimPerEnd: 1, flatten: 0 };
   const panel = (id: string, width: number): Part => {
     const made = panelStock({ thickness: 0.75, width, length: 19.4375, board: cherry, allowances });
     if (!made.ok) throw new Error(made.issue.message);
@@ -186,7 +186,15 @@ describe('panel operations', () => {
         width: 16.25,
         length: 21.4375,
       },
-      { id: 'side/flatten', type: 'flatten', ...side, count: 2, width: 16.25, length: 21.4375 },
+      {
+        id: 'side/flatten',
+        type: 'flatten',
+        ...side,
+        count: 2,
+        width: 16.25,
+        length: 21.4375,
+        thickness: 0.75,
+      },
       {
         id: 'side/rip',
         type: 'rip',

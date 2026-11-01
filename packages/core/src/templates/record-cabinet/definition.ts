@@ -1,4 +1,4 @@
-import type { TemplateDefinition } from '../../model/definition.ts';
+import type { SnapshotUpgrade, TemplateDefinition } from '../../model/definition.ts';
 import { cutList } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import type { KeyResult } from '../../outputs/plan.ts';
@@ -29,6 +29,42 @@ function keyResults(outputs: RecordCabinetOutputs): KeyResult[] {
   ];
 }
 
+type Stored = Record<string, unknown>;
+
+/**
+ * Shape 1 to 2: plans made before template version 2 took nothing off a glued-up panel for
+ * flattening, so their allowance is 0, and each flatten operation brings its panel to the
+ * panel's own thickness. Nothing is recomputed.
+ */
+const addFlattening: SnapshotUpgrade = (snapshot) => {
+  const flat = (allowances: unknown) => ({ ...(allowances as Stored), flatten: 0 });
+  const withFlat = (params: Stored) => ({ ...params, allowances: flat(params.allowances) });
+  const outputs = snapshot.outputs as {
+    design: { params: Stored; parts: { id: string; stock: Stored }[]; operations: Stored[] };
+  };
+  const { design } = outputs;
+  const thickness = new Map(design.parts.map((part) => [part.id, part.stock.thickness]));
+  return {
+    ...snapshot,
+    params: withFlat(snapshot.params as Stored),
+    outputs: {
+      ...outputs,
+      design: {
+        ...design,
+        params: withFlat(design.params),
+        parts: design.parts.map((part) =>
+          'allowances' in part.stock
+            ? { ...part, stock: { ...part.stock, allowances: flat(part.stock.allowances) } }
+            : part,
+        ),
+        operations: design.operations.map((op) =>
+          op.type === 'flatten' ? { ...op, thickness: thickness.get(op.partId as string) } : op,
+        ),
+      },
+    },
+  };
+};
+
 export const recordCabinet: TemplateDefinition<
   RecordCabinetParams,
   RecordCabinetStructuralInputs,
@@ -43,8 +79,8 @@ export const recordCabinet: TemplateDefinition<
   outputs: RecordCabinetOutputs,
   storedOutputs: RecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
-  snapshotVersion: 1,
-  snapshotUpgrades: {},
+  snapshotVersion: 2,
+  snapshotUpgrades: { 1: addFlattening },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,
   steps: (outputs) => stepOutline(outputs.design),

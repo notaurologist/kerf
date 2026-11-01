@@ -15,7 +15,7 @@ const made = panelStock({
   width: 15,
   length: 19.4375,
   board: { nominal: '1x6 cherry', thickness: 0.75, width: 5.5, buyableFeet: [8] },
-  allowances: { jointPerEdge: 1 / 16, rip: 0.5, trimPerEnd: 1 },
+  allowances: { jointPerEdge: 1 / 16, rip: 0.5, trimPerEnd: 1, flatten: 0 },
 });
 if (!made.ok) throw new Error(made.issue.message);
 const square = { setting: 0, description: 'Square', measuredFrom: 'reference-edge' as const };
