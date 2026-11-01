@@ -20,6 +20,7 @@ import {
   SectionPager,
   Stack,
   StatusLine,
+  useFrameProject,
   WithContents,
 } from '../../ui/index.ts';
 import { Boards } from '../boards/Boards.tsx';
@@ -84,6 +85,13 @@ export function ProjectView(props: {
   const current = sections.find((s) => s.id === props.section) ?? PLAN_SECTIONS[0];
   const at = (section: PlanSectionId, part?: string) =>
     href({ screen: 'project', id: project.id, section, ...(part ? { part } : {}) });
+  const items = sections.map((s) => ({ id: s.id, title: s.title, href: at(s.id) }));
+  // From 52.5rem the frame's sidebar lists the sections in place of the contents column (#265).
+  useFrameProject({
+    name: project.name,
+    href: href({ screen: 'project', id: project.id }),
+    ...(plan.ok ? { sections: { items, current: current.id } } : {}),
+  });
   // The part selected in a drawing or the cut list (#39, Q3), carried in the address (#156).
   // Selecting it replaces the history entry, so selections do not fill Back; selecting it again
   // clears it.
@@ -157,10 +165,7 @@ export function ProjectView(props: {
         <Notice>{plan.message}</Notice>
       ) : (
         // Section order A (#40): the same reading order in the contents, on screen, and on paper.
-        <WithContents
-          items={sections.map((s) => ({ id: s.id, title: s.title, href: at(s.id) }))}
-          current={current.id}
-        >
+        <WithContents items={items} current={current.id}>
           <PlanSection {...section('summary')} newPage={false}>
             <PlanSummary
               project={project}

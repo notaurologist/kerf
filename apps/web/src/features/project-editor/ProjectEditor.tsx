@@ -49,6 +49,7 @@ import {
   Tick,
   useDraft,
   useFormIssues,
+  useFrameProject,
   WithAside,
 } from '../../ui/index.ts';
 import { belongsTo, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
@@ -282,6 +283,8 @@ function EditProject(props: { project: Project; from?: PlanSectionId; onReload: 
   const { project } = props;
   const template = findTemplate(project.templateId);
   const back = { href: href({ screen: 'project', id: project.id }), label: project.name };
+  // The title bar's back link names the project (#265).
+  useFrameProject({ name: back.label, href: back.href });
   if (!template) {
     return (
       <ProblemScreen title={`Edit ${project.name}`} back={back}>
