@@ -22,7 +22,7 @@ export type ProgressKind = z.infer<typeof ProgressKind>;
 export interface ProgressItem {
   kind: ProgressKind;
   /**
-   * Stable across regenerations: a lumber line by its nominal size and length ("lumber/2x6/12"),
+   * Stable across regenerations: a lumber line by its stock's name and length ("lumber/2x6/12"),
    * a hardware line by its description ("hardware/..."), a board by its ID in the board plan
    * (`boardIds`), a part's piece by part ID and instance from 0 ("post/3"), a step by its ID.
    */

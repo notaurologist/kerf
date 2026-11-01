@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { FlagCategory } from '../knowledge/categories.ts';
-import { Stock } from '../lumber/stock.ts';
+import { PartStock } from '../lumber/panel.ts';
 
 // Shared shapes of template output. Each is a Zod schema with its type inferred from it, so the
 // same definition types the code and parses a project snapshot (decision 0003). These are what a
@@ -109,7 +109,7 @@ export const Part = z.object({
   name: z.string(),
   /** What the part does in its template, such as 'post'. Set by the template. */
   role: z.string(),
-  stock: Stock,
+  stock: PartStock,
   quantity: z.number().int(),
   /** Overall length, long point to long point: the stock each piece needs. */
   length: z.number(),

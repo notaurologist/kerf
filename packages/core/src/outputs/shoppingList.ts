@@ -1,18 +1,19 @@
 import { z } from 'zod';
-import { NOMINAL_SIZES, type NominalSize } from '../lumber/stock.ts';
+import { isPanel } from '../lumber/panel.ts';
 import { Issue, type Part } from '../model/types.ts';
 import { formatLength } from '../units/length.ts';
 
 // Groups parts into boards to buy (PRODUCT.md, MVP feature 4; DOMAIN.md, Buyable lengths).
 // This is simple grouping, not optimization: first-fit decreasing into the longest board, then
-// each board is shortened to the smallest buyable length that still holds its pieces.
+// each board is shortened to the smallest buyable length that still holds its pieces. A panel's
+// boards are pieces of its board stock, each the panel's board length.
 
 export interface BoardOptions {
   /** Width of the saw blade's cut, charged once per piece. */
   kerf: number;
   /** Trimmed off each factory end before cutting, since factory ends are often not square. */
   trimPerEnd: number;
-  /** Lengths the store sells, in feet. */
+  /** Lengths the store sells dimension lumber in, in feet. Board stock gives its own. */
   buyableFeet: readonly number[];
 }
 
@@ -22,7 +23,8 @@ export const DEFAULT_BOARD_OPTIONS: BoardOptions = {
   buyableFeet: [8, 10, 12, 14, 16],
 };
 
-const Nominal = z.enum(NOMINAL_SIZES as [NominalSize, ...NominalSize[]]);
+/** A stock's name: a nominal size for dimension lumber, or the owner's name for board stock. */
+const Nominal = z.string();
 
 export const PlannedPiece = z.object({
   partId: z.string(),
@@ -100,26 +102,58 @@ export function planLumber(
   parts: readonly Part[],
   options: BoardOptions = DEFAULT_BOARD_OPTIONS,
 ): LumberPlan {
-  const lengths = [...options.buyableFeet].sort((a, b) => a - b);
-  const longestFeet = lengths[lengths.length - 1] ?? 0;
   const issues: Issue[] = [];
   const notes: string[] = [
     `Allows ${formatLength(options.kerf)} for each saw cut and trims ${formatLength(options.trimPerEnd)} off each factory end.`,
   ];
 
-  // Pieces grouped by stock, longest first.
-  const byStock = new Map<NominalSize, PlannedPiece[]>();
-  for (const part of parts) {
-    const pieces = byStock.get(part.stock.nominal) ?? [];
-    for (let i = 0; i < part.quantity; i++) {
-      pieces.push({ partId: part.id, name: part.name, length: part.length });
+  // Pieces grouped by stock, longest first, with the lengths each stock is sold in. Two stocks
+  // with one name but different sizes or lengths would be bought as one, so that is refused.
+  type Group = { size: string; feet: readonly number[]; pieces: PlannedPiece[] };
+  const byStock = new Map<string, Group>();
+  const add = (
+    stock: { nominal: string; thickness: number; width: number },
+    feet: readonly number[],
+    piece: PlannedPiece,
+    count: number,
+  ) => {
+    const size = JSON.stringify([stock.thickness, stock.width, [...feet].sort((a, b) => a - b)]);
+    const group = byStock.get(stock.nominal) ?? { size, feet, pieces: [] };
+    if (group.size !== size) {
+      issues.push({
+        code: 'stock-name-reused',
+        message: `Two different stocks are both named ${stock.nominal}. Give each its own name.`,
+        params: [],
+      });
+      return;
     }
-    byStock.set(part.stock.nominal, pieces);
+    for (let i = 0; i < count; i++) group.pieces.push({ ...piece });
+    byStock.set(stock.nominal, group);
+  };
+  for (const part of parts) {
+    const { stock } = part;
+    if (isPanel(stock)) {
+      add(
+        stock.board,
+        stock.board.buyableFeet,
+        { partId: part.id, name: `${part.name} board`, length: stock.boardLength },
+        part.quantity * stock.boards,
+      );
+    } else {
+      add(
+        stock,
+        options.buyableFeet,
+        { partId: part.id, name: part.name, length: part.length },
+        part.quantity,
+      );
+    }
   }
 
   const boards: PlannedBoard[] = [];
-  for (const [nominal, pieces] of byStock) {
-    pieces.sort((a, b) => b.length - a.length);
+  for (const [nominal, group] of byStock) {
+    const lengths = [...group.feet].sort((a, b) => a - b);
+    const longestFeet = lengths[lengths.length - 1] ?? 0;
+    const pieces = group.pieces.sort((a, b) => b.length - a.length);
     const open: PlannedPiece[][] = [];
     for (const piece of pieces) {
       if (used([piece], options) > longestFeet * 12) {
