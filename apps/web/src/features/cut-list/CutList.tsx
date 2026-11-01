@@ -124,12 +124,18 @@ export function CutList(props: {
             label: 'Marks and notes',
             width: 'fill',
             cell: (row) =>
-              row.marks.length === 0 && row.notes.length === 0 ? (
+              row.marks.length === 0 && row.notes.length === 0 && !row.panel ? (
                 <Text tone="muted" as="span">
                   None
                 </Text>
               ) : (
                 <PlainList gap="xs">
+                  {row.panel && (
+                    <li>
+                      Glued up from{' '}
+                      {marked(`${path(row)}.panel.recipe`, <Readings text={row.panel.recipe} />)}.
+                    </li>
+                  )}
                   {row.marks.map((m, i) => (
                     <li key={m.label}>
                       {m.label}:{' '}

@@ -22,6 +22,7 @@ import {
   Measured,
   PartLetter,
   PlainList,
+  Readings,
   SawSetting,
   ScreenHeading,
   Stack,
@@ -282,15 +283,49 @@ export function CutCard(props: {
         <PartLetter>{row.letter}</PartLetter> {row.name}
       </ScreenHeading>
       <BesideDrawing drawing={detail} minWidth={560}>
-        <Text>
-          {row.stock}. Cut {row.quantity}.
-          {step.board &&
-            ` From board ${step.board.number}, a ${step.board.nominal} ${formatBoardLength(step.board.feet)} long.`}
-        </Text>
-        <Stack gap="3xs">
-          <Text>Length, long point to long point</Text>
-          <Glance>{row.length}</Glance>
-        </Stack>
+        {row.panel ? (
+          step.board ? (
+            // A panel's boards are cut to their length on the boards; the panel comes later.
+            <>
+              <Text>
+                {row.stock}, glued up from <Readings text={row.panel.recipe} />. Cut {pieces.length}{' '}
+                of its boards from board {step.board.number}, a {step.board.nominal}{' '}
+                {formatBoardLength(step.board.feet)} long.
+              </Text>
+              <Stack gap="3xs">
+                <Text>Each board's length</Text>
+                <Glance>{row.panel.boardLength}</Glance>
+              </Stack>
+            </>
+          ) : (
+            <>
+              <Text>
+                {row.stock}, glued up from <Readings text={row.panel.recipe} />. Make {row.quantity}
+                .
+              </Text>
+              <Stack gap="3xs">
+                <Text>Length</Text>
+                <Glance>{row.length}</Glance>
+              </Stack>
+              <Stack gap="3xs">
+                <Text>Width</Text>
+                <Glance>{row.panel.width}</Glance>
+              </Stack>
+            </>
+          )
+        ) : (
+          <>
+            <Text>
+              {row.stock}. Cut {row.quantity}.
+              {step.board &&
+                ` From board ${step.board.number}, a ${step.board.nominal} ${formatBoardLength(step.board.feet)} long.`}
+            </Text>
+            <Stack gap="3xs">
+              <Text>Length, long point to long point</Text>
+              <Glance>{row.length}</Glance>
+            </Stack>
+          </>
+        )}
         {described?.referenceEdge && (
           <Text>
             Lay out each angle on the face marked with a loop in the drawing, from the{' '}
