@@ -19,6 +19,7 @@ const plan = (p: {
 }) => ({
   flags: p.flags ?? [],
   checks: (p.checks ?? []) as CheckResult[],
+  movement: [],
   checklist: (p.checklist ?? []) as ChecklistItem[],
   cutList: p.cutList ?? [],
   lumber: (p.lumber ?? { notes: [], selection: [] }) as LumberPlan,

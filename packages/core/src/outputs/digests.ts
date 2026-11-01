@@ -89,8 +89,18 @@ function structuralReview(plan: Plan): string {
         return 'No structural checks';
     }
   })();
+  const needed = plan.movement.filter((m) => m.status === 'input-needed').length;
+  const movement =
+    plan.movement.length === 0
+      ? []
+      : [
+          needed > 0
+            ? `${count(plan.movement.length, 'movement estimate')}, ${needed} ${needed === 1 ? 'needs' : 'need'} inputs`
+            : count(plan.movement.length, 'movement estimate'),
+        ];
   return [
     margin,
+    ...movement,
     flags.length === 0 ? 'no expert checks' : count(flags.length, 'expert check'),
     ...(checklist.length > 0 ? [`${count(checklist.length, 'item')} to confirm`] : []),
   ].join(' · ');

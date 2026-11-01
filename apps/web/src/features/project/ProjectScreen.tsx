@@ -29,7 +29,11 @@ import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { Diagrams } from '../diagrams/Diagrams.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
-import { STRUCTURAL_REVIEW_INTRO, StructuralReview } from '../structural/StructuralReview.tsx';
+import {
+  STRUCTURAL_REVIEW_INTRO,
+  StructuralReview,
+  WOOD_MOVEMENT_INTRO,
+} from '../structural/StructuralReview.tsx';
 import { DeleteProject } from './DeleteProject.tsx';
 import { ParametersAndInputs } from './ParametersAndInputs.tsx';
 import { PlanSummary } from './PlanSummary.tsx';
@@ -71,6 +75,7 @@ export function ProjectView(props: {
       plan.ok
         ? planTerms(plan.plan, steps?.steps ?? [], [
             STRUCTURAL_REVIEW_INTRO,
+            ...(plan.plan.movement.length > 0 ? [WOOD_MOVEMENT_INTRO] : []),
             CUT_LIST_INTRO,
             ...(hasSteps ? [BUILD_STEPS_INTRO] : []),
           ])
@@ -208,6 +213,7 @@ export function ProjectView(props: {
               flags={plan.plan.flags}
               checklist={plan.plan.checklist}
               boltLayout={plan.plan.boltLayout}
+              movement={plan.plan.movement}
             />
           </PlanSection>
           <PlanSection {...section('cut-list')} intro={CUT_LIST_INTRO}>

@@ -5,12 +5,12 @@ import type { BuildStep } from './build.ts';
 
 // The glossary terms a plan uses, for the printed plan, where a term's popover cannot open
 // (#180). Found in the same text the screens mark (docs/design/content.md, Definitions): flags,
-// check names and load cases, the checklist, the cut list's end cuts, the shopping list's notes
+// check names and load cases, what each movement estimate is for, the checklist, the cut list's end cuts, the shopping list's notes
 // and board selection guides, and each chosen method's setup, technique, and common mistakes.
 
 type PlanWithText = Pick<
   Plan,
-  'flags' | 'checks' | 'checklist' | 'cutList' | 'lumber' | 'hardwareNotes'
+  'flags' | 'checks' | 'movement' | 'checklist' | 'cutList' | 'lumber' | 'hardwareNotes'
 >;
 
 /** The plan's text that can use glossary terms. */
@@ -19,6 +19,7 @@ export function planText(plan: PlanWithText, steps: readonly BuildStep[]): strin
   return [
     ...plan.flags.flatMap((f) => [f.ask, f.why]),
     ...plan.checks.flatMap((c) => [`${c.title}: ${c.subject}`, c.loadCase]),
+    ...plan.movement.map((m) => m.subject),
     ...plan.checklist.flatMap((item) => [item.confirm, item.why]),
     ...plan.cutList.flatMap((row) => row.ends),
     ...plan.lumber.notes,

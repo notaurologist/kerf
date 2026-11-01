@@ -1,5 +1,6 @@
 import type { Operation } from '../model/operations.ts';
 import type { ChecklistItem, EndCut, Flag } from '../model/types.ts';
+import type { MovementResult } from '../movement/movement.ts';
 import type { BoltJoint } from '../structural/boltDistances.ts';
 import type { CheckResult } from '../structural/types.ts';
 import type { CutListRow } from './cutList.ts';
@@ -34,6 +35,12 @@ export interface Plan {
   flags: Flag[];
   /** Sanity checks, in the order to show them. */
   checks: CheckResult[];
+  /**
+   * How much each solid-wood part the template allows for moves across its grain (DOMAIN.md,
+   * Wood movement), in the order to show them. Estimates, not checks: no margin. Empty for a
+   * template that reports none.
+   */
+  movement: MovementResult[];
   checklist: ChecklistItem[];
   /** Each bolted joint's distances against NDS 2024 (#93). Empty for plans made before it. */
   boltLayout: BoltJoint[];
