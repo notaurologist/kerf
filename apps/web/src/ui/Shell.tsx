@@ -36,6 +36,20 @@ export interface FrameProject {
 /** Where the title bar's back link goes; `project` is the open project, named by its screen. */
 export type Back = { label: string; href: string } | 'project';
 
+/** A menu button's `aria-expanded`, following its popover's own toggle event. */
+function usePopoverOpen() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const toggle = (e: Event) => setOpen((e as ToggleEvent).newState === 'open');
+    element.addEventListener('toggle', toggle);
+    return () => element.removeEventListener('toggle', toggle);
+  }, []);
+  return { ref, open };
+}
+
 const FrameContext = createContext<(project: FrameProject | undefined) => void>(() => {});
 
 /** For a project's screens: shows the project in the frame while the screen is open. */
@@ -64,15 +78,7 @@ export function Frame(props: {
 }) {
   const [project, setProject] = useState<FrameProject>();
   const actionsId = useId();
-  const actions = useRef<HTMLDivElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  useEffect(() => {
-    const element = actions.current;
-    if (!element) return;
-    const toggle = (e: Event) => setMenuOpen((e as ToggleEvent).newState === 'open');
-    element.addEventListener('toggle', toggle);
-    return () => element.removeEventListener('toggle', toggle);
-  }, []);
+  const { ref: actions, open: menuOpen } = usePopoverOpen();
   const back =
     props.back === 'project' ? project && { label: project.name, href: project.href } : props.back;
   const title = props.back && props.back !== 'project' ? project?.name : undefined;
@@ -183,14 +189,31 @@ export function ModeBar(props: {
   exitHref: string;
   end?: ReactNode;
 }) {
+  const menuId = useId();
+  const { ref: menu, open } = usePopoverOpen();
   return (
     <header className="k-modebar" data-density="shop" data-mode={props.mode.toLowerCase()}>
-      <span>
+      <span className="k-modebar__name">
         <b>{props.mode}</b>
-        {props.context && ` · ${props.context}`}
+        {props.context && <span className="k-modebar__context">{` · ${props.context}`}</span>}
       </span>
       <span className="k-modebar__end">
-        {props.end}
+        {props.end && (
+          <>
+            <button
+              type="button"
+              className="k-modebar__menu"
+              popoverTarget={menuId}
+              aria-expanded={open}
+            >
+              <Icon name="menu" />
+              <span className="k-visually-hidden">Menu</span>
+            </button>
+            <div ref={menu} id={menuId} popover="auto" className="k-modebar__actions">
+              {props.end}
+            </div>
+          </>
+        )}
         <a className="k-button" data-variant="secondary" href={props.exitHref}>
           Exit
         </a>

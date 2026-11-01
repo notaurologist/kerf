@@ -746,14 +746,30 @@
   /* ---------- Touch (#253) ----------
      Controls answer a press by dimming, in place of the browser's gray tap flash, and a long
      press on one does not select its words. Text and numbers stay selectable. */
-  :is(.k-button, .k-tick, .k-titlebar a, .k-titlebar__menu, .k-sidebar a, .k-tabbar a) {
+  :is(
+    .k-button,
+    .k-tick,
+    .k-titlebar a,
+    .k-titlebar__menu,
+    .k-modebar__menu,
+    .k-sidebar a,
+    .k-tabbar a
+  ) {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
   }
 
-  :is(.k-button, .k-tick, .k-titlebar a, .k-titlebar__menu, .k-sidebar a, .k-tabbar a):active {
+  :is(
+    .k-button,
+    .k-tick,
+    .k-titlebar a,
+    .k-titlebar__menu,
+    .k-modebar__menu,
+    .k-sidebar a,
+    .k-tabbar a
+  ):active {
     opacity: var(--pressed-opacity);
   }
 
@@ -1266,9 +1282,9 @@
   }
 
   /* Wraps rather than scroll sideways at narrow widths. */
+  /* One row at any width (Stage 10): the name is cut short before the controls wrap. */
   .k-modebar {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-s);
@@ -1282,11 +1298,50 @@
     background: var(--mode-shopping);
   }
 
+  /* The mode's name always shows in full; the project's name is cut short first. */
+  .k-modebar__name {
+    display: flex;
+    min-inline-size: 0;
+    white-space: pre;
+  }
+
+  .k-modebar__context {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .k-modebar__end {
     display: flex;
-    flex-wrap: wrap;
+    flex: none;
     align-items: center;
     gap: var(--space-xs);
+  }
+
+  .k-modebar__menu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--control-min);
+    min-block-size: var(--control-min);
+    padding: 0;
+    border: var(--border-thick) solid var(--on-mode);
+    border-radius: var(--radius);
+    background: none;
+    color: var(--on-mode);
+    cursor: pointer;
+  }
+
+  .k-modebar__actions:popover-open {
+    inset: auto;
+    inset-block-start: calc(var(--control-min) + var(--space-s));
+    inset-inline-end: var(--space-s);
+    margin: 0;
+    padding: var(--space-s);
+    border: var(--border-thin) solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--raised);
+    color: var(--text);
   }
 
   .k-modebar .k-button {

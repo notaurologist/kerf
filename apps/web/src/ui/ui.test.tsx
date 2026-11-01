@@ -553,14 +553,30 @@ describe('ModeFrame', () => {
     expect(html).toContain('<main class="l-page" data-density="shop">');
   });
 
-  it('puts what it is given in the bar before Exit', () => {
-    expect(
-      renderText(
-        <ModeFrame mode="Building" exitHref="#/projects/1" end={<span>Theme menu</span>}>
-          x
-        </ModeFrame>,
-      ),
-    ).toContain('Building Theme menu Exit');
+  it('puts what it is given in a Menu before Exit, so the bar stays one row', () => {
+    const frame = (
+      <ModeFrame mode="Building" exitHref="#/projects/1" end={<span>Theme menu</span>}>
+        x
+      </ModeFrame>
+    );
+    expect(renderText(frame)).toContain('Building Menu Theme menu Exit');
+    const html = render(frame);
+    const id = html.match(/popovertarget="([^"]+)"/i)?.[1];
+    expect(id).toBeTruthy();
+    expect(html).toContain(`aria-expanded="false"`);
+    expect(html).toContain(
+      `id="${id}" popover="auto" class="k-modebar__actions"><span>Theme menu</span>`,
+    );
+  });
+
+  it('has no Menu when there is nothing to put in it', () => {
+    const html = render(
+      <ModeFrame mode="Shopping" exitHref="#/projects/1">
+        x
+      </ModeFrame>,
+    );
+    expect(html).not.toContain('k-modebar__menu');
+    expect(html).toContain('<span class="k-modebar__name"><b>Shopping</b></span>');
   });
 
   it('marks its bar with the mode, for the mode color', () => {
