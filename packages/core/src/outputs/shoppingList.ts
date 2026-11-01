@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isPanel } from '../lumber/panel.ts';
+import { type BoardStock, isPanel } from '../lumber/panel.ts';
 import { Issue, type Part } from '../model/types.ts';
 import { formatLength } from '../units/length.ts';
 
@@ -46,6 +46,8 @@ export const ShoppingLine = z.object({
   nominal: Nominal,
   feet: z.number(),
   count: z.number().int(),
+  /** For stock sold by the board foot: the board feet these boards make, with the waste added. */
+  boardFeet: z.number().optional(),
 });
 export type ShoppingLine = z.infer<typeof ShoppingLine>;
 
@@ -109,16 +111,36 @@ export function planLumber(
 
   // Pieces grouped by stock, longest first, with the lengths each stock is sold in. Two stocks
   // with one name but different sizes or lengths would be bought as one, so that is refused.
-  type Group = { size: string; feet: readonly number[]; pieces: PlannedPiece[] };
+  type Group = {
+    size: string;
+    feet: readonly number[];
+    pieces: PlannedPiece[];
+    byBoardFoot?: { width: number } & NonNullable<BoardStock['byBoardFoot']>;
+  };
   const byStock = new Map<string, Group>();
   const add = (
-    stock: { nominal: string; thickness: number; width: number },
+    stock: {
+      nominal: string;
+      thickness: number;
+      width: number;
+      byBoardFoot?: BoardStock['byBoardFoot'];
+    },
     feet: readonly number[],
     piece: PlannedPiece,
     count: number,
   ) => {
-    const size = JSON.stringify([stock.thickness, stock.width, [...feet].sort((a, b) => a - b)]);
-    const group = byStock.get(stock.nominal) ?? { size, feet, pieces: [] };
+    const size = JSON.stringify([
+      stock.thickness,
+      stock.width,
+      [...feet].sort((a, b) => a - b),
+      stock.byBoardFoot ?? null,
+    ]);
+    const group = byStock.get(stock.nominal) ?? {
+      size,
+      feet,
+      pieces: [],
+      ...(stock.byBoardFoot ? { byBoardFoot: { ...stock.byBoardFoot, width: stock.width } } : {}),
+    };
     if (group.size !== size) {
       issues.push({
         code: 'stock-name-reused',
@@ -187,12 +209,26 @@ export function planLumber(
     }
   }
 
+  // Board feet (American Softwood Lumber Standard, PS 20-10, 2.2): nominal thickness in inches ×
+  // width in feet × length in feet, for each board the plan counts on, plus the waste allowance.
   const counts = new Map<string, ShoppingLine>();
   for (const board of boards) {
     const key = `${board.nominal}/${board.feet}`;
     const line = counts.get(key) ?? { nominal: board.nominal, feet: board.feet, count: 0 };
     line.count += 1;
+    const sold = byStock.get(board.nominal)?.byBoardFoot;
+    if (sold) {
+      const feet = sold.nominalThickness * (sold.width / 12) * board.feet * (1 + sold.waste);
+      line.boardFeet = (line.boardFeet ?? 0) + feet;
+    }
     counts.set(key, line);
+  }
+  for (const [nominal, group] of byStock) {
+    const sold = group.byBoardFoot;
+    if (!sold) continue;
+    notes.push(
+      `${nominal} is sold by the board foot in random widths. The boards are planned ${formatLength(sold.width)} wide, with ${Math.round(sold.waste * 100)}% more board feet for defects and offcuts; wider boards need fewer.`,
+    );
   }
 
   const selection = parts

@@ -25,7 +25,7 @@ export const WORKED_EXAMPLE: RecordCabinetParams = {
   jacket: 12.375,
   turntable: { width: 16.5, depth: 13.5, lidHeight: 15 },
   speaker: { width: 14.33, height: 7.99, depth: 6.06, place: 'top' },
-  board: { thickness: 0.8125, width: 5.5, lengths: [4, 6, 8] },
+  board: { source: 'store', thickness: 0.8125, width: 5.5, lengths: [4, 6, 8] },
   allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },
 };
 
@@ -54,7 +54,7 @@ export const EDGE_EXAMPLE: RecordCabinetParams = {
   footWidth: 3,
   turntable: { width: 15, depth: 13, lidHeight: 15 },
   // 5/4 surfaced two sides is 1-1/16" (Wood Handbook, Table 6-4), which flattens to 1".
-  board: { thickness: 1.0625, width: 5.5, lengths: [4, 6, 8] },
+  board: { source: 'store', thickness: 1.0625, width: 5.5, lengths: [4, 6, 8] },
 };
 
 export const EXAMPLES: readonly {

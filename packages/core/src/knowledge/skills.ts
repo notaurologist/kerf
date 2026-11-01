@@ -93,6 +93,24 @@ export const SKILLS = [
       'Take the faces down evenly until a straightedge laid across and along the panel touches everywhere, with no step at any joint.',
   },
   {
+    id: 'fit-an-assembly',
+    name: 'Fitting an assembly dry',
+    description:
+      'Put the parts together without glue, check that every joint closes and the assembly is square, and mark how each part goes back.',
+  },
+  {
+    id: 'glue-up-an-assembly',
+    name: 'Gluing up an assembly',
+    description:
+      'Glue and close one joint group at a time, clamp evenly until a small bead squeezes out, and pull the assembly square by its diagonals before the glue sets.',
+  },
+  {
+    id: 'apply-a-finish',
+    name: 'Applying a finish',
+    description:
+      'Sand with the grain, clear the dust, and wipe on thin coats as the finish’s instructions say, storing used rags safely.',
+  },
+  {
     id: 'clamp-parts-in-place',
     name: 'Clamping parts in place',
     description:

@@ -13,6 +13,9 @@ const length = (path: string, label: string, help?: string): FormField => ({
   ...(help ? { help } : {}),
 });
 
+const fromDealer = (value: (path: string) => string) => value('board.source') === 'dealer';
+const fromStore = (value: (path: string) => string) => !fromDealer(value);
+
 export const RECORD_CABINET_FORM: TemplateForm = {
   help: 'Measure the window and one of your records before you enter sizes. The joint sizes, boards, and allowances start from usual values: check the boards at your store, and change any of them.',
   params: [
@@ -69,20 +72,36 @@ export const RECORD_CABINET_FORM: TemplateForm = {
     },
     {
       title: 'Lumber',
-      help: 'The surfaced boards your store sells. Enter the lengths it sells in order, as many as apply.',
+      help: 'The boards the panels are glued from. A store sells them in fixed widths and lengths; a dealer sells hardwood by the board foot, in random widths and lengths from 4 to 16 feet.',
       fields: [
-        length(
-          'board.thickness',
-          'Board thickness',
-          'Measure a board. A 1x board is 3/4" thick (American Softwood Lumber Standard).',
-        ),
-        length('board.width', 'Board width', 'Measure a board. A 1x6 is 5-1/2" wide.'),
+        {
+          path: 'board.source',
+          label: 'Where you buy the boards',
+          kind: 'choice',
+          options: [
+            { value: 'store', label: 'A home center, in fixed widths' },
+            { value: 'dealer', label: 'A lumber dealer, by the board foot' },
+          ],
+        },
+        {
+          ...length(
+            'board.thickness',
+            'Board thickness',
+            'Measure a board. A 1x board is 3/4" thick (American Softwood Lumber Standard).',
+          ),
+          when: fromStore,
+        },
+        {
+          ...length('board.width', 'Board width', 'Measure a board. A 1x6 is 5-1/2" wide.'),
+          when: fromStore,
+        },
         ...[0, 1, 2, 3].map(
           (i): FormField => ({
             path: `board.lengths.${i}`,
             label: `Length sold ${i + 1}`,
             kind: 'integer',
             unit: 'ft',
+            when: fromStore,
             ...(i > 0 ? { optional: true as const } : {}),
             ...(i === 0
               ? {
@@ -91,6 +110,38 @@ export const RECORD_CABINET_FORM: TemplateForm = {
               : {}),
           }),
         ),
+        {
+          path: 'board.quarters',
+          label: 'Thickness class',
+          kind: 'choice',
+          options: [4, 5, 6, 8].map((q) => ({ value: q, label: `${q}/4` })),
+          help: 'Hardwood thickness in quarter inches, rough: 4/4 is about 1".',
+          when: fromDealer,
+        },
+        {
+          ...length(
+            'board.surfaced',
+            'Thickness, surfaced two sides',
+            'Ask the dealer to surface two sides. 4/4 surfaces to 13/16" (Wood Handbook, Table 6-4).',
+          ),
+          when: fromDealer,
+        },
+        {
+          ...length(
+            'board.planWidth',
+            'Board width to plan with',
+            'Boards come in random widths; the plan counts boards this wide, and says how wide each must be at least.',
+          ),
+          when: fromDealer,
+        },
+        {
+          path: 'board.wastePercent',
+          label: 'Extra for waste',
+          kind: 'number',
+          unit: '%',
+          help: 'Board feet bought beyond what the plan uses, for defects and offcuts. About 20% is usual.',
+          when: fromDealer,
+        },
         length(
           'allowances.jointPerEdge',
           'Jointing, per glued edge',

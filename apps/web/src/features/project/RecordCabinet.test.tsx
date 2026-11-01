@@ -1,4 +1,4 @@
-import { createSnapshot, recordCabinet } from '@kerf/core';
+import { createSnapshot, recordCabinet, visibleFields } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom } from '../../test/projects.ts';
@@ -76,8 +76,11 @@ describe('a record cabinet started from the worked example', () => {
   it('keeps the board stock, allowances, and joint sizes, so it saves without entering them', () => {
     const start = startValues(template, { kind: 'example', index: 0 }, null);
     if (!start.ok) throw new Error(start.message);
-    const empty = Object.entries(start.initial.params).filter(([, text]) => text === '');
-    expect(empty.map(([path]) => path)).toEqual(['board.lengths.3']);
+    // The dealer's fields are hidden while the board comes from a store.
+    const shown = visibleFields(template.form.params, start.initial.params);
+    const empty = shown.filter((f) => start.initial.params[f.path] === '');
+    expect(empty.map((f) => f.path)).toEqual(['board.lengths.3']);
+    expect(start.initial.params['board.source']).toBe('store');
     expect(start.initial.params.dadoDepth).toBe('3/16');
   });
 });

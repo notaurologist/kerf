@@ -77,6 +77,9 @@ export const Method = z.object({
     'cutout',
     'bolt-holes',
     'ease-edges',
+    'dry-fit',
+    'glue-assembly',
+    'finish',
     'dig-holes',
     'level-pads',
   ] satisfies OperationType[]),
@@ -181,6 +184,9 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     depth: { kind: 'length', of: (op) => op.depth },
   },
   'ease-edges': { count },
+  'dry-fit': { count, reach: { kind: 'length', of: (op) => op.reach } },
+  'glue-assembly': { count, reach: { kind: 'length', of: (op) => op.reach } },
+  finish: { count },
   'dig-holes': { count, depth: { kind: 'length', of: (op) => op.depth } },
   'level-pads': { count },
 };
@@ -248,6 +254,11 @@ const UNPLUG_TO_CHANGE = {
 const WOOD_DUST = {
   text: 'Breathing wood dust can cause respiratory symptoms. Wear a dust mask while you sand, and sweep up the dust rather than blowing it.',
   sources: [{ source: 'osha-wood-dust', locator: 'Overview' }],
+} satisfies z.input<typeof SafetyNote>;
+
+const OILY_RAGS = {
+  text: 'Rags wet with oil-based finish can catch fire on their own. Store them in a tightly sealed metal container, then throw them away.',
+  sources: [{ source: 'usfa-oily-rags', locator: 'Pictograph' }],
 } satisfies z.input<typeof SafetyNote>;
 
 const BURIED_LINES = {
@@ -1586,6 +1597,191 @@ export const METHODS = [
     ],
     safety: [WOOD_DUST],
     flags: [DUST_FLAG],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Dry-fit (an assembly)
+  {
+    id: 'dry-fit-clamps',
+    operation: 'dry-fit',
+    name: 'With clamps',
+    tools: [
+      {
+        use: 'pulling the joints closed',
+        anyOf: [{ tool: 'clamps', needs: [{ capability: 'maxOpening', atLeast: 'reach' }] }],
+      },
+      TAPE,
+    ],
+    skills: ['fit-an-assembly'],
+    setup: [
+      'Clear a flat surface big enough for the whole assembly, and open the clamps past {reach}.',
+      'Lay the parts out in the order they go together, each with its marks facing the way the plan shows.',
+    ],
+    technique: [
+      'Put the parts together without glue, sliding each one into its dadoes.',
+      'Clamp lightly across the assembly, so every joint pulls closed.',
+      'Check every joint: a part should slide in with firm hand pressure and close with no gap.',
+      'Measure both diagonals of the front. When they match, the assembly is square.',
+      'Mark where each part meets its neighbors, so it goes back the same way, then take it apart.',
+    ],
+    mistakes: [
+      'Forcing a tight joint together dry can split a part or leave it stuck. Stop, take it apart, and widen the dado a little.',
+      'Skipping the dry fit means finding a problem after the glue is spread. Fit every joint dry first, the same day you glue.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['dry-fit-by-hand'],
+  },
+  {
+    id: 'dry-fit-by-hand',
+    operation: 'dry-fit',
+    name: 'Without clamps',
+    tools: [TAPE],
+    skills: ['fit-an-assembly'],
+    setup: [
+      'Clear a flat surface big enough for the whole assembly, and have someone help hold the parts.',
+      'Lay the parts out in the order they go together, each with its marks facing the way the plan shows.',
+    ],
+    technique: [
+      'Put the parts together without glue, sliding each one into its dadoes.',
+      'Push each joint closed by hand and look for a gap.',
+      'Measure both diagonals of the front. When they match, the assembly is square.',
+      'Mark where each part meets its neighbors, so it goes back the same way, then take it apart.',
+    ],
+    mistakes: [
+      'Forcing a tight joint together dry can split a part or leave it stuck. Stop, take it apart, and widen the dado a little.',
+      'A joint held closed by hand can hide a gap that clamps would show. Check each one while it is pushed fully home.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Glue and clamp (an assembly). Wood Handbook ch. 10 (p. 10-15): glue left open before the
+  // parts go together dries and makes thick, weak glue lines; too much pressure starves the joint;
+  // and the work stays under pressure until the glue is strong enough to hold the parts.
+  {
+    id: 'glue-assembly-clamps',
+    operation: 'glue-assembly',
+    name: 'With clamps',
+    tools: [
+      {
+        use: 'clamping the assembly',
+        anyOf: [{ tool: 'clamps', needs: [{ capability: 'maxOpening', atLeast: 'reach' }] }],
+      },
+      TAPE,
+    ],
+    skills: ['glue-up-an-assembly'],
+    setup: [
+      'Dry-fit the assembly first, and have every part and clamp within reach: the glue starts to dry as soon as it is spread.',
+      'Open the clamps past {reach}, and cut scrap pads to go under the jaws so they do not dent the faces.',
+    ],
+    technique: [
+      'Spread a thin, even coat of glue in each dado and on the part that goes into it.',
+      'Slide each part into its dadoes, and clamp across the assembly over each joint.',
+      'Tighten the clamps evenly until a small bead of glue squeezes out at each joint.',
+      'Measure both diagonals. If they differ, angle a clamp along the longer one and tighten it until they match.',
+      'Scrape off the squeezed-out glue once it turns rubbery, so it does not keep the finish out.',
+      'Leave the assembly clamped for as long as the glue maker says.',
+    ],
+    mistakes: [
+      'Glue spread long before the parts go together dries on the wood and makes a thick, weak joint. Spread it on one joint group at a time and close it right away.',
+      'Clamping as hard as you can squeezes out the glue the joint needs. Tighten only until a small, even bead appears.',
+      'Taking the clamps off early lets the joints shift or open. Leave them on for as long as the glue maker says.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'glue-assembly-clamps-and-cauls',
+    operation: 'glue-assembly',
+    name: 'With clamps and cauls',
+    tools: [
+      {
+        use: 'clamping the assembly',
+        anyOf: [{ tool: 'clamps', needs: [{ capability: 'maxOpening', atLeast: 'reach' }] }],
+      },
+      TAPE,
+    ],
+    skills: ['glue-up-an-assembly'],
+    setup: [
+      'Dry-fit the assembly first, and have every part and clamp within reach: the glue starts to dry as soon as it is spread.',
+      'Open the clamps past {reach}, and cut straight scrap boards for cauls, as long as each joint, to go under the jaws.',
+    ],
+    technique: [
+      'Spread a thin, even coat of glue in each dado and on the part that goes into it.',
+      'Slide each part into its dadoes.',
+      'Lay a caul along each joint on the outside face, and clamp across the assembly at each end of the caul, so the pressure spreads along the whole joint.',
+      'Tighten the clamps evenly until a small bead of glue squeezes out along each joint.',
+      'Measure both diagonals. If they differ, angle a clamp along the longer one and tighten it until they match.',
+      'Scrape off the squeezed-out glue once it turns rubbery, so it does not keep the finish out.',
+      'Leave the assembly clamped for as long as the glue maker says.',
+    ],
+    mistakes: [
+      'Glue spread long before the parts go together dries on the wood and makes a thick, weak joint. Spread it on one joint group at a time and close it right away.',
+      'Clamping as hard as you can squeezes out the glue the joint needs. Tighten only until a small, even bead appears.',
+      'Taking the clamps off early lets the joints shift or open. Leave them on for as long as the glue maker says.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['glue-assembly-clamps'],
+  },
+
+  // Finish
+  {
+    id: 'finish-wipe-on',
+    operation: 'finish',
+    name: 'Sanded, then wiped on',
+    tools: [{ use: 'sanding the faces', anyOf: [{ tool: 'sander' }] }],
+    skills: ['apply-a-finish'],
+    setup: [
+      'Choose the finish with an experienced builder, and read its instructions for coats, drying time, and ventilation.',
+      'Work where fresh air moves through, away from flames and heat.',
+    ],
+    technique: [
+      'Sand every face a person can see or touch, with the grain, ending with finer paper than you started with.',
+      'Vacuum the dust, then wipe the faces with a clean cloth.',
+      'Wipe on a thin coat with a clean rag, then wipe off what has not soaked in, as the instructions say.',
+      'Let it dry as long as the instructions say, sand lightly with fine paper, and add as many coats as they call for.',
+    ],
+    mistakes: [
+      'Sanding across the grain leaves scratches that the finish makes stand out. Sand with the grain.',
+      'A thick coat dries soft and sticky. Wipe on thin coats and wipe off the excess.',
+    ],
+    safety: [OILY_RAGS, WOOD_DUST],
+    flags: [categoryFlag('finishes')],
+    easierThan: ['finish-hand-sanded'],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'finish-hand-sanded',
+    operation: 'finish',
+    name: 'Sanded by hand, then wiped on',
+    tools: [CLAMPS],
+    skills: ['apply-a-finish'],
+    setup: [
+      'Choose the finish with an experienced builder, and read its instructions for coats, drying time, and ventilation.',
+      'Work where fresh air moves through, away from flames and heat.',
+      'Wrap sandpaper around a flat wooden block, so it sands the faces flat instead of rounding them.',
+    ],
+    technique: [
+      'Sand every face a person can see or touch, with the grain, ending with finer paper than you started with.',
+      'Vacuum the dust, then wipe the faces with a clean cloth.',
+      'Wipe on a thin coat with a clean rag, then wipe off what has not soaked in, as the instructions say.',
+      'Let it dry as long as the instructions say, sand lightly with fine paper, and add as many coats as they call for.',
+    ],
+    mistakes: [
+      'Sanding across the grain leaves scratches that the finish makes stand out. Sand with the grain.',
+      'A thick coat dries soft and sticky. Wipe on thin coats and wipe off the excess.',
+    ],
+    safety: [OILY_RAGS, WOOD_DUST],
+    flags: [categoryFlag('finishes')],
     easierThan: [],
     moreAccurateThan: [],
   },

@@ -57,10 +57,20 @@ function stockText(stock: PartStock): string {
 function panelOf(stock: PartStock): CutListRow['panel'] {
   if (!isPanel(stock)) return undefined;
   const { board, boards } = stock;
-  // A board stock named by its size, as the owner's often is, is not given it twice.
-  const named = board.nominal === size(board) ? board.nominal : `${board.nominal} (${size(board)})`;
   const width = formatLength(stock.width);
   const boardLength = formatLength(stock.boardLength);
+  if (board.byBoardFoot && stock.minBoardWidth !== undefined) {
+    // Random widths: each board's least width says what to pick at the yard.
+    const named = `${board.nominal} (${formatLength(board.thickness)} thick)`;
+    const least = formatLength(stock.minBoardWidth);
+    const recipe =
+      boards === 1
+        ? `1 board of ${named}, at least ${least} wide and ${boardLength} long, ripped to ${width}`
+        : `${boards} boards of ${named}, each at least ${least} wide and ${boardLength} long, glued up and ripped to ${width}`;
+    return { width, boardLength, boards, recipe };
+  }
+  // A board stock named by its size, as the owner's often is, is not given it twice.
+  const named = board.nominal === size(board) ? board.nominal : `${board.nominal} (${size(board)})`;
   const recipe =
     boards === 1
       ? `1 board of ${named}, ${boardLength} long, ripped to ${width}`

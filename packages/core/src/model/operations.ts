@@ -142,6 +142,25 @@ export const Operation = z.discriminatedUnion('type', [
   }),
   /** Round over sharp edges and sand off splinters on every face a person can touch. */
   z.object({ ...onPart, type: z.literal('ease-edges') }),
+  /**
+   * Fit parts together without glue, to check every joint before gluing. `reach` is the farthest
+   * a clamp must open across the assembly.
+   */
+  z.object({
+    ...base,
+    type: z.literal('dry-fit'),
+    partIds: z.array(z.string()).min(2),
+    reach: z.number(),
+  }),
+  /** Glue parts together and clamp them until the glue holds, the clamps opening to `reach`. */
+  z.object({
+    ...base,
+    type: z.literal('glue-assembly'),
+    partIds: z.array(z.string()).min(2),
+    reach: z.number(),
+  }),
+  /** Sand and finish every face a person can see or touch. */
+  z.object({ ...base, type: z.literal('finish'), partIds: z.array(z.string()).min(1) }),
   /** Holes dug for parts set below grade. */
   z.object({
     ...base,
@@ -367,6 +386,13 @@ export function boardCuts(operations: readonly Operation[]): OnPart[] {
   );
 }
 
+/** The operation types that put parts together, which a step's action drawing shows. */
+export const JOINING_OPERATION_TYPES: readonly OperationType[] = [
+  'bolt-holes',
+  'dry-fit',
+  'glue-assembly',
+];
+
 /** Each operation type's name, in sentence case, for displays. */
 export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   crosscut: 'Square crosscut',
@@ -382,6 +408,9 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   cutout: 'Cutout',
   'bolt-holes': 'Bolt holes',
   'ease-edges': 'Ease edges',
+  'dry-fit': 'Dry-fit',
+  'glue-assembly': 'Glue and clamp',
+  finish: 'Finish',
   'dig-holes': 'Dig holes',
   'level-pads': 'Level pads',
 };

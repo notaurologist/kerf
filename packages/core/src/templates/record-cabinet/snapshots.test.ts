@@ -7,11 +7,13 @@ import { recordCabinet } from './definition.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
 import v2 from './snapshots/v2.json' with { type: 'json' };
 import v3 from './snapshots/v3.json' with { type: 'json' };
+import v4 from './snapshots/v4.json' with { type: 'json' };
+import v5 from './snapshots/v5.json' with { type: 'json' };
 
 // Stored record-cabinet projects stay readable (decision 0014). Each fixture holds the worked
 // examples as that template version stores them. Fixtures are never rewritten.
 
-const FIXTURES: Record<number, readonly unknown[]> = { 1: v1, 2: v2, 3: v3 };
+const FIXTURES: Record<number, readonly unknown[]> = { 1: v1, 2: v2, 3: v3, 4: v4, 5: v5 };
 const template = recordCabinet as TemplateDefinition;
 
 /** Cut list rows as shapes before 3 stored them, without each panel's board count. */
@@ -67,11 +69,12 @@ describe('record-cabinet snapshot fixtures', () => {
     for (const stored of v1) {
       const read = readSnapshot(templates, stored);
       if (!read.ok) throw new Error(read.message);
-      const { params } = stored as { params: { allowances: object } };
+      const { params } = stored as { params: { allowances: object; board: object } };
       expect(read.snapshot.templateVersion).toBe(1);
       expect(read.snapshot.params).toEqual({
         ...params,
         allowances: { ...params.allowances, flatten: 0 },
+        board: { source: 'store', ...params.board },
       });
       const outputs = recordCabinet.storedOutputs.parse(read.snapshot.outputs);
       const plan = recordCabinet.plan(outputs);
