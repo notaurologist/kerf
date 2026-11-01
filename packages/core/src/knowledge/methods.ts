@@ -71,6 +71,10 @@ export const Method = z.object({
     'glue-up',
     'flatten',
     'rip',
+    'dado',
+    'stopped-dado',
+    'notch',
+    'cutout',
     'bolt-holes',
     'ease-edges',
     'dig-holes',
@@ -143,6 +147,30 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     count,
     width: { kind: 'length', of: (op) => op.width },
     length: { kind: 'length', of: (op) => op.length },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  dado: {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
+  'stopped-dado': {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
+  notch: {
+    count,
+    along: { kind: 'length', of: (op) => op.along },
+    across: { kind: 'length', of: (op) => op.across },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  cutout: {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    depth: { kind: 'length', of: (op) => op.depth },
     thickness: { kind: 'length', of: (op) => op.thickness },
   },
   'bolt-holes': {
@@ -280,6 +308,39 @@ const PLANER_ROLLS = {
       source: 'osha-woodworking-etool',
       locator: 'Planers: hazards',
       url: `${ETOOL}/planers`,
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const ROUTER_BIT = {
+  text: 'Seat the bit in the collet and tighten it before you start: a loose bit can be thrown out of the router. Unplug the router to change it.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Routers: tool projection',
+      url: `${ETOOL}/routers`,
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const ROUTER_FEED = {
+  text: 'Clamp the work and the guide, and feed the router steadily. Feeding abruptly or the wrong way can make it kick back.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Routers: kickbacks',
+      url: `${ETOOL}/routers`,
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const BAND_SAW_GUARD = {
+  text: 'Set the upper guide and guard close above the board, clear of it, and use a push stick when your hand would come near the blade.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Band Saws: point of operation',
+      url: `${ETOOL}/band-saws`,
     },
   ],
 } satisfies z.input<typeof SafetyNote>;
@@ -1036,6 +1097,280 @@ export const METHODS = [
       'A guide that is not straight puts its curve in the part. Sight along the guide board, or use a factory edge.',
     ],
     safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Dado (through)
+  {
+    id: 'dado-router',
+    operation: 'dado',
+    name: 'With a router and a guide',
+    tools: [{ use: 'cutting the dado', anyOf: [{ tool: 'router' }] }, TAPE, SQUARE, CLAMPS],
+    skills: ['measure-and-mark', 'square-a-line', 'rout-along-a-guide'],
+    setup: [
+      'Fit a straight bit no wider than the dado, {width}, and set it to cut {depth} deep, in shallow cuts if the bit is small.',
+      'Measure from the bit to the edge of the router base, to set the guide back by that much.',
+    ],
+    technique: [
+      'Mark both walls of the dado across the face, and square them down the edges.',
+      'Clamp a straight board as a guide so the bit cuts on the waste side of the first wall, along the full {length}.',
+      'Rout the first wall, move the guide for the second wall, rout it, and clear the wood between.',
+      'Check the fit with the part it houses before you unclamp the guide.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Feeding so the bit pulls the base away from the guide wanders the dado off its line. Feed so the bit pulls the base against the guide.',
+      'A dado cut to its full width at once is often too wide for the part it houses. Cut it narrower, then move the guide over and test the fit.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED],
+    flags: [categoryFlag('router')],
+    easierThan: ['dado-circular-saw', 'dado-hand-saw'],
+    moreAccurateThan: ['dado-circular-saw', 'dado-hand-saw'],
+  },
+  {
+    id: 'dado-circular-saw',
+    operation: 'dado',
+    name: 'With a circular saw and a chisel',
+    tools: [
+      {
+        use: 'cutting the walls and the waste',
+        anyOf: [{ tool: 'circular-saw', needs: [{ capability: 'depthOfCut', atLeast: 'depth' }] }],
+      },
+      { use: 'clearing the bottom', anyOf: [{ tool: 'chisel' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'guide-a-circular-saw', 'pare-to-a-line'],
+    setup: [
+      'Set the blade to cut {depth} deep, and check it on scrap.',
+      'Clamp the part to the bench with the dado clear of the clamps.',
+    ],
+    technique: [
+      'Mark both walls of the dado across the face.',
+      'Clamp a square or straight board as a guide and cut each wall on the waste side of its line, the full {length}.',
+      'Make more cuts between the walls, close together.',
+      'Break out the thin strips and pare the bottom flat with a chisel.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'A blade set deeper than the dado weakens the part and shows on the edges. Set the depth on scrap first.',
+    ],
+    safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    flags: [],
+    easierThan: ['dado-hand-saw'],
+    moreAccurateThan: ['dado-hand-saw'],
+  },
+  {
+    id: 'dado-hand-saw',
+    operation: 'dado',
+    name: 'With a hand saw and a chisel',
+    tools: [
+      { use: 'sawing the walls', anyOf: [{ tool: 'hand-saw' }] },
+      { use: 'clearing the waste', anyOf: [{ tool: 'chisel' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'pare-to-a-line'],
+    setup: ['Clamp the part flat to the bench.'],
+    technique: [
+      'Mark both walls of the dado across the face, and its depth, {depth}, on both edges.',
+      'Saw each wall on the waste side of its line, down to the depth lines on both edges.',
+      'Chisel out the waste from both edges toward the middle, then pare the bottom flat.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Sawing past the depth line in the middle of the face leaves a groove below the bottom. Watch both depth lines as you saw.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Stopped dado (reaches one edge and stops short of the other)
+  {
+    id: 'stopped-dado-router',
+    operation: 'stopped-dado',
+    name: 'With a router, a guide, and a stop',
+    tools: [
+      { use: 'cutting the dado', anyOf: [{ tool: 'router' }] },
+      { use: 'squaring the stopped end', anyOf: [{ tool: 'chisel' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'rout-along-a-guide', 'pare-to-a-line'],
+    setup: [
+      'Fit a straight bit no wider than the dado, {width}, and set it to cut {depth} deep, in shallow cuts if the bit is small.',
+      'Measure from the bit to the edge of the router base, to set the guide and the stop back by that much.',
+    ],
+    technique: [
+      'Mark both walls of the dado and where it stops, {length} in from the open edge.',
+      'Clamp a straight board as a guide, and clamp a stop across it where the router base must halt.',
+      'Rout from the open edge until the base meets the stop, then clear the wood between the walls the same way.',
+      'Square the rounded stopped end with a chisel.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Routing past the stop line shows at the edge the dado was meant to hide. Clamp the stop before you start, and check it with the router unplugged.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED],
+    flags: [categoryFlag('router')],
+    easierThan: ['stopped-dado-hand-saw'],
+    moreAccurateThan: ['stopped-dado-hand-saw'],
+  },
+  {
+    id: 'stopped-dado-hand-saw',
+    operation: 'stopped-dado',
+    name: 'With a chisel and a hand saw',
+    tools: [
+      { use: 'chopping the stopped end and clearing the waste', anyOf: [{ tool: 'chisel' }] },
+      { use: 'sawing the walls', anyOf: [{ tool: 'hand-saw' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'pare-to-a-line'],
+    setup: ['Clamp the part flat to the bench.'],
+    technique: [
+      'Mark both walls, the stopped end {length} in from the open edge, and the depth, {depth}, on the open edge.',
+      'Chop a small recess at the stopped end, to the full depth, so the saw has room to work.',
+      'Saw each wall from the open edge to the recess, on the waste side of its line, tilting the saw to reach full depth at the stopped end.',
+      'Chisel out the waste and pare the bottom flat.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Chopping the stopped end with the bevel facing the waste pushes the chisel past the line. Keep the flat of the chisel toward the end wall.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Notch (a corner cut out, through the thickness)
+  {
+    id: 'notch-band-saw',
+    operation: 'notch',
+    name: 'With a band saw',
+    tools: [{ use: 'cutting', anyOf: [{ tool: 'band-saw' }] }, TAPE, SQUARE],
+    skills: ['measure-and-mark', 'square-a-line', 'cut-to-a-line'],
+    setup: ['Set the upper guide a little above the part, {thickness} thick.'],
+    technique: [
+      'Mark the notch: {along} along the edge from the end, and {across} across the end from the edge.',
+      'Cut each line on the waste side, stopping where the two lines meet.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Backing the board out of a long cut can pull the blade off its wheels. Make the shorter cut first, then the longer one to meet it.',
+    ],
+    safety: [BAND_SAW_GUARD],
+    flags: [],
+    easierThan: ['notch-jigsaw', 'notch-hand-saw'],
+    moreAccurateThan: ['notch-jigsaw', 'notch-hand-saw'],
+  },
+  {
+    id: 'notch-jigsaw',
+    operation: 'notch',
+    name: 'With a jigsaw',
+    tools: [
+      {
+        use: 'cutting',
+        anyOf: [{ tool: 'jigsaw', needs: [{ capability: 'depthOfCut', atLeast: 'thickness' }] }],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'cut-to-a-line'],
+    setup: ['Set the blade square to the base, and clamp the part with the corner past the bench.'],
+    technique: [
+      'Mark the notch: {along} along the edge from the end, and {across} across the end from the edge.',
+      'Cut each line on the waste side, stopping where the two lines meet.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'A blade that bends in the cut leaves the notch out of square on the far face. Feed slowly and check the far face.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    flags: [],
+    easierThan: ['notch-hand-saw'],
+    moreAccurateThan: ['notch-hand-saw'],
+  },
+  {
+    id: 'notch-hand-saw',
+    operation: 'notch',
+    name: 'With a hand saw',
+    tools: [{ use: 'cutting', anyOf: [{ tool: 'hand-saw' }] }, TAPE, SQUARE, CLAMPS],
+    skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'cut-to-a-line'],
+    setup: ['Clamp the part upright in a vise or to the bench, with the corner clear.'],
+    technique: [
+      'Mark the notch: {along} along the edge from the end, and {across} across the end from the edge, and square the lines onto both faces.',
+      'Saw each line on the waste side, watching both faces, stopping where the two lines meet.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Sawing past the corner where the lines meet leaves a kerf in the part. Stop each cut at the other line.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Cutout (from an end, through the thickness)
+  {
+    id: 'cutout-band-saw',
+    operation: 'cutout',
+    name: 'With a band saw',
+    tools: [{ use: 'cutting', anyOf: [{ tool: 'band-saw' }] }, TAPE, SQUARE],
+    skills: ['measure-and-mark', 'square-a-line', 'cut-to-a-line'],
+    setup: ['Set the upper guide a little above the part, {thickness} thick.'],
+    technique: [
+      'Mark the cutout: {width} wide, and {depth} in from the end.',
+      'Cut both sides from the end to the depth line, on the waste side.',
+      'Cut the waste away in curves toward the corners, then cut along the depth line to each corner.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Turning the board too tightly for the blade twists it in the cut. Cut gentle curves to remove the waste first, then square the corners.',
+    ],
+    safety: [BAND_SAW_GUARD],
+    flags: [],
+    easierThan: ['cutout-jigsaw'],
+    moreAccurateThan: ['cutout-jigsaw'],
+  },
+  {
+    id: 'cutout-jigsaw',
+    operation: 'cutout',
+    name: 'With a jigsaw',
+    tools: [
+      {
+        use: 'cutting',
+        anyOf: [{ tool: 'jigsaw', needs: [{ capability: 'depthOfCut', atLeast: 'thickness' }] }],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+      { use: 'squaring the corners', anyOf: [{ tool: 'chisel' }] },
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'cut-to-a-line', 'pare-to-a-line'],
+    setup: ['Set the blade square to the base, and clamp the part with the cutout past the bench.'],
+    technique: [
+      'Mark the cutout: {width} wide, and {depth} in from the end.',
+      'Cut both sides from the end to the depth line, on the waste side.',
+      'Cut along the depth line from one side toward the other, curving in to the second corner, then come back to cut that corner square.',
+      'Pare the corners and the depth line square with a chisel.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'A blade that bends in the cut leaves the far face out of line. Feed slowly and check the far face.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],

@@ -21,7 +21,8 @@ export type SwingSetOutputs = z.infer<typeof SwingSetOutputs>;
 // guess: each end cut's reference and each part's reference edge, holes, bolt areas, and tapers
 // (shape 4); each part's board selection guides and the lumber plan's copy of them (shape 7); the
 // parts and hardware each flag and checklist item concerns (shape 10); each hardware item's store
-// group (shape 12). `plan`, `drawings`, and `assembly` fill in what generic code needs.
+// group (shape 12); each part's dadoes, notches, and cutouts (shape 13). `plan`, `drawings`, and
+// `assembly` fill in what generic code needs.
 
 const StoredEndCut = EndCut.partial({ measuredFrom: true });
 const StoredPart = Part.extend({ ends: z.tuple([StoredEndCut, StoredEndCut]) }).partial({
@@ -30,6 +31,9 @@ const StoredPart = Part.extend({ ends: z.tuple([StoredEndCut, StoredEndCut]) }).
   holes: true,
   boltAreas: true,
   tapers: true,
+  dadoes: true,
+  notches: true,
+  cutouts: true,
 });
 export type StoredPart = z.infer<typeof StoredPart>;
 const StoredFlag = Flag.partial({ partIds: true, hardwareIds: true });
@@ -67,6 +71,9 @@ export function drawnPart(part: StoredPart): Part {
     holes: part.holes ?? [],
     boltAreas: part.boltAreas ?? [],
     tapers: part.tapers ?? [],
+    dadoes: part.dadoes ?? [],
+    notches: part.notches ?? [],
+    cutouts: part.cutouts ?? [],
   };
 }
 

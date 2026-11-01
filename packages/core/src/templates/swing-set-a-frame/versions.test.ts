@@ -14,6 +14,7 @@ import v9 from './snapshots/v9.json' with { type: 'json' };
 import v10 from './snapshots/v10.json' with { type: 'json' };
 import v11 from './snapshots/v11.json' with { type: 'json' };
 import v12 from './snapshots/v12.json' with { type: 'json' };
+import v13 from './snapshots/v13.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -75,21 +76,33 @@ const VERSION_10 = [
 const VERSION_12 = [/^design\.hardware\[\d+\]\.(group|notes\[0\])$/, /^hardware\[\d+\]\.group$/];
 /** Version 13's change: the bending check's moment position as its own step, in inches. */
 const VERSION_13 = [/^structuralReview\.\w+\.bending\.steps\[\d+\](\.label)?$/];
+/** Version 14's additions (#300): each part's dadoes, notches, and cutouts, all empty. */
+const VERSION_14 = [/^design\.parts\[\d+\]\.(dadoes|notches|cutouts)$/];
 const notVersion6 = (c: { path: string }) =>
-  ![...VERSION_6, ...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13].some(
+  ![
+    ...VERSION_6,
+    ...VERSION_7,
+    ...VERSION_9,
+    ...VERSION_10,
+    ...VERSION_12,
+    ...VERSION_13,
+    ...VERSION_14,
+  ].some((r) => r.test(c.path));
+const notVersion7 = (c: { path: string }) =>
+  ![...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13, ...VERSION_14].some(
     (r) => r.test(c.path),
   );
-const notVersion7 = (c: { path: string }) =>
-  ![...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13].some((r) =>
+const notVersion9 = (c: { path: string }) =>
+  ![...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13, ...VERSION_14].some((r) =>
     r.test(c.path),
   );
-const notVersion9 = (c: { path: string }) =>
-  ![...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13].some((r) => r.test(c.path));
 const notVersion10 = (c: { path: string }) =>
-  ![...VERSION_10, ...VERSION_12, ...VERSION_13].some((r) => r.test(c.path));
+  ![...VERSION_10, ...VERSION_12, ...VERSION_13, ...VERSION_14].some((r) => r.test(c.path));
 const notVersion12 = (c: { path: string }) =>
-  ![...VERSION_12, ...VERSION_13].some((r) => r.test(c.path));
-const notVersion13 = (c: { path: string }) => !VERSION_13.some((r) => r.test(c.path));
+  ![...VERSION_12, ...VERSION_13, ...VERSION_14].some((r) => r.test(c.path));
+const notVersion13 = (c: { path: string }) =>
+  ![...VERSION_13, ...VERSION_14].some((r) => r.test(c.path));
+const notVersion14 = (c: { path: string }) => !VERSION_14.some((r) => r.test(c.path));
 
 describe('swing-set template versions', () => {
   it('version 2 adds sources and bases to the structural working, and changes no number (#36)', () => {
@@ -317,7 +330,7 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(12);
-      const { changes } = regenerated(read.snapshot);
+      const changes = regenerated(read.snapshot).changes.filter(notVersion14);
       expect(changes.filter(notVersion13)).toEqual([]);
       for (const label of changes.filter((c) => c.path.endsWith('.label'))) {
         // The label loses its three-decimal position and nothing else.
@@ -333,5 +346,20 @@ describe('swing-set template versions', () => {
     }
     // The two worked examples with a bending check: a solid beam and a built-up one.
     expect(checked).toBe(2);
+  });
+
+  it('version 14 adds empty dadoes, notches, and cutouts to every part, and changes nothing else (#300)', () => {
+    for (const stored of v13) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(13);
+      const { changes } = regenerated(read.snapshot);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter(notVersion14)).toEqual([]);
+      for (const c of changes) {
+        expect(c.before).toBeUndefined();
+        expect(c.after).toEqual([]);
+      }
+    }
   });
 });

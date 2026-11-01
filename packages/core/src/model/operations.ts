@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { isPanel, type PanelStock } from '../lumber/panel.ts';
 import { boltHoleDiameter } from '../structural/boltHoles.ts';
-import type { HardwareItem, Part } from './types.ts';
+import type { Dado, HardwareItem, Part } from './types.ts';
 
 // Operations: what needs to happen to each part, before any choice of how (DOMAIN.md, Operations).
 // Methods (#104) say how, given tools; build steps (#105) order them. Generic: the cuts and bolt
@@ -19,6 +19,14 @@ const base = {
 const onPart = {
   ...base,
   partId: z.string(),
+};
+
+const dadoFields = {
+  /** Index into the part's dadoes. */
+  dado: z.number().int().nonnegative(),
+  width: z.number(),
+  length: z.number(),
+  depth: z.number(),
 };
 
 export const Operation = z.discriminatedUnion('type', [
@@ -59,6 +67,31 @@ export const Operation = z.discriminatedUnion('type', [
     type: z.literal('flatten'),
     width: z.number(),
     length: z.number(),
+  }),
+  /**
+   * A dado (Part.dadoes) that reaches two opposite edges. `length` runs between them; `width` is
+   * across it, the housed part's thickness.
+   */
+  z.object({ ...onPart, type: z.literal('dado'), ...dadoFields }),
+  /** A dado that reaches one edge and stops short of the other, so it doesn't show there. */
+  z.object({ ...onPart, type: z.literal('stopped-dado'), ...dadoFields }),
+  /** A corner notch (Part.notches), through the part's thickness. */
+  z.object({
+    ...onPart,
+    type: z.literal('notch'),
+    notch: z.number().int().nonnegative(),
+    along: z.number(),
+    across: z.number(),
+    thickness: z.number(),
+  }),
+  /** A cutout from an end (Part.cutouts), such as between two feet, through the thickness. */
+  z.object({
+    ...onPart,
+    type: z.literal('cutout'),
+    cutout: z.number().int().nonnegative(),
+    width: z.number(),
+    depth: z.number(),
+    thickness: z.number(),
   }),
   /** A cut along the grain, taking a panel or board down to its finished width. */
   z.object({
@@ -160,6 +193,35 @@ export function cutAndDrillOperations(
         thickness,
       });
     });
+    ops.push(...part.dadoes.map((d, i) => dadoOperation(part, d, i)));
+    part.notches.forEach((n, i) => {
+      if (part.ends[n.end].setting !== 0)
+        throw new Error(`${part.id}/notch-${i} is on an angled end`);
+      ops.push({
+        id: `${part.id}/notch-${i}`,
+        type: 'notch',
+        partId: part.id,
+        count: part.quantity,
+        notch: i,
+        along: n.along,
+        across: n.across,
+        thickness,
+      });
+    });
+    part.cutouts.forEach((c, i) => {
+      if (part.ends[c.end].setting !== 0)
+        throw new Error(`${part.id}/cutout-${i} is on an angled end`);
+      ops.push({
+        id: `${part.id}/cutout-${i}`,
+        type: 'cutout',
+        partId: part.id,
+        count: part.quantity,
+        cutout: i,
+        width: c.v1 - c.v0,
+        depth: c.depth,
+        thickness,
+      });
+    });
   }
   for (const item of hardware) {
     if (!item.bolt) continue;
@@ -183,6 +245,45 @@ export function cutAndDrillOperations(
     });
   }
   return ops;
+}
+
+/** Distances within this of an edge are taken as reaching it. */
+const AT_EDGE = 1e-9;
+
+/**
+ * A dado's operation, from the edges it reaches: two opposite edges make it a through dado, one a
+ * stopped dado that runs in from that edge. Any other dado has no operation type yet and is
+ * refused rather than mislabeled.
+ */
+function dadoOperation(part: Part, d: Dado, i: number): Operation {
+  const W = part.stock.width;
+  const L = part.length;
+  const at = (a: number, b: number) => Math.abs(a - b) <= AT_EDGE;
+  const vOpen = [at(d.v0, 0), at(d.v1, W)];
+  const uOpen = [at(d.u0, 0), at(d.u1, L)];
+  const across = { v: d.v1 - d.v0, u: d.u1 - d.u0 };
+  const base = {
+    id: `${part.id}/dado-${i}`,
+    partId: part.id,
+    count: part.quantity,
+    dado: i,
+    depth: d.depth,
+  };
+  const vEdges = vOpen.filter(Boolean).length;
+  const uEdges = uOpen.filter(Boolean).length;
+  if (vEdges === 2 && uEdges === 0)
+    return { ...base, type: 'dado', length: across.v, width: across.u };
+  if (uEdges === 2 && vEdges === 0)
+    return { ...base, type: 'dado', length: across.u, width: across.v };
+  if (vEdges === 1 && uEdges === 0) {
+    return { ...base, type: 'stopped-dado', length: across.v, width: across.u };
+  }
+  if (uEdges === 1 && vEdges === 0) {
+    return { ...base, type: 'stopped-dado', length: across.u, width: across.v };
+  }
+  throw new Error(
+    `${base.id} reaches ${vEdges + uEdges} edges; add an operation type before using one`,
+  );
 }
 
 function panelOperations(part: Part, stock: PanelStock): Operation[] {
@@ -273,6 +374,10 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   'glue-up': 'Glue up',
   flatten: 'Flatten',
   rip: 'Rip to width',
+  dado: 'Dado',
+  'stopped-dado': 'Stopped dado',
+  notch: 'Notch',
+  cutout: 'Cutout',
   'bolt-holes': 'Bolt holes',
   'ease-edges': 'Ease edges',
   'dig-holes': 'Dig holes',

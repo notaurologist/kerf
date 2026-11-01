@@ -25,6 +25,9 @@ const part = {
   holes: [],
   boltAreas: [],
   tapers: [],
+  dadoes: [],
+  notches: [],
+  cutouts: [],
 };
 const concerns = { partIds: [], hardwareIds: [] };
 const flag = { category: 'load-bearing', ask: 'Ask.', why: 'Why.', ...concerns };
@@ -47,7 +50,12 @@ const lumber = {
 };
 
 const cases: [string, z.ZodType, Record<string, unknown>, string[]][] = [
-  ['Part', Part, part, ['selection', 'referenceEdge', 'holes', 'boltAreas', 'tapers']],
+  [
+    'Part',
+    Part,
+    part,
+    ['selection', 'referenceEdge', 'holes', 'boltAreas', 'tapers', 'dadoes', 'notches', 'cutouts'],
+  ],
   ['EndCut', EndCut, end, ['measuredFrom']],
   ['Flag', Flag, flag, ['partIds', 'hardwareIds']],
   ['ChecklistItem', ChecklistItem, item, ['partIds', 'hardwareIds']],

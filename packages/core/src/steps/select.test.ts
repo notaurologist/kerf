@@ -411,6 +411,53 @@ describe('buildSteps with a panel', () => {
   });
 });
 
+describe('dadoes', () => {
+  // A through dado 15" long, 3/4" wide, 3/16" deep, like a shelf's in the cabinet's sides.
+  const dado: Operation = {
+    id: 'side/dado-0',
+    type: 'dado',
+    partId: 'side',
+    count: 2,
+    dado: 0,
+    width: 0.75,
+    length: 15,
+    depth: 0.1875,
+  };
+
+  it('routes a dado when there is a router, and saws it otherwise', () => {
+    expect(selectMethod(dado, inventory(['router'], ...marking)).chosen?.id).toBe('dado-router');
+    const saws = inventory(['circular-saw', { depthOfCut: 2 }], ['chisel'], ...marking);
+    expect(selectMethod(dado, saws).chosen?.id).toBe('dado-circular-saw');
+    expect(selectMethod(dado, inventory(['hand-saw'], ['chisel'], ...marking)).chosen?.id).toBe(
+      'dado-hand-saw',
+    );
+  });
+
+  it("fills the router method's text from the dado, and raises the router check", () => {
+    const op = buildSteps(
+      [{ id: 's', title: 'Cut the dadoes', operationIds: [dado.id], categories: [] }],
+      {
+        operations: [dado],
+        flags: [],
+        lumber: {
+          boards: [],
+          kerf: 0.125,
+          trimPerEnd: 0.5,
+          lines: [],
+          notes: [],
+          issues: [],
+          selection: [],
+        },
+      },
+      inventory(['router'], ...marking),
+    )[0];
+    expect(op?.operations[0]?.method?.setup[0]).toBe(
+      'Fit a straight bit no wider than the dado, 3/4", and set it to cut 3/16" deep, in shallow cuts if the bit is small.',
+    );
+    expect(op?.flags.map((f) => f.category)).toEqual(['router']);
+  });
+});
+
 describe('inventoryKey', () => {
   it('is the same for the same tools in any order, and differs when a capability changes', () => {
     const a = inventory(['hand-saw'], ['circular-saw', { depthOfCut: 2.375 }]);

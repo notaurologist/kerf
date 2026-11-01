@@ -25,6 +25,9 @@ const post: Part = {
   tapers: [
     { description: 'Taper', start: { u: 4, v: 0 }, end: { u: 0, v: 3 }, angleToEdge: 36.87 },
   ],
+  dadoes: [],
+  notches: [],
+  cutouts: [],
 };
 const rail: Part = {
   ...post,
@@ -218,5 +221,90 @@ describe('panel operations', () => {
       'side/board-end-0',
       'side/board-end-1',
     ]);
+  });
+});
+
+describe('dadoes, notches, and cutouts', () => {
+  // A made-up 2x6 rail, 20" long and 5-1/2" wide: square ends at u = 0 and u = 20.
+  const housing: Part = { ...rail, id: 'side', ends: [square, square], length: 20, boltAreas: [] };
+  const dado = (u0: number, u1: number, v0: number, v1: number) => ({
+    withPart: 'shelf',
+    face: 'near' as const,
+    u0,
+    u1,
+    v0,
+    v1,
+    depth: 0.1875,
+  });
+
+  it('makes a through dado of one reaching two opposite edges, and a stopped dado of one reaching one', () => {
+    const part = {
+      ...housing,
+      dadoes: [
+        dado(6, 6.75, 0, 5.5), // across the width, edge to edge
+        dado(0, 20, 2, 2.75), // along the length, end to end
+        dado(16, 19, 5, 5.5), // in from the far edge only
+      ],
+    };
+    const ops = cutAndDrillOperations([part], []).filter((o) => o.type.endsWith('dado'));
+    const base = { partId: 'side', count: 1, depth: 0.1875 };
+    expect(ops).toEqual([
+      { id: 'side/dado-0', type: 'dado', ...base, dado: 0, length: 5.5, width: 0.75 },
+      { id: 'side/dado-1', type: 'dado', ...base, dado: 1, length: 20, width: 0.75 },
+      { id: 'side/dado-2', type: 'stopped-dado', ...base, dado: 2, length: 0.5, width: 3 },
+    ]);
+    for (const op of ops) expect(Operation.safeParse(op).error).toBeUndefined();
+    // Not cut while breaking down boards: the template's outline places them.
+    expect(boardCuts(ops)).toEqual([]);
+  });
+
+  it('refuses a dado closed on every side, or reaching two edges at a corner', () => {
+    const closed = { ...housing, dadoes: [dado(6, 7, 1, 2)] };
+    expect(() => cutAndDrillOperations([closed], [])).toThrow(/side\/dado-0 reaches 0 edges/);
+    const corner = { ...housing, dadoes: [dado(18, 20, 5, 5.5)] };
+    expect(() => cutAndDrillOperations([corner], [])).toThrow(/side\/dado-0 reaches 2 edges/);
+  });
+
+  it('makes a notch and a cutout through the thickness, each from a square end', () => {
+    const part = {
+      ...housing,
+      notches: [{ end: 1 as const, edge: 'far' as const, along: 0.1875, across: 0.5 }],
+      cutouts: [{ end: 0 as const, v0: 1.5, v1: 4, depth: 1 }],
+    };
+    const ops = cutAndDrillOperations([part], []);
+    expect(ops.filter((o) => o.type === 'notch' || o.type === 'cutout')).toEqual([
+      {
+        id: 'side/notch-0',
+        type: 'notch',
+        partId: 'side',
+        count: 1,
+        notch: 0,
+        along: 0.1875,
+        across: 0.5,
+        thickness: 1.5,
+      },
+      // 4 − 1.5 = 2.5 wide.
+      {
+        id: 'side/cutout-0',
+        type: 'cutout',
+        partId: 'side',
+        count: 1,
+        cutout: 0,
+        width: 2.5,
+        depth: 1,
+        thickness: 1.5,
+      },
+    ]);
+  });
+
+  it('refuses a notch or cutout on an angled end', () => {
+    const angled = { ...housing, ends: [square, { ...square, setting: 15 }] } as Part;
+    const notched = {
+      ...angled,
+      notches: [{ end: 1 as const, edge: 'far' as const, along: 1, across: 1 }],
+    };
+    expect(() => cutAndDrillOperations([notched], [])).toThrow(/side\/notch-0 is on an angled end/);
+    const cut = { ...angled, cutouts: [{ end: 1 as const, v0: 1, v1: 2, depth: 1 }] };
+    expect(() => cutAndDrillOperations([cut], [])).toThrow(/side\/cutout-0 is on an angled end/);
   });
 });

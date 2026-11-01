@@ -186,6 +186,6 @@ describe('methodsUsing', () => {
   });
 
   it('lists none for a tool no method uses', () => {
-    expect(methodsUsing('band-saw')).toEqual([]);
+    expect(methodsUsing('drill-press')).toEqual([]);
   });
 });

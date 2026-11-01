@@ -1,4 +1,4 @@
-import type { BoltArea, Flag, Hole, Taper } from '../../model/types.ts';
+import type { BoltArea, Cutout, Dado, Flag, Hole, Notch, Taper } from '../../model/types.ts';
 import {
   type BoltJoint,
   edgeDistance,
@@ -33,6 +33,9 @@ export interface PartFeatures {
   holes: Hole[];
   boltAreas: BoltArea[];
   tapers: Taper[];
+  dadoes: Dado[];
+  notches: Notch[];
+  cutouts: Cutout[];
 }
 
 /** Where a board's bolts go, at each end, in the board's own frame. */
@@ -211,24 +214,36 @@ export function features(
       holes: beamHoles,
       boltAreas: plyArea,
       tapers: [],
+      dadoes: [],
+      notches: [],
+      cutouts: [],
     },
     leg: {
       referenceEdge: 'inner edge, against the beam',
       holes: [legBoltHole, ...legHoles],
       boltAreas: [],
       tapers: [flushCut],
+      dadoes: [],
+      notches: [],
+      cutouts: [],
     },
     crossbar: {
       referenceEdge: 'bottom edge',
       holes: boardFeatures(boardHoles.crossbar),
       boltAreas: [],
       tapers: [],
+      dadoes: [],
+      notches: [],
+      cutouts: [],
     },
     gusset: {
       referenceEdge: 'bottom edge',
       holes: boardFeatures(boardHoles.gusset),
       boltAreas: [],
       tapers: [],
+      dadoes: [],
+      notches: [],
+      cutouts: [],
     },
   };
 }
