@@ -18,19 +18,29 @@ const at = (suggestions: ReturnType<typeof CABINET_QUESTIONS.suggest>, path: str
 describe('record cabinet starting questions', () => {
   const suggestions = CABINET_QUESTIONS.suggest(answers);
 
-  it('puts the top 2" below the stool, and says it stands off the wall above the apron', () => {
-    const height = at(suggestions, 'height');
-    expect(height?.value).toBe(20);
-    expect(height?.basis.kind).toBe('rule-of-thumb');
-    // 20 is above the apron's bottom at 18.
-    expect(height?.note).toBe(
-      'The top is above the bottom of the apron, so the cabinet stands at least 2-1/2" from the wall, clear of the stool.',
+  it('suggests the base, and says how high the top comes out and where it stands', () => {
+    // 3/4" boards flatten to 11/16" panels: 5 + 2-1/2 + 2 × 11/16 + 13-1/4 = 22-1/8, 1/8 above
+    // the 22" stool and above the apron's bottom at 18, so off the wall by the stool's 2-1/2.
+    const legs = at(suggestions, 'legShowing');
+    expect(legs?.value).toBe(5);
+    expect(legs?.note).toBe(
+      'With these sizes the top is 22-1/8" high, 1/8" above the window stool. The top is above the bottom of the stool\'s apron, so the cabinet stands at least 2-1/2" from the wall, clear of the stool.',
     );
-    const low = at(
-      CABINET_QUESTIONS.suggest({ ...answers, window: { ...answers.window, apronBottom: 21 } }),
-      'height',
-    );
-    expect(low?.note).toBeUndefined();
+    const values = (paths: string[]) => paths.map((path) => at(suggestions, path)?.value);
+    // A foot 2/3 of the 1-1/2" leg, 1"; a tenon a third of 3/4", 1/4", and 3/4 + 1/4 = 1" long.
+    expect(
+      values([
+        'apronHeight',
+        'legStock.size',
+        'legStock.lengths.0',
+        'legStock.lengths.1',
+        'footSize',
+        'apronSetback',
+        'tenonThickness',
+        'tenonLength',
+        'bayHeight',
+      ]),
+    ).toEqual([2.5, 1.5, 3, 4, 1, 0.125, 0.25, 1, 13.25]);
   });
 
   it('makes it as wide as the casing, with the stool width for comparison', () => {
@@ -40,24 +50,24 @@ describe('record cabinet starting questions', () => {
   });
 
   it('suggests nothing outside the template’s range, and says why', () => {
-    const tall = at(
-      CABINET_QUESTIONS.suggest({ ...answers, window: { ...answers.window, stoolHeight: 40 } }),
-      'height',
+    const wide = at(
+      CABINET_QUESTIONS.suggest({ ...answers, window: { ...answers.window, casingWidth: 80 } }),
+      'width',
     );
-    expect(tall?.value).toBeNull();
-    expect(tall?.note).toContain('outside 16" to 30"');
+    expect(wide?.value).toBeNull();
+    expect(wide?.note).toContain('outside 30" to 72"');
   });
 
   it('takes the largest item from the answers, and says when it stands above the stool', () => {
-    // The top at 22 − 2 = 20, plus the item's 15, stands 13 above the 22" stool.
+    // On the 22-1/8" top, the item's 15 stands 15-1/8 above the 22" stool.
     const height = at(suggestions, 'topItem.height');
     expect(height?.value).toBe(15);
     expect(height?.note).toBe(
-      'With the top 20" high, it stands 13" above the window stool, in front of the window.',
+      'On the 22-1/8" top, it stands 15-1/8" above the window stool, in front of the window.',
     );
     const low = CABINET_QUESTIONS.suggest({
       ...answers,
-      topItem: { ...answers.topItem, height: 2 },
+      window: { ...answers.window, stoolHeight: 40 },
     });
     expect(at(low, 'topItem.height')?.note).toBeUndefined();
   });
@@ -109,7 +119,11 @@ describe('record cabinet starting questions', () => {
   it('suggests every parameter, and they make a plan', () => {
     const { params } = suggestedValues(recordCabinet.form, suggestions);
     const empty = Object.entries(params).filter(([, text]) => text === '');
-    expect(empty.map(([path]) => path)).toEqual(['board.lengths.3']);
+    expect(empty.map(([path]) => path)).toEqual([
+      'legStock.lengths.2',
+      'legStock.lengths.3',
+      'board.lengths.3',
+    ]);
     const made = recordCabinet.generate(
       recordCabinet.params.parse(buildFromForm(recordCabinet.form.params, params)),
       {},

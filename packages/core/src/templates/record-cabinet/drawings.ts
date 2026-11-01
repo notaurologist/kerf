@@ -12,7 +12,7 @@ import {
   sectionView,
 } from '../../geometry/index.ts';
 import type { Vec3 } from '../../model/types.ts';
-import type { RecordCabinetOutputs } from './outputs.ts';
+import type { StoredRecordCabinetOutputs } from './outputs.ts';
 
 // The cabinet's drawings (spec, Hardware, operations, build steps, drawings): each part's cut
 // detail, the assembled and exploded views, front and end elevations with the bay widths and
@@ -35,7 +35,7 @@ function box(min: Vec3, max: Vec3): Vec3[][] {
   ];
 }
 
-export function cabinetScene(outputs: RecordCabinetOutputs): Scene {
+export function cabinetScene(outputs: StoredRecordCabinetOutputs): Scene {
   const { params: p, geometry: g, parts, placements } = outputs.design;
   const y0 = -p.frontOverhang;
   const mid = (depth: number) => y0 + (g.topDepth - depth) / 2;
@@ -43,36 +43,45 @@ export function cabinetScene(outputs: RecordCabinetOutputs): Scene {
   // size, not a position Kerf chooses for it.
   const item = p.topItem;
   const phantoms = box(
-    at(0, mid(item.depth), p.height),
-    at(item.width, mid(item.depth) + item.depth, p.height + item.height),
+    at(0, mid(item.depth), g.height),
+    at(item.width, mid(item.depth) + item.depth, g.height + item.height),
   );
   return { parts, placements, ground: { point: at(0, 0, 0), up: at(0, 0, 1) }, phantoms };
 }
 
-/** How the exploded view pulls the case apart: the top up, the sides out, shelves and rails away. */
-export function cabinetExplode(outputs: RecordCabinetOutputs): Explode[] {
+/**
+ * How the exploded view pulls the cabinet apart: the top up, the sides out, the rails back, the
+ * case bottom up off the base, and the base's aprons and cleats out from the legs.
+ */
+export function cabinetExplode(outputs: StoredRecordCabinetOutputs): Explode[] {
   const { params: p } = outputs.design;
   const gap = p.caseDepth / 2;
+  const base = p.legStock.size * 2;
+  const offsets: Record<string, Vec3> = {
+    top: at(0, 0, 2 * gap),
+    'side-left': at(-gap, 0, gap),
+    'side-right': at(gap, 0, gap),
+    partition: at(0, 0, gap),
+    rail: at(0, gap, gap),
+    bottom: at(0, 0, gap / 2),
+    'apron-long': at(0, 0, -base / 2),
+    'apron-short': at(0, 0, -base / 2),
+    cleat: at(0, 0, base / 2),
+  };
   return outputs.design.placements.flatMap((pl): Explode[] => {
     const offset =
-      pl.partId === 'top'
-        ? at(0, 0, gap)
-        : pl.partId === 'side-left'
-          ? at(-gap, 0, 0)
-          : pl.partId === 'side-right'
-            ? at(gap, 0, 0)
-            : pl.partId === 'shelf'
-              ? at(0, -gap, 0)
-              : pl.partId === 'rail'
-                ? at(0, gap, 0)
-                : null;
+      pl.partId === 'apron-long'
+        ? at(0, pl.instance === 0 ? -base : base, 0)
+        : pl.partId === 'apron-short'
+          ? at(pl.instance === 0 ? -base : base, 0, 0)
+          : offsets[pl.partId];
     return offset ? [{ partId: pl.partId, instance: pl.instance, offset }] : [];
   });
 }
 
 export const VIEW = isometric(-1, -1);
 
-export function drawings(outputs: RecordCabinetOutputs): Drawings {
+export function drawings(outputs: StoredRecordCabinetOutputs): Drawings {
   const { params: p, geometry: g } = outputs.design;
   const t = p.panelThickness;
   const scene = cabinetScene(outputs);
@@ -85,14 +94,20 @@ export function drawings(outputs: RecordCabinetOutputs): Drawings {
     offset: 2,
   };
   const heights: DimensionChain = {
-    points: [0, p.shelfHeight, p.shelfHeight + t, p.height - t, p.height].map((z) =>
-      at(p.width, 0, z),
-    ),
+    // A plan from before the leg base has no legs to dimension.
+    points: [
+      0,
+      ...(g.legLength === undefined ? [] : [p.legShowing]),
+      g.baseHeight,
+      g.baseHeight + t,
+      g.height - t,
+      g.height,
+    ].map((z) => at(p.width, 0, z)),
     side: 'right',
     offset: 2,
   };
   const depths: DimensionChain = {
-    points: [at(0, -p.frontOverhang, p.height), at(0, 0, p.height), at(0, p.caseDepth, p.height)],
+    points: [at(0, -p.frontOverhang, g.height), at(0, 0, g.height), at(0, p.caseDepth, g.height)],
     side: 'above',
     offset: 2,
   };
@@ -108,7 +123,7 @@ export function drawings(outputs: RecordCabinetOutputs): Drawings {
       scene,
       VIEW,
       cabinetExplode(outputs),
-      'The record cabinet pulled apart: the top lifted, the sides out, the shelves forward, and the back rails back.',
+      'The record cabinet pulled apart: the top lifted, the sides out, the back rails back, the case bottom off the base, and the base’s aprons and cleats out from the legs.',
       'Exploded',
     ),
     cutDetails: outputs.design.parts.map((part) => cutDetail(part)),
@@ -117,7 +132,7 @@ export function drawings(outputs: RecordCabinetOutputs): Drawings {
       elevationView(
         scene,
         front,
-        'The front, with each bay’s clear width and the heights of the shelves and top.',
+        'The front, with each bay’s clear width, and the heights of the legs, aprons, case bottom, and top.',
         'Front elevation',
         [bays, heights],
       ),
@@ -132,7 +147,7 @@ export function drawings(outputs: RecordCabinetOutputs): Drawings {
         scene,
         end,
         { point: at(firstBay, 0, 0), normal: at(-1, 0, 0) },
-        'A section through the middle of the first bay, looking right: the shelf, the back rail, and the top where the plane cuts them, and the partition beyond with its dadoes.',
+        'A section through the middle of the first bay, looking right: the case bottom, the back rail, the top, and the front and back aprons where the plane cuts them, and the partition beyond with its dadoes.',
         'Section through the first bay',
         [heights],
       ),

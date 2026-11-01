@@ -13,37 +13,57 @@ export const CabinetGeometry = z.object({
   clearWidth: z.number(),
   /** b: each bay's clear width. */
   bayWidth: z.number(),
-  /** h_b: each bay's clear height, shelf to the underside of the top. */
+  /** h_b: each bay's clear height, the case bottom to the underside of the top. */
   bayHeight: z.number(),
   /** D_t: the top's depth. */
   topDepth: z.number(),
-  /** H_p: each side's and partition's length, floor to the bottom of the top's dado. */
+  /** z_b: floor to the top of the aprons, where the case bottom sits: h_l + h_a. */
+  baseHeight: z.number(),
+  /** H: floor to the top surface: z_b + t + h_b + t. */
+  height: z.number(),
+  /** H_p: each side's and partition's length, between the bottoms of its two dadoes: h_b + 2j. */
   panelLength: z.number(),
-  /** Each shelf's and back rail's length, b + 2j. */
-  shelfLength: z.number(),
+  /** Each back rail's length, b + 2j. */
+  railLength: z.number(),
   /** The left face of each side and partition, left to right. */
   panelX: z.array(z.number()),
   /** Wood left between a partition's back-to-back dadoes, t − 2j. */
   partitionLeft: z.number(),
+  /** Each leg's length, h_l + h_a. */
+  legLength: z.number(),
+  /** Front and back aprons' length, tenons included: W_c − 2s + 2l_t. */
+  longApron: z.number(),
+  /** Side aprons' length, tenons included: D_c − 2s + 2l_t. */
+  shortApron: z.number(),
+  /** Each cleat's length, between the legs: D_c − 2s. */
+  cleatLength: z.number(),
 });
 export type CabinetGeometry = z.infer<typeof CabinetGeometry>;
 
 export function cabinetGeometry(p: RecordCabinetParams): CabinetGeometry {
   const t = p.panelThickness;
+  const s = p.legStock.size;
   const caseWidth = p.width - 2 * p.endOverhang;
   const clearWidth = caseWidth - 2 * t;
   const bayWidth = (clearWidth - (p.bays - 1) * t) / p.bays;
   const panelX = Array.from({ length: p.bays + 1 }, (_, k) => p.endOverhang + k * (bayWidth + t));
+  const baseHeight = p.legShowing + p.apronHeight;
   return {
     caseWidth,
     clearWidth,
     bayWidth,
-    bayHeight: p.height - t - (p.shelfHeight + t),
+    bayHeight: p.bayHeight,
     topDepth: p.caseDepth + p.frontOverhang,
-    panelLength: p.height - t + p.dadoDepth,
-    shelfLength: bayWidth + 2 * p.dadoDepth,
+    baseHeight,
+    height: baseHeight + t + p.bayHeight + t,
+    panelLength: p.bayHeight + 2 * p.dadoDepth,
+    railLength: bayWidth + 2 * p.dadoDepth,
     panelX,
     partitionLeft: t - 2 * p.dadoDepth,
+    legLength: baseHeight,
+    longApron: caseWidth - 2 * s + 2 * p.tenonLength,
+    shortApron: p.caseDepth - 2 * s + 2 * p.tenonLength,
+    cleatLength: p.caseDepth - 2 * s,
   };
 }
 
@@ -65,20 +85,33 @@ export function validate(p: RecordCabinetParams, g: CabinetGeometry): Issue[] {
       'stoppedSetback',
     ]);
   }
-  if (p.cutoutHeight >= p.shelfHeight) {
-    refuse('cutout-too-tall', 'The cutout between the feet would reach the shelf.', [
-      'cutoutHeight',
-      'shelfHeight',
-    ]);
-  }
-  if (2 * p.footWidth >= p.caseDepth) {
-    refuse('feet-meet', 'The front and back feet would meet.', ['footWidth', 'caseDepth']);
-  }
   if (g.bayHeight < p.jacket) {
     refuse(
       'bay-too-low',
       `Each bay is ${len(g.bayHeight)} high, less than a ${len(p.jacket)} record jacket.`,
-      ['height', 'shelfHeight', 'jacket'],
+      ['bayHeight', 'jacket'],
+    );
+  }
+  const s = p.legStock.size;
+  if (p.footSize >= s) {
+    refuse(
+      'foot-not-tapered',
+      `A ${len(p.footSize)} foot is no smaller than the ${len(s)} leg, so the leg has no taper.`,
+      ['footSize', 'legStock.size'],
+    );
+  }
+  if (p.tenonLength >= s) {
+    refuse(
+      'tenon-too-long',
+      `A ${len(p.tenonLength)} tenon would come out the far side of the ${len(s)} leg.`,
+      ['tenonLength', 'legStock.size'],
+    );
+  }
+  if (p.apronSetback + p.tenonThickness >= s) {
+    refuse(
+      'apron-off-leg',
+      `An apron set back ${len(p.apronSetback)} would put its tenon past the ${len(s)} leg.`,
+      ['apronSetback', 'tenonThickness', 'legStock.size'],
     );
   }
   if (p.caseDepth < p.jacket) {

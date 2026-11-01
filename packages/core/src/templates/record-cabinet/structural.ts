@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { WOOD_SPECIES } from '../../design-values/woodSpecies.ts';
+import { WOOD_SPECIES, woodSpecies } from '../../design-values/woodSpecies.ts';
 import { ChecklistItem, Flag } from '../../model/types.ts';
 import { MovementResult, RingOrientation, woodMovement } from '../../movement/movement.ts';
 import { BeamChecks } from '../../structural/checks.ts';
@@ -9,7 +9,8 @@ import { formatLength } from '../../units/length.ts';
 import type { CabinetGeometry } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
 
-// The structural model (spec, Structural model): each bottom shelf under records, and the top under
+// The structural model (spec, Structural model): the front and back aprons under records and the
+// top's load, and the top under
 // everything on it as one load at midspan (#331), deflection only (#288); each part's wood movement (#284); and the
 // flags and checklist. Every load, the species, and the deflection limit are the owner's to enter.
 
@@ -24,7 +25,7 @@ export const RecordCabinetStructuralInputs = z.object({
       high: z.number().min(0).max(30),
     })
     .optional(),
-  /** Pounds per foot of shelf, from weighing a run of the owner's records. */
+  /** Pounds per foot of records, from weighing a run of the owner's records. */
   recordLoad: z.number().positive().optional(),
   /** Everything that stands on the top, in pounds. */
   topLoad: z.number().positive().optional(),
@@ -37,7 +38,7 @@ export const STRUCTURAL_INPUT_LABELS = {
   species: 'Species',
   orientation: 'Ring orientation',
   moisture: 'Moisture content range in service',
-  recordLoad: 'Records, pounds per foot of shelf',
+  recordLoad: 'Records, pounds per foot',
   topLoad: 'Weight on the top',
   deflectionLimit: 'Deflection limit (span divided by)',
 } as const satisfies Record<keyof RecordCabinetStructuralInputs, string>;
@@ -53,8 +54,45 @@ function need<K extends keyof Inputs>(inputs: Inputs, key: K): Needed<NonNullabl
   return { value: value as NonNullable<Inputs[K]> };
 }
 
+/** How much longer each slot under the case bottom is than its round hole, and why (#338). */
+export interface Slot {
+  length: number;
+  basis: string;
+}
+
+/**
+ * The case bottom's movement front to back, ΔD = D · C · (M_high − M_low), plus 1/16" (DOMAIN.md,
+ * Joints that let wood move). Without the species, ring orientation, and moisture range, it is
+ * sized for the species in Kerf that moves most across a flatsawn face, over the Handbook's 6% to
+ * 10% for individual pieces indoors (Table 13-2), and says so.
+ */
+export function slotFor(p: RecordCabinetParams, inputs: Inputs): Slot {
+  const D = p.caseDepth;
+  const species = inputs.species ? woodSpecies(inputs.species) : undefined;
+  const m = inputs.moisture;
+  if (species && inputs.orientation && m && m.low >= 6 && m.high <= 14 && m.low < m.high) {
+    const C =
+      inputs.orientation === 'quartersawn'
+        ? species.dimensionalChange.radial
+        : species.dimensionalChange.tangential;
+    return {
+      length: D * C * (m.high - m.low) + SLOT_MARGIN,
+      basis: `Each slot is ${formatLength(D * C * (m.high - m.low) + SLOT_MARGIN)} longer than its round hole: the case bottom's movement across its ${formatLength(D)} depth, from the species and moisture range, plus 1/16".`,
+    };
+  }
+  const C = Math.max(...WOOD_SPECIES.map((w) => w.dimensionalChange.tangential));
+  const length = D * C * (10 - 6) + SLOT_MARGIN;
+  return {
+    length,
+    basis: `Each slot is ${formatLength(length)} longer than its round hole, sized for the species in Kerf that moves most, over 6% to 10% moisture, since the species and moisture range are not entered yet. Entering them sizes the slots for your wood.`,
+  };
+}
+
+/** Slack beyond the computed movement, a rule of thumb (DOMAIN.md, Joints that let wood move). */
+const SLOT_MARGIN = 1 / 16;
+
 export const RecordCabinetReview = z.object({
-  shelf: BeamChecks,
+  apron: BeamChecks,
   top: BeamChecks,
   movement: z.array(MovementResult),
   flags: z.array(Flag),
@@ -82,37 +120,62 @@ export function structuralReview(
     basis: 'b + t, from the template geometry',
   };
   const records = need(inputs, 'recordLoad');
-  const shelf = clearWoodChecks({
+  const topLoad = need(inputs, 'topLoad');
+  // Each front and back apron between the legs (spec, The Shaker-modern base), carrying half of
+  // the records along every bay and everything on the top, spread along it.
+  const L = g.caseWidth - 2 * p.legStock.size;
+  const ta = p.board.source === 'store' ? p.board.thickness : p.board.surfaced;
+  const recordLength = p.bays * g.bayWidth;
+  const apronLoad: Needed<{ points: []; uniform: { w: number; label: string } }> =
+    'value' in records && 'value' in topLoad
+      ? {
+          value: {
+            points: [],
+            uniform: {
+              w: ((records.value / 12) * recordLength + topLoad.value) / L / 2,
+              label: 'Half of the records and of everything on the top, per inch of apron',
+            },
+          },
+        }
+      : { missing: [records, topLoad].flatMap((n) => ('missing' in n ? n.missing : [])) };
+  const apron = clearWoodChecks({
     member: {
-      subject: 'Bottom shelf',
-      breadth: p.caseDepth,
-      depth: t,
-      sizeBasis: 'Panel size from the template',
-      supportsX: [0, span],
+      subject: 'Front and back aprons',
+      breadth: ta,
+      depth: p.apronHeight,
+      sizeBasis: 'One board, as thick as the board stock, from the template',
+      supportsX: [0, L],
     },
     species,
     creep: 'seasoned-dry',
     loadCase: {
-      name: 'Records along the shelf, for years',
-      longTerm:
-        'value' in records
-          ? {
-              value: {
-                points: [],
-                uniform: { w: records.value / 12, label: 'Records, per inch of shelf' },
-              },
-            }
-          : records,
+      name: 'Records and everything on the top, for years',
+      longTerm: apronLoad,
       shortTerm: { points: [] },
-      working: [spanWorking],
+      working: [
+        {
+          symbol: 'L',
+          label: 'Span, between the legs',
+          value: L,
+          unit: 'in',
+          basis: 'W_c − 2s, from the template geometry',
+        },
+        {
+          symbol: 'n·b',
+          label: 'Length of records, along every bay',
+          value: recordLength,
+          unit: 'in',
+          basis: 'From the template geometry',
+        },
+      ],
       assumptions: [
-        'Records fill the shelf evenly, end to end.',
-        'Taking the span to the panel centerlines, where the shelf really bears in a dado, overstates it slightly.',
+        'Records fill every bay, and the case bottom passes their weight and everything on the top to the front and back aprons equally.',
+        'Taking the apron alone ignores the case bottom and sides above it, which stiffen it, so this overstates the sag.',
       ],
       limitRatio,
     },
     assumptions: [
-      'The shelf is a simply supported span; the dadoes hold its ends but are taken as pinned.',
+      'Each apron is a simply supported span between its legs; the mortises and tenons hold its ends but are taken as pinned.',
     ],
   });
   const onTop = (subject: string, weight: Needed<number>, label: string) =>
@@ -153,7 +216,7 @@ export function structuralReview(
     moves('Top', g.topDepth),
     moves('Left and right sides', p.caseDepth),
     ...(p.bays > 1 ? [moves('Partition', p.caseDepth)] : []),
-    moves('Bottom shelf', p.caseDepth),
+    moves('Case bottom', p.caseDepth),
     moves('Back rail', p.railHeight),
   ];
 
@@ -161,7 +224,7 @@ export function structuralReview(
   const flags: Flag[] = [
     {
       category: 'load-bearing',
-      ask: `Ask an experienced builder whether ${formatLength(g.partitionLeft)} of wood between each partition's back-to-back dadoes holds the shelves.`,
+      ask: `Ask an experienced builder whether ${formatLength(g.partitionLeft)} of wood between each partition's back-to-back dadoes holds the back rails.`,
       why: `Dadoes ${formatLength(p.dadoDepth)} deep on both faces of a ${formatLength(t)} partition leave ${formatLength(g.partitionLeft)} between them, and no source gives a limit.`,
       ...concerns(['partition']),
     },
@@ -173,9 +236,9 @@ export function structuralReview(
     },
     {
       category: 'load-bearing',
-      ask: 'Ask an experienced builder to look over the shelves under a full load of records, and the top under everything that stands on it.',
-      why: 'Records are heavy and stay for years, and Kerf computes only the shelves’ and top’s sag.',
-      ...concerns(['shelf', 'top']),
+      ask: 'Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.',
+      why: 'Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.',
+      ...concerns(['apron-long', 'leg', 'top']),
     },
   ];
   const checklist: ChecklistItem[] = [
@@ -193,7 +256,15 @@ export function structuralReview(
       confirm:
         'Confirm whether the cabinet, loaded with records and with everything on the top, can tip forward.',
       why: 'It is low and deep, but a heavy top load and a pull on the front can still tip a cabinet.',
-      ...concerns([]),
+      ...concerns(['leg']),
+    },
+    {
+      category: 'racking',
+      element: 'The base: legs and aprons',
+      confirm:
+        'Confirm with an experienced builder that the mortise-and-tenon joints keep the base square and steady under a sideways push.',
+      why: 'Short legs and aprons are a common, proven base, but Kerf does not compute joint strength.',
+      ...concerns(['leg', 'apron-long', 'apron-short']),
     },
     {
       category: 'check-assumptions',
@@ -201,18 +272,18 @@ export function structuralReview(
       confirm:
         'Confirm with an experienced builder how strong the glued dado joints are for this load.',
       why: 'Kerf does not compute joint strength.',
-      ...concerns(['shelf', ...panels]),
+      ...concerns(['bottom', ...panels]),
     },
     {
       category: 'check-assumptions',
-      element: 'Bending and shear of the shelves and top',
-      confirm: 'Confirm the shelves and top are strong enough, not only stiff enough.',
+      element: 'Bending and shear of the aprons and top',
+      confirm: 'Confirm the aprons and top are strong enough, not only stiff enough.',
       why: 'There are no published design values for furniture lumber, so Kerf checks only deflection.',
-      ...concerns(['shelf', 'top']),
+      ...concerns(['apron-long', 'top']),
     },
   ];
   return {
-    shelf,
+    apron,
     top,
     movement,
     flags,

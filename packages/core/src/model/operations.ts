@@ -76,6 +76,11 @@ export const Operation = z.discriminatedUnion('type', [
   z.object({ ...onPart, type: z.literal('dado'), ...dadoFields }),
   /** A dado that reaches one edge and stops short of the other, so it doesn't show there. */
   z.object({ ...onPart, type: z.literal('stopped-dado'), ...dadoFields }),
+  /**
+   * A dado at a part's end, open there and at one edge and stopped short of the other: a rabbet
+   * that doesn't show at that edge.
+   */
+  z.object({ ...onPart, type: z.literal('stopped-rabbet'), ...dadoFields }),
   /** A corner notch (Part.notches), through the part's thickness. */
   z.object({
     ...onPart,
@@ -191,6 +196,12 @@ export const Operation = z.discriminatedUnion('type', [
     type: z.literal('dry-fit'),
     partIds: z.array(z.string()).min(2),
     reach: z.number(),
+  }),
+  /** Drive `count` screws through holes already drilled, joining the parts named, without glue. */
+  z.object({
+    ...base,
+    type: z.literal('fasten'),
+    partIds: z.array(z.string()).min(2),
   }),
   /** Glue parts together and clamp them until the glue holds, the clamps opening to `reach`. */
   z.object({
@@ -399,6 +410,9 @@ function dadoOperation(part: Part, d: Dado, i: number): Operation {
   if (uEdges === 1 && vEdges === 0) {
     return { ...base, type: 'stopped-dado', length: across.u, width: across.v };
   }
+  if (uEdges === 1 && vEdges === 1) {
+    return { ...base, type: 'stopped-rabbet', length: across.v, width: across.u };
+  }
   throw new Error(
     `${base.id} reaches ${vEdges + uEdges} edges; add an operation type before using one`,
   );
@@ -489,6 +503,7 @@ export const JOINING_OPERATION_TYPES: readonly OperationType[] = [
   'bolt-holes',
   'dry-fit',
   'glue-assembly',
+  'fasten',
 ];
 
 /** Each operation type's name, in sentence case, for displays. */
@@ -502,6 +517,7 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   rip: 'Rip to width',
   dado: 'Dado',
   'stopped-dado': 'Stopped dado',
+  'stopped-rabbet': 'Stopped rabbet',
   notch: 'Notch',
   cutout: 'Cutout',
   mortise: 'Mortise',
@@ -511,6 +527,7 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   'ease-edges': 'Ease edges',
   'dry-fit': 'Dry-fit',
   'glue-assembly': 'Glue and clamp',
+  fasten: 'Screw together',
   acclimate: 'Let the lumber settle',
   finish: 'Finish',
   'dig-holes': 'Dig holes',

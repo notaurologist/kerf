@@ -12,7 +12,7 @@ import { RecordCabinetParams } from './params.ts';
 // range and deflection limit are suggested from their sources for the owner to check; the other
 // structural inputs are left for the owner (hard rule 3).
 
-const range = (key: 'height' | 'width') => {
+const range = (key: 'width') => {
   const field = RecordCabinetParams.shape[key];
   return { min: field.minValue ?? 0, max: field.maxValue ?? Infinity };
 };
@@ -105,8 +105,15 @@ const QUESTIONS: readonly FormSection[] = [
 
 const ANSWER: SuggestionBasis = { kind: 'answer' };
 const EXAMPLE: SuggestionBasis = { kind: 'example' };
-/** The owner's choice for this cabinet (spec, Starting questions): 2" below the stool. */
-const BELOW_STOOL = 2;
+/** The base and its joints (spec, The Shaker-modern base): the owner's and rules of thumb. */
+const BASE = {
+  legShowing: 5,
+  apronHeight: 2.5,
+  legSize: 1.5,
+  legLengths: [3, 4],
+  apronSetback: 0.125,
+} as const;
+const sixteenthsDown = (x: number) => Math.floor(x * 16) / 16;
 
 /** A 1x6 board, dry, from the American Softwood Lumber Standard. */
 const ONE_BY_SIX: SuggestionBasis = {
@@ -171,12 +178,7 @@ function panelAndDado(board: number): { panel: number; dado: number } {
 }
 
 /** A suggestion inside the parameter's range, or none, with what the answers allow. */
-function within(
-  path: 'height' | 'width',
-  value: number,
-  basis: SuggestionBasis,
-  note?: string,
-): Suggestion {
+function within(path: 'width', value: number, basis: SuggestionBasis, note?: string): Suggestion {
   const { min, max } = range(path);
   const base = { from: 'params' as const, path, basis };
   if (value >= min && value <= max) return { ...base, value, ...(note ? { note } : {}) };
@@ -191,12 +193,15 @@ function suggest(a: CabinetAnswers): Suggestion[] {
   const w = a.window;
   const dealer = a.lumber.source === 'dealer';
   const { panel, dado } = panelAndDado(dealer ? DEALER.surfaced : BOARD.thickness);
-  const height = w.stoolHeight - BELOW_STOOL;
-  const aboveStool = height + a.topItem.height - w.stoolHeight;
+  // The top's height follows from the base and the bays (owner, November 1, 2026: "taller cabinet").
+  const boardThickness = dealer ? DEALER.surfaced : BOARD.thickness;
+  const height = BASE.legShowing + BASE.apronHeight + 2 * panel + WORKED_EXAMPLE.bayHeight;
+  const aboveStool = height - w.stoolHeight;
   const standsOff =
     height > w.apronBottom
-      ? `The top is above the bottom of the apron, so the cabinet stands at least ${formatLength(w.stoolDepth)} from the wall, clear of the stool.`
-      : undefined;
+      ? ` The top is above the bottom of the stool's apron, so the cabinet stands at least ${formatLength(w.stoolDepth)} from the wall, clear of the stool.`
+      : '';
+  const rule = (text: string): SuggestionBasis => ({ kind: 'rule-of-thumb', rule: text });
   const example = (path: keyof typeof WORKED_EXAMPLE): Suggestion => ({
     from: 'params',
     path,
@@ -204,15 +209,60 @@ function suggest(a: CabinetAnswers): Suggestion[] {
     basis: EXAMPLE,
   });
   return [
-    within(
-      'height',
-      height,
-      {
-        kind: 'rule-of-thumb',
-        rule: `the top ${formatLength(BELOW_STOOL)} below the window stool, the owner's choice for this cabinet`,
-      },
-      standsOff,
+    {
+      from: 'params',
+      path: 'legShowing',
+      value: BASE.legShowing,
+      basis: rule('about 5" of leg below the aprons, the owner\'s choice for this cabinet'),
+      note: `With these sizes the top is ${formatLength(height)} high${aboveStool > 0 ? `, ${formatLength(aboveStool)} above the window stool` : ''}.${standsOff}`,
+    },
+    {
+      from: 'params',
+      path: 'apronHeight',
+      value: BASE.apronHeight,
+      basis: rule('a 2-1/2" apron, in mid-century proportion to the legs'),
+    },
+    {
+      from: 'params',
+      path: 'legStock.size',
+      value: BASE.legSize,
+      basis: rule('1-1/2" square hardwood, as home centers and dealers sell it'),
+      note: 'Measure the leg stock at your store.',
+    },
+    ...BASE.legLengths.map(
+      (feet, i): Suggestion => ({
+        from: 'params',
+        path: `legStock.lengths.${i}`,
+        value: feet,
+        basis: rule("short lengths, since four legs take under 3'"),
+        ...(i === 0 ? { note: 'Change these to the lengths your store sells.' } : {}),
+      }),
     ),
+    {
+      from: 'params',
+      path: 'footSize',
+      value: sixteenthsDown((2 / 3) * BASE.legSize),
+      basis: rule('a foot two-thirds the leg, for a Shaker taper'),
+    },
+    {
+      from: 'params',
+      path: 'apronSetback',
+      value: BASE.apronSetback,
+      basis: rule('a 1/8" step back from the leg, for a shadow line'),
+    },
+    {
+      from: 'params',
+      path: 'tenonThickness',
+      value: sixteenthsDown(boardThickness / 3),
+      basis: rule('a tenon a third of the apron’s thickness, rounded down to 1/16"'),
+    },
+    {
+      from: 'params',
+      path: 'tenonLength',
+      value: BASE.legSize / 2 + 0.25,
+      basis: rule('half the leg plus 1/4", mitered where two tenons meet'),
+    },
+    example('bayHeight'),
     within(
       'width',
       w.casingWidth,
@@ -222,18 +272,7 @@ function suggest(a: CabinetAnswers): Suggestion[] {
       },
       `The stool is ${formatLength(w.stoolWidth)} wide, for comparison.`,
     ),
-    ...(
-      [
-        'caseDepth',
-        'bays',
-        'endOverhang',
-        'frontOverhang',
-        'shelfHeight',
-        'cutoutHeight',
-        'footWidth',
-        'railHeight',
-      ] as const
-    ).map(example),
+    ...(['caseDepth', 'bays', 'endOverhang', 'frontOverhang', 'railHeight'] as const).map(example),
     {
       from: 'params',
       path: 'panelThickness',
@@ -321,9 +360,9 @@ function suggest(a: CabinetAnswers): Suggestion[] {
         path: `topItem.${k}`,
         value: a.topItem[k],
         basis: ANSWER,
-        ...(k === 'height' && aboveStool > 0
+        ...(k === 'height' && aboveStool + a.topItem.height > 0
           ? {
-              note: `With the top ${formatLength(height)} high, it stands ${formatLength(aboveStool)} above the window stool, in front of the window.`,
+              note: `On the ${formatLength(height)} top, it stands ${formatLength(height + a.topItem.height - w.stoolHeight)} above the window stool, in front of the window.`,
             }
           : {}),
       }),

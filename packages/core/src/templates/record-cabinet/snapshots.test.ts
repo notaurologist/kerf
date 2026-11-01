@@ -11,6 +11,7 @@ import v4 from './snapshots/v4.json' with { type: 'json' };
 import v5 from './snapshots/v5.json' with { type: 'json' };
 import v6 from './snapshots/v6.json' with { type: 'json' };
 import v7 from './snapshots/v7.json' with { type: 'json' };
+import v8 from './snapshots/v8.json' with { type: 'json' };
 
 // Stored record-cabinet projects stay readable (decision 0014). Each fixture holds the worked
 // examples as that template version stores them. Fixtures are never rewritten.
@@ -23,6 +24,7 @@ const FIXTURES: Record<number, readonly unknown[]> = {
   5: v5,
   6: v6,
   7: v7,
+  8: v8,
 };
 const template = recordCabinet as TemplateDefinition;
 
@@ -82,19 +84,41 @@ describe('record-cabinet snapshot fixtures', () => {
       const { params } = stored as {
         params: {
           allowances: object;
-          board: object;
+          board: { thickness: number };
           turntable: { width: number; depth: number; lidHeight: number };
           speaker: object;
+          height: number;
+          shelfHeight: number;
+          cutoutHeight: number;
+          footWidth: number;
+          panelThickness: number;
         };
       };
       expect(read.snapshot.templateVersion).toBe(1);
-      const { turntable, speaker: _, ...kept } = params;
-      // The turntable became the largest item on the top (#331).
+      const {
+        turntable,
+        speaker: _,
+        height,
+        shelfHeight,
+        cutoutHeight: __,
+        footWidth: ___,
+        ...kept
+      } = params;
+      // The turntable became the largest item on the top (#331), and the leg base's parameters
+      // take the starting questions' suggestions, its bay height the plan's own (#338).
       expect(read.snapshot.params).toEqual({
         ...kept,
         allowances: { ...params.allowances, flatten: 0 },
         board: { source: 'store', ...params.board },
         topItem: { width: turntable.width, depth: turntable.depth, height: turntable.lidHeight },
+        bayHeight: height - params.panelThickness - (shelfHeight + params.panelThickness),
+        legShowing: 5,
+        apronHeight: 2.5,
+        legStock: { size: 1.5, lengths: [3, 4] },
+        footSize: 1,
+        apronSetback: 0.125,
+        tenonThickness: Math.floor((params.board.thickness / 3) * 16) / 16,
+        tenonLength: 1,
       });
       const outputs = recordCabinet.storedOutputs.parse(read.snapshot.outputs);
       const plan = recordCabinet.plan(outputs);

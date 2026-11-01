@@ -186,6 +186,6 @@ describe('methodsUsing', () => {
   });
 
   it('lists none for a tool no method uses', () => {
-    expect(methodsUsing('impact-driver')).toEqual([]);
+    expect(methodsUsing('chalk-line')).toEqual([]);
   });
 });

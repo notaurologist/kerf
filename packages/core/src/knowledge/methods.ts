@@ -73,6 +73,7 @@ export const Method = z.object({
     'rip',
     'dado',
     'stopped-dado',
+    'stopped-rabbet',
     'notch',
     'cutout',
     'mortise',
@@ -82,6 +83,7 @@ export const Method = z.object({
     'ease-edges',
     'dry-fit',
     'glue-assembly',
+    'fasten',
     'acclimate',
     'finish',
     'dig-holes',
@@ -170,6 +172,12 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     length: { kind: 'length', of: (op) => op.length },
     depth: { kind: 'length', of: (op) => op.depth },
   },
+  'stopped-rabbet': {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
   notch: {
     count,
     along: { kind: 'length', of: (op) => op.along },
@@ -212,6 +220,7 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
   'ease-edges': { count },
   'dry-fit': { count, reach: { kind: 'length', of: (op) => op.reach } },
   'glue-assembly': { count, reach: { kind: 'length', of: (op) => op.reach } },
+  fasten: { count },
   acclimate: { count },
   finish: { count },
   'dig-holes': { count, depth: { kind: 'length', of: (op) => op.depth } },
@@ -1298,6 +1307,68 @@ export const METHODS = [
     moreAccurateThan: [],
   },
 
+  // Stopped rabbet (a dado at the end, open there and at one edge)
+  {
+    id: 'stopped-rabbet-router',
+    operation: 'stopped-rabbet',
+    name: 'With a router, a guide, and a stop',
+    tools: [
+      { use: 'cutting the rabbet', anyOf: [{ tool: 'router' }] },
+      { use: 'squaring the stopped end', anyOf: [{ tool: 'chisel' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'rout-along-a-guide', 'pare-to-a-line'],
+    setup: [
+      DADO_FROM_THE_PART,
+      'Fit a straight bit and set it to cut {depth} deep, in shallow cuts if the bit is small.',
+      'Measure from the bit to the edge of the router base, to set the guide and the stop back by that much.',
+    ],
+    technique: [
+      "Mark the rabbet's inside wall, {width} in from the end, and where it stops, {length} in from the open edge.",
+      'Clamp a straight board as a guide along the inside wall, and clamp a stop across it where the router base must halt.',
+      'Rout from the open edge until the base meets the stop, then clear the wood out to the end the same way.',
+      'Square the rounded stopped end with a chisel.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Routing past the stop line shows at the edge the rabbet was meant to hide. Clamp the stop before you start, and check it with the router unplugged.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED],
+    flags: [categoryFlag('router')],
+    easierThan: ['stopped-rabbet-hand-saw'],
+    moreAccurateThan: ['stopped-rabbet-hand-saw'],
+  },
+  {
+    id: 'stopped-rabbet-hand-saw',
+    operation: 'stopped-rabbet',
+    name: 'With a chisel and a hand saw',
+    tools: [
+      { use: 'chopping the stopped end and clearing the waste', anyOf: [{ tool: 'chisel' }] },
+      { use: 'sawing the inside wall', anyOf: [{ tool: 'hand-saw' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'pare-to-a-line'],
+    setup: [DADO_FROM_THE_PART, 'Clamp the part flat to the bench.'],
+    technique: [
+      'Mark the inside wall, {width} in from the end, the stopped end {length} in from the open edge, and the depth, {depth}, on the open edge and the end.',
+      'Chop a small recess at the stopped end, to the full depth, so the saw has room to work.',
+      'Saw the inside wall from the open edge to the recess, on the waste side of its line.',
+      'Chisel out the waste toward the end and pare the bottom flat.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Chopping the stopped end with the bevel facing the waste pushes the chisel past the line. Keep the flat of the chisel toward the end wall.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
   // Notch (a corner cut out, through the thickness)
   {
     id: 'notch-band-saw',
@@ -2013,6 +2084,52 @@ export const METHODS = [
     safety: [],
     flags: [],
     easierThan: ['acclimate-moisture-meter'],
+    moreAccurateThan: [],
+  },
+
+  // Screw together, through holes already drilled
+  {
+    id: 'fasten-drill-driver',
+    operation: 'fasten',
+    name: 'With a drill/driver',
+    tools: [{ use: 'driving the screws', anyOf: [{ tool: 'drill-driver' }] }, CLAMPS],
+    skills: ['drive-a-screw'],
+    setup: [
+      'Set the parts in place and clamp them so they cannot shift while you drive the screws.',
+      'Set the driver’s clutch low, so it slips before a screw goes in too far.',
+    ],
+    technique: [
+      'Drive each of the {count} screws through its hole until the head is snug against the wood.',
+      'Leave the screws in slots snug, not tight, so the part they hold can still slide.',
+    ],
+    mistakes: [
+      'Driving a screw in a slot tight pins the part, which can split it as it moves. Stop when the head is snug.',
+      'A screw driven at full speed strips its hole. Drive the last turns slowly.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['fasten-impact-driver'],
+  },
+  {
+    id: 'fasten-impact-driver',
+    operation: 'fasten',
+    name: 'With an impact driver',
+    tools: [{ use: 'driving the screws', anyOf: [{ tool: 'impact-driver' }] }, CLAMPS],
+    skills: ['drive-a-screw'],
+    setup: [
+      'Set the parts in place and clamp them so they cannot shift while you drive the screws.',
+    ],
+    technique: [
+      'Drive each of the {count} screws through its hole, slowing down as the head reaches the wood.',
+      'Leave the screws in slots snug, not tight, so the part they hold can still slide.',
+    ],
+    mistakes: [
+      'An impact driver drives a screw too far before you can stop it. Finish each one by hand, or in short bursts.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: ['fasten-drill-driver'],
     moreAccurateThan: [],
   },
 

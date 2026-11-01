@@ -33,8 +33,8 @@ describe('a record cabinet plan', () => {
     );
   });
 
-  it('shows the shelf check, the movement estimates, and the elevations', () => {
-    expect(text).toContain('Deflection: Bottom shelf');
+  it('shows the aprons’ check, the movement estimates, and the elevations', () => {
+    expect(text).toContain('Deflection: Front and back aprons');
     expect(text).toContain('Wood movement');
     expect(text).toContain('Changes about 0.156 in across the grain');
     expect(text).toContain('Elevations and sections');
@@ -79,7 +79,11 @@ describe('a record cabinet started from the worked example', () => {
     // The dealer's fields are hidden while the board comes from a store.
     const shown = visibleFields(template.form.params, start.initial.params);
     const empty = shown.filter((f) => start.initial.params[f.path] === '');
-    expect(empty.map((f) => f.path)).toEqual(['board.lengths.3']);
+    expect(empty.map((f) => f.path)).toEqual([
+      'legStock.lengths.2',
+      'legStock.lengths.3',
+      'board.lengths.3',
+    ]);
     expect(start.initial.params['board.source']).toBe('store');
     expect(start.initial.params.dadoDepth).toBe('3/16');
   });

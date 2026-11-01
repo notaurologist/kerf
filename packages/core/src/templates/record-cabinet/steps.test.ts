@@ -6,8 +6,9 @@ import { recordCabinet } from './definition.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
 
 // The worked example's build steps after the cutting steps (spec, Build steps), through fitting,
-// gluing, and finishing. Its case is W − 2·o_s = 54 − 1.5 = 52-1/2" wide, and the top stands
-// H = 20" above the floor, so the clamps must open that far across the case and from the top down.
+// gluing, and finishing. Its case is W − 2·o_s = 54 − 1.5 = 52-1/2" wide, and its top stands
+// H − z_b = 22-1/4 − 7-1/2 = 14-3/4" above the case bottom, so the clamps must open that far
+// across the case and from the top down.
 
 const made = recordCabinet.generate(WORKED_EXAMPLE, {});
 if (!made.ok) throw new Error('worked example does not generate');
@@ -30,13 +31,19 @@ const chosen = (inv: Inventory) =>
   );
 
 describe('assembling and finishing the record cabinet', () => {
-  it('runs from the joinery to a dry fit, the case, the top, easing, and finishing', () => {
+  it('runs from the joinery to a dry fit, the base, the case, the top, easing, and finishing', () => {
     const ids = recordCabinet.steps(outputs).map((s) => s.id);
-    expect(ids.slice(ids.indexOf('feet'))).toEqual([
-      'feet',
+    expect(ids.slice(ids.indexOf('notches'))).toEqual([
+      'notches',
+      'mortises',
+      'tenons',
+      'screw-holes',
       'dry-fit',
+      'base',
+      'cleats',
       'case',
       'top',
+      'fasten',
       'ease',
       'finish',
     ]);
@@ -46,13 +53,13 @@ describe('assembling and finishing the record cabinet', () => {
     const steps = buildSteps(recordCabinet.steps(outputs), plan, inventory(60));
     expect(steps[0]?.id).toBe('settle');
     expect(steps[1]?.board?.number).toBe(1);
-    // Every glued-up panel; the one-board rails are only ripped, so they are not in it.
+    // Every glued-up panel; the one-board rails, aprons, and cleats are only ripped.
     expect(steps[0]?.operations[0]?.partIds).toEqual([
       'top',
+      'bottom',
       'side-left',
       'side-right',
       'partition',
-      'shelf',
     ]);
     expect(chosen(inventory(60))['lumber/acclimate']).toBe('acclimate-wait');
     expect(chosen(inventory(60, 'moisture-meter'))['lumber/acclimate']).toBe(
@@ -60,15 +67,21 @@ describe('assembling and finishing the record cabinet', () => {
     );
   });
 
-  it('clamps across the 52-1/2" case and down the 20" height', () => {
+  it('clamps across the 52-1/2" case and down the 14-3/4" from the top to the case bottom', () => {
     const op = (id: string) => outputs.design.operations.find((o) => o.id === id);
     expect(op('case/dry-fit')).toMatchObject({ reach: 52.5 });
     expect(op('case/glue')).toMatchObject({
       reach: 52.5,
-      partIds: ['side-left', 'side-right', 'partition', 'shelf', 'rail'],
+      partIds: ['bottom', 'side-left', 'side-right', 'partition', 'rail'],
     });
+    expect(op('base/glue')).toMatchObject({
+      reach: 52.5,
+      partIds: ['leg', 'apron-long', 'apron-short'],
+    });
+    // Six screws, three through each cleat.
+    expect(op('case/fasten')).toMatchObject({ count: 6, partIds: ['bottom', 'cleat'] });
     expect(op('top/glue')).toMatchObject({
-      reach: 20,
+      reach: 14.75,
       partIds: ['top', 'side-left', 'side-right', 'partition'],
     });
   });
@@ -86,7 +99,7 @@ describe('assembling and finishing the record cabinet', () => {
       'glue-assembly-clamps',
       'finish-wipe-on',
     ]);
-    // 24" clamps reach down the 20" height for the top but not across the 52-1/2" case.
+    // 24" clamps reach down the 14-3/4" for the top but not across the 52-1/2" case.
     const short = chosen(inventory(24));
     expect([
       short['case/dry-fit'],
@@ -117,13 +130,25 @@ describe('assembling and finishing the record cabinet', () => {
     expect(finish?.operations[0]?.method?.safety[0]?.text).toContain('metal container');
   });
 
-  it('draws the dry fit with every part, then adds the case, then the top', () => {
+  it('draws the dry fit with every part, then adds the base, the case, and the top', () => {
     const drawings = stepDrawings(recordCabinet, outputs);
     const described = (id: string) =>
       drawings.find((d) => d.stepId === id)?.drawing.description ?? '';
-    expect(drawings.map((d) => d.stepId)).toEqual(['panels', 'dry-fit', 'case', 'top']);
+    expect(drawings.map((d) => d.stepId)).toEqual([
+      'panels',
+      'dry-fit',
+      'base',
+      'cleats',
+      'case',
+      'top',
+      'fasten',
+    ]);
     expect(described('dry-fit')).toMatch(/^Fits A Top, .* together without glue\./);
-    expect(described('case')).toMatch(/^Adds B Left side, .*F Back rail\./);
+    expect(described('base')).toMatch(/^Adds G Leg, H Front and back apron, I Side apron\./);
+    // The case goes onto the base and its cleats, already glued up.
+    expect(described('case')).toMatch(
+      /^Adds B Case bottom, .*F Back rail, to G Leg, .*J Cleat already built\./,
+    );
     expect(described('top')).toMatch(/^Adds A Top, to .* already built\./);
   });
 });
