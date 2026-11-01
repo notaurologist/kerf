@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and waiting to be built (#265 to #267). Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and waiting to be built. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -19,9 +19,33 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 6b. Sharper corners | #148 | Decided October 2026: eased | `corners.html` |
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
 | 8. Brand: logo, wordmark, icons | #166 | Decided October 2026: the end-cut k; built | `brand.html`, `brand.md` |
-| 9. An app frame, motion, loading, and the keyboard | #254 | Decided October 2026: F2, M2, L1, K1; to build (#265 to #267) | `app-frame.html` |
+| 9. An app frame, motion, loading, and the keyboard | #254 | Decided October 2026: F2, M2, L1, K1; built (#265 to #267) | `app-frame.html` |
+| 10. Another look: color, type, and the key screens | #226 | Decided October 2026: D2 with color jobs in W5 (pine and indigo); to build | `look.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 10: another look at color, type, and the key screens (#226)
+
+With every screen built and the Stage 9 frame in place, the owner wanted the key screens to look like one finished product, and asked whether color could be used more effectively. `look.html` has three rounds, latest first. Round 1 drew Projects, the plan's summary, Shopping, and a Building step as built and in three directions that go progressively further. Round 2 gave color jobs on top of the chosen direction, in three palettes. Round 2b set the leading palette against five others that each change one thing. Every pair is measured in light and dark, with 20% glare and with simulated color blindness (Machado 2009, the method of `color.html`).
+
+Problems found on the built screens, in order of how visible they were: everything sat in boxes of the same weight, so nothing led; the plan's headline numbers were body size; blue marked almost every action and link, so it no longer marked attention; in dark, the mode bar turned chalk-white; on a phone, the mode bar took two rows; and Shopping repeated its guide under every lumber line. Type and the shop density held up on the newer screens.
+
+### Choices
+
+The owner chose D2 as the starting point and W5 as the palette (October 2026). The suggested option was taken for the other questions.
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| How far to go | D2, pencil and chalk line. D1's surfaces: ruled rows instead of boxes for like things (figures, modes, checks, projects), with boxes kept for flags, the Resume card, and fields (NN/g on cards; Tufte's smallest effective difference); the summary's figures at 24 px; one primary button per screen; rows that are links named in the text color with a chevron. On top, actions in graphite: primary buttons, secondary outlines, links (underlined) and ticks in the text color, and the changed bar in the strong border gray. Blue is kept for attention: input needed, focus, where you are, the selected part, and dimensions. | D1 alone: the same surfaces with blue still on every action, so the attention blue keeps marking too much. D3, workshop: kraft paper, indigo, a graphite band and the end cut on buttons; the most character, but text on page falls to 4.3:1 under 20% glare, the flags had to get louder, and it reopens Stage 4. |
+| What color is for | Each color names one thing, the same everywhere (Christ, 1975, on color coding). Graphite: text and actions. Blue: attention. Amber: expert checks. Crimson: an error beside a field. Wood: the lumber, as part faces in drawings, boards on cut cards and in Boards, and the lumber group in Shopping; hardware is steel gray. A color for each mode: the mode's bar, the project's state on Projects, and the Resume card. No color on margins, structural results, or the plan's numbers (Stage 4, rules 1 and 2). | A color for each part, carried from drawing to cut list to board: six hues at one lightness come 0.6 apart (ΔE × 100 in OKLab) with deuteranopia, two parts the same color; the best six-color set found is two greens, two teals, a violet and a red-brown, against rule 2. The letters and the blue selection already tie a part together. |
+| Palette | W5, pine and indigo. Pine wood faces (light `#f6e2c0`, `#e3cead`, `#ccb897`; dark `#6a583a`, `#59472a`, `#48381a`); Shopping indigo (`#39346a`, dark `#2b2458`); Building walnut (`#4c311e`, dark `#3c220f`); state tag tints from the same hues. The two mode colors are 13.0, 13.2, and 13.2 apart for normal vision, deuteranopia and protanopia. | W1, pine and spruce: the close second, but its mode colors drop to 6.9 apart with deuteranopia. W2, oak and slate: slate sits near the attention blue. W3, cedar and plum: cedar reads pink, not construction lumber. W4, birch: reads as gray as much as wood. W6, rust for Building: little gain for protanopia, and red family. W7, bold bars: bar text falls to 3.3:1 under glare, and the orange sits near the flag amber. |
+| Fixes for any direction | All three: the mode bar takes its mode's color in both themes, never chalk; on a phone the mode bar is one row, with the theme in a Menu beside Exit; Shopping's guide appears once per group. | None proposed. |
+
+Accepted cost: pine's lightest face is close to the flag fill in light (2.2 apart). Flags keep their border, icon and label and never sit inside a drawing. Indigo is in the blue family; it is used only as a dark, solid bar and a tag tint, while attention blue is a mark or an outline.
+
+For the next garage check (#69, #70): the colored mode bars under glare (bar text about 4.0:1 at 20% glare, against 4.6:1 for graphite), whether wood faces read in a dim garage in dark, and the one-row mode bar.
+
+Build issues: #279 (color), #280 (surfaces), #281 (the mode bar on a phone and Shopping's guide).
 
 ## Stage 9: an app frame, motion, loading, and the keyboard (#254)
 

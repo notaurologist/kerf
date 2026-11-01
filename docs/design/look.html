@@ -1,0 +1,873 @@
+<title>Kerf Look</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;700&family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap">
+<style>
+/* Review page for #226. Layout: one reading column; the screen mock-ups break out wider and sit
+   side by side when the screen allows. The page itself is plain; the mock-ups carry each
+   direction's own colors and type, and follow the Light and Dark switch above them. */
+:root {
+  --paper: #f3f4f5; --ink: #1c2024; --muted: #59626c; --line: #c6ccd2;
+  --blue: #1f6fae; --blue-soft: #d7ebf8; --low: #a8322a;
+  --sans: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, sans-serif;
+  --mono: "Atkinson Hyperlegible Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --blue: #7dbdf0; --blue-soft: #1c3448; --low: #f08a80; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --blue: #7dbdf0; --blue-soft: #1c3448; --low: #f08a80; color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 1rem;
+  line-height: 1.5; margin: 0; padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 1240px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.125rem; } h2 { font-size: 1.625rem; } h3 { font-size: 1.25rem; } h4 { font-size: 1rem; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.3em; display: grid; gap: 6px; }
+.stack { display: grid; gap: 14px; }
+.eyebrow { font-size: 0.8125rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); } .small { font-size: 0.875rem; }
+a { color: var(--blue); }
+code { font-family: var(--mono); font-size: 0.9em; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { gap: 8px; }
+table.t { border-collapse: collapse; font-size: 0.9375rem; width: 100%; }
+.t th, .t td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.t th { font-weight: 600; }
+.t td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.t td.low { color: var(--low); font-weight: 600; }
+.wrap { overflow-x: auto; }
+details > summary { cursor: pointer; font-weight: 600; }
+.critique { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+.critique > div { display: grid; gap: 8px; align-content: start; }
+.critique h4 { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+
+/* Controls */
+.controls { position: sticky; top: 0; z-index: 5; background: var(--paper); padding-block: 10px; border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.9375rem; border: 0; background: transparent; color: var(--ink); padding: 6px 14px; min-height: 36px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.controls label { display: inline-flex; gap: 8px; align-items: center; font-size: 0.9375rem; }
+
+/* Sets of mock-ups */
+.set { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); align-items: start; }
+.set.desk { grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); }
+.shot { display: grid; gap: 8px; min-width: 0; }
+.shot > .cap { font-size: 0.875rem; color: var(--muted); }
+.shot > .cap b { color: var(--ink); }
+.glare { position: relative; }
+.glare::after { content: ""; position: absolute; inset: 0; background: rgb(255 255 255 / var(--glare, 0)); pointer-events: none; }
+
+/* ---------- The mock-ups ----------
+   Each .m carries a direction (data-dir) and a theme (data-mode). Colors are the direction's
+   tokens; the measured ratios are in the table at the end. */
+.m {
+  --bg: #fbf9f5; --raised: #fff; --sunken: #f2efe9; --text: #1a1d23; --muted: #545860;
+  --border: #d7d4ce; --border-strong: #70757c; --accent: #0e5caf; --on-accent: #fff;
+  --link: #0e5caf; --needed: #0e5caf; --changed: #0e5caf; --done: #0e5caf; --focus: #1570d1;
+  --flag-bg: #ffe8be; --flag-border: #bb7400; --flag-text: #5b3106;
+  --band: var(--bg); --band-text: var(--text); --band-line: var(--border);
+  --mode-band: #1a1d23; --mode-band-text: #fbf9f5;
+  --h1: 1.8125rem; --h2: 1.5rem; --h3: 1.25rem; --fig: 1.0625rem;
+  font-family: var(--sans); font-size: 1.0625rem; line-height: 1.5;
+  background: var(--bg); color: var(--text); border: 1px solid var(--line); overflow: hidden;
+  color-scheme: light;
+}
+.m[data-mode="dark"] {
+  --bg: #111418; --raised: #1a1d23; --sunken: #0b0d12; --text: #edebe7; --muted: #aaaeb4;
+  --border: #2f3339; --border-strong: #82868e; --accent: #70b3f7; --on-accent: #0c121a;
+  --link: #70b3f7; --needed: #70b3f7; --changed: #70b3f7; --done: #70b3f7; --focus: #73bdff;
+  --flag-bg: #3e290f; --flag-border: #dea143; --flag-text: #f7dba1;
+  /* Today the mode bar is the text color, so in dark it turns chalk. */
+  --mode-band: #edebe7; --mode-band-text: #111418;
+  color-scheme: dark;
+}
+/* D1 and later: the mode bar is graphite in light and the card color in dark. */
+.m:not([data-dir="today"]) { --mode-band: #1a1d23; --mode-band-text: #fbf9f5; --fig: 1.5rem; }
+.m:not([data-dir="today"])[data-mode="dark"] { --mode-band: #1a1d23; --mode-band-text: #edebe7; }
+/* D2: actions in graphite; blue only for input needed, focus, and where you are. */
+.m[data-dir="d2"] { --accent: #1a1d23; --on-accent: #fbf9f5; --link: #1a1d23; --done: #1a1d23; --changed: #70757c; }
+.m[data-dir="d2"][data-mode="dark"] { --accent: #edebe7; --on-accent: #111418; --link: #edebe7; --done: #edebe7; --changed: #82868e; }
+/* D3: workshop paper, ink, an indigo chalk line, and a graphite band. */
+.m[data-dir="d3"] {
+  --bg: #f5f0e6; --raised: #fffdf8; --sunken: #ece5d8; --text: #1f1b16; --muted: #574f45;
+  --border: #dcd2c2; --border-strong: #766c5f; --accent: #2f43a0; --on-accent: #fff;
+  --link: #2f43a0; --needed: #2f43a0; --changed: #2f43a0; --done: #2f43a0; --focus: #3d5bd9;
+  --flag-bg: #ffdfa3; --flag-border: #b06c00; --flag-text: #5b3106;
+  --band: #25211c; --band-text: #f5f0e6; --band-line: #25211c;
+  --mode-band: #25211c; --mode-band-text: #f5f0e6;
+  --h1: 2.0625rem; --h2: 1.625rem; --h3: 1.3125rem; --fig: 1.625rem;
+}
+.m[data-dir="d3"][data-mode="dark"] {
+  --bg: #15120e; --raised: #1f1b16; --sunken: #0f0d0a; --text: #efe8dc; --muted: #b5ab9b;
+  --border: #39332b; --border-strong: #8c8274; --accent: #a5b4ff; --on-accent: #15120e;
+  --link: #a5b4ff; --needed: #a5b4ff; --changed: #a5b4ff; --done: #a5b4ff; --focus: #b3c0ff;
+  --flag-bg: #3e290f; --flag-border: #dea143; --flag-text: #f7dba1;
+  --band: #25211c; --band-text: #efe8dc; --band-line: #39332b;
+  --mode-band: #25211c; --mode-band-text: #efe8dc;
+}
+.m.phone { max-width: 360px; width: 100%; justify-self: center; }
+.m h1, .m h2, .m h3 { line-height: 1.15; margin: 0; }
+.m h1 { font-size: var(--h1); } .m h2 { font-size: var(--h2); } .m h3 { font-size: var(--h3); }
+.m p { margin: 0; }
+.m .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.m .mut { color: var(--muted); }
+.m .sm { font-size: 0.875rem; }
+.m a { color: var(--link); text-decoration: underline; text-underline-offset: 0.15em; }
+.m .body { padding: 18px 16px 22px; display: grid; gap: 18px; }
+.m .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.m .between { justify-content: space-between; }
+.m .btn { font: inherit; font-weight: 700; font-size: 1rem; min-height: 44px; padding: 8px 16px; border-radius: 2px; display: inline-flex; align-items: center; justify-content: center;
+  border: 2px solid var(--accent); background: var(--accent); color: var(--on-accent); position: relative; isolation: isolate; }
+.m .btn.sec { background: transparent; color: var(--accent); }
+.m[data-mode="dark"] .btn.sec { color: var(--accent); }
+.m .btn.quiet { border-color: var(--border-strong); color: var(--text); background: transparent; }
+/* D3: the primary button's top right is cut at 45°, as the k's stem is. Drawn on a layer behind
+   the label, so the focus ring is never clipped. */
+.m[data-dir="d3"] .btn:not(.sec):not(.quiet) { background: transparent; border-color: transparent; }
+.m[data-dir="d3"] .btn:not(.sec):not(.quiet)::before { content: ""; position: absolute; inset: -2px; z-index: -1; background: var(--accent);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); border-radius: 2px; }
+
+/* Title bar and tab bar (Stage 9's frame) */
+.m .tb { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 16px; min-height: 48px;
+  background: var(--band); color: var(--band-text); border-bottom: 1px solid var(--band-line); }
+.m .tb a { color: inherit; text-decoration: none; font-weight: 700; display: inline-flex; gap: 4px; align-items: center; }
+.m[data-dir="today"] .tb a.back, .m[data-dir="d1"] .tb a.back { color: var(--link); }
+.m .wm { height: 1.05em; width: auto; display: block; }
+.m .wm path, .m svg.i path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.m .wm path { fill: currentColor; stroke: none; }
+.m svg.i { width: 18px; height: 18px; flex: none; }
+.m .tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); background: var(--bg); }
+.m .tabs span { display: grid; justify-items: center; gap: 2px; padding: 8px 0 10px; font-size: 0.8125rem; color: var(--muted); }
+.m .tabs span.on { color: var(--text); font-weight: 700; box-shadow: inset 0 3px 0 var(--text); }
+.m[data-dir="d2"] .tabs span.on, .m[data-dir="d3"] .tabs span.on { box-shadow: inset 0 3px 0 var(--accent); }
+.m[data-dir="d2"] .tabs span.on { box-shadow: inset 0 3px 0 var(--needed-blue, #0e5caf); }
+.m[data-dir="d2"][data-mode="dark"] .tabs span.on { box-shadow: inset 0 3px 0 #70b3f7; }
+.m[data-dir="d3"] .tabs span.on::before { content: none; }
+
+/* Mode bar */
+.m .mb { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px 8px 16px;
+  background: var(--mode-band); color: var(--mode-band-text); }
+.m:not([data-dir="today"])[data-mode="dark"] .mb { border-bottom: 1px solid var(--border); }
+.m .mb .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m .mb .btn { border-color: currentColor; background: transparent; color: inherit; min-height: 40px; padding: 4px 14px; }
+.m[data-dir="d3"] .mb .btn::before { content: none !important; }
+.m[data-dir="d3"] .mb .btn { border-color: currentColor !important; }
+.m .mb .sel { font: inherit; font-size: 0.9375rem; padding: 6px 10px; border: 1.5px solid var(--border-strong); background: var(--raised); color: var(--text); border-radius: 2px; }
+.m .mb .menu { display: inline-grid; place-items: center; width: 40px; height: 40px; border: 1.5px solid currentColor; border-radius: 2px; }
+.m .mb-wrap { flex-wrap: wrap; }
+
+/* Plan summary */
+.m .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0; }
+.m .fig { padding: 10px 0 12px; display: grid; gap: 2px; align-content: start; }
+.m .fig .v { font-weight: 700; font-size: var(--fig); line-height: 1.15; }
+.m .fig .l { font-size: 0.875rem; color: var(--muted); }
+.m .fig .d { font-size: 0.875rem; }
+.m .term { text-decoration: underline dotted; text-underline-offset: 0.2em; }
+.m[data-dir="today"] .figs { gap: 10px; }
+.m[data-dir="today"] .fig { border: 1px solid var(--border); background: var(--raised); padding: 10px 12px; }
+.m:not([data-dir="today"]) .figs { border-top: 2px solid var(--text); }
+.m:not([data-dir="today"]) .fig { border-bottom: 1px solid var(--border); padding-inline-end: 12px; }
+.m:not([data-dir="today"]) .fig.wide { grid-column: 1 / -1; }
+.m .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 10px; }
+.m .mode { display: grid; gap: 8px; align-content: start; }
+.m[data-dir="today"] .mode { border: 1px solid var(--border); background: var(--raised); padding: 12px; }
+.m[data-dir="today"] .mode .btn { justify-self: start; }
+.m:not([data-dir="today"]) .modes { gap: 0; grid-template-columns: 1fr; border-top: 1px solid var(--border); }
+.m:not([data-dir="today"]) .mode { grid-template-columns: 1fr auto; align-items: center; border-bottom: 1px solid var(--border); padding: 10px 0; }
+.m .flag { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; padding: 12px 14px; background: var(--flag-bg); color: var(--flag-text);
+  border: 1px solid var(--flag-border); border-inline-start-width: 4px; }
+.m .flag b { font-weight: 700; }
+.m .flag ul { grid-column: 2; padding-left: 1.1em; gap: 4px; font-size: 0.9375rem; }
+.m .head { display: grid; gap: 6px; }
+
+/* Desk frame */
+.m .desk { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); min-height: 100%; }
+.m .side { border-inline-end: 1px solid var(--border); padding: 14px 12px; display: grid; gap: 14px; align-content: start; font-size: 0.875rem; background: var(--bg); }
+.m[data-dir="d3"] .side { background: var(--band); color: var(--band-text); border-color: var(--band-line); }
+.m .side ul { list-style: none; padding: 0; gap: 4px; }
+.m .side li { padding: 2px 0 2px 8px; border-inline-start: 3px solid transparent; }
+.m .side li.on { border-color: var(--text); font-weight: 700; }
+.m[data-dir="d2"] .side li.on { border-color: #0e5caf; }
+.m[data-dir="d2"][data-mode="dark"] .side li.on { border-color: #70b3f7; }
+.m[data-dir="d3"] .side li.on { border-color: #a5b4ff; }
+.m .side .sub { padding-left: 10px; }
+.m .side a { color: inherit; text-decoration: none; }
+.m[data-dir="today"] .side a.l { color: var(--link); }
+
+/* Shop modes: 1.5 times the space, 20 px text, every word in the text color. */
+.m .shop { --muted: var(--text); font-size: 1.25rem; padding: 22px 16px 26px; display: grid; gap: 22px; }
+.m .shop h2 { font-size: 1.75rem; }
+.m .tick { display: grid; grid-template-columns: 36px 1fr; gap: 6px 14px; align-items: center; }
+.m .box { width: 34px; height: 34px; border: 2px solid var(--border-strong); border-radius: 2px; background: var(--raised); }
+.m .box.on { background: var(--done); border-color: var(--done); position: relative; }
+.m .box.on::after { content: ""; position: absolute; left: 10px; top: 4px; width: 9px; height: 17px; border: solid var(--on-accent); border-width: 0 3px 3px 0; transform: rotate(45deg); }
+.m .letter { display: inline-grid; place-items: center; min-width: 1.6em; height: 1.6em; font-weight: 700; font-size: 0.9em; background: var(--text); color: var(--bg); margin-inline-end: 8px; }
+.m .glance { font-weight: 700; font-size: 3.1875rem; line-height: 1; grid-column: 2; }
+.m .shop .group { display: grid; gap: 16px; }
+.m .shop .group > .row { border-bottom: 2px solid var(--text); padding-bottom: 6px; }
+.m[data-dir="today"] .shop .group > .row { border: 0; padding: 0; }
+.m .shop a.more { font-size: 1.125rem; }
+.m .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.m .steps .btn { width: 100%; min-height: 56px; }
+.m .done-line { text-decoration: line-through; text-decoration-thickness: 2px; }
+
+/* Projects */
+.m .plist { display: grid; gap: 0; border-top: 1px solid var(--border); }
+.m .pitem { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: center; }
+.m .pitem .t { font-weight: 700; color: var(--text); text-decoration: none; }
+.m .pitem .meta { grid-column: 1 / -1; font-size: 0.9375rem; color: var(--muted); }
+.m .chev { color: var(--muted); }
+.m .state { font-size: 0.875rem; border: 1.5px solid var(--border-strong); padding: 1px 8px; border-radius: 1px; white-space: nowrap; }
+.m .state.on { border-color: var(--changed); color: var(--text); box-shadow: inset 3px 0 0 var(--changed); }
+.m[data-dir="today"] .plist { gap: 12px; border: 0; }
+.m[data-dir="today"] .pitem { border: 1px solid var(--border); background: var(--raised); padding: 12px; }
+.m[data-dir="today"] .pitem .t { color: var(--link); text-decoration: underline; }
+.m .resume { display: grid; gap: 6px; padding: 12px 14px; border: 1.5px solid var(--border-strong); background: var(--raised); }
+.m[data-dir="d3"] .resume { border-color: var(--text); }
+
+/* Input needed */
+.m .field { display: grid; gap: 4px; }
+.m .field label { font-weight: 700; }
+.m .input { display: flex; align-items: center; gap: 8px; }
+.m .input span.box2 { min-width: 7rem; min-height: 44px; border: 1.5px solid var(--border-strong); background: var(--raised); padding: 8px 10px; }
+.m .input span.box2.need { border: 2px dashed var(--needed); }
+.m .tag { font-size: 0.8125rem; font-weight: 700; padding: 1px 6px; border: 1.5px dashed var(--needed); color: var(--text); border-radius: 1px; }
+.m .check { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.m[data-dir="today"] .check { border: 1px solid var(--border); background: var(--raised); padding: 10px 12px; }
+.m .check .mg { font-weight: 700; font-size: 1.25rem; }
+.m[data-dir="today"] .check .mg { font-size: 1.0625rem; }
+.m[data-dir="today"] .check a.n, .m[data-dir="today"] .check a.n { color: var(--text); }
+
+/* ---------- Round 2: color with a job ----------
+   data-wood picks a palette for the lumber, the two modes, and project states; w0 is D2 as
+   proposed in round 1, with Stage 5's gray face tones. */
+.m[data-wood] { --wood-1: #ffffff; --wood-2: #dddedf; --wood-3: #babbbd; --shop-band: #1a1d23; --build-band: #1a1d23;
+  --tag-shop: var(--raised); --tag-build: var(--raised); --steel: #8e949b; --hl-1: #bfe1ff; --hl-2: #a8c4df; --hl-3: #8fa6be; --zone: #dbeede; --zone-line: #488055; --ink: var(--text); }
+.m[data-wood][data-mode="dark"] { --wood-1: #474f51; --wood-2: #2e3439; --wood-3: #1a1d23; --shop-band: #1a1d23; --build-band: #1a1d23;
+  --steel: #6b7178; --hl-1: #1d456b; --hl-2: #255e75; --hl-3: #3f777d; --zone: #1e2d21; --zone-line: #75ae81; }
+.m[data-wood="w1"] { --wood-1: #f6e2c0; --wood-2: #e3cead; --wood-3: #ccb897; --shop-band: #034649; --build-band: #4c311e; --tag-shop: #cff1f3; --tag-build: #fae5d7; }
+.m[data-wood="w1"][data-mode="dark"] { --wood-1: #6a583a; --wood-2: #59472a; --wood-3: #48381a; --shop-band: #023538; --build-band: #3c220f; --tag-shop: #153335; --tag-build: #3a2a1f; }
+.m[data-wood="w2"] { --wood-1: #fedec0; --wood-2: #ebcaac; --wood-3: #d4b496; --shop-band: #28414f; --build-band: #493319; --tag-shop: #dbedf8; --tag-build: #f7e7d5; }
+.m[data-wood="w2"][data-mode="dark"] { --wood-1: #705439; --wood-2: #5f4429; --wood-3: #4e3419; --shop-band: #18313f; --build-band: #382409; --tag-shop: #223038; --tag-build: #382b1d; }
+.m[data-wood="w3"] { --wood-1: #fedccd; --wood-2: #f1c6b4; --wood-3: #dab09e; --shop-band: #4f314c; --build-band: #542b1d; --tag-shop: #f8e1f5; --tag-build: #fee3d9; }
+.m[data-wood="w3"][data-mode="dark"] { --wood-1: #755141; --wood-2: #644131; --wood-3: #523122; --shop-band: #3e223c; --build-band: #431c0e; --tag-shop: #382736; --tag-build: #3f271f; }
+.m[data-wood] .mb[data-m="shop"] { background: var(--shop-band); color: #fbf9f5; }
+.m[data-wood] .mb[data-m="build"] { background: var(--build-band); color: #fbf9f5; }
+.m[data-wood][data-mode="dark"] .mb[data-m] { color: #edebe7; }
+.m .dwg { display: block; width: 100%; height: auto; background: var(--raised); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.m .dwg .p { stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round; }
+.m .dwg .f1 { fill: var(--wood-1); } .m .dwg .f2 { fill: var(--wood-2); } .m .dwg .f3 { fill: var(--wood-3); }
+.m .dwg .h1 { fill: var(--hl-1); } .m .dwg .h2 { fill: var(--hl-2); } .m .dwg .h3 { fill: var(--hl-3); }
+.m .dwg .p.sel { stroke-width: 2.4; }
+.m .dwg .bolt { fill: var(--steel); stroke: var(--ink); stroke-width: 1; }
+.m .dwg .ground { stroke: var(--ink); stroke-width: 2; }
+.m .dwg .zone { fill: var(--zone); stroke: var(--zone-line); stroke-width: 1.5; stroke-dasharray: 8 4; }
+.m .dwg .tag rect { fill: var(--ink); } .m .dwg .tag text { fill: var(--raised); font: 700 11px var(--sans); text-anchor: middle; dominant-baseline: central; }
+.m .dwg .lbl { fill: var(--ink); font: 700 12px var(--sans); }
+.m .dwg .off { fill: url(#off); }
+.m .chip { display: inline-block; width: 0.9em; height: 0.9em; border: 1.5px solid var(--text); vertical-align: -0.1em; margin-inline-end: 6px; border-radius: 1px; }
+.m .chip.wood { background: var(--wood-2); } .m .chip.steel { background: var(--steel); }
+.m[data-wood="w0"] .chip { display: none; }
+.m .state.shop { background: var(--tag-shop); }
+.m .state.build { background: var(--tag-build); }
+.m[data-wood]:not([data-wood="w0"]) .state.build { box-shadow: inset 4px 0 0 var(--build-band); border-color: var(--build-band); }
+.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .state.build { box-shadow: inset 4px 0 0 color-mix(in oklch, var(--build-band), white 45%); border-color: color-mix(in oklch, var(--build-band), white 45%); }
+.m[data-wood]:not([data-wood="w0"]) .state.shop { box-shadow: inset 4px 0 0 var(--shop-band); border-color: var(--shop-band); }
+.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .state.shop { box-shadow: inset 4px 0 0 color-mix(in oklch, var(--shop-band), white 45%); border-color: color-mix(in oklch, var(--shop-band), white 45%); }
+.m[data-wood]:not([data-wood="w0"]) .resume { border-color: var(--build-band); border-inline-start-width: 6px; }
+.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .resume { border-color: var(--wood-2); }
+.m .cap2 { font-size: 0.875rem; padding: 8px 16px 0; }
+.roles { display: grid; gap: 0; border-top: 2px solid var(--ink); }
+.roles > div { display: grid; grid-template-columns: minmax(7rem, 10rem) 1fr; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.roles .sw { display: inline-block; width: 1em; height: 1em; border: 1px solid var(--ink); vertical-align: -0.15em; margin-inline-end: 6px; }
+@media (max-width: 34rem) { .roles > div { grid-template-columns: 1fr; } }
+.m[data-wood="w4"] { --wood-1: #ece4d2; --wood-2: #d8d0bf; --wood-3: #c2baa9; --shop-band: #034649; --build-band: #4c311e; --tag-shop: #cff1f3; --tag-build: #fae5d7; }
+.m[data-wood="w4"][data-mode="dark"] { --wood-1: #615a4b; --wood-2: #514a3b; --wood-3: #413a2c; --shop-band: #023538; --build-band: #3c220f; --tag-shop: #153335; --tag-build: #3a2a1f; }
+.m[data-wood="w5"] { --wood-1: #f6e2c0; --wood-2: #e3cead; --wood-3: #ccb897; --shop-band: #39346a; --build-band: #4c311e; --tag-shop: #e7e7ff; --tag-build: #fae5d7; }
+.m[data-wood="w5"][data-mode="dark"] { --wood-1: #6a583a; --wood-2: #59472a; --wood-3: #48381a; --shop-band: #2b2458; --build-band: #3c220f; --tag-shop: #2b2a48; --tag-build: #3a2a1f; }
+.m[data-wood="w6"] { --wood-1: #f6e2c0; --wood-2: #e3cead; --wood-3: #ccb897; --shop-band: #034649; --build-band: #772e11; --tag-shop: #cff1f3; --tag-build: #ffe3d9; }
+.m[data-wood="w6"][data-mode="dark"] { --wood-1: #6a583a; --wood-2: #59472a; --wood-3: #48381a; --shop-band: #023538; --build-band: #631e01; --tag-shop: #153335; --tag-build: #492112; }
+.m[data-wood="w7"] { --wood-1: #f6e2c0; --wood-2: #e3cead; --wood-3: #ccb897; --shop-band: #016770; --build-band: #9b4805; --tag-shop: #c0f5fb; --tag-build: #ffe3d5; }
+.m[data-wood="w7"][data-mode="dark"] { --wood-1: #6a583a; --wood-2: #59472a; --wood-3: #48381a; --shop-band: #00555c; --build-band: #833b01; --tag-shop: #02353a; --tag-build: #4b1f01; }
+</style>
+
+<main>
+<header class="stack prose">
+  <p class="eyebrow">Design milestone · #226 · Stage 10</p>
+  <h1>Another look: color, type, and the key screens</h1>
+  <p>Every screen now exists, and the frame from Stage 9 is built. Round 1 asked how far to move from what is built today, and you took D2 as the starting point. Round 2 asked how color can do more on top of D2, and you leaned toward W1. Round 2b, first below, sets W1 against five other palettes. Every mock-up follows the Light and Dark switch and is measured.</p>
+</header>
+
+
+<section class="answers" aria-labelledby="ans2b">
+  <h2 id="ans2b">Round 2b: W1 against five other palettes</h2>
+  <p>Each new palette changes one thing from W1, so you can see what that one thing does: the wood, the Shopping color, the Building color, or how strong the bars are. The color jobs from round 2 stay the same.</p>
+  <ol>
+    <li><b>Which palette.</b> Suggested: <b>W5, pine and indigo</b>. It keeps W1's wood and walnut and swaps spruce for indigo, and its two mode colors are the furthest apart for every kind of vision I tested. W1 is the close second.</li>
+  </ol>
+</section>
+
+<div class="controls" role="group" aria-label="Mock-up settings">
+  <span class="seg" role="group" aria-label="Theme of the mock-ups">
+    <button type="button" data-mode="light" aria-pressed="true">Light</button>
+    <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+  </span>
+  <label for="glare">Glare <input id="glare" type="range" min="0" max="0.4" step="0.05" value="0"></label>
+  <span class="small muted">Glare lays a veil of white over the mock-ups, as light reflected off a screen does.</span>
+</div>
+
+
+<section class="stack" aria-labelledby="r2b">
+  <div class="stack prose">
+    <h2 id="r2b">Round 2b: the palettes side by side</h2>
+    <ul>
+      <li><b>W1 · Pine and spruce</b>: round 2's suggestion, for reference.</li>
+      <li><b>W4 · Birch</b>: a paler, grayer wood; the same bars.</li>
+      <li><b>W5 · Pine and indigo</b>: indigo for Shopping.</li>
+      <li><b>W6 · Pine and rust</b>: rust for Building.</li>
+      <li><b>W7 · Bold</b>: stronger, lighter teal and orange bars.</li>
+    </ul>
+  </div>
+  <div class="set" data-screen="build2" data-round="2b"></div>
+  <div class="set" data-screen="shop2" data-round="2b"></div>
+  <div class="set" data-screen="projects2" data-round="2b"></div>
+  <div class="set" data-screen="drawing" data-round="2b"></div>
+
+  <article class="stack">
+    <h3>Each against W1</h3>
+    <p class="prose small muted">Separation is ΔE × 100 in OKLab: normal vision, then deuteranopia and protanopia simulated (Machado 2009). W1's two mode bars are 10.6, 6.9 and 7.7 apart.</p>
+    <div class="critique">
+      <div><h4>W4 · Birch</h4><ul>
+        <li><b>Better:</b> further from the flag's amber fill (3.9 apart, against 2.2 for pine), so a flag under a drawing never reads as part of it.</li>
+        <li><b>Worse:</b> it reads as pale gray as much as wood, so drawings move back toward D2's grays and say less about the material.</li>
+      </ul></div>
+      <div><h4>W5 · Pine and indigo</h4><ul>
+        <li><b>Better:</b> the two mode bars are 13.0, 13.2 and 13.2 apart, so they stay equally distinct for every kind of vision tested. With W1 they drop to 6.9 for deuteranopia. The state tags are the most even pair too (5.3 to 5.7).</li>
+        <li><b>Worse:</b> indigo belongs to the blue family that means attention. The bar is dark and solid and attention blue is a mark or an outline, so they don't meet in use, but it is the nearest of the five to the attention blue (14.7 apart).</li>
+      </ul></div>
+      <div><h4>W6 · Pine and rust</h4><ul>
+        <li><b>Better:</b> rust is a warmer, more workshop color for Building. It is the most distinct pair for normal vision (17.3).</li>
+        <li><b>Worse:</b> for protanopia it gains little over W1 (8.2 against 7.7). Rust is in the red family, which Stage 4 keeps away from structural results. Building shows no margins, but a project's state tag can sit near the plan.</li>
+      </ul></div>
+      <div><h4>W7 · Bold</h4><ul>
+        <li><b>Better:</b> the mode shows from farthest away, and the bars are the furthest apart (20.7, 15.3 and 12.7).</li>
+        <li><b>Worse:</b> bar text falls to 6.0:1, and to 3.3:1 under 20% glare, the weakest here. A bright orange bar sits close to the amber of expert checks. It is the least calm of the five, against Stage 4's aim that the few things needing attention stand out.</li>
+      </ul></div>
+    </div>
+    <div class="stack prose">
+      <h4>Suggested: W5</h4>
+      <p>The point of a mode color is to tell Shopping from Building at a glance. W5 does that equally well for every kind of vision tested, keeps W1's wood and walnut, and every pair meets AA. If indigo feels too close to the blue in use, W1 is the fallback.</p>
+    </div>
+  </article>
+  <div class="stack prose"><h3>Measured</h3><p>Every pair meets its minimum without glare.</p></div>
+  <div id="tables2b" class="stack"></div>
+</section>
+
+<h2 class="prose" style="padding-top:24px;border-top:2px solid var(--line)">Round 2: color with a job</h2>
+<section class="answers" aria-labelledby="ans2">
+  <h2 id="ans2">Round 2: what I asked you to decide</h2>
+  <ol>
+    <li><b>Which palette for the lumber and the two modes.</b> W1 pine and spruce, W2 oak and slate, W3 cedar and plum, or none. Suggested: <b>W1</b>.</li>
+    <li><b>Which of the new jobs color should do.</b> Each can go in on its own: wood for lumber in drawings, boards and Shopping; a color for each mode's bar; the same colors on a project's state and the Resume card. Suggested: all three.</li>
+    <li>D2 from round 1 stays the base, as you said.</li>
+  </ol>
+</section>
+
+<section class="stack" aria-labelledby="r2">
+  <div class="stack prose">
+    <h3 id="r2">What round 2 proposed</h3>
+    <p>You took D2 as the starting point and asked whether color could be used more effectively. D2 took the blue off actions, which leaves the screens mostly graphite. This round adds color back, but each color names one thing the owner needs to tell apart, and names it the same way on every screen. That follows the research on color coding: color speeds finding things when there are a few codes and each means one thing, and slows it when color is decorative or the codes are many (Richard E. Christ, "Review and analysis of color coding research for visual displays", <i>Human Factors</i> 17(6), 1975).</p>
+    <h3>What each color means</h3>
+  </div>
+  <div class="roles prose">
+    <div><b><span class="sw" style="background:#1a1d23"></span>Graphite</b><span>Text and actions: buttons, links, ticks (D2).</span></div>
+    <div><b><span class="sw" style="background:#0e5caf"></span>Blue</b><span>Attention: input needed, focus, where you are, the selected part, dimensions. Unchanged from Stages 4 and 5.</span></div>
+    <div><b><span class="sw" style="background:#ffe8be"></span>Amber</b><span>Expert checks. Unchanged.</span></div>
+    <div><b><span class="sw" style="background:#aa295f"></span>Crimson</b><span>An error beside a field. Unchanged.</span></div>
+    <div><b><span class="sw" style="background:#e3cead"></span>Wood (new)</b><span>The lumber itself: part faces in the drawings, the boards on cut cards and in the Boards section, and the lumber lines in Shopping. Hardware is steel gray. Today the faces are three grays (Stage 5, D2 tones), so a drawing does not say what it is made of.</span></div>
+    <div><b><span class="sw" style="background:#034649"></span><span class="sw" style="background:#4c311e"></span>Mode colors (new)</b><span>Shopping and Building each get a bar color. The same color marks the project's state on the Projects list and the Resume card, so you can tell the mode from across the garage and see where each project stands. Planned and Built stay neutral.</span></div>
+    <div><b>No color</b><span>Margins, structural results and the plan's numbers. Stage 4's rules 1 and 2 still apply.</span></div>
+  </div>
+  <div class="stack prose">
+    <h3>Set aside: a color for each part</h3>
+    <p>The obvious use is to color each part (beam, legs, crossbar, gussets) and carry that color from the drawing to the cut list, the board and the step. I measured it, simulating the two common red-green forms of color blindness (Machado 2009, full severity, the same method as <code>color.html</code>), as distance in OKLab (ΔE × 100):</p>
+    <ul>
+      <li>Six hues at one lightness are 4.4 apart at the closest for normal vision, and 0.6 apart with deuteranopia, which makes two parts the same color.</li>
+      <li>The best six-color set a search found is 9.9 apart with deuteranopia, but it is two greens, two teals, a violet and a red-brown. Stage 4's rule 2 keeps red and green away from structural results, and the structural review names parts.</li>
+      <li>Today, the letters and the blue selection already tie a part's drawing, row, board and step together.</li>
+    </ul>
+    <p>So parts stay one material color, and the selected part stays blue.</p>
+  </div>
+  <div class="stack prose"><h3>A drawing and a board</h3><p>The assembly seen from the end of the beam, with the crossbar selected, and board 1 as a cut card draws it.</p></div>
+  <div class="set" data-screen="drawing" data-round="2"></div>
+  <div class="stack prose"><h3>Building and Shopping, on a phone</h3></div>
+  <div class="set" data-screen="build2" data-round="2"></div>
+  <div class="set" data-screen="shop2" data-round="2"></div>
+  <div class="stack prose"><h3>Projects, on a phone</h3></div>
+  <div class="set" data-screen="projects2" data-round="2"></div>
+
+  <article class="stack">
+    <h3>The palettes, critiqued</h3>
+    <div class="critique">
+      <div><h4>W1 · Pine and spruce</h4><ul>
+        <li><b>For:</b> pine is what the owner buys for this project (southern pine in the sample), so the drawing looks like the boards on the rack.</li>
+        <li><b>For:</b> spruce and walnut bars stay well apart: 10.6 for normal vision, 6.9 with deuteranopia, 7.7 with protanopia.</li>
+        <li><b>Against:</b> in light, pine's lightest face is close to the flag fill (2.2 apart). Flags keep their border, icon and label and never sit inside a drawing, but a flag right under a drawing reads a little like part of it.</li>
+        <li><b>Against:</b> spruce is a blue-green. Rule 2 covers structural results, and Shopping and the Projects list have none, but it is the nearest any color comes to green.</li>
+      </ul></div>
+      <div><h4>W2 · Oak and slate</h4><ul>
+        <li><b>For:</b> the quietest, closest to D2. Its state tags are the most distinct pair with color blindness (5.0 with deuteranopia).</li>
+        <li><b>Against:</b> slate is a gray-blue that sits near the attention blue. Shopping's bar could read as "selected".</li>
+        <li><b>Against:</b> oak's light face is also close to the flag fill (2.7 apart).</li>
+      </ul></div>
+      <div><h4>W3 · Cedar and plum</h4><ul>
+        <li><b>For:</b> furthest from the flag amber (4.2 apart), and the most distinctive.</li>
+        <li><b>Against:</b> cedar's pink cast reads less like construction lumber, so the drawing looks less like what is on the rack.</li>
+        <li><b>Against:</b> its state tags are the closest pair (4.0 apart for every kind of vision), and plum is the least expected color for shopping.</li>
+      </ul></div>
+    </div>
+    <div class="stack prose">
+      <h4>Suggested: W1</h4>
+      <p>It is the only palette where the wood is the wood the owner buys, and its two mode colors stay distinct for every kind of vision tested. The one cost, pine near the flag fill, is already covered: a flag always has its border, icon and label.</p>
+      <h4>What it changes</h4>
+      <ul>
+        <li>New tokens replace Stage 5's gray face tones: three for wood, one for steel, a bar color and a tag tint for each mode. Stage 5 would be amended. The highlight tones for the selected part are unchanged.</li>
+        <li>Snapshots and template output do not change, since drawing colors are in the web app only, so no template version bump.</li>
+        <li>For the next garage check (#69, #70): the colored mode bars under glare (bar text holds about 4.0:1 at 20% glare, against 4.6:1 for graphite), and whether wood faces read in a dim garage in dark.</li>
+      </ul>
+    </div>
+  </article>
+
+  <div class="stack prose"><h3>Measured</h3><p>WCAG 2.2 ratios for every new pair, with 20% glare. Every pair meets its minimum without glare.</p></div>
+  <div id="tables2" class="stack"></div>
+</section>
+
+<h2 class="prose" style="padding-top:24px;border-top:2px solid var(--line)">Round 1: how far to go</h2>
+
+<section class="answers" aria-labelledby="ans">
+  <h2 id="ans">Round 1: what I asked you to decide</h2>
+  <ol>
+    <li><b>How far to go.</b> D1 changes surfaces and hierarchy and keeps the Stage 4 colors. D2 does all of D1 and takes the blue off actions. D3 does all of D1 with a new palette and a graphite band. Suggested: <b>D2</b>.</li>
+    <li><b>The fixes that apply whichever you pick</b> (below the directions): the mode bar in dark, the mode bar on a phone, and the repeated shopping guide. Suggested: take all three.</li>
+    <li><b>Anything to take from a direction you don't pick.</b> For example D3's larger figures, or its end-cut corner on the primary button.</li>
+  </ol>
+</section>
+
+<section class="stack prose" aria-labelledby="today">
+  <h2 id="today">What is weak today</h2>
+  <p>I went through the key screens in the running app at 1280 and 390 px, in light and dark, with two projects made from the catalog's sample values. Ordered from most to least visible:</p>
+  <ol>
+    <li><b>Everything is a box.</b> The summary's five figures, the two mode cards, each structural check, each project, and the flags all sit in bordered boxes of the same weight, so nothing leads. Boxes are for collections of unlike things you can act on (NN/g, "Cards: UI-Component Definition", 2016); here most are lists of like things, which rules and space separate with less ink (Tufte's "smallest effective difference", <i>Visual Explanations</i>, 1997; Refactoring UI, "Use fewer borders", 2018).</li>
+    <li><b>The plan's headline numbers are body size.</b> On the summary, "120"", "109-1/4"" and "margin 0.8x" are 17 px bold, the same size as their labels' neighbours, so the summary reads as a form rather than the answer.</li>
+    <li><b>Blue is on almost everything.</b> Primary and secondary buttons, every link in a list, part names in the cut list, check names, every disclosure, input needed, the changed bar and the ticks. In dark, the light-blue primary button is the brightest thing on a phone screen. Stage 4 chose "one blue" so that the few things that need attention stand out; it now marks too much to do that.</li>
+    <li><b>In dark, Shopping and Building open with a chalk-white band.</b> The mode bar is drawn in the text color, so in dark it turns light: the brightest thing on the screen in a dim garage, at the top, where the eye starts. The theme menu inside it does not invert, so it sits as a dark box on the light band.</li>
+    <li><b>The mode bar takes two rows on a phone.</b> At 390 px the theme menu and Exit wrap under the mode's name, which costs about 60 px of a Building step above the first length.</li>
+    <li><b>Shopping repeats its guide on every line.</b> "The boards, and what to look for" is a link under each lumber line, so the list alternates item, link, item, link.</li>
+    <li><b>The brand is only in the corner.</b> The wordmark is graphite and the brand rules keep it out of blue (<code>brand.md</code>), while the screens are mostly blue. The end cut that defines the mark appears nowhere else.</li>
+  </ol>
+  <p>Type and density held up: the Stage 3 scale and Atkinson Hyperlegible read well on the newer screens (glossary, tool pages, the new-project questions), and shop density now applies its space and 20 px text (#202). The proposals below change sizes only for the plan's figures and, in D3, the headings.</p>
+</section>
+
+
+<section class="stack" aria-labelledby="d-summary">
+  <div class="stack prose">
+    <h2 id="d-summary">The plan's summary, on a laptop</h2>
+    <p>The screen the owner sees most at the desk: the project's headline numbers, the two modes, and the flags.</p>
+  </div>
+  <div class="set desk" data-screen="summary"></div>
+</section>
+
+<section class="stack" aria-labelledby="d-build">
+  <div class="stack prose">
+    <h2 id="d-build">A Building step, on a phone</h2>
+    <p>Read at arm's length in the garage, with one piece already cut.</p>
+  </div>
+  <div class="set" data-screen="build"></div>
+</section>
+
+<section class="stack" aria-labelledby="d-shop">
+  <div class="stack prose">
+    <h2 id="d-shop">Shopping, on a phone</h2>
+    <p>Read in a store aisle, often under strong overhead light.</p>
+  </div>
+  <div class="set" data-screen="shop"></div>
+</section>
+
+<section class="stack" aria-labelledby="d-projects">
+  <div class="stack prose">
+    <h2 id="d-projects">Projects and a field with input needed, on a phone</h2>
+    <p>The first screen, and the one place the plan asks for something.</p>
+  </div>
+  <div class="set" data-screen="projects"></div>
+</section>
+
+<section class="stack" aria-labelledby="critique">
+  <h2 id="critique">The directions, critiqued</h2>
+
+  <article class="stack">
+    <h3>D1 · Drawing sheet: rules instead of boxes, larger figures, Stage 4's colors</h3>
+    <div class="critique">
+      <div><h4>What changes</h4><ul>
+        <li>Figures, modes, checks and projects become ruled rows: a 2 px graphite rule above a group, hairlines between its rows, no boxes. Boxes stay for the things that are different in kind: flags, the Resume card, fields.</li>
+        <li>The summary's figures go from 17 to 24 px bold (the scale's step 2), labels above them in 14 px.</li>
+        <li>One primary button per screen: on the summary, Start shopping stays primary and Start building becomes secondary until shopping has begun. Today both are primary, side by side.</li>
+        <li>Rows that are links (a project, a mode) are named in the text color with a chevron, not underlined. Links inside sentences stay blue and underlined.</li>
+        <li>Colors are unchanged, so <code>tokens.test.ts</code> keeps every ratio.</li>
+      </ul></div>
+      <div><h4>For</h4><ul>
+        <li>The headline numbers lead. It is how a drawing's title block and a printed cut list separate things: rules and alignment.</li>
+        <li>The smallest change. Mostly <code>components.css</code>; no token values move.</li>
+        <li>Underlines stay where GOV.UK and WCAG 1.4.1 want them: on links in running text.</li>
+      </ul></div>
+      <div><h4>Against</h4><ul>
+        <li>Blue is still on every action, so the "too much blue" problem only shrinks by the links it removes.</li>
+        <li>In dark, the light-blue primary button stays the brightest thing on a phone.</li>
+        <li>Without boxes, rows need the hairline to stay distinct in glare: hairlines are 1.9 to 2.8:1 under 20% glare, so the 2 px group rule and spacing carry the structure.</li>
+      </ul></div>
+    </div>
+  </article>
+
+  <article class="stack">
+    <h3>D2 · Pencil and chalk line: D1, with actions in graphite and blue kept for attention</h3>
+    <div class="critique">
+      <div><h4>What changes</h4><ul>
+        <li>All of D1.</li>
+        <li>Primary buttons are graphite with paper text (chalk with graphite text in dark). Secondary buttons are outlined in graphite. Links are the text color, underlined.</li>
+        <li>Blue is kept for exactly four jobs: input needed, focus, where you are (the current place and section), and dimensions in drawings. That is Stage 4's "one blue" applied to attention, not to action.</li>
+        <li>Ticks are graphite. The changed bar on state tags moves to the strong border gray.</li>
+      </ul></div>
+      <div><h4>For</h4><ul>
+        <li>The screens and the brand become one product: the wordmark is graphite (<code>brand.md</code>), and so are the actions.</li>
+        <li>The most legible under glare: the action color is the text color, 4.6:1 at 20% glare in light against 3.3:1 for blue.</li>
+        <li>Input needed is now the only blue in a form, so it stands out as Stage 5a meant it to.</li>
+        <li>Only the role tokens #219 split out change, which is what they were split for.</li>
+      </ul></div>
+      <div><h4>Against</h4><ul>
+        <li>A link in running text is the text color with an underline; it relies on the underline alone. WCAG 1.4.1 accepts this, but it is less obvious than blue (GOV.UK keeps blue).</li>
+        <li>A graphite primary button is the heaviest thing on a light screen; one per screen, as today, keeps that in check.</li>
+        <li>The changed bar in gray is quieter than in blue (4.4:1 light, 5.1:1 dark), and it also has its label.</li>
+      </ul></div>
+    </div>
+  </article>
+
+  <article class="stack">
+    <h3>D3 · Workshop: D1, with a warmer paper, an indigo chalk line, a graphite band, and the end cut</h3>
+    <div class="critique">
+      <div><h4>What changes</h4><ul>
+        <li>All of D1.</li>
+        <li>A new palette: kraft paper (warmer and a little darker), ink text with a brown cast, indigo in place of blue. Flags get a stronger amber fill so they still stand off the warmer paper.</li>
+        <li>The title bar and the laptop sidebar are a graphite band in both themes, as the mode bar is.</li>
+        <li>Headings move to a 1.25 ratio (17, 21, 26, 33 px) and figures to 26 px.</li>
+        <li>The primary button's top-right corner is cut at 45°, the k's end cut.</li>
+      </ul></div>
+      <div><h4>For</h4><ul>
+        <li>The most character: it reads as a workshop tool, not a web page.</li>
+        <li>The band ties the frame to the mode bar, so planning and shop screens share one shape.</li>
+        <li>The end cut carries the brand into the screens.</li>
+      </ul></div>
+      <div><h4>Against</h4><ul>
+        <li>The darker paper costs contrast: text on page falls from 16.1 to 15.1:1 in light, and to 4.3:1 under 20% glare, below the 4.5:1 that C1 kept.</li>
+        <li>Brown-cast text and kraft paper are close to the amber flag; the fill had to get stronger to stay distinct, which makes flags louder.</li>
+        <li>The cut corner must be drawn behind the label, or it clips the focus ring; and a motif on every button risks reading as decoration. On the wordmark it is one detail; repeated, it is a style.</li>
+        <li>A whole new palette re-opens Stage 4 and every diagram tone, which were measured together. The largest build of the three.</li>
+      </ul></div>
+    </div>
+  </article>
+
+  <div class="stack prose">
+    <h3>Suggested: D2</h3>
+    <p>It fixes the two biggest problems, nothing leads and blue marks everything, with the least new risk: D1's surfaces plus a change to role tokens that #219 made for this purpose. It brings the screens in line with the brand and is the strongest under glare. D3's character is real, but most of it comes from the band and the cut corner, which can be tried on top of D2 later; its palette costs glare contrast for warmth.</p>
+  </div>
+</section>
+
+<section class="stack prose" aria-labelledby="shared">
+  <h2 id="shared">Fixes that apply whichever direction you pick</h2>
+  <ol>
+    <li><b>The mode bar in dark.</b> Graphite in light, as now; in dark, the card color with a hairline under it, instead of chalk. The mock-ups for D1 to D3 show it. The "Today" mock-up shows the current band.</li>
+    <li><b>The mode bar on a phone.</b> One row: the mode's name (cut short with an ellipsis if needed), a Menu button holding the theme, and Exit. This matches the planning frame's Menu, and the mode is still named twice (the bar and the step's own heading), as the mode rules require (NN/g on modes).</li>
+    <li><b>Shopping's guide once per group.</b> One "What to look for in lumber" link under the Lumber heading instead of one under each line.</li>
+  </ol>
+  <p>None changes a number or the order of anything. Each one changes how the shop modes read, so the next garage check (#69, #70) should look at the mode bar in dark and the one-row bar.</p>
+</section>
+
+<section class="stack" aria-labelledby="measured">
+  <h2 id="measured" class="prose">Measured contrast</h2>
+  <p class="prose">WCAG 2.2 contrast ratios for each direction's pairs, light and dark, and with 20% glare, using the same method as <code>color.html</code>: the glare veil adds 20% of white's luminance to both colors. Every pair meets its minimum without glare. Under glare, no direction holds secondary text or blue at 4.5:1; Stage 4's rule 5 already keeps secondary text out of the shop modes.</p>
+  <div id="tables" class="stack"></div>
+</section>
+
+<section class="stack prose" aria-labelledby="sources">
+  <h2 id="sources">Sources</h2>
+  <ul>
+    <li>Page Laubheimer, "Cards: UI-Component Definition", Nielsen Norman Group, 2016.</li>
+    <li>Edward Tufte, <i>Visual Explanations</i>, Graphics Press, 1997: the smallest effective difference.</li>
+    <li>Adam Wathan and Steve Schoger, <i>Refactoring UI</i>, 2018: "Use fewer borders".</li>
+    <li>WCAG 2.2: 1.4.1 Use of Color, 1.4.3 Contrast (Minimum), 1.4.11 Non-text Contrast.</li>
+    <li>GOV.UK Design System, Links: underline links, and keep their color distinct from text.</li>
+    <li>Kerf's own record: <code>README.md</code> Stages 3, 4, 5a, 6 and 8, <code>color.html</code>, <code>brand.md</code>, and the engineering review of October 31, 2026.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const WM = 'M0 0L0 -568.8L139.2 -708L139.2 -301.4L311.6 -496L476.8 -496L284.9 -289.4L493.7 0L328.1 0L192.4 -190L139.2 -132.7L139.2 0ZM764.5 12Q684.9 12 624.8 -20.1Q564.7 -52.1 531.3 -111Q497.9 -169.9 497.9 -250.2Q497.9 -329.2 533.6 -387.2Q569.2 -445.1 628.6 -477Q688 -508.9 759.2 -508.9Q819.9 -508.9 868.1 -486.6Q916.4 -464.3 949.5 -424Q982.7 -383.7 998.2 -329.2Q1013.7 -274.8 1008.9 -211.2H635.5Q641.1 -180.1 653.6 -158.6Q666 -137.2 683.3 -123.7Q700.6 -110.1 720.8 -103.9Q741.1 -97.7 761.2 -97.7Q797.6 -97.7 823.6 -108.8Q849.7 -119.9 864.2 -137L977.7 -96.7Q941 -42.4 884.1 -15.2Q827.2 12 764.5 12ZM634.9 -298.5H877.7Q876.1 -331.1 860.6 -354.5Q845.1 -378 820.1 -390.8Q795.1 -403.6 762.5 -403.6Q733.6 -403.6 706.7 -393.4Q679.9 -383.3 661.3 -360.5Q642.7 -337.7 634.9 -298.5ZM1074 0V-496H1182.9L1209.9 -404.8Q1226.3 -442.9 1249.4 -466.2Q1272.4 -489.6 1303.5 -500Q1334.6 -510.5 1373.1 -508.9V-369.1Q1318.9 -374.8 1283.5 -363Q1248.1 -351.3 1230.7 -321.7Q1213.2 -292 1213.2 -243.1V0ZM1508.8 0V-389.2H1426.4V-496H1508.8V-569.8Q1508.8 -627.3 1526.9 -659.8Q1545 -692.2 1584.6 -705.1Q1624.1 -718 1688.9 -718H1755.1V-607.2H1711.2Q1672.7 -607.2 1660.3 -598.3Q1648 -589.3 1648 -558.6V-496H1755.1V-389.2H1648V0Z';
+const MEASURED = {"D1": [["Text on page", 4.5, 16.05, 15.51, 4.57, 4.21], ["Text on card", 4.5, 16.88, 14.18, 4.77, 4.13], ["Secondary on page", 4.5, 6.79, 8.29, 3.45, 2.61], ["Secondary on card", 4.5, 7.14, 7.57, 3.6, 2.56], ["Primary button text", 4.5, 6.63, 8.49, 3.49, 2.63], ["Primary button on page", 3, 6.3, 8.34, 3.34, 2.62], ["Link on page", 4.5, 6.3, 8.34, 3.34, 2.62], ["Link on card", 4.5, 6.63, 7.62, 3.49, 2.57], ["Input-needed edge on page", 3, 6.3, 8.34, 3.34, 2.62], ["Changed bar on page", 3, 6.3, 8.34, 3.34, 2.62], ["Done tick on card", 3, 6.63, 7.62, 3.49, 2.57], ["Focus ring on page", 3, 4.68, 9.19, 2.9, 2.81], ["Control edge on page", 3, 4.41, 5.06, 2.81, 1.9], ["Flag text on flag fill", 4.5, 9.3, 10.2, 3.66, 3.55], ["Flag edge on page", 3, 3.56, 8.17, 2.49, 2.59], ["Band text on band", 4.5, 16.05, 14.18, 4.57, 4.13]], "D2": [["Text on page", 4.5, 16.05, 15.51, 4.57, 4.21], ["Text on card", 4.5, 16.88, 14.18, 4.77, 4.13], ["Secondary on page", 4.5, 6.79, 8.29, 3.45, 2.61], ["Secondary on card", 4.5, 7.14, 7.57, 3.6, 2.56], ["Primary button text", 4.5, 16.05, 15.51, 4.57, 4.21], ["Primary button on page", 3, 16.05, 15.51, 4.57, 4.21], ["Link on page", 4.5, 16.05, 15.51, 4.57, 4.21], ["Link on card", 4.5, 16.88, 14.18, 4.77, 4.13], ["Input-needed edge on page", 3, 6.3, 8.34, 3.34, 2.62], ["Changed bar on page", 3, 4.41, 5.06, 2.81, 1.9], ["Done tick on card", 3, 16.88, 14.18, 4.77, 4.13], ["Focus ring on page", 3, 4.68, 9.19, 2.9, 2.81], ["Control edge on page", 3, 4.41, 5.06, 2.81, 1.9], ["Flag text on flag fill", 4.5, 9.3, 10.2, 3.66, 3.55], ["Flag edge on page", 3, 3.56, 8.17, 2.49, 2.59], ["Band text on band", 4.5, 16.05, 14.18, 4.57, 4.13]], "D3": [["Text on page", 4.5, 15.07, 15.33, 4.3, 4.15], ["Text on card", 4.5, 16.84, 14.06, 4.72, 4.07], ["Secondary on page", 4.5, 7.09, 8.24, 3.4, 2.59], ["Secondary on card", 4.5, 7.92, 7.55, 3.73, 2.54], ["Primary button text", 4.5, 8.64, 9.4, 3.89, 2.84], ["Primary button on page", 3, 7.6, 9.4, 3.5, 2.84], ["Link on page", 4.5, 7.6, 9.4, 3.5, 2.84], ["Link on card", 4.5, 8.5, 8.62, 3.83, 2.79], ["Input-needed edge on page", 3, 7.6, 9.4, 3.5, 2.84], ["Changed bar on page", 3, 7.6, 9.4, 3.5, 2.84], ["Done tick on card", 3, 8.5, 8.62, 3.83, 2.79], ["Focus ring on page", 3, 5.0, 10.58, 2.92, 3.1], ["Control edge on page", 3, 4.53, 4.94, 2.78, 1.87], ["Flag text on flag fill", 4.5, 8.66, 10.2, 3.45, 3.55], ["Flag edge on page", 3, 3.7, 8.26, 2.5, 2.59], ["Band text on band", 4.5, 14.08, 13.14, 4.23, 4.0]]};
+const DIRS = [
+  ['today', 'Today', 'As built.'],
+  ['d1', 'D1 · Drawing sheet', 'Rules, larger figures, Stage 4 colors.'],
+  ['d2', 'D2 · Pencil and chalk line', 'D1, actions in graphite.'],
+  ['d3', 'D3 · Workshop', 'D1, new palette, band, end cut.'],
+];
+const ICON = {
+  projects: 'M3.5 1.5h6l3 3v10h-9zM9.5 1.5v3h3M5.5 8h5M5.5 10.5h5',
+  tools: 'M2.5 1.5v13h12v-3h-9v-10z',
+  glossary: 'M8 3.5C6.5 2.5 4.5 2 1.5 2v10.5c3 0 5 .5 6.5 1.5 1.5-1 3.5-1.5 6.5-1.5V2c-3 0-5 .5-6.5 1.5zM8 3.5V14',
+  menu: 'M2 4h12M2 8h12M2 12h12',
+  back: 'M10 3.5L5.5 8l4.5 4.5',
+  flag: 'M3 14.5V2M3 2.5h9l-2 3 2 3H3',
+};
+const icon = (n) => `<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="${ICON[n]}"/></svg>`;
+const wordmark = `<svg class="wm" viewBox="0 -720 1755.1 732" role="img" aria-label="Kerf"><path d="${WM}"/></svg>`;
+
+function modebar(dir, mode) {
+  if (dir === 'today') {
+    return `<div class="mb mb-wrap"><span><b>Building</b> · Swing set for the cabin</span>
+      <span class="row"><span class="sel">System theme ⌄</span><span class="btn">Exit</span></span></div>`;
+  }
+  return `<div class="mb"><span class="name"><b>Building</b> · Swing set for the cabin</span>
+    <span class="row" style="flex-wrap:nowrap"><span class="menu" aria-label="Menu">${icon('menu')}</span><span class="btn">Exit</span></span></div>`;
+}
+
+const SCREENS = {
+  summary: (dir) => `
+    <div class="desk">
+      <nav class="side">
+        <span>${wordmark}</span>
+        <ul>
+          <li><a>Projects</a>
+            <ul class="sub" style="list-style:none;padding:4px 0 0 0;display:grid;gap:4px">
+              <li><a>Swing set for the cabin</a>
+                <ul class="sub" style="list-style:none;padding:4px 0 0 0;display:grid;gap:2px">
+                  <li class="on"><a>Summary</a></li><li><a ${dir === 'today' ? 'class="l"' : ''}>Diagrams</a></li><li><a ${dir === 'today' ? 'class="l"' : ''}>Structural review</a></li><li><a ${dir === 'today' ? 'class="l"' : ''}>Cut list</a></li>
+                </ul></li>
+            </ul></li>
+          <li><a ${dir === 'today' ? 'class="l"' : ''}>Tools</a></li>
+          <li><a ${dir === 'today' ? 'class="l"' : ''}>Glossary</a></li>
+        </ul>
+      </nav>
+      <div class="body">
+        <div class="row between" style="align-items:start">
+          <div class="head"><h1>Swing set for the cabin</h1><p class="mut sm">Planned. Two-swing A-frame swing set, version 13.</p></div>
+          <span class="row"><span class="btn sec">Print</span><span class="btn">Edit</span></span>
+        </div>
+        <h2>Summary</h2>
+        <div class="figs">
+          <div class="fig"><span class="l">Beam</span><span class="v num">120"</span><span class="d">2 plies of 2x6</span></div>
+          <div class="fig"><span class="l">Back leg</span><span class="v num">109-1/4"</span></div>
+          <div class="fig"><span class="l">Front leg</span><span class="v num">109-1/4"</span></div>
+          <div class="fig"><span class="l">Leg end cuts</span><span class="v num">Saw at 19.9°</span><span class="d num">70.1° to the edge</span></div>
+          <div class="fig wide"><span class="l">Lowest margin</span><span class="v">margin 0.8x under these assumptions</span><span class="d"><span class="term">Bending</span>: Top beam, 2 plies of 2x6</span></div>
+        </div>
+        <div class="modes">
+          <div class="mode"><div><b>Shopping</b><p class="sm mut">12 lines, none bought.</p></div><span class="btn">Start shopping</span></div>
+          <div class="mode"><div><b>Building</b><p class="sm mut">11 steps, not started.</p></div><span class="btn ${dir === 'today' ? '' : 'sec'}">Start building</span></div>
+        </div>
+        <div class="flag">${icon('flag')}<b>6 expert checks · Load-bearing design</b>
+          <ul><li>Confirm the bolt size for the leg-to-beam bolt.</li><li>Confirm how the 2 beam plies are fastened together.</li></ul></div>
+      </div>
+    </div>`,
+  build: (dir, mode) => `
+    ${modebar(dir, mode)}
+    <div class="shop">
+      <div class="row between"><span>Step 1 of 11 · Cutting</span><a>All steps</a></div>
+      <h2>Cut board 1, a 2x6 16' long: Beam ply, Crossbar</h2>
+      <p>Trim 1/2" off the factory end to square it, then cut these in order, measuring each from the fresh cut.</p>
+      <div class="tick"><span class="box on"></span><span class="done-line"><span class="letter">A</span>Beam ply, piece 1 of 2</span><span class="glance num">120"</span></div>
+      <div class="tick"><span class="box"></span><span><span class="letter">D</span>Crossbar, piece 1 of 2</span><span class="glance num">58-1/4"</span></div>
+      <div class="steps"><span class="btn sec">Back</span><span class="btn">Next</span></div>
+    </div>`,
+  shop: (dir, mode) => `
+    ${modebar(dir, mode).replace('Building', 'Shopping')}
+    <div class="shop">
+      <div class="head"><h2>Shopping list</h2><p>1 of 12 bought.</p></div>
+      <div class="group">
+        <div class="row between"><b>Lumber</b><span>1 of 3</span></div>
+        ${dir === 'today' ? '' : '<a class="more">What to look for in lumber</a>'}
+        <div class="tick"><span class="box on"></span><span class="done-line"><b>2</b> × 2x6, 16' 0"</span></div>
+        ${dir === 'today' ? '<a class="more">The boards, and what to look for ⌄</a>' : ''}
+        <div class="tick"><span class="box"></span><span><b>4</b> × 4x4, 10' 0"</span></div>
+        ${dir === 'today' ? '<a class="more">The boards, and what to look for ⌄</a>' : ''}
+        <div class="tick"><span class="box"></span><span><b>1</b> × 2x8, 8' 0"</span></div>
+        ${dir === 'today' ? '<a class="more">The board, and what to look for ⌄</a>' : ''}
+      </div>
+    </div>`,
+  projects: (dir) => `
+    <div class="tb"><span>${wordmark}</span><span aria-label="Menu">${icon('menu')}</span></div>
+    <div class="body">
+      <h1>Projects</h1>
+      <span class="btn" style="justify-self:start">New two-swing A-frame swing set</span>
+      <div class="resume"><b>Resume building</b><span>Backyard swing set · Step 2 of 11</span></div>
+      <div class="plist">
+        <div class="pitem"><a class="t">Swing set for the cabin</a><span class="state">${dir === 'today' ? 'Planned ⌄' : 'Planned'}</span><span class="meta">Two-swing A-frame swing set. Updated October 31.</span></div>
+        <div class="pitem"><a class="t">Backyard swing set</a><span class="state on">${dir === 'today' ? 'Building ⌄' : 'Building'}</span><span class="meta">Shopping 12 of 12 · Building 1 of 11</span></div>
+      </div>
+      <div class="field"><label>Swing hanger rated working load</label><span class="sm mut">From the manufacturer's specification for one hanger.</span>
+        <span class="input"><span class="box2 need"></span><span>lb</span><span class="tag">Input needed</span></span></div>
+    </div>
+    <div class="tabs"><span class="on">${icon('projects')}Projects</span><span>${icon('tools')}Tools</span><span>${icon('glossary')}Glossary</span></div>`,
+};
+
+let mode = 'light';
+function render() {
+  render2();
+  render2b();
+  for (const set of document.querySelectorAll('.set:not([data-round])')) {
+    const screen = set.dataset.screen;
+    set.innerHTML = DIRS.map(([dir, name, note]) => `
+      <figure class="shot" style="margin:0">
+        <figcaption class="cap"><b>${name}</b> · ${note}</figcaption>
+        <div class="glare"><div class="m ${screen === 'summary' ? '' : 'phone'}" data-dir="${dir}" data-mode="${mode}">${SCREENS[screen](dir, mode)}</div></div>
+      </figure>`).join('');
+  }
+}
+for (const b of document.querySelectorAll('[data-mode]')) {
+  if (b.tagName !== 'BUTTON') continue;
+  b.addEventListener('click', () => {
+    mode = b.dataset.mode;
+    for (const o of document.querySelectorAll('.seg button')) o.setAttribute('aria-pressed', String(o === b));
+    render();
+  });
+}
+const WOOD = {"W1": {"name": "Pine and spruce", "rows": [["Ink on wood top", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood end", 4.5, 8.74, 9.5, 2.84, 3.69], ["Band text on Shopping band", 4.5, 10.11, 11.24, 4.01, 3.89], ["Band text on Building band", 4.5, 11.31, 12.35, 4.16, 3.99], ["Text on Shopping tag", 4.5, 14.09, 11.33, 4.11, 3.89], ["Text on Building tag", 4.5, 13.87, 11.52, 4.05, 3.91]], "bands": {"normal": 10.6, "deutan": 6.9, "protan": 7.7}, "tags": {"normal": 6.2, "deutan": 4.2, "protan": 3.8}, "flag": 2.2}, "W2": {"name": "Oak and slate", "rows": [["Ink on wood top", 4.5, 13.2, 5.85, 3.89, 3.08], ["Ink on wood end", 4.5, 8.66, 9.64, 2.82, 3.71], ["Band text on Shopping band", 4.5, 10.19, 11.38, 4.02, 3.9], ["Band text on Building band", 4.5, 11.28, 12.38, 4.15, 3.99], ["Text on Shopping tag", 4.5, 14.05, 11.39, 4.1, 3.9], ["Text on Building tag", 4.5, 13.94, 11.52, 4.07, 3.91]], "bands": {"normal": 9.2, "deutan": 8.4, "protan": 8.8}, "tags": {"normal": 5.3, "deutan": 5.0, "protan": 4.7}, "flag": 2.7}, "W3": {"name": "Cedar and plum", "rows": [["Ink on wood top", 4.5, 13.13, 5.86, 3.88, 3.09], ["Ink on wood end", 4.5, 8.59, 9.68, 2.8, 3.72], ["Band text on Shopping band", 4.5, 10.64, 11.77, 4.08, 3.94], ["Band text on Building band", 4.5, 11.48, 12.5, 4.18, 4.0], ["Text on Shopping tag", 4.5, 13.73, 11.67, 4.02, 3.93], ["Text on Building tag", 4.5, 13.83, 11.59, 4.04, 3.92]], "bands": {"normal": 7.4, "deutan": 7.3, "protan": 8.0}, "tags": {"normal": 4.0, "deutan": 4.0, "protan": 4.1}, "flag": 4.2}};
+const VARS = [
+  ['w0', 'D2 as proposed', 'Gray faces, graphite bars.'],
+  ['w1', 'W1 · Pine and spruce', 'Suggested.'],
+  ['w2', 'W2 · Oak and slate', ''],
+  ['w3', 'W3 · Cedar and plum', ''],
+];
+const tag = (x, y, l) => `<g class="tag"><rect x="${x - 8}" y="${y - 8}" width="16" height="16"/><text x="${x}" y="${y}">${l}</text></g>`;
+const DRAWING = `
+  <svg class="dwg" viewBox="0 0 320 230" role="img" aria-label="An A-frame seen from the end of its beam, with the crossbar selected">
+    <defs><pattern id="off" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--raised)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--hidden, #6e7278)" stroke-width="1"/></pattern></defs>
+    <rect class="zone" x="12" y="150" width="70" height="44"/>
+    <polygon class="p f2" points="58,190 74,190 168,40 152,40"/>
+    <polygon class="p f2" points="246,190 262,190 168,40 152,40"/>
+    <polygon class="p f1" points="130,70 190,70 160,96"/>
+    <rect class="p f3" x="146" y="24" width="28" height="42"/>
+    <rect class="p sel h2" x="96" y="124" width="128" height="14"/>
+    <circle class="bolt" cx="160" cy="52" r="3.5"/><circle class="bolt" cx="114" cy="131" r="3"/><circle class="bolt" cx="206" cy="131" r="3"/>
+    <line class="ground" x1="8" y1="190" x2="312" y2="190"/>
+    ${tag(196, 30, 'A')}${tag(48, 160, 'B')}${tag(272, 160, 'C')}${tag(160, 152, 'D')}${tag(212, 82, 'E')}
+    <rect class="p f1" x="10" y="206" width="300" height="18"/>
+    <rect class="p f1" x="10" y="206" width="190" height="18"/>
+    <rect class="p sel h1" x="202" y="206" width="92" height="18"/>
+    <rect class="p off" x="296" y="206" width="14" height="18"/>
+    <text class="lbl" x="18" y="219">A · 120"</text><text class="lbl" x="208" y="219">D · 58-1/4"</text>
+  </svg>`;
+const mb = (m, name) => `<div class="mb" data-m="${m}"><span class="name"><b>${name}</b> · Swing set for the cabin</span>
+  <span class="row" style="flex-wrap:nowrap"><span class="menu" aria-label="Menu">${icon('menu')}</span><span class="btn">Exit</span></span></div>`;
+const SCREENS2 = {
+  drawing: () => `<p class="cap2 mut">Diagrams · Assembly</p>${DRAWING}<div class="body" style="gap:8px"><p class="sm"><span class="letter">D</span><b>Crossbar</b> · 2x6, 59" · 2 pieces</p><p class="sm mut">Board 1, a 2x6 16' long: A, then D. The striped end is left over.</p></div>`,
+  build2: () => `${mb('build', 'Building')}
+    <div class="shop">
+      <div class="row between"><span>Step 1 of 11 · Cutting</span><a>All steps</a></div>
+      <h2>Cut board 1, a 2x6 16' long</h2>
+      <svg class="dwg" viewBox="0 0 320 30" role="img" aria-label="Board 1: A, then D, then the offcut" style="border:0;background:transparent">
+        <rect class="p f1" x="2" y="4" width="196" height="22"/><rect class="p sel h1" x="200" y="4" width="96" height="22"/><rect class="p off" x="298" y="4" width="20" height="22"/>
+        <text class="lbl" x="10" y="19">A · 120"</text><text class="lbl" x="206" y="19">D · 58-1/4"</text>
+      </svg>
+      <div class="tick"><span class="box on"></span><span class="done-line"><span class="letter">A</span>Beam ply, piece 1 of 2</span><span class="glance num">120"</span></div>
+      <div class="steps"><span class="btn sec">Back</span><span class="btn">Next</span></div>
+    </div>`,
+  shop2: () => `${mb('shop', 'Shopping')}
+    <div class="shop">
+      <div class="head"><h2>Shopping list</h2><p>1 of 12 bought.</p></div>
+      <div class="group">
+        <div class="row between"><b><span class="chip wood"></span>Lumber</b><span>1 of 3</span></div>
+        <div class="tick"><span class="box on"></span><span class="done-line"><b>2</b> × 2x6, 16' 0"</span></div>
+        <div class="tick"><span class="box"></span><span><b>4</b> × 4x4, 10' 0"</span></div>
+      </div>
+      <div class="group">
+        <div class="row between"><b><span class="chip steel"></span>Bolts and fittings</b><span>0 of 6</span></div>
+        <div class="tick"><span class="box"></span><span><b>2</b> × 1/2" through-bolt, grip 8-7/16"</span></div>
+      </div>
+    </div>`,
+  projects2: () => `
+    <div class="tb"><span>${wordmark}</span><span aria-label="Menu">${icon('menu')}</span></div>
+    <div class="body">
+      <h1>Projects</h1>
+      <div class="resume"><b>Resume building</b><span>Backyard swing set · Step 2 of 11</span></div>
+      <div class="plist">
+        <div class="pitem"><a class="t">Backyard swing set</a><span class="state build">Building</span><span class="meta">Shopping 12 of 12 · Building 1 of 11</span></div>
+        <div class="pitem"><a class="t">Swing set for the cabin</a><span class="state shop">Shopping</span><span class="meta">Shopping 3 of 12</span></div>
+        <div class="pitem"><a class="t">Swing set for the park</a><span class="state">Planned</span><span class="meta">Updated October 31.</span></div>
+      </div>
+      <span class="btn sec" style="justify-self:start">New two-swing A-frame swing set</span>
+    </div>
+    <div class="tabs"><span class="on">${icon('projects')}Projects</span><span>${icon('tools')}Tools</span><span>${icon('glossary')}Glossary</span></div>`,
+};
+function render2() {
+  for (const set of document.querySelectorAll('.set[data-round="2"]')) {
+    const screen = set.dataset.screen;
+    set.innerHTML = VARS.map(([w, name, note]) => `
+      <figure class="shot" style="margin:0">
+        <figcaption class="cap"><b>${name}</b>${note ? ` · ${note}` : ''}</figcaption>
+        <div class="glare"><div class="m phone" data-dir="d2" data-wood="${w}" data-mode="${mode}">${SCREENS2[screen]()}</div></div>
+      </figure>`).join('');
+  }
+}
+document.getElementById('tables2').innerHTML = Object.entries(WOOD).map(([k, v]) => `
+  <details${k === 'W1' ? ' open' : ''}><summary>${k} · ${v.name}</summary><div class="wrap"><table class="t">
+  <thead><tr><th>Foreground on background</th><th>Needs</th><th>Light</th><th>Dark</th><th>Light, 20% glare</th><th>Dark, 20% glare</th></tr></thead>
+  <tbody>${v.rows.map(([label, need, ...vals]) => `<tr><td>${label}</td><td class="n">${need}</td>${vals
+    .map((x) => `<td class="n${x < need ? ' low' : ''}">${x.toFixed(2)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  <p class="small muted">Shopping and Building bars, ΔE × 100 in OKLab: ${v.bands.normal} normal, ${v.bands.deutan} deuteranopia, ${v.bands.protan} protanopia. Their state tags: ${v.tags.normal}, ${v.tags.deutan}, ${v.tags.protan}. Lightest wood face to the flag fill: ${v.flag}.</p></details>`).join('');
+
+
+const WOOD2B = {"W1": {"name": "Pine and spruce", "note": "Pine; spruce and walnut bars", "rows": [["Ink on wood, lightest face", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood, darkest face", 4.5, 8.74, 9.5, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 10.11, 11.24, 4.01, 3.89], ["Bar text on Building bar", 4.5, 11.31, 12.35, 4.16, 3.99], ["Text on Shopping tag", 4.5, 14.09, 11.33, 4.11, 3.89], ["Text on Building tag", 4.5, 13.87, 11.52, 4.05, 3.91]], "bands": {"normal": 10.6, "deutan": 6.9, "protan": 7.7}, "tags": {"normal": 6.2, "deutan": 4.2, "protan": 3.8}, "flag": 2.2}, "W4": {"name": "Birch", "note": "Paler, grayer wood; the same bars", "rows": [["Ink on wood, lightest face", 4.5, 13.34, 5.74, 3.93, 3.06], ["Ink on wood, darkest face", 4.5, 8.75, 9.45, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 10.11, 11.24, 4.01, 3.89], ["Bar text on Building bar", 4.5, 11.31, 12.35, 4.16, 3.99], ["Text on Shopping tag", 4.5, 14.09, 11.33, 4.11, 3.89], ["Text on Building tag", 4.5, 13.87, 11.52, 4.05, 3.91]], "bands": {"normal": 10.6, "deutan": 6.9, "protan": 7.7}, "tags": {"normal": 6.2, "deutan": 4.2, "protan": 3.8}, "flag": 3.9}, "W5": {"name": "Pine and indigo", "note": "Pine; indigo for Shopping", "rows": [["Ink on wood, lightest face", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood, darkest face", 4.5, 8.74, 9.5, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 10.66, 11.79, 4.08, 3.94], ["Bar text on Building bar", 4.5, 11.31, 12.35, 4.16, 3.99], ["Text on Shopping tag", 4.5, 13.89, 11.55, 4.06, 3.91], ["Text on Building tag", 4.5, 13.87, 11.52, 4.05, 3.91]], "bands": {"normal": 13.0, "deutan": 13.2, "protan": 13.2}, "tags": {"normal": 5.6, "deutan": 5.7, "protan": 5.3}, "flag": 2.2}, "W6": {"name": "Pine and rust", "note": "Pine; rust for Building", "rows": [["Ink on wood, lightest face", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood, darkest face", 4.5, 8.74, 9.5, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 10.11, 11.24, 4.01, 3.89], ["Bar text on Building bar", 4.5, 9.15, 10.27, 3.88, 3.79], ["Text on Shopping tag", 4.5, 14.09, 11.33, 4.11, 3.89], ["Text on Building tag", 4.5, 13.86, 11.68, 4.05, 3.93]], "bands": {"normal": 17.3, "deutan": 11.6, "protan": 8.2}, "tags": {"normal": 6.8, "deutan": 4.0, "protan": 3.6}, "flag": 2.2}, "W7": {"name": "Bold", "note": "Pine; brighter bars in a stronger teal and orange", "rows": [["Ink on wood, lightest face", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood, darkest face", 4.5, 8.74, 9.5, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 6.29, 7.19, 3.34, 3.35], ["Bar text on Building bar", 4.5, 6.01, 6.81, 3.27, 3.28], ["Text on Shopping tag", 4.5, 14.23, 11.21, 4.14, 3.88], ["Text on Building tag", 4.5, 13.83, 11.79, 4.04, 3.94]], "bands": {"normal": 20.7, "deutan": 15.3, "protan": 12.7}, "tags": {"normal": 8.9, "deutan": 5.7, "protan": 5.2}, "flag": 2.2}};
+const VARS2B = Object.entries(WOOD2B).map(([k, v]) => [k.toLowerCase(), `${k} · ${v.name}`, v.note]);
+function render2b() {
+  for (const set of document.querySelectorAll('.set[data-round="2b"]')) {
+    const screen = set.dataset.screen;
+    set.innerHTML = VARS2B.map(([w, name, note]) => `
+      <figure class="shot" style="margin:0">
+        <figcaption class="cap"><b>${name}</b> · ${note}</figcaption>
+        <div class="glare"><div class="m phone" data-dir="d2" data-wood="${w}" data-mode="${mode}">${SCREENS2[screen]()}</div></div>
+      </figure>`).join('');
+  }
+}
+document.getElementById('tables2b').innerHTML = Object.entries(WOOD2B).map(([k, v]) => `
+  <details${k === 'W5' ? ' open' : ''}><summary>${k} · ${v.name}</summary><div class="wrap"><table class="t">
+  <thead><tr><th>Foreground on background</th><th>Needs</th><th>Light</th><th>Dark</th><th>Light, 20% glare</th><th>Dark, 20% glare</th></tr></thead>
+  <tbody>${v.rows.map(([label, need, ...vals]) => `<tr><td>${label}</td><td class="n">${need}</td>${vals
+    .map((x) => `<td class="n${x < need ? ' low' : ''}">${x.toFixed(2)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  <p class="small muted">Mode bars, ΔE × 100 in OKLab: ${v.bands.normal} normal, ${v.bands.deutan} deuteranopia, ${v.bands.protan} protanopia. State tags: ${v.tags.normal}, ${v.tags.deutan}, ${v.tags.protan}. Lightest wood face to the flag fill: ${v.flag}.</p></details>`).join('');
+
+document.getElementById('glare').addEventListener('input', (e) => document.body.style.setProperty('--glare', e.target.value));
+render();
+
+const NAMES = { D1: 'D1 · Drawing sheet (Stage 4 colors, as today)', D2: 'D2 · Pencil and chalk line', D3: 'D3 · Workshop' };
+document.getElementById('tables').innerHTML = Object.entries(MEASURED).map(([d, rows]) => `
+  <details${d === 'D2' ? ' open' : ''}><summary>${NAMES[d]}</summary><div class="wrap"><table class="t">
+  <thead><tr><th>Foreground on background</th><th>Needs</th><th>Light</th><th>Dark</th><th>Light, 20% glare</th><th>Dark, 20% glare</th></tr></thead>
+  <tbody>${rows.map(([label, need, l, dk, lg, dg]) => `<tr><td>${label}</td><td class="n">${need}</td>${[l, dk, lg, dg]
+    .map((v) => `<td class="n${v < need ? ' low' : ''}">${v.toFixed(2)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`).join('');
+</script>
