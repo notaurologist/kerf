@@ -16,8 +16,8 @@ import type { RecordCabinetOutputs } from './outputs.ts';
 
 // The cabinet's drawings (spec, Hardware, operations, build steps, drawings): each part's cut
 // detail, the assembled and exploded views, front and end elevations with the bay widths and
-// heights, and a section through the first bay. The turntable and speaker are phantom lines, since
-// they are not in the cut list. Drawn from stored outputs on read.
+// heights, and a section through the first bay. The largest item on the top is in phantom lines,
+// since it is not in the cut list. Drawn from stored outputs on read.
 
 const at = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
 
@@ -39,21 +39,13 @@ export function cabinetScene(outputs: RecordCabinetOutputs): Scene {
   const { params: p, geometry: g, parts, placements } = outputs.design;
   const y0 = -p.frontOverhang;
   const mid = (depth: number) => y0 + (g.topDepth - depth) / 2;
-  // The turntable at the left end of the top, the speaker on top at the right end, each centered
-  // front to back: a layout to show their size, not a position Kerf chooses for them.
-  const tt = p.turntable;
-  const phantoms = [
-    ...box(
-      at(0, mid(tt.depth), p.height),
-      at(tt.width, mid(tt.depth) + tt.depth, p.height + tt.lidHeight),
-    ),
-    ...(p.speaker.place === 'top'
-      ? box(
-          at(p.width - p.speaker.width, mid(p.speaker.depth), p.height),
-          at(p.width, mid(p.speaker.depth) + p.speaker.depth, p.height + p.speaker.height),
-        )
-      : []),
-  ];
+  // The largest item at the left end of the top, centered front to back: a layout to show its
+  // size, not a position Kerf chooses for it.
+  const item = p.topItem;
+  const phantoms = box(
+    at(0, mid(item.depth), p.height),
+    at(item.width, mid(item.depth) + item.depth, p.height + item.height),
+  );
   return { parts, placements, ground: { point: at(0, 0, 0), up: at(0, 0, 1) }, phantoms };
 }
 
@@ -109,7 +101,7 @@ export function drawings(outputs: RecordCabinetOutputs): Drawings {
     isometric: isometricView(
       scene,
       VIEW,
-      'The record cabinet, assembled, with the turntable and speaker in phantom lines.',
+      'The record cabinet, assembled, with the largest item on the top in phantom lines.',
       'Assembled',
     ),
     exploded: explodedView(

@@ -9,8 +9,7 @@ import { CABINET_QUESTIONS } from './questions.ts';
 
 const answers = {
   window: { stoolHeight: 22, stoolDepth: 2.5, apronBottom: 18, casingWidth: 54, stoolWidth: 56 },
-  turntable: { width: 16.5, depth: 13.5, lidHeight: 15 },
-  speaker: { width: 14.33, height: 7.99, depth: 6.06, place: 'top' as const },
+  topItem: { width: 16.5, depth: 13.5, height: 15 },
   lumber: { source: 'store' as const },
 };
 const at = (suggestions: ReturnType<typeof CABINET_QUESTIONS.suggest>, path: string) =>
@@ -49,8 +48,18 @@ describe('record cabinet starting questions', () => {
     expect(tall?.note).toContain('outside 16" to 30"');
   });
 
-  it('takes the turntable and speaker from the answers', () => {
-    expect(at(suggestions, 'speaker.place')?.value).toBe('top');
+  it('takes the largest item from the answers, and says when it stands above the stool', () => {
+    // The top at 22 − 2 = 20, plus the item's 15, stands 13 above the 22" stool.
+    const height = at(suggestions, 'topItem.height');
+    expect(height?.value).toBe(15);
+    expect(height?.note).toBe(
+      'With the top 20" high, it stands 13" above the window stool, in front of the window.',
+    );
+    const low = CABINET_QUESTIONS.suggest({
+      ...answers,
+      topItem: { ...answers.topItem, height: 2 },
+    });
+    expect(at(low, 'topItem.height')?.note).toBeUndefined();
   });
 
   it('suggests only the moisture range and deflection limit among structural inputs, from sources (rule 3)', () => {

@@ -10,7 +10,7 @@ import type { CabinetGeometry } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
 
 // The structural model (spec, Structural model): each bottom shelf under records, and the top under
-// the turntable and the speaker, deflection only (#288); each part's wood movement (#284); and the
+// everything on it as one load at midspan (#331), deflection only (#288); each part's wood movement (#284); and the
 // flags and checklist. Every load, the species, and the deflection limit are the owner's to enter.
 
 const SPECIES_IDS = WOOD_SPECIES.map((s) => s.id) as [string, ...string[]];
@@ -26,8 +26,8 @@ export const RecordCabinetStructuralInputs = z.object({
     .optional(),
   /** Pounds per foot of shelf, from weighing a run of the owner's records. */
   recordLoad: z.number().positive().optional(),
-  turntableWeight: z.number().positive().optional(),
-  speakerWeight: z.number().positive().optional(),
+  /** Everything that stands on the top, in pounds. */
+  topLoad: z.number().positive().optional(),
   /** L/N: the span divided by this is the deflection allowed. */
   deflectionLimit: z.number().positive().optional(),
 });
@@ -38,8 +38,7 @@ export const STRUCTURAL_INPUT_LABELS = {
   orientation: 'Ring orientation',
   moisture: 'Moisture content range in service',
   recordLoad: 'Records, pounds per foot of shelf',
-  turntableWeight: 'Turntable weight',
-  speakerWeight: 'Speaker weight',
+  topLoad: 'Weight on the top',
   deflectionLimit: 'Deflection limit (span divided by)',
 } as const satisfies Record<keyof RecordCabinetStructuralInputs, string>;
 
@@ -56,9 +55,7 @@ function need<K extends keyof Inputs>(inputs: Inputs, key: K): Needed<NonNullabl
 
 export const RecordCabinetReview = z.object({
   shelf: BeamChecks,
-  topTurntable: BeamChecks,
-  /** Left out when the speaker sits in a bay. */
-  topSpeaker: BeamChecks.optional(),
+  top: BeamChecks,
   movement: z.array(MovementResult),
   flags: z.array(Flag),
   checklist: z.array(ChecklistItem),
@@ -138,16 +135,14 @@ export function structuralReview(
         shortTerm: { points: [] },
         working: [spanWorking],
         assumptions: [
-          `The ${label.toLowerCase()} sits at the middle of one span, where the top deflects most.`,
+          'All of it sits at the middle of one span, where the top deflects most; spread out, it deflects the top less.',
           'The top is continuous over the partitions; taking each span as simply supported overstates its deflection.',
         ],
         limitRatio,
       },
       assumptions: [],
     });
-  const topTurntable = onTop('Top', need(inputs, 'turntableWeight'), 'Turntable');
-  const topSpeaker =
-    p.speaker.place === 'top' ? onTop('Top', need(inputs, 'speakerWeight'), 'Speaker') : undefined;
+  const top = onTop('Top', need(inputs, 'topLoad'), 'Everything on the top');
 
   // Wood movement across each part's grain (#284): its width is what moves.
   const orientation = need(inputs, 'orientation');
@@ -178,7 +173,7 @@ export function structuralReview(
     },
     {
       category: 'load-bearing',
-      ask: 'Ask an experienced builder to look over the shelves under a full load of records, and the top under the turntable and speaker.',
+      ask: 'Ask an experienced builder to look over the shelves under a full load of records, and the top under everything that stands on it.',
       why: 'Records are heavy and stay for years, and Kerf computes only the shelves’ and top’s sag.',
       ...concerns(['shelf', 'top']),
     },
@@ -196,7 +191,7 @@ export function structuralReview(
       category: 'tipping-and-anchoring',
       element: 'The loaded cabinet',
       confirm:
-        'Confirm whether the cabinet, loaded with records and with the turntable lid open, can tip forward.',
+        'Confirm whether the cabinet, loaded with records and with everything on the top, can tip forward.',
       why: 'It is low and deep, but a heavy top load and a pull on the front can still tip a cabinet.',
       ...concerns([]),
     },
@@ -218,8 +213,7 @@ export function structuralReview(
   ];
   return {
     shelf,
-    topTurntable,
-    ...(topSpeaker ? { topSpeaker } : {}),
+    top,
     movement,
     flags,
     checklist,

@@ -1,8 +1,8 @@
 # Template: record cabinet
 
-Status: template version 5 is built (#301; version 2 adds the flattening allowance, #319, version 3 keeps a one-board rail at its board's thickness, #320, version 4 adds assembly and finishing, #313, version 5 adds dealer hardwood, #296, and version 6 lets the lumber settle before cutting, #332), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. The starting questions are built (#314).
+Status: template version 5 is built (#301; version 2 adds the flattening allowance, #319, version 3 keeps a one-board rail at its board's thickness, #320, version 4 adds assembly and finishing, #313, version 5 adds dealer hardwood, #296, and version 6 lets the lumber settle before cutting, #332, and version 7 asks about what stands on the top, #331), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. The starting questions are built (#314).
 
-A low cabinet with record bays, for a turntable and a speaker, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
+A low cabinet with record bays, with room on the top for a turntable, a speaker, or whatever the owner puts there, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
 
 ## Design covered by template version 1
 
@@ -13,9 +13,9 @@ A low cabinet with record bays, for a turntable and a speaker, to stand in front
 - **A back rail** under the top at the back of each bay resists racking. The back is otherwise open, for air and cords.
 - **Every panel's grain runs the long way:** horizontal in the top and shelves, vertical in the sides and partitions. So every panel moves front to back, together, and no joint fixes one panel across another's grain (`DOMAIN.md`, Wood movement). The back rails are glued into dadoes with their grain across the panels' grain, an interlocking end-to-edge-grain joint. The plan reports each rail's movement (#284) and flags it (owner, #283). Gluing one species, with compatible grain directions, at the moisture content expected in service is what the Wood Handbook recommends to keep these stresses down (Ch. 10, p. 10-7; Ch. 10, p. 10-17).
 - **Open bays,** no doors (owner, October 31, 2026).
-- **Turntable and speaker:** the turntable sits on the top. The speaker sits on the top, or on the shelf of a bay the owner picks. The owner's plan puts it on the top, so every bay holds records (October 31, 2026).
+- **What stands on the top:** Kerf asks for the largest item that will stand there (its footprint and height) and the total weight on the top, not for particular products (owner, #331, November 1, 2026). The owner makes sure anything else fits. Every bay holds records.
 
-Not covered in version 1: doors, drawers, a back panel, adjustable shelves, a raised shelf for the speaker inside a bay, separate legs or a stand, arched or shaped cutouts, bays of different widths, a solid top on a frame with fasteners that allow movement (#292).
+Not covered in version 1: doors, drawers, a back panel, adjustable shelves, a bay for anything but records, separate legs or a stand, arched or shaped cutouts, bays of different widths, a solid top on a frame with fasteners that allow movement (#292).
 
 ## Coordinates
 
@@ -44,9 +44,7 @@ Ranges are proposals for the owner's review.
 | Foot width | f_w | 2 to D_c / 3 | Front-to-back width of each foot. |
 | Back rail height | h_r | 2–4 | Vertical width of each back rail. |
 | Record jacket | s_r | owner-entered | Measured from one of the owner's LPs (commonly 12-3/8" square; confirm by measuring). |
-| Turntable footprint | T_w × T_d | owner-entered | Width and depth of the turntable's base. Not bought yet, so a range to fit. |
-| Turntable lid height | T_h | owner-entered | Height with the lid fully open, for clearance below the window. |
-| Speaker | S_w × S_h × S_d, place | owner-entered | Sonos lists the Five at 14.33" W × 7.99" H × 6.06" D, 13.89 lb. [S1] It plays stereo lying flat and mono standing upright. [S1] Place: on the top, or on bay k's shelf. |
+| Largest item on the top | I_w × I_d × I_h | from the starting questions | The footprint of the largest item that stands on the top, and its height at its tallest (such as a turntable with its lid open), for comparing with the window. |
 | Board stock | | suggested 3/4 × 5-1/2; 4, 6, 8 ft | Actual thickness and width, and the lengths the store sells, for the boards the panels are glued from (owner, #278). The suggested size is a dry 1x6 board (American Softwood Lumber Standard, PS 20-10, Table 3), to be checked against the store's boards (#317). Or a lumber dealer's hardwood by the board foot (#296): thickness class (suggested 4/4), surfaced thickness (13/16, Wood Handbook Table 6-4), the width to plan with (6, FAS's minimum width, pp. 6-3 to 6-4), lengths 4 to 16 ft (p. 6-3), and a waste allowance (20%, a rule of thumb). A starting question asks which. |
 | Panel allowances | | suggested 1/16, 1/2, 1, 1/16 | Jointing per glued edge, rip, trim per end, and flattening (`DOMAIN.md`, Edge-glued panels). No published source gives them, so the suggestions are rules of thumb (#317, #319). |
 | Species and grain | | owner-entered | Species for every panel, and ring orientation (flatsawn, quartersawn, unknown) for movement (#284). |
@@ -105,8 +103,7 @@ Each part's placement follows `DOMAIN.md`, Implications for the data model (Geom
 Refused:
 - Bay clear height below the record jacket: h_b < s_r
 - Case depth below the record jacket: D_c < s_r
-- Speaker in bay k when b < S_w or h_b < S_h
-- Speaker on the top when T_w + S_w > W, or turntable depth T_d > D_t
+- The largest item on the top when I_w > W or I_d > D_t
 - h_c ≥ h_f, or 2·f_w ≥ D_c
 - 2·j ≥ t (no wood left between a partition's dadoes), or s_d ≥ D_c
 
@@ -115,7 +112,7 @@ Flags (`DOMAIN.md`, Expert-check categories):
 - **Jointers, planers** and **table saw operations:** raised by the panel methods that use those machines (#297).
 - **Wood movement:** the back rails' cross-grain joint, with each rail's movement across its height (#284), and the top's dadoes if species or ring orientation differ between the top and the panels.
 - **Load-bearing or tip-prone designs:** the wood left between a partition's back-to-back dadoes, t − 2·j.
-- **Load-bearing or tip-prone designs:** record shelves, and a heavy turntable or speaker on top.
+- **Load-bearing or tip-prone designs:** record shelves, and heavy things on the top.
 
 Checklist, not computed:
 - Racking: an open back, with only dadoes and back rails.
@@ -126,7 +123,7 @@ Checklist, not computed:
 
 From the rough measurements: stool about 22" high, 56" wide. The owner's choices so far: top about 2" below the stool, width to match the window trim. The trim width isn't measured, so 54" stands in for it. The owner's exact measurements go in the app, not here.
 
-Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s = 3/4, o_f = 3/4, h_f = 5-1/4, h_c = 4, f_w = 2-1/2, h_r = 3. The template's worked example adds a turntable 16-1/2 wide, 13-1/2 deep, and 15 high with its lid open, and 20 lb, all illustrative since it isn't bought yet, and the Five on the top. Its structural inputs are cherry, flatsawn, 6% to 10% moisture content (the Wood Handbook's range for individual pieces indoors, Table 13-2), 40 lb per foot of records, the Five's 13.89 lb [S1], and L/144.
+Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s = 3/4, o_f = 3/4, h_f = 5-1/4, h_c = 4, f_w = 2-1/2, h_r = 3. The template's worked example adds a largest item on the top 16-1/2 wide, 13-1/2 deep, and 15 high, such as a turntable with its lid open, all illustrative. Its structural inputs are cherry, flatsawn, 6% to 10% moisture content (the Wood Handbook's range for individual pieces indoors, Table 13-2), 40 lb per foot of records, 35 lb on the top (illustrative), and L/144.
 
 | Value | Working | Result |
 |---|---|---|
@@ -157,13 +154,13 @@ Panels, with the suggested allowances and 4/4 hardwood surfaced two sides, 13/16
 
 The top is an exact fit: 3 boards glue to 16.25, which is its 15.75 plus the 1/2 rip allowance, so the template's tests cover the whole-number case.
 
-Checks: a 12-3/8" jacket fits (13.25 high, 15 deep). The Five fits in a bay lying flat (14.33 ≤ 16.5 wide, 7.99 ≤ 13.25 high), or on the top beside a turntable up to 54 − 14.33 = 39.67" wide.
+Checks: a 12-3/8" jacket fits (13.25 high, 15 deep). The largest item fits on the top: 16.5 ≤ 54 wide, 13.5 ≤ 15.75 deep.
 
 Standing at the window: the top at 20" is 2" below the stool. If the bottom of the apron is below 20", the cabinet stands off the wall by at least the stool's depth. Both are unmeasured.
 
 ## Edge of range (hand-checked)
 
-Parameters: W = 30, H = 30, D_c = 13, n = 2, t = 1, j = 1/4, s_d = 1/2, o_s = 1, o_f = 1, h_f = 10, h_c = 8, f_w = 3, h_r = 3. Speaker in bay 1.
+Parameters: W = 30, H = 30, D_c = 13, n = 2, t = 1, j = 1/4, s_d = 1/2, o_s = 1, o_f = 1, h_f = 10, h_c = 8, f_w = 3, h_r = 3. Largest item on the top 15 × 13 × 15.
 
 | Value | Working | Result |
 |---|---|---|
@@ -178,14 +175,14 @@ Parameters: W = 30, H = 30, D_c = 13, n = 2, t = 1, j = 1/4, s_d = 1/2, o_s = 1,
 | Cutout width | 13 − 2(3) | 7 |
 | Left in the partition | 1 − 2(0.25) | 0.5, flagged |
 
-Validation: the speaker in bay 1 is refused, since 12.5 < 14.33. A 12-3/8" jacket fits 13 deep with 5/8" to spare.
+Validation: a 12-3/8" jacket fits 13 deep with 5/8" to spare, and the 13" deep item fits the 14" top (D_t = 13 + 1).
 
 ## Structural model
 
 Computed (#288; `DOMAIN.md`, Structural checks):
 
 - **Each bottom shelf:** a simply supported span between the centerlines of the panels on either side, L = b + t, breadth D_c, depth t, under a uniform long-term load of records (lb per foot of shelf, owner-entered). Deflection only, with E from Wood Handbook Table 5-3b, total = 1.5 × immediate (NDS 2024 3.5.2). Taking span to centerlines, where the shelf really bears in a dado, overstates the span slightly, which is conservative.
-- **The top, under the turntable and speaker:** each span between panels as a simply supported span, L = b + t, breadth D_t, depth t, with each item's weight as a point load at midspan. The top is continuous over the partitions, and treating each span as simply supported overstates deflection. The turntable's weight is owner-entered. The speaker's is 13.89 lb from Sonos [S1], or owner-entered.
+- **The top, under everything on it:** each span between panels as a simply supported span, L = b + t, breadth D_t, depth t, with the whole weight on the top (owner-entered, #331) as one point load at midspan, where it bends the top most. Spreading the weight out, or across spans, deflects it less, and the top is continuous over the partitions, so treating each span as simply supported also overstates deflection.
 - **Deflection limit:** owner-entered. For reference, the Architectural Woodwork Standards (1st edition, 2009, Section 10, 1.2.21.3.1.1) call L/144 "the industry standard for the maximum acceptable deflection of a shelf". That edition is superseded by ANSI/AWI 0641-2019, which hasn't been checked. It also treats creep as not a defect, while Kerf includes it.
 
 Not computed (checklist): bending and shear of these members (no design values for furniture lumber), racking, tipping, and glue joints.
@@ -203,6 +200,11 @@ Not computed (checklist): bending and shear of these members (no design values f
 - δ = 5 × 3.3333 × 33,215.1 / (384 × 1,680,000 × 1.08333) = 553,584 / 698,880,000 = 0.000792"
 - Long-term: 0.001188"
 
+**First worked example, the top under 35 lb:** L = 17.25; I = 15.75 × 0.75³ / 12 = 0.553711 in⁴; P = 35 lb at midspan; E = 1,490,000 psi.
+- L³ = 5,132.95
+- δ = P·L³ / (48·E·I) = 35 × 5,132.95 / (48 × 1,490,000 × 0.553711) = 179,653.4 / 39,601,406 = 0.004537"
+- Long-term: 1.5 × 0.004537 = 0.006805" (span / 2,535)
+
 At these bay widths, shelf sag is small. The check still runs, because a wider bay or a heavier load changes that quickly.
 
 ## Starting questions
@@ -212,12 +214,11 @@ Answers suggest parameters (M8), each labeled as the owner's choice:
 - **Stool height A:** suggests H = A − 2 (owner's choice: top a couple of inches below the stool).
 - **Casing width D:** suggests W = D (owner's choice: match the trim). The stool width E is shown for reference.
 - **Stool depth B and apron bottom C:** no parameter. If H > C, the plan notes that the cabinet stands at least B from the wall.
-- **Turntable and speaker:** their sizes and where the speaker goes.
+- **The largest item on the top:** its width, depth, and height, put straight in. When the top's height plus the item's stands above the stool A, the plan says by how much.
 - **Everything else** in the parameters: the worked example's case, a 1x6 board from the lumber standard, and rules of thumb for the dado depth, setback, and allowances, each labeled. Two structural inputs are suggested from their sources for the owner to check (hard rule 3): moisture content 6% to 10% (Wood Handbook, Table 13-2, interior woodwork in most of the United States) and L/144 (Architectural Woodwork Standards). The others stay empty.
 
 ## Sources
 
-- [S1] Sonos, Five product page, specifications, read October 31, 2026: https://www.sonos.com/en-us/shop/five
 - Wood Handbook (2021), chapter 6, Commercial Lumber, Table 6-4, p. 6-6: https://research.fs.usda.gov/treesearch/62245
 - AWI, AWMAC, and WI, Architectural Woodwork Standards, 1st edition (2009), Section 10, Casework: https://woodworkinstitute.com/wp-content/uploads/2014/09/WI_AWS_sec10NM.pdf
 - Wood Handbook (2021) and NDS 2024, as cited in `DOMAIN.md`. Chapter 10 (Wood Adhesives): Moisture Content and Dimensional Changes, p. 10-7; End-to-Edge-Grain Joints, p. 10-17: https://research.fs.usda.gov/treesearch/62250
@@ -228,7 +229,7 @@ Answers suggest parameters (M8), each labeled as the owner's choice:
 2. **Dado depth:** decided, no limit, since no published source gives one. The plan shows what's left of each partition and flags it (owner, #283). Suggested as t/4, a rule of thumb (owner, #317, November 1, 2026).
 3. **Stopped dadoes:** decided, the setback s_d is a design choice (owner, #283), suggested at 1/2 (#317).
 4. **Back:** decided, back rails with an open back (owner, October 31, 2026). Racking stays on the checklist for an experienced builder. If more is needed, the next step is a second rail at the bottom back of each bay, before a full back panel.
-5. **Speaker placement:** decided for the owner's plan, on the top beside the turntable, so all three bays hold records (October 31, 2026). Its top stands about 6" above the window stool. The template still offers a bay's bottom shelf.
+5. **What the top holds:** decided on #331 (owner, November 1, 2026). Kerf asks for the largest item and the total weight on the top, not a particular turntable or speaker, and every bay holds records.
 6. **Bays:** decided, equal bays, three in the owner's plan (October 31, 2026). Two or four cost or gain only 3/4" of record width per partition. Three keeps shelf sag negligible and gives an even front under the window.
 7. **Panel stock:** decided on #278, then changed on #317 (owner, November 1, 2026): the board stock and allowances start from suggested values the owner can change, so a beginner need not know them. Dealer hardwood by the board foot was added on #296.
 8. **Flattening:** decided on #319 (owner, November 1, 2026). A flattening allowance sits with the other panel allowances, and a glued-up panel must be no thicker than its boards less it. The dado methods say to cut each dado to the part it holds as made, measured, rather than to the plan's number.

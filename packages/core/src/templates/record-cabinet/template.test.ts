@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { isPanel } from '../../lumber/panel.ts';
 import type { Part } from '../../model/types.ts';
 import { recordCabinet } from './definition.ts';
-import { EDGE_EXAMPLE, EXAMPLES, WORKED_EXAMPLE } from './examples.ts';
+import { EXAMPLES, WORKED_EXAMPLE } from './examples.ts';
 import type { RecordCabinetOutputs } from './outputs.ts';
 
 // docs/templates/record-cabinet.md: every number here is from the spec's hand-checked worked
@@ -147,14 +147,6 @@ describe('the edge of the range (spec, Edge of range)', () => {
     const cut = part(edge, 'side-left').cutouts[0];
     expect(cut && cut.v1 - cut.v0).toBe(7);
   });
-
-  it('refuses the speaker in bay 1, 12-1/2" wide', () => {
-    const result = recordCabinet.generate(
-      { ...EDGE_EXAMPLE, speaker: { ...EDGE_EXAMPLE.speaker, place: 1 } },
-      {},
-    );
-    expect(result).toMatchObject({ ok: false, issues: [{ code: 'speaker-too-big-for-bay' }] });
-  });
 });
 
 describe('refusals (spec, Validation)', () => {
@@ -170,10 +162,11 @@ describe('refusals (spec, Validation)', () => {
     expect(refused({ cutoutHeight: 5.25 })).toEqual(['cutout-too-tall']);
   });
 
-  it('refuses a top too short for the turntable and speaker side by side', () => {
-    expect(refused({ turntable: { width: 40, depth: 13.5, lidHeight: 15 } })).toEqual([
-      'top-too-short',
-    ]);
+  it('refuses a largest item wider than the 54" top or deeper than its 15-3/4"', () => {
+    const item = WORKED_EXAMPLE.topItem;
+    expect(refused({ topItem: { ...item, width: 54.0625 } })).toEqual(['top-item-too-wide']);
+    expect(refused({ topItem: { ...item, depth: 15.8125 } })).toEqual(['top-item-too-deep']);
+    expect(refused({ topItem: { ...item, width: 54, depth: 15.75 } })).toEqual([]);
   });
 });
 
@@ -198,13 +191,12 @@ describe('structural (spec, Structural model, Worked examples)', () => {
     expect(none.review.movement.every((m) => m.status === 'input-needed')).toBe(true);
   });
 
-  it('checks the top under the speaker only when the speaker is on it', () => {
-    expect(worked.review.topSpeaker?.deflection.status).toBe('computed');
-    const inBay = recordCabinet.generate(
-      { ...WORKED_EXAMPLE, speaker: { ...WORKED_EXAMPLE.speaker, place: 2 } },
-      {},
-    );
-    expect(inBay.ok && inBay.output.review.topSpeaker).toBeUndefined();
+  it('works out the top under 35 lb at midspan: 1.5 × 0.004537"', () => {
+    // Spec, Structural model: L = 17.25, I = 15.75 × 0.75³ / 12 = 0.553711 in⁴,
+    // δ = 35 × 17.25³ / (48 × 1,490,000 × 0.553711) = 179,653.4 / 39,601,406 = 0.004537".
+    const d = worked.review.top.deflection;
+    if (d.status !== 'computed') throw new Error(d.status);
+    expect(d.computed.value).toBeCloseTo(0.006805, 6);
   });
 });
 
@@ -231,8 +223,7 @@ describe('plan and drawings', () => {
   it('shows the shelf and top checks and the movement estimates', () => {
     expect(plan.checks.map((c) => `${c.subject}: ${c.loadCase}`)).toEqual([
       'Bottom shelf: Records along the shelf, for years',
-      'Top: Turntable at the middle of a span, for years',
-      'Top: Speaker at the middle of a span, for years',
+      'Top: Everything on the top at the middle of a span, for years',
     ]);
     expect(plan.movement).toHaveLength(5);
   });

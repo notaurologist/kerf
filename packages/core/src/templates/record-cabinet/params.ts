@@ -4,9 +4,6 @@ import { PanelAllowances } from '../../lumber/panel.ts';
 // Parameters for template version 1 (docs/templates/record-cabinet.md, Parameters). Lengths in
 // inches.
 
-/** Where the speaker goes: on the top beside the turntable, or on one bay's shelf, from the left. */
-const SpeakerPlace = z.union([z.literal('top'), z.number().int().min(1).max(4)]);
-
 export const RecordCabinetParams = z.object({
   /** W: the top's length, end to end. */
   width: z.number().min(30).max(72),
@@ -36,17 +33,11 @@ export const RecordCabinetParams = z.object({
   railHeight: z.number().min(2).max(4),
   /** s_r: one of the owner's record jackets, measured. */
   jacket: z.number().positive(),
-  turntable: z.object({
+  /** The largest item that stands on the top: its footprint, and its height at its tallest. */
+  topItem: z.object({
     width: z.number().positive(),
     depth: z.number().positive(),
-    /** With the lid fully open. */
-    lidHeight: z.number().positive(),
-  }),
-  speaker: z.object({
-    width: z.number().positive(),
     height: z.number().positive(),
-    depth: z.number().positive(),
-    place: SpeakerPlace,
   }),
   /** The boards every panel is glued from: a store's fixed-width boards (#278), or a dealer's (#296). */
   board: z.discriminatedUnion('source', [
