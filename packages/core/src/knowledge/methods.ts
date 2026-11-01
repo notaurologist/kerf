@@ -79,13 +79,15 @@ export const Method = z.object({
     'ease-edges',
     'dry-fit',
     'glue-assembly',
+    'acclimate',
     'finish',
     'dig-holes',
     'level-pads',
   ] satisfies OperationType[]),
   /** A short name, in sentence case: "With a miter saw". */
   name: z.string().min(1),
-  tools: z.array(ToolRequirement).min(1),
+  /** Empty for a method done without tools, such as letting lumber settle. */
+  tools: z.array(ToolRequirement),
   skills: z.array(SkillIdSchema).min(1),
   setup: z.array(z.string().min(1)),
   technique: z.array(z.string().min(1)).min(1),
@@ -186,6 +188,7 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
   'ease-edges': { count },
   'dry-fit': { count, reach: { kind: 'length', of: (op) => op.reach } },
   'glue-assembly': { count, reach: { kind: 'length', of: (op) => op.reach } },
+  acclimate: { count },
   finish: { count },
   'dig-holes': { count, depth: { kind: 'length', of: (op) => op.depth } },
   'level-pads': { count },
@@ -1731,6 +1734,57 @@ export const METHODS = [
     flags: [],
     easierThan: [],
     moreAccurateThan: ['glue-assembly-clamps'],
+  },
+
+  // Let the lumber settle. Wood Handbook ch. 13: common softwood boards are not dried to indoor
+  // levels, and "dry" lumber can be up to 19% (p. 13-5); lumber for furniture is best kept where
+  // the humidity is controlled, and stacking it on stickers brings it toward its service moisture
+  // content, while stock wetter at its ends splits or opens its glue joints after edge gluing
+  // (p. 13-15). A meter used properly reads within 1% of the true average (p. 13-3).
+  {
+    id: 'acclimate-moisture-meter',
+    operation: 'acclimate',
+    name: 'With a moisture meter',
+    tools: [{ use: 'checking the moisture content', anyOf: [{ tool: 'moisture-meter' }] }],
+    skills: ['settle-lumber'],
+    setup: [
+      'Bring the boards into the room where the piece will stand, or a heated room like it, as soon as you buy them.',
+    ],
+    technique: [
+      'Stack the boards flat with thin, dry strips of wood across them every foot or two, so air reaches every face.',
+      'Read a few boards with the meter in the middle of a face, as its instructions say, and write the readings down.',
+      'Read the same boards again every few days. When the readings stop dropping, the boards are ready to cut.',
+    ],
+    mistakes: [
+      'Gluing up boards that are still drying leaves them to shrink in the panel, which can open the joints or crack it. Wait until the readings stop dropping.',
+      'Reading only the ends gives a wrong number, since ends dry faster than the middle. Read the middle of a face.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['acclimate-wait'],
+  },
+  {
+    id: 'acclimate-wait',
+    operation: 'acclimate',
+    name: 'Stacked and left to settle',
+    tools: [],
+    skills: ['settle-lumber'],
+    setup: [
+      'Bring the boards into the room where the piece will stand, or a heated room like it, as soon as you buy them.',
+    ],
+    technique: [
+      'Stack the boards flat with thin, dry strips of wood across them every foot or two, so air reaches every face.',
+      'Leave them for a couple of weeks before cutting, longer for boards that felt cool or damp at the store or that were stored outside.',
+    ],
+    mistakes: [
+      'Gluing up boards that are still drying leaves them to shrink in the panel, which can open the joints or crack it. Give them time indoors first.',
+      'Stacking boards flat on each other traps moisture between them. Put strips between every layer.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: ['acclimate-moisture-meter'],
+    moreAccurateThan: [],
   },
 
   // Finish

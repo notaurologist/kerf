@@ -7,6 +7,13 @@ import type { ReactNode } from 'react';
 // assistive technology (#43, rule 6): the name says what the tool is.
 
 const DRAWINGS: Readonly<Record<string, ReactNode>> = {
+  'moisture-meter': (
+    <>
+      <rect x="6" y="8" width="12" height="13" rx="0.6" />
+      <rect x="8.5" y="10.5" width="7" height="4" rx="0.6" />
+      <path d="M10 8 V3 M14 8 V3" />
+    </>
+  ),
   'tape-measure': (
     <>
       <rect x="3" y="5" width="13" height="13" rx="0.6" />

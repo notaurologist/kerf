@@ -42,6 +42,24 @@ describe('assembling and finishing the record cabinet', () => {
     ]);
   });
 
+  it('lets the lumber settle indoors before the first board is cut', () => {
+    const steps = buildSteps(recordCabinet.steps(outputs), plan, inventory(60));
+    expect(steps[0]?.id).toBe('settle');
+    expect(steps[1]?.board?.number).toBe(1);
+    // Every glued-up panel; the one-board rails are only ripped, so they are not in it.
+    expect(steps[0]?.operations[0]?.partIds).toEqual([
+      'top',
+      'side-left',
+      'side-right',
+      'partition',
+      'shelf',
+    ]);
+    expect(chosen(inventory(60))['lumber/acclimate']).toBe('acclimate-wait');
+    expect(chosen(inventory(60, 'moisture-meter'))['lumber/acclimate']).toBe(
+      'acclimate-moisture-meter',
+    );
+  });
+
   it('clamps across the 52-1/2" case and down the 20" height', () => {
     const op = (id: string) => outputs.design.operations.find((o) => o.id === id);
     expect(op('case/dry-fit')).toMatchObject({ reach: 52.5 });

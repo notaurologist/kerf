@@ -149,6 +149,8 @@ describe('panel operations', () => {
     // 16-1/4". Two panels: 6 boards with 2 ends each, and 2 · 2 · (3 − 1) = 8 glued edges.
     const side = { partId: 'side' };
     expect(cutAndDrillOperations([panel('side', 15)], [])).toEqual([
+      // A plan with glued-up panels lets its lumber settle first.
+      { id: 'lumber/acclimate', type: 'acclimate', count: 1, partIds: ['side'] },
       {
         id: 'side/board-end-0',
         type: 'crosscut',

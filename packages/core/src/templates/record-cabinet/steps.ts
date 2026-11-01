@@ -2,11 +2,24 @@ import { boardCuts, type OperationType } from '../../model/operations.ts';
 import type { StepOutline } from '../../steps/build.ts';
 import type { CabinetDesign } from './template.ts';
 
-// The order of the build steps after the boards are cut (spec, Build steps): make the panels, cut
+// The order of the build steps (spec, Build steps): let the lumber settle before the boards are
+// cut, then after cutting them make the panels, cut
 // them to size, cut the joinery, fit the case dry, glue it up and then the top, ease the edges
 // once the joints are closed, and finish.
 
-const STEPS: { id: string; title: string; types: readonly OperationType[]; ids?: string[] }[] = [
+const STEPS: {
+  id: string;
+  title: string;
+  types: readonly OperationType[];
+  ids?: string[];
+  beforeCutting?: true;
+}[] = [
+  {
+    id: 'settle',
+    title: 'Let the lumber settle indoors',
+    types: ['acclimate'],
+    beforeCutting: true,
+  },
   { id: 'panels', title: 'Glue up the panels', types: ['joint-edges', 'glue-up', 'flatten'] },
   { id: 'size', title: 'Cut the panels to size', types: ['rip', 'crosscut'] },
   { id: 'dadoes', title: 'Cut the dadoes', types: ['dado', 'stopped-dado'] },
@@ -28,5 +41,6 @@ export function stepOutline(design: Pick<CabinetDesign, 'operations'>): StepOutl
       .filter((op) => s.types.includes(op.type) && (!s.ids || s.ids.includes(op.id)))
       .map((op) => op.id),
     categories: [],
+    ...(s.beforeCutting ? { beforeCutting: true as const } : {}),
   })).filter((s) => s.operationIds.length > 0);
 }
