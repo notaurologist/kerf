@@ -32,15 +32,63 @@ export function blankOutline(part: Part): UV[] {
   ];
 }
 
-/** The outline after tapers, counterclockwise. */
+/**
+ * The path along one square end, through its notches and cutouts (Part.notches, Part.cutouts),
+ * in the outline's counterclockwise direction: the second end from the reference edge to the far
+ * edge, the first end back from the far edge to the reference edge. Null when the end has none.
+ */
+function endPath(part: Part, end: 0 | 1, corner: UV): UV[] | null {
+  const notches = part.notches.filter((n) => n.end === end);
+  const cutouts = part.cutouts.filter((c) => c.end === end);
+  if (notches.length === 0 && cutouts.length === 0) return null;
+  if (part.ends[end].setting !== 0)
+    throw new Error(`${part.id} has a notch or cutout on an angled end`);
+  const W = part.stock.width;
+  const at = corner.u;
+  /** u at a distance d in from this end. */
+  const inward = (d: number) => (end === 1 ? at - d : at + d);
+  const ref = notches.find((n) => n.edge === 'reference');
+  const far = notches.find((n) => n.edge === 'far');
+  // Walked from the reference edge to the far edge; the first end reverses it.
+  const path: UV[] = [
+    ...(ref
+      ? [
+          { u: inward(ref.along), v: 0 },
+          { u: inward(ref.along), v: ref.across },
+          { u: at, v: ref.across },
+        ]
+      : [{ u: at, v: 0 }]),
+    ...[...cutouts]
+      .sort((a, b) => a.v0 - b.v0)
+      .flatMap((c) => [
+        { u: at, v: c.v0 },
+        { u: inward(c.depth), v: c.v0 },
+        { u: inward(c.depth), v: c.v1 },
+        { u: at, v: c.v1 },
+      ]),
+    ...(far
+      ? [
+          { u: at, v: W - far.across },
+          { u: inward(far.along), v: W - far.across },
+          { u: inward(far.along), v: W },
+        ]
+      : [{ u: at, v: W }]),
+  ];
+  return end === 1 ? path : path.reverse();
+}
+
+/** The outline after tapers, notches, and cutouts, counterclockwise. */
 export function partOutline(part: Part): UV[] {
-  const [first, ...rest] = blankOutline(part);
-  if (!first) return [];
+  const [a, b, c, d] = blankOutline(part) as [UV, UV, UV, UV];
+  const second = endPath(part, 1, b) ?? [b, c];
+  const first = endPath(part, 0, a) ?? [d, a];
   const taper = part.tapers[0];
-  if (!taper) return [first, ...rest];
+  if (!taper) return [first[first.length - 1] as UV, ...second, ...first.slice(0, -1)];
+  if (first.length > 2)
+    throw new Error(`${part.id} has a taper and a notch or cutout at its first end`);
   // The taper replaces the first corner: from its start on the reference edge, around the
   // blank, back to its end on the first end cut.
-  return [taper.start, ...rest, taper.end];
+  return [taper.start, ...second, d, taper.end];
 }
 
 /** The two long edges' lengths on the blank: along the reference edge (v = 0) and the far edge. */

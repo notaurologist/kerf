@@ -30024,6 +30024,41 @@
               "instance": 0,
               "letter": "A"
             }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 32.8625,
+                "y": -4.51
+              },
+              {
+                "x": 41.1125,
+                "y": -4.51
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 36.9875,
+              "y": -4.84
+            },
+            "text": "Grain",
+            "anchor": "middle",
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
           }
         ],
         "notes": [
@@ -31101,6 +31136,41 @@
                 "y": 0
               }
             ],
+            "part": {
+              "partId": "leg-back",
+              "instance": 0,
+              "letter": "B"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 7.463754769822258,
+                "y": -2.8699999999999997
+              },
+              {
+                "x": 8.312637526598884,
+                "y": -2.8699999999999997
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "leg-back",
+              "instance": 0,
+              "letter": "B"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 7.888196148210572,
+              "y": -3.0799999999999996
+            },
+            "text": "Grain",
+            "anchor": "middle",
             "part": {
               "partId": "leg-back",
               "instance": 0,
@@ -32188,6 +32258,41 @@
               "instance": 0,
               "letter": "C"
             }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 7.463754769822258,
+                "y": -2.8699999999999997
+              },
+              {
+                "x": 8.312637526598884,
+                "y": -2.8699999999999997
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "leg-front",
+              "instance": 0,
+              "letter": "C"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 7.888196148210572,
+              "y": -3.0799999999999996
+            },
+            "text": "Grain",
+            "anchor": "middle",
+            "part": {
+              "partId": "leg-front",
+              "instance": 0,
+              "letter": "C"
+            }
           }
         ],
         "notes": [
@@ -33125,6 +33230,41 @@
               "instance": 0,
               "letter": "D"
             }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 18.852616711061355,
+                "y": -4.51
+              },
+              {
+                "x": 19.251514937982893,
+                "y": -4.51
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "crossbar",
+              "instance": 0,
+              "letter": "D"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 19.052065824522124,
+              "y": -4.84
+            },
+            "text": "Grain",
+            "anchor": "middle",
+            "part": {
+              "partId": "crossbar",
+              "instance": 0,
+              "letter": "D"
+            }
           }
         ],
         "notes": [
@@ -33944,6 +34084,41 @@
                 "y": 0
               }
             ],
+            "part": {
+              "partId": "gusset",
+              "instance": 0,
+              "letter": "E"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 6.333489579110543,
+                "y": -5.944999999999999
+              },
+              {
+                "x": 13.168701021415083,
+                "y": -5.944999999999999
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "gusset",
+              "instance": 0,
+              "letter": "E"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 9.751095300262813,
+              "y": -6.379999999999999
+            },
+            "text": "Grain",
+            "anchor": "middle",
             "part": {
               "partId": "gusset",
               "instance": 0,
