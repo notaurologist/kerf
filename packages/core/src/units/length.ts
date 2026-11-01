@@ -66,6 +66,13 @@ export function formatBoardLength(feet: number): string {
   return formatLength(feet * 12, 'feet-inches');
 }
 
+/** Board feet, rounded up to the next tenth so the amount bought is never short: "3.6". */
+export function formatBoardFeet(boardFeet: number): string {
+  // The small allowance keeps float error, such as 3.6000000000000005, from rounding up a tenth.
+  const tenths = Math.ceil(boardFeet * 10 - 1e-9);
+  return (tenths / 10).toFixed(1);
+}
+
 export interface RoundedSum {
   /** The exact sum, rounded once. This is the total to display. */
   totalSixteenths: number;

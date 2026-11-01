@@ -10,7 +10,7 @@ import { cabinetParts } from './parts.ts';
 // parts in cut-list order, placements, operations, and hardware. Pure.
 
 export const TEMPLATE_ID = 'record-cabinet';
-export const TEMPLATE_VERSION = 4;
+export const TEMPLATE_VERSION = 5;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,

@@ -86,6 +86,23 @@ const addPanelBoards: SnapshotUpgrade = (snapshot) => {
   };
 };
 
+/** Shape 4 to 5: every board before template version 5 came from a store, in fixed widths. */
+const addBoardSource: SnapshotUpgrade = (snapshot) => {
+  const fromStore = (params: Stored) => ({
+    ...params,
+    board: { source: 'store', ...(params.board as Stored) },
+  });
+  const outputs = snapshot.outputs as { design: { params: Stored } };
+  return {
+    ...snapshot,
+    params: fromStore(snapshot.params as Stored),
+    outputs: {
+      ...outputs,
+      design: { ...outputs.design, params: fromStore(outputs.design.params) },
+    },
+  };
+};
+
 export const recordCabinet: TemplateDefinition<
   RecordCabinetParams,
   RecordCabinetStructuralInputs,
@@ -100,9 +117,14 @@ export const recordCabinet: TemplateDefinition<
   outputs: RecordCabinetOutputs,
   storedOutputs: RecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
-  snapshotVersion: 4,
+  snapshotVersion: 5,
   // Shape 3 to 4 adds assembly and finish operations, which older plans simply do not have.
-  snapshotUpgrades: { 1: addFlattening, 2: addPanelBoards, 3: (snapshot) => snapshot },
+  snapshotUpgrades: {
+    1: addFlattening,
+    2: addPanelBoards,
+    3: (snapshot) => snapshot,
+    4: addBoardSource,
+  },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,
   steps: (outputs) => stepOutline(outputs.design),

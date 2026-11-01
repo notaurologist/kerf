@@ -31,6 +31,8 @@ const CabinetAnswers = z.object({
   }),
   turntable: RecordCabinetParams.shape.turntable,
   speaker: RecordCabinetParams.shape.speaker,
+  /** Where the boards come from: a store's fixed widths, or a dealer's by the board foot. */
+  lumber: z.object({ source: z.enum(['store', 'dealer']) }),
 });
 type CabinetAnswers = z.infer<typeof CabinetAnswers>;
 
@@ -68,6 +70,20 @@ const QUESTIONS: readonly FormSection[] = [
         label: 'Stool width (E)',
         kind: 'length',
         help: 'End to end of the stool.',
+      },
+    ],
+  },
+  {
+    title: 'Lumber',
+    fields: [
+      {
+        path: 'lumber.source',
+        label: 'Where you will buy the boards',
+        kind: 'choice',
+        options: [
+          { value: 'store', label: 'A home center, in fixed widths' },
+          { value: 'dealer', label: 'A lumber dealer, by the board foot' },
+        ],
       },
     ],
   },
@@ -123,11 +139,28 @@ const PANEL_RULES = {
   stoppedSetback: { value: 0.5, rule: 'far enough back that the end of the dado does not show' },
 } as const;
 
-/** The suggested 1x6 board, and the panel it flattens to. */
+/** The suggested 1x6 board, and the store lengths of the worked example. */
 const BOARD = { thickness: 0.75, width: 5.5 } as const;
-const PANEL = BOARD.thickness - PANEL_RULES['allowances.flatten'].value;
-/** A quarter of the panel, rounded down to the 1/16" a router's depth is usually set in. */
-const DADO = Math.floor((PANEL / 4) * 16) / 16;
+const STORE_LENGTHS = [4, 6, 8] as const;
+
+/** A dealer's 4/4 hardwood surfaced two sides, the class that flattens to a 3/4" panel. */
+const DEALER = {
+  quarters: 4,
+  surfaced: 0.8125,
+  planWidth: 6,
+  wastePercent: 20,
+} as const;
+const DEALER_SOURCES = {
+  surfaced: 'Wood Handbook (2021), ch. 6, Table 6-4: 4/4 hardwood surfaced two sides is 13/16"',
+  planWidth:
+    'Wood Handbook (2021), ch. 6, pp. 6-3 to 6-4: hardwood comes in random widths, and FAS, the top grade, is at least 6" wide',
+} as const;
+
+/** The panel the board flattens to, and a quarter of it, rounded down to a 1/16" router setting. */
+function panelAndDado(board: number): { panel: number; dado: number } {
+  const panel = board - PANEL_RULES['allowances.flatten'].value;
+  return { panel, dado: Math.floor((panel / 4) * 16) / 16 };
+}
 
 /** A suggestion inside the parameter's range, or none, with what the answers allow. */
 function within(
@@ -148,6 +181,8 @@ function within(
 
 function suggest(a: CabinetAnswers): Suggestion[] {
   const w = a.window;
+  const dealer = a.lumber.source === 'dealer';
+  const { panel, dado } = panelAndDado(dealer ? DEALER.surfaced : BOARD.thickness);
   const height = w.stoolHeight - BELOW_STOOL;
   const standsOff =
     height > w.apronBottom
@@ -193,13 +228,13 @@ function suggest(a: CabinetAnswers): Suggestion[] {
     {
       from: 'params',
       path: 'panelThickness',
-      value: PANEL,
+      value: panel,
       basis: { kind: 'rule-of-thumb', rule: 'the board thickness less the flattening' },
     },
     {
       from: 'params',
       path: 'dadoDepth',
-      value: DADO,
+      value: dado,
       basis: {
         kind: 'rule-of-thumb',
         rule: 'a dado at most a third of the thickness it is cut into. A partition has one on each face, so at most a quarter of the panel thickness, rounded down to 1/16", leaves at least half of it between them',
@@ -214,7 +249,38 @@ function suggest(a: CabinetAnswers): Suggestion[] {
       note: MEASURE,
     },
     { from: 'params', path: 'board.width', value: BOARD.width, basis: ONE_BY_SIX, note: MEASURE },
-    ...WORKED_EXAMPLE.board.lengths.map(
+    { from: 'params', path: 'board.source', value: a.lumber.source, basis: ANSWER },
+    // Both kinds are suggested, so changing where you buy shows filled fields either way.
+    {
+      from: 'params',
+      path: 'board.quarters',
+      value: DEALER.quarters,
+      basis: { kind: 'rule-of-thumb', rule: 'the thinnest class that flattens to a 3/4" panel' },
+    },
+    {
+      from: 'params',
+      path: 'board.surfaced',
+      value: DEALER.surfaced,
+      basis: { kind: 'source', citation: DEALER_SOURCES.surfaced },
+      note: 'Ask the dealer to surface two sides, and measure the boards.',
+    },
+    {
+      from: 'params',
+      path: 'board.planWidth',
+      value: DEALER.planWidth,
+      basis: { kind: 'source', citation: DEALER_SOURCES.planWidth },
+      note: 'Wider boards need fewer; the plan says how wide each must be at least.',
+    },
+    {
+      from: 'params',
+      path: 'board.wastePercent',
+      value: DEALER.wastePercent,
+      basis: {
+        kind: 'rule-of-thumb',
+        rule: 'about a fifth more for defects, checked ends, and offcuts',
+      },
+    },
+    ...STORE_LENGTHS.map(
       (feet, i): Suggestion => ({
         from: 'params',
         path: `board.lengths.${i}`,

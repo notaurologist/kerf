@@ -11,6 +11,7 @@ const answers = {
   window: { stoolHeight: 22, stoolDepth: 2.5, apronBottom: 18, casingWidth: 54, stoolWidth: 56 },
   turntable: { width: 16.5, depth: 13.5, lidHeight: 15 },
   speaker: { width: 14.33, height: 7.99, depth: 6.06, place: 'top' as const },
+  lumber: { source: 'store' as const },
 };
 const at = (suggestions: ReturnType<typeof CABINET_QUESTIONS.suggest>, path: string) =>
   suggestions.find((s) => s.path === path);
@@ -96,6 +97,28 @@ describe('record cabinet starting questions', () => {
       {},
     );
     expect(made.ok).toBe(true);
+  });
+
+  it('from a dealer, flattens 4/4 surfaced to 13/16" into 3/4" panels with 3/16" dadoes', () => {
+    // 13/16 − 1/16 = 3/4; a quarter of 3/4 is 3/16, already a whole sixteenth.
+    const dealer = CABINET_QUESTIONS.suggest({ ...answers, lumber: { source: 'dealer' } });
+    const values = (paths: string[]) => paths.map((path) => at(dealer, path)?.value);
+    expect(values(['board.source', 'board.quarters', 'board.surfaced', 'board.planWidth'])).toEqual(
+      ['dealer', 4, 0.8125, 6],
+    );
+    expect(values(['board.wastePercent', 'panelThickness', 'dadoDepth'])).toEqual([
+      20, 0.75, 0.1875,
+    ]);
+    expect(at(dealer, 'board.surfaced')?.basis.kind).toBe('source');
+    const { params } = suggestedValues(recordCabinet.form, dealer);
+    const made = recordCabinet.generate(
+      recordCabinet.params.parse(buildFromForm(recordCabinet.form.params, params)),
+      {},
+    );
+    if (!made.ok) throw new Error(JSON.stringify(made.issues));
+    const line = made.output.lumber.lines[0];
+    expect(line?.nominal).toBe('4/4 hardwood');
+    expect(line?.boardFeet).toBeGreaterThan(0);
   });
 
   it('is offered by the template', () => {
