@@ -15,9 +15,19 @@ export const CutListRow = z.object({
   quantity: z.number().int(),
   /**
    * Nominal name for buying, actual size for cutting: `4x4 (3-1/2" x 3-1/2")`. A panel gives its
-   * finished size and the boards it is glued from.
+   * finished size, `Panel (3/4" x 15")`, and its boards in `panel`.
    */
   stock: z.string(),
+  /** A panel's finished width and the boards it is glued from; left out for other parts. */
+  panel: z
+    .object({
+      width: z.string(),
+      /** Each board's length before gluing. */
+      boardLength: z.string(),
+      /** The boards, how long, and the widths it is glued and ripped to, as one sentence. */
+      recipe: z.string(),
+    })
+    .optional(),
   /** Overall length, long point to long point. */
   length: z.string(),
   /** Each end: the saw setting and the angle to the board's edge, labeled (DOMAIN.md, Units). */
@@ -34,16 +44,23 @@ function endText(setting: number, description: string): string {
   return `${description}; saw at ${formatAngle(setting)}, ${formatAngle(angleToEdge(setting))} to the edge`;
 }
 
+const size = (s: { thickness: number; width: number }) =>
+  `${formatLength(s.thickness)} x ${formatLength(s.width)}`;
+
 function stockText(stock: PartStock): string {
-  const size = (s: { thickness: number; width: number }) =>
-    `${formatLength(s.thickness)} x ${formatLength(s.width)}`;
-  if (!isPanel(stock)) return `${stock.nominal} (${size(stock)})`;
+  return isPanel(stock) ? `Panel (${size(stock)})` : `${stock.nominal} (${size(stock)})`;
+}
+
+function panelOf(stock: PartStock): CutListRow['panel'] {
+  if (!isPanel(stock)) return undefined;
   const { board, boards } = stock;
-  const from =
+  const width = formatLength(stock.width);
+  const boardLength = formatLength(stock.boardLength);
+  const recipe =
     boards === 1
-      ? `1 board of ${board.nominal} (${size(board)}), ${formatLength(stock.boardLength)} long, ripped to width`
-      : `${boards} boards of ${board.nominal} (${size(board)}), each ${formatLength(stock.boardLength)} long, glued to ${formatLength(stock.gluedWidth)} wide`;
-  return `Panel (${size(stock)}) from ${from}`;
+      ? `1 board of ${board.nominal} (${size(board)}), ${boardLength} long, ripped to ${width}`
+      : `${boards} boards of ${board.nominal} (${size(board)}), each ${boardLength} long, glued to ${formatLength(stock.gluedWidth)} wide and ripped to ${width}`;
+  return { width, boardLength, recipe };
 }
 
 export function cutList(parts: readonly Part[]): CutListRow[] {
@@ -53,6 +70,7 @@ export function cutList(parts: readonly Part[]): CutListRow[] {
     name: part.name,
     quantity: part.quantity,
     stock: stockText(part.stock),
+    ...(isPanel(part.stock) ? { panel: panelOf(part.stock) } : {}),
     length: formatLength(part.length),
     ends: part.ends.map((end) => endText(end.setting, end.description)),
     endsParallel: part.endsParallel,

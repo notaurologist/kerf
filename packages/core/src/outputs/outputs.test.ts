@@ -136,11 +136,20 @@ describe('panels', () => {
 
   it('lists a panel with its finished size and the boards it is glued from', () => {
     // panel.test.ts works these: 3 boards, each 21-7/16" long, glued to 16-1/4".
-    expect(cutList([panel('side', 15, 2)])[0]?.stock).toBe(
-      'Panel (3/4" x 15") from 3 boards of 1x6 cherry (3/4" x 5-1/2"), each 21-7/16" long, glued to 16-1/4" wide',
+    const [side] = cutList([panel('side', 15, 2)]);
+    expect(side?.stock).toBe('Panel (3/4" x 15")');
+    expect(side?.panel).toEqual({
+      width: '15"',
+      boardLength: '21-7/16"',
+      recipe:
+        '3 boards of 1x6 cherry (3/4" x 5-1/2"), each 21-7/16" long, glued to 16-1/4" wide and ripped to 15"',
+    });
+    expect(cutList([panel('rail', 3, 1)])[0]?.panel?.recipe).toBe(
+      '1 board of 1x6 cherry (3/4" x 5-1/2"), 21-7/16" long, ripped to 3"',
     );
-    expect(cutList([panel('rail', 3, 1)])[0]?.stock).toBe(
-      'Panel (3/4" x 3") from 1 board of 1x6 cherry (3/4" x 5-1/2"), 21-7/16" long, ripped to width',
+    // Dimension lumber has none, so stored cut lists read as before.
+    expect(cutList([{ ...panel('post', 15, 1), stock: stock('2x4') }])[0]).not.toHaveProperty(
+      'panel',
     );
   });
 
