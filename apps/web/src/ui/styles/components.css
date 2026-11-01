@@ -57,15 +57,19 @@
 
   /* ---------- Screen header ---------- */
   /* The title, with its tags wrapping under it, and the screen's actions kept beside it. */
+  /* The title keeps its longest word; actions that don't fit beside it wrap under it, so a
+     phone never covers the title with long buttons. */
   .k-screen-header__top {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--space-s);
     align-items: start;
     justify-content: space-between;
   }
 
   .k-screen-header__top > :first-child {
-    min-inline-size: 0;
+    flex: 1 1 auto;
+    min-inline-size: min-content;
   }
 
   /* ---------- Plan sections (#40, #41) ---------- */
