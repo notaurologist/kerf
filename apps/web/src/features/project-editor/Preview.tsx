@@ -14,12 +14,13 @@ import { planOf } from '../../lib/plan.ts';
 import { sameJson } from '../../lib/sameJson.ts';
 import type { Project } from '../../lib/types.ts';
 import {
-  Card,
   CheckStatus,
   Cluster,
   type Failure,
   LiveRegion,
   Notice,
+  Row,
+  Rows,
   SaveFailed,
   Stack,
   StateTag,
@@ -265,7 +266,7 @@ type CheckResult = structural.CheckResult;
 /** Each check's margin, the number an edit most often moves (#39, L-A). */
 function Margins(props: { checks: readonly CheckResult[]; changes?: Changes }) {
   return (
-    <Stack gap="xs">
+    <Rows>
       {props.checks.map((check, i) => {
         const at = `checks[${i}]`;
         const before = props.changes?.at(`${at}.margin`)?.before;
@@ -276,16 +277,16 @@ function Margins(props: { checks: readonly CheckResult[]; changes?: Changes }) {
               ? 'Input needed'
               : undefined;
         return (
-          <Card key={`${check.kind}/${check.subject}`}>
+          <Row key={`${check.kind}/${check.subject}`}>
             <Stack gap="2xs">
               <b>
                 {check.title}: {check.subject}
               </b>
               <CheckStatus check={check} was={was} />
             </Stack>
-          </Card>
+          </Row>
         );
       })}
-    </Stack>
+    </Rows>
   );
 }

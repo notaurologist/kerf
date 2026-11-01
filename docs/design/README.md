@@ -51,6 +51,11 @@ Built in #279 (October 2026): the color roles and W5 (`tokens.css`; `Card`'s `mo
 - Kerf's project states are Planned, In progress and Built, not the two modes, so the mode colors do not go on the state menu. The summary's mode cards and the Resume card carry them instead.
 - Drawings have no hardware shapes yet (core draws lumber, zones and outlines), so steel appears only as Shopping's hardware swatch.
 
+Built in #280 (October 2026): ruled rows (`Rows`, `Row`, `RowLink` in `ui/`) for the summary's figures, its ways into Shopping and Building, the structural checks and checklist, the editor preview's checks, and the projects; figures at 24 px. Three details settled in the build:
+- Building becomes the summary's primary once building has started or the shopping is done, the same rule the Resume card uses, not once the first line is bought.
+- The plan's Edit button is secondary, so the summary's next mode is its one primary; on Projects, New is secondary while there is somewhere to resume.
+- The lowest margin takes a whole row of figures, since it is a value in words.
+
 ## Stage 9: an app frame, motion, loading, and the keyboard (#254)
 
 The owner found that Kerf felt like a website rather than an app, for two reasons: page-style navigation (a header of links, whole pages that scroll) and no motion. `app-frame.html` draws three frames on the phone and laptop, three ways for screens to move, two ways for a screen to wait, and keyboard shortcuts, with phone demos of the frames, moves, and waits in Kerf's colors. Load times come from decision 0006: 0.12 s with the database awake, 2.8 s after Neon's 5 idle minutes. Native apps and an installed web app were set aside first: the feel is mostly design, which the web app can fix.

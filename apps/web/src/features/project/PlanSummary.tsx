@@ -99,6 +99,7 @@ function lowestFigure(lowest: structural.LowestMargin, editHref?: string): Figur
       return [
         {
           label,
+          wide: true,
           value: <MarginLine margin={structural.formatMargin(lowest.check.margin)} />,
           detail: <Measured text={`${lowest.check.title}: ${lowest.check.subject}`} terms />,
         },
@@ -107,6 +108,7 @@ function lowestFigure(lowest: structural.LowestMargin, editHref?: string): Figur
       return [
         {
           label,
+          wide: true,
           value: <InputNeeded />,
           detail: (
             <>
@@ -120,6 +122,7 @@ function lowestFigure(lowest: structural.LowestMargin, editHref?: string): Figur
       return [
         {
           label,
+          wide: true,
           value: 'Not computed',
           detail: `${lowest.count} of ${lowest.of} checks could not be computed. The structural review says why.`,
         },

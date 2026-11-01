@@ -117,7 +117,30 @@ export function Page(props: { children: ReactNode }) {
   return <main className="l-page">{props.children}</main>;
 }
 
-/** A raised panel for one item, such as a structural check or a checklist entry. */
+/**
+ * Like things as ruled rows (Stage 10): a rule in the text color above the group and a hairline
+ * under each row, with no boxes, so the rows read as one list.
+ */
+export function Rows(props: { as?: 'div' | 'ul'; children: ReactNode }) {
+  const Tag = props.as ?? 'div';
+  return <Tag className="k-rows">{props.children}</Tag>;
+}
+
+/** One of `Rows`. A way into a shop mode passes `mode` for a bar in that mode's color. */
+export function Row(props: {
+  as?: 'div' | 'section' | 'li';
+  mode?: 'shopping' | 'building';
+  children: ReactNode;
+}) {
+  const Tag = props.as ?? 'div';
+  return (
+    <Tag className="k-row" data-mode={props.mode}>
+      {props.children}
+    </Tag>
+  );
+}
+
+/** A panel for one thing that differs in kind from what is around it, such as the Resume card. */
 export function Card(props: {
   as?: 'div' | 'section' | 'li';
   /** A way into a shop mode, marked in that mode's color (Stage 10). */

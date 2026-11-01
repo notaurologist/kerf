@@ -77,21 +77,26 @@
   }
 
   /* ---------- Figures (#119): a label over a value, as many to a row as fit ---------- */
+  /* The plan's headline figures (Stage 10): ruled like a drawing's title block, and set large so
+     the summary reads as the answer. */
   .k-figures {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(9rem, 100%), 1fr));
-    gap: var(--space-xs);
+    grid-template-columns: repeat(auto-fill, minmax(min(8.5rem, 100%), 1fr));
+    column-gap: var(--space-s);
     margin: 0;
+    border-block-start: var(--border-thick) solid var(--text);
   }
 
   .k-figure {
     display: grid;
     align-content: start;
     gap: var(--space-3xs);
-    padding: var(--space-xs) var(--space-s);
-    border: var(--border-thin) solid var(--border);
-    border-radius: var(--radius);
-    background: var(--raised);
+    padding-block: var(--space-xs) var(--space-s);
+    border-block-end: var(--border-thin) solid var(--border);
+  }
+
+  .k-figure[data-wide] {
+    grid-column: 1 / -1;
   }
 
   .k-figure dt {
@@ -101,7 +106,9 @@
 
   .k-figure dd {
     margin: 0;
+    font-size: var(--size-2);
     font-weight: 700;
+    line-height: var(--leading-heading);
     font-variant-numeric: tabular-nums;
   }
 
@@ -719,7 +726,55 @@
     background: var(--raised);
   }
 
+  /* Like things as ruled rows (Stage 10): a rule above the group, a hairline under each row. */
+  .k-rows {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0;
+    padding: 0;
+    border-block-start: var(--border-thick) solid var(--text);
+    list-style: none;
+  }
+
+  .k-row {
+    padding-block: var(--space-s);
+    border-block-end: var(--border-thin) solid var(--border);
+  }
+
   /* A way into a mode carries the mode's color as a bar along its start (Stage 10). */
+  .k-row[data-mode] {
+    padding-inline-start: var(--space-s);
+    border-inline-start: var(--border-bar) solid var(--mode-building-mark);
+  }
+
+  .k-row[data-mode="shopping"] {
+    border-inline-start-color: var(--mode-shopping-mark);
+  }
+
+  /* A row's name as its link: the text color and a chevron, no underline (Stage 10). */
+  .k-row-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    min-block-size: var(--control-min);
+    color: var(--text);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .k-row-link__chevron {
+    display: inline-flex;
+    color: var(--muted);
+    transform: rotate(-90deg);
+  }
+
+  @media (hover: hover) {
+    .k-row-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+  }
+
   .k-card[data-mode] {
     border-inline-start: var(--border-bar) solid var(--mode-building-mark);
   }
@@ -1898,7 +1953,7 @@
 
   /* Placed after the blocks they adjust (#119). */
   .k-figure .k-margin {
-    font-size: var(--size-0);
+    font-size: inherit;
   }
 
   /* ---------- Moving between views (#200) ---------- */

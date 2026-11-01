@@ -14,11 +14,12 @@ import {
 import { useLoad } from '../../lib/useLoad.ts';
 import {
   ButtonLink,
-  Card,
   Cluster,
   CompactSelect,
   ErrorText,
-  PlainList,
+  Row,
+  RowLink,
+  Rows,
   ScreenHeader,
   Stack,
   Text,
@@ -132,7 +133,12 @@ export function ProjectList(props: {
       <ScreenHeader
         title="Projects"
         actions={props.templates.map((t) => (
-          <ButtonLink key={t.id} href={href({ screen: 'new-project', templateId: t.id })}>
+          // While there is somewhere to resume, Go is the screen's one primary (Stage 10).
+          <ButtonLink
+            key={t.id}
+            href={href({ screen: 'new-project', templateId: t.id })}
+            variant={resuming ? 'secondary' : 'primary'}
+          >
             {newProjectLabel(t.name)}
           </ButtonLink>
         ))}
@@ -142,14 +148,12 @@ export function ProjectList(props: {
       {props.projects.length === 0 ? (
         <Text>No projects yet. Start one with a New button above.</Text>
       ) : (
-        <PlainList>
+        <Rows as="ul">
           {props.projects.map((p) => (
-            <Card key={p.id} as="li">
+            <Row key={p.id} as="li">
               <Stack gap="2xs">
                 <Cluster spread>
-                  <a href={href({ screen: 'project', id: p.id })}>
-                    <b>{p.name}</b>
-                  </a>
+                  <RowLink href={href({ screen: 'project', id: p.id })}>{p.name}</RowLink>
                   <CompactSelect
                     label={`Status of ${p.name}`}
                     value={p.status}
@@ -177,9 +181,9 @@ export function ProjectList(props: {
                   </Text>
                 )}
               </Stack>
-            </Card>
+            </Row>
           ))}
-        </PlainList>
+        </Rows>
       )}
     </Stack>
   );

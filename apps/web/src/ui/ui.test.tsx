@@ -47,6 +47,9 @@ import {
   PartLetter,
   PlainList,
   PlanSection,
+  Row,
+  RowLink,
+  Rows,
   SaveFailed,
   SawSetting,
   ScreenHeader,
@@ -572,6 +575,33 @@ describe('ModeFrame', () => {
       );
     expect(bar('Shopping')).toContain('class="k-modebar" data-density="shop" data-mode="shopping"');
     expect(bar('Building')).toContain('class="k-modebar" data-density="shop" data-mode="building"');
+  });
+});
+
+describe('Rows', () => {
+  it('lists like things as ruled rows, a way into a mode marked with the mode', () => {
+    expect(
+      render(
+        <Rows as="ul">
+          <Row as="li">a</Row>
+          <Row as="li" mode="building">
+            b
+          </Row>
+        </Rows>,
+      ),
+    ).toBe(
+      '<ul class="k-rows"><li class="k-row">a</li><li class="k-row" data-mode="building">b</li></ul>',
+    );
+  });
+
+  it("names a row's link with a chevron after the name, which assistive technology skips", () => {
+    const html = render(<RowLink href="#/projects/1">Backyard swing set</RowLink>);
+    expect(html).toMatch(
+      /^<a class="k-row-link" href="#\/projects\/1">Backyard swing set<span class="k-row-link__chevron"><svg[^>]*aria-hidden="true"/,
+    );
+    expect(renderText(<RowLink href="#/projects/1">Backyard swing set</RowLink>)).toBe(
+      'Backyard swing set',
+    );
   });
 });
 
