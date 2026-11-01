@@ -78,5 +78,5 @@ When the template needs something generic code does not do, open an issue for th
 
 ## 7. Finish
 
-- `PRODUCT.md`: move the template from the candidates to what Kerf offers.
+- `PRODUCT.md`: move the template from the candidates to what Kerf offers. A template the owner chose that was never a candidate, as the record cabinet was (#99), gets its own section naming it, why it was chosen, what it covers in a few sentences, and a pointer to its spec.
 - The catalog sample (`pnpm --filter @kerf/api write-catalog-sample`) uses the first template only; nothing to do unless the new one is first.

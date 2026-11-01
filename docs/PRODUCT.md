@@ -51,6 +51,10 @@ For our backyard: two swings, used by kids (7 and 10) and adults.
 - Site layout plan showing footprint and clearance areas
 - Build steps with methods, skills, flags, and tool suggestions
 
+## Second template: record cabinet
+
+A low cabinet with record bays, for a turntable and a speaker, to stand under a window. It was chosen to test which parts of Kerf are generic (#99), not taken from the candidates below. Its case is solid-wood panels edge-glued from boards bought at a home center or a lumber dealer, joined with dadoes and glue. Starting questions about the window, the turntable and speaker, and where the boards come from suggest every parameter. The plan reports shelf sag and wood movement, and its build steps run from cutting boards through gluing up the panels and the case to finishing. The spec is `docs/templates/record-cabinet.md`.
+
 ## MVP features
 
 1. **Tool inventory.** A list of tool types I own (for example, circular saw, drill/driver, rafter square), picked from a library of generic tool types, with the capabilities that matter for choosing a method (for example, how far a saw bevels). Tools the library lacks are kept by name and not used for methods.
