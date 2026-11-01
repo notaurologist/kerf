@@ -29477,9 +29477,9 @@
         "description": "Cut detail for A, Beam: 120\" overall, ends square, 2 holes.",
         "bounds": {
           "x": -1.65,
-          "y": -14.575000000000001,
+          "y": -11.700000000000001,
           "width": 45.099999999999994,
-          "height": 27.5
+          "height": 22.150000000000002
         },
         "primitives": [
           {
@@ -29775,10 +29775,11 @@
             "role": "dimension",
             "at": {
               "x": 20.9,
-              "y": -10.200000000000001
+              "y": -9.9
             },
             "text": "120\"",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "beam",
               "instance": 0,
@@ -29790,10 +29791,11 @@
             "role": "note",
             "at": {
               "x": 20.9,
-              "y": -12.925
+              "y": -9.9
             },
             "text": "Not to scale between the breaks",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "beam",
               "instance": 0,
@@ -29863,10 +29865,11 @@
             "role": "dimension",
             "at": {
               "x": 20.9,
-              "y": 4.7
+              "y": 4.4
             },
             "text": "120\"",
             "anchor": "middle",
+            "side": "below",
             "part": {
               "partId": "beam",
               "instance": 0,
@@ -29948,10 +29951,11 @@
             "role": "note",
             "at": {
               "x": 0,
-              "y": 11.275
+              "y": 8.8
             },
             "text": "Drill 9/16\" holes for 1/2\" bolts",
             "anchor": "start",
+            "side": "below",
             "part": {
               "partId": "beam",
               "instance": 0,
@@ -30024,6 +30028,41 @@
               "instance": 0,
               "letter": "A"
             }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 32.8625,
+                "y": -4.51
+              },
+              {
+                "x": 41.1125,
+                "y": -4.51
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 36.9875,
+              "y": -4.84
+            },
+            "text": "Grain",
+            "anchor": "middle",
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
           }
         ],
         "notes": [
@@ -30037,9 +30076,9 @@
         "description": "Cut detail for B, Back leg (uphill): 131-1/2\" overall, ends cut at 20.0°, 5 holes.",
         "bounds": {
           "x": -3.675,
-          "y": -9.275000000000002,
+          "y": -7.500000000000001,
           "width": 43.77677699066161,
-          "height": 17.500000000000004
+          "height": 14.150000000000002
         },
         "primitives": [
           {
@@ -30622,10 +30661,11 @@
             "role": "dimension",
             "at": {
               "x": 18.213388495330808,
-              "y": -6.6000000000000005
+              "y": -6.300000000000001
             },
             "text": "131-1/2\"",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "leg-back",
               "instance": 0,
@@ -30637,10 +30677,11 @@
             "role": "note",
             "at": {
               "x": 18.213388495330808,
-              "y": -8.225000000000001
+              "y": -6.300000000000001
             },
             "text": "Not to scale between the breaks",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "leg-back",
               "instance": 0,
@@ -30710,10 +30751,11 @@
             "role": "dimension",
             "at": {
               "x": 17.576440585364953,
-              "y": 3.1
+              "y": 2.8000000000000003
             },
             "text": "130-1/4\"",
             "anchor": "middle",
+            "side": "below",
             "part": {
               "partId": "leg-back",
               "instance": 0,
@@ -30900,10 +30942,11 @@
             "role": "note",
             "at": {
               "x": 0,
-              "y": 7.175000000000001
+              "y": 5.6000000000000005
             },
             "text": "Drill 9/16\" holes for 1/2\" bolts",
             "anchor": "start",
+            "side": "below",
             "part": {
               "partId": "leg-back",
               "instance": 0,
@@ -31106,6 +31149,41 @@
               "instance": 0,
               "letter": "B"
             }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 7.463754769822258,
+                "y": -2.8699999999999997
+              },
+              {
+                "x": 8.312637526598884,
+                "y": -2.8699999999999997
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "leg-back",
+              "instance": 0,
+              "letter": "B"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 7.888196148210572,
+              "y": -3.0799999999999996
+            },
+            "text": "Grain",
+            "anchor": "middle",
+            "part": {
+              "partId": "leg-back",
+              "instance": 0,
+              "letter": "B"
+            }
           }
         ],
         "notes": [
@@ -31119,9 +31197,9 @@
         "description": "Cut detail for C, Front leg (downhill): 138-3/8\" overall, ends cut at 20.0°, 5 holes.",
         "bounds": {
           "x": -3.675,
-          "y": -9.275000000000002,
+          "y": -7.500000000000001,
           "width": 43.77677699066161,
-          "height": 17.500000000000004
+          "height": 14.150000000000002
         },
         "primitives": [
           {
@@ -31704,10 +31782,11 @@
             "role": "dimension",
             "at": {
               "x": 18.213388495330808,
-              "y": -6.6000000000000005
+              "y": -6.300000000000001
             },
             "text": "138-3/8\"",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "leg-front",
               "instance": 0,
@@ -31719,10 +31798,11 @@
             "role": "note",
             "at": {
               "x": 18.213388495330808,
-              "y": -8.225000000000001
+              "y": -6.300000000000001
             },
             "text": "Not to scale between the breaks",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "leg-front",
               "instance": 0,
@@ -31792,10 +31872,11 @@
             "role": "dimension",
             "at": {
               "x": 17.576440585364953,
-              "y": 3.1
+              "y": 2.8000000000000003
             },
             "text": "137-1/16\"",
             "anchor": "middle",
+            "side": "below",
             "part": {
               "partId": "leg-front",
               "instance": 0,
@@ -31982,10 +32063,11 @@
             "role": "note",
             "at": {
               "x": 0,
-              "y": 7.175000000000001
+              "y": 5.6000000000000005
             },
             "text": "Drill 9/16\" holes for 1/2\" bolts",
             "anchor": "start",
+            "side": "below",
             "part": {
               "partId": "leg-front",
               "instance": 0,
@@ -32188,6 +32270,41 @@
               "instance": 0,
               "letter": "C"
             }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 7.463754769822258,
+                "y": -2.8699999999999997
+              },
+              {
+                "x": 8.312637526598884,
+                "y": -2.8699999999999997
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "leg-front",
+              "instance": 0,
+              "letter": "C"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 7.888196148210572,
+              "y": -3.0799999999999996
+            },
+            "text": "Grain",
+            "anchor": "middle",
+            "part": {
+              "partId": "leg-front",
+              "instance": 0,
+              "letter": "C"
+            }
           }
         ],
         "notes": [
@@ -32201,9 +32318,9 @@
         "description": "Cut detail for D, Crossbar: 59\" overall, ends cut at 20.0°, 4 holes.",
         "bounds": {
           "x": -5.775,
-          "y": -14.575000000000001,
+          "y": -11.700000000000001,
           "width": 35.852754432696166,
-          "height": 27.5
+          "height": 22.150000000000002
         },
         "primitives": [
           {
@@ -32603,10 +32720,11 @@
             "role": "dimension",
             "at": {
               "x": 12.151377216348084,
-              "y": -10.200000000000001
+              "y": -9.9
             },
             "text": "59\"",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "crossbar",
               "instance": 0,
@@ -32618,10 +32736,11 @@
             "role": "note",
             "at": {
               "x": 12.151377216348084,
-              "y": -12.925
+              "y": -9.9
             },
             "text": "Not to scale between the breaks",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "crossbar",
               "instance": 0,
@@ -32691,10 +32810,11 @@
             "role": "dimension",
             "at": {
               "x": 12.151377216348084,
-              "y": 4.7
+              "y": 4.4
             },
             "text": "59\"",
             "anchor": "middle",
+            "side": "below",
             "part": {
               "partId": "crossbar",
               "instance": 0,
@@ -32764,10 +32884,11 @@
             "role": "dimension",
             "at": {
               "x": 12.151377216348084,
-              "y": -7.725
+              "y": -7.425
             },
             "text": "55\"",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "crossbar",
               "instance": 0,
@@ -32919,10 +33040,11 @@
             "role": "note",
             "at": {
               "x": 0,
-              "y": 11.275
+              "y": 8.8
             },
             "text": "Drill 9/16\" holes for 1/2\" bolts",
             "anchor": "start",
+            "side": "below",
             "part": {
               "partId": "crossbar",
               "instance": 0,
@@ -33125,6 +33247,41 @@
               "instance": 0,
               "letter": "D"
             }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 18.852616711061355,
+                "y": -4.51
+              },
+              {
+                "x": 19.251514937982893,
+                "y": -4.51
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "crossbar",
+              "instance": 0,
+              "letter": "D"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 19.052065824522124,
+              "y": -4.84
+            },
+            "text": "Grain",
+            "anchor": "middle",
+            "part": {
+              "partId": "crossbar",
+              "instance": 0,
+              "letter": "D"
+            }
           }
         ],
         "notes": [
@@ -33138,9 +33295,9 @@
         "description": "Cut detail for E, Gusset: 19-1/2\" overall, ends cut at 20.0°, 4 holes.",
         "bounds": {
           "x": -7.6125,
-          "y": -15.525000000000002,
+          "y": -15.375,
           "width": 34.727190600525624,
-          "height": 32.5625
+          "height": 29.150000000000002
         },
         "primitives": [
           {
@@ -33442,10 +33599,11 @@
             "role": "dimension",
             "at": {
               "x": 9.751095300262813,
-              "y": -13.350000000000001
+              "y": -13.05
             },
             "text": "19-1/2\"",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "gusset",
               "instance": 0,
@@ -33515,10 +33673,11 @@
             "role": "dimension",
             "at": {
               "x": 9.751095300262813,
-              "y": 6.1000000000000005
+              "y": 5.800000000000001
             },
             "text": "19-1/2\"",
             "anchor": "middle",
+            "side": "below",
             "part": {
               "partId": "gusset",
               "instance": 0,
@@ -33588,10 +33747,11 @@
             "role": "dimension",
             "at": {
               "x": 9.751095300262813,
-              "y": -10.0875
+              "y": -9.7875
             },
             "text": "14-1/4\"",
             "anchor": "middle",
+            "side": "above",
             "part": {
               "partId": "gusset",
               "instance": 0,
@@ -33743,10 +33903,11 @@
             "role": "note",
             "at": {
               "x": 0,
-              "y": 14.8625
+              "y": 11.600000000000001
             },
             "text": "Drill 9/16\" holes for 1/2\" bolts",
             "anchor": "start",
+            "side": "below",
             "part": {
               "partId": "gusset",
               "instance": 0,
@@ -33944,6 +34105,41 @@
                 "y": 0
               }
             ],
+            "part": {
+              "partId": "gusset",
+              "instance": 0,
+              "letter": "E"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "leader",
+            "points": [
+              {
+                "x": 6.333489579110543,
+                "y": -5.944999999999999
+              },
+              {
+                "x": 13.168701021415083,
+                "y": -5.944999999999999
+              }
+            ],
+            "arrows": true,
+            "part": {
+              "partId": "gusset",
+              "instance": 0,
+              "letter": "E"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "note",
+            "at": {
+              "x": 9.751095300262813,
+              "y": -6.379999999999999
+            },
+            "text": "Grain",
+            "anchor": "middle",
             "part": {
               "partId": "gusset",
               "instance": 0,

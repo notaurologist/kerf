@@ -1,12 +1,4 @@
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
 import { Icon, type IconName } from './Icon.tsx';
 import { Wordmark } from './Wordmark.tsx';
 
@@ -36,20 +28,6 @@ export interface FrameProject {
 /** Where the title bar's back link goes; `project` is the open project, named by its screen. */
 export type Back = { label: string; href: string } | 'project';
 
-/** A menu button's `aria-expanded`, following its popover's own toggle event. */
-function usePopoverOpen() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const toggle = (e: Event) => setOpen((e as ToggleEvent).newState === 'open');
-    element.addEventListener('toggle', toggle);
-    return () => element.removeEventListener('toggle', toggle);
-  }, []);
-  return { ref, open };
-}
-
 const FrameContext = createContext<(project: FrameProject | undefined) => void>(() => {});
 
 /** For a project's screens: shows the project in the frame while the screen is open. */
@@ -63,8 +41,10 @@ export function useFrameProject(project: FrameProject) {
 }
 
 /**
- * Stage 9's frame. The title bar has the wordmark and a menu with `actions` on a place, or a back
- * link and the open project's name below one. The sidebar marks the current place, and the
+ * Stage 9's frame. The title bar has the wordmark and the `actions` on a place, or a back link
+ * and the open project's name below one; the sidebar has the `actions` at its foot. The actions
+ * are drawn in both, one shown at a time, so they should be icon buttons that keep no state of
+ * their own. The sidebar marks the current place, and the
  * plan's sections replace its own contents column. `preview` sizes it to its content, for the
  * catalog.
  */
@@ -77,8 +57,6 @@ export function Frame(props: {
   children: ReactNode;
 }) {
   const [project, setProject] = useState<FrameProject>();
-  const actionsId = useId();
-  const { ref: actions, open: menuOpen } = usePopoverOpen();
   const back =
     props.back === 'project' ? project && { label: project.name, href: project.href } : props.back;
   const title = props.back && props.back !== 'project' ? project?.name : undefined;
@@ -104,17 +82,7 @@ export function Frame(props: {
               </a>
             )}
             {title && <span className="k-titlebar__title">{title}</span>}
-            {!props.back && (
-              <button
-                type="button"
-                className="k-titlebar__menu"
-                popoverTarget={actionsId}
-                aria-expanded={menuOpen}
-              >
-                <Icon name="menu" />
-                <span className="k-visually-hidden">Menu</span>
-              </button>
-            )}
+            {!props.back && <div className="k-titlebar__actions">{props.actions}</div>}
           </header>
           <div className="k-frame__side">
             <nav className="k-sidebar" aria-label="Main">
@@ -156,9 +124,7 @@ export function Frame(props: {
                 ))}
               </ul>
             </nav>
-            <div ref={actions} id={actionsId} popover="auto" className="k-frame__actions">
-              {props.actions}
-            </div>
+            <div className="k-frame__actions">{props.actions}</div>
           </div>
           <div className="k-frame__main">{props.children}</div>
           <nav className="k-tabbar" aria-label="Main">
@@ -180,8 +146,8 @@ export type Mode = 'Shopping' | 'Building';
 
 /**
  * Shop modes fill the screen under this bar (#40): the mode's name, what it is working on (the
- * project's name), and a way out, in the mode's own color (Stage 10). `end` sits before Exit, as
- * the theme menu does (#155).
+ * project's name), and a way out, in the mode's own color (Stage 10). `end`, such as the theme
+ * menu (#155), sits before Exit; it should be an icon, so the bar stays one row.
  */
 export function ModeBar(props: {
   mode: Mode;
@@ -189,8 +155,6 @@ export function ModeBar(props: {
   exitHref: string;
   end?: ReactNode;
 }) {
-  const menuId = useId();
-  const { ref: menu, open } = usePopoverOpen();
   return (
     <header className="k-modebar" data-density="shop" data-mode={props.mode.toLowerCase()}>
       <span className="k-modebar__name">
@@ -198,22 +162,7 @@ export function ModeBar(props: {
         {props.context && <span className="k-modebar__context">{` · ${props.context}`}</span>}
       </span>
       <span className="k-modebar__end">
-        {props.end && (
-          <>
-            <button
-              type="button"
-              className="k-modebar__menu"
-              popoverTarget={menuId}
-              aria-expanded={open}
-            >
-              <Icon name="menu" />
-              <span className="k-visually-hidden">Menu</span>
-            </button>
-            <div ref={menu} id={menuId} popover="auto" className="k-modebar__actions">
-              {props.end}
-            </div>
-          </>
-        )}
+        {props.end}
         <a className="k-button" data-variant="secondary" href={props.exitHref}>
           Exit
         </a>

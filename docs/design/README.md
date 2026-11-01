@@ -40,7 +40,7 @@ What fits as is:
 
 Gaps opened as issues:
 - #302: elevations and a section view, with section lining added to the drawing standard.
-- #303: notches, cutouts, and dadoes in cut details and 3D, which aren't the convex prisms `geometry/solid.ts` assumes, and mirrored pairs.
+- #303: notches, cutouts, and dadoes in cut details and 3D, which aren't the convex prisms `geometry/solid.ts` assumed. Built: a concave face is drawn as convex pieces, and a dado as its outline on its face. A part whose joinery makes it handed, such as a left and a right side, is listed as two parts, one per hand: a placement is right-handed, so one part's data can't describe both.
 - #304: wood movement in the plan.
 - #305: panels in the cut list, cut card, and Building mode.
 
@@ -50,7 +50,7 @@ The owner took the suggested option for each (November 2026).
 
 | Question | Chosen | Rejected, and why |
 |---|---|---|
-| Grain direction on drawings | A grain arrow along each solid-wood part's cut detail: one symbol, read the same on screen and paper, and not color alone. Its line role, size, and place go in the drawing standard when #303 draws it. | Grain lines drawn across the faces: busier, they compete with the face tones and dadoes, and their spacing would look like a measurement. No mark, only a note that grain runs the long way: the cut detail would not say it, and the grain is what decides which way a panel moves. |
+| Grain direction on drawings | A grain arrow along each solid-wood part's cut detail: one symbol, read the same on screen and paper, and not color alone. Built in #303 as a leader line with a head at each end, labeled "Grain" (`diagrams.html`, the standard). | Grain lines drawn across the faces: busier, they compete with the face tones and dadoes, and their spacing would look like a measurement. No mark, only a note that grain runs the long way: the cut detail would not say it, and the grain is what decides which way a panel moves. |
 | Board seams on panels | Seams only in a glue-up step's action drawing, as a layout to follow, with the board recipe in text everywhere else (#305). Where seams fall depends on the boards bought, so the reference drawings stay right whatever they are. | Seams on every cut detail, evenly spaced: precise-looking lines for a layout nobody has chosen yet. |
 
 ## Stage 10: another look at color, type, and the key screens (#226)

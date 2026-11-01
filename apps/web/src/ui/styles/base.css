@@ -61,6 +61,12 @@
     outline-offset: var(--focus-offset);
   }
 
+  /* A heading takes focus after a move so a screen reader announces it; it is not a control, so
+     it shows no ring, which a browser can draw even after a tap. */
+  :is(h1, h2, h3, h4, h5, h6)[tabindex="-1"]:focus {
+    outline: none;
+  }
+
   code,
   kbd,
   samp,

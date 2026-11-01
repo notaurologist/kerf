@@ -126,3 +126,11 @@ describe('breakpoints', () => {
     expect(queryWidths(css).filter((w) => !listed.includes(w))).toEqual([43.75]);
   });
 });
+
+describe('focus', () => {
+  it('draws no ring on a heading that takes focus after a move', () => {
+    expect(withoutComments(stylesheets['base.css'] ?? '')).toMatch(
+      /:is\(h1, h2, h3, h4, h5, h6\)\[tabindex="-1"\]:focus \{\s*outline: none;\s*\}/,
+    );
+  });
+});

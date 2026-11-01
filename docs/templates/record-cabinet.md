@@ -74,7 +74,7 @@ Ranges are proposals for the owner's review.
 | Part | Qty | Length | Width | Thickness | Joints |
 |---|---|---|---|---|---|
 | Top | 1 | W | D_t | t | Stopped dadoes across the underside, one per side and partition, j deep, t wide, from the back edge to s_d short of the case's front edge |
-| Side | 2 | H_p | D_c | t | Shelf dado on the inside face, j deep; foot cutout |
+| Left side, right side | 1 each | H_p | D_c | t | Shelf dado on the inside face, j deep; foot cutout. Mirror images, so two parts with their own letters (`docs/design/README.md`, Stage 11) |
 | Partition | n − 1 | H_p | D_c | t | Shelf dadoes on both faces, j deep; foot cutout |
 | Bottom shelf | n | b + 2·j | D_c | t | Housed in dadoes at both ends |
 | Back rail | n | b + 2·j | h_r | t | Housed in dadoes at both ends (rail dadoes in the sides and partitions) |
@@ -144,14 +144,14 @@ Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s =
 | Left in a partition | 0.75 − 2(0.1875) | 0.375 (3/8), flagged |
 | Notch | s_d × j | 1/2 × 3/16 |
 
-Cut list: top 54 × 15-3/4; sides (2) and partitions (2) 19-7/16 × 15; bottom shelves (3) 16-7/8 × 15; back rails (3) 16-7/8 × 3. All 3/4 thick.
+Cut list: top 54 × 15-3/4; left side, right side, and partitions (2) 19-7/16 × 15; bottom shelves (3) 16-7/8 × 15; back rails (3) 16-7/8 × 3. All 3/4 thick.
 
 Panels, with example board stock and allowances (the owner enters both; these are for checking the arithmetic only): boards 3/4 × 5-1/2, jointing 1/16 per glued edge, rip 1/2, trim 1 per end. Boards per panel n = ⌈(width + 1/2 − 1/8) / (5-1/2 − 1/8)⌉ = ⌈(width + 0.375) / 5.375⌉; glued width n·5.5 − 0.125·(n − 1); board length = part length + 2.
 
 | Part | Width | n | Glued width | Board length | Boards |
 |---|---|---|---|---|---|
 | Top | 15.75 | ⌈16.125 / 5.375⌉ = 3, exactly | 16.25 | 56 | 3 |
-| Side, partition | 15 | ⌈15.375 / 5.375⌉ = ⌈2.86⌉ = 3 | 16.25 | 21.4375 (21-7/16) | 4 × 3 = 12 |
+| Each side and partition | 15 | ⌈15.375 / 5.375⌉ = ⌈2.86⌉ = 3 | 16.25 | 21.4375 (21-7/16) | 4 × 3 = 12 |
 | Bottom shelf | 15 | 3 | 16.25 | 18.875 (18-7/8) | 3 × 3 = 9 |
 | Back rail | 3 | ⌈3.375 / 5.375⌉ = 1 | 5.5 | 18.875 (18-7/8) | 3 |
 
