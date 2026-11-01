@@ -22,7 +22,7 @@ import {
 const SAW = /saw at ([\d.]+°), ([\d.]+°) to the edge/;
 
 import { type ReactNode, useState } from 'react';
-import { Button, ButtonLink } from './Button.tsx';
+import { Button, ButtonLink, IconButton, IconButtonLink } from './Button.tsx';
 import { InlineConfirm } from './Confirm.tsx';
 import { SectionList, SectionPager, WithContents } from './Contents.tsx';
 import sample from './catalog-sample.json';
@@ -218,7 +218,7 @@ function Specimens() {
             { label: 'Glossary', href: '#/catalog/glossary', icon: 'glossary' },
           ]}
           back={{ label: 'Projects', href: '#/catalog' }}
-          actions={<Button variant="link">Log out</Button>}
+          actions={<IconButton icon="log-out" label="Log out" variant="quiet" />}
         >
           <Text>The screen goes here.</Text>
         </Frame>
@@ -227,7 +227,7 @@ function Specimens() {
       <Group title="Screen header">
         <ScreenHeader
           title="Backyard project"
-          actions={<Button variant="secondary">Edit</Button>}
+          actions={<IconButtonLink icon="edit" label="Edit" href="#/catalog" />}
           lede="What the screen is for, in a sentence or two."
           meta={`${template.name}, version ${template.version}.`}
           status={<StatusLine>Saved.</StatusLine>}
@@ -325,6 +325,8 @@ function Specimens() {
           <Button variant="secondary">Cancel</Button>
           <Button variant="destructive">Delete project</Button>
           <Button variant="link">Show the working</Button>
+          <IconButton icon="edit" label="Edit" />
+          <IconButton icon="log-out" label="Log out" variant="quiet" />
           <Button busy busyLabel="Saving…">
             Save changes
           </Button>

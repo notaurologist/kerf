@@ -36,7 +36,7 @@ describe('Shopping mode', () => {
     const html = render(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
     const text = renderText(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
     expect(text).toContain(
-      'Shopping · Backyard swing set Menu Theme System theme Light theme Dark theme Exit',
+      'Shopping · Backyard swing set Theme System theme Light theme Dark theme Exit',
     );
     expect(html).not.toContain('<nav');
     expect(html).toContain(`href="#/projects/${p.id}"`);
@@ -96,7 +96,7 @@ describe('Building mode', () => {
     const text = renderText(<ModeView route={route} project={p} />);
     const html = render(<ModeView route={route} project={p} />);
     expect(text).toContain(
-      'Building · Backyard swing set Menu Theme System theme Light theme Dark theme Exit',
+      'Building · Backyard swing set Theme System theme Light theme Dark theme Exit',
     );
     expect(text).toContain('Step 6 of 11 · Cutting All steps');
     expect(text).toContain("Cut board 6, a 2x6 10' long: 2 × Crossbar");

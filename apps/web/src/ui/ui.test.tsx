@@ -31,6 +31,9 @@ import {
   Frame,
   Glance,
   Icon,
+  IconButton,
+  IconButtonLink,
+  IconSelect,
   InfoNotice,
   InlineConfirm,
   InputNeeded,
@@ -225,6 +228,42 @@ describe('Button', () => {
     expect(render(<Button variant="destructive">Delete project</Button>)).toContain(
       'data-variant="destructive"',
     );
+  });
+});
+
+describe('IconButton', () => {
+  it('names its action for screen readers and as a tooltip, at a full control size', () => {
+    const html = render(<IconButton icon="log-out" label="Log out" variant="quiet" />);
+    expect(html).toContain('data-variant="quiet" data-icon-only="" title="Log out"');
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain('<span class="k-visually-hidden">Log out</span>');
+    expect(renderText(<IconButton icon="log-out" label="Log out" />)).toBe('Log out');
+  });
+
+  it('goes to another screen as a link', () => {
+    const html = render(<IconButtonLink icon="edit" label="Edit" href="#/projects/1/edit" />);
+    expect(html).toMatch(/^<a class="k-button" data-variant="secondary" data-icon-only=""/);
+    expect(html).toContain('href="#/projects/1/edit"');
+  });
+});
+
+describe('IconSelect', () => {
+  it('is a labeled native menu under an icon', () => {
+    const html = render(
+      <IconSelect
+        label="Theme"
+        value="dark"
+        icon="theme-dark"
+        options={[
+          { value: 'light', label: 'Light theme' },
+          { value: 'dark', label: 'Dark theme' },
+        ]}
+        onChange={() => {}}
+      />,
+    );
+    expect(html).toMatch(/^<label class="k-icon-select" title="Theme"><svg/);
+    expect(html).toContain('<span class="k-visually-hidden">Theme</span><select>');
+    expect(html).toContain('<option value="dark" selected="">Dark theme</option>');
   });
 });
 
@@ -506,24 +545,21 @@ describe('Frame', () => {
     expect(html).toContain('<div class="k-frame__main"><main>Screen</main></div>');
   });
 
-  it('gives a place the wordmark and a menu holding the actions', () => {
+  it('gives a place the wordmark and its actions in the title bar, and again in the sidebar', () => {
     const html = frame();
     expect(html).toMatch(
       /<header class="k-titlebar"><a class="k-titlebar__brand" href="#\/projects">/,
     );
-    const id = html.match(/class="k-titlebar__menu" popovertarget="([^"]+)"/i)?.[1];
-    expect(id).toBeDefined();
-    expect(html).toContain(
-      `<div id="${id}" popover="auto" class="k-frame__actions"><b>Log out</b></div>`,
-    );
-    expect(html).toContain('<span class="k-visually-hidden">Menu</span>');
+    expect(html).toContain('<div class="k-titlebar__actions"><b>Log out</b></div>');
+    expect(html).toContain('<div class="k-frame__actions"><b>Log out</b></div>');
+    expect(html).not.toContain('popover');
   });
 
-  it('gives a screen inside a place a back link and no menu', () => {
+  it('gives a screen inside a place a back link and no actions in the title bar', () => {
     const html = frame({ label: 'Tools', href: '#/tools' });
     expect(html).toMatch(/<a class="k-titlebar__back" href="#\/tools">.*Tools<\/a>/);
     expect(html).not.toContain('k-titlebar__brand');
-    expect(html).not.toContain('k-titlebar__menu');
+    expect(html).not.toContain('k-titlebar__actions');
   });
 });
 
@@ -556,29 +592,29 @@ describe('ModeFrame', () => {
     expect(html).toContain('<main class="l-page" data-density="shop">');
   });
 
-  it('puts what it is given in a Menu before Exit, so the bar stays one row', () => {
+  it('puts what it is given before Exit', () => {
     const frame = (
       <ModeFrame mode="Building" exitHref="#/projects/1" end={<span>Theme menu</span>}>
         x
       </ModeFrame>
     );
-    expect(renderText(frame)).toContain('Building Menu Theme menu Exit');
-    const html = render(frame);
-    const id = html.match(/popovertarget="([^"]+)"/i)?.[1];
-    expect(id).toBeTruthy();
-    expect(html).toContain(`aria-expanded="false"`);
-    expect(html).toContain(
-      `id="${id}" popover="auto" class="k-modebar__actions"><span>Theme menu</span>`,
-    );
+    expect(renderText(frame)).toContain('Building Theme menu Exit');
+    expect(render(frame)).not.toContain('popover');
   });
 
-  it('has no Menu when there is nothing to put in it', () => {
+  it('has only Exit when there is nothing else to put in the bar', () => {
     const html = render(
       <ModeFrame mode="Shopping" exitHref="#/projects/1">
         x
       </ModeFrame>,
     );
-    expect(html).not.toContain('k-modebar__menu');
+    expect(
+      renderText(
+        <ModeFrame mode="Shopping" exitHref="#/projects/1">
+          x
+        </ModeFrame>,
+      ),
+    ).toBe('Shopping Exit x');
     expect(html).toContain('<span class="k-modebar__name"><b>Shopping</b></span>');
   });
 

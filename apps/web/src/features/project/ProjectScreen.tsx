@@ -12,8 +12,8 @@ import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { cutDetailHeadingId, cutListPartId } from '../../lib/show.ts';
 import { type Project, STATUS_LABELS } from '../../lib/types.ts';
 import {
-  ButtonLink,
   Definitions,
+  IconButtonLink,
   Notice,
   PlanSection,
   ScreenHeader,
@@ -146,12 +146,7 @@ export function ProjectView(props: {
         pageTitle={`${current.title} · ${project.name}`}
         actions={
           // Secondary: the summary's next mode is the screen's one primary (Stage 10).
-          plan.ok &&
-          editHref && (
-            <ButtonLink href={editHref} variant="secondary">
-              Edit
-            </ButtonLink>
-          )
+          plan.ok && editHref && <IconButtonLink href={editHref} icon="edit" label="Edit" />
         }
         meta={`${STATUS_LABELS[project.status]}. ${template?.name ?? project.templateId}, version ${project.templateVersion}.`}
         status={flash && <StatusLine>{flash}</StatusLine>}
