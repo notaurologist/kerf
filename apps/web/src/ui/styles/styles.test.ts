@@ -135,3 +135,18 @@ describe('focus', () => {
     );
   });
 });
+
+describe('screen header', () => {
+  /** The declarations of the first rule whose selector is exactly `selector`. */
+  const rule = (selector: string) => {
+    const css = withoutComments(stylesheets['components.css'] ?? '');
+    const at = css.indexOf(`${selector} {`);
+    return at < 0 ? '' : css.slice(at, css.indexOf('}', at));
+  };
+
+  it('wraps actions under the title rather than shrinking the title under them', () => {
+    // On a phone, two long New buttons covered "Projects" when the row could not wrap.
+    expect(rule('.k-screen-header__top')).toMatch(/flex-wrap:\s*wrap/);
+    expect(rule('.k-screen-header__top > :first-child')).toMatch(/min-inline-size:\s*min-content/);
+  });
+});
