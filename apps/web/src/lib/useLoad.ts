@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ApiError, ApiResult } from './api.ts';
+import { arrive, startLoading } from './moves.ts';
 
 export type LoadState<T> =
   | { state: 'loading' }
@@ -34,13 +35,20 @@ export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string, kept?
   const [loaded, setLoaded] = useState<LoadState<T>>(() => shown(kept));
   // Only the latest request may set the result, so a slow earlier one cannot overwrite it.
   const latest = useRef(0);
+  // While the screen waits for its first value, a move holds the old screen for it (lib/moves.ts).
+  const onScreen = useRef(loaded.state);
+  onScreen.current = loaded.state;
+  useLayoutEffect(() => (loaded.state === 'loading' ? startLoading() : undefined), [loaded.state]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: reloads when the key changes, not when the caller passes a new closure.
   const reload = useCallback(async () => {
     const request = ++latest.current;
     const result = await load();
     if (request !== latest.current) return;
     if (result.ok) kept?.set(result.value);
-    setLoaded(settled(result, kept?.get()));
+    const next = settled(result, kept?.get());
+    // Data arriving after the skeleton fades in over it (Stage 9, #266).
+    if (onScreen.current === 'loading') arrive(() => setLoaded(next));
+    else setLoaded(next);
   }, [key]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: `kept` belongs to `key`.
   useEffect(() => {

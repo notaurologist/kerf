@@ -153,13 +153,3 @@ export const loginFailures = pgTable(
     check('login_failures_failures', sql`${t.failures} > 0`),
   ],
 );
-
-// The previous deploy's login counter, kept until no running deploy uses it (0014).
-export const loginAttempts = pgTable(
-  'login_attempts',
-  {
-    windowStart: timestamp('window_start', { withTimezone: true }).primaryKey(),
-    failures: integer('failures').notNull(),
-  },
-  (t) => [check('login_attempts_failures', sql`${t.failures} > 0`)],
-);

@@ -104,6 +104,23 @@
 
     --duration-quick: 0.15s;
     --duration-move: 0.4s; /* MOVE_MS in ui/assemblyMotion.ts */
+    /* Screen moves (Stage 9, #266): a short shift with a fade, entering a little slower than
+       leaving (NN/g), eased out. */
+    --duration-screen-in: 0.25s;
+    --duration-screen-out: 0.2s;
+    --duration-screen-stagger: 0.05s;
+    --duration-place-out: 0.09s;
+    --duration-place-in: 0.21s;
+    --duration-mode: 0.3s;
+    --shift-screen: 1.5rem;
+    --ease-out: cubic-bezier(0.2, 0, 0, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    /* The pencil line on a long wait: it starts after 1 s and slows as it goes, never claiming
+       how much is left. */
+    --duration-pencil-delay: 1s;
+    --duration-pencil: 6s;
+    --ease-pencil: cubic-bezier(0.1, 0.7, 0.3, 1);
+    --duration-shimmer: 1.6s;
     --pressed-opacity: 0.7; /* A control dims while held, as on iOS (#253). */
 
     /* Diagram lines (#44): screen widths in CSS px, never scaled with the drawing. */

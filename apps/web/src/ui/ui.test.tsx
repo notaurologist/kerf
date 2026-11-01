@@ -27,8 +27,8 @@ import {
   Figures,
   FlagList,
   FormProgress,
+  Frame,
   Glance,
-  Header,
   Icon,
   InfoNotice,
   InlineConfirm,
@@ -477,23 +477,48 @@ describe('Disclosure', () => {
   });
 });
 
-describe('Header', () => {
-  it('names its navigation and marks the current page', () => {
-    const html = render(
-      <Header
-        brandHref="#/projects"
-        nav={[
-          { label: 'Projects', href: '#/projects', current: true },
-          { label: 'Tools', href: '#/tools' },
-        ]}
-      />,
+describe('Frame', () => {
+  const places = [
+    { label: 'Projects', href: '#/projects', icon: 'projects', current: 'page' },
+    { label: 'Tools', href: '#/tools', icon: 'tools' },
+    { label: 'Glossary', href: '#/glossary', icon: 'glossary' },
+  ] as const;
+  const frame = (back?: { label: string; href: string }) =>
+    render(
+      <Frame brandHref="#/projects" places={places} back={back} actions={<b>Log out</b>}>
+        <main>Screen</main>
+      </Frame>,
     );
-    expect(html).toContain('<nav aria-label="Main">');
-    expect(html).toMatch(
-      /^<header class="k-header"><a class="k-header__brand" href="#\/projects"><svg class="k-wordmark" role="img" aria-label="Kerf"/,
-    );
+
+  it('marks the current place in the sidebar and the tab bar, with an icon and a label in each tab', () => {
+    const html = frame();
+    expect(html.match(/<nav class="k-(sidebar|tabbar)" aria-label="Main">/g)).toHaveLength(2);
     expect(html).toContain('<a href="#/projects" aria-current="page">Projects</a>');
     expect(html).toContain('<a href="#/tools">Tools</a>');
+    expect(html).toMatch(
+      /<a href="#\/projects" aria-current="page"><svg class="k-icon"[^>]*aria-hidden="true"[^>]*>.*?<\/svg><span>Projects<\/span><\/a>/,
+    );
+    expect(html).toContain('<div class="k-frame__main"><main>Screen</main></div>');
+  });
+
+  it('gives a place the wordmark and a menu holding the actions', () => {
+    const html = frame();
+    expect(html).toMatch(
+      /<header class="k-titlebar"><a class="k-titlebar__brand" href="#\/projects">/,
+    );
+    const id = html.match(/class="k-titlebar__menu" popovertarget="([^"]+)"/i)?.[1];
+    expect(id).toBeDefined();
+    expect(html).toContain(
+      `<div id="${id}" popover="auto" class="k-frame__actions"><b>Log out</b></div>`,
+    );
+    expect(html).toContain('<span class="k-visually-hidden">Menu</span>');
+  });
+
+  it('gives a screen inside a place a back link and no menu', () => {
+    const html = frame({ label: 'Tools', href: '#/tools' });
+    expect(html).toMatch(/<a class="k-titlebar__back" href="#\/tools">.*Tools<\/a>/);
+    expect(html).not.toContain('k-titlebar__brand');
+    expect(html).not.toContain('k-titlebar__menu');
   });
 });
 

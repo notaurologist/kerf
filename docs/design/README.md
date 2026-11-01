@@ -42,6 +42,10 @@ Accepted cost: on the phone in Safari (not installed, 0005), the tab bar sits ab
 
 Build issues: #265 (the frame), #266 (moves and waiting, after #265), #267 (the keyboard).
 
+Built in #265 (October 2026): the frame (`Frame` in `ui/Shell.tsx`), with icons for the three places (a plan sheet, a framing square, an open book) and a Menu for the theme and Log out. Two details settled in the build: the title bar names the project only once the page has scrolled past the screen's own heading (a scroll-driven fade; where a browser lacks scroll timelines, it always shows), and the sidebar marks the open project as well as its current section.
+
+Built in #266 (October 2026): the moves and the waiting (`lib/moves.ts`, `ui/Skeleton.tsx`). The hold uses the view transition's own update: the browser keeps showing the old screen while the new one is put in place and its data loads. Under reduced motion there is no move and no hold; the skeleton waits 300 ms before it appears, so a fast load still never shows it.
+
 Built in #267 (October 2026): Left and Right for the plan's sections and Building's steps (`lib/arrowKeys.ts`), with the key named in `aria-keyshortcuts` and shown beside Previous and Next for a fine pointer.
 
 ## Stage 8: brand (#166)

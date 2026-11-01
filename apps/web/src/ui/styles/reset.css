@@ -49,5 +49,13 @@
       /* biome-ignore lint/complexity/noImportantStyles: see above. */
       scroll-behavior: auto !important;
     }
+
+    /* Screen moves (#266), which * does not match. */
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      /* biome-ignore lint/complexity/noImportantStyles: see above. */
+      animation: none !important;
+    }
   }
 }

@@ -26,7 +26,7 @@ export function ToolPage(props: { id: string }) {
         }
       />
       <Text>{type.description}</Text>
-      <Loaded state={loaded} loading="Checking your tools…" onRetry={reload}>
+      <Loaded state={loaded} shape="line" loading="Checking your tools…" onRetry={reload}>
         {(inventory) => {
           const count = inventory.tools.filter((t) => t.toolTypeId === type.id).length;
           return (

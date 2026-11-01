@@ -8,7 +8,6 @@ describe('createTestDatabase', () => {
       "select tablename from pg_tables where schemaname = 'public' order by 1",
     );
     expect(tables.rows.map((r) => r.tablename)).toEqual([
-      'login_attempts',
       'login_failures',
       'other_tools',
       'project_history',
@@ -30,9 +29,6 @@ describe('createTestDatabase', () => {
       );
     await expect(insert('done', 'Swing set')).rejects.toThrow(/projects_status/);
     await expect(insert('planned', '  ')).rejects.toThrow(/projects_name/);
-    await expect(
-      client.query('insert into login_attempts (window_start, failures) values (now(), 0)'),
-    ).rejects.toThrow(/login_attempts_failures/);
     await expect(
       client.query(
         "insert into login_failures (scope, window_start, failures) values ('all', now(), 0)",
