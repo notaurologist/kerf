@@ -227,12 +227,7 @@ function Specimens() {
       <Group title="Screen header">
         <ScreenHeader
           title="Backyard project"
-          actions={
-            <>
-              <Button variant="secondary">Edit</Button>
-              <Button variant="secondary">Print</Button>
-            </>
-          }
+          actions={<Button variant="secondary">Edit</Button>}
           lede="What the screen is for, in a sentence or two."
           meta={`${template.name}, version ${template.version}.`}
           status={<StatusLine>Saved.</StatusLine>}

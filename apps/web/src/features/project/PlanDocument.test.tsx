@@ -5,7 +5,7 @@ import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from './ProjectScreen.tsx';
 
 // The plan as Stage 1 drew it (#40, revised laptop plan; #119): a summary, the contents in
-// section order A, Boards, Parameters and inputs, and Print beside Edit. Numbers are the worked
+// section order A, Boards, Parameters and inputs, and Edit in the header. Numbers are the worked
 // example's (docs/templates/swing-set-a-frame.md), as core formats them.
 
 const [complete, noInputs] = storedSnapshots;
@@ -109,11 +109,9 @@ describe('the plan’s contents', () => {
 });
 
 describe('the plan’s header', () => {
-  it('puts Print beside Edit', () => {
+  it('offers Edit and leaves printing to the browser', () => {
     const top = textOf(html(complete).slice(0, html(complete).indexOf('</header>')));
-    expect(top).toBe(
-      'Backyard swing set Print Edit Planned. Two-swing A-frame swing set, version 1.',
-    );
+    expect(top).toBe('Backyard swing set Edit Planned. Two-swing A-frame swing set, version 1.');
   });
 });
 

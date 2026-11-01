@@ -52,6 +52,7 @@ import {
   useFrameProject,
   WithAside,
 } from '../../ui/index.ts';
+import { DeleteProject } from './DeleteProject.tsx';
 import { belongsTo, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 import { PreviewPane, usePreview } from './Preview.tsx';
 import { StartQuestions } from './StartQuestions.tsx';
@@ -279,7 +280,23 @@ export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
   );
 }
 
-function EditProject(props: { project: Project; from?: PlanSectionId; onReload: () => void }) {
+export function EditProject(props: {
+  project: Project;
+  from?: PlanSectionId;
+  onReload: () => void;
+}) {
+  const { project } = props;
+  // Outside the form, so Enter in the name it asks for never submits the edit.
+  return (
+    <Stack gap="xl">
+      <EditProjectForm {...props} />
+      <DeleteProject id={project.id} name={project.name} />
+    </Stack>
+  );
+}
+
+/** The form, or why it cannot be shown; the project can still be deleted either way. */
+function EditProjectForm(props: { project: Project; from?: PlanSectionId; onReload: () => void }) {
   const { project } = props;
   const template = findTemplate(project.templateId);
   const back = { href: href({ screen: 'project', id: project.id }), label: project.name };

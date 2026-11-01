@@ -16,8 +16,8 @@ describe('confirmsName', () => {
 });
 
 describe('DeleteProject', () => {
-  it('starts as a single button, with no confirmation showing', () => {
+  it('starts as a heading and a single button, with no confirmation showing', () => {
     const text = renderText(<DeleteProject id="p1" name="Backyard swing set" />);
-    expect(text).toBe('Delete project');
+    expect(text).toBe('Delete this project Delete project');
   });
 });
