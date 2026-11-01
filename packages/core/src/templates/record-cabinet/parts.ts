@@ -27,19 +27,34 @@ const minusY = at(0, -1, 0);
 
 export type CabinetPart = Omit<Part, 'letter'>;
 
+/** Hardwood lengths, 4 to 16 ft in 1-ft steps (Wood Handbook, ch. 6, p. 6-3). */
+const DEALER_FEET = Array.from({ length: 13 }, (_, i) => i + 4);
+
 export function cabinetParts(
   p: RecordCabinetParams,
   g: CabinetGeometry,
 ): { ok: true; parts: CabinetPart[]; placements: Placement[] } | { ok: false; issues: Issue[] } {
   const t = p.panelThickness;
   const j = p.dadoDepth;
-  const board: BoardStock = {
-    // Named by its size, which is what the store's label gives.
-    nominal: `${formatLength(p.board.thickness)} x ${formatLength(p.board.width)}`,
-    thickness: p.board.thickness,
-    width: p.board.width,
-    buyableFeet: p.board.lengths,
-  };
+  const board: BoardStock =
+    p.board.source === 'store'
+      ? {
+          // Named by its size, which is what the store's label gives.
+          nominal: `${formatLength(p.board.thickness)} x ${formatLength(p.board.width)}`,
+          thickness: p.board.thickness,
+          width: p.board.width,
+          buyableFeet: p.board.lengths,
+        }
+      : {
+          nominal: `${p.board.quarters}/4 hardwood`,
+          thickness: p.board.surfaced,
+          width: p.board.planWidth,
+          buyableFeet: DEALER_FEET,
+          byBoardFoot: {
+            nominalThickness: p.board.quarters / 4,
+            waste: p.board.wastePercent / 100,
+          },
+        };
   const issues: Issue[] = [];
   const stockFor = (width: number, length: number) => {
     const made = panelStock({ thickness: t, width, length, board, allowances: p.allowances });

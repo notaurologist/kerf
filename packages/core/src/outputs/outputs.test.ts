@@ -134,6 +134,34 @@ describe('panels', () => {
     };
   };
 
+  it("plans dealer hardwood by the board foot, with each board's least width", () => {
+    // 4/4 cherry, 13/16" surfaced, planned 6" wide with 20% waste. n = ⌈(15 + 1/2 − 1/8) /
+    // (6 − 1/8)⌉ = ⌈2.617⌉ = 3, each at least (15 + 1/2 + 2 · 1/16 · 2) / 3 = 5-1/4" wide. The
+    // three 21-7/16" boards use 2 · 1/2 trim + 3 · (21-7/16 + 1/8) = 65-11/16", so one 6' board:
+    // 1 × 6/12 × 6 = 3 board feet, 3.6 with the waste.
+    const dealer: BoardStock = {
+      nominal: '4/4 cherry',
+      thickness: 0.8125,
+      width: 6,
+      buyableFeet: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+      byBoardFoot: { nominalThickness: 1, waste: 0.2 },
+    };
+    const side = panel('side', 15, 1, dealer);
+    expect(side.stock).toMatchObject({ boards: 3, minBoardWidth: 5.25 });
+    expect(cutList([side])[0]?.panel?.recipe).toBe(
+      '3 boards of 4/4 cherry (13/16" thick), each at least 5-1/4" wide and 21-7/16" long, glued up and ripped to 15"',
+    );
+    const plan = planLumber([side]);
+    expect(plan.lines).toHaveLength(1);
+    expect(plan.lines[0]).toMatchObject({ nominal: '4/4 cherry', feet: 6, count: 1 });
+    expect(plan.lines[0]?.boardFeet).toBeCloseTo(3.6, 12);
+    expect(plan.notes).toContain(
+      '4/4 cherry is sold by the board foot in random widths. The boards are planned 6" wide, with 20% more board feet for defects and offcuts; wider boards need fewer.',
+    );
+    // Store boards have no board feet.
+    expect(planLumber([panel('side', 15, 1)]).lines[0]).not.toHaveProperty('boardFeet');
+  });
+
   it('lists a panel with its finished size and the boards it is glued from', () => {
     // panel.test.ts works these: 3 boards, each 21-7/16" long, glued to 16-1/4".
     const [side] = cutList([panel('side', 15, 2)]);

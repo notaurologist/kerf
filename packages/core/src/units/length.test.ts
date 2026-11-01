@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { compareRoundedSum, formatBoardLength, formatLength, toSixteenths } from './length.ts';
+import {
+  compareRoundedSum,
+  formatBoardFeet,
+  formatBoardLength,
+  formatLength,
+  toSixteenths,
+} from './length.ts';
+
+describe('formatBoardFeet', () => {
+  it('rounds up to a tenth, never short, and keeps float error from adding one', () => {
+    expect(formatBoardFeet(3.6000000000000005)).toBe('3.6');
+    expect(formatBoardFeet(3.61)).toBe('3.7');
+    expect(formatBoardFeet(12)).toBe('12.0');
+  });
+});
 
 describe('toSixteenths', () => {
   it('rounds to the nearest sixteenth', () => {

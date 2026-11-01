@@ -8,9 +8,21 @@ import { Stock } from './stock.ts';
 // length, so its grain does too.
 
 /**
- * Surfaced boards the owner buys at a fixed width, such as hardwood boards at a home center. Sizes
- * and lengths vary by store and Kerf has no published standard for them, so the owner enters what
- * their store sells.
+ * Hardwood sold by the board foot in random widths, as a lumber dealer sells it (Wood Handbook,
+ * ch. 6, pp. 6-3 to 6-4).
+ */
+export const ByBoardFoot = z.object({
+  /** The thickness board feet are counted at: 1 for 4/4 (American Softwood Lumber Standard, 2.2). */
+  nominalThickness: z.number().positive(),
+  /** Extra board feet bought for defects and offcuts, as a fraction: 0.2 is 20%. */
+  waste: z.number().nonnegative(),
+});
+export type ByBoardFoot = z.infer<typeof ByBoardFoot>;
+
+/**
+ * The boards a panel is glued from: surfaced boards bought at a fixed width, such as at a home
+ * center, or hardwood bought by the board foot in random widths. For board-foot stock, `width` is
+ * the widest board the plan counts on, and wider boards need fewer of them.
  */
 export const BoardStock = z.object({
   /** The owner's name for it, such as "1x6 cherry". Shopping lists group boards by it. */
@@ -21,6 +33,7 @@ export const BoardStock = z.object({
   width: z.number().positive(),
   /** Lengths the store sells, in feet. */
   buyableFeet: z.array(z.number().positive()).min(1),
+  byBoardFoot: ByBoardFoot.optional(),
 });
 export type BoardStock = z.infer<typeof BoardStock>;
 
@@ -50,6 +63,11 @@ export const PanelStock = z.object({
   boardLength: z.number(),
   /** Width of the glued-up panel before it is ripped to its finished width. */
   gluedWidth: z.number(),
+  /**
+   * For board-foot stock, the narrowest each board can be and still glue up wide enough:
+   * (width + rip + 2a(n − 1)) / n.
+   */
+  minBoardWidth: z.number().optional(),
   allowances: PanelAllowances,
 });
 export type PanelStock = z.infer<typeof PanelStock>;
@@ -113,6 +131,9 @@ export function panelStock(input: {
       boards,
       boardLength: length + 2 * allowances.trimPerEnd,
       gluedWidth: boards * board.width - 2 * a * (boards - 1),
+      ...(board.byBoardFoot
+        ? { minBoardWidth: (width + allowances.rip + 2 * a * (boards - 1)) / boards }
+        : {}),
       allowances,
     },
   };

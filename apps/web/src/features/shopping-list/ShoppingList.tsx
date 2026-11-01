@@ -1,4 +1,10 @@
-import { formatBoardLength, groupHardware, type HardwareLine, type LumberPlan } from '@kerf/core';
+import {
+  formatBoardFeet,
+  formatBoardLength,
+  groupHardware,
+  type HardwareLine,
+  type LumberPlan,
+} from '@kerf/core';
 import { type Changes, marked, NO_CHANGES } from '../../lib/changes.tsx';
 import { ErrorText, Length, List, Measured, MeasureTable, Stack, Text } from '../../ui/index.ts';
 import { BoardSelection } from './BoardSelection.tsx';
@@ -62,6 +68,18 @@ export function ShoppingList(props: {
             numeric: true,
             cell: (l) => marked(changes, `${line(l, lumber.lines, 'lumber.lines')}.count`, l.count),
           },
+          // Hardwood from a dealer is sold by the board foot (#296).
+          ...(lumber.lines.some((l) => l.boardFeet !== undefined)
+            ? [
+                {
+                  key: 'board-feet',
+                  label: 'Board feet',
+                  numeric: true,
+                  cell: (l: LumberPlan['lines'][number]) =>
+                    l.boardFeet === undefined ? '' : formatBoardFeet(l.boardFeet),
+                },
+              ]
+            : []),
         ]}
       />
       {removedLumber.length > 0 && (

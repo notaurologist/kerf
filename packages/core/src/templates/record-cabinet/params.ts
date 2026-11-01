@@ -48,13 +48,27 @@ export const RecordCabinetParams = z.object({
     depth: z.number().positive(),
     place: SpeakerPlace,
   }),
-  /** The boards every panel is glued from, as the owner's store sells them (#278). */
-  board: z.object({
-    thickness: z.number().positive(),
-    width: z.number().positive(),
-    /** Lengths the store sells, in feet, entered in order. */
-    lengths: z.array(z.number().int().positive()).min(1).max(4),
-  }),
+  /** The boards every panel is glued from: a store's fixed-width boards (#278), or a dealer's (#296). */
+  board: z.discriminatedUnion('source', [
+    z.object({
+      source: z.literal('store'),
+      thickness: z.number().positive(),
+      width: z.number().positive(),
+      /** Lengths the store sells, in feet, entered in order. */
+      lengths: z.array(z.number().int().positive()).min(1).max(4),
+    }),
+    z.object({
+      source: z.literal('dealer'),
+      /** The thickness class in quarter inches: 4 for 4/4. */
+      quarters: z.union([z.literal(4), z.literal(5), z.literal(6), z.literal(8)]),
+      /** Actual thickness as surfaced two sides. */
+      surfaced: z.number().positive(),
+      /** The board width the plan counts on; wider boards need fewer. */
+      planWidth: z.number().positive(),
+      /** Extra board feet for defects and offcuts, in percent. */
+      wastePercent: z.number().min(0).max(100),
+    }),
+  ]),
   allowances: PanelAllowances,
 });
 export type RecordCabinetParams = z.infer<typeof RecordCabinetParams>;
