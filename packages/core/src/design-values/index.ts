@@ -25,3 +25,4 @@ export {
   TABLE_4B_ADJUSTMENTS,
 } from './sawnLumber.ts';
 export { Citation, SOURCE_LINKS, SOURCES, Source, type SourceId } from './sources.ts';
+export { WOOD_SPECIES, WoodSpecies, woodSpecies } from './woodSpecies.ts';

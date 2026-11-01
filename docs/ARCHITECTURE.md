@@ -77,10 +77,11 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │           │                   # swing-set-a-frame/ first
 │           ├── outputs/        # Cut list, shopping list (board grouping with kerf and trim)
 │           ├── structural/     # Generic beam and hardware checks and adjustment factors
+│           ├── movement/       # Wood movement across the grain, with its working (Wood Handbook Eq. 13-3)
 │           ├── steps/          # Build steps: operations to methods, using the tool inventory
 │           ├── progress/       # What can be ticked off in a plan, and which ticks a regeneration clears
 │           ├── knowledge/      # Tool types, skills, methods, expert-check categories, glossary (data)
-│           ├── design-values/  # NDS reference values and adjustment factors (data, sourced)
+│           ├── design-values/  # NDS reference values, adjustment factors, and furniture species (data, sourced)
 │           └── snapshot/       # Project snapshots: create, read back, compare with the current version
 └── docs/
 ```
