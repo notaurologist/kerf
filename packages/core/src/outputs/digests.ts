@@ -69,6 +69,9 @@ function diagrams(d: Drawings): string {
           `${named.charAt(0).toUpperCase()}${named.slice(1)} ${views.length === 1 ? 'view' : 'views'}`,
         ]
       : []),
+    ...((d.elevations ?? []).length > 0
+      ? [count(d.elevations?.length ?? 0, 'elevation or section', 'elevations and sections')]
+      : []),
     ...(d.cutDetails.length > 0 ? [count(d.cutDetails.length, 'cut detail')] : []),
   ];
   return lines.length > 0 ? lines.join(' · ') : 'No drawings';

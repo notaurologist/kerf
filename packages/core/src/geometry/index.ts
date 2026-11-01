@@ -12,14 +12,26 @@ export {
   TextRole,
   Tone,
 } from './primitives.ts';
-export { depth, depthOnPlane, type Isometric, isometric, project } from './projection.ts';
+export {
+  depth,
+  depthOnPlane,
+  type Isometric,
+  isometric,
+  orthographic,
+  project,
+} from './projection.ts';
 export {
   type Action,
   actionView,
+  type DimensionChain,
   type Explode,
+  elevationView,
   explodedView,
   isometricView,
   type Scene,
+  type SectionPlane,
+  sectionCuts,
+  sectionView,
 } from './views.ts';
 
 import { z } from 'zod';
@@ -31,6 +43,11 @@ export const Drawings = z.object({
   exploded: Drawing.nullable(),
   cutDetails: z.array(Drawing),
   siteLayout: Drawing.nullable(),
+  /**
+   * Elevations and sections (#302), in the order to show them: views straight at one side, some
+   * cut by a plane. Left out by a template that draws none.
+   */
+  elevations: z.array(Drawing).optional(),
   /**
    * Each board to buy with the pieces it becomes (#59), from the board plan by `boardDrawings`.
    * Generic, so the API adds them to every template's drawings.

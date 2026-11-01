@@ -1733,6 +1733,20 @@
     stroke-width: var(--line-hatch);
   }
 
+  /* A face a section plane cuts: the lightest face tone under section lining in ink (#302). */
+  .k-shape[data-fill="section"] {
+    fill: var(--wood-1);
+  }
+
+  .k-section {
+    pointer-events: none;
+  }
+
+  .k-section__line {
+    stroke: var(--ink);
+    stroke-width: var(--line-hatch);
+  }
+
   .k-diagram__notes {
     font-size: var(--size--1);
     padding-inline-start: var(--space-m);

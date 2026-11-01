@@ -1354,6 +1354,28 @@ describe('Diagram (#91)', () => {
     expect(html).toContain('class="k-hatch"');
   });
 
+  it('lines a face cut by a section plane, on screen and paper (#302)', () => {
+    const cut = {
+      ...drawing,
+      primitives: [
+        {
+          kind: 'polygon' as const,
+          role: 'visible' as const,
+          points: [
+            { x: 0, y: 0 },
+            { x: 30, y: 0 },
+            { x: 30, y: -5 },
+          ],
+          fill: 'section' as const,
+        },
+      ],
+    };
+    const lined = render(<Diagram drawing={cut} label="Section" assumedWidth={400} />);
+    expect(lined).toContain('data-fill="section"');
+    expect(lined).toContain('class="k-section"');
+    expect(lined).toMatch(/<pattern id="[^"]*-section"/);
+  });
+
   it('draws arrowheads on dimension lines, and keeps text at least 13 px wide drawings or narrow', () => {
     expect(html.match(/class="k-arrow"/g)).toHaveLength(2);
     // 400 px for 40 units: 0.1 unit per px, so 14 px text is 1.4 units.

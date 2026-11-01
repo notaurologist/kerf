@@ -27,6 +27,17 @@ export function isometric(sx: 1 | -1, sy: 1 | -1): Isometric {
   return { toViewer, right, up };
 }
 
+/**
+ * A parallel view straight at one side of the model, such as a front elevation: the viewer in
+ * direction `toViewer`, with `up` up the page. Nothing is foreshortened, so lengths in the
+ * page's plane are true.
+ */
+export function orthographic(toViewer: Vec3, up: Vec3): Isometric {
+  const v = unit(toViewer);
+  const right = unit(cross(up, v));
+  return { toViewer: v, right, up: cross(v, right) };
+}
+
 export function project(view: Isometric, p: Vec3): Point2 {
   return { x: dot(p, view.right), y: -dot(p, view.up) };
 }

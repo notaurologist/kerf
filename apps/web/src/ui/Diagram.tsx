@@ -171,6 +171,13 @@ export function Diagram(props: {
               data-part={p.part?.partId}
             />
             {zone && <polygon className="k-hatch" points={pts(p.points)} fill={`url(#${hatch})`} />}
+            {p.fill === 'section' && (
+              <polygon
+                className="k-section"
+                points={pts(p.points)}
+                fill={`url(#${hatch}-section)`}
+              />
+            )}
           </g>
         );
       }
@@ -320,6 +327,16 @@ export function Diagram(props: {
             patternTransform="rotate(45)"
           >
             <line className="k-hatch__line" x1="0" y1="0" x2="0" y2={8 * u} />
+          </pattern>
+          {/* Section lining (ASME Y14.2): thin lines at 45°, on screen and paper. */}
+          <pattern
+            id={`${hatch}-section`}
+            patternUnits="userSpaceOnUse"
+            width={5 * u}
+            height={5 * u}
+            patternTransform="rotate(45)"
+          >
+            <line className="k-section__line" x1="0" y1="0" x2="0" y2={5 * u} />
           </pattern>
         </defs>
         {/* biome-ignore lint/a11y/noStaticElementInteractions: tapping a part is a pointer shortcut; the cut list's part buttons select the same parts from the keyboard. */}
