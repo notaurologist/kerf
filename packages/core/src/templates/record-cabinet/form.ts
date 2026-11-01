@@ -3,19 +3,18 @@ import type { FormField, TemplateForm } from '../../model/form.ts';
 import { STRUCTURAL_INPUT_LABELS as INPUT } from './structural.ts';
 
 // How the record cabinet's parameters and structural inputs are entered (spec, Parameters and
-// Structural model). Every field starts empty. The board stock, allowances, dado depth, and
-// setback have no source, so they are the owner's to enter and confirm (#278, #283).
+// Structural model). The board stock, allowances, and joint sizes start from standard sizes and
+// rules of thumb, which each field's help gives, so a beginner need not know them (#317).
 
-const length = (path: string, label: string, help?: string, confirmed?: true): FormField => ({
+const length = (path: string, label: string, help?: string): FormField => ({
   path,
   label,
   kind: 'length',
   ...(help ? { help } : {}),
-  ...(confirmed ? { confirmed } : {}),
 });
 
 export const RECORD_CABINET_FORM: TemplateForm = {
-  help: 'Measure the window and one of your records before you enter sizes. The board sizes and allowances are yours to enter: stores and shops differ, and Kerf has no source for them.',
+  help: 'Measure the window and one of your records before you enter sizes. The joint sizes, boards, and allowances start from usual values: check the boards at your store, and change any of them.',
   params: [
     {
       title: 'Size',
@@ -59,14 +58,12 @@ export const RECORD_CABINET_FORM: TemplateForm = {
         length(
           'dadoDepth',
           'Dado depth',
-          'Every dado. A partition has one on each face, so the plan shows the wood left between them.',
-          true,
+          'Every dado. A dado is usually at most a third of the thickness it is cut into. A partition has one on each face, so a quarter of the panel thickness leaves half of it between them.',
         ),
         length(
           'stoppedSetback',
           'Stopped dado setback',
-          'How far the dadoes under the top stop short of the front, so they do not show.',
-          true,
+          'How far the dadoes under the top stop short of the front, so they do not show. About 1/2" is usual.',
         ),
       ],
     },
@@ -74,34 +71,34 @@ export const RECORD_CABINET_FORM: TemplateForm = {
       title: 'Lumber',
       help: 'The surfaced boards your store sells. Enter the lengths it sells in order, as many as apply.',
       fields: [
-        length('board.thickness', 'Board thickness', undefined, true),
-        length('board.width', 'Board width', undefined, true),
+        length(
+          'board.thickness',
+          'Board thickness',
+          'Measure a board. A 1x board is 3/4" thick (American Softwood Lumber Standard).',
+        ),
+        length('board.width', 'Board width', 'Measure a board. A 1x6 is 5-1/2" wide.'),
         ...[0, 1, 2, 3].map(
           (i): FormField => ({
             path: `board.lengths.${i}`,
             label: `Length sold ${i + 1}`,
             kind: 'integer',
             unit: 'ft',
-            confirmed: true,
           }),
         ),
         length(
           'allowances.jointPerEdge',
           'Jointing, per glued edge',
-          'Width planed off each glued edge.',
-          true,
+          'Width planed off each glued edge to make it straight. About 1/16" is usual.',
         ),
         length(
           'allowances.rip',
           'Rip allowance',
-          'Extra width on each glued-up panel, ripped off at the end.',
-          true,
+          'Extra width on each glued-up panel, ripped off at the end. About 1/2" is usual.',
         ),
         length(
           'allowances.trimPerEnd',
           'Trim, per end',
-          'Extra length on each board, cut off with the panel’s ends.',
-          true,
+          'Extra length on each board, cut off with the panel’s ends. About 1" is usual.',
         ),
       ],
     },

@@ -3,9 +3,9 @@ import type { RecordCabinetStructuralInputs } from './structural.ts';
 
 // Worked examples from docs/templates/record-cabinet.md. The turntable's size and weight are
 // illustrative, since the owner has not bought it; the speaker is the Sonos Five as Sonos lists it
-// (spec, [S1]). The board stock and allowances are the spec's example values, for checking the
-// arithmetic, and the moisture range is the Wood Handbook's for individual pieces indoors
-// (Table 13-2). The owner enters their own for a real plan.
+// (spec, [S1]). The board stock, allowances, and joint sizes are the values the starting
+// questions suggest, and the moisture range is the Wood Handbook's for individual pieces indoors
+// (Table 13-2).
 
 export const WORKED_EXAMPLE: RecordCabinetParams = {
   width: 54,
