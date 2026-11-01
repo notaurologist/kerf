@@ -171,17 +171,29 @@ export function isMode(route: Route): boolean {
   return ['shop', 'build', 'build-steps', 'build-step', 'build-part'].includes(route.screen);
 }
 
-export function useRoute(): Route {
+export type RouteChange = (from: Route, to: Route, update: () => void) => void;
+
+const changeAtOnce: RouteChange = (_from, _to, update) => update();
+
+/**
+ * The route the address names, following it as it changes. `change` runs each change, such as
+ * to play it as a move (lib/moves.ts); it must call `update` once.
+ */
+export function useRoute(change: RouteChange = changeAtOnce): Route {
   const [route, setRoute] = useState(() => parseRoute(window.location.hash));
   useEffect(() => {
     let shown = window.location.hash;
+    let current = parseRoute(shown);
     const update = () => {
       if (!leaveGate.follow(shown)) return;
       shown = window.location.hash;
-      setRoute(parseRoute(shown));
+      const next = parseRoute(shown);
+      const from = current;
+      current = next;
+      change(from, next, () => setRoute(next));
     };
     window.addEventListener('hashchange', update);
     return () => window.removeEventListener('hashchange', update);
-  }, []);
+  }, [change]);
   return route;
 }
