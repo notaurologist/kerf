@@ -28,6 +28,7 @@ export type Route =
   // With `term`, that entry's own page; without, the index.
   | { screen: 'glossary'; term?: string }
   | { screen: 'catalog' }
+  | { screen: 'trash' }
   | { screen: 'not-found' };
 
 /**
@@ -55,6 +56,7 @@ export function parseRoute(hash: string): Route {
     return { screen: 'tools', tool: second };
   }
   if (first === 'catalog' && parts.length === 1) return { screen: 'catalog' };
+  if (first === 'trash' && parts.length === 1) return { screen: 'trash' };
   if (first === 'glossary' && parts.length === 1) return { screen: 'glossary' };
   if (first === 'glossary' && parts.length === 2 && second && findGlossaryEntry(second)) {
     return { screen: 'glossary', term: second };
@@ -152,6 +154,8 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
       return route.term ? `#/glossary/${encodeURIComponent(route.term)}` : '#/glossary';
     case 'catalog':
       return '#/catalog';
+    case 'trash':
+      return '#/trash';
   }
 }
 

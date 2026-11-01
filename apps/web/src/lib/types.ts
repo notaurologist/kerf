@@ -12,6 +12,7 @@ export type TemplateSummary = InferResponseType<
   typeof api.api.templates.$get,
   200
 >['templates'][number];
+export type TrashedProject = InferResponseType<typeof api.api.trash.$get, 200>['projects'][number];
 export type ProjectStatus = ProjectSummary['status'];
 
 export const STATUS_LABELS: Record<ProjectStatus, string> = {

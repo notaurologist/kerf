@@ -8,6 +8,7 @@ import { ModeScreen } from './features/modes/modes.tsx';
 import { ProjectScreen } from './features/project/ProjectScreen.tsx';
 import { EditProjectScreen, NewProjectScreen } from './features/project-editor/ProjectEditor.tsx';
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
+import { TrashScreen } from './features/projects/TrashScreen.tsx';
 import {
   api,
   CONNECTION_MESSAGE,
@@ -65,6 +66,8 @@ export function Screen(props: { route: Route }) {
       return <ModeScreen route={props.route} />;
     case 'glossary':
       return <GlossaryScreen term={props.route.term} />;
+    case 'trash':
+      return <TrashScreen />;
     case 'catalog':
       return (
         <Suspense

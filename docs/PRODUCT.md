@@ -77,7 +77,7 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 - **All access goes through one data layer** on the server: the API's services are the only code that touches the database, so the storage behind them can change without touching the routes or the web app.
 - **Single-user authentication.** The API is reachable from my devices, so it needs a login, but there is no account system: one user, configured at deploy time.
 - **Access control lives in API code,** not database policies.
-- **Backups** come from Postgres (scheduled dumps or the host's backups). A JSON export of projects and inventory is a nice-to-have, not an MVP requirement.
+- **Backups** come from Postgres (scheduled dumps or the host's backups). A deleted project waits in a trash for 30 days, and every project and the inventory can be downloaded as JSON (#21).
 - **Not using hosted backend services** like Supabase or Firebase. Their database-level access rules are harder to reason about and test than plain API code.
 
 ## Non-goals (MVP)

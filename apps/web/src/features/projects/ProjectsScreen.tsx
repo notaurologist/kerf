@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
+import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { newProjectLabel } from '../../lib/names.ts';
 import { href } from '../../lib/route.ts';
@@ -22,6 +23,7 @@ import {
   Rows,
   ScreenHeader,
   Stack,
+  StatusLine,
   Text,
 } from '../../ui/index.ts';
 import { buildingText, ResumeCard, resumeTarget, shoppingText } from '../modes/ModeCards.tsx';
@@ -42,6 +44,8 @@ export function ProjectsScreen() {
     };
   }, 'projects');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // "Moved to the trash." from Delete stays until the next action (#67).
+  const [flash] = useState(takeFlash);
   // The latest change sent for each project, so an earlier answer cannot undo a later choice.
   const sent = useRef(new Map<string, number>());
   type Listed = { projects: ProjectSummary[]; templates: TemplateSummary[] };
@@ -77,6 +81,7 @@ export function ProjectsScreen() {
           projects={value.projects}
           templates={value.templates}
           errors={errors}
+          flash={flash}
           onStatus={(id, status, before) => void changeStatus(id, status, before)}
         />
       )}
@@ -124,6 +129,8 @@ export function ProjectList(props: {
   templates: TemplateSummary[];
   /** Why a project's status change did not go through, by project. */
   errors?: Readonly<Record<string, string>>;
+  /** What the last screen did, such as moving a project to the trash. */
+  flash?: string | null;
   onStatus: (id: string, status: ProjectStatus, before: ProjectStatus) => void;
 }) {
   const resuming = props.projects.find((p) => resumeTarget(p) !== null);
@@ -132,6 +139,7 @@ export function ProjectList(props: {
     <Stack>
       <ScreenHeader
         title="Projects"
+        status={props.flash && <StatusLine>{props.flash}</StatusLine>}
         actions={props.templates.map((t) => (
           // While there is somewhere to resume, Go is the screen's one primary (Stage 10).
           <ButtonLink
@@ -185,6 +193,13 @@ export function ProjectList(props: {
           ))}
         </Rows>
       )}
+      {/* A copy to keep: the free database restores only the last few hours (#21). */}
+      <Cluster>
+        <a href={href({ screen: 'trash' })}>Trash</a>
+        <a href="/api/export" download>
+          Download all projects
+        </a>
+      </Cluster>
     </Stack>
   );
 }

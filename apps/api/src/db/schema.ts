@@ -59,6 +59,8 @@ export const projects = pgTable(
     revision: integer('revision').notNull().default(1),
     /** Parameters and structural inputs live in the snapshot, the one copy upgrades keep current. */
     snapshot: jsonb('snapshot').notNull(),
+    /** Set when the project is deleted: it waits in the trash, and is purged after 30 days. */
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
     ...timestamps,
   },
   (t) => [
