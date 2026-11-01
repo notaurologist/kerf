@@ -30,6 +30,7 @@ describe('components.css', () => {
     'inline-size: 1px',
     'block-size: 1px',
     'inset-block: min(0px, (100% - var(--control-min)) / 2)',
+    'inset: min(0px, (100% - var(--control-min)) / 2)',
   ];
 
   it('takes colors and pixel lengths from tokens', () => {

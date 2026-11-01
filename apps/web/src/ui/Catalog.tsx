@@ -39,7 +39,6 @@ import {
   ExpertCheck,
   InfoNotice,
   InputNeeded,
-  Loading,
   Notice,
   Pending,
   SaveFailed,
@@ -472,7 +471,6 @@ function Specimens() {
         <p>
           {part.name}, 1 of {part.quantity} cut <Pending />
         </p>
-        <Loading delayMs={0}>Loading project…</Loading>
       </Group>
 
       <Group title="Information">

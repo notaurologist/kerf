@@ -39,7 +39,6 @@ import {
   InputNeeded,
   Length,
   List,
-  Loading,
   MarginLine,
   Material,
   Measured,
@@ -376,11 +375,6 @@ describe('notices', () => {
     expect(render(<StateTag>Preview</StateTag>)).toBe(
       '<span class="k-tag" data-tone="state">Preview</span>',
     );
-  });
-
-  it('waits before showing loading text, so a fast load does not flash', () => {
-    expect(renderText(<Loading>Loading project…</Loading>)).toBe('');
-    expect(renderText(<Loading delayMs={0}>Loading project…</Loading>)).toBe('Loading project…');
   });
 });
 
@@ -921,7 +915,7 @@ describe('Term', () => {
       /<button type="button" class="k-term__button" popovertarget="[^"]+" aria-expanded="false">long points<\/button>/i,
     );
     expect(html).toContain(
-      `<span id="${target}" popover="auto" class="k-term__popover"><b>Long point</b> The end of an angled cut`,
+      `<span id="${target}" popover="auto" class="k-popover"><b>Long point</b> The end of an angled cut`,
     );
     expect(html).toContain(
       '<a class="k-term__entry" href="#/glossary/long-point">Open the glossary entry</a>',
@@ -1064,20 +1058,19 @@ describe('SectionPager', () => {
       />,
     );
     expect(html).toMatch(/^<nav class="k-pager" aria-label="Plan sections">/);
-    // Each names its arrow key, hidden from screen readers, which hear aria-keyshortcuts (#267).
-    expect(textOf(html)).toBe('Previous ← Diagrams → Next Cut list');
+    // The arrow keys do the same; screen readers hear them in aria-keyshortcuts (#267).
+    expect(textOf(html)).toBe('Previous Diagrams Next Cut list');
     expect(html).toContain(
       '<a class="k-pager__link" href="#/p/diagrams" rel="prev" aria-keyshortcuts="ArrowLeft">',
     );
     expect(html).toContain(
       '<a class="k-pager__link" href="#/p/cut-list" rel="next" aria-keyshortcuts="ArrowRight">',
     );
-    expect(html.match(/<span class="k-pager__key" aria-hidden="true">/g)).toHaveLength(2);
   });
 
   it('gives only the side there is at either end, and nothing with neither', () => {
     expect(textOf(render(<SectionPager next={{ title: 'Diagrams', href: '#' }} />))).toBe(
-      '→ Next Diagrams',
+      'Next Diagrams',
     );
     expect(render(<SectionPager />)).toBe('');
   });
@@ -1372,7 +1365,7 @@ describe('Diagram (#91)', () => {
     };
     const lined = render(<Diagram drawing={cut} label="Section" assumedWidth={400} />);
     expect(lined).toContain('data-fill="section"');
-    expect(lined).toContain('class="k-section"');
+    expect(lined).toContain('class="k-section-lining"');
     expect(lined).toMatch(/<pattern id="[^"]*-section"/);
   });
 

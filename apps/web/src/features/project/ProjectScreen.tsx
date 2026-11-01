@@ -10,16 +10,19 @@ import { useProject } from '../../lib/projectStore.ts';
 import { href, redirect } from '../../lib/route.ts';
 import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { cutDetailHeadingId, cutListPartId } from '../../lib/show.ts';
-import { type Project, STATUS_LABELS } from '../../lib/types.ts';
+import type { Project } from '../../lib/types.ts';
 import {
   Definitions,
   IconButtonLink,
+  InfoTip,
   Notice,
+  PlanHead,
   PlanSection,
   ScreenHeader,
   SectionPager,
   Stack,
   StatusLine,
+  StatusTag,
   useFrameProject,
   WithContents,
 } from '../../ui/index.ts';
@@ -146,23 +149,34 @@ export function ProjectView(props: {
   });
   return (
     <Stack gap="l">
-      <ScreenHeader
-        title={project.name}
-        pageTitle={`${current.title} · ${project.name}`}
-        actions={
-          // Secondary: the summary's next mode is the screen's one primary (Stage 10).
-          plan.ok && editHref && <IconButtonLink href={editHref} icon="edit" label="Edit" />
-        }
-        meta={`${STATUS_LABELS[project.status]}. ${template?.name ?? project.templateId}, version ${project.templateVersion}.`}
-        status={flash && <StatusLine>{flash}</StatusLine>}
-      />
-      <VersionNotice
-        project={project}
-        onRegenerated={(p) => {
-          setFlashLine(describeReset(p.progressReset));
-          props.onChange?.(p);
-        }}
-      />
+      <PlanHead>
+        <ScreenHeader
+          title={project.name}
+          pageTitle={`${current.title} · ${project.name}`}
+          actions={
+            // Secondary: the summary's next mode is the screen's one primary (Stage 10).
+            plan.ok &&
+            editHref && <IconButtonLink href={editHref} icon="edit" label="Edit" variant="quiet" />
+          }
+          tags={
+            <>
+              <StatusTag status={project.status} />
+              <InfoTip label="About this plan">
+                <b>Template</b> {template?.name ?? project.templateId}, version{' '}
+                {project.templateVersion}.
+              </InfoTip>
+            </>
+          }
+          status={flash && <StatusLine>{flash}</StatusLine>}
+        />
+        <VersionNotice
+          project={project}
+          onRegenerated={(p) => {
+            setFlashLine(describeReset(p.progressReset));
+            props.onChange?.(p);
+          }}
+        />
+      </PlanHead>
       {!plan.ok ? (
         // With no plan there is no Edit, which is where Delete lives otherwise.
         <>

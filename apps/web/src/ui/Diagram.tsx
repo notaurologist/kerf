@@ -173,7 +173,7 @@ export function Diagram(props: {
             {zone && <polygon className="k-hatch" points={pts(p.points)} fill={`url(#${hatch})`} />}
             {p.fill === 'section' && (
               <polygon
-                className="k-section"
+                className="k-section-lining"
                 points={pts(p.points)}
                 fill={`url(#${hatch}-section)`}
               />
@@ -336,7 +336,7 @@ export function Diagram(props: {
             height={5 * u}
             patternTransform="rotate(45)"
           >
-            <line className="k-section__line" x1="0" y1="0" x2="0" y2={5 * u} />
+            <line className="k-section-lining__line" x1="0" y1="0" x2="0" y2={5 * u} />
           </pattern>
         </defs>
         {/* biome-ignore lint/a11y/noStaticElementInteractions: tapping a part is a pointer shortcut; the cut list's part buttons select the same parts from the keyboard. */}

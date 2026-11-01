@@ -115,7 +115,11 @@ Built in #265 (October 2026): the frame (`Frame` in `ui/Shell.tsx`), with icons 
 
 Built in #266 (October 2026): the moves and the waiting (`lib/moves.ts`, `ui/Skeleton.tsx`). The hold uses the view transition's own update: the browser keeps showing the old screen while the new one is put in place and its data loads. Under reduced motion there is no move and no hold; the skeleton waits 300 ms before it appears, so a fast load still never shows it.
 
-Built in #267 (October 2026): Left and Right for the plan's sections and Building's steps (`lib/arrowKeys.ts`), with the key named in `aria-keyshortcuts` and shown beside Previous and Next for a fine pointer.
+Changed in November 2026: places moved sideways in the tab bar's order (Projects, Tools, Glossary), as the plan's sections do, in place of fading through. On the phone the fade read as no move at all next to the sections' shift. The session check when the app opens shows the skeleton too, so no screen shows "Loading…" text any more. Tools reads its inventory from the database in one round trip instead of two in sequence.
+
+The plan's header was trimmed the same month. Edit is an icon without a box (the quiet variant). The status is a tinted tag (`StatusTag`), and the template and its version moved behind an info button (`InfoTip`, a popover like a term's), since they matter only when a newer template version is out, which `VersionNotice` already says. The status and info button sit on the title's line when they fit and wrap under it when not; Edit stays on the title's line. Moving between a project's sections, the plan's header and its contents bar stay still with the frame, and only the section moves (the `section` transition type).
+
+Built in #267 (October 2026): Left and Right for the plan's sections and Building's steps (`lib/arrowKeys.ts`), with the key named in `aria-keyshortcuts`. The key was also shown beside Previous and Next for a fine pointer until November 2026, when the owner found the boxed arrow beside the chevron awkward.
 
 ## Stage 8: brand (#166)
 

@@ -75,6 +75,9 @@ const PAIRS: [string, string, 'text' | 'ui', number, number][] = [
   ['ink', 'highlight', 'text', 12.42, 8.38],
   ['zone-line', 'raised', 'ui', 4.65, 6.56],
   ['ink', 'zone', 'text', 13.89, 12.1],
+  ['muted', 'sunken', 'text', 6.22, 8.72],
+  ['status-in-progress', 'status-in-progress-bg', 'text', 8.19, 7.95],
+  ['status-built', 'status-built-bg', 'text', 6.67, 7.79],
 ];
 
 // D2's three faces in W5's pine (Stage 10): the ink on the faces it is least distinct from, as

@@ -28,12 +28,12 @@ export {
   InfoNotice,
   InputNeeded,
   LiveRegion,
-  Loading,
   Notice,
   ProblemScreen,
   SaveFailed,
   StateTag,
   StatusLine,
+  StatusTag,
   type SummaryItem,
   useFormIssues,
 } from './feedback.tsx';
@@ -62,9 +62,10 @@ export {
   Readings,
   SawSetting,
 } from './numbers.tsx';
+export { InfoTip } from './Popover.tsx';
 export { CheckStatus, FlagList } from './plan.tsx';
 export { ScreenHeader, ScreenHeading } from './ScreenHeader.tsx';
-export { PlanSection } from './Section.tsx';
+export { PlanHead, PlanSection } from './Section.tsx';
 export { type Back, Frame, ModeFrame, useFrameProject } from './Shell.tsx';
 export { Skeleton, type SkeletonShape } from './Skeleton.tsx';
 export { StepLayout } from './StepLayout.tsx';

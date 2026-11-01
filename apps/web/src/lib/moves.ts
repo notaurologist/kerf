@@ -9,13 +9,18 @@ import { PLAN_SECTIONS } from './sections.ts';
 // new screen's data has arrived, so a usual load (0.12 s, decision 0006) moves in complete. Under
 // reduced motion, or without view transitions, screens change at once.
 
-export type Move = 'forward' | 'back' | 'place' | 'mode-in' | 'mode-out' | 'none';
+export type Move = 'forward' | 'back' | 'mode-in' | 'mode-out' | 'none';
 
 /** How long the old screen holds while the new one loads, before the new one shows its skeleton. */
 export const HOLD_MS = 300;
 
+// The places in the tab bar's order.
+const PLACES = ['projects', 'tools', 'glossary'] as const;
+
 const place = (route: Route) =>
-  route.screen === 'tools' || route.screen === 'glossary' ? route.screen : 'projects';
+  PLACES.indexOf(
+    route.screen === 'tools' || route.screen === 'glossary' ? route.screen : 'projects',
+  );
 
 /** How far down its place a screen is: the place itself, a screen in it, the editor. */
 function depth(route: Route): number {
@@ -39,11 +44,15 @@ const sectionIndex = (section: string | undefined) =>
     PLAN_SECTIONS.findIndex((s) => s.id === section),
   );
 
-/** The move from one screen to the next: by place, then depth, then the plan's section order. */
+/** Two sections of one project's plan, where the plan's header and contents stay still. */
+const sameProject = (from: Route, to: Route) =>
+  from.screen === 'project' && to.screen === 'project' && from.id === to.id;
+
+/** The move from one screen to the next: by the places' order, then depth, then the plan's sections. */
 export function moveFor(from: Route, to: Route): Move {
   if (isMode(from) !== isMode(to)) return isMode(to) ? 'mode-in' : 'mode-out';
   if (isMode(to)) return 'none';
-  if (place(from) !== place(to)) return 'place';
+  if (place(from) !== place(to)) return place(to) > place(from) ? 'forward' : 'back';
   const down = depth(to) - depth(from);
   if (down !== 0) return down > 0 ? 'forward' : 'back';
   if (from.screen === 'project' && to.screen === 'project' && from.id === to.id) {
@@ -95,7 +104,7 @@ const animates = () =>
 /** A page that renders no frames never starts a transition's update; skipping still runs it. */
 const STALL_MS = 1000;
 
-function play(type: Move | 'arrive', update: () => void, hold: boolean) {
+function play(types: string[], update: () => void, hold: boolean) {
   let stall: ReturnType<typeof setTimeout> | undefined;
   const transition = document.startViewTransition({
     update: async () => {
@@ -103,7 +112,7 @@ function play(type: Move | 'arrive', update: () => void, hold: boolean) {
       flushSync(update);
       if (hold) await loadedOrAfter(HOLD_MS);
     },
-    types: [type],
+    types,
   });
   stall = setTimeout(() => transition.skipTransition(), STALL_MS);
   active = transition;
@@ -120,11 +129,11 @@ function play(type: Move | 'arrive', update: () => void, hold: boolean) {
 export const changeScreen: RouteChange = (from, to, update) => {
   const move = moveFor(from, to);
   if (move === 'none' || !animates()) update();
-  else play(move, update, true);
+  else play(sameProject(from, to) ? [move, 'section'] : [move], update, true);
 };
 
 /** Shows a screen's data in place of its skeleton: a crossfade, unless a move is under way. */
 export function arrive(update: () => void) {
   if (moving() || !animates()) update();
-  else play('arrive', update, false);
+  else play(['arrive'], update, false);
 }

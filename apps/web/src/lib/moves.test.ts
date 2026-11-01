@@ -26,9 +26,15 @@ describe('moveFor', () => {
     expect(moveFor(plan('cut-list'), plan('cut-list'))).toBe('none');
   });
 
-  it('fades between places, and rises into a mode and drops out of it', () => {
-    expect(moveFor(plan('cut-list'), { screen: 'tools' })).toBe('place');
-    expect(moveFor({ screen: 'glossary' }, projects)).toBe('place');
+  it("moves sideways between places in the tab bar's order, from any depth", () => {
+    expect(moveFor(projects, { screen: 'tools' })).toBe('forward');
+    expect(moveFor({ screen: 'tools' }, { screen: 'glossary' })).toBe('forward');
+    expect(moveFor({ screen: 'glossary' }, { screen: 'tools' })).toBe('back');
+    expect(moveFor(plan('cut-list'), { screen: 'tools' })).toBe('forward');
+    expect(moveFor({ screen: 'glossary', term: 'kerf' }, projects)).toBe('back');
+  });
+
+  it('rises into a mode and drops out of it', () => {
     expect(moveFor(plan(), { screen: 'build', id: 'p1' })).toBe('mode-in');
     expect(moveFor({ screen: 'shop', id: 'p1' }, plan())).toBe('mode-out');
     expect(moveFor({ screen: 'build', id: 'p1' }, { screen: 'build-steps', id: 'p1' })).toBe(
@@ -83,6 +89,18 @@ describe('changeScreen', () => {
     loaded();
     await transitions.updateDone();
     expect(held).toBe(false);
+  });
+
+  it("keeps the plan's header and contents still between a project's sections", () => {
+    const transitions = stubTransitions();
+    changeScreen(plan(), plan('cut-list'), () => {});
+    expect(transitions.start).toHaveBeenLastCalledWith(
+      expect.objectContaining({ types: ['forward', 'section'] }),
+    );
+    changeScreen(plan('cut-list'), projects, () => {});
+    expect(transitions.start).toHaveBeenLastCalledWith(
+      expect.objectContaining({ types: ['back'] }),
+    );
   });
 
   it(`stops holding after ${HOLD_MS} ms`, async () => {

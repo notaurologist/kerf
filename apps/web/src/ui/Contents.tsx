@@ -103,10 +103,7 @@ export function SectionPager(props: {
                 <span className="k-pager__arrow">
                   <Icon name="chevron" />
                 </span>{' '}
-                Previous{' '}
-                <span className="k-pager__key" aria-hidden="true">
-                  ←
-                </span>
+                Previous
               </span>
               <span className="k-pager__title">{props.previous.title}</span>
             </a>
@@ -121,9 +118,6 @@ export function SectionPager(props: {
               aria-keyshortcuts="ArrowRight"
             >
               <span className="k-pager__dir">
-                <span className="k-pager__key" aria-hidden="true">
-                  →
-                </span>{' '}
                 Next{' '}
                 <span className="k-pager__arrow">
                   <Icon name="chevron" />

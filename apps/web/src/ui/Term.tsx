@@ -1,13 +1,6 @@
 import { findGlossaryEntry, type GlossaryId } from '@kerf/core';
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react';
+import { createContext, type ReactNode, useContext, useId } from 'react';
+import { usePopover } from './Popover.tsx';
 
 // Glossary terms defined where they are used (docs/design/README.md, Terms defined in place): a
 // term is a button that opens its definition in a popover, with a link to its glossary entry.
@@ -63,35 +56,24 @@ export function useEntryHref(): ((id: GlossaryId) => string) | undefined {
 }
 
 /**
- * A glossary term in running text: a button named by the words as written, opening a non-modal
- * popover with the definition and a link to the entry. The popover closes with Escape or a tap
- * elsewhere (popover="auto"), and the button's `aria-expanded` follows its `toggle` event, which
- * the browser does not set by itself.
+ * A glossary term in running text: a button named by the words as written, opening a popover
+ * (`usePopover`) with the definition and a link to the entry.
  */
 export function Term(props: { id: GlossaryId; href: string; children: string }) {
   const entry = findGlossaryEntry(props.id);
-  const popoverId = useId();
-  const popover = useRef<HTMLSpanElement>(null);
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const element = popover.current;
-    if (!element) return;
-    const toggle = (e: Event) => setOpen((e as ToggleEvent).newState === 'open');
-    element.addEventListener('toggle', toggle);
-    return () => element.removeEventListener('toggle', toggle);
-  }, []);
+  const popover = usePopover();
   if (!entry) return props.children;
   return (
     <span className="k-term">
       <button
         type="button"
         className="k-term__button"
-        popoverTarget={popoverId}
-        aria-expanded={open}
+        popoverTarget={popover.id}
+        aria-expanded={popover.open}
       >
         {props.children}
       </button>
-      <span ref={popover} id={popoverId} popover="auto" className="k-term__popover">
+      <span ref={popover.ref} id={popover.id} popover="auto" className="k-popover">
         <b>{entry.term}</b> {entry.definition}{' '}
         <a className="k-term__entry" href={props.href}>
           Open the glossary entry

@@ -51,3 +51,8 @@ export function PlanSection(props: {
     </section>
   );
 }
+
+/** The plan's header and any notice under it, which stay still as its sections move (#266). */
+export function PlanHead(props: { children: ReactNode }) {
+  return <div className="k-plan-head">{props.children}</div>;
+}
