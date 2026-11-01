@@ -1,0 +1,121 @@
+import { describe, expect, it } from 'vitest';
+import type { TemplateDefinition } from '../../model/definition.ts';
+import { type Change, diff } from '../../snapshot/diff.ts';
+import { readSnapshot } from '../../snapshot/snapshot.ts';
+import { recordCabinet } from './definition.ts';
+import v1 from './snapshots/v1.json' with { type: 'json' };
+import v2 from './snapshots/v2.json' with { type: 'json' };
+import v3 from './snapshots/v3.json' with { type: 'json' };
+import v4 from './snapshots/v4.json' with { type: 'json' };
+import v5 from './snapshots/v5.json' with { type: 'json' };
+
+// What each template version changed in the worked examples (decision 0008). Each version's
+// fixture and the one before it are read through the upgrades to the current shape, so their
+// difference is only what that version changed, not what later versions or shapes added.
+
+const template = recordCabinet as TemplateDefinition;
+
+/** A fixture's snapshots in the current shape, without the version stamps. */
+function current(fixture: readonly unknown[]): unknown[] {
+  return fixture.map((stored) => {
+    const read = readSnapshot([template], stored);
+    if (!read.ok) throw new Error(JSON.stringify(read));
+    const { params, structuralInputs, outputs } = read.snapshot;
+    return JSON.parse(JSON.stringify({ params, structuralInputs, outputs }));
+  });
+}
+
+/** Each worked example's changes from one fixture to the next. */
+function changes(before: readonly unknown[], after: readonly unknown[]): Change[] {
+  const a = current(before);
+  const b = current(after);
+  return a.flatMap((snapshot, i) => {
+    const result = diff(snapshot, b[i], 5000);
+    expect(result.truncated).toBe(false);
+    return result.changes;
+  });
+}
+
+/** The changed paths, with list positions taken out: 'outputs.cutList[].stock'. */
+const kinds = (list: readonly Change[]) =>
+  [...new Set(list.map((c) => c.path.replace(/\[\d+\]/g, '[]')))].sort();
+
+describe('record-cabinet template versions', () => {
+  it('version 2 adds flattening, so the examples glue 3/4" panels from thicker boards (#319)', () => {
+    const list = changes(v1, v2);
+    expect(kinds(list)).toEqual(
+      [
+        'outputs.cutList[].panel.recipe',
+        'outputs.design.operations[].thickness',
+        'outputs.design.params.allowances.flatten',
+        'outputs.design.params.board.thickness',
+        'outputs.design.parts[].stock.allowances.flatten',
+        'outputs.design.parts[].stock.board.nominal',
+        'outputs.design.parts[].stock.board.thickness',
+        'outputs.lumber.boards[].nominal',
+        'outputs.lumber.lines[].nominal',
+        'params.allowances.flatten',
+        'params.board.thickness',
+      ].sort(),
+    );
+    // 4/4 surfaced to 13/16" for 3/4" panels, and 5/4 to 1-1/16" for the 1" edge example; the
+    // upgrade read version 1's flattening as 0, and version 2 takes 1/16".
+    const pairs = (path: RegExp) =>
+      [
+        ...new Set(list.filter((c) => path.test(c.path)).map((c) => `${c.before}>${c.after}`)),
+      ].sort();
+    expect(pairs(/^params\.board\.thickness$/)).toEqual(['0.75>0.8125', '1>1.0625']);
+    expect(pairs(/^params\.allowances\.flatten$/)).toEqual(['0>0.0625']);
+  });
+
+  it('version 3 keeps a one-board rail at its board’s thickness, and fits its dadoes to it (#320)', () => {
+    const list = changes(v2, v3);
+    expect(kinds(list)).toEqual(
+      [
+        'outputs.cutList[].stock',
+        'outputs.design.operations[].length',
+        'outputs.design.operations[].thickness',
+        'outputs.design.parts[].dadoes[].v0',
+        'outputs.design.parts[].stock.thickness',
+      ].sort(),
+    );
+    // Only the rails' stock changes: a 3/4" panel became the 13/16" board, and 1" the 1-1/16".
+    const stocks = list.filter((c) => c.path.endsWith('.stock'));
+    expect(stocks.map((c) => [c.before, c.after])).toContainEqual([
+      'Panel (3/4" x 3")',
+      'Board (13/16" x 3")',
+    ]);
+    // Each rail dado starts the rail's thickness from the back: 15 − 13/16 = 14-3/16.
+    const dadoes = list.filter((c) => c.path.endsWith('.v0'));
+    expect(dadoes.length).toBeGreaterThan(0);
+    for (const c of dadoes.filter((d) => d.before === 14.25)) expect(c.after).toBe(14.1875);
+  });
+
+  it('version 4 adds the dry fit, the glue-ups, and the finish, and changes no other step (#313)', () => {
+    const ops = (fixture: readonly unknown[]) =>
+      current(fixture).map(
+        (s) =>
+          new Map(
+            (
+              s as { outputs: { design: { operations: { id: string }[] } } }
+            ).outputs.design.operations.map((op) => [op.id, op]),
+          ),
+      );
+    const before = ops(v3);
+    const after = ops(v4);
+    before.forEach((old, i) => {
+      const now = after[i] ?? new Map();
+      const added = [...now.keys()].filter((id) => !old.has(id));
+      expect(added).toEqual(['case/dry-fit', 'case/glue', 'top/glue', 'case/finish']);
+      for (const [id, op] of old) expect(now.get(id), id).toEqual(op);
+    });
+  });
+
+  it('version 5 adds dealer hardwood; the store-board examples regenerate unchanged (#296)', () => {
+    expect(changes(v4, v5)).toEqual([]);
+    const boards = current(v5).map(
+      (s) => (s as { params: { board: { source: string } } }).params.board,
+    );
+    expect(boards.every((b) => b.source === 'store')).toBe(true);
+  });
+});
