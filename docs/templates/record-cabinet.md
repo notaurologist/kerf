@@ -71,6 +71,57 @@ After the panels and their dadoes and rabbets: cut the notches, the mortises in 
 
 The owner agreed to the design on November 1, 2026, with the legs bought as square stock rather than laminated. It was built in this order, each its own pull request: mortise and tenon joints (#343), parts from board stock and slotted screw holes (#344), then the template (#338).
 
+## Proposed: sliding doors on the end bays (#339, for the owner's review)
+
+Stage 2 of the Shaker-modern cabinet. The owner chose on November 1, 2026: two **sliding doors in two tracks**, one per end bay, each sliding over the open middle bay; each door a **frame with a solid floating panel**; and a **routed finger recess** for a pull. This replaces the hinged doors first scoped on #339.
+
+### How it works
+
+- **Tracks:** two grooves along the case bottom's top face and two along the top's underside, between the sides, at the front. The front track holds the left door and the rear track the right, so the doors pass each other and both end bays can be open at once. With both closed, the middle bay stays open.
+- **The partitions stop short of the front** by the track zone d_t, so the doors run in front of them. The sides run the full depth, and each door stops against its side.
+- **Lifting a door in:** the top's grooves are deeper than the bottom's. A door is lifted up into the top groove, swung in at the bottom, and dropped into the bottom groove.
+- **Doors** are as thick as the board stock, so they come from the same lumber without planing. Each is two stiles and two rails, joined with stub tenons in grooves, around a solid panel. The panel's edges are rabbeted to a tongue that floats in the grooves, unglued, with its gap from the movement estimate (`DOMAIN.md`, Joints that let wood move).
+- **Pull:** a shallow recess routed into each door's face near its outer stile, so nothing stands proud to catch the other door.
+- **Records still fit:** the track zone comes off the bays' depth, so the case gets deeper. Records need D_c − d_t − r ≥ the jacket, where r is the back rail's thickness.
+
+### New parameters, each with a suggestion
+
+| Parameter | Symbol | Suggested | Basis |
+|---|---|---|---|
+| Groove clearance on a door | c_g | 1/16 | Rule of thumb: the groove is the door's thickness plus this, so it slides freely |
+| Land between and around the grooves | l_g | 1/4 | Rule of thumb |
+| Bottom groove depth | d_b | 1/4 | Rule of thumb |
+| Top groove depth | d_u | 9/16 | Rule of thumb: twice the bottom's, plus 1/16 to lift the door in |
+| Door overlap past the partition | o_d | 1/2 | Rule of thumb, so no gap shows at the middle bay |
+| Stile and rail width | w_s | 2 | Rule of thumb, Shaker proportion |
+| Stub tenon and groove depth | g_s | 3/8 | Rule of thumb |
+| Finger recess | | 3/4 wide, 3 tall, 1/4 deep, 1 from the outer stile's edge | Rule of thumb |
+| Case depth | D_c | 17 (was 15) | So records fit behind the tracks; see below |
+
+Derived: the groove width is t_d + c_g, where t_d is the board's thickness; the track zone is d_t = 3·l_g + 2·(t_d + c_g); the door height is h_b + d_b + d_b (seated 1/4 in the bottom and 1/4 up into the top); the door width is b + t + o_d.
+
+### Worked example (hand-checked)
+
+Boards 13/16, t = 3/4, b = 16-1/2, h_b = 13-1/4, back rails 13/16 thick.
+
+- Groove 13/16 + 1/16 = **7/8**; track zone d_t = 3 × 1/4 + 2 × 7/8 = **2-1/2**.
+- Record depth behind the tracks, D_c − 2.5 − 0.8125: at 15, **11-11/16**, less than a 12-3/8 jacket; at 16, **12-11/16**, 5/16 to spare; at 17, **13-11/16**. The suggestion is 17.
+- Door **13-3/4** high (13.25 + 0.25 + 0.25), **17-3/4** wide (16.5 + 0.75 + 0.5). Lifted in, its top rises into the 9/16 top groove: it has 13.25 + 0.5625 − 13.75 + 0.25 = 5/16 of lift, and needs 1/4 to clear the bottom groove, so 1/16 to spare.
+- Stiles 2 × 13-3/4; rails 17.75 − 2 × 2 + 2 × 3/8 = **14-1/2** long, 2 wide. The panel opening is 13-3/4 × 9-3/4.
+- Panel: across its grain (horizontal) 13.75 + 2 × 3/8 = 14.5 into the grooves; flatsawn cherry, 6% to 10%, moves ΔD = 14.5 × 0.00248 × 4 = 0.144, so a gap of 0.072 + 1/32 = **0.103** at each edge, and the panel is **14.29** wide. Along its grain, 9.75 + 2 × 3/8 − 2 × 1/32 = **10-7/16** high.
+
+### What it needs first (generic work)
+
+- A groove along a part's edge, through or stopped, for the stiles and rails (today's dadoes are cut in a face).
+- A rabbet along a part's edges, to make the panel's tongue.
+- A finger recess routed into a face.
+- The tracks reuse the dado operations, running the length of the case bottom and the top.
+
+### Open questions for the owner
+
+1. Is a 17" case depth acceptable? The top becomes 17-3/4" deep. At 16" the records fit with 5/16" to spare.
+2. Is a 2" frame right, or would you like a narrower, more mid-century 1-1/2" frame?
+
 ## Coordinates
 
 - **x** runs along the cabinet, from the left end of the top (x = 0) to the right end (x = W), looking at the front.
