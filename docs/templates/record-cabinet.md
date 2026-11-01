@@ -213,7 +213,7 @@ Answers suggest parameters (M8), each labeled as the owner's choice:
 - **Casing width D:** suggests W = D (owner's choice: match the trim). The stool width E is shown for reference.
 - **Stool depth B and apron bottom C:** no parameter. If H > C, the plan notes that the cabinet stands at least B from the wall.
 - **Turntable and speaker:** their sizes and where the speaker goes.
-- **Everything else** in the parameters: the worked example's case, a 1x6 board from the lumber standard, and rules of thumb for the dado depth, setback, and allowances, each labeled. Structural inputs stay empty (hard rule 3).
+- **Everything else** in the parameters: the worked example's case, a 1x6 board from the lumber standard, and rules of thumb for the dado depth, setback, and allowances, each labeled. Two structural inputs are suggested from their sources for the owner to check (hard rule 3): moisture content 6% to 10% (Wood Handbook, Table 13-2, interior woodwork in most of the United States) and L/144 (Architectural Woodwork Standards). The others stay empty.
 
 ## Sources
 

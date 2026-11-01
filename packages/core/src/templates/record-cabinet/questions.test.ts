@@ -49,9 +49,18 @@ describe('record cabinet starting questions', () => {
     expect(tall?.note).toContain('outside 16" to 30"');
   });
 
-  it('takes the turntable and speaker from the answers, and leaves every structural input empty', () => {
+  it('takes the turntable and speaker from the answers', () => {
     expect(at(suggestions, 'speaker.place')?.value).toBe('top');
-    expect(suggestions.every((s) => s.from === 'params')).toBe(true);
+  });
+
+  it('suggests only the moisture range and deflection limit among structural inputs, from sources (rule 3)', () => {
+    const inputs = suggestions.filter((s) => s.from === 'structuralInputs');
+    expect(inputs.map((s) => [s.path, s.value])).toEqual([
+      ['moisture.low', 6],
+      ['moisture.high', 10],
+      ['deflectionLimit', 144],
+    ]);
+    for (const s of inputs) expect(s.basis.kind).toBe('source');
   });
 
   it('suggests a 1x6 board from the lumber standard, to be measured at the store', () => {

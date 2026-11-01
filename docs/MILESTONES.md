@@ -102,7 +102,7 @@ After the MVP. Starting a project today means about 30 empty fields and no outpu
 - Each template carries the dimensions its project type conventionally uses, as data, and asks a few questions only for what it can't determine on its own (the space, who uses it, a style choice). The answers become suggested parameters from template code, each labeled with its source, convention, or rule of thumb (#163).
 - Structural inputs are never suggested. Answers that are structural inputs, such as a rider's weight, are entered by the user (hard rule 3).
 
-**Accept when:** the swing set can be started from a worked example, an earlier project, or its questions, each opening a filled form with a preview; hand-checked worked examples cover the questions' suggestions, including a yard too shallow for the conventional beam height; and no structural input is filled in except from the owner's own answers or project.
+**Accept when:** the swing set can be started from a worked example, an earlier project, or its questions, each opening a filled form with a preview; hand-checked worked examples cover the questions' suggestions, including a yard too shallow for the conventional beam height; and no structural input is filled in except from the owner's own answers or project, or from a cited source the owner checks (record cabinet moisture range and deflection limit).
 
 ## Glossary
 

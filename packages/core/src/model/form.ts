@@ -52,6 +52,11 @@ export interface FormField {
    * asks the owner to confirm it (#98). Structural inputs are always treated this way.
    */
   confirmed?: true;
+  /**
+   * May be left empty with nothing missing, such as the later entries of a list. An empty
+   * optional field is not counted among the fields still to enter.
+   */
+  optional?: true;
 }
 
 export interface FormSection {

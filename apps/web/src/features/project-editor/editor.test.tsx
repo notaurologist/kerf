@@ -70,6 +70,34 @@ describe('the form’s layout (#164)', () => {
     expect(html).toContain('href="#p-hardware.legBoltDiameter"');
   });
 
+  it('does not count an empty optional field, such as a fourth length sold, as still to enter', () => {
+    const cabinet = findTemplate('record-cabinet') as TemplateDefinition;
+    const start = startValues(cabinet, { kind: 'example', index: 0 }, null);
+    if (!start.ok) throw new Error(start.message);
+    const progress = (initial: typeof start.initial) => {
+      const shown = renderText(<ProjectEditor template={cabinet} initial={initial} />);
+      return shown.slice(
+        shown.indexOf(' entered') - 10,
+        shown.indexOf('Create project', shown.indexOf(' entered')),
+      );
+    };
+    // The worked example sells three lengths, so the fourth box is empty.
+    expect(start.initial.params['board.lengths.3']).toBe('');
+    const three = progress(start.initial);
+    expect(three).not.toContain('Lumber');
+    const four = progress({
+      ...start.initial,
+      params: { ...start.initial.params, 'board.lengths.3': '10' },
+    });
+    const counts = (text: string) =>
+      text
+        .match(/(\d+) of (\d+) entered/)
+        ?.slice(1)
+        .map(Number);
+    const [entered, total] = counts(three) ?? [];
+    expect(counts(four)).toEqual([(entered ?? 0) + 1, (total ?? 0) + 1]);
+  });
+
   it('offers Create in the header and beside the form', () => {
     expect(html.match(/<button type="submit"[^>]*>[\s\S]*?Create project/g)).toHaveLength(2);
     const header = html.slice(0, html.indexOf('</header>'));
