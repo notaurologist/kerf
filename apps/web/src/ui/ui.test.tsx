@@ -138,10 +138,22 @@ describe('Field', () => {
     expect(field()).not.toContain('f-unit');
   });
 
-  it('gives a typed length the full keyboard with corrections off', () => {
+  it('gives typed text the full keyboard with corrections off', () => {
     expect(field()).toMatch(
       /inputMode="text" autoCapitalize="off" autoCorrect="off" spellCheck="false"/,
     );
+  });
+
+  it('gives a length the number pad with corrections off, and no mark keys until focused', () => {
+    const html = render(
+      <Field id="f" label="Beam height">
+        {(c) => <TextInput {...c} keyboard="decimal" marks value="8'" onChange={none} />}
+      </Field>,
+    );
+    expect(html).toMatch(
+      /inputMode="decimal" autoCapitalize="off" autoCorrect="off" spellCheck="false"/,
+    );
+    expect(html).not.toContain('k-marks');
   });
 });
 

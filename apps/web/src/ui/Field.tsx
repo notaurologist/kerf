@@ -1,7 +1,8 @@
-import { type ReactNode, useId } from 'react';
+import { type ReactNode, useId, useRef, useState } from 'react';
 import { ErrorText, goToField, InputNeeded } from './feedback.tsx';
 import { Icon, type IconName } from './Icon.tsx';
 import { Stack } from './layout.tsx';
+import { hasOnScreenKeyboard, MarkKeys } from './MarkKeys.tsx';
 import { Text } from './text.tsx';
 
 // A form field (#67): label, hint, error, the control, and the line under it saying what Kerf
@@ -105,30 +106,42 @@ export function Field(props: {
   );
 }
 
-/** Text a length is typed into: the full keyboard, with the phone's corrections off (#67). */
+/**
+ * Text typed into a field, with the phone's corrections off (#67). `marks` adds the row of mark
+ * keys above a phone's keyboard while the field has focus (#74), for a length on the number pad.
+ */
 export function TextInput(
   props: ControlProps & {
     value: string;
     onChange: (text: string) => void;
     keyboard?: 'text' | 'decimal' | 'numeric';
+    marks?: boolean;
     readOnly?: boolean;
     type?: 'text' | 'password' | 'search';
     autoComplete?: string;
   },
 ) {
-  const { value, onChange, keyboard = 'text', ...rest } = props;
-  const typed = keyboard === 'text' && props.type !== 'password';
+  const { value, onChange, keyboard = 'text', marks, ...rest } = props;
+  const typed = (keyboard === 'text' || marks) && props.type !== 'password';
+  const input = useRef<HTMLInputElement>(null);
+  const [showMarks, setShowMarks] = useState(false);
   return (
-    <input
-      {...rest}
-      type={props.type ?? 'text'}
-      inputMode={keyboard}
-      autoCapitalize={typed ? 'off' : undefined}
-      autoCorrect={typed ? 'off' : undefined}
-      spellCheck={typed ? false : undefined}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    />
+    <>
+      <input
+        {...rest}
+        ref={input}
+        type={props.type ?? 'text'}
+        inputMode={keyboard}
+        autoCapitalize={typed ? 'off' : undefined}
+        autoCorrect={typed ? 'off' : undefined}
+        spellCheck={typed ? false : undefined}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={marks ? () => setShowMarks(hasOnScreenKeyboard()) : undefined}
+        onBlur={marks ? () => setShowMarks(false) : undefined}
+      />
+      {showMarks && !props.readOnly && <MarkKeys input={input} />}
+    </>
   );
 }
 

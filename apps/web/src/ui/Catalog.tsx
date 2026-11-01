@@ -340,7 +340,7 @@ function Specimens() {
           echo={entryEcho(heightField, text)}
           width="short"
         >
-          {(c) => <TextInput {...c} value={text} onChange={setText} />}
+          {(c) => <TextInput {...c} keyboard="decimal" marks value={text} onChange={setText} />}
         </Field>
         <Field
           id="catalog-unread"
