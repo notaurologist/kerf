@@ -13,9 +13,9 @@ A low cabinet with record bays, for a turntable and a speaker, to stand in front
 - **A back rail** under the top at the back of each bay resists racking. The back is otherwise open, for air and cords.
 - **Every panel's grain runs the long way:** horizontal in the top and shelves, vertical in the sides and partitions. So every panel moves front to back, together, and no joint fixes one panel across another's grain (`DOMAIN.md`, Wood movement). The back rails are narrow, with their grain across the partitions' grain. Owner's check: confirm that's acceptable once #283 has a source.
 - **Open bays,** no doors (owner, October 31, 2026).
-- **Turntable and speaker:** the turntable sits on the top. The speaker sits on the top, or on the shelf of a bay the owner picks.
+- **Turntable and speaker:** the turntable sits on the top. The speaker sits on the top, or on the shelf of a bay the owner picks. The owner's plan puts it on the top, so every bay holds records (October 31, 2026).
 
-Not covered in version 1: doors, drawers, a back panel, adjustable shelves, separate legs or a stand, arched or shaped cutouts, bays of different widths, a solid top on a frame with fasteners that allow movement (#283).
+Not covered in version 1: doors, drawers, a back panel, adjustable shelves, a raised shelf for the speaker inside a bay, separate legs or a stand, arched or shaped cutouts, bays of different widths, a solid top on a frame with fasteners that allow movement (#283).
 
 ## Coordinates
 
@@ -207,6 +207,6 @@ Answers suggest parameters (M8), each labeled as the owner's choice:
 1. **Measurements:** stool height A, stool depth B, apron bottom C, casing width D, stool width E.
 2. **Dado depth limit for partitions** taking dadoes on both faces: is t/2 the right limit, and what's its source? (#283 covers joints.)
 3. **Stopped dadoes in the top:** how far short of the front, and the matching notch. Needs a source (#283).
-4. **Back rails:** enough for racking with an open back, or add a back panel? An experienced builder's check either way.
-5. **Speaker on a bottom shelf** sits about 6" off the floor. Is that acceptable for listening, or does the speaker bay need a raised shelf (a version 2 option)?
-6. **Equal bays only,** or let the speaker bay be its own width?
+4. **Back:** decided, back rails with an open back (owner, October 31, 2026). Racking stays on the checklist for an experienced builder. If more is needed, the next step is a second rail at the bottom back of each bay, before a full back panel.
+5. **Speaker placement:** decided for the owner's plan, on the top beside the turntable, so all three bays hold records (October 31, 2026). Its top stands about 6" above the window stool. The template still offers a bay's bottom shelf.
+6. **Bays:** decided, equal bays, three in the owner's plan (October 31, 2026). Two or four cost or gain only 3/4" of record width per partition. Three keeps shelf sag negligible and gives an even front under the window.
