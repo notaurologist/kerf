@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and waiting to be built. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -20,7 +20,7 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
 | 8. Brand: logo, wordmark, icons | #166 | Decided October 2026: the end-cut k; built | `brand.html`, `brand.md` |
 | 9. An app frame, motion, loading, and the keyboard | #254 | Decided October 2026: F2, M2, L1, K1; built (#265 to #267) | `app-frame.html` |
-| 10. Another look: color, type, and the key screens | #226 | Decided October 2026: D2 with color jobs in W5 (pine and indigo); to build | `look.html` |
+| 10. Another look: color, type, and the key screens | #226 | Decided October 2026: D2 with color jobs in W5 (pine and indigo); built (#279 to #281) | `look.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
 
@@ -48,6 +48,11 @@ For the next garage check (#69, #70): the colored mode bars under glare (bar tex
 Build issues: #279 (color), #280 (surfaces), #281 (the mode bar on a phone).
 
 Built in #281 (November 2026): the one-row mode bar. The mode's name never shortens; the project's name is cut first, and at 320 px only the mode's name and an ellipsis fit. The bar went from about 175 px to 92 px tall at 390 px.
+
+Checked on main after the three builds (November 2026), in the local app with two sample projects:
+- **The catalog** in light and dark, side by side, at 1280 px.
+- **Print,** with the print rules applied in the browser rather than printed to paper, in the catalog and in the plan. The frame is hidden, dark panels print light, figures and rows keep their rules, and drawings print in pine. In grayscale, pine's three faces keep the old gray steps' order and spacing.
+- **Not checked:** a real printer and real devices.
 
 Built in #279 (October 2026): the color roles and W5 (`tokens.css`; `Card`'s `mode`, `Material`, and `ModeBar`'s mode color in `ui/`). Two details settled in the build:
 - Kerf's project states are Planned, In progress and Built, not the two modes, so the mode colors do not go on the state menu. The summary's mode cards and the Resume card carry them instead.
