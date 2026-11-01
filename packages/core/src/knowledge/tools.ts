@@ -100,6 +100,14 @@ export const TOOL_TYPES = [
     capabilities: [],
   },
   {
+    id: 'moisture-meter',
+    name: 'Moisture meter',
+    description:
+      "A meter that reads how much water is in a board, through pins pushed into it or a pad laid on it. Kerf's methods use it to tell when lumber has settled indoors.",
+    group: 'measuring-and-marking',
+    capabilities: [],
+  },
+  {
     id: 'combination-square',
     name: 'Combination square',
     description:

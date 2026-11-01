@@ -8,6 +8,7 @@ import v2 from './snapshots/v2.json' with { type: 'json' };
 import v3 from './snapshots/v3.json' with { type: 'json' };
 import v4 from './snapshots/v4.json' with { type: 'json' };
 import v5 from './snapshots/v5.json' with { type: 'json' };
+import v6 from './snapshots/v6.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -117,5 +118,21 @@ describe('record-cabinet template versions', () => {
       (s) => (s as { params: { board: { source: string } } }).params.board,
     );
     expect(boards.every((b) => b.source === 'store')).toBe(true);
+  });
+
+  it('version 6 lets the lumber settle before cutting, and changes nothing else (#332)', () => {
+    const list = changes(v5, v6);
+    const ids = (fixture: readonly unknown[]) =>
+      current(fixture).map((s) =>
+        (
+          s as { outputs: { design: { operations: { id: string }[] } } }
+        ).outputs.design.operations.map((op) => op.id),
+      );
+    ids(v6).forEach((now, i) => {
+      expect(now[0]).toBe('lumber/acclimate');
+      expect(now.slice(1)).toEqual(ids(v5)[i]);
+    });
+    // Inserting one operation at the front shifts every later one, and nothing outside them changes.
+    expect(list.every((c) => c.path.startsWith('outputs.design.operations'))).toBe(true);
   });
 });

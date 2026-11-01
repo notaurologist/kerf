@@ -159,6 +159,11 @@ export const Operation = z.discriminatedUnion('type', [
     partIds: z.array(z.string()).min(2),
     reach: z.number(),
   }),
+  /**
+   * Bring the lumber indoors before cutting, so it nears the moisture content it will have in
+   * service before it is glued (Wood Handbook, ch. 13, pp. 13-5 and 13-15).
+   */
+  z.object({ ...base, type: z.literal('acclimate'), partIds: z.array(z.string()).min(1) }),
   /** Sand and finish every face a person can see or touch. */
   z.object({ ...base, type: z.literal('finish'), partIds: z.array(z.string()).min(1) }),
   /** Holes dug for parts set below grade. */
@@ -179,13 +184,19 @@ export type OperationType = Operation['type'];
  * square end is a crosscut and an angled one a miter; an end measured from the reference face
  * (a bevel) has no operation type yet and is refused rather than mislabeled. A panel part first
  * has its boards cut to length, their glued edges jointed, the boards glued up and flattened, and
- * the panel ripped to width; a panel of one board is only cut to length and ripped.
+ * the panel ripped to width; a panel of one board is only cut to length and ripped. A plan with
+ * glued-up panels first lets its lumber settle indoors.
  */
 export function cutAndDrillOperations(
   parts: readonly Part[],
   hardware: readonly HardwareItem[],
 ): Operation[] {
   const ops: Operation[] = [];
+  // Glued-up wood should be near its service moisture content first (DOMAIN.md, Wood movement).
+  const glued = parts.filter((p) => isPanel(p.stock) && p.stock.boards > 1).map((p) => p.id);
+  if (glued.length > 0) {
+    ops.push({ id: 'lumber/acclimate', type: 'acclimate', count: 1, partIds: glued });
+  }
   for (const part of parts) {
     const { width, thickness } = part.stock;
     if (isPanel(part.stock)) ops.push(...panelOperations(part, part.stock));
@@ -410,6 +421,7 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   'ease-edges': 'Ease edges',
   'dry-fit': 'Dry-fit',
   'glue-assembly': 'Glue and clamp',
+  acclimate: 'Let the lumber settle',
   finish: 'Finish',
   'dig-holes': 'Dig holes',
   'level-pads': 'Level pads',

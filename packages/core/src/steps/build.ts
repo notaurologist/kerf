@@ -34,6 +34,8 @@ export interface StepOutline {
   title: string;
   operationIds: readonly string[];
   categories: readonly FlagCategory[];
+  /** Done before the boards are cut, such as letting the lumber settle indoors. */
+  beforeCutting?: true;
 }
 
 /** An expert check shown on a step. */
@@ -314,7 +316,11 @@ function draftSteps(
       `step outline does not match the operations: missing [${missing}], unknown or cutting [${unknown}], twice [${twice}]`,
     );
   }
-  const drafts: Draft[] = [...boardSteps(plan), ...outline];
+  const drafts: Draft[] = [
+    ...outline.filter((s) => s.beforeCutting),
+    ...boardSteps(plan),
+    ...outline.filter((s) => !s.beforeCutting),
+  ];
   return drafts.map((draft) => ({
     draft,
     operations: draft.operationIds.map((id) => {

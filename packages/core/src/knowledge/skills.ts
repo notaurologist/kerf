@@ -93,6 +93,12 @@ export const SKILLS = [
       'Take the faces down evenly until a straightedge laid across and along the panel touches everywhere, with no step at any joint.',
   },
   {
+    id: 'settle-lumber',
+    name: 'Letting lumber settle',
+    description:
+      'Stack boards indoors on strips so air reaches every face, and leave them until they stop drying before you cut and glue them.',
+  },
+  {
     id: 'fit-an-assembly',
     name: 'Fitting an assembly dry',
     description:
