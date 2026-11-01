@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -21,8 +21,37 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 8. Brand: logo, wordmark, icons | #166 | Decided October 2026: the end-cut k; built | `brand.html`, `brand.md` |
 | 9. An app frame, motion, loading, and the keyboard | #254 | Decided October 2026: F2, M2, L1, K1; built (#265 to #267) | `app-frame.html` |
 | 10. Another look: color, type, and the key screens | #226 | Decided October 2026: D2 with color jobs in W5 (pine and indigo); built (#279 to #281) | `look.html` |
+| 11. Review for a second template (the record cabinet) | #71 | Decided November 2026: grain arrows; seams only in glue-up drawings | This section |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 11: review for a second template (#71)
+
+The design system was built for the swing set, a frame of dimension lumber. Before screens are built for the record cabinet (`docs/templates/record-cabinet.md`), its parts, stock, operations, drawings, and checks were compared with these stages and the components in `apps/web/src/ui` (November 2026). Nothing it needs conflicts with a recorded choice.
+
+What fits as is:
+- Part letters.
+- The D2 language: face tones on flat panels, the hidden, dimension, extension, and leader lines, the turntable and speaker in phantom, and the grade line labeled "Floor". Stage 10's pine faces stand for any wood; species isn't shown by color.
+- The one assembly diagram with Explode.
+- Board stock in the shopping list and board drawings.
+- The structural review's check status and checklist.
+- Methods and expert checks in the build steps.
+- The plan's sections, summary, print, and modes.
+
+Gaps opened as issues:
+- #302: elevations and a section view, with section lining added to the drawing standard.
+- #303: notches, cutouts, and dadoes in cut details and 3D, which aren't the convex prisms `geometry/solid.ts` assumes, and mirrored pairs.
+- #304: wood movement in the plan.
+- #305: panels in the cut list, cut card, and Building mode.
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Grain direction on drawings | A grain arrow along each solid-wood part's cut detail: one symbol, read the same on screen and paper, and not color alone. Its line role, size, and place go in the drawing standard when #303 draws it. | Grain lines drawn across the faces: busier, they compete with the face tones and dadoes, and their spacing would look like a measurement. No mark, only a note that grain runs the long way: the cut detail would not say it, and the grain is what decides which way a panel moves. |
+| Board seams on panels | Seams only in a glue-up step's action drawing, as a layout to follow, with the board recipe in text everywhere else (#305). Where seams fall depends on the boards bought, so the reference drawings stay right whatever they are. | Seams on every cut detail, evenly spaced: precise-looking lines for a layout nobody has chosen yet. |
 
 ## Stage 10: another look at color, type, and the key screens (#226)
 
