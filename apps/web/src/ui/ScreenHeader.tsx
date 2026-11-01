@@ -27,27 +27,37 @@ export function ScreenHeader(props: {
   heading?: ReactNode;
   /** The document title when it should say more than the heading, such as the plan's section. */
   pageTitle?: string;
-  /** Actions for the whole screen, such as Edit and Print. */
+  /** Actions for the whole screen, such as Edit and Print. They stay on the title's line. */
   actions?: ReactNode;
+  /** Short labels beside the title when they fit, under it when not, such as a project's status. */
+  tags?: ReactNode;
   /** What the screen is for, in a sentence or two. */
   lede?: ReactNode;
-  /** Facts about what is shown, such as a project's status and template version. */
+  /** Facts about what is shown, such as how much of a list is done. */
   meta?: ReactNode;
   /** What just happened, usually a `StatusLine`. */
   status?: ReactNode;
 }) {
-  const title = (
+  const heading = (
     <ScreenHeading title={props.pageTitle ?? props.title}>
       {props.heading ?? props.title}
     </ScreenHeading>
   );
+  const title = props.tags ? (
+    <Cluster gap="xs">
+      {heading}
+      <Cluster gap="2xs">{props.tags}</Cluster>
+    </Cluster>
+  ) : (
+    heading
+  );
   return (
     <Stack as="header" gap="2xs">
       {props.actions ? (
-        <Cluster spread gap="s">
+        <div className="k-screen-header__top">
           {title}
           <Cluster>{props.actions}</Cluster>
-        </Cluster>
+        </div>
       ) : (
         title
       )}

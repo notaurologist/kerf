@@ -1,4 +1,5 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { type ProjectStatus, STATUS_LABELS } from '../lib/types.ts';
 import { Button, ButtonLink } from './Button.tsx';
 import { Icon } from './Icon.tsx';
 import { Cluster, Stack } from './layout.tsx';
@@ -236,6 +237,15 @@ export function StateTag(props: { children: ReactNode }) {
   );
 }
 
+/** A project's status as a label, tinted by status; the word carries the meaning. */
+export function StatusTag(props: { status: ProjectStatus }) {
+  return (
+    <span className="k-tag" data-tone="status" data-status={props.status}>
+      {STATUS_LABELS[props.status]}
+    </span>
+  );
+}
+
 /** Progress saved on this device and not yet sent (#57). */
 export function Pending() {
   return (
@@ -243,19 +253,5 @@ export function Pending() {
       <Icon name="pending" />
       On this phone, not yet sent
     </span>
-  );
-}
-
-/** Loading text, shown only after a short delay so a fast load does not flash (#67). */
-export function Loading(props: { children: ReactNode; delayMs?: number }) {
-  const [shown, setShown] = useState(props.delayMs === 0);
-  useEffect(() => {
-    const timer = setTimeout(() => setShown(true), props.delayMs ?? 300);
-    return () => clearTimeout(timer);
-  }, [props.delayMs]);
-  return (
-    <p className="k-loading" role="status">
-      {shown ? props.children : null}
-    </p>
   );
 }

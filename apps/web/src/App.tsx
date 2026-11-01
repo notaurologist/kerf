@@ -8,7 +8,13 @@ import { ModeScreen } from './features/modes/modes.tsx';
 import { ProjectScreen } from './features/project/ProjectScreen.tsx';
 import { EditProjectScreen, NewProjectScreen } from './features/project-editor/ProjectEditor.tsx';
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
-import { api, describeError, send, setLoginRequiredHandler } from './lib/api.ts';
+import {
+  api,
+  CONNECTION_MESSAGE,
+  describeError,
+  send,
+  setLoginRequiredHandler,
+} from './lib/api.ts';
 import { leaveGate } from './lib/leave.ts';
 import { changeScreen } from './lib/moves.ts';
 import { href, isMode, type Route, useRoute } from './lib/route.ts';
@@ -20,10 +26,10 @@ import {
   Cluster,
   Frame,
   IconButton,
-  Loading,
   Notice,
   Page,
   ProblemScreen,
+  Skeleton,
   Stack,
   TermScope,
   Wordmark,
@@ -61,7 +67,22 @@ export function Screen(props: { route: Route }) {
       return <GlossaryScreen term={props.route.term} />;
     case 'catalog':
       return (
-        <Suspense fallback={<Loading>Loading components…</Loading>}>
+        <Suspense
+          fallback={
+            <Skeleton
+              label="Loading components…"
+              stuck={
+                <ProblemScreen
+                  title="Components"
+                  icon="connection"
+                  back={{ href: href({ screen: 'projects' }), label: 'Projects' }}
+                >
+                  {CONNECTION_MESSAGE}
+                </ProblemScreen>
+              }
+            />
+          }
+        >
           <Catalog />
         </Suspense>
       );
@@ -121,6 +142,20 @@ async function checkSession(): Promise<Session> {
   return { unreachable: describeError(result.error) };
 }
 
+function Unreachable(props: { message: string; onRetry: () => void }) {
+  return (
+    <Stack>
+      <h1>
+        <Wordmark />
+      </h1>
+      <Notice icon="connection">{props.message}</Notice>
+      <Cluster>
+        <Button onClick={props.onRetry}>Try again</Button>
+      </Cluster>
+    </Stack>
+  );
+}
+
 export function App() {
   const route = useRoute(changeScreen);
   useScreenChange(route);
@@ -146,7 +181,11 @@ export function App() {
   if (session === 'checking') {
     return (
       <Page>
-        <Loading>Loading…</Loading>
+        <Skeleton
+          label="Loading…"
+          shape="list"
+          stuck={<Unreachable message={CONNECTION_MESSAGE} onRetry={check} />}
+        />
       </Page>
     );
   }
@@ -154,15 +193,7 @@ export function App() {
   if (typeof session === 'object') {
     return (
       <Page>
-        <Stack>
-          <h1>
-            <Wordmark />
-          </h1>
-          <Notice icon="connection">{session.unreachable}</Notice>
-          <Cluster>
-            <Button onClick={check}>Try again</Button>
-          </Cluster>
-        </Stack>
+        <Unreachable message={session.unreachable} onRetry={check} />
       </Page>
     );
   }

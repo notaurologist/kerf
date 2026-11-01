@@ -17,7 +17,6 @@ import {
   ButtonLink,
   Cluster,
   Disclosure,
-  Loading,
   Material,
   Measured,
   ModeFrame,
@@ -267,5 +266,5 @@ function GoTo(props: { to: Parameters<typeof redirect>[0] }) {
   useEffect(() => {
     redirect(props.to);
   }, [target]);
-  return <Loading>Opening the next step…</Loading>;
+  return null;
 }

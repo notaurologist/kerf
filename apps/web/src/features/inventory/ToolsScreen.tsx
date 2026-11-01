@@ -1,10 +1,10 @@
 import { capabilityForm, findToolType, TOOL_GROUP_LABELS, TOOL_GROUPS } from '@kerf/core';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { href } from '../../lib/route.ts';
-import { useLoad } from '../../lib/useLoad.ts';
+import { sameJson } from '../../lib/sameJson.ts';
 import {
   Button,
   Card,
@@ -44,6 +44,7 @@ import {
   type ToolDraft,
   toInventory,
 } from './draft.ts';
+import { useInventory } from './inventoryStore.ts';
 
 // The tool inventory editor (PRODUCT.md, MVP feature 1). The owner ticks the tool types they own,
 // then enters each one's capabilities when ready, none filled in (hard rule 3). Tools the library
@@ -51,7 +52,7 @@ import {
 // inventory.
 
 export function ToolsScreen() {
-  const { loaded, set, reload } = useLoad(() => send(api.api.tools.$get()), 'tools');
+  const { loaded, set, reload } = useInventory();
   return (
     <Loaded state={loaded} shape="list" loading="Loading tools…" onRetry={reload} title="Tools">
       {(inventory) => <ToolsEditor saved={fromInventory(inventory)} onSaved={set} />}
@@ -69,7 +70,13 @@ export function ToolsEditor(props: {
   const [query, setQuery] = useState('');
   // Tools unticked by mistake come back, with what was typed, when ticked again.
   const [unticked, setUnticked] = useState<Record<string, ToolDraft[]>>({});
-  useEffect(() => setDraft(props.saved), [props.saved, setDraft]);
+  // A refresh that brings back what is already shown leaves what was typed since in place.
+  const shown = useRef(props.saved);
+  useEffect(() => {
+    if (sameJson(shown.current, props.saved)) return;
+    shown.current = props.saved;
+    setDraft(props.saved);
+  }, [props.saved, setDraft]);
 
   const change = (next: (d: InventoryDraft) => InventoryDraft) => {
     setDraft(next);

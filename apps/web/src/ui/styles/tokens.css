@@ -33,6 +33,11 @@
     --done: light-dark(#1a1d23, #edebe7);
     --error: light-dark(#aa295f, #ea7ca1);
     --error-bg: light-dark(#ffebf1, #3d1e28);
+    /* A project's status tag; Planned takes the sunken surface and muted text. */
+    --status-in-progress: light-dark(#5e3a1c, #e3b48f);
+    --status-in-progress-bg: light-dark(#f5e6d6, #33241a);
+    --status-built: light-dark(#2b5a36, #94cc9f);
+    --status-built-bg: light-dark(#dcefdf, #1c2e21);
     --scrim: rgb(0 0 0 / 0.4);
     /* Stage 10, W5: each shop mode has a color, for its bar and for marks that lead into it.
        The bars are dark in both themes; a mark on a dark page is the light end of the same hue. */
@@ -120,8 +125,6 @@
     --duration-screen-in: 0.25s;
     --duration-screen-out: 0.2s;
     --duration-screen-stagger: 0.05s;
-    --duration-place-out: 0.09s;
-    --duration-place-in: 0.21s;
     --duration-mode: 0.3s;
     --shift-screen: 1.5rem;
     --ease-out: cubic-bezier(0.2, 0, 0, 1);

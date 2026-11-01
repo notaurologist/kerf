@@ -55,7 +55,26 @@
     white-space: nowrap;
   }
 
+  /* ---------- Screen header ---------- */
+  /* The title, with its tags wrapping under it, and the screen's actions kept beside it. */
+  .k-screen-header__top {
+    display: flex;
+    gap: var(--space-s);
+    align-items: start;
+    justify-content: space-between;
+  }
+
+  .k-screen-header__top > :first-child {
+    min-inline-size: 0;
+  }
+
   /* ---------- Plan sections (#40, #41) ---------- */
+  /* The plan's header and any notice under it, which stay still as its sections move. */
+  .k-plan-head {
+    display: grid;
+    gap: var(--space-l);
+  }
+
   .k-section {
     display: grid;
     gap: var(--space-s);
@@ -209,7 +228,8 @@
   }
 
   .k-button:where([data-icon-only]) .k-icon,
-  .k-icon-select .k-icon {
+  .k-icon-select .k-icon,
+  .k-info__button .k-icon {
     inline-size: 1.25em;
     block-size: 1.25em;
   }
@@ -473,6 +493,24 @@
     border-color: var(--changed);
   }
 
+  /* A project's status: a quiet tint, with the word carrying the meaning. */
+  .k-tag[data-tone="status"] {
+    padding: var(--space-3xs) var(--space-2xs);
+    border-color: transparent;
+    background: var(--sunken);
+    color: var(--muted);
+  }
+
+  .k-tag[data-status="in-progress"] {
+    background: var(--status-in-progress-bg);
+    color: var(--status-in-progress);
+  }
+
+  .k-tag[data-status="built"] {
+    background: var(--status-built-bg);
+    color: var(--status-built);
+  }
+
   .k-status {
     display: flex;
     gap: var(--space-2xs);
@@ -489,10 +527,6 @@
     gap: var(--space-3xs);
     align-items: center;
     font-size: var(--size--1);
-  }
-
-  .k-loading {
-    color: var(--text);
   }
 
   /* ---------- Numbers (#42) ---------- */
@@ -1104,6 +1138,29 @@
     view-transition-name: none;
   }
 
+  /* Between one project's sections, its header and contents stay with the frame; only the
+     section moves. */
+  :root:active-view-transition-type(section) .k-plan-head {
+    view-transition-name: k-plan-head;
+  }
+
+  :root:active-view-transition-type(section) .k-contents {
+    view-transition-name: k-plan-contents;
+  }
+
+  ::view-transition-group(k-plan-head),
+  ::view-transition-new(k-plan-head),
+  ::view-transition-group(k-plan-contents),
+  ::view-transition-new(k-plan-contents) {
+    animation: none;
+  }
+
+  ::view-transition-old(k-plan-head),
+  ::view-transition-old(k-plan-contents) {
+    animation: none;
+    opacity: 0;
+  }
+
   ::view-transition-old(root),
   ::view-transition-new(root),
   ::view-transition-group(k-main),
@@ -1138,14 +1195,6 @@
   :root:active-view-transition-type(back)::view-transition-new(k-main) {
     animation: k-screen-in-start var(--duration-screen-in) var(--ease-out)
       var(--duration-screen-stagger) both;
-  }
-
-  :root:active-view-transition-type(place)::view-transition-old(k-main) {
-    animation: k-fade-out var(--duration-place-out) linear both;
-  }
-
-  :root:active-view-transition-type(place)::view-transition-new(k-main) {
-    animation: k-fade-in var(--duration-place-in) var(--ease-out) var(--duration-place-out) both;
   }
 
   :root:active-view-transition-type(arrive)::view-transition-old(k-main),
@@ -1486,10 +1535,12 @@
     text-decoration-style: solid;
   }
 
-  /* Opens in the top layer, centered where anchor positioning is not supported, otherwise under
-     the term (or above it near the bottom of the screen). It reads as body text wherever the term
-     sits: a one-line row, a table, or a heading would otherwise pass down their text settings. */
-  .k-term__popover {
+  /* ---------- Popover ---------- */
+  /* A term's definition or an info button's details (Popover.tsx). Opens in the top layer,
+     centered where anchor positioning is not supported, otherwise under the button (or above it
+     near the bottom of the screen). It reads as body text wherever its button sits: a one-line
+     row, a table, or a heading would otherwise pass down their text settings. */
+  .k-popover {
     max-inline-size: min(22rem, 100vw - 2 * var(--space-s));
     font-family: var(--font-text);
     font-size: var(--size-0);
@@ -1508,13 +1559,37 @@
   }
 
   @supports (position-area: block-end) {
-    .k-term__popover {
+    .k-popover {
       inset: auto;
       /* Clear of the screen's edge on the side it opens toward. */
       margin: var(--space-3xs) var(--space-s) var(--space-3xs) 0;
       position-area: block-end span-inline-end;
       position-try-fallbacks: flip-block, flip-inline;
     }
+  }
+
+  /* ---------- Info ---------- */
+  /* An icon at text size in the line it follows; its target reaches the control size around it
+     without moving the line. */
+  .k-info__button {
+    position: relative;
+    display: inline-flex;
+    vertical-align: middle;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .k-info__button::after {
+    content: "";
+    position: absolute;
+    inset: min(0px, (100% - var(--control-min)) / 2);
+  }
+
+  .k-info__button[aria-expanded="true"] {
+    color: var(--text);
   }
 
   .k-term__entry {
@@ -1768,11 +1843,11 @@
     fill: var(--wood-1);
   }
 
-  .k-section {
+  .k-section-lining {
     pointer-events: none;
   }
 
-  .k-section__line {
+  .k-section-lining__line {
     stroke: var(--ink);
     stroke-width: var(--line-hatch);
   }
@@ -1959,26 +2034,6 @@
 
   .k-pager [data-dir="next"] .k-pager__arrow {
     transform: rotate(-90deg);
-  }
-
-  /* The arrow key that does the same (#267), shown only with a fine pointer, where a keyboard is
-     likely. */
-  .k-pager__key {
-    display: none;
-    padding-inline: var(--space-3xs);
-    border: var(--border-thin) solid var(--border-strong);
-    border-radius: var(--radius);
-    color: var(--muted);
-    font-family: var(--font-text);
-    font-size: var(--size--1);
-    font-weight: 400;
-    line-height: var(--leading-table);
-  }
-
-  @media (pointer: fine) {
-    .k-pager__key {
-      display: inline-block;
-    }
   }
 
   @container (min-width: 36rem) {

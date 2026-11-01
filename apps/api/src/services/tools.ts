@@ -9,8 +9,10 @@ import { otherTools, tools } from '../db/schema.ts';
 // have to other tools. They are rewritten only when the owner next saves the inventory.
 
 export async function getInventory(db: Database): Promise<Inventory> {
-  const rows = await db.select().from(tools).orderBy(tools.position);
-  const others = await db.select().from(otherTools).orderBy(otherTools.position);
+  const [rows, others] = await Promise.all([
+    db.select().from(tools).orderBy(tools.position),
+    db.select().from(otherTools).orderBy(otherTools.position),
+  ]);
   const read = readStoredTools(rows);
   return Inventory.parse({
     tools: read.tools,

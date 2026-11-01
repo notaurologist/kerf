@@ -111,7 +111,19 @@ describe('the plan’s contents', () => {
 describe('the plan’s header', () => {
   it('offers Edit and leaves printing to the browser', () => {
     const top = textOf(html(complete).slice(0, html(complete).indexOf('</header>')));
-    expect(top).toBe('Backyard swing set Edit Planned. Two-swing A-frame swing set, version 1.');
+    expect(top).toBe(
+      'Backyard swing set Planned About this plan Template Two-swing A-frame swing set, version 1. Edit',
+    );
+  });
+
+  it('shows the status as a tag, with the template and its version behind an info button', () => {
+    const header = html(complete).slice(0, html(complete).indexOf('</header>'));
+    expect(header).toContain(
+      '<span class="k-tag" data-tone="status" data-status="planned">Planned</span>',
+    );
+    expect(header).toMatch(
+      /<button type="button" class="k-info__button" popoverTarget="([^"]+)"[^>]*>.*<span id="\1" popover="auto" class="k-popover"><b>Template<\/b> Two-swing A-frame swing set, version 1\.<\/span>/s,
+    );
   });
 });
 
