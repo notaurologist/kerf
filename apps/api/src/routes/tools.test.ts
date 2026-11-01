@@ -1,4 +1,4 @@
-import { swingSetAFrame } from '@kerf/core';
+import { recordCabinet, swingSetAFrame } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 
@@ -121,6 +121,7 @@ describe('/api/templates', () => {
           version: swingSetAFrame.definition.version,
           name: 'Two-swing A-frame swing set',
         },
+        { id: 'record-cabinet', version: recordCabinet.definition.version, name: 'Record cabinet' },
       ],
     });
   });

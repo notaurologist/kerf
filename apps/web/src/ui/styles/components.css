@@ -1632,6 +1632,36 @@
     stroke: none;
   }
 
+  /* A face drawn in pieces (core splits faces for depth order): each piece gets a hairline in its
+     own fill, so antialiasing leaves no light seam where two pieces meet. */
+  .k-shape[data-outline="none"][data-fill="1"] {
+    stroke: var(--wood-1);
+  }
+
+  .k-shape[data-outline="none"][data-fill="2"] {
+    stroke: var(--wood-2);
+  }
+
+  .k-shape[data-outline="none"][data-fill="3"] {
+    stroke: var(--wood-3);
+  }
+
+  .k-shape[data-outline="none"][data-fill="1"][data-selected] {
+    stroke: var(--highlight-1);
+  }
+
+  .k-shape[data-outline="none"][data-fill="2"][data-selected] {
+    stroke: var(--highlight-2);
+  }
+
+  .k-shape[data-outline="none"][data-fill="3"][data-selected] {
+    stroke: var(--highlight-3);
+  }
+
+  .k-shape[data-outline="none"][data-fill] {
+    stroke-width: var(--line-seam);
+  }
+
   .k-shape[data-role="visible"][data-selected] {
     stroke-width: var(--line-selected);
   }

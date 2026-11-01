@@ -147,6 +147,8 @@
     --line-grade: 2px;
     --line-zone: 1.5px;
     --line-hatch: 1px;
+    /* The hairline in a face piece's own fill that closes the seam between pieces. */
+    --line-seam: 0.5px;
     /* The page-color halo behind drawing text. */
     --line-halo: 3px;
     --dash-hidden: 5 3;

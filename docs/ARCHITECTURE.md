@@ -74,7 +74,7 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │           ├── model/          # The generic template contract: TemplateDefinition, output types,
 │           │                   # operations, forms, starting questions, part letters
 │           ├── templates/      # The registry (index.ts) and one folder per template;
-│           │                   # swing-set-a-frame/ first
+│           │                   # swing-set-a-frame/ and record-cabinet/
 │           ├── outputs/        # Cut list, shopping list (board grouping with kerf and trim)
 │           ├── structural/     # Generic beam and hardware checks and adjustment factors
 │           ├── movement/       # Wood movement across the grain, with its working (Wood Handbook Eq. 13-3)
