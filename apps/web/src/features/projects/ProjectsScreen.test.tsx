@@ -38,6 +38,25 @@ describe('ProjectList', () => {
     expect(html).not.toContain('newer version');
   });
 
+  it('names each project as a row link, not an underlined link', () => {
+    expect(render([project()])).toContain(
+      '<a class="k-row-link" href="#/projects/6f1c2a3e-0000-4000-8000-000000000001">Backyard swing set',
+    );
+  });
+
+  it('makes New the primary button only while there is nothing to resume', () => {
+    expect(render([])).toContain('data-variant="primary" href="#/projects/new?');
+    const resuming = project({
+      progress: {
+        shopping: { done: 0, total: 3 },
+        pieces: { done: 0, total: 2 },
+        steps: { done: 0, total: 2 },
+        nextStep: { id: 's1', number: 1, title: 'Cut' },
+      },
+    });
+    expect(render([resuming])).toContain('data-variant="secondary" href="#/projects/new?');
+  });
+
   it('marks a project whose template version is behind', () => {
     expect(render([project({ templateVersion: 1, templateBehind: true })])).toContain(
       'The template has a newer version.',

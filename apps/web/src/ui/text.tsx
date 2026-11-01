@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Icon } from './Icon.tsx';
 import { Measured } from './numbers.tsx';
 
 // Text that is not body text, without screens writing styles. Secondary text is for the desk
@@ -71,4 +72,17 @@ export function Code(props: { children: ReactNode }) {
 /** What a group is made of, as a swatch: wood for lumber, steel for hardware (Stage 10). */
 export function Material(props: { kind: 'wood' | 'steel' }) {
   return <span className="k-material" data-material={props.kind} aria-hidden="true" />;
+}
+
+/** A row's name as a link: the text color and a chevron, not underlined, since the row is the link
+ * (Stage 10). Links inside sentences keep their underline. */
+export function RowLink(props: { href: string; children: ReactNode }) {
+  return (
+    <a className="k-row-link" href={props.href}>
+      {props.children}
+      <span className="k-row-link__chevron">
+        <Icon name="chevron" />
+      </span>
+    </a>
+  );
 }

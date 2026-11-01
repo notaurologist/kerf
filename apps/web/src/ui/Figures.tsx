@@ -8,13 +8,15 @@ export interface Figure {
   value: ReactNode;
   /** A line under the value, such as which check a margin comes from. */
   detail?: ReactNode;
+  /** A value in words, such as a margin, takes a whole row. */
+  wide?: boolean;
 }
 
 export function Figures(props: { items: readonly Figure[] }) {
   return (
     <dl className="k-figures">
       {props.items.map((item) => (
-        <div key={item.label} className="k-figure">
+        <div key={item.label} className="k-figure" data-wide={item.wide || undefined}>
           <dt>{item.label}</dt>
           <dd>{item.value}</dd>
           {item.detail && <dd className="k-figure__detail">{item.detail}</dd>}

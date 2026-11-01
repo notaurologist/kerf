@@ -152,7 +152,12 @@ export function ProjectView(props: {
               <Button variant="secondary" onClick={() => window.print()}>
                 Print
               </Button>
-              {editHref && <ButtonLink href={editHref}>Edit</ButtonLink>}
+              {/* Secondary: the summary's next mode is the screen's one primary (Stage 10). */}
+              {editHref && (
+                <ButtonLink href={editHref} variant="secondary">
+                  Edit
+                </ButtonLink>
+              )}
             </>
           )
         }

@@ -2,7 +2,6 @@ import { CHECKLIST_CATEGORY_LABELS, type ChecklistItem, type Flag, structural } 
 import { href } from '../../lib/route.ts';
 import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
 import {
-  Card,
   CheckStatus,
   Code,
   Disclosure,
@@ -10,8 +9,9 @@ import {
   List,
   Measured,
   MeasureTable,
-  PlainList,
   Readings,
+  Row,
+  Rows,
   Stack,
   Text,
 } from '../../ui/index.ts';
@@ -43,11 +43,11 @@ export function StructuralReview(props: {
         <Measured text={STRUCTURAL_REVIEW_INTRO} terms />
       </Text>
       <h3>Structural checks</h3>
-      <Stack>
+      <Rows>
         {props.checks.map((check) => (
           <Check key={`${check.kind}/${check.subject}`} check={check} projectId={props.projectId} />
         ))}
-      </Stack>
+      </Rows>
 
       <BoltLayout joints={props.boltLayout ?? []} />
 
@@ -65,9 +65,9 @@ export function StructuralReview(props: {
 
       <h3>Confirmation checklist</h3>
       <Text tone="muted">Not computed. Confirm each with an experienced builder.</Text>
-      <PlainList>
+      <Rows as="ul">
         {props.checklist.map((item) => (
-          <Card key={`${item.category}/${item.element}`} as="li">
+          <Row key={`${item.category}/${item.element}`} as="li">
             <Stack gap="2xs">
               <Text tone="muted" size="small">
                 {CHECKLIST_CATEGORY_LABELS[item.category]}
@@ -80,9 +80,9 @@ export function StructuralReview(props: {
                 <Measured text={item.why} terms />
               </Text>
             </Stack>
-          </Card>
+          </Row>
         ))}
-      </PlainList>
+      </Rows>
     </Stack>
   );
 }
@@ -90,7 +90,7 @@ export function StructuralReview(props: {
 function Check(props: { check: CheckResult; projectId: string }) {
   const { check } = props;
   return (
-    <Card as="section">
+    <Row as="section">
       <Stack gap="xs">
         <h4>
           <Measured text={`${check.title}: ${check.subject}`} terms />
@@ -127,7 +127,7 @@ function Check(props: { check: CheckResult; projectId: string }) {
           <CitationList citations={check.sources} />
         )}
       </Stack>
-    </Card>
+    </Row>
   );
 }
 

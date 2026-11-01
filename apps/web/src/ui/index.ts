@@ -45,6 +45,8 @@ export {
   Cluster,
   Grid,
   Page,
+  Row,
+  Rows,
   Stack,
   Switcher,
   WithAside,
@@ -69,6 +71,6 @@ export { StepLayout } from './StepLayout.tsx';
 export { Term, TermScope } from './Term.tsx';
 export { Tick } from './Tick.tsx';
 export { ToolIcon, ToolLabel } from './ToolIcon.tsx';
-export { Code, List, Material, OneLine, PlainList, Text } from './text.tsx';
+export { Code, List, Material, OneLine, PlainList, RowLink, Text } from './text.tsx';
 export { type View, ViewSwitch } from './ViewSwitch.tsx';
 export { Wordmark } from './Wordmark.tsx';

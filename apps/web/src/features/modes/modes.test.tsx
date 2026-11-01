@@ -259,6 +259,29 @@ describe('the plan’s mode cards', () => {
     );
     expect(render(<ProjectView project={p} />)).toContain(`href="#/projects/${p.id}/build"`);
   });
+
+  it('make the mode to do next the only primary button on the summary', () => {
+    const primaries = (p: Project) =>
+      (render(<ProjectView project={p} />).match(/data-variant="primary"[^>]*>[^<]*/g) ?? []).map(
+        (m) => m.slice(m.indexOf('>') + 1),
+      );
+    expect(primaries(project())).toEqual(['Start shopping']);
+    // Building is next once it has started, even with lines left to buy.
+    expect(
+      primaries(
+        project([
+          { kind: 'shopping-line', key: 'lumber/2x6/10' },
+          { kind: 'step', key: 'board-1' },
+        ]),
+      ),
+    ).toEqual(['Resume']);
+  });
+
+  it('mark each mode row with its mode, for the mode color', () => {
+    const html = render(<ProjectView project={project()} />);
+    expect(html).toContain('<section class="k-row" data-mode="shopping">');
+    expect(html).toContain('<section class="k-row" data-mode="building">');
+  });
 });
 
 describe('progress in words', () => {
