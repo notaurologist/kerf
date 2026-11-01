@@ -1,8 +1,8 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 13,
-    "snapshotVersion": 12,
+    "templateVersion": 14,
+    "snapshotVersion": 13,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -236,6 +236,9 @@
             ],
             "boltAreas": [],
             "tapers": [],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "A"
           },
           {
@@ -371,6 +374,9 @@
                 "angleToEdge": 20
               }
             ],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "B"
           },
           {
@@ -506,6 +512,9 @@
                 "angleToEdge": 20
               }
             ],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "C"
           },
           {
@@ -616,6 +625,9 @@
             ],
             "boltAreas": [],
             "tapers": [],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "D"
           },
           {
@@ -726,6 +738,9 @@
             ],
             "boltAreas": [],
             "tapers": [],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "E"
           }
         ],
@@ -3520,8 +3535,8 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 13,
-    "snapshotVersion": 12,
+    "templateVersion": 14,
+    "snapshotVersion": 13,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -3790,6 +3805,9 @@
               }
             ],
             "tapers": [],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "A"
           },
           {
@@ -3924,6 +3942,9 @@
                 "angleToEdge": 19.913665975879688
               }
             ],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "B"
           },
           {
@@ -4058,6 +4079,9 @@
                 "angleToEdge": 19.913665975879688
               }
             ],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "C"
           },
           {
@@ -4168,6 +4192,9 @@
             ],
             "boltAreas": [],
             "tapers": [],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "D"
           },
           {
@@ -4278,6 +4305,9 @@
             ],
             "boltAreas": [],
             "tapers": [],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "E"
           }
         ],
@@ -7185,8 +7215,8 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 13,
-    "snapshotVersion": 12,
+    "templateVersion": 14,
+    "snapshotVersion": 13,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -7411,6 +7441,9 @@
             ],
             "boltAreas": [],
             "tapers": [],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "A"
           },
           {
@@ -7546,6 +7579,9 @@
                 "angleToEdge": 20
               }
             ],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "B"
           },
           {
@@ -7681,6 +7717,9 @@
                 "angleToEdge": 20
               }
             ],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "C"
           },
           {
@@ -7791,6 +7830,9 @@
             ],
             "boltAreas": [],
             "tapers": [],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "D"
           },
           {
@@ -7901,6 +7943,9 @@
             ],
             "boltAreas": [],
             "tapers": [],
+            "dadoes": [],
+            "notches": [],
+            "cutouts": [],
             "letter": "E"
           }
         ],

@@ -36,6 +36,9 @@ const board = (over: Partial<Part> = {}): Part => ({
   holes: [],
   boltAreas: [],
   tapers: [],
+  dadoes: [],
+  notches: [],
+  cutouts: [],
   ...over,
 });
 

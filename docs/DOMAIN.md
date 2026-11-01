@@ -38,7 +38,7 @@ Worked check from the Handbook: a flatsawn white fir board 9.15 in. wide at 8% g
 
 ## Operations
 
-Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods. Operation types in code (`model/operations.ts`) cover what templates use: crosscut, miter, taper, joint edges, glue up, flatten, rip, bolt holes, ease edges, dig holes, and level pads.
+Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods. Operation types in code (`model/operations.ts`) cover what templates use: crosscut, miter, taper, joint edges, glue up, flatten, rip, dado, stopped dado, notch, cutout, bolt holes, ease edges, dig holes, and level pads.
 
 | Operation | Example methods by tool |
 |---|---|
@@ -46,6 +46,10 @@ Operations are what needs to happen to a part. Methods are how, given specific t
 | Angled crosscut (miter) | Miter saw set to angle; circular saw with rafter square at angle |
 | Bevel cut | Miter saw or circular saw with bevel; table saw with tilted blade |
 | Rip (cut along the grain) | Table saw; track saw; circular saw with straightedge guide or rip fence |
+| Dado (a flat-bottomed groove reaching two opposite edges, housing another part) | Router along a clamped guide; circular saw kerfs and a chisel; hand saw and chisel |
+| Stopped dado (reaching one edge and stopping short of the other, so it doesn't show) | Router along a guide with a stop, and a chisel to square the end; chisel and hand saw |
+| Notch (a corner cut out through the thickness) | Band saw; jigsaw; hand saw |
+| Cutout (a rectangle cut out of an end, such as between two feet) | Band saw; jigsaw and a chisel |
 | Joint edges (a panel's glued edges, straight and square) | Jointer; table saw or track saw trimming a thin strip |
 | Glue up (a panel's boards, edge to edge) | Clamps that open past the glued width, with or without cauls to hold the faces level |
 | Flatten (a glued-up panel's faces) | Thickness planer as wide as the panel; sander |
@@ -174,7 +178,7 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 
 - **Template:** parameters with types, ranges, and defaults; a pure function deriving parts, hardware, operations, and geometry; validation rules; a version that changes whenever outputs for the same parameters would change.
 - **Project:** template and template version, parameter values, status (planned, in progress, built), structural check inputs, and the operations, methods, and skills used. Later projects use this history to refer back to earlier work.
-- **Part:** letter (A, B, C in cut-list order, the name drawings use), name, role, stock (nominal and actual size, or for a panel its finished size, board stock, board count, board length, glued width, and allowances), length, end cuts (miter and bevel per end, in the angle convention under Units), holes, quantity, board selection notes.
+- **Part:** letter (A, B, C in cut-list order, the name drawings use), name, role, stock (nominal and actual size, or for a panel its finished size, board stock, board count, board length, glued width, and allowances), length, end cuts (miter and bevel per end, in the angle convention under Units), holes, dadoes, notches, and cutouts, quantity, board selection notes.
 - **Hardware item:** type, size, quantity, notes, flag if structural, and the store group the template puts it in (for example, bolts and fittings), so the shopping list reads in the order of a trip through the store.
 - **Operation:** an ID, type (from the operations table), part reference, how many times, and parameters (angle, depth, bolt diameter).
 - **Method:** operation type, required tool types and capabilities, skills, steps, common mistakes, safety notes, flags, and which other methods for the same operation it is easier or more accurate than.

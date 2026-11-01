@@ -69,6 +69,12 @@ export const SKILLS = [
       'Take thin shavings with a sharp chisel or block plane until the surface meets the line on both faces.',
   },
   {
+    id: 'rout-along-a-guide',
+    name: 'Routing along a guide',
+    description:
+      'Clamp a straight guide where the router base must run, set the depth, and feed so the spinning bit pulls the base against the guide, in shallow cuts until the full depth.',
+  },
+  {
     id: 'joint-an-edge',
     name: 'Jointing an edge',
     description:

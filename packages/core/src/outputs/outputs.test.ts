@@ -30,6 +30,9 @@ describe('cutList', () => {
     holes: [],
     boltAreas: [],
     tapers: [],
+    dadoes: [],
+    notches: [],
+    cutouts: [],
   };
 
   it('formats stock, length, ends, and marks', () => {
@@ -71,6 +74,9 @@ describe('planLumber, edge cases', () => {
     holes: [],
     boltAreas: [],
     tapers: [],
+    dadoes: [],
+    notches: [],
+    cutouts: [],
   });
 
   it('reports a part longer than any board instead of dropping it', () => {
@@ -122,6 +128,9 @@ describe('panels', () => {
       holes: [],
       boltAreas: [],
       tapers: [],
+      dadoes: [],
+      notches: [],
+      cutouts: [],
     };
   };
 

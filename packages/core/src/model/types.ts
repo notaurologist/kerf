@@ -102,6 +102,51 @@ export const Taper = z.object({
 });
 export type Taper = z.infer<typeof Taper>;
 
+const end = z.union([z.literal(0), z.literal(1)]);
+
+/**
+ * A flat-bottomed groove in one face of a part, such as the one that houses a shelf's end. It
+ * covers u from `u0` to `u1` and v from `v0` to `v1` in the part's frame, `depth` deep. One that
+ * reaches two opposite edges runs through; one that reaches a single edge stops short of the
+ * other. Edges are the stock's width and the part's square ends.
+ */
+export const Dado = z.object({
+  /** The part whose end or edge it houses. */
+  withPart: z.string(),
+  /** The face it is cut into: `near` at n = 0, `far` at n = the stock's thickness. */
+  face: z.enum(['near', 'far']),
+  u0: z.number(),
+  u1: z.number(),
+  v0: z.number(),
+  v1: z.number(),
+  depth: z.number(),
+});
+export type Dado = z.infer<typeof Dado>;
+
+/**
+ * A rectangle cut out of a corner where a square end meets an edge, through the thickness:
+ * `along` the part from the end, and `across` it from the edge.
+ */
+export const Notch = z.object({
+  end,
+  edge: z.enum(['reference', 'far']),
+  along: z.number(),
+  across: z.number(),
+});
+export type Notch = z.infer<typeof Notch>;
+
+/**
+ * A rectangle cut out of a square end, through the thickness, from v0 to v1 and `depth` in from
+ * the end, such as the opening between two feet.
+ */
+export const Cutout = z.object({
+  end,
+  v0: z.number(),
+  v1: z.number(),
+  depth: z.number(),
+});
+export type Cutout = z.infer<typeof Cutout>;
+
 export const Part = z.object({
   id: z.string(),
   /** Names the part in the cut list and every drawing, assigned in cut-list order (#66). */
@@ -132,6 +177,9 @@ export const Part = z.object({
   holes: z.array(Hole),
   boltAreas: z.array(BoltArea),
   tapers: z.array(Taper),
+  dadoes: z.array(Dado),
+  notches: z.array(Notch),
+  cutouts: z.array(Cutout),
 });
 export type Part = z.infer<typeof Part>;
 
