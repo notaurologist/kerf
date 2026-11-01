@@ -51,6 +51,12 @@ export const SKILLS = [
       'Start the cut with short pulls at the far corner, then saw with long, light strokes, watching the line on the face and the edge together.',
   },
   {
+    id: 'rip-along-a-fence',
+    name: 'Ripping along a fence or guide',
+    description:
+      'Keep the board tight against the fence or the guide rail for the whole cut, feeding at an even speed, so the cut runs straight and parallel to the edge kept.',
+  },
+  {
     id: 'cut-from-two-faces',
     name: 'Cutting thick stock from two faces',
     description:
@@ -61,6 +67,24 @@ export const SKILLS = [
     name: 'Paring or planing to a line',
     description:
       'Take thin shavings with a sharp chisel or block plane until the surface meets the line on both faces.',
+  },
+  {
+    id: 'joint-an-edge',
+    name: 'Jointing an edge',
+    description:
+      'Plane or saw an edge straight along its length and square to the face, checking it against a straightedge and a square.',
+  },
+  {
+    id: 'glue-up-a-panel',
+    name: 'Gluing up a panel',
+    description:
+      'Spread glue evenly on every joint, bring the boards together in order, and tighten the clamps evenly until a small bead of glue squeezes out along each joint, with the faces level.',
+  },
+  {
+    id: 'flatten-a-panel',
+    name: 'Flattening a panel',
+    description:
+      'Take the faces down evenly until a straightedge laid across and along the panel touches everywhere, with no step at any joint.',
   },
   {
     id: 'clamp-parts-in-place',

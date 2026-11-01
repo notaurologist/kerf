@@ -167,6 +167,15 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <path d="M7 9.5 H8 M16 9.5 H17 M12 17.5 V20.5" />
     </>
   ),
+  jointer: (
+    <>
+      <rect x="2" y="12" width="8.5" height="2.5" rx="0.6" />
+      <rect x="13.5" y="11" width="8.5" height="2.5" rx="0.6" />
+      <circle cx="12" cy="13" r="1.5" />
+      <rect x="5" y="6" width="14" height="3" rx="0.6" />
+      <path d="M6 14.5 V20 H18 V13.5 M16.5 9 V11" />
+    </>
+  ),
   'thickness-planer': (
     <>
       <rect x="6" y="4" width="12" height="9" rx="0.6" />

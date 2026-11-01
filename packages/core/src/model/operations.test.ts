@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { panelStock } from '../lumber/panel.ts';
 import { stock } from '../lumber/stock.ts';
-import { cutAndDrillOperations, Operation } from './operations.ts';
+import { boardCuts, cutAndDrillOperations, Operation } from './operations.ts';
 import type { HardwareItem, Part } from './types.ts';
 
 // Generic: a made-up post and rail, so nothing here depends on one template's numbers.
@@ -128,5 +129,94 @@ describe('cutAndDrillOperations', () => {
       ends: [square, { ...square, setting: 10, measuredFrom: 'reference-face' }],
     } as Part;
     expect(() => cutAndDrillOperations([beveled], [])).toThrow(/post\/end-1 is a bevel/);
+  });
+});
+
+describe('panel operations', () => {
+  const cherry = { nominal: '1x6 cherry', thickness: 0.75, width: 5.5, buyableFeet: [4, 6, 8] };
+  const allowances = { jointPerEdge: 1 / 16, rip: 0.5, trimPerEnd: 1 };
+  const panel = (id: string, width: number): Part => {
+    const made = panelStock({ thickness: 0.75, width, length: 19.4375, board: cherry, allowances });
+    if (!made.ok) throw new Error(made.issue.message);
+    return { ...post, id, quantity: 2, stock: made.stock, ends: [square, square], tapers: [] };
+  };
+
+  it("cuts a panel's boards, joints and glues them, flattens and rips the panel, then cuts its ends", () => {
+    // lumber/panel.test.ts works the stock: 3 boards of 5-1/2", each 21-7/16" long, glued to
+    // 16-1/4". Two panels: 6 boards with 2 ends each, and 2 · 2 · (3 − 1) = 8 glued edges.
+    const side = { partId: 'side' };
+    expect(cutAndDrillOperations([panel('side', 15)], [])).toEqual([
+      {
+        id: 'side/board-end-0',
+        type: 'crosscut',
+        ...side,
+        count: 6,
+        end: 0,
+        width: 5.5,
+        thickness: 0.75,
+        panelBoards: true,
+      },
+      {
+        id: 'side/board-end-1',
+        type: 'crosscut',
+        ...side,
+        count: 6,
+        end: 1,
+        width: 5.5,
+        thickness: 0.75,
+        panelBoards: true,
+      },
+      {
+        id: 'side/joint-edges',
+        type: 'joint-edges',
+        ...side,
+        count: 8,
+        length: 21.4375,
+        thickness: 0.75,
+      },
+      {
+        id: 'side/glue-up',
+        type: 'glue-up',
+        ...side,
+        count: 2,
+        boards: 3,
+        width: 16.25,
+        length: 21.4375,
+      },
+      { id: 'side/flatten', type: 'flatten', ...side, count: 2, width: 16.25, length: 21.4375 },
+      {
+        id: 'side/rip',
+        type: 'rip',
+        ...side,
+        count: 2,
+        width: 15,
+        length: 21.4375,
+        thickness: 0.75,
+      },
+      { id: 'side/end-0', type: 'crosscut', ...side, count: 2, end: 0, width: 15, thickness: 0.75 },
+      { id: 'side/end-1', type: 'crosscut', ...side, count: 2, end: 1, width: 15, thickness: 0.75 },
+    ]);
+  });
+
+  it('only cuts to length and rips a panel of one board', () => {
+    expect(cutAndDrillOperations([panel('rail', 3)], []).map((o) => o.id)).toEqual([
+      'rail/board-end-0',
+      'rail/board-end-1',
+      'rail/rip',
+      'rail/end-0',
+      'rail/end-1',
+    ]);
+  });
+
+  it("leaves a panel's own end cuts out of the board cuts, and keeps every end cut of other parts", () => {
+    const ops = cutAndDrillOperations([post, panel('side', 15)], []);
+    for (const op of ops) expect(Operation.safeParse(op).error).toBeUndefined();
+    expect(boardCuts(ops).map((o) => o.id)).toEqual([
+      'post/end-0',
+      'post/end-1',
+      'post/taper-0',
+      'side/board-end-0',
+      'side/board-end-1',
+    ]);
   });
 });

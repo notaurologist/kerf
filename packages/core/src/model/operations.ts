@@ -1,12 +1,13 @@
 import { z } from 'zod';
+import { isPanel, type PanelStock } from '../lumber/panel.ts';
 import { boltHoleDiameter } from '../structural/boltHoles.ts';
 import type { HardwareItem, Part } from './types.ts';
 
 // Operations: what needs to happen to each part, before any choice of how (DOMAIN.md, Operations).
 // Methods (#104) say how, given tools; build steps (#105) order them. Generic: the cuts and bolt
 // holes come from data every template's parts and hardware already carry, so their numbers are
-// the cut list's own; a template adds the work its parts do not describe, such as easing edges
-// or site work. Types cover what templates use; add one when a template needs it.
+// the cut list's own, and so does the work of making a panel from boards (DOMAIN.md, Edge-glued
+// panels). A template adds the work its parts do not describe, such as easing edges or site work. Types cover what templates use; add one when a template needs it.
 
 const end = z.union([z.literal(0), z.literal(1)]);
 const base = {
@@ -28,6 +29,44 @@ export const Operation = z.discriminatedUnion('type', [
     end,
     /** The stock's actual width and thickness: what the cut goes across and through. */
     width: z.number(),
+    thickness: z.number(),
+    /**
+     * True when it cuts a panel's boards to their length before gluing, in the cutting steps. A
+     * panel's own end cuts come after glue-up and leave this out.
+     */
+    panelBoards: z.literal(true).optional(),
+  }),
+  /** Straighten and square each edge of a panel's boards that is glued to another. */
+  z.object({
+    ...onPart,
+    type: z.literal('joint-edges'),
+    /** The edge's length: the panel's board length. */
+    length: z.number(),
+    thickness: z.number(),
+  }),
+  /** Glue a panel's boards edge to edge and clamp them until the glue sets. */
+  z.object({
+    ...onPart,
+    type: z.literal('glue-up'),
+    boards: z.number().int().positive(),
+    /** Width across the boards once glued, which the clamps reach across. */
+    width: z.number(),
+    length: z.number(),
+  }),
+  /** Bring the faces of a glued-up panel flat and level across its joints. */
+  z.object({
+    ...onPart,
+    type: z.literal('flatten'),
+    width: z.number(),
+    length: z.number(),
+  }),
+  /** A cut along the grain, taking a panel or board down to its finished width. */
+  z.object({
+    ...onPart,
+    type: z.literal('rip'),
+    /** The finished width, measured from the edge kept. */
+    width: z.number(),
+    length: z.number(),
     thickness: z.number(),
   }),
   /** An angled cut across the board's face at one end, laid out from the reference edge. */
@@ -85,7 +124,9 @@ export type OperationType = Operation['type'];
 /**
  * Every end cut and taper on every part, and every through-bolt item's holes, in parts order. A
  * square end is a crosscut and an angled one a miter; an end measured from the reference face
- * (a bevel) has no operation type yet and is refused rather than mislabeled.
+ * (a bevel) has no operation type yet and is refused rather than mislabeled. A panel part first
+ * has its boards cut to length, their glued edges jointed, the boards glued up and flattened, and
+ * the panel ripped to width; a panel of one board is only cut to length and ripped.
  */
 export function cutAndDrillOperations(
   parts: readonly Part[],
@@ -94,6 +135,7 @@ export function cutAndDrillOperations(
   const ops: Operation[] = [];
   for (const part of parts) {
     const { width, thickness } = part.stock;
+    if (isPanel(part.stock)) ops.push(...panelOperations(part, part.stock));
     part.ends.forEach((cut, e) => {
       const at = { partId: part.id, count: part.quantity, end: e as 0 | 1, width, thickness };
       const id = `${part.id}/end-${e}`;
@@ -143,17 +185,94 @@ export function cutAndDrillOperations(
   return ops;
 }
 
+function panelOperations(part: Part, stock: PanelStock): Operation[] {
+  const { board, boards, boardLength: length, gluedWidth } = stock;
+  const onPart = { partId: part.id };
+  const ops: Operation[] = ([0, 1] as const).map((e) => ({
+    id: `${part.id}/board-end-${e}`,
+    type: 'crosscut',
+    ...onPart,
+    count: part.quantity * boards,
+    end: e,
+    width: board.width,
+    thickness: board.thickness,
+    panelBoards: true,
+  }));
+  if (boards > 1) {
+    ops.push(
+      {
+        id: `${part.id}/joint-edges`,
+        type: 'joint-edges',
+        ...onPart,
+        count: part.quantity * 2 * (boards - 1),
+        length,
+        thickness: board.thickness,
+      },
+      {
+        id: `${part.id}/glue-up`,
+        type: 'glue-up',
+        ...onPart,
+        count: part.quantity,
+        boards,
+        width: gluedWidth,
+        length,
+      },
+      {
+        id: `${part.id}/flatten`,
+        type: 'flatten',
+        ...onPart,
+        count: part.quantity,
+        width: gluedWidth,
+        length,
+      },
+    );
+  }
+  ops.push({
+    id: `${part.id}/rip`,
+    type: 'rip',
+    ...onPart,
+    count: part.quantity,
+    width: stock.width,
+    length,
+    thickness: stock.thickness,
+  });
+  return ops;
+}
+
 /**
  * The operations done while breaking boards into pieces: cutting steps go board by board (#58)
  * and do these for each piece. Every other operation is ordered by the template's step outline.
  */
 export const CUTTING_OPERATION_TYPES: readonly OperationType[] = ['crosscut', 'miter', 'taper'];
 
+type OnPart = Extract<Operation, { partId: string }>;
+
+/**
+ * The operations cutting steps do on each piece as boards are broken down: its end cuts and
+ * tapers, or for a panel's boards, the cuts to their length. A panel's own end cuts and tapers
+ * come after glue-up, so the template's step outline places them with its other work.
+ */
+export function boardCuts(operations: readonly Operation[]): OnPart[] {
+  const panels = new Set(
+    operations.flatMap((op) => (op.type === 'crosscut' && op.panelBoards ? [op.partId] : [])),
+  );
+  return operations.filter(
+    (op): op is OnPart =>
+      CUTTING_OPERATION_TYPES.includes(op.type) &&
+      'partId' in op &&
+      (!panels.has(op.partId) || (op.type === 'crosscut' && op.panelBoards === true)),
+  );
+}
+
 /** Each operation type's name, in sentence case, for displays. */
 export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   crosscut: 'Square crosscut',
   miter: 'Miter',
   taper: 'Taper',
+  'joint-edges': 'Joint edges',
+  'glue-up': 'Glue up',
+  flatten: 'Flatten',
+  rip: 'Rip to width',
   'bolt-holes': 'Bolt holes',
   'ease-edges': 'Ease edges',
   'dig-holes': 'Dig holes',

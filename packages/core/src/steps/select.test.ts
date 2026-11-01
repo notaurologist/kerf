@@ -255,6 +255,162 @@ describe('buildSteps', () => {
   });
 });
 
+describe('buildSteps with a panel', () => {
+  // Made by model/operations.test.ts: two 15" panels of three 5-1/2" boards, each 21-7/16" long,
+  // glued to 16-1/4".
+  const ops: Operation[] = [
+    {
+      id: 'side/board-end-0',
+      type: 'crosscut',
+      partId: 'side',
+      count: 6,
+      end: 0,
+      width: 5.5,
+      thickness: 0.75,
+      panelBoards: true,
+    },
+    {
+      id: 'side/board-end-1',
+      type: 'crosscut',
+      partId: 'side',
+      count: 6,
+      end: 1,
+      width: 5.5,
+      thickness: 0.75,
+      panelBoards: true,
+    },
+    {
+      id: 'side/joint-edges',
+      type: 'joint-edges',
+      partId: 'side',
+      count: 8,
+      length: 21.4375,
+      thickness: 0.75,
+    },
+    {
+      id: 'side/glue-up',
+      type: 'glue-up',
+      partId: 'side',
+      count: 2,
+      boards: 3,
+      width: 16.25,
+      length: 21.4375,
+    },
+    {
+      id: 'side/flatten',
+      type: 'flatten',
+      partId: 'side',
+      count: 2,
+      width: 16.25,
+      length: 21.4375,
+    },
+    {
+      id: 'side/rip',
+      type: 'rip',
+      partId: 'side',
+      count: 2,
+      width: 15,
+      length: 21.4375,
+      thickness: 0.75,
+    },
+    {
+      id: 'side/end-0',
+      type: 'crosscut',
+      partId: 'side',
+      count: 2,
+      end: 0,
+      width: 15,
+      thickness: 0.75,
+    },
+    {
+      id: 'side/end-1',
+      type: 'crosscut',
+      partId: 'side',
+      count: 2,
+      end: 1,
+      width: 15,
+      thickness: 0.75,
+    },
+  ];
+  // outputs.test.ts plans the six boards: four on an 8' board, two on a 4' board.
+  const board = (feet: number, n: number, offcut: number) => ({
+    nominal: '1x6 cherry',
+    feet,
+    pieces: Array.from({ length: n }, () => ({
+      partId: 'side',
+      name: 'Side board',
+      length: 21.4375,
+    })),
+    offcut,
+  });
+  const plan = {
+    operations: ops,
+    flags: [],
+    lumber: {
+      boards: [board(8, 4, 8.75), board(4, 2, 3.875)],
+      kerf: 0.125,
+      trimPerEnd: 0.5,
+      lines: [],
+      notes: [],
+      issues: [],
+      selection: [],
+    },
+  };
+  const panelWork = ops.slice(2).map((o) => o.id);
+  const outline = [
+    { id: 'panels', title: 'Make the panels', operationIds: panelWork, categories: [] },
+  ];
+
+  it("cuts the panel's boards to length on the boards, and leaves the panel's work to the outline", () => {
+    const built = buildSteps(outline, plan, inventory());
+    expect(
+      built.map((s) => [s.id, s.operations.map((o) => [o.operation.id, o.operation.count])]),
+    ).toEqual([
+      [
+        'board-1',
+        [
+          ['side/board-end-0', 4],
+          ['side/board-end-1', 4],
+        ],
+      ],
+      [
+        'board-2',
+        [
+          ['side/board-end-0', 2],
+          ['side/board-end-1', 2],
+        ],
+      ],
+      ['panels', panelWork.map((id) => [id, ops.find((o) => o.id === id)?.count])],
+    ]);
+    // The panel's own end cuts belong to the outline, after glue-up.
+    expect(() => buildSteps([], plan, inventory())).toThrow('missing [side/joint-edges');
+  });
+
+  it('glues up with clamps that open past the glued width, and fills the text from the panel', () => {
+    const glue = ops[3] as Operation;
+    expect(selectMethod(glue, inventory(['clamps', { maxOpening: 18 }])).chosen?.id).toBe(
+      'glue-up-clamps-and-cauls',
+    );
+    const short = selectMethod(glue, inventory(['clamps', { maxOpening: 12 }]));
+    expect(short.chosen).toBeUndefined();
+    expect(short.needed?.gaps.map((g) => g.anyOf.map(describeChoice))).toEqual([
+      ['Clamps with widest opening at least 16-1/4" (you entered 12")'],
+    ]);
+    const [, , panels] = buildSteps(outline, plan, inventory(['clamps', { maxOpening: 18 }]));
+    const filled = panels?.operations.find((o) => o.operation.type === 'glue-up')?.method;
+    expect(filled?.setup[0]).toMatch(/^Lay the 3 boards out in order/);
+    expect(filled?.setup[1]).toMatch(/^Open the clamps past 16-1\/4"/);
+  });
+
+  it('flattens with a planer only when the panel fits through it', () => {
+    const flatten = ops[4] as Operation;
+    const shop = (width: number) =>
+      inventory(['thickness-planer', { maxWidth: width }], ['sander'], ['clamps']);
+    expect(selectMethod(flatten, shop(18)).chosen?.id).toBe('flatten-thickness-planer');
+    expect(selectMethod(flatten, shop(13)).chosen?.id).toBe('flatten-sander');
+  });
+});
+
 describe('inventoryKey', () => {
   it('is the same for the same tools in any order, and differs when a capability changes', () => {
     const a = inventory(['hand-saw'], ['circular-saw', { depthOfCut: 2.375 }]);

@@ -5,7 +5,7 @@ import { FlagCategory, findExpertCheckCategory } from '../knowledge/categories.t
 import { fillMethodText, findMethod, type Method } from '../knowledge/methods.ts';
 import { SkillIdSchema } from '../knowledge/skills.ts';
 import type { TemplateDefinition } from '../model/definition.ts';
-import { CUTTING_OPERATION_TYPES, Operation } from '../model/operations.ts';
+import { boardCuts, Operation } from '../model/operations.ts';
 import type { Flag } from '../model/types.ts';
 import type { Plan } from '../outputs/plan.ts';
 import { boardIds, PlannedBoard } from '../outputs/shoppingList.ts';
@@ -26,7 +26,7 @@ import {
 /**
  * One step as the template orders it: which operations it does, by ID, and the expert-check
  * categories the work falls in beyond what its methods raise (DOMAIN.md, Expert-check categories).
- * Cutting operations (`CUTTING_OPERATION_TYPES`) are not in the outline: the board steps do them.
+ * Cutting operations the board steps do (`boardCuts`) are not in the outline.
  */
 export interface StepOutline {
   id: string;
@@ -207,9 +207,6 @@ function stepForFlag(flag: Flag, steps: readonly { operations: StepOperation[] }
   );
 }
 
-const isCutting = (op: Operation): op is Extract<Operation, { partId: string }> =>
-  CUTTING_OPERATION_TYPES.includes(op.type) && 'partId' in op;
-
 interface Draft extends StepOutline {
   board?: StepBoard;
   /** In a cutting step, how many times each operation is done on this board's pieces. */
@@ -234,7 +231,7 @@ function piecesInWords(pieces: readonly { name: string }[]): string {
  * step of its own after them, so no cut is left out.
  */
 function boardSteps(plan: Pick<Plan, 'operations' | 'lumber'>): Draft[] {
-  const cuts = plan.operations.filter(isCutting);
+  const cuts = boardCuts(plan.operations);
   if (cuts.length === 0) return [];
   const cutsOf = (partId: string) => cuts.filter((op) => op.partId === partId).map((op) => op.id);
   const { boards, trimPerEnd, kerf } = plan.lumber;
@@ -306,7 +303,8 @@ function draftSteps(
   const { operations } = plan;
   if (operations.length === 0) return [];
   const byId = new Map(operations.map((op) => [op.id, op]));
-  const assembly = operations.filter((op) => !isCutting(op));
+  const cuts = new Set(boardCuts(operations).map((op) => op.id));
+  const assembly = operations.filter((op) => !cuts.has(op.id));
   const placed = outline.flatMap((s) => s.operationIds);
   const missing = assembly.filter((op) => !placed.includes(op.id)).map((op) => op.id);
   const unknown = placed.filter((id) => !assembly.some((op) => op.id === id));

@@ -360,11 +360,29 @@ export const TOOL_TYPES = [
     capabilities: [],
   },
   {
+    id: 'jointer',
+    name: 'Jointer',
+    description:
+      'A machine with a spinning cutterhead between two tables, for planing an edge or face straight and flat.',
+    group: 'shaping',
+    capabilities: [],
+  },
+  {
     id: 'thickness-planer',
     name: 'Thickness planer',
     description: 'A machine that planes a board to an even thickness, a thin layer at a time.',
     group: 'shaping',
-    capabilities: [],
+    capabilities: [
+      {
+        id: 'maxWidth',
+        label: 'Widest board',
+        kind: 'length',
+        help: 'Decides whether a glued-up panel fits through the planer.',
+        readFrom: "Read it from the planer's manual or its label.",
+        min: SIXTEENTH,
+        max: 60,
+      },
+    ],
   },
   {
     id: 'chisel',

@@ -38,19 +38,24 @@ Worked check from the Handbook: a flatsawn white fir board 9.15 in. wide at 8% g
 
 ## Operations
 
-Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods. Operation types in code (`model/operations.ts`) cover what templates use: crosscut, miter, taper, bolt holes, ease edges, dig holes, and level pads.
+Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods. Operation types in code (`model/operations.ts`) cover what templates use: crosscut, miter, taper, joint edges, glue up, flatten, rip, bolt holes, ease edges, dig holes, and level pads.
 
 | Operation | Example methods by tool |
 |---|---|
 | Crosscut (square) | Miter saw; circular saw with rafter square or guide; hand saw |
 | Angled crosscut (miter) | Miter saw set to angle; circular saw with rafter square at angle |
 | Bevel cut | Miter saw or circular saw with bevel; table saw with tilted blade |
-| Rip (cut along the grain) | Table saw; circular saw with straightedge guide or rip fence |
+| Rip (cut along the grain) | Table saw; track saw; circular saw with straightedge guide or rip fence |
+| Joint edges (a panel's glued edges, straight and square) | Jointer; table saw or track saw trimming a thin strip |
+| Glue up (a panel's boards, edge to edge) | Clamps that open past the glued width, with or without cauls to hold the faces level |
+| Flatten (a glued-up panel's faces) | Thickness planer as wide as the panel; sander |
 | Taper (a straight cut along a part, partway across it, such as a flush cut) | Circular saw, jigsaw, or hand saw along a marked line; chisel or block plane to clean up |
 | Bolt holes | Drill with spade or auger bit; drill guide for straight holes through thick stock. Each hole is 1/16" over its bolt (NDS 2024 12.1.3.2 allows 1/32" to 1/16"; `structural/boltHoles.ts`) |
 | Counterbore (recess a bolt head or nut) | Forstner or spade bit, drilled before the through hole |
 | Ease edges and splinters | Sander; block plane; router with roundover bit |
 | Dig holes, or level pads (site work for parts set in or on the ground) | Post-hole digger and tamper; level |
+
+A panel part (Edge-glued panels) gets its operations from its stock. Its boards are cut to length in the cutting steps, board by board. After that, in the template's step outline, its glued edges are jointed, the boards are glued up and the panel flattened, and the panel is ripped to width and its ends cut. A panel of one board is only cut to length and ripped. The gluing guidance follows the Wood Handbook [9, Ch. 10, pp. 10-3 and 10-14 to 10-16]: a cleanly cut edge, surfaced shortly before gluing, bonds best. Clamp pressure brings the edges together and spreads the glue thin, but too much starves the joint. Gaps make thick, weak glue lines. A panel surfaced too soon after gluing ends up with sunken glue lines, because the water from the glue has not yet dried out of the wood along each joint.
 
 Each method in the knowledge base (`knowledge/methods.ts`) records: required tools, skills used, setup steps, technique steps, common mistakes, safety notes with their sources, and any flags. A required tool can be any of several tool types (a square to mark a line: combination or rafter), and can need a capability that covers a number from the operation, such as a miter saw's cut depth at least the stock's thickness, or a bit's reach at least half the hole's depth when the method drills from both sides. Method text names the operation's numbers as `{name}` and core fills them in, so the text holds no numbers of its own. Skills are in `knowledge/skills.ts`.
 
