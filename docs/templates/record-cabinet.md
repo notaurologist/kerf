@@ -34,7 +34,7 @@ Ranges are proposals for the owner's review.
 | Overall height | H | 16–30 | Floor to the top surface. Below 16 there's no room for a record bay and feet. 30 is table height. |
 | Case depth | D_c | 13–20 | Front to back of the sides, partitions, and shelves. Must hold a record jacket (Validation). |
 | Bays | n | 2–4 | Number of equal bays. Partitions: n − 1. |
-| Panel thickness | t | 5/8–1 | Actual, after flattening. One thickness for every panel in version 1. |
+| Panel thickness | t | 5/8–1 | Actual, after flattening. One thickness for every panel in version 1. Hardwood 4/4 is 13/16" surfaced two sides (Wood Handbook, Table 6-4, p. 6-6), so 3/4" comes from 4/4 flattened after glue-up. How the stock is bought is open on #278. |
 | Dado depth | j | owner-entered, 0 < 2·j < t | Depth of every dado. Partitions take a shelf dado on both faces at the same height, leaving t − 2·j between them. No source sets a limit, so the plan shows that thickness and flags the joint for an experienced builder (owner, #283). |
 | Stopped-dado setback | s_d | owner-entered, 0 < s_d < D_c | How far the top's dadoes stop short of the case's front edge, so the joint doesn't show from the front. A design choice, not a strength rule (owner, #283). |
 | End overhang | o_s | 0–2 | Top beyond each side. |
@@ -173,7 +173,7 @@ Computed (#288; `DOMAIN.md`, Structural checks):
 
 - **Each bottom shelf:** a simply supported span between the centerlines of the panels on either side, L = b + t, breadth D_c, depth t, under a uniform long-term load of records (lb per foot of shelf, owner-entered). Deflection only, with E from Wood Handbook Table 5-3b, total = 1.5 × immediate (NDS 2024 3.5.2). Taking span to centerlines, where the shelf really bears in a dado, overstates the span slightly, which is conservative.
 - **The top, under the turntable and speaker:** each span between panels as a simply supported span, L = b + t, breadth D_t, depth t, with each item's weight as a point load at midspan. The top is continuous over the partitions, and treating each span as simply supported overstates deflection. The turntable's weight is owner-entered. The speaker's is 13.89 lb from Sonos [S1], or owner-entered.
-- **Deflection limit:** owner-entered.
+- **Deflection limit:** owner-entered. For reference, the Architectural Woodwork Standards (1st edition, 2009, Section 10, 1.2.21.3.1.1) call L/144 "the industry standard for the maximum acceptable deflection of a shelf". That edition is superseded by ANSI/AWI 0641-2019, which hasn't been checked. It also treats creep as not a defect, while Kerf includes it.
 
 Not computed (checklist): bending and shear of these members (no design values for furniture lumber), racking, tipping, and glue joints.
 
@@ -204,6 +204,8 @@ Answers suggest parameters (M8), each labeled as the owner's choice:
 ## Sources
 
 - [S1] Sonos, Five product page, specifications, read October 31, 2026: https://www.sonos.com/en-us/shop/five
+- Wood Handbook (2021), chapter 6, Commercial Lumber, Table 6-4, p. 6-6: https://research.fs.usda.gov/treesearch/62245
+- AWI, AWMAC, and WI, Architectural Woodwork Standards, 1st edition (2009), Section 10, Casework: https://woodworkinstitute.com/wp-content/uploads/2014/09/WI_AWS_sec10NM.pdf
 - Wood Handbook (2021) and NDS 2024, as cited in `DOMAIN.md`. Chapter 10 (Wood Adhesives): Moisture Content and Dimensional Changes, p. 10-7; End-to-Edge-Grain Joints, p. 10-17: https://research.fs.usda.gov/treesearch/62250
 
 ## Open questions
