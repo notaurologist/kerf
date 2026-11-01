@@ -103,6 +103,50 @@ const addBoardSource: SnapshotUpgrade = (snapshot) => {
   };
 };
 
+/**
+ * Shape 6 to 7: the turntable and speaker become the largest item on the top and the weight on it
+ * (#331). The turntable was the largest item in every stored plan's layout, the weight is what
+ * stood on the top (the speaker's only when it was there), and the turntable's check is the top's.
+ */
+const toTopItem: SnapshotUpgrade = (snapshot) => {
+  type Old = Stored & {
+    turntable: { width: number; depth: number; lidHeight: number };
+    speaker: { place: unknown };
+  };
+  const params = (old: Old) => {
+    const { turntable, speaker: _, ...rest } = old;
+    return {
+      ...rest,
+      topItem: { width: turntable.width, depth: turntable.depth, height: turntable.lidHeight },
+    };
+  };
+  const old = snapshot.params as Old;
+  const { turntableWeight, speakerWeight, ...inputs } = snapshot.structuralInputs as Stored & {
+    turntableWeight?: number;
+    speakerWeight?: number;
+  };
+  const onTop = old.speaker.place === 'top';
+  const topLoad =
+    turntableWeight === undefined || (onTop && speakerWeight === undefined)
+      ? undefined
+      : turntableWeight + (onTop ? (speakerWeight as number) : 0);
+  const outputs = snapshot.outputs as {
+    design: { params: Old };
+    review: Stored & { topTurntable: unknown };
+  };
+  const { topTurntable, topSpeaker: _speaker, ...review } = outputs.review;
+  return {
+    ...snapshot,
+    params: params(old),
+    structuralInputs: { ...inputs, ...(topLoad === undefined ? {} : { topLoad }) },
+    outputs: {
+      ...outputs,
+      design: { ...outputs.design, params: params(outputs.design.params) },
+      review: { ...review, top: topTurntable },
+    },
+  };
+};
+
 export const recordCabinet: TemplateDefinition<
   RecordCabinetParams,
   RecordCabinetStructuralInputs,
@@ -111,13 +155,13 @@ export const recordCabinet: TemplateDefinition<
   id: TEMPLATE_ID,
   version: TEMPLATE_VERSION,
   name: 'Record cabinet',
-  ownWords: ['turntable', 'partition', 'partitions', 'jacket'],
+  ownWords: ['partition', 'partitions', 'jacket'],
   params: RecordCabinetParams,
   structuralInputs: RecordCabinetStructuralInputs,
   outputs: RecordCabinetOutputs,
   storedOutputs: RecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
-  snapshotVersion: 6,
+  snapshotVersion: 7,
   // Shape 3 to 4 adds assembly and finish operations, which older plans simply do not have.
   snapshotUpgrades: {
     1: addFlattening,
@@ -126,6 +170,7 @@ export const recordCabinet: TemplateDefinition<
     4: addBoardSource,
     // Shape 5 to 6 adds the operation that lets the lumber settle, which older plans do not have.
     5: (snapshot) => snapshot,
+    6: toTopItem,
   },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,
@@ -139,11 +184,7 @@ export const recordCabinet: TemplateDefinition<
       hardware: outputs.hardware,
       hardwareNotes: design.hardwareNotes,
       flags: review.flags,
-      checks: [
-        review.shelf.deflection,
-        review.topTurntable.deflection,
-        ...(review.topSpeaker ? [review.topSpeaker.deflection] : []),
-      ],
+      checks: [review.shelf.deflection, review.top.deflection],
       movement: review.movement,
       checklist: review.checklist,
       boltLayout: [],

@@ -10,11 +10,20 @@ import v3 from './snapshots/v3.json' with { type: 'json' };
 import v4 from './snapshots/v4.json' with { type: 'json' };
 import v5 from './snapshots/v5.json' with { type: 'json' };
 import v6 from './snapshots/v6.json' with { type: 'json' };
+import v7 from './snapshots/v7.json' with { type: 'json' };
 
 // Stored record-cabinet projects stay readable (decision 0014). Each fixture holds the worked
 // examples as that template version stores them. Fixtures are never rewritten.
 
-const FIXTURES: Record<number, readonly unknown[]> = { 1: v1, 2: v2, 3: v3, 4: v4, 5: v5, 6: v6 };
+const FIXTURES: Record<number, readonly unknown[]> = {
+  1: v1,
+  2: v2,
+  3: v3,
+  4: v4,
+  5: v5,
+  6: v6,
+  7: v7,
+};
 const template = recordCabinet as TemplateDefinition;
 
 /** Cut list rows as shapes before 3 stored them, without each panel's board count. */
@@ -70,12 +79,22 @@ describe('record-cabinet snapshot fixtures', () => {
     for (const stored of v1) {
       const read = readSnapshot(templates, stored);
       if (!read.ok) throw new Error(read.message);
-      const { params } = stored as { params: { allowances: object; board: object } };
+      const { params } = stored as {
+        params: {
+          allowances: object;
+          board: object;
+          turntable: { width: number; depth: number; lidHeight: number };
+          speaker: object;
+        };
+      };
       expect(read.snapshot.templateVersion).toBe(1);
+      const { turntable, speaker: _, ...kept } = params;
+      // The turntable became the largest item on the top (#331).
       expect(read.snapshot.params).toEqual({
-        ...params,
+        ...kept,
         allowances: { ...params.allowances, flatten: 0 },
         board: { source: 'store', ...params.board },
+        topItem: { width: turntable.width, depth: turntable.depth, height: turntable.lidHeight },
       });
       const outputs = recordCabinet.storedOutputs.parse(read.snapshot.outputs);
       const plan = recordCabinet.plan(outputs);

@@ -88,32 +88,18 @@ export function validate(p: RecordCabinetParams, g: CabinetGeometry): Issue[] {
       ['caseDepth', 'jacket'],
     );
   }
-  const s = p.speaker;
-  if (s.place === 'top') {
-    if (p.turntable.width + s.width > p.width) {
-      refuse(
-        'top-too-short',
-        `The turntable and speaker side by side need ${len(p.turntable.width + s.width)}, more than the ${len(p.width)} top.`,
-        ['turntable.width', 'speaker.width', 'width'],
-      );
-    }
-  } else if (s.place > p.bays) {
-    refuse('no-such-bay', `There is no bay ${s.place}; the cabinet has ${p.bays}.`, [
-      'speaker.place',
-      'bays',
-    ]);
-  } else if (s.width > g.bayWidth || s.height > g.bayHeight) {
+  if (p.topItem.width > p.width) {
     refuse(
-      'speaker-too-big-for-bay',
-      `The speaker, ${len(s.width)} wide and ${len(s.height)} high, does not fit a bay ${len(g.bayWidth)} wide and ${len(g.bayHeight)} high.`,
-      ['speaker.width', 'speaker.height', 'speaker.place'],
+      'top-item-too-wide',
+      `The largest item on the top is ${len(p.topItem.width)} wide, more than the ${len(p.width)} top.`,
+      ['topItem.width', 'width'],
     );
   }
-  if (p.turntable.depth > g.topDepth) {
+  if (p.topItem.depth > g.topDepth) {
     refuse(
-      'turntable-too-deep',
-      `The turntable is ${len(p.turntable.depth)} deep, more than the ${len(g.topDepth)} top.`,
-      ['turntable.depth', 'caseDepth', 'frontOverhang'],
+      'top-item-too-deep',
+      `The largest item on the top is ${len(p.topItem.depth)} deep, more than the ${len(g.topDepth)} top.`,
+      ['topItem.depth', 'caseDepth', 'frontOverhang'],
     );
   }
   return issues;

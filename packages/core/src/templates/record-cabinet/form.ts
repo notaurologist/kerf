@@ -165,23 +165,16 @@ export const RECORD_CABINET_FORM: TemplateForm = {
       ],
     },
     {
-      title: 'Turntable and speaker',
+      title: 'On the top',
+      help: 'The largest item that will stand on the top. Kerf checks that it fits; make sure anything else you put there fits too.',
       fields: [
-        length('turntable.width', 'Turntable width'),
-        length('turntable.depth', 'Turntable depth'),
-        length('turntable.lidHeight', 'Turntable height, lid open'),
-        length('speaker.width', 'Speaker width'),
-        length('speaker.height', 'Speaker height'),
-        length('speaker.depth', 'Speaker depth'),
-        {
-          path: 'speaker.place',
-          label: 'Speaker place',
-          kind: 'choice',
-          options: [
-            { value: 'top', label: 'On the top' },
-            ...[1, 2, 3, 4].map((k) => ({ value: k, label: `Bay ${k}, from the left` })),
-          ],
-        },
+        length('topItem.width', 'Largest item, width'),
+        length('topItem.depth', 'Largest item, depth'),
+        length(
+          'topItem.height',
+          'Largest item, height',
+          'At its tallest, such as with a lid open, to compare with the window.',
+        ),
       ],
     },
   ],
@@ -222,15 +215,14 @@ export const RECORD_CABINET_FORM: TemplateForm = {
       ],
     },
     {
-      title: 'Turntable and speaker',
+      title: 'On the top',
       fields: [
-        { path: 'turntableWeight', label: INPUT.turntableWeight, kind: 'number', unit: 'lb' },
         {
-          path: 'speakerWeight',
-          label: INPUT.speakerWeight,
+          path: 'topLoad',
+          label: INPUT.topLoad,
           kind: 'number',
           unit: 'lb',
-          help: 'From the speaker maker’s specifications.',
+          help: 'Everything that will stand on the top together, from the makers’ specifications or a bathroom scale. Kerf checks it all at the middle of one span, where the top bends most.',
         },
       ],
     },

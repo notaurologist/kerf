@@ -1,9 +1,8 @@
 import type { RecordCabinetParams } from './params.ts';
 import type { RecordCabinetStructuralInputs } from './structural.ts';
 
-// Worked examples from docs/templates/record-cabinet.md. The turntable's size and weight are
-// illustrative, since the owner has not bought it; the speaker is the Sonos Five as Sonos lists it
-// (spec, [S1]). The boards are 4/4 hardwood surfaced two sides, 13/16" thick (Wood Handbook,
+// Worked examples from docs/templates/record-cabinet.md. The largest item on the top and the
+// weight on it are illustrative. The boards are 4/4 hardwood surfaced two sides, 13/16" thick (Wood Handbook,
 // Table 6-4), which flattens to the 3/4" panels; the allowances are the values the starting
 // questions suggest. The moisture range is the Wood Handbook's for individual pieces indoors
 // (Table 13-2).
@@ -23,8 +22,7 @@ export const WORKED_EXAMPLE: RecordCabinetParams = {
   footWidth: 2.5,
   railHeight: 3,
   jacket: 12.375,
-  turntable: { width: 16.5, depth: 13.5, lidHeight: 15 },
-  speaker: { width: 14.33, height: 7.99, depth: 6.06, place: 'top' },
+  topItem: { width: 16.5, depth: 13.5, height: 15 },
   board: { source: 'store', thickness: 0.8125, width: 5.5, lengths: [4, 6, 8] },
   allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },
 };
@@ -34,12 +32,11 @@ const cherry: RecordCabinetStructuralInputs = {
   orientation: 'flatsawn',
   moisture: { low: 6, high: 10 },
   recordLoad: 40,
-  turntableWeight: 20,
-  speakerWeight: 13.89,
+  topLoad: 35,
   deflectionLimit: 144,
 };
 
-export const EDGE_EXAMPLE: RecordCabinetParams = {
+const EDGE_EXAMPLE: RecordCabinetParams = {
   ...WORKED_EXAMPLE,
   width: 30,
   height: 30,
@@ -52,7 +49,7 @@ export const EDGE_EXAMPLE: RecordCabinetParams = {
   shelfHeight: 10,
   cutoutHeight: 8,
   footWidth: 3,
-  turntable: { width: 15, depth: 13, lidHeight: 15 },
+  topItem: { width: 15, depth: 13, height: 15 },
   // 5/4 surfaced two sides is 1-1/16" (Wood Handbook, Table 6-4), which flattens to 1".
   board: { source: 'store', thickness: 1.0625, width: 5.5, lengths: [4, 6, 8] },
 };
@@ -65,7 +62,7 @@ export const EXAMPLES: readonly {
 }[] = [
   {
     name: 'Worked example, every input entered',
-    start: "The spec's worked example: three bays under a window, the speaker on top",
+    start: "The spec's worked example: three bays under a window",
     params: WORKED_EXAMPLE,
     structuralInputs: cherry,
   },

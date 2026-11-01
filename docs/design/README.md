@@ -31,7 +31,7 @@ The design system was built for the swing set, a frame of dimension lumber. Befo
 
 What fits as is:
 - Part letters.
-- The D2 language: face tones on flat panels, the hidden, dimension, extension, and leader lines, the turntable and speaker in phantom, and the grade line labeled "Floor". Stage 10's pine faces stand for any wood; species isn't shown by color.
+- The D2 language: face tones on flat panels, the hidden, dimension, extension, and leader lines, the largest item on the top in phantom, and the grade line labeled "Floor". Stage 10's pine faces stand for any wood; species isn't shown by color.
 - The one assembly diagram with Explode.
 - Board stock in the shopping list and board drawings.
 - The structural review's check status and checklist.

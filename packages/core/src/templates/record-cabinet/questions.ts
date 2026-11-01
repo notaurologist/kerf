@@ -6,7 +6,7 @@ import { WORKED_EXAMPLE } from './examples.ts';
 import { RecordCabinetParams } from './params.ts';
 
 // Starting questions (#314; docs/templates/record-cabinet.md, Starting questions): the window
-// the cabinet stands under, and the turntable and speaker. The height and width follow the
+// the cabinet stands under, and the largest item on the top (#331). The height and width follow the
 // owner's choices for this cabinet; the rest of the case comes from the worked example. The board
 // stock, allowances, and joint sizes come from a standard and rules of thumb (#317). The moisture
 // range and deflection limit are suggested from their sources for the owner to check; the other
@@ -30,8 +30,7 @@ const CabinetAnswers = z.object({
     /** E: the stool's width, end to end. */
     stoolWidth: z.number().positive(),
   }),
-  turntable: RecordCabinetParams.shape.turntable,
-  speaker: RecordCabinetParams.shape.speaker,
+  topItem: RecordCabinetParams.shape.topItem,
   /** Where the boards come from: a store's fixed widths, or a dealer's by the board foot. */
   lumber: z.object({ source: z.enum(['store', 'dealer']) }),
 });
@@ -89,22 +88,16 @@ const QUESTIONS: readonly FormSection[] = [
     ],
   },
   {
-    title: 'Turntable and speaker',
+    title: 'On the top',
+    help: 'The largest item that will stand on the cabinet. Make sure anything else you put there fits too.',
     fields: [
-      { path: 'turntable.width', label: 'Turntable width', kind: 'length' },
-      { path: 'turntable.depth', label: 'Turntable depth', kind: 'length' },
-      { path: 'turntable.lidHeight', label: 'Turntable height, lid open', kind: 'length' },
-      { path: 'speaker.width', label: 'Speaker width', kind: 'length' },
-      { path: 'speaker.height', label: 'Speaker height', kind: 'length' },
-      { path: 'speaker.depth', label: 'Speaker depth', kind: 'length' },
+      { path: 'topItem.width', label: 'Largest item, width', kind: 'length' },
+      { path: 'topItem.depth', label: 'Largest item, depth', kind: 'length' },
       {
-        path: 'speaker.place',
-        label: 'Speaker place',
-        kind: 'choice',
-        options: [
-          { value: 'top', label: 'On the top' },
-          ...[1, 2, 3, 4].map((k) => ({ value: k, label: `Bay ${k}, from the left` })),
-        ],
+        path: 'topItem.height',
+        label: 'Largest item, height',
+        kind: 'length',
+        help: 'At its tallest, such as with a lid open.',
       },
     ],
   },
@@ -199,6 +192,7 @@ function suggest(a: CabinetAnswers): Suggestion[] {
   const dealer = a.lumber.source === 'dealer';
   const { panel, dado } = panelAndDado(dealer ? DEALER.surfaced : BOARD.thickness);
   const height = w.stoolHeight - BELOW_STOOL;
+  const aboveStool = height + a.topItem.height - w.stoolHeight;
   const standsOff =
     height > w.apronBottom
       ? `The top is above the bottom of the apron, so the cabinet stands at least ${formatLength(w.stoolDepth)} from the wall, clear of the stool.`
@@ -321,20 +315,17 @@ function suggest(a: CabinetAnswers): Suggestion[] {
       basis: SHELF_DEFLECTION,
       note: 'A larger number allows less sag.',
     },
-    ...(['width', 'depth', 'lidHeight'] as const).map(
+    ...(['width', 'depth', 'height'] as const).map(
       (k): Suggestion => ({
         from: 'params',
-        path: `turntable.${k}`,
-        value: a.turntable[k],
+        path: `topItem.${k}`,
+        value: a.topItem[k],
         basis: ANSWER,
-      }),
-    ),
-    ...(['width', 'height', 'depth', 'place'] as const).map(
-      (k): Suggestion => ({
-        from: 'params',
-        path: `speaker.${k}`,
-        value: a.speaker[k],
-        basis: ANSWER,
+        ...(k === 'height' && aboveStool > 0
+          ? {
+              note: `With the top ${formatLength(height)} high, it stands ${formatLength(aboveStool)} above the window stool, in front of the window.`,
+            }
+          : {}),
       }),
     ),
   ];
