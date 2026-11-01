@@ -65,6 +65,27 @@ const addFlattening: SnapshotUpgrade = (snapshot) => {
   };
 };
 
+/**
+ * Shape 2 to 3: each cut list row's panel records how many boards it takes, which its part's
+ * stock already holds. Nothing is recomputed.
+ */
+const addPanelBoards: SnapshotUpgrade = (snapshot) => {
+  const outputs = snapshot.outputs as {
+    design: { parts: { id: string; stock: Stored }[] };
+    cutList: { partId: string; panel?: Stored }[];
+  };
+  const boards = new Map(outputs.design.parts.map((part) => [part.id, part.stock.boards]));
+  return {
+    ...snapshot,
+    outputs: {
+      ...outputs,
+      cutList: outputs.cutList.map((row) =>
+        row.panel ? { ...row, panel: { ...row.panel, boards: boards.get(row.partId) } } : row,
+      ),
+    },
+  };
+};
+
 export const recordCabinet: TemplateDefinition<
   RecordCabinetParams,
   RecordCabinetStructuralInputs,
@@ -79,8 +100,8 @@ export const recordCabinet: TemplateDefinition<
   outputs: RecordCabinetOutputs,
   storedOutputs: RecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
-  snapshotVersion: 2,
-  snapshotUpgrades: { 1: addFlattening },
+  snapshotVersion: 3,
+  snapshotUpgrades: { 1: addFlattening, 2: addPanelBoards },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,
   steps: (outputs) => stepOutline(outputs.design),

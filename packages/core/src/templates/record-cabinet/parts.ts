@@ -63,6 +63,14 @@ export function cabinetParts(
     v1: g.topDepth,
     depth: j,
   }));
+  const topStock = stockFor(g.topDepth, p.width);
+  const panelStockFor = stockFor(p.caseDepth, g.panelLength);
+  const shelfStock = stockFor(p.caseDepth, g.shelfLength);
+  const railStock = stockFor(p.railHeight, g.shelfLength);
+  if (!topStock || !panelStockFor || !shelfStock || !railStock) return { ok: false, issues };
+  // A rail of one board is not flattened, so it is as thick as the board, and its dado fits it.
+  const r = railStock.thickness;
+
   // A side or partition, on the face toward a bay: the shelf's dado, and the back rail's.
   const housings = (face: Dado['face']): Dado[] => [
     {
@@ -79,7 +87,7 @@ export function cabinetParts(
       face,
       u0: p.height - t - p.railHeight,
       u1: p.height - t,
-      v0: p.caseDepth - t,
+      v0: p.caseDepth - r,
       v1: p.caseDepth,
       depth: j,
     },
@@ -98,12 +106,6 @@ export function cabinetParts(
     boltAreas: [],
     tapers: [],
   };
-  const topStock = stockFor(g.topDepth, p.width);
-  const panelStockFor = stockFor(p.caseDepth, g.panelLength);
-  const shelfStock = stockFor(p.caseDepth, g.shelfLength);
-  const railStock = stockFor(p.railHeight, g.shelfLength);
-  if (!topStock || !panelStockFor || !shelfStock || !railStock) return { ok: false, issues };
-
   const panel = (id: string, name: string, quantity: number, dadoes: Dado[], note: string) => ({
     ...base,
     id,

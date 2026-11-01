@@ -39,7 +39,7 @@ export type PanelAllowances = z.infer<typeof PanelAllowances>;
 
 /** A panel part's stock: its finished size and the boards it is glued from. */
 export const PanelStock = z.object({
-  /** Finished thickness, inches. */
+  /** Finished thickness, inches. One board ripped to width keeps the board's thickness. */
   thickness: z.number(),
   /** Finished width, inches. */
   width: z.number(),
@@ -107,7 +107,7 @@ export function panelStock(input: {
   return {
     ok: true,
     stock: {
-      thickness,
+      thickness: boards === 1 ? board.thickness : thickness,
       width,
       board,
       boards,
