@@ -32,6 +32,8 @@ export const PanelAllowances = z.object({
   rip: z.number().nonnegative(),
   /** Extra length at each end of each board, cut off when the panel is cut to length. */
   trimPerEnd: z.number().nonnegative(),
+  /** Thickness taken off a glued-up panel to bring its faces flat and level across the joints. */
+  flatten: z.number().nonnegative(),
 });
 export type PanelAllowances = z.infer<typeof PanelAllowances>;
 
@@ -94,6 +96,14 @@ export function panelStock(input: {
     1,
     Math.ceil((width + allowances.rip - 2 * a) / (board.width - 2 * a) - WHOLE),
   );
+  // Only a glued-up panel is flattened; one board ripped to width keeps its thickness.
+  const flattened = board.thickness - allowances.flatten;
+  if (boards > 1 && thickness > flattened) {
+    return refuse(
+      'panel-thicker-than-flattened',
+      `A ${formatLength(thickness)} panel can't be glued up from ${board.nominal}: it is ${formatLength(board.thickness)} thick, and flattening the glued-up panel takes off ${formatLength(allowances.flatten)}, leaving ${formatLength(flattened)}.`,
+    );
+  }
   return {
     ok: true,
     stock: {

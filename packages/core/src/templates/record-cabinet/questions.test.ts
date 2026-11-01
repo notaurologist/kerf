@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { buildFromForm } from '../../model/form.ts';
 import { suggestedValues } from '../../model/questions.ts';
 import { recordCabinet } from './definition.ts';
 import { CABINET_QUESTIONS } from './questions.ts';
@@ -63,10 +64,12 @@ describe('record cabinet starting questions', () => {
     expect([0, 1, 2].map((i) => at(suggestions, `board.lengths.${i}`)?.value)).toEqual([4, 6, 8]);
   });
 
-  it('makes each dado a quarter of the panel thickness, leaving half of a partition', () => {
-    // 3/4" panels: 3/16" dadoes on both faces leave 3/4 − 2 × 3/16 = 3/8".
+  it('flattens the 3/4" boards to 11/16" panels, with dadoes leaving over half a partition', () => {
+    // 3/4 − 1/16 = 11/16. A quarter of 11/16 is 11/64, rounded down to 1/16 is 1/8; dadoes on
+    // both faces leave 11/16 − 2 × 1/8 = 7/16, over half of 11/16.
+    expect(at(suggestions, 'panelThickness')?.value).toBe(0.6875);
     const dado = at(suggestions, 'dadoDepth');
-    expect(dado?.value).toBe(0.1875);
+    expect(dado?.value).toBe(0.125);
     expect(dado?.basis.kind).toBe('rule-of-thumb');
   });
 
@@ -75,17 +78,24 @@ describe('record cabinet starting questions', () => {
       'allowances.jointPerEdge',
       'allowances.rip',
       'allowances.trimPerEnd',
+      'allowances.flatten',
       'stoppedSetback',
     ];
-    expect(rules.map((path) => at(suggestions, path)?.value)).toEqual([0.0625, 0.5, 1, 0.5]);
+    expect(rules.map((path) => at(suggestions, path)?.value)).toEqual([
+      0.0625, 0.5, 1, 0.0625, 0.5,
+    ]);
     expect(rules.every((path) => at(suggestions, path)?.basis.kind === 'rule-of-thumb')).toBe(true);
   });
 
-  it('suggests every parameter, so a plan can be saved from the answers alone', () => {
+  it('suggests every parameter, and they make a plan', () => {
     const { params } = suggestedValues(recordCabinet.form, suggestions);
-    expect(
-      Object.entries(params).filter(([path, text]) => text === '' && path !== 'board.lengths.3'),
-    ).toEqual([]);
+    const empty = Object.entries(params).filter(([, text]) => text === '');
+    expect(empty.map(([path]) => path)).toEqual(['board.lengths.3']);
+    const made = recordCabinet.generate(
+      recordCabinet.params.parse(buildFromForm(recordCabinet.form.params, params)),
+      {},
+    );
+    expect(made.ok).toBe(true);
   });
 
   it('is offered by the template', () => {

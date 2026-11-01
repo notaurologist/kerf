@@ -53,7 +53,7 @@ export const RECORD_CABINET_FORM: TemplateForm = {
         length(
           'panelThickness',
           'Panel thickness',
-          'What is left after flattening the glued-up panels.',
+          'What is left after flattening the glued-up panels: the board thickness less the flattening.',
         ),
         length(
           'dadoDepth',
@@ -99,6 +99,11 @@ export const RECORD_CABINET_FORM: TemplateForm = {
           'allowances.trimPerEnd',
           'Trim, per end',
           'Extra length on each board, cut off with the panel’s ends. About 1" is usual.',
+        ),
+        length(
+          'allowances.flatten',
+          'Flattening',
+          'Thickness taken off a glued-up panel to make its faces flat and level. About 1/16" is usual, so 3/4" boards make 11/16" panels.',
         ),
       ],
     },

@@ -116,8 +116,18 @@ const PANEL_RULES = {
     value: 1,
     rule: 'boards about 2" over length, cut off with the panel’s ends',
   },
+  'allowances.flatten': {
+    value: 0.0625,
+    rule: 'about 1/16" off a glued-up panel to level its joints',
+  },
   stoppedSetback: { value: 0.5, rule: 'far enough back that the end of the dado does not show' },
 } as const;
+
+/** The suggested 1x6 board, and the panel it flattens to. */
+const BOARD = { thickness: 0.75, width: 5.5 } as const;
+const PANEL = BOARD.thickness - PANEL_RULES['allowances.flatten'].value;
+/** A quarter of the panel, rounded down to the 1/16" a router's depth is usually set in. */
+const DADO = Math.floor((PANEL / 4) * 16) / 16;
 
 /** A suggestion inside the parameter's range, or none, with what the answers allow. */
 function within(
@@ -172,7 +182,6 @@ function suggest(a: CabinetAnswers): Suggestion[] {
       [
         'caseDepth',
         'bays',
-        'panelThickness',
         'endOverhang',
         'frontOverhang',
         'shelfHeight',
@@ -183,16 +192,28 @@ function suggest(a: CabinetAnswers): Suggestion[] {
     ).map(example),
     {
       from: 'params',
+      path: 'panelThickness',
+      value: PANEL,
+      basis: { kind: 'rule-of-thumb', rule: 'the board thickness less the flattening' },
+    },
+    {
+      from: 'params',
       path: 'dadoDepth',
-      value: WORKED_EXAMPLE.panelThickness / 4,
+      value: DADO,
       basis: {
         kind: 'rule-of-thumb',
-        rule: 'a dado at most a third of the thickness it is cut into. A partition has one on each face, so a quarter of the panel thickness leaves half of it between them',
+        rule: 'a dado at most a third of the thickness it is cut into. A partition has one on each face, so at most a quarter of the panel thickness, rounded down to 1/16", leaves at least half of it between them',
       },
     },
     example('jacket'),
-    { from: 'params', path: 'board.thickness', value: 0.75, basis: ONE_BY_SIX, note: MEASURE },
-    { from: 'params', path: 'board.width', value: 5.5, basis: ONE_BY_SIX, note: MEASURE },
+    {
+      from: 'params',
+      path: 'board.thickness',
+      value: BOARD.thickness,
+      basis: ONE_BY_SIX,
+      note: MEASURE,
+    },
+    { from: 'params', path: 'board.width', value: BOARD.width, basis: ONE_BY_SIX, note: MEASURE },
     ...WORKED_EXAMPLE.board.lengths.map(
       (feet, i): Suggestion => ({
         from: 'params',

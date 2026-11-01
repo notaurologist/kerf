@@ -3,8 +3,9 @@ import type { RecordCabinetStructuralInputs } from './structural.ts';
 
 // Worked examples from docs/templates/record-cabinet.md. The turntable's size and weight are
 // illustrative, since the owner has not bought it; the speaker is the Sonos Five as Sonos lists it
-// (spec, [S1]). The board stock, allowances, and joint sizes are the values the starting
-// questions suggest, and the moisture range is the Wood Handbook's for individual pieces indoors
+// (spec, [S1]). The boards are 4/4 hardwood surfaced two sides, 13/16" thick (Wood Handbook,
+// Table 6-4), which flattens to the 3/4" panels; the allowances are the values the starting
+// questions suggest. The moisture range is the Wood Handbook's for individual pieces indoors
 // (Table 13-2).
 
 export const WORKED_EXAMPLE: RecordCabinetParams = {
@@ -24,8 +25,8 @@ export const WORKED_EXAMPLE: RecordCabinetParams = {
   jacket: 12.375,
   turntable: { width: 16.5, depth: 13.5, lidHeight: 15 },
   speaker: { width: 14.33, height: 7.99, depth: 6.06, place: 'top' },
-  board: { thickness: 0.75, width: 5.5, lengths: [4, 6, 8] },
-  allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1 },
+  board: { thickness: 0.8125, width: 5.5, lengths: [4, 6, 8] },
+  allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },
 };
 
 const cherry: RecordCabinetStructuralInputs = {
@@ -52,7 +53,8 @@ export const EDGE_EXAMPLE: RecordCabinetParams = {
   cutoutHeight: 8,
   footWidth: 3,
   turntable: { width: 15, depth: 13, lidHeight: 15 },
-  board: { thickness: 1, width: 5.5, lengths: [4, 6, 8] },
+  // 5/4 surfaced two sides is 1-1/16" (Wood Handbook, Table 6-4), which flattens to 1".
+  board: { thickness: 1.0625, width: 5.5, lengths: [4, 6, 8] },
 };
 
 export const EXAMPLES: readonly {

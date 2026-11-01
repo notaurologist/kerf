@@ -61,12 +61,13 @@ export const Operation = z.discriminatedUnion('type', [
     width: z.number(),
     length: z.number(),
   }),
-  /** Bring the faces of a glued-up panel flat and level across its joints. */
+  /** Bring the faces of a glued-up panel flat and level across its joints, to `thickness`. */
   z.object({
     ...onPart,
     type: z.literal('flatten'),
     width: z.number(),
     length: z.number(),
+    thickness: z.number(),
   }),
   /**
    * A dado (Part.dadoes) that reaches two opposite edges. `length` runs between them; `width` is
@@ -325,6 +326,7 @@ function panelOperations(part: Part, stock: PanelStock): Operation[] {
         count: part.quantity,
         width: gluedWidth,
         length,
+        thickness: stock.thickness,
       },
     );
   }

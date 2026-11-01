@@ -26,6 +26,9 @@ const PINNED: Record<string, Record<string, string>> = {
     'v12.json': 'c7f81f3c29fe7e0f4ff609e16aac8f42c7d537544c35a7048a44d175679a2b47',
     'v13.json': 'b0109364a4ff20247065d30f8b0407488375154f00ce75af331c1c0a084220cf',
   },
+  'record-cabinet': {
+    'v1.json': 'b74091595976a0736584ba361abd263e0ce720235059180bc8495944fc20b24f',
+  },
 };
 
 const templatesFolder = join(

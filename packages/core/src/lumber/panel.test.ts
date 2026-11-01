@@ -2,13 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { type BoardStock, type PanelAllowances, PartStock, panelStock } from './panel.ts';
 import { stock } from './stock.ts';
 
+// 4/4 cherry surfaced two sides, 13/16" thick, which flattens to a 3/4" panel.
 const cherry: BoardStock = {
-  nominal: '1x6 cherry',
-  thickness: 0.75,
+  nominal: '4/4 cherry',
+  thickness: 0.8125,
   width: 5.5,
   buyableFeet: [4, 6, 8],
 };
-const allowances: PanelAllowances = { jointPerEdge: 1 / 16, rip: 0.5, trimPerEnd: 1 };
+const allowances: PanelAllowances = {
+  jointPerEdge: 1 / 16,
+  rip: 0.5,
+  trimPerEnd: 1,
+  flatten: 1 / 16,
+};
 
 function made(width: number, board = cherry, given = allowances) {
   const result = panelStock({ thickness: 0.75, width, length: 19.4375, board, allowances: given });
@@ -34,7 +40,7 @@ describe('panelStock', () => {
 
   it('uses whole boards exactly when the width and allowances fill them', () => {
     // No allowances: 11 / 5.5 = 2 boards, glued to 11.
-    const none = { jointPerEdge: 0, rip: 0, trimPerEnd: 0 };
+    const none = { jointPerEdge: 0, rip: 0, trimPerEnd: 0, flatten: 0 };
     expect(made(11, cherry, none)).toMatchObject({
       boards: 2,
       gluedWidth: 11,
@@ -42,7 +48,7 @@ describe('panelStock', () => {
     });
     // (16 + 0.1 − 0.2) / (5.5 − 0.2) is 3 exactly, though in floating point it comes out as
     // 3.0000000000000004. Glued width = 3 · 5.5 − 2 · 0.1 · 2 = 16.1 = 16 + the 0.1 rip.
-    const tenths = { jointPerEdge: 0.1, rip: 0.1, trimPerEnd: 0 };
+    const tenths = { jointPerEdge: 0.1, rip: 0.1, trimPerEnd: 0, flatten: 0 };
     const exact = made(16, cherry, tenths);
     expect(exact.boards).toBe(3);
     expect(exact.gluedWidth).toBeCloseTo(16.1, 12);
@@ -56,6 +62,26 @@ describe('panelStock', () => {
   it('refuses a panel thicker than its boards', () => {
     const result = panelStock({ thickness: 1, width: 15, length: 20, board: cherry, allowances });
     expect(result).toMatchObject({ ok: false, issue: { code: 'panel-thicker-than-board' } });
+  });
+
+  it('refuses a glued-up panel thicker than its boards less flattening', () => {
+    // 3/4" boards less 1/16" of flattening leave 11/16", short of a 3/4" panel.
+    const board = { ...cherry, nominal: '1x6 poplar', thickness: 0.75 };
+    const result = panelStock({ thickness: 0.75, width: 15, length: 20, board, allowances });
+    expect(result).toEqual({
+      ok: false,
+      issue: {
+        code: 'panel-thicker-than-flattened',
+        message:
+          'A 3/4" panel can\'t be glued up from 1x6 poplar: it is 3/4" thick, and flattening the glued-up panel takes off 1/16", leaving 11/16".',
+        params: [],
+      },
+    });
+    // 11/16" fits exactly, and one board ripped to width is not flattened, so 3/4" fits.
+    expect(panelStock({ thickness: 0.6875, width: 15, length: 20, board, allowances }).ok).toBe(
+      true,
+    );
+    expect(panelStock({ thickness: 0.75, width: 3, length: 20, board, allowances }).ok).toBe(true);
   });
 
   it('refuses boards that jointing both edges would use up', () => {

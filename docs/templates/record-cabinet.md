@@ -1,6 +1,6 @@
 # Template: record cabinet
 
-Status: template version 1 is built (#301), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Not built yet: assembling the case and finishing in the build steps (#313). The starting questions are built (#314).
+Status: template version 2 is built (#301; version 2 adds the flattening allowance, #319), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Not built yet: assembling the case and finishing in the build steps (#313). The starting questions are built (#314).
 
 A low cabinet with record bays, for a turntable and a speaker, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
 
@@ -34,8 +34,8 @@ Ranges are proposals for the owner's review.
 | Overall height | H | 16–30 | Floor to the top surface. Below 16 there's no room for a record bay and feet. 30 is table height. |
 | Case depth | D_c | 13–20 | Front to back of the sides, partitions, and shelves. Must hold a record jacket (Validation). |
 | Bays | n | 2–4 | Number of equal bays. Partitions: n − 1. |
-| Panel thickness | t | 5/8–1 | Actual, after flattening. One thickness for every panel in version 1. Hardwood 4/4 is 13/16" surfaced two sides (Wood Handbook, Table 6-4, p. 6-6), so 3/4" comes from 4/4 flattened after glue-up. Boards bought already surfaced to 3/4" end up a little thinner once the glued-up panel is flattened, so t is what's left after flattening, and the board stock must be at least t thick (`lumber/panel.ts` refuses a thinner board). |
-| Dado depth | j | 0 < 2·j < t; suggested t/4 | Depth of every dado. Partitions take a shelf dado on both faces at the same height, leaving t − 2·j between them. No published source sets a limit, so the plan shows that thickness and flags the joint for an experienced builder (owner, #283). The suggestion is a rule of thumb: a dado at most a third of the thickness it's cut into, and t/4 on both faces leaves half the partition (#317). |
+| Panel thickness | t | 5/8–1 | Actual, after flattening. One thickness for every panel in version 1. Hardwood 4/4 is 13/16" surfaced two sides (Wood Handbook, Table 6-4, p. 6-6), so 3/4" comes from 4/4 flattened after glue-up. Boards bought already surfaced to 3/4" end up a little thinner once the glued-up panel is flattened, so t is what's left after flattening: a glued-up panel's boards must be at least t plus the flattening allowance thick, and a part of one board at least t (`lumber/panel.ts` refuses a thinner board). Suggested as the board thickness less the flattening, 11/16 from 3/4 boards (#319). |
+| Dado depth | j | 0 < 2·j < t; suggested t/4, rounded down to 1/16 | Depth of every dado. Partitions take a shelf dado on both faces at the same height, leaving t − 2·j between them. No published source sets a limit, so the plan shows that thickness and flags the joint for an experienced builder (owner, #283). The suggestion is a rule of thumb: a dado at most a third of the thickness it's cut into, and t/4 on both faces leaves half the partition, rounded down to the 1/16 a router is set in, 1/8 for 11/16 panels (#317). |
 | Stopped-dado setback | s_d | 0 < s_d < D_c; suggested 1/2 | How far the top's dadoes stop short of the case's front edge, so the joint doesn't show from the front. A design choice, not a strength rule (owner, #283). |
 | End overhang | o_s | 0–2 | Top beyond each side. |
 | Front overhang | o_f | 0–2 | Top beyond the case's front. |
@@ -48,7 +48,7 @@ Ranges are proposals for the owner's review.
 | Turntable lid height | T_h | owner-entered | Height with the lid fully open, for clearance below the window. |
 | Speaker | S_w × S_h × S_d, place | owner-entered | Sonos lists the Five at 14.33" W × 7.99" H × 6.06" D, 13.89 lb. [S1] It plays stereo lying flat and mono standing upright. [S1] Place: on the top, or on bay k's shelf. |
 | Board stock | | suggested 3/4 × 5-1/2; 4, 6, 8 ft | Actual thickness and width, and the lengths the store sells, for the boards the panels are glued from (owner, #278). The suggested size is a dry 1x6 board (American Softwood Lumber Standard, PS 20-10, Table 3), to be checked against the store's boards (#317). Dealer hardwood sold by the board foot is #296. |
-| Panel allowances | | suggested 1/16, 1/2, 1 | Jointing per glued edge, rip, and trim per end (`DOMAIN.md`, Edge-glued panels). No published source gives them, so the suggestions are rules of thumb (#317). |
+| Panel allowances | | suggested 1/16, 1/2, 1, 1/16 | Jointing per glued edge, rip, trim per end, and flattening (`DOMAIN.md`, Edge-glued panels). No published source gives them, so the suggestions are rules of thumb (#317, #319). |
 | Species and grain | | owner-entered | Species for every panel, and ring orientation (flatsawn, quartersawn, unknown) for movement (#284). |
 
 ## Derived geometry
@@ -146,7 +146,7 @@ Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s =
 
 Cut list: top 54 × 15-3/4; left side, right side, and partitions (2) 19-7/16 × 15; bottom shelves (3) 16-7/8 × 15; back rails (3) 16-7/8 × 3. All 3/4 thick.
 
-Panels, with the suggested board stock and allowances: boards 3/4 × 5-1/2, jointing 1/16 per glued edge, rip 1/2, trim 1 per end. Boards per panel n = ⌈(width + 1/2 − 1/8) / (5-1/2 − 1/8)⌉ = ⌈(width + 0.375) / 5.375⌉; glued width n·5.5 − 0.125·(n − 1); board length = part length + 2.
+Panels, with the suggested allowances and 4/4 hardwood surfaced two sides, 13/16 thick (Wood Handbook, Table 6-4), which flattens to t = 3/4: boards 13/16 × 5-1/2, jointing 1/16 per glued edge, rip 1/2, trim 1 per end, flattening 1/16 (13/16 − 1/16 = 3/4). Boards per panel n = ⌈(width + 1/2 − 1/8) / (5-1/2 − 1/8)⌉ = ⌈(width + 0.375) / 5.375⌉; glued width n·5.5 − 0.125·(n − 1); board length = part length + 2.
 
 | Part | Width | n | Glued width | Board length | Boards |
 |---|---|---|---|---|---|
@@ -231,3 +231,4 @@ Answers suggest parameters (M8), each labeled as the owner's choice:
 5. **Speaker placement:** decided for the owner's plan, on the top beside the turntable, so all three bays hold records (October 31, 2026). Its top stands about 6" above the window stool. The template still offers a bay's bottom shelf.
 6. **Bays:** decided, equal bays, three in the owner's plan (October 31, 2026). Two or four cost or gain only 3/4" of record width per partition. Three keeps shelf sag negligible and gives an even front under the window.
 7. **Panel stock:** decided on #278, then changed on #317 (owner, November 1, 2026): the board stock and allowances start from suggested values the owner can change, so a beginner need not know them. Panels from dealer hardwood wait on #296.
+8. **Flattening:** decided on #319 (owner, November 1, 2026). A flattening allowance sits with the other panel allowances, and a glued-up panel must be no thicker than its boards less it. The dado methods say to cut each dado to the part it holds as made, measured, rather than to the plan's number.
