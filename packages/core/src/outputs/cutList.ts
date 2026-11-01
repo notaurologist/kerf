@@ -54,12 +54,14 @@ function stockText(stock: PartStock): string {
 function panelOf(stock: PartStock): CutListRow['panel'] {
   if (!isPanel(stock)) return undefined;
   const { board, boards } = stock;
+  // A board stock named by its size, as the owner's often is, is not given it twice.
+  const named = board.nominal === size(board) ? board.nominal : `${board.nominal} (${size(board)})`;
   const width = formatLength(stock.width);
   const boardLength = formatLength(stock.boardLength);
   const recipe =
     boards === 1
-      ? `1 board of ${board.nominal} (${size(board)}), ${boardLength} long, ripped to ${width}`
-      : `${boards} boards of ${board.nominal} (${size(board)}), each ${boardLength} long, glued to ${formatLength(stock.gluedWidth)} wide and ripped to ${width}`;
+      ? `1 board of ${named}, ${boardLength} long, ripped to ${width}`
+      : `${boards} boards of ${named}, each ${boardLength} long, glued to ${formatLength(stock.gluedWidth)} wide and ripped to ${width}`;
   return { width, boardLength, recipe };
 }
 

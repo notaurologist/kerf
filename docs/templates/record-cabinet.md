@@ -1,6 +1,6 @@
 # Template: record cabinet
 
-Status: ready for the owner's review (#273). The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Nothing here is implemented.
+Status: template version 1 is built (#301), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Not built yet: assembling the case and finishing in the build steps (#313), and the starting questions (#314).
 
 A low cabinet with record bays, for a turntable and a speaker, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
 
@@ -126,7 +126,7 @@ Checklist, not computed:
 
 From the rough measurements: stool about 22" high, 56" wide. The owner's choices so far: top about 2" below the stool, width to match the window trim. The trim width isn't measured, so 54" stands in for it. The owner's exact measurements go in the app, not here.
 
-Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s = 3/4, o_f = 3/4, h_f = 5-1/4, h_c = 4, f_w = 2-1/2, h_r = 3.
+Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s = 3/4, o_f = 3/4, h_f = 5-1/4, h_c = 4, f_w = 2-1/2, h_r = 3. The template's worked example adds a turntable 16-1/2 wide, 13-1/2 deep, and 15 high with its lid open, and 20 lb, all illustrative since it isn't bought yet, and the Five on the top. Its structural inputs are cherry, flatsawn, 6% to 10% moisture content (the Wood Handbook's range for individual pieces indoors, Table 13-2), 40 lb per foot of records, the Five's 13.89 lb [S1], and L/144.
 
 | Value | Working | Result |
 |---|---|---|
