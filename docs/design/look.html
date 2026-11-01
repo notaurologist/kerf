@@ -289,9 +289,9 @@ details > summary { cursor: pointer; font-weight: 600; }
 .m .state.shop { background: var(--tag-shop); }
 .m .state.build { background: var(--tag-build); }
 .m[data-wood]:not([data-wood="w0"]) .state.build { box-shadow: inset 4px 0 0 var(--build-band); border-color: var(--build-band); }
-.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .state.build { box-shadow: inset 4px 0 0 var(--wood-1); border-color: var(--wood-1); }
+.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .state.build { box-shadow: inset 4px 0 0 color-mix(in oklch, var(--build-band), white 45%); border-color: color-mix(in oklch, var(--build-band), white 45%); }
 .m[data-wood]:not([data-wood="w0"]) .state.shop { box-shadow: inset 4px 0 0 var(--shop-band); border-color: var(--shop-band); }
-.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .state.shop { box-shadow: inset 4px 0 0 #7fa9ad; border-color: #7fa9ad; }
+.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .state.shop { box-shadow: inset 4px 0 0 color-mix(in oklch, var(--shop-band), white 45%); border-color: color-mix(in oklch, var(--shop-band), white 45%); }
 .m[data-wood]:not([data-wood="w0"]) .resume { border-color: var(--build-band); border-inline-start-width: 6px; }
 .m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .resume { border-color: var(--wood-2); }
 .m .cap2 { font-size: 0.875rem; padding: 8px 16px 0; }
@@ -299,21 +299,29 @@ details > summary { cursor: pointer; font-weight: 600; }
 .roles > div { display: grid; grid-template-columns: minmax(7rem, 10rem) 1fr; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .roles .sw { display: inline-block; width: 1em; height: 1em; border: 1px solid var(--ink); vertical-align: -0.15em; margin-inline-end: 6px; }
 @media (max-width: 34rem) { .roles > div { grid-template-columns: 1fr; } }
+.m[data-wood="w4"] { --wood-1: #ece4d2; --wood-2: #d8d0bf; --wood-3: #c2baa9; --shop-band: #034649; --build-band: #4c311e; --tag-shop: #cff1f3; --tag-build: #fae5d7; }
+.m[data-wood="w4"][data-mode="dark"] { --wood-1: #615a4b; --wood-2: #514a3b; --wood-3: #413a2c; --shop-band: #023538; --build-band: #3c220f; --tag-shop: #153335; --tag-build: #3a2a1f; }
+.m[data-wood="w5"] { --wood-1: #f6e2c0; --wood-2: #e3cead; --wood-3: #ccb897; --shop-band: #39346a; --build-band: #4c311e; --tag-shop: #e7e7ff; --tag-build: #fae5d7; }
+.m[data-wood="w5"][data-mode="dark"] { --wood-1: #6a583a; --wood-2: #59472a; --wood-3: #48381a; --shop-band: #2b2458; --build-band: #3c220f; --tag-shop: #2b2a48; --tag-build: #3a2a1f; }
+.m[data-wood="w6"] { --wood-1: #f6e2c0; --wood-2: #e3cead; --wood-3: #ccb897; --shop-band: #034649; --build-band: #772e11; --tag-shop: #cff1f3; --tag-build: #ffe3d9; }
+.m[data-wood="w6"][data-mode="dark"] { --wood-1: #6a583a; --wood-2: #59472a; --wood-3: #48381a; --shop-band: #023538; --build-band: #631e01; --tag-shop: #153335; --tag-build: #492112; }
+.m[data-wood="w7"] { --wood-1: #f6e2c0; --wood-2: #e3cead; --wood-3: #ccb897; --shop-band: #016770; --build-band: #9b4805; --tag-shop: #c0f5fb; --tag-build: #ffe3d5; }
+.m[data-wood="w7"][data-mode="dark"] { --wood-1: #6a583a; --wood-2: #59472a; --wood-3: #48381a; --shop-band: #00555c; --build-band: #833b01; --tag-shop: #02353a; --tag-build: #4b1f01; }
 </style>
 
 <main>
 <header class="stack prose">
   <p class="eyebrow">Design milestone · #226 · Stage 10</p>
   <h1>Another look: color, type, and the key screens</h1>
-  <p>Every screen now exists, and the frame from Stage 9 is built. Round 1 asked how far to move from what is built today, and you took D2 as the starting point. Round 2, first below, asks how color can do more on top of D2. Every mock-up follows the Light and Dark switch and is measured.</p>
+  <p>Every screen now exists, and the frame from Stage 9 is built. Round 1 asked how far to move from what is built today, and you took D2 as the starting point. Round 2 asked how color can do more on top of D2, and you leaned toward W1. Round 2b, first below, sets W1 against five other palettes. Every mock-up follows the Light and Dark switch and is measured.</p>
 </header>
 
-<section class="answers" aria-labelledby="ans2">
-  <h2 id="ans2">Round 2: what I'd like you to decide</h2>
+
+<section class="answers" aria-labelledby="ans2b">
+  <h2 id="ans2b">Round 2b: W1 against five other palettes</h2>
+  <p>Each new palette changes one thing from W1, so you can see what that one thing does: the wood, the Shopping color, the Building color, or how strong the bars are. The color jobs from round 2 stay the same.</p>
   <ol>
-    <li><b>Which palette for the lumber and the two modes.</b> W1 pine and spruce, W2 oak and slate, W3 cedar and plum, or none. Suggested: <b>W1</b>.</li>
-    <li><b>Which of the new jobs color should do.</b> Each can go in on its own: wood for lumber in drawings, boards and Shopping; a color for each mode's bar; the same colors on a project's state and the Resume card. Suggested: all three.</li>
-    <li>D2 from round 1 stays the base, as you said.</li>
+    <li><b>Which palette.</b> Suggested: <b>W5, pine and indigo</b>. It keeps W1's wood and walnut and swaps spruce for indigo, and its two mode colors are the furthest apart for every kind of vision I tested. W1 is the close second.</li>
   </ol>
 </section>
 
@@ -326,9 +334,66 @@ details > summary { cursor: pointer; font-weight: 600; }
   <span class="small muted">Glare lays a veil of white over the mock-ups, as light reflected off a screen does.</span>
 </div>
 
+
+<section class="stack" aria-labelledby="r2b">
+  <div class="stack prose">
+    <h2 id="r2b">Round 2b: the palettes side by side</h2>
+    <ul>
+      <li><b>W1 · Pine and spruce</b>: round 2's suggestion, for reference.</li>
+      <li><b>W4 · Birch</b>: a paler, grayer wood; the same bars.</li>
+      <li><b>W5 · Pine and indigo</b>: indigo for Shopping.</li>
+      <li><b>W6 · Pine and rust</b>: rust for Building.</li>
+      <li><b>W7 · Bold</b>: stronger, lighter teal and orange bars.</li>
+    </ul>
+  </div>
+  <div class="set" data-screen="build2" data-round="2b"></div>
+  <div class="set" data-screen="shop2" data-round="2b"></div>
+  <div class="set" data-screen="projects2" data-round="2b"></div>
+  <div class="set" data-screen="drawing" data-round="2b"></div>
+
+  <article class="stack">
+    <h3>Each against W1</h3>
+    <p class="prose small muted">Separation is ΔE × 100 in OKLab: normal vision, then deuteranopia and protanopia simulated (Machado 2009). W1's two mode bars are 10.6, 6.9 and 7.7 apart.</p>
+    <div class="critique">
+      <div><h4>W4 · Birch</h4><ul>
+        <li><b>Better:</b> further from the flag's amber fill (3.9 apart, against 2.2 for pine), so a flag under a drawing never reads as part of it.</li>
+        <li><b>Worse:</b> it reads as pale gray as much as wood, so drawings move back toward D2's grays and say less about the material.</li>
+      </ul></div>
+      <div><h4>W5 · Pine and indigo</h4><ul>
+        <li><b>Better:</b> the two mode bars are 13.0, 13.2 and 13.2 apart, so they stay equally distinct for every kind of vision tested. With W1 they drop to 6.9 for deuteranopia. The state tags are the most even pair too (5.3 to 5.7).</li>
+        <li><b>Worse:</b> indigo belongs to the blue family that means attention. The bar is dark and solid and attention blue is a mark or an outline, so they don't meet in use, but it is the nearest of the five to the attention blue (14.7 apart).</li>
+      </ul></div>
+      <div><h4>W6 · Pine and rust</h4><ul>
+        <li><b>Better:</b> rust is a warmer, more workshop color for Building. It is the most distinct pair for normal vision (17.3).</li>
+        <li><b>Worse:</b> for protanopia it gains little over W1 (8.2 against 7.7). Rust is in the red family, which Stage 4 keeps away from structural results. Building shows no margins, but a project's state tag can sit near the plan.</li>
+      </ul></div>
+      <div><h4>W7 · Bold</h4><ul>
+        <li><b>Better:</b> the mode shows from farthest away, and the bars are the furthest apart (20.7, 15.3 and 12.7).</li>
+        <li><b>Worse:</b> bar text falls to 6.0:1, and to 3.3:1 under 20% glare, the weakest here. A bright orange bar sits close to the amber of expert checks. It is the least calm of the five, against Stage 4's aim that the few things needing attention stand out.</li>
+      </ul></div>
+    </div>
+    <div class="stack prose">
+      <h4>Suggested: W5</h4>
+      <p>The point of a mode color is to tell Shopping from Building at a glance. W5 does that equally well for every kind of vision tested, keeps W1's wood and walnut, and every pair meets AA. If indigo feels too close to the blue in use, W1 is the fallback.</p>
+    </div>
+  </article>
+  <div class="stack prose"><h3>Measured</h3><p>Every pair meets its minimum without glare.</p></div>
+  <div id="tables2b" class="stack"></div>
+</section>
+
+<h2 class="prose" style="padding-top:24px;border-top:2px solid var(--line)">Round 2: color with a job</h2>
+<section class="answers" aria-labelledby="ans2">
+  <h2 id="ans2">Round 2: what I asked you to decide</h2>
+  <ol>
+    <li><b>Which palette for the lumber and the two modes.</b> W1 pine and spruce, W2 oak and slate, W3 cedar and plum, or none. Suggested: <b>W1</b>.</li>
+    <li><b>Which of the new jobs color should do.</b> Each can go in on its own: wood for lumber in drawings, boards and Shopping; a color for each mode's bar; the same colors on a project's state and the Resume card. Suggested: all three.</li>
+    <li>D2 from round 1 stays the base, as you said.</li>
+  </ol>
+</section>
+
 <section class="stack" aria-labelledby="r2">
   <div class="stack prose">
-    <h2 id="r2">Round 2: color with a job</h2>
+    <h3 id="r2">What round 2 proposed</h3>
     <p>You took D2 as the starting point and asked whether color could be used more effectively. D2 took the blue off actions, which leaves the screens mostly graphite. This round adds color back, but each color names one thing the owner needs to tell apart, and names it the same way on every screen. That follows the research on color coding: color speeds finding things when there are a few codes and each means one thing, and slows it when color is decorative or the codes are many (Richard E. Christ, "Review and analysis of color coding research for visual displays", <i>Human Factors</i> 17(6), 1975).</p>
     <h3>What each color means</h3>
   </div>
@@ -673,6 +738,7 @@ const SCREENS = {
 let mode = 'light';
 function render() {
   render2();
+  render2b();
   for (const set of document.querySelectorAll('.set:not([data-round])')) {
     const screen = set.dataset.screen;
     set.innerHTML = DIRS.map(([dir, name, note]) => `
@@ -774,6 +840,26 @@ document.getElementById('tables2').innerHTML = Object.entries(WOOD).map(([k, v])
   <tbody>${v.rows.map(([label, need, ...vals]) => `<tr><td>${label}</td><td class="n">${need}</td>${vals
     .map((x) => `<td class="n${x < need ? ' low' : ''}">${x.toFixed(2)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
   <p class="small muted">Shopping and Building bars, ΔE × 100 in OKLab: ${v.bands.normal} normal, ${v.bands.deutan} deuteranopia, ${v.bands.protan} protanopia. Their state tags: ${v.tags.normal}, ${v.tags.deutan}, ${v.tags.protan}. Lightest wood face to the flag fill: ${v.flag}.</p></details>`).join('');
+
+
+const WOOD2B = {"W1": {"name": "Pine and spruce", "note": "Pine; spruce and walnut bars", "rows": [["Ink on wood, lightest face", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood, darkest face", 4.5, 8.74, 9.5, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 10.11, 11.24, 4.01, 3.89], ["Bar text on Building bar", 4.5, 11.31, 12.35, 4.16, 3.99], ["Text on Shopping tag", 4.5, 14.09, 11.33, 4.11, 3.89], ["Text on Building tag", 4.5, 13.87, 11.52, 4.05, 3.91]], "bands": {"normal": 10.6, "deutan": 6.9, "protan": 7.7}, "tags": {"normal": 6.2, "deutan": 4.2, "protan": 3.8}, "flag": 2.2}, "W4": {"name": "Birch", "note": "Paler, grayer wood; the same bars", "rows": [["Ink on wood, lightest face", 4.5, 13.34, 5.74, 3.93, 3.06], ["Ink on wood, darkest face", 4.5, 8.75, 9.45, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 10.11, 11.24, 4.01, 3.89], ["Bar text on Building bar", 4.5, 11.31, 12.35, 4.16, 3.99], ["Text on Shopping tag", 4.5, 14.09, 11.33, 4.11, 3.89], ["Text on Building tag", 4.5, 13.87, 11.52, 4.05, 3.91]], "bands": {"normal": 10.6, "deutan": 6.9, "protan": 7.7}, "tags": {"normal": 6.2, "deutan": 4.2, "protan": 3.8}, "flag": 3.9}, "W5": {"name": "Pine and indigo", "note": "Pine; indigo for Shopping", "rows": [["Ink on wood, lightest face", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood, darkest face", 4.5, 8.74, 9.5, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 10.66, 11.79, 4.08, 3.94], ["Bar text on Building bar", 4.5, 11.31, 12.35, 4.16, 3.99], ["Text on Shopping tag", 4.5, 13.89, 11.55, 4.06, 3.91], ["Text on Building tag", 4.5, 13.87, 11.52, 4.05, 3.91]], "bands": {"normal": 13.0, "deutan": 13.2, "protan": 13.2}, "tags": {"normal": 5.6, "deutan": 5.7, "protan": 5.3}, "flag": 2.2}, "W6": {"name": "Pine and rust", "note": "Pine; rust for Building", "rows": [["Ink on wood, lightest face", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood, darkest face", 4.5, 8.74, 9.5, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 10.11, 11.24, 4.01, 3.89], ["Bar text on Building bar", 4.5, 9.15, 10.27, 3.88, 3.79], ["Text on Shopping tag", 4.5, 14.09, 11.33, 4.11, 3.89], ["Text on Building tag", 4.5, 13.86, 11.68, 4.05, 3.93]], "bands": {"normal": 17.3, "deutan": 11.6, "protan": 8.2}, "tags": {"normal": 6.8, "deutan": 4.0, "protan": 3.6}, "flag": 2.2}, "W7": {"name": "Bold", "note": "Pine; brighter bars in a stronger teal and orange", "rows": [["Ink on wood, lightest face", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood, darkest face", 4.5, 8.74, 9.5, 2.84, 3.69], ["Bar text on Shopping bar", 4.5, 6.29, 7.19, 3.34, 3.35], ["Bar text on Building bar", 4.5, 6.01, 6.81, 3.27, 3.28], ["Text on Shopping tag", 4.5, 14.23, 11.21, 4.14, 3.88], ["Text on Building tag", 4.5, 13.83, 11.79, 4.04, 3.94]], "bands": {"normal": 20.7, "deutan": 15.3, "protan": 12.7}, "tags": {"normal": 8.9, "deutan": 5.7, "protan": 5.2}, "flag": 2.2}};
+const VARS2B = Object.entries(WOOD2B).map(([k, v]) => [k.toLowerCase(), `${k} · ${v.name}`, v.note]);
+function render2b() {
+  for (const set of document.querySelectorAll('.set[data-round="2b"]')) {
+    const screen = set.dataset.screen;
+    set.innerHTML = VARS2B.map(([w, name, note]) => `
+      <figure class="shot" style="margin:0">
+        <figcaption class="cap"><b>${name}</b> · ${note}</figcaption>
+        <div class="glare"><div class="m phone" data-dir="d2" data-wood="${w}" data-mode="${mode}">${SCREENS2[screen]()}</div></div>
+      </figure>`).join('');
+  }
+}
+document.getElementById('tables2b').innerHTML = Object.entries(WOOD2B).map(([k, v]) => `
+  <details${k === 'W5' ? ' open' : ''}><summary>${k} · ${v.name}</summary><div class="wrap"><table class="t">
+  <thead><tr><th>Foreground on background</th><th>Needs</th><th>Light</th><th>Dark</th><th>Light, 20% glare</th><th>Dark, 20% glare</th></tr></thead>
+  <tbody>${v.rows.map(([label, need, ...vals]) => `<tr><td>${label}</td><td class="n">${need}</td>${vals
+    .map((x) => `<td class="n${x < need ? ' low' : ''}">${x.toFixed(2)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  <p class="small muted">Mode bars, ΔE × 100 in OKLab: ${v.bands.normal} normal, ${v.bands.deutan} deuteranopia, ${v.bands.protan} protanopia. State tags: ${v.tags.normal}, ${v.tags.deutan}, ${v.tags.protan}. Lightest wood face to the flag fill: ${v.flag}.</p></details>`).join('');
 
 document.getElementById('glare').addEventListener('input', (e) => document.body.style.setProperty('--glare', e.target.value));
 render();

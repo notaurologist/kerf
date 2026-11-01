@@ -20,7 +20,7 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
 | 8. Brand: logo, wordmark, icons | #166 | Decided October 2026: the end-cut k; built | `brand.html`, `brand.md` |
 | 9. An app frame, motion, loading, and the keyboard | #254 | Decided October 2026: F2, M2, L1, K1; built (#265 to #267) | `app-frame.html` |
-| 10. Another look: color, type, and the key screens | #226 | Round 1: D2 taken as the starting point. Round 2 (color with a job: W1, W2, W3) waiting for the owner | `look.html` |
+| 10. Another look: color, type, and the key screens | #226 | Round 1: D2 taken as the starting point. Round 2: color with a job; the owner leans to W1. Round 2b (W1 against W4 to W7) waiting for the owner | `look.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
 
