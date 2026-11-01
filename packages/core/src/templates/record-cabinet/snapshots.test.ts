@@ -7,11 +7,12 @@ import { recordCabinet } from './definition.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
 import v2 from './snapshots/v2.json' with { type: 'json' };
 import v3 from './snapshots/v3.json' with { type: 'json' };
+import v4 from './snapshots/v4.json' with { type: 'json' };
 
 // Stored record-cabinet projects stay readable (decision 0014). Each fixture holds the worked
 // examples as that template version stores them. Fixtures are never rewritten.
 
-const FIXTURES: Record<number, readonly unknown[]> = { 1: v1, 2: v2, 3: v3 };
+const FIXTURES: Record<number, readonly unknown[]> = { 1: v1, 2: v2, 3: v3, 4: v4 };
 const template = recordCabinet as TemplateDefinition;
 
 /** Cut list rows as shapes before 3 stored them, without each panel's board count. */

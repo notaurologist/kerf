@@ -100,8 +100,9 @@ export const recordCabinet: TemplateDefinition<
   outputs: RecordCabinetOutputs,
   storedOutputs: RecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
-  snapshotVersion: 3,
-  snapshotUpgrades: { 1: addFlattening, 2: addPanelBoards },
+  snapshotVersion: 4,
+  // Shape 3 to 4 adds assembly and finish operations, which older plans simply do not have.
+  snapshotUpgrades: { 1: addFlattening, 2: addPanelBoards, 3: (snapshot) => snapshot },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,
   steps: (outputs) => stepOutline(outputs.design),

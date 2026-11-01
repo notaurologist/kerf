@@ -10,7 +10,7 @@ import { cabinetParts } from './parts.ts';
 // parts in cut-list order, placements, operations, and hardware. Pure.
 
 export const TEMPLATE_ID = 'record-cabinet';
-export const TEMPLATE_VERSION = 3;
+export const TEMPLATE_VERSION = 4;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
@@ -32,8 +32,16 @@ export function generate(params: RecordCabinetParams): GenerateResult<CabinetDes
   const made = cabinetParts(params, g);
   if (!made.ok) return made;
   const parts = withLetters(made.parts);
+  const all = parts.map((part) => part.id);
+  const caseParts = all.filter((id) => id !== 'top');
+  // The top sits in dadoes on the sides and partitions only.
+  const topJoins = all.filter((id) => id === 'top' || id.startsWith('side') || id === 'partition');
+  // Clamps reach across the case, side to side, and from the top down to the sides' bottom ends.
   const operations = [
     ...cutAndDrillOperations(parts, []),
+    { id: 'case/dry-fit', type: 'dry-fit', count: 1, partIds: all, reach: g.caseWidth },
+    { id: 'case/glue', type: 'glue-assembly', count: 1, partIds: caseParts, reach: g.caseWidth },
+    { id: 'top/glue', type: 'glue-assembly', count: 1, partIds: topJoins, reach: params.height },
     ...parts.map(
       (part): Operation => ({
         id: `${part.id}/ease-edges`,
@@ -42,7 +50,8 @@ export function generate(params: RecordCabinetParams): GenerateResult<CabinetDes
         count: part.quantity,
       }),
     ),
-  ];
+    { id: 'case/finish', type: 'finish', count: 1, partIds: all },
+  ] satisfies Operation[];
   const hardware: HardwareItem[] = [
     {
       id: 'glue',

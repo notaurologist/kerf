@@ -3,15 +3,19 @@ import type { StepOutline } from '../../steps/build.ts';
 import type { CabinetDesign } from './template.ts';
 
 // The order of the build steps after the boards are cut (spec, Build steps): make the panels, cut
-// them to size, cut the joinery, and ease the edges. Assembling the case and finishing have no
-// operation types yet.
+// them to size, cut the joinery, fit the case dry, glue it up and then the top, ease the edges
+// once the joints are closed, and finish.
 
-const STEPS: { id: string; title: string; types: readonly OperationType[] }[] = [
+const STEPS: { id: string; title: string; types: readonly OperationType[]; ids?: string[] }[] = [
   { id: 'panels', title: 'Glue up the panels', types: ['joint-edges', 'glue-up', 'flatten'] },
   { id: 'size', title: 'Cut the panels to size', types: ['rip', 'crosscut'] },
   { id: 'dadoes', title: 'Cut the dadoes', types: ['dado', 'stopped-dado'] },
   { id: 'feet', title: 'Cut the notches and the feet', types: ['notch', 'cutout'] },
+  { id: 'dry-fit', title: 'Fit the case together dry', types: ['dry-fit'] },
+  { id: 'case', title: 'Glue up the case', types: ['glue-assembly'], ids: ['case/glue'] },
+  { id: 'top', title: 'Glue on the top', types: ['glue-assembly'], ids: ['top/glue'] },
   { id: 'ease', title: 'Ease the edges', types: ['ease-edges'] },
+  { id: 'finish', title: 'Finish', types: ['finish'] },
 ];
 
 export function stepOutline(design: Pick<CabinetDesign, 'operations'>): StepOutline[] {
@@ -20,7 +24,9 @@ export function stepOutline(design: Pick<CabinetDesign, 'operations'>): StepOutl
   return STEPS.map((s) => ({
     id: s.id,
     title: s.title,
-    operationIds: rest.filter((op) => s.types.includes(op.type)).map((op) => op.id),
+    operationIds: rest
+      .filter((op) => s.types.includes(op.type) && (!s.ids || s.ids.includes(op.id)))
+      .map((op) => op.id),
     categories: [],
   })).filter((s) => s.operationIds.length > 0);
 }
