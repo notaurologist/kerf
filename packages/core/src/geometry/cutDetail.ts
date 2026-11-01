@@ -195,9 +195,10 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     prims.push({
       kind: 'text',
       role: 'note',
-      at: { x: (xOf(left) + xOf(right)) / 2, y: above - 0.55 * W },
+      at: { x: (xOf(left) + xOf(right)) / 2, y: above },
       text: 'Not to scale between the breaks',
       anchor: 'middle',
+      side: 'above',
       part: ref,
     });
   }
@@ -237,19 +238,20 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       });
     }
     // The hole size and the bolt size, labeled as each (#110): one note per pair, below the
-    // positions.
+    // positions, whose length is known only once they are shown.
     const sizes = [...new Set(holes.map((h) => `${h.diameter}\n${h.boltDiameter}`))];
-    sizes.forEach((key, i) => {
+    for (const key of sizes) {
       const [hole, bolt] = key.split('\n').map(Number) as [number, number];
       prims.push({
         kind: 'text',
         role: 'note',
-        at: { x: xOf(left), y: y + (0.45 + 0.4 * i) * W },
+        at: { x: xOf(left), y },
         text: `Drill ${formatLength(hole)} holes for ${formatLength(bolt)} bolts`,
         anchor: 'start',
+        side: 'below',
         part: ref,
       });
-    });
+    }
   }
 
   // Each end's saw setting: a square line from the long point, the arc to the cut, the setting,
@@ -371,9 +373,10 @@ function dimension(
   prims.push({
     kind: 'text',
     role: 'dimension',
-    at: { x: (from.x + to.x) / 2, y: y + offset * 0.3 },
+    at: { x: (from.x + to.x) / 2, y },
     text,
     anchor: 'middle',
+    side,
     part,
   });
 }
