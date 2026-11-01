@@ -180,6 +180,20 @@ export const Tenon = z.object({
 });
 export type Tenon = z.infer<typeof Tenon>;
 
+/**
+ * A hole a wood screw passes through, square to the part's face at (u, v): round, or a slot
+ * `slot` longer than the round hole, toward the second end (`along`) or the far edge (`across`),
+ * so the part the screw holds can move (DOMAIN.md, Joints that let wood move).
+ */
+export const ScrewHole = z.object({
+  hardwareId: z.string(),
+  u: z.number(),
+  v: z.number(),
+  slot: z.number(),
+  direction: z.enum(['along', 'across']),
+});
+export type ScrewHole = z.infer<typeof ScrewHole>;
+
 export const Part = z.object({
   id: z.string(),
   /** Names the part in the cut list and every drawing, assigned in cut-list order (#66). */
@@ -216,6 +230,7 @@ export const Part = z.object({
   /** Left out when there are none, so parts stored before them read unchanged. */
   mortises: z.array(Mortise).optional(),
   tenons: z.array(Tenon).optional(),
+  screwHoles: z.array(ScrewHole).optional(),
 });
 export type Part = z.infer<typeof Part>;
 

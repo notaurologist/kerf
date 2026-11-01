@@ -105,6 +105,12 @@ export const SKILLS = [
       'Mark the pocket, remove the waste to a steady depth, and pare the walls straight and square to the marks, testing the fit with its tenon.',
   },
   {
+    id: 'cut-a-screw-slot',
+    name: 'Cutting a screw slot',
+    description:
+      'Drill and clean out a slot the screw slides along, running the way the part it holds will move, and drive the screw snug rather than tight.',
+  },
+  {
     id: 'cut-a-tenon',
     name: 'Cutting a tenon',
     description:

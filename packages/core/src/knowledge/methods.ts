@@ -77,6 +77,7 @@ export const Method = z.object({
     'cutout',
     'mortise',
     'tenon',
+    'screw-holes',
     'bolt-holes',
     'ease-edges',
     'dry-fit',
@@ -186,6 +187,13 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     length: { kind: 'length', of: (op) => op.length },
     width: { kind: 'length', of: (op) => op.width },
     depth: { kind: 'length', of: (op) => op.depth },
+  },
+  'screw-holes': {
+    count,
+    round: { kind: 'count', of: (op) => op.round },
+    slotted: { kind: 'count', of: (op) => op.slotted },
+    slot: { kind: 'length', of: (op) => op.slot },
+    thickness: { kind: 'length', of: (op) => op.thickness },
   },
   tenon: {
     count,
@@ -1549,6 +1557,74 @@ export const METHODS = [
     flags: [categoryFlag('router')],
     easierThan: [],
     moreAccurateThan: ['tenon-hand-saw'],
+  },
+
+  // Screw holes, round or slotted (DOMAIN.md, Joints that let wood move)
+  {
+    id: 'screw-holes-drill',
+    operation: 'screw-holes',
+    name: 'With a drill',
+    tools: [
+      { use: 'drilling the holes', anyOf: [{ tool: 'drill-driver' }, { tool: 'drill-press' }] },
+      { use: 'smoothing the slots', anyOf: [{ tool: 'chisel' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'drill-straight', 'cut-a-screw-slot'],
+    setup: [
+      'Mark each hole where the cut detail shows it, and which ones are slots.',
+      'Fit a bit the screw slides through without threading into the wood: its clearance hole, as the screw maker gives it.',
+      'Clamp the part flat on scrap, so the bit comes out clean.',
+    ],
+    technique: [
+      'Drill {round} round holes straight through the {thickness} part.',
+      'For each of the {slotted} slots, drill the first hole, then a second {slot} beyond it the way the slot runs, and holes between them so they overlap.',
+      'Pare the sides of each slot straight with the chisel, so the screw slides from one end to the other.',
+      'Drill {count} this way.',
+    ],
+    mistakes: [
+      'A slot run the wrong way stops the part from moving, which can split it. Check which way each slot runs before you drill.',
+      'Driving a screw in a slot tight pins the part. Turn it until it is snug, so its head can still slide.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'screw-holes-router',
+    operation: 'screw-holes',
+    name: 'With a drill and a router',
+    tools: [
+      {
+        use: 'drilling the round holes',
+        anyOf: [{ tool: 'drill-driver' }, { tool: 'drill-press' }],
+      },
+      { use: 'routing the slots', anyOf: [{ tool: 'router' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'rout-along-a-guide', 'cut-a-screw-slot'],
+    setup: [
+      'Mark each hole where the cut detail shows it, and which ones are slots.',
+      'Fit a drill bit the screw slides through without threading into the wood, and a straight router bit of the same width.',
+      'Clamp the part on scrap, with a straight board as a guide alongside each slot.',
+    ],
+    technique: [
+      'Drill {round} round holes straight through the {thickness} part.',
+      'Rout each of the {slotted} slots through the part against the guide, {slot} longer than its round hole, a little deeper each time.',
+      'Drill {count} this way.',
+    ],
+    mistakes: [
+      'A slot run the wrong way stops the part from moving, which can split it. Check which way each slot runs before you rout.',
+      'Driving a screw in a slot tight pins the part. Turn it until it is snug, so its head can still slide.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED],
+    flags: [categoryFlag('router')],
+    easierThan: [],
+    moreAccurateThan: ['screw-holes-drill'],
   },
 
   // Bolt holes
