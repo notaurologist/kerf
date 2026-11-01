@@ -11,11 +11,11 @@ A low cabinet with record bays, for a turntable and a speaker, to stand in front
 - **The top** is one panel. It overhangs the sides at each end and the case at the front, and it's flush at the back. The sides and partitions are housed in stopped dadoes in its underside.
 - **Feet:** below the bottom shelves, each side and partition has a rectangular cutout, leaving a foot at the front and back. The floor shows between the feet.
 - **A back rail** under the top at the back of each bay resists racking. The back is otherwise open, for air and cords.
-- **Every panel's grain runs the long way:** horizontal in the top and shelves, vertical in the sides and partitions. So every panel moves front to back, together, and no joint fixes one panel across another's grain (`DOMAIN.md`, Wood movement). The back rails are narrow, with their grain across the partitions' grain. Owner's check: confirm that's acceptable once #283 has a source.
+- **Every panel's grain runs the long way:** horizontal in the top and shelves, vertical in the sides and partitions. So every panel moves front to back, together, and no joint fixes one panel across another's grain (`DOMAIN.md`, Wood movement). The back rails are glued into dadoes with their grain across the panels' grain, an interlocking end-to-edge-grain joint. The plan reports each rail's movement (#284) and flags it (owner, #283). Gluing one species, with compatible grain directions, at the moisture content expected in service is what the Wood Handbook recommends to keep these stresses down (Ch. 10, p. 10-7; Ch. 10, p. 10-17).
 - **Open bays,** no doors (owner, October 31, 2026).
 - **Turntable and speaker:** the turntable sits on the top. The speaker sits on the top, or on the shelf of a bay the owner picks. The owner's plan puts it on the top, so every bay holds records (October 31, 2026).
 
-Not covered in version 1: doors, drawers, a back panel, adjustable shelves, a raised shelf for the speaker inside a bay, separate legs or a stand, arched or shaped cutouts, bays of different widths, a solid top on a frame with fasteners that allow movement (#283).
+Not covered in version 1: doors, drawers, a back panel, adjustable shelves, a raised shelf for the speaker inside a bay, separate legs or a stand, arched or shaped cutouts, bays of different widths, a solid top on a frame with fasteners that allow movement (#292).
 
 ## Coordinates
 
@@ -35,7 +35,8 @@ Ranges are proposals for the owner's review.
 | Case depth | D_c | 13–20 | Front to back of the sides, partitions, and shelves. Must hold a record jacket (Validation). |
 | Bays | n | 2–4 | Number of equal bays. Partitions: n − 1. |
 | Panel thickness | t | 5/8–1 | Actual, after flattening. One thickness for every panel in version 1. |
-| Dado depth | j | t/8–t/4 | Depth of every dado. Partitions take a shelf dado on both faces at the same height, so up to t/2 of their thickness goes. The limit is unsourced (Open questions). |
+| Dado depth | j | owner-entered, 0 < 2·j < t | Depth of every dado. Partitions take a shelf dado on both faces at the same height, leaving t − 2·j between them. No source sets a limit, so the plan shows that thickness and flags the joint for an experienced builder (owner, #283). |
+| Stopped-dado setback | s_d | owner-entered, 0 < s_d < D_c | How far the top's dadoes stop short of the case's front edge, so the joint doesn't show from the front. A design choice, not a strength rule (owner, #283). |
 | End overhang | o_s | 0–2 | Top beyond each side. |
 | Front overhang | o_f | 0–2 | Top beyond the case's front. |
 | Shelf height | h_f | 3–10 | Floor to the underside of the bottom shelves. |
@@ -70,13 +71,13 @@ Ranges are proposals for the owner's review.
 
 | Part | Qty | Length | Width | Thickness | Joints |
 |---|---|---|---|---|---|
-| Top | 1 | W | D_t | t | Stopped dadoes across the underside, one per side and partition, j deep, t wide, from the back edge to 1/2" short of the case's front edge |
+| Top | 1 | W | D_t | t | Stopped dadoes across the underside, one per side and partition, j deep, t wide, from the back edge to s_d short of the case's front edge |
 | Side | 2 | H_p | D_c | t | Shelf dado on the inside face, j deep; foot cutout |
 | Partition | n − 1 | H_p | D_c | t | Shelf dadoes on both faces, j deep; foot cutout |
 | Bottom shelf | n | b + 2·j | D_c | t | Housed in dadoes at both ends |
 | Back rail | n | b + 2·j | h_r | t | Housed in dadoes at both ends (rail dadoes in the sides and partitions) |
 
-The stopped dadoes in the top hide the joint at the front. How far short they stop, and the matching notch at each panel's front top corner, need a source (#283).
+Each side and partition gets a notch at its front top corner, s_d long and j deep, so it fits the stopped dado.
 
 ### Foot cutout
 
@@ -105,12 +106,13 @@ Refused:
 - Speaker in bay k when b < S_w or h_b < S_h
 - Speaker on the top when T_w + S_w > W, or turntable depth T_d > D_t
 - h_c ≥ h_f, or 2·f_w ≥ D_c
-- 2·j > t/2 (both faces of a partition)
+- 2·j ≥ t (no wood left between a partition's dadoes), or s_d ≥ D_c
 
 Flags (`DOMAIN.md`, Expert-check categories):
 - **Router technique** and **table saw operations:** dadoes and stopped dadoes.
 - **Jointers, planers:** panel glue-up (#278).
-- **Wood movement:** the back rails' cross-grain joint, and the top's dadoes if species or ring orientation differ between the top and the panels.
+- **Wood movement:** the back rails' cross-grain joint, with each rail's movement across its height (#284), and the top's dadoes if species or ring orientation differ between the top and the panels.
+- **Load-bearing or tip-prone designs:** the wood left between a partition's back-to-back dadoes, t − 2·j.
 - **Load-bearing or tip-prone designs:** record shelves, and a heavy turntable or speaker on top.
 
 Checklist, not computed:
@@ -122,7 +124,7 @@ Checklist, not computed:
 
 From the rough measurements: stool about 22" high, 56" wide. The owner's choices so far: top about 2" below the stool, width to match the window trim. The trim width isn't measured yet, so 54" stands in for it.
 
-Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, o_s = 3/4, o_f = 3/4, h_f = 5-1/4, h_c = 4, f_w = 2-1/2, h_r = 3.
+Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s = 3/4, o_f = 3/4, h_f = 5-1/4, h_c = 4, f_w = 2-1/2, h_r = 3.
 
 | Value | Working | Result |
 |---|---|---|
@@ -137,6 +139,8 @@ Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, o_s = 3/4, o_f =
 | H_p | 20 − 0.75 + 0.1875 | 19.4375 (19-7/16) |
 | Shelf and rail length | 16.5 + 2(0.1875) | 16.875 (16-7/8) |
 | Cutout width | 15 − 2(2.5) | 10 |
+| Left in a partition | 0.75 − 2(0.1875) | 0.375 (3/8), flagged |
+| Notch | s_d × j | 1/2 × 3/16 |
 
 Cut list: top 54 × 15-3/4; sides (2) and partitions (2) 19-7/16 × 15; bottom shelves (3) 16-7/8 × 15; back rails (3) 16-7/8 × 3. All 3/4 thick.
 
@@ -146,7 +150,7 @@ Standing at the window: the top at 20" is 2" below the stool. If the bottom of t
 
 ## Edge of range (hand-checked)
 
-Parameters: W = 30, H = 30, D_c = 13, n = 2, t = 1, j = 1/4, o_s = 1, o_f = 1, h_f = 10, h_c = 8, f_w = 3, h_r = 3. Speaker in bay 1.
+Parameters: W = 30, H = 30, D_c = 13, n = 2, t = 1, j = 1/4, s_d = 1/2, o_s = 1, o_f = 1, h_f = 10, h_c = 8, f_w = 3, h_r = 3. Speaker in bay 1.
 
 | Value | Working | Result |
 |---|---|---|
@@ -159,7 +163,7 @@ Parameters: W = 30, H = 30, D_c = 13, n = 2, t = 1, j = 1/4, o_s = 1, o_f = 1, h
 | H_p | 30 − 1 + 0.25 | 29.25 |
 | Shelf and rail length | 12.5 + 2(0.25) | 13 |
 | Cutout width | 13 − 2(3) | 7 |
-| 2·j vs t/2 | 0.5 vs 0.5 | at the limit, allowed |
+| Left in the partition | 1 − 2(0.25) | 0.5, flagged |
 
 Validation: the speaker in bay 1 is refused, since 12.5 < 14.33. A 12-3/8" jacket fits 13 deep with 5/8" to spare.
 
@@ -200,13 +204,13 @@ Answers suggest parameters (M8), each labeled as the owner's choice:
 ## Sources
 
 - [S1] Sonos, Five product page, specifications, read October 31, 2026: https://www.sonos.com/en-us/shop/five
-- Wood Handbook (2021) and NDS 2024, as cited in `DOMAIN.md`.
+- Wood Handbook (2021) and NDS 2024, as cited in `DOMAIN.md`. Chapter 10 (Wood Adhesives): Moisture Content and Dimensional Changes, p. 10-7; End-to-Edge-Grain Joints, p. 10-17: https://research.fs.usda.gov/treesearch/62250
 
 ## Open questions
 
 1. **Measurements:** stool height A, stool depth B, apron bottom C, casing width D, stool width E.
-2. **Dado depth limit for partitions** taking dadoes on both faces: is t/2 the right limit, and what's its source? (#283 covers joints.)
-3. **Stopped dadoes in the top:** how far short of the front, and the matching notch. Needs a source (#283).
+2. **Dado depth:** decided, owner-entered with no limit, since no source gives one. The plan shows what's left of each partition and flags it (owner, #283).
+3. **Stopped dadoes:** decided, the setback s_d is owner-entered as a design choice (owner, #283).
 4. **Back:** decided, back rails with an open back (owner, October 31, 2026). Racking stays on the checklist for an experienced builder. If more is needed, the next step is a second rail at the bottom back of each bay, before a full back panel.
 5. **Speaker placement:** decided for the owner's plan, on the top beside the turntable, so all three bays hold records (October 31, 2026). Its top stands about 6" above the window stool. The template still offers a bay's bottom shelf.
 6. **Bays:** decided, equal bays, three in the owner's plan (October 31, 2026). Two or four cost or gain only 3/4" of record width per partition. Three keeps shelf sag negligible and gives an even front under the window.
