@@ -3,7 +3,7 @@ import { Citation } from '../design-values/sources.ts';
 import type { Operation, OperationType } from '../model/operations.ts';
 import { formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
-import { FlagCategory } from './categories.ts';
+import { FlagCategory, findExpertCheckCategory } from './categories.ts';
 import { SkillIdSchema } from './skills.ts';
 import { TOOL_TYPES, type ToolTypeId } from './tools.ts';
 
@@ -67,6 +67,10 @@ export const Method = z.object({
     'crosscut',
     'miter',
     'taper',
+    'joint-edges',
+    'glue-up',
+    'flatten',
+    'rip',
     'bolt-holes',
     'ease-edges',
     'dig-holes',
@@ -116,6 +120,28 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
   taper: {
     count,
     angleToEdge: { kind: 'angle', of: (op) => op.angleToEdge },
+    length: { kind: 'length', of: (op) => op.length },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  'joint-edges': {
+    count,
+    length: { kind: 'length', of: (op) => op.length },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  'glue-up': {
+    count,
+    boards: { kind: 'count', of: (op) => op.boards },
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+  },
+  flatten: {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+  },
+  rip: {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
     length: { kind: 'length', of: (op) => op.length },
     thickness: { kind: 'length', of: (op) => op.thickness },
   },
@@ -211,6 +237,58 @@ const DUST_FLAG = {
   why: 'Breathing wood dust can cause allergic and other respiratory symptoms, and dust from treated wood carries the preservative.',
   sources: [{ source: 'osha-wood-dust', locator: 'Overview' }],
 } satisfies z.input<typeof MethodFlag>;
+
+const ETOOL = 'https://www.osha.gov/etools/woodworking/production/machines-tools';
+
+const TABLE_SAW_KICKBACK = {
+  text: 'Kickback is more likely when ripping than crosscutting. Use a spreader, guide the board along the fence, push it past the blade with a push stick, and stand to the side of the blade.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Table Saws: kickbacks and point of operation',
+      url: `${ETOOL}/table-saws`,
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const RIP_BLADE = {
+  text: 'Use a sharp blade made for ripping, set to the height its manual gives. A wrong or dull blade, or the wrong height, makes kickback more likely.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Table Saws: kickbacks',
+      url: `${ETOOL}/table-saws`,
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const JOINTER_GUARD = {
+  text: 'Keep the jointer guard on: it covers the cutterhead except where the board is passing over it. Take light cuts, since a deep cut makes kickback more likely and opens more of the knives.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Jointers: point of operation and kickbacks',
+      url: `${ETOOL}/jointers`,
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const PLANER_ROLLS = {
+  text: 'Keep your hands clear of the in-feed rolls, which can pinch them against the board, and stand out of line with the board in case it kicks back.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Planers: hazards',
+      url: `${ETOOL}/planers`,
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+/** A method flag that asks the category's own question (categories.ts). */
+function categoryFlag(id: FlagCategory): z.input<typeof MethodFlag> {
+  const { category, ask, why, sources } = { category: id, ...findExpertCheckCategory(id) };
+  return { category, ask, why, sources: [...sources] };
+}
 
 // Tool requirements used by several methods.
 const TAPE = { use: 'measuring', anyOf: [{ tool: 'tape-measure' }] } satisfies z.input<
@@ -669,6 +747,295 @@ export const METHODS = [
       'Watching only one face lets the saw lean, so the cut leaves wood on the far face. Check the far face every few strokes.',
     ],
     safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Joint edges (a panel's glued edges). Wood Handbook ch. 10 (pp. 10-3, 10-14): a knife-cut
+  // surface from a jointer bonds best, a well-kept saw makes one good enough, and feeding a jointer
+  // too fast crushes the surface; surface the edges shortly before gluing.
+  {
+    id: 'joint-edges-jointer',
+    operation: 'joint-edges',
+    name: 'With a jointer',
+    tools: [
+      { use: 'jointing the edges', anyOf: [{ tool: 'jointer' }] },
+      {
+        use: 'checking the edge square',
+        anyOf: [{ tool: 'combination-square' }, { tool: 'rafter-square' }],
+      },
+    ],
+    skills: ['joint-an-edge'],
+    setup: [
+      'Set the fence square to the table and check it with the square.',
+      'Set a light cut.',
+      'Lay the boards out in the order they go in the panel and mark a line across all of them, so they go back the same way.',
+    ],
+    technique: [
+      'Hold each board with its face against the fence and feed its edge over the cutterhead at a slow, even speed.',
+      'Keep jointing until the edge is straight along its length, {length}, and square to the face.',
+      'Joint the edges on the day you glue up, so they are still clean and straight.',
+      'Joint {count} edges this way.',
+    ],
+    mistakes: [
+      'Feeding fast crushes the wood and leaves a shiny edge that glue does not soak into. Feed slowly enough that the knives cut cleanly.',
+      'A slight hollow or hump in an edge leaves a gap in the glue line. Hold each pair of mating edges together against a light and look for gaps before you glue.',
+    ],
+    safety: [JOINTER_GUARD, UNPLUG_TO_CHANGE],
+    flags: [categoryFlag('jointer-planer-lathe')],
+    easierThan: [],
+    moreAccurateThan: ['joint-edges-table-saw', 'joint-edges-track-saw'],
+  },
+  {
+    id: 'joint-edges-table-saw',
+    operation: 'joint-edges',
+    name: 'With a table saw',
+    tools: [{ use: 'trimming the edges', anyOf: [{ tool: 'table-saw' }] }],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'Lay the boards out in the order they go in the panel and mark a line across all of them, so they go back the same way.',
+      'Set the fence to trim a thin strip off the edge.',
+    ],
+    technique: [
+      'Rip each glued edge with the opposite edge against the fence, feeding at an even speed for the whole {length}.',
+      'Joint the edges on the day you glue up, so they are still clean and straight.',
+      'Trim {count} edges this way.',
+    ],
+    mistakes: [
+      'An edge sawn with its other edge against the fence is only as straight as that edge. Rip with the straighter edge against the fence first.',
+    ],
+    safety: [TABLE_SAW_KICKBACK, RIP_BLADE, GUARDS_STAY_ON],
+    flags: [categoryFlag('table-saw')],
+    easierThan: [],
+    moreAccurateThan: ['joint-edges-track-saw'],
+  },
+  {
+    id: 'joint-edges-track-saw',
+    operation: 'joint-edges',
+    name: 'With a track saw',
+    tools: [
+      {
+        use: 'trimming the edges',
+        anyOf: [{ tool: 'track-saw' }],
+      },
+      CLAMPS,
+    ],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'Lay the boards out in the order they go in the panel and mark a line across all of them, so they go back the same way.',
+      'Support each board flat on a sacrificial surface and clamp it.',
+    ],
+    technique: [
+      'Lay the rail along the edge so the blade trims a thin strip off its full length, {length}.',
+      'Joint the edges on the day you glue up, so they are still clean and straight.',
+      'Trim {count} edges this way.',
+    ],
+    mistakes: [
+      'A rail that shifts during the cut leaves a curve in the edge. Clamp the board and keep the saw against the rail for the whole cut.',
+    ],
+    safety: [CIRCULAR_SAW_KICKBACK, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    flags: [],
+    easierThan: ['joint-edges-jointer', 'joint-edges-table-saw'],
+    moreAccurateThan: [],
+  },
+
+  // Glue up (a panel). Wood Handbook ch. 10 (pp. 10-14 to 10-16): pressure brings the surfaces into
+  // contact and squeezes the glue into a thin film, too much starves the joint, poorly mated
+  // surfaces leave thick, weak glue lines, and the work stays clamped until the glue holds.
+  {
+    id: 'glue-up-clamps-and-cauls',
+    operation: 'glue-up',
+    name: 'With clamps and cauls',
+    tools: [
+      {
+        use: 'clamping the panel',
+        anyOf: [{ tool: 'clamps', needs: [{ capability: 'maxOpening', atLeast: 'width' }] }],
+      },
+    ],
+    skills: ['glue-up-a-panel'],
+    setup: [
+      'Lay the {boards} boards out in order with your marks lined up, and clamp them dry to check that every joint closes along its length with light pressure.',
+      'Open the clamps past {width}, and cut straight scrap boards for cauls, as long as the panel is wide.',
+    ],
+    technique: [
+      'Spread glue evenly along every glued edge.',
+      'Bring the boards together and put clamps across the panel, alternating above and below it.',
+      'Clamp a caul across each end of the panel, on both faces, to hold the boards level with each other.',
+      'Tighten the clamps evenly until a small bead of glue squeezes out along each joint.',
+      'Leave the panel clamped for as long as the glue maker says.',
+      'Glue up {count} this way.',
+    ],
+    mistakes: [
+      'Clamping as hard as you can squeezes out the glue the joint needs. Tighten only until a small, even bead appears.',
+      'Using clamp pressure to close a gap leaves a thick, weak glue line. Joint the edges again until they meet along their length.',
+      'Glue left to skin over before the boards go together does not wet the other edge. Have everything ready before you spread the glue.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['glue-up-clamps'],
+  },
+  {
+    id: 'glue-up-clamps',
+    operation: 'glue-up',
+    name: 'With clamps alone',
+    tools: [
+      {
+        use: 'clamping the panel',
+        anyOf: [{ tool: 'clamps', needs: [{ capability: 'maxOpening', atLeast: 'width' }] }],
+      },
+    ],
+    skills: ['glue-up-a-panel'],
+    setup: [
+      'Lay the {boards} boards out in order with your marks lined up, and clamp them dry to check that every joint closes along its length with light pressure.',
+      'Open the clamps past {width}.',
+    ],
+    technique: [
+      'Spread glue evenly along every glued edge.',
+      'Bring the boards together and put clamps across the panel, alternating above and below it.',
+      'Tighten the clamps evenly, pressing the faces level at each joint as you go, until a small bead of glue squeezes out along each joint.',
+      'Leave the panel clamped for as long as the glue maker says.',
+      'Glue up {count} this way.',
+    ],
+    mistakes: [
+      'Clamping as hard as you can squeezes out the glue the joint needs. Tighten only until a small, even bead appears.',
+      'Boards that slip out of level as the clamps tighten leave a step to plane or sand away. Check each joint with your fingers before the final tightening.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: ['glue-up-clamps-and-cauls'],
+    moreAccurateThan: [],
+  },
+
+  // Flatten (a glued-up panel). Wood Handbook ch. 10 (p. 10-16): water from the glue swells the
+  // wood along each joint, so a panel surfaced too soon ends up with sunken glue lines.
+  {
+    id: 'flatten-thickness-planer',
+    operation: 'flatten',
+    name: 'With a thickness planer',
+    tools: [
+      {
+        use: 'planing the faces',
+        anyOf: [
+          { tool: 'thickness-planer', needs: [{ capability: 'maxWidth', atLeast: 'width' }] },
+        ],
+      },
+    ],
+    skills: ['flatten-a-panel'],
+    setup: [
+      'Let the panel rest for several days after glue-up, so the wood along the joints dries back before you plane it.',
+      'Scrape off the dried glue on both faces.',
+    ],
+    technique: [
+      'Feed the panel with the grain, taking light cuts and turning it over each time so both faces come down evenly.',
+      'Stop when a straightedge laid across the {width} panel touches everywhere.',
+      'Flatten {count} this way.',
+    ],
+    mistakes: [
+      'Planing the day after glue-up leaves glue lines that sink below the surface as the joints dry. Wait several days.',
+      'Dried glue left on the faces dulls the knives. Scrape it off first.',
+    ],
+    safety: [PLANER_ROLLS],
+    flags: [categoryFlag('jointer-planer-lathe')],
+    easierThan: ['flatten-sander'],
+    moreAccurateThan: ['flatten-sander'],
+  },
+  {
+    id: 'flatten-sander',
+    operation: 'flatten',
+    name: 'With a sander',
+    tools: [{ use: 'sanding the faces', anyOf: [{ tool: 'sander' }] }, CLAMPS],
+    skills: ['flatten-a-panel'],
+    setup: [
+      'Let the panel rest for several days after glue-up, so the wood along the joints dries back before you sand it.',
+      'Scrape off the dried glue on both faces, and clamp the panel flat to the bench.',
+    ],
+    technique: [
+      'Sand across each joint until the faces are level, then sand the whole face with the grain.',
+      'Check with a straightedge laid across the {width} panel as you go.',
+      'Flatten {count} this way.',
+    ],
+    mistakes: [
+      'Holding the sander on a joint digs a hollow beside it. Keep the sander moving over a wide area.',
+    ],
+    safety: [WOOD_DUST, CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Rip (a panel or board to its finished width)
+  {
+    id: 'rip-table-saw',
+    operation: 'rip',
+    name: 'With a table saw',
+    tools: [{ use: 'ripping', anyOf: [{ tool: 'table-saw' }] }, TAPE],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'Set the fence {width} from the blade, measured to the side of a tooth facing the fence.',
+    ],
+    technique: [
+      'Hold the straighter edge against the fence and feed the board at an even speed for the whole {length}.',
+      'Rip {count} this way.',
+    ],
+    mistakes: [
+      'Letting the board drift away from the fence tapers the part and can pinch the blade. Keep it tight to the fence until it is past the blade.',
+    ],
+    safety: [TABLE_SAW_KICKBACK, RIP_BLADE, GUARDS_STAY_ON],
+    flags: [categoryFlag('table-saw')],
+    easierThan: ['rip-circular-saw'],
+    moreAccurateThan: ['rip-track-saw', 'rip-circular-saw'],
+  },
+  {
+    id: 'rip-track-saw',
+    operation: 'rip',
+    name: 'With a track saw',
+    tools: [{ use: 'ripping', anyOf: [{ tool: 'track-saw' }] }, TAPE, CLAMPS],
+    skills: ['measure-and-mark', 'rip-along-a-fence'],
+    setup: ['Support the board flat on a sacrificial surface and clamp it.'],
+    technique: [
+      'Mark {width} from the edge kept at both ends.',
+      'Lay the rail on the marks, with the blade on the waste side, and cut the full {length}.',
+      'Rip {count} this way.',
+    ],
+    mistakes: [
+      'Setting the rail on the wrong side of the marks makes the part narrow by the width of the blade. Keep the blade on the waste side.',
+    ],
+    safety: [CIRCULAR_SAW_KICKBACK, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    flags: [],
+    easierThan: ['rip-table-saw', 'rip-circular-saw'],
+    moreAccurateThan: ['rip-circular-saw'],
+  },
+  {
+    id: 'rip-circular-saw',
+    operation: 'rip',
+    name: 'With a circular saw and a straight guide',
+    tools: [
+      {
+        use: 'ripping',
+        anyOf: [
+          { tool: 'circular-saw', needs: [{ capability: 'depthOfCut', atLeast: 'thickness' }] },
+        ],
+      },
+      TAPE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'guide-a-circular-saw', 'cut-to-a-line'],
+    setup: [
+      'Set the blade a little deeper than the board is thick, {thickness}.',
+      'Support the board on both sides of the cut and clamp it.',
+    ],
+    technique: [
+      'Mark {width} from the edge kept at both ends, and join the marks with a line.',
+      'Clamp a straight board along the line as a guide, set back by the distance from the blade to the edge of the saw base.',
+      'Keep the base tight to the guide and cut the full {length}.',
+      'Rip {count} this way.',
+    ],
+    mistakes: [
+      'A guide that is not straight puts its curve in the part. Sight along the guide board, or use a factory edge.',
+    ],
+    safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
