@@ -74,7 +74,7 @@ export type PanelStock = z.infer<typeof PanelStock>;
 
 /**
  * What a part is cut from: a panel glued from boards, board stock cut to length as it is sold
- * (such as square leg stock), or dimension lumber. Board stock comes before dimension lumber, so
+ * (such as square stock bought ready to cut), or dimension lumber. Board stock comes before dimension lumber, so
  * one named like a dimension size keeps its own lengths.
  */
 export const PartStock = z.union([PanelStock, BoardStock, Stock]);
