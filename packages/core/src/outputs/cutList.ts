@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isPanel, type PartStock } from '../lumber/panel.ts';
+import { isBoardStock, isPanel, type PartStock } from '../lumber/panel.ts';
 import type { Part } from '../model/types.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
@@ -50,6 +50,8 @@ const size = (s: { thickness: number; width: number }) =>
   `${formatLength(s.thickness)} x ${formatLength(s.width)}`;
 
 function stockText(stock: PartStock): string {
+  // Board stock named by its size, as the owner's often is, is not given it twice.
+  if (isBoardStock(stock) && stock.nominal === size(stock)) return stock.nominal;
   if (!isPanel(stock)) return `${stock.nominal} (${size(stock)})`;
   return `${stock.boards === 1 ? 'Board' : 'Panel'} (${size(stock)})`;
 }

@@ -168,6 +168,18 @@ export const Operation = z.discriminatedUnion('type', [
     shoulderReference: z.number(),
     shoulderFar: z.number(),
   }),
+  /**
+   * Clearance holes for wood screws through a part (Part.screwHoles), `round` of them round and
+   * `slotted` lengthened by `slot` so what they hold can move. Counts are per piece.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('screw-holes'),
+    round: z.number().int().nonnegative(),
+    slotted: z.number().int().nonnegative(),
+    slot: z.number(),
+    thickness: z.number(),
+  }),
   /** Round over sharp edges and sand off splinters on every face a person can touch. */
   z.object({ ...onPart, type: z.literal('ease-edges') }),
   /**
@@ -299,6 +311,20 @@ export function cutAndDrillOperations(
         shoulderFar: width - t.v0 - t.width,
       });
     });
+    const screws = part.screwHoles ?? [];
+    if (screws.length > 0) {
+      const slots = screws.filter((h) => h.slot > 0);
+      ops.push({
+        id: `${part.id}/screw-holes`,
+        type: 'screw-holes',
+        partId: part.id,
+        count: part.quantity,
+        round: screws.length - slots.length,
+        slotted: slots.length,
+        slot: Math.max(0, ...slots.map((h) => h.slot)),
+        thickness,
+      });
+    }
     part.cutouts.forEach((c, i) => {
       if (part.ends[c.end].setting !== 0)
         throw new Error(`${part.id}/cutout-${i} is on an angled end`);
@@ -479,6 +505,7 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   cutout: 'Cutout',
   mortise: 'Mortise',
   tenon: 'Tenon',
+  'screw-holes': 'Screw holes',
   'bolt-holes': 'Bolt holes',
   'ease-edges': 'Ease edges',
   'dry-fit': 'Dry-fit',

@@ -230,6 +230,36 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     });
   }
 
+  // Screw holes: a cross at each round hole; a slot drawn as its length the way it runs.
+  for (const h of part.screwHoles ?? []) {
+    const c = page({ u: h.u, v: h.v });
+    const r = 0.06 * W;
+    prims.push({
+      kind: 'line',
+      role: 'center',
+      points: [
+        { x: c.x - r, y: c.y },
+        { x: c.x + r, y: c.y },
+      ],
+      part: ref,
+    });
+    prims.push({
+      kind: 'line',
+      role: 'center',
+      points: [
+        { x: c.x, y: c.y - r },
+        { x: c.x, y: c.y + r },
+      ],
+      part: ref,
+    });
+    if (h.slot > 0) {
+      const end = page(
+        h.direction === 'along' ? { u: h.u + h.slot, v: h.v } : { u: h.u, v: h.v + h.slot },
+      );
+      prims.push({ kind: 'line', role: 'visible', points: [c, end], part: ref });
+    }
+  }
+
   // Overall length above, long point to long point.
   const us = blank.map((p) => p.u);
   const left = Math.min(...us);
@@ -451,6 +481,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       const from = onFace ? `the ${part.referenceEdge}` : 'the back face';
       return `Mortise ${formatLength(m.u0)} from the first end, in ${where}: ${formatLength(m.u1 - m.u0)} long, ${formatLength(m.a1 - m.a0)} wide, ${formatLength(m.depth)} deep, starting ${formatLength(m.a0)} from ${from}.`;
     }),
+    ...screwNotes(part),
     ...(part.tenons ?? []).map(
       (t) =>
         `Tenon at the ${endName(t.end)}: ${formatLength(t.length)} long, ${formatLength(t.thickness)} thick, ${formatLength(t.width)} wide, ${formatLength(t.n0)} from the back face and ${formatLength(t.v0)} from the ${part.referenceEdge}.`,
@@ -476,6 +507,21 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       ...joinery,
     ],
   };
+}
+
+/** What the screw holes are, in words: how many are round, and how long and which way the slots run. */
+function screwNotes(part: Part): string[] {
+  const holes = part.screwHoles ?? [];
+  if (holes.length === 0) return [];
+  const slots = holes.filter((h) => h.slot > 0);
+  const round = holes.length - slots.length;
+  const ways = [...new Set(slots.map((h) => h.direction))].map((d) =>
+    d === 'along' ? 'toward the second end' : 'toward the far edge',
+  );
+  const longest = Math.max(0, ...slots.map((h) => h.slot));
+  return [
+    `Screw holes: ${round} round${slots.length > 0 ? `, and ${slots.length} slotted ${formatLength(longest)} longer, ${ways.join(' and ')}, so the part they hold can move` : ''}.`,
+  ];
 }
 
 /** A dimension between two page points, its line at height `y`, its text above or below it. */

@@ -165,3 +165,68 @@ describe('methods', () => {
     expect(selectMethod(ten, tools(...marking, 'hand-saw')).chosen?.id).toBe('tenon-hand-saw');
   });
 });
+
+describe('screw holes', () => {
+  // A 2x4 cleat 12" long holding a case bottom that moves 0.149" toward the back: a round hole at
+  // the front, 1" in, and two slots behind it, each 0.149 + 1/16 = 0.2115" longer, toward the
+  // second end.
+  const slot = 0.149 + 0.0625;
+  const cleat: Part = {
+    ...base,
+    id: 'cleat',
+    letter: 'C',
+    name: 'Cleat',
+    role: 'cleat',
+    stock: stock('2x4'),
+    quantity: 2,
+    length: 12,
+    referenceEdge: 'bottom edge',
+    screwHoles: [
+      { hardwareId: 'screw', u: 1, v: 1.75, slot: 0, direction: 'along' },
+      { hardwareId: 'screw', u: 6, v: 1.75, slot, direction: 'along' },
+      { hardwareId: 'screw', u: 10.5, v: 1.75, slot, direction: 'along' },
+    ],
+  };
+
+  it('become one operation per part, with the round and slotted counts and the slot', () => {
+    const [op] = cutAndDrillOperations([cleat], []).filter((o) => o.type === 'screw-holes');
+    expect(op).toEqual({
+      id: 'cleat/screw-holes',
+      type: 'screw-holes',
+      partId: 'cleat',
+      count: 2,
+      round: 1,
+      slotted: 2,
+      slot,
+      thickness: 1.5,
+    });
+  });
+
+  it('are marked on the cut detail, each slot drawn its length toward the second end', () => {
+    const detail = cutDetail(cleat);
+    expect(detail.notes).toContain(
+      'Screw holes: 1 round, and 2 slotted 3/16" longer, toward the second end, so the part they hold can move.',
+    );
+    const slots = detail.primitives.filter(
+      (p) => p.kind === 'line' && p.role === 'visible' && p.points.length === 2,
+    );
+    const lengths = slots.map((p) =>
+      p.kind === 'line' ? (p.points[1]?.x ?? 0) - (p.points[0]?.x ?? 0) : 0,
+    );
+    expect(lengths).toHaveLength(2);
+    for (const length of lengths) expect(length).toBeCloseTo(slot, 12);
+  });
+
+  it('are drilled and pared, or routed when there is a router', () => {
+    const [op] = cutAndDrillOperations([cleat], []).filter((o) => o.type === 'screw-holes');
+    if (!op) throw new Error('no operation');
+    const kit = (...ids: string[]): Inventory => ({
+      tools: ['tape-measure', 'combination-square', 'clamps', 'drill-driver', ...ids].map(
+        (toolTypeId) => ({ toolTypeId, capabilities: {} }),
+      ),
+      other: [],
+    });
+    expect(selectMethod(op, kit('chisel')).chosen?.id).toBe('screw-holes-drill');
+    expect(selectMethod(op, kit('router')).chosen?.id).toBe('screw-holes-router');
+  });
+});

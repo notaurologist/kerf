@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type BoardStock, panelStock } from '../lumber/panel.ts';
+import { type BoardStock, PartStock, panelStock } from '../lumber/panel.ts';
 import { stock } from '../lumber/stock.ts';
 import type { HardwareItem, Part } from '../model/types.ts';
 import { cutList, panelMade } from './cutList.ts';
@@ -273,5 +273,60 @@ describe('hardwareList', () => {
       bolt('a', 1, 0.5, 5),
     ]);
     expect(lines.at(-1)).toEqual({ description: 'Hinge', quantity: 2, group: 'Other' });
+  });
+});
+
+describe('parts cut straight from board stock', () => {
+  // Square leg stock, 1-1/2" sold in 3' and 4' lengths: four legs 7-1/2" long need
+  // 2 × 1/2 trim + 4 × (7-1/2 + 1/8 kerf) = 31-1/2", so one 3' piece (36").
+  const legStock: BoardStock = {
+    nominal: '1-1/2" x 1-1/2"',
+    thickness: 1.5,
+    width: 1.5,
+    buyableFeet: [3, 4],
+  };
+  const leg: Part = {
+    id: 'leg',
+    letter: 'A',
+    name: 'Leg',
+    role: 'leg',
+    stock: legStock,
+    quantity: 4,
+    length: 7.5,
+    markLengths: [],
+    ends: [
+      { setting: 0, description: 'Square', measuredFrom: 'reference-edge' },
+      { setting: 0, description: 'Square', measuredFrom: 'reference-edge' },
+    ],
+    endsParallel: true,
+    notes: [],
+    selection: [],
+    referenceEdge: 'inside edge',
+    holes: [],
+    boltAreas: [],
+    tapers: [],
+    dadoes: [],
+    notches: [],
+    cutouts: [],
+  };
+
+  it('plans them on the stock’s own lengths', () => {
+    const plan = planLumber([leg]);
+    expect(plan.lines).toEqual([{ nominal: '1-1/2" x 1-1/2"', feet: 3, count: 1 }]);
+    expect(plan.boards[0]?.offcut).toBe(4.5);
+  });
+
+  it('names the stock once when its name is its size, and with its size otherwise', () => {
+    expect(cutList([leg])[0]?.stock).toBe('1-1/2" x 1-1/2"');
+    const named = { ...leg, stock: { ...legStock, nominal: 'Maple leg stock' } };
+    expect(cutList([named])[0]?.stock).toBe('Maple leg stock (1-1/2" x 1-1/2")');
+    expect(cutList([leg])[0]).not.toHaveProperty('panel');
+  });
+
+  it('reads back as board stock, keeping its lengths', () => {
+    expect(PartStock.parse(legStock)).toEqual(legStock);
+    // Named like dimension lumber, it still keeps its own lengths.
+    const twoByFour = { ...legStock, nominal: '2x4' };
+    expect(PartStock.parse(twoByFour)).toEqual(twoByFour);
   });
 });

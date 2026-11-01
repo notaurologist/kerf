@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type BoardStock, isPanel } from '../lumber/panel.ts';
+import { type BoardStock, isBoardStock, isPanel } from '../lumber/panel.ts';
 import { Issue, type Part } from '../model/types.ts';
 import { formatLength } from '../units/length.ts';
 
@@ -164,7 +164,7 @@ export function planLumber(
     } else {
       add(
         stock,
-        options.buyableFeet,
+        isBoardStock(stock) ? stock.buyableFeet : options.buyableFeet,
         { partId: part.id, name: part.name, length: part.length },
         part.quantity,
       );
