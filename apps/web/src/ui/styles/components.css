@@ -67,15 +67,6 @@
     display: none;
   }
 
-  /* A heading the contents moves focus to shows where focus went without a box around it. */
-  .k-section > h2:focus {
-    outline: none;
-  }
-
-  .k-section > h2:focus-visible {
-    outline: var(--focus-width) solid var(--focus);
-  }
-
   /* ---------- Figures (#119): a label over a value, as many to a row as fit ---------- */
   /* The plan's headline figures (Stage 10): ruled like a drawing's title block, and set large so
      the summary reads as the answer. */
