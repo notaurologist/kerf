@@ -1,4 +1,6 @@
 export {
+  CREEP,
+  type CreepCondition,
   FACTOR_APPLICABILITY_SOURCES,
   INCISING,
   LOAD_DURATION,

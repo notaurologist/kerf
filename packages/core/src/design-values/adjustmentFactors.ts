@@ -75,3 +75,20 @@ export const REPETITIVE_MEMBER = {
   minimumMembers: 3,
   sources: [{ source: 'nds-2024', locator: '4.3.9, p. 32', url: SOURCE_LINKS.ndsChapter4 }],
 } as const;
+
+/**
+ * Time-dependent deformation (creep) factor K_cr for total deflection under long-term loading:
+ * Δ_T = K_cr · Δ_LT + Δ_ST (NDS 3.5.2, Eq. 3.5-1). Keyed by the lumber's condition and service.
+ */
+export const CREEP = {
+  'seasoned-dry': { K_cr: 1.5, description: 'Seasoned lumber in dry service' },
+  'unseasoned-or-wet': {
+    K_cr: 2.0,
+    description: 'Unseasoned lumber, or seasoned lumber in wet service',
+  },
+  sources: [
+    { source: 'nds-2024', locator: '3.5.2, Eq. 3.5-1, p. 22', url: SOURCE_LINKS.ndsChapter3 },
+  ],
+} as const;
+
+export type CreepCondition = Exclude<keyof typeof CREEP, 'sources'>;

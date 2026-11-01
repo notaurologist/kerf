@@ -38,6 +38,11 @@ export {
   type UniformLoad,
 } from './checks.ts';
 export {
+  type ClearWoodDeflectionInput,
+  type ClearWoodMember,
+  clearWoodChecks,
+} from './clearWood.ts';
+export {
   type AdjustedValues,
   adjustedValues,
   beamStabilityFactor,
