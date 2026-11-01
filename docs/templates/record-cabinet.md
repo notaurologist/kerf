@@ -17,9 +17,9 @@ A low cabinet with record bays, with room on the top for a turntable, a speaker,
 
 Not covered in version 1: doors, drawers, a back panel, adjustable shelves, a bay for anything but records, separate legs or a stand, arched or shaped cutouts, bays of different widths, a solid top on a frame with fasteners that allow movement (#292).
 
-## Proposed: the Shaker-modern base (#338, for the owner's review)
+## The Shaker-modern base (#338, agreed; being built)
 
-The cabinet as built stands on its panels with a cutout between them, which looks plainer than the direction on #273: Shaker with mid-century proportions. On November 1, 2026 the owner chose to build that style in stages: this base first, then doors on the two end bays (#339). This section is the proposal for the base. The rest of the spec changes to match once the owner agrees, and the template version goes up with it.
+The cabinet as built stands on its panels with a cutout between them, which looks plainer than the direction on #273: Shaker with mid-century proportions. On November 1, 2026 the owner chose to build that style in stages: this base first, then doors on the two end bays (#339). This section is the design for the base. The rest of the spec changes to match when the template is built, and the template version goes up with it.
 
 ### What changes
 
@@ -69,10 +69,9 @@ Store boards 3/4, t = 3/4, the 12-3/8 jacket's 13-1/4 bay, W = 54, D_c = 15, o_s
 - Slotted screw holes: an operation and methods, and wood screws in the hardware list.
 - The leg tapers use the existing taper operation.
 
-### Open questions for the owner
+### Decided
 
-1. Does the proposal look right overall, and are the suggested proportions (5" of leg, a 2-1/2" apron, a 1" foot) what you pictured?
-2. Is a top 1/4" above the stool acceptable, or should the bays drop to just over 12-3/8" to keep the top below it?
+The owner agreed to the proposal as written on November 1, 2026: the proportions above, and a top 1/4" above the stool. It is built in this order, each its own pull request: mortise and tenon operations, laminated parts and slotted screw holes, then the template.
 
 ## Coordinates
 

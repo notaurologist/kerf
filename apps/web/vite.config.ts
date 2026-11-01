@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react';
-import type { Plugin } from 'vite';
+import { loadEnv, type Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
 // Every screen uses the text font, so the built page fetches it with the CSS rather than after
@@ -21,16 +21,17 @@ function preloadTextFont(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react(), preloadTextFont()],
   server: {
     // Same origin in production (0006). In development the API runs separately, so proxy to it.
-    // The API serves its routes under /api itself, so paths pass through unchanged.
+    // The API serves its routes under /api itself, so paths pass through unchanged. The port is
+    // the API's PORT from the root .env, so two checkouts can run side by side.
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/api': `http://localhost:${loadEnv(mode, '../..', '').PORT || 3000}`,
     },
   },
   test: {
     expect: { requireAssertions: true },
   },
-});
+}));
