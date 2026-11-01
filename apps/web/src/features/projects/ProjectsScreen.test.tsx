@@ -30,6 +30,21 @@ describe('ProjectList', () => {
     expect(html).toContain('href="#/projects/new?template=swing-set-a-frame"');
   });
 
+  it('links to the trash and the download of every project, and says what Delete did', () => {
+    const html = render([project()]);
+    expect(html).toContain('href="#/trash"');
+    expect(html).toMatch(/<a href="\/api\/export" download="">Download all projects<\/a>/);
+    const flashed = renderHtml(
+      <ProjectList
+        projects={[]}
+        templates={templates}
+        flash="Moved “Shed” to the trash."
+        onStatus={() => {}}
+      />,
+    );
+    expect(textOf(flashed)).toContain('Moved “Shed” to the trash.');
+  });
+
   it('shows each project with its template, version, and status', () => {
     const html = render([project()]);
     expect(html).toContain('href="#/projects/6f1c2a3e-0000-4000-8000-000000000001"');

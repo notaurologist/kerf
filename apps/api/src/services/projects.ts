@@ -16,7 +16,7 @@ import {
   type TemplateDefinition,
   type VersionReport,
 } from '@kerf/core';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNotNull, isNull, lt } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { Database } from '../db/client.ts';
 import { projects } from '../db/schema.ts';
@@ -62,6 +62,25 @@ export interface ProjectSummary {
   progress: ProgressSummary | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** How long a deleted project waits in the trash before it is purged (owner, #21). */
+const TRASH_DAYS = 30;
+const DAY = 24 * 60 * 60 * 1000;
+
+export interface TrashedProject extends ProjectSummary {
+  deletedAt: string;
+  purgeAt: string;
+}
+
+export interface ProjectsExport {
+  kind: 'kerf-export';
+  exportedAt: string;
+  projects: (Omit<ProjectSummary, 'templateBehind' | 'progress'> & {
+    snapshot: unknown;
+    ticks: ProgressEntry[];
+  })[];
+  tools: Awaited<ReturnType<typeof getInventory>>;
 }
 
 export interface Project extends ProjectSummary {
@@ -213,15 +232,24 @@ export function createProjectService(deps: {
     snapshot: s,
   });
 
+  /** A project that is not in the trash. Everything but the trash reads only these. */
+  const live = (id: string) => and(eq(projects.id, id), isNull(projects.deletedAt));
+
   async function load(id: string): Promise<Row | undefined> {
-    const [row] = await db.select().from(projects).where(eq(projects.id, id));
+    const [row] = await db.select().from(projects).where(live(id));
     return row;
   }
 
   /** The row, locked until the transaction ends, so a check against it holds for the write. */
   async function lock(tx: Database, id: string): Promise<Row | undefined> {
-    const [row] = await tx.select().from(projects).where(eq(projects.id, id)).for('update');
+    const [row] = await tx.select().from(projects).where(live(id)).for('update');
     return row;
+  }
+
+  /** Projects in the trash longer than TRASH_DAYS are deleted for good, with their history. */
+  async function purge(): Promise<void> {
+    const before = new Date(now().getTime() - TRASH_DAYS * DAY);
+    await db.delete(projects).where(lt(projects.deletedAt, before));
   }
 
   type Failure = Exclude<Result<never>, { ok: true }>;
@@ -233,7 +261,12 @@ export function createProjectService(deps: {
 
   return {
     async list(): Promise<ProjectSummary[]> {
-      const rows = await db.select().from(projects).orderBy(desc(projects.updatedAt));
+      await purge();
+      const rows = await db
+        .select()
+        .from(projects)
+        .where(isNull(projects.deletedAt))
+        .orderBy(desc(projects.updatedAt));
       const ticks = await readAllProgress(db);
       return rows.map((row) => summary(row, ticks.get(row.id) ?? []));
     },
@@ -449,13 +482,82 @@ export function createProjectService(deps: {
       });
     },
 
-    /** Permanent: the project's history and progress rows go with it (they cascade). */
+    /** Moves the project to the trash, where it can be restored for TRASH_DAYS. */
     async remove(id: string): Promise<Result<null>> {
+      const moved = await db
+        .update(projects)
+        .set({ deletedAt: now() })
+        .where(live(id))
+        .returning({ id: projects.id });
+      return moved.length > 0 ? { ok: true, value: null } : { ok: false, error: 'not-found' };
+    },
+
+    /** The projects in the trash, most recently deleted first, with when each is purged. */
+    async trash(): Promise<TrashedProject[]> {
+      await purge();
+      const rows = await db
+        .select()
+        .from(projects)
+        .where(isNotNull(projects.deletedAt))
+        .orderBy(desc(projects.deletedAt));
+      const ticks = await readAllProgress(db);
+      return rows.map((row) => {
+        const deletedAt = row.deletedAt as Date;
+        return {
+          ...summary(row, ticks.get(row.id) ?? []),
+          deletedAt: deletedAt.toISOString(),
+          purgeAt: new Date(deletedAt.getTime() + TRASH_DAYS * DAY).toISOString(),
+        };
+      });
+    },
+
+    /** Takes a project out of the trash, as it was. */
+    async restore(id: string): Promise<Result<null>> {
+      const restored = await db
+        .update(projects)
+        .set({ deletedAt: null })
+        .where(and(eq(projects.id, id), isNotNull(projects.deletedAt)))
+        .returning({ id: projects.id });
+      return restored.length > 0 ? { ok: true, value: null } : { ok: false, error: 'not-found' };
+    },
+
+    /** Permanent, from the trash only: its history and progress rows go with it (they cascade). */
+    async purgeOne(id: string): Promise<Result<null>> {
       const deleted = await db
         .delete(projects)
-        .where(eq(projects.id, id))
+        .where(and(eq(projects.id, id), isNotNull(projects.deletedAt)))
         .returning({ id: projects.id });
       return deleted.length > 0 ? { ok: true, value: null } : { ok: false, error: 'not-found' };
+    },
+
+    /**
+     * Every project not in the trash, as stored, with its ticks, and the tool list: a copy the
+     * owner keeps, since the free database restores only the last few hours (#21).
+     */
+    async exportAll(): Promise<ProjectsExport> {
+      const rows = await db
+        .select()
+        .from(projects)
+        .where(isNull(projects.deletedAt))
+        .orderBy(desc(projects.updatedAt));
+      const ticks = await readAllProgress(db);
+      return {
+        kind: 'kerf-export',
+        exportedAt: now().toISOString(),
+        projects: rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          status: ProjectStatus.parse(row.status),
+          templateId: row.templateId,
+          templateVersion: row.templateVersion,
+          revision: row.revision,
+          createdAt: row.createdAt.toISOString(),
+          updatedAt: row.updatedAt.toISOString(),
+          snapshot: row.snapshot,
+          ticks: ticks.get(row.id) ?? [],
+        })),
+        tools: await getInventory(db),
+      };
     },
   };
 }

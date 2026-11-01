@@ -189,14 +189,16 @@ describe('project progress', () => {
     expect(keys(await progress())).toEqual(['step frames']);
   });
 
-  it('deletes a project’s progress with it', async () => {
+  it('keeps a project’s progress in the trash, and deletes it with the project for good', async () => {
     const { tick, authed, client, id } = await setup();
     await tick([done('step', 'frames')]);
+    const count = async () =>
+      (await client.query<{ n: number }>('select count(*)::int as n from project_progress')).rows[0]
+        ?.n;
     expect((await authed(`/api/projects/${id}`, { method: 'DELETE' })).status).toBe(204);
-    const { rows } = await client.query<{ n: number }>(
-      'select count(*)::int as n from project_progress',
-    );
-    expect(rows).toEqual([{ n: 0 }]);
+    expect(await count()).toBe(1);
+    expect((await authed(`/api/trash/${id}`, { method: 'DELETE' })).status).toBe(204);
+    expect(await count()).toBe(0);
   });
 
   it('moves a planned project to In progress at its first tick, and to Built at its last step', async () => {

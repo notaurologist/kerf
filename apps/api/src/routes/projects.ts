@@ -80,5 +80,20 @@ export function projectRoutes(projects: ProjectService) {
     .delete('/projects/:id', valid('param', ById), async (c) => {
       const result = await projects.remove(c.req.valid('param').id);
       return result.ok ? c.body(null, 204) : failure(c, result);
+    })
+    .get('/trash', async (c) => c.json({ projects: await projects.trash() }))
+    .post('/trash/:id/restore', valid('param', ById), async (c) => {
+      const result = await projects.restore(c.req.valid('param').id);
+      return result.ok ? c.body(null, 204) : failure(c, result);
+    })
+    .delete('/trash/:id', valid('param', ById), async (c) => {
+      const result = await projects.purgeOne(c.req.valid('param').id);
+      return result.ok ? c.body(null, 204) : failure(c, result);
+    })
+    .get('/export', async (c) => {
+      const exported = await projects.exportAll();
+      const day = exported.exportedAt.slice(0, 10);
+      c.header('Content-Disposition', `attachment; filename="kerf-${day}.json"`);
+      return c.json(exported);
     });
 }

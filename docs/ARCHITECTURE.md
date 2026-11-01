@@ -179,7 +179,11 @@ The preference order is the order of `METHODS` in `knowledge/methods.ts`, where 
 | `POST /api/projects/:id/regenerate` | Regenerate with the current template version (explicit, never automatic); `progressReset` as for `PUT`. Raises the revision (0018) |
 | `GET /api/projects/:id/progress` | What has been ticked off (#57): `ticks`, each with its kind, key, and the time the server saved it |
 | `PATCH /api/projects/:id/progress` | Set and clear ticks: `{ revision, changes: [{ kind, key, done }] }`. Ticks made on an older revision of the plan are refused with 409 `stale-project`, and nothing saved (0018). Safe to send again: ticking a done item keeps its first time, and clearing one that is not done does nothing, so a client can retry writes queued through a dropped connection. A tick on an item the stored plan lacks is refused with 422 `unknown-progress`, naming the items, and nothing in the request is saved. Answers `ticks` and `status`: status follows progress (#61), moving a Planned project to In progress at its first tick and to Built when a write finishes the last step; it never moves back, and can still be set by hand |
-| `DELETE /api/projects/:id` | Delete a project and its history and progress rows, permanently (204) |
+| `DELETE /api/projects/:id` | Move a project to the trash, with its history and progress (204). Every other project route then answers 404 for it |
+| `GET /api/trash` | Projects in the trash, most recently deleted first, each with `deletedAt` and `purgeAt` (30 days later). Reading it or the project list first purges anything past that |
+| `POST /api/trash/:id/restore` | Take a project out of the trash, as it was (204) |
+| `DELETE /api/trash/:id` | Delete a project in the trash for good, with its history and progress rows (204) |
+| `GET /api/export` | Every project not in the trash, as stored, with its ticks, and the tool list, as a JSON download (`kerf-YYYY-MM-DD.json`) |
 
 Errors are JSON with an `error` code: 400 for a malformed request (with `issues` and their paths), 401 without a session, 404 for a missing project, 415 for a state-changing request that is not JSON, 422 when core rejects the parameters or inputs (with core's `issues`), 429 when login is rate limited, and 500 `internal` for anything unexpected, which is logged. A malformed JSON body is a 400 `invalid-request`, and an unknown route with a session is a 404 `not-found`. A stored project whose progress cannot be counted is listed with `progress: null` rather than failing the list. Routes call services in `services/`, the only code that touches the database. The project routes' request bodies are in `services/projectBodies.ts`, and history rows, including the release backfill, in `services/history.ts`.
 
@@ -198,7 +202,7 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 |---|---|
 | `tools` | Library tool type ID and the capabilities entered. Rows from before the library are read through core's `readStoredTools`, which moves what the library lacks to `other_tools`; they are rewritten when the owner next saves the inventory |
 | `other_tools` | Tools the library does not have: position, name, note |
-| `projects` | Name, status, template ID, template version, snapshot (JSON, holding the parameters and structural inputs), timestamps |
+| `projects` | Name, status, template ID, template version, snapshot (JSON, holding the parameters and structural inputs), timestamps, and `deleted_at`, set while the project is in the trash (#21) |
 | `project_history` | One row per operation in a project: operation ID and type, the method chosen (null when the inventory supported none), its skills, and the key of the inventory it was chosen from. Replaced in the same transaction whenever a snapshot is saved (create, a parameter or input change, regenerate), not on a rename or status change. A unique index on `(project_id, operation_id)` keeps it to one row per operation. The release step writes rows for projects that have none and keeps rows that exist (#106). Used later for references to past projects |
 | `project_progress` | One row per item ticked off in a project (#57): kind (`shopping-line`, `board`, `part`, `step`), key, and when it was done. Keys come from core's `progress/`: a lumber line by its stock's name and length, a hardware line by its description, a board by its ID in the board plan (`boardIds`: line and which board of that line, so boards of other sizes do not shift it), a part's piece by part ID and instance, a step by its ID. When a snapshot is saved, rows whose item is gone or has other numbers are deleted in the same transaction (`progressToReset`). A piece's numbers include its part's cut detail, and a step's the cut details of its parts, so moved holes clear a tick even when the cut list does not change |
 | `sessions` | Session ID, fingerprint of the password hash, created, expires |
@@ -215,6 +219,8 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 - Changing the password: run `pnpm --filter @kerf/api hash-password`, set the new `PASSWORD_HASH` in Vercel, and redeploy. Sessions created under the old hash stop working (0007).
 
 #### Backups (manual, for now)
+
+The likeliest mistake, deleting the wrong project, is covered by the trash: a deleted project can be restored for 30 days (#21). The projects screen also offers "Download all projects", the JSON from `GET /api/export`, a copy the owner keeps anywhere. Neither covers a bad migration or losing the Neon project; for those, take a dump.
 
 There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions` and `login_failures` but not their rows, so no live session token is written to a file.
 

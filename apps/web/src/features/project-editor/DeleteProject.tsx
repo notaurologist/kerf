@@ -1,34 +1,27 @@
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
+import { setFlash } from '../../lib/flash.ts';
 import { projectStore } from '../../lib/projectStore.ts';
 import { navigate } from '../../lib/route.ts';
 import {
   Button,
   Card,
   Cluster,
-  Field,
   InlineConfirm,
   Stack,
   Text,
-  TextInput,
   useReturnFocus,
 } from '../../ui/index.ts';
 
-// Deleting a project is permanent (issue #22): there is no archive and, until backups exist, no
-// way back. The owner confirms by typing the project's name. It sits at the foot of the Edit
-// screen, away from the plan's Previous and Next, so it is never tapped on the way somewhere else.
-
-/** True when what was typed names the project, ignoring spaces at either end. */
-export function confirmsName(typed: string, name: string): boolean {
-  return typed.trim() === name.trim();
-}
+// Deleting moves the project to the trash, where it can be restored for 30 days before it is
+// deleted for good (#21). Since it can be undone, one confirmation is enough. It sits at the foot
+// of the Edit screen, away from the plan's Previous and Next, so it is never tapped on the way
+// somewhere else.
 
 export function DeleteProject(props: { id: string; name: string }) {
   const [open, setOpen] = useState(false);
-  const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [nameError, setNameError] = useState<string | undefined>(undefined);
   const trigger = useReturnFocus(open);
 
   if (!open) {
@@ -45,17 +38,13 @@ export function DeleteProject(props: { id: string; name: string }) {
   }
 
   const remove = async () => {
-    if (!confirmsName(typed, props.name)) {
-      setNameError(`Type “${props.name.trim()}” exactly to delete this project.`);
-      return;
-    }
-    setNameError(undefined);
     setBusy(true);
     setError(null);
     const result = await send(api.api.projects[':id'].$delete({ param: { id: props.id } }));
     setBusy(false);
     if (result.ok) {
       projectStore.forget(props.id);
+      setFlash(`Moved “${props.name.trim()}” to the trash. You can restore it there for 30 days.`);
       navigate({ screen: 'projects' });
     } else setError(describeError(result.error));
   };
@@ -63,8 +52,8 @@ export function DeleteProject(props: { id: string; name: string }) {
   return (
     <Card as="section">
       <InlineConfirm
-        confirm="Delete project"
-        busyLabel="Deleting…"
+        confirm="Move to trash"
+        busyLabel="Moving…"
         variant="destructive"
         keep="Keep project"
         busy={busy}
@@ -72,18 +61,13 @@ export function DeleteProject(props: { id: string; name: string }) {
         onConfirm={() => void remove()}
         onKeep={() => {
           setOpen(false);
-          setTyped('');
           setError(null);
-          setNameError(undefined);
         }}
       >
         <Text>
-          <b>Delete “{props.name}”?</b> This deletes the project, its plan, and its history. It
-          cannot be undone.
+          <b>Delete “{props.name}”?</b> It moves to the trash with its plan and history. You can
+          restore it there for 30 days, then it is deleted for good.
         </Text>
-        <Field label="Type the project's name to confirm" error={nameError}>
-          {(c) => <TextInput {...c} value={typed} onChange={setTyped} autoComplete="off" />}
-        </Field>
       </InlineConfirm>
     </Card>
   );
