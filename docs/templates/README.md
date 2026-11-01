@@ -38,7 +38,7 @@ The contract is `TemplateDefinition` in `packages/core/src/model/definition.ts`.
 | `drawings`, `assembly`, `steps` | Made from stored outputs on each read, not stored: the template's drawings, the 3D scene and how parts pull apart, and the order of build steps |
 | `examples` | The worked examples from the spec. One with `start` is offered as a new project's starting point, with its parameters only |
 | `snapshotVersion`, `snapshotUpgrades` | The stored shape, and how each older shape becomes the next (step 5) |
-| `questions` | Optional starting questions (`model/questions.ts`) that suggest parameters, never hardware or structural inputs |
+| `questions` | Optional starting questions (`model/questions.ts`) that suggest parameters, never hardware. A structural input is suggested only from the owner's answers or a cited source, for the owner to check |
 
 Generic code already makes the cut list, shopping list, hardware list, operations, structural checks, drawings, and build steps from what `generate` returns. Use it: `cutList`, `hardwareList`, and `planLumber` from `outputs/`, `withLetters` from `model/letters.ts`, the structural checks from `structural/`, and the view functions from `geometry/`. The swing set's `definition.ts` and `template.ts` show how they fit together.
 

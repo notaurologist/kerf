@@ -8,8 +8,9 @@ import { RecordCabinetParams } from './params.ts';
 // Starting questions (#314; docs/templates/record-cabinet.md, Starting questions): the window
 // the cabinet stands under, and the turntable and speaker. The height and width follow the
 // owner's choices for this cabinet; the rest of the case comes from the worked example. The board
-// stock, allowances, and joint sizes come from a standard and rules of thumb (#317). Every
-// structural input is left for the owner (hard rule 3).
+// stock, allowances, and joint sizes come from a standard and rules of thumb (#317). The moisture
+// range and deflection limit are suggested from their sources for the owner to check; the other
+// structural inputs are left for the owner (hard rule 3).
 
 const range = (key: 'height' | 'width') => {
   const field = RecordCabinetParams.shape[key];
@@ -104,6 +105,20 @@ const ONE_BY_SIX: SuggestionBasis = {
   citation: 'American Softwood Lumber Standard, PS 20-10, Table 3, a dry 1x6 board',
 };
 const MEASURE = 'Measure the boards at your store.';
+
+/** Moisture content for interior woodwork, individual pieces, most of the United States. */
+const INDOORS: SuggestionBasis = {
+  kind: 'source',
+  citation:
+    'Wood Handbook (2021), Table 13-2, interior woodwork in most of the United States, 6% to 10%',
+};
+const DAMP_COAST = 'In damp, warm coastal areas the same table gives 8% to 13%.';
+/** L/144 for shelves (spec, Structural model). */
+const SHELF_DEFLECTION: SuggestionBasis = {
+  kind: 'source',
+  citation:
+    'Architectural Woodwork Standards (2009), Section 10, 1.2.21.3.1.1, the industry standard for shelves',
+};
 
 /** Rules of thumb for the panels and joints, with nothing published behind them. */
 const PANEL_RULES = {
@@ -231,6 +246,15 @@ function suggest(a: CabinetAnswers): Suggestion[] {
         basis: { kind: 'rule-of-thumb', rule },
       }),
     ),
+    { from: 'structuralInputs', path: 'moisture.low', value: 6, basis: INDOORS, note: DAMP_COAST },
+    { from: 'structuralInputs', path: 'moisture.high', value: 10, basis: INDOORS },
+    {
+      from: 'structuralInputs',
+      path: 'deflectionLimit',
+      value: 144,
+      basis: SHELF_DEFLECTION,
+      note: 'A larger number allows less sag.',
+    },
     ...(['width', 'depth', 'lidHeight'] as const).map(
       (k): Suggestion => ({
         from: 'params',

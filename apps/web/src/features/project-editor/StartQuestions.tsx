@@ -89,7 +89,8 @@ export function StartQuestions(props: {
         <Stack gap="xs">
           <Text>
             Filled in from your answers. Each suggested value says where it came from; change any of
-            them. Hardware and the other structural inputs are yours to enter.
+            them. Check any structural input suggested from a source; hardware and the other
+            structural inputs are yours to enter.
           </Text>
           <Cluster>
             <Button variant="link" onClick={() => setSuggested(null)}>

@@ -83,6 +83,12 @@ export const RECORD_CABINET_FORM: TemplateForm = {
             label: `Length sold ${i + 1}`,
             kind: 'integer',
             unit: 'ft',
+            ...(i > 0 ? { optional: true as const } : {}),
+            ...(i === 0
+              ? {
+                  help: 'The lengths the store sells this board in, from its rack or website. Leave any you do not need empty.',
+                }
+              : {}),
           }),
         ),
         length(
@@ -153,13 +159,14 @@ export const RECORD_CABINET_FORM: TemplateForm = {
           label: 'Lowest moisture content in service',
           kind: 'number',
           unit: '%',
-          help: 'The Wood Handbook gives typical indoor ranges by region (Table 13-2).',
+          help: 'How dry the wood gets indoors in the driest part of the year, which sets how much the panels shrink. It is about the room the cabinet stands in, not the lumber as sold. The Wood Handbook gives 6% to 10% for most of the United States and 8% to 13% for damp coastal areas (Table 13-2). Kerf estimates movement from 6% to 14%.',
         },
         {
           path: 'moisture.high',
           label: 'Highest moisture content in service',
           kind: 'number',
           unit: '%',
+          help: 'How damp the wood gets indoors in the most humid part of the year, which sets how much the panels swell.',
         },
       ],
     },
@@ -190,7 +197,7 @@ export const RECORD_CABINET_FORM: TemplateForm = {
           path: 'deflectionLimit',
           label: INPUT.deflectionLimit,
           kind: 'number',
-          help: 'The deflection you accept, as the span divided by this number.',
+          help: 'How far a shelf or the top may sag, as its span divided by this number: 144 lets a 36" span sag 1/4". The Architectural Woodwork Standards call 144 the industry standard for shelves. A larger number allows less sag.',
         },
       ],
     },

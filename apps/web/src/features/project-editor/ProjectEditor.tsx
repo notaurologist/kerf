@@ -489,7 +489,10 @@ export function ProjectEditor(props: {
   const general = [...issues.params.general, ...issues.inputs.general];
 
   const empty = ({ from, field }: (typeof shown)[number]) =>
-    (values[from][field.path] ?? '').trim() === '';
+    !field.optional && (values[from][field.path] ?? '').trim() === '';
+  const counted = shown.filter(
+    ({ from, field }) => !field.optional || (values[from][field.path] ?? '').trim() !== '',
+  );
   const submitLabel = project ? 'Save changes' : 'Create project';
   const submitButton = (
     <Button type="submit" busy={saving} busyLabel="Saving…">
@@ -504,7 +507,7 @@ export function ProjectEditor(props: {
       </Field>
       <Stack gap="xs">
         <Text tone="muted">
-          Fields marked "Input needed" are never filled in for you. Structural inputs can wait:
+          Fields marked "Input needed" are yours to enter or check. Structural inputs can wait:
           leave any you have not settled empty, and the checks that need it will say "Input needed".{' '}
           {copied && `Values copied from ${copied.from} say so until you confirm them below.`}
         </Text>
@@ -545,8 +548,8 @@ export function ProjectEditor(props: {
   const actions = (
     <Stack gap="s">
       <FormProgress
-        entered={shown.length - shown.filter(empty).length}
-        total={shown.length}
+        entered={counted.length - counted.filter(empty).length}
+        total={counted.length}
         empty={parts.flatMap((part) => {
           const first = part.fields.find(empty);
           return first ? [{ group: part.title, field: fieldId(first.from, first.field.path) }] : [];
