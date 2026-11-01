@@ -9,7 +9,9 @@ import { boundsOf } from './primitives.ts';
 // A part's cut detail (#90; docs/design/diagrams.html, Cut details): its face in its own plane,
 // the long axis across the page, the first end on the left and the reference edge at the bottom.
 // Overall length above, edge lengths below, each end's saw setting and angle to the edge with a
-// square line and arc, the reference face mark, holes, and a taper's waste drawn dashed. A part
+// square line and arc, the reference face mark, the grain arrow, holes, dadoes (solid on the face
+// shown, dashed on the other), notches and cutouts in the outline, and a taper's waste drawn
+// dashed. A part
 // more than 10 times longer than wide is drawn in pieces around its ends and holes, with break
 // lines between; dimensions still give the full lengths.
 
@@ -177,6 +179,23 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     }
   }
 
+  // Dadoes: their outline on the face, solid on the face shown (far, n = thickness) and dashed
+  // on the other, with each one's position from the first end below the part.
+  for (const d of part.dadoes) {
+    prims.push({
+      kind: 'polygon',
+      role: d.face === 'far' ? 'visible' : 'hidden',
+      points: [
+        { u: d.u0, v: d.v0 },
+        { u: d.u1, v: d.v0 },
+        { u: d.u1, v: d.v1 },
+        { u: d.u0, v: d.v1 },
+      ].map(page),
+      fill: 'none',
+      part: ref,
+    });
+  }
+
   // Overall length above, long point to long point.
   const us = blank.map((p) => p.u);
   const left = Math.min(...us);
@@ -212,17 +231,23 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     dimension(prims, ref, page(d), page(c), -W - 0.35 * W, formatLength(edges.far), 'above');
   }
 
-  // Hole positions, from the first end's long point along the reference edge.
+  // Hole and dado positions, from the first end's long point along the reference edge: a dado's
+  // wall nearer the first end, and its far wall when the dado runs across the part.
   const holes = part.holes;
-  if (holes.length > 0) {
+  const across = part.dadoes.filter((d) => d.u0 > 1e-9 || d.u1 < part.length - 1e-9);
+  const positions = [
+    ...holes.map((h) => ({ u: h.entry.u, from: -h.entry.v + 0.6 * h.diameter })),
+    ...across.flatMap((d) => [d.u0, d.u1].map((u) => ({ u, from: 0.1 * W }))),
+  ];
+  if (positions.length > 0) {
     const y = 1.6 * W;
-    for (const hole of holes) {
-      const x = xOf(hole.entry.u);
+    for (const { u, from } of positions) {
+      const x = xOf(u);
       prims.push({
         kind: 'line',
         role: 'extension',
         points: [
-          { x, y: -hole.entry.v + 0.6 * hole.diameter },
+          { x, y: from },
           { x, y: y - 0.1 * W },
         ],
         part: ref,
@@ -231,12 +256,15 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
         kind: 'text',
         role: 'dimension',
         at: { x, y },
-        text: formatLength(hole.entry.u),
+        text: formatLength(u),
         anchor: 'end',
         rotate: -90,
         part: ref,
       });
     }
+  }
+  if (holes.length > 0) {
+    const y = 1.6 * W;
     // The hole size and the bolt size, labeled as each (#110): one note per pair, below the
     // positions, whose length is known only once they are shown.
     const sizes = [...new Set(holes.map((h) => `${h.diameter}\n${h.boltDiameter}`))];
@@ -304,12 +332,16 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     });
   }
 
-  // The reference face mark: a loop on the face, its tail to the reference edge, clear of holes
-  // and tapers: the first of each piece's middle and quarter points that is at least a width
+  // The reference face mark: a loop on the face, its tail to the reference edge, clear of holes,
+  // tapers, and joinery: the first of each piece's middle and quarter points that is at least a width
   // from both.
+  const fromEnd = (end: 0 | 1, d: number) => (end === 0 ? d : part.length - d);
   const busy = [
     ...part.holes.map((h) => h.entry.u),
     ...part.tapers.flatMap((t) => [t.start.u, t.end.u, 0]),
+    ...part.dadoes.flatMap((d) => [d.u0, d.u1]),
+    ...part.notches.map((n) => fromEnd(n.end, n.along)),
+    ...part.cutouts.map((c) => fromEnd(c.end, c.depth)),
   ];
   const candidates = ws.flatMap((w) => [0.5, 0.25, 0.75].map((f) => w.u0 + f * (w.u1 - w.u0)));
   const clear =
@@ -320,6 +352,57 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     return { x: mx + 0.12 * W * Math.sin(t), y: -0.55 * W - 0.18 * W * Math.cos(t) };
   });
   prims.push({ kind: 'line', role: 'leader', points: [...loop, { x: mx, y: 0 }], part: ref });
+
+  // The grain arrow (owner's choice on #71): along the part near its far edge, away from the
+  // loop, labeled. Every part is solid wood, with its grain along its length.
+  const free = candidates.filter((u) => Math.abs(u - clear) >= W);
+  const gu = free.find((u) => busy.every((b) => Math.abs(b - u) >= W)) ?? free[0] ?? clear;
+  // Short enough to stay clear of the nearest joinery, a hole, or the loop.
+  const room = Math.min(...[...busy, clear].map((b) => Math.abs(b - gu)).filter((d) => d > 0));
+  const gx = xOf(gu);
+  const reach = Math.min(0.75 * W, 0.2 * (xOf(right) - xOf(left)), 0.8 * room);
+  const gy = -0.82 * W;
+  prims.push({
+    kind: 'line',
+    role: 'leader',
+    points: [
+      { x: gx - reach, y: gy },
+      { x: gx + reach, y: gy },
+    ],
+    arrows: true,
+    part: ref,
+  });
+  prims.push({
+    kind: 'text',
+    role: 'note',
+    at: { x: gx, y: gy - 0.06 * W },
+    text: 'Grain',
+    anchor: 'middle',
+    part: ref,
+  });
+
+  const along = (n: { along: number; across: number }) =>
+    `${formatLength(n.along)} along the part by ${formatLength(n.across)} across`;
+  const endName = (end: 0 | 1) =>
+    end === 0 ? 'first end, on the left' : 'second end, on the right';
+  const joinery = [
+    ...part.dadoes.map((d) => {
+      const runsAlong = d.u0 <= 1e-9 && d.u1 >= part.length - 1e-9;
+      const where = runsAlong
+        ? `${formatLength(d.v0)} from the ${part.referenceEdge}`
+        : `${formatLength(d.u0)} from the first end`;
+      const size = runsAlong ? d.v1 - d.v0 : d.u1 - d.u0;
+      return `Dado ${where}: ${formatLength(size)} wide, ${formatLength(d.depth)} deep, on ${d.face === 'far' ? 'the face shown' : 'the other face (dashed)'}.`;
+    }),
+    ...part.notches.map(
+      (n) =>
+        `Notch at the ${endName(n.end)}, at the ${n.edge === 'reference' ? part.referenceEdge : 'far edge'}: ${along(n)}.`,
+    ),
+    ...part.cutouts.map(
+      (c) =>
+        `Cutout at the ${endName(c.end)}: ${formatLength(c.v1 - c.v0)} wide, ${formatLength(c.depth)} deep, starting ${formatLength(c.v0)} from the ${part.referenceEdge}.`,
+    ),
+  ];
 
   const angles = [
     ...new Set(part.ends.filter((e) => e.setting !== 0).map((e) => formatAngle(e.setting))),
@@ -337,6 +420,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
             "Hole positions are measured from the first end's long point, on the left, along the reference edge.",
           ]
         : []),
+      ...joinery,
     ],
   };
 }
