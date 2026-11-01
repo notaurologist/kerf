@@ -1,8 +1,8 @@
 # Template: record cabinet
 
-Status: draft for the owner's review (#273). The window measurements are rough (stool about 22" high and 56" wide), so the first worked example is provisional until the owner measures. Nothing here is implemented.
+Status: ready for the owner's review (#273). The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Nothing here is implemented.
 
-A low cabinet with record bays, for a turntable and a speaker, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first: edge-glued panels (#278), shelf deflection for furniture species and long-term loads (#288), and the design-system review (#71).
+A low cabinet with record bays, for a turntable and a speaker, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
 
 ## Design covered by template version 1
 
@@ -34,7 +34,7 @@ Ranges are proposals for the owner's review.
 | Overall height | H | 16–30 | Floor to the top surface. Below 16 there's no room for a record bay and feet. 30 is table height. |
 | Case depth | D_c | 13–20 | Front to back of the sides, partitions, and shelves. Must hold a record jacket (Validation). |
 | Bays | n | 2–4 | Number of equal bays. Partitions: n − 1. |
-| Panel thickness | t | 5/8–1 | Actual, after flattening. One thickness for every panel in version 1. Hardwood 4/4 is 13/16" surfaced two sides (Wood Handbook, Table 6-4, p. 6-6), so 3/4" comes from 4/4 flattened after glue-up. How the stock is bought is open on #278. |
+| Panel thickness | t | 5/8–1 | Actual, after flattening. One thickness for every panel in version 1. Hardwood 4/4 is 13/16" surfaced two sides (Wood Handbook, Table 6-4, p. 6-6), so 3/4" comes from 4/4 flattened after glue-up. Boards bought already surfaced to 3/4" end up a little thinner once the glued-up panel is flattened, so t is what's left after flattening, and the board stock must be at least t thick (`lumber/panel.ts` refuses a thinner board). |
 | Dado depth | j | owner-entered, 0 < 2·j < t | Depth of every dado. Partitions take a shelf dado on both faces at the same height, leaving t − 2·j between them. No source sets a limit, so the plan shows that thickness and flags the joint for an experienced builder (owner, #283). |
 | Stopped-dado setback | s_d | owner-entered, 0 < s_d < D_c | How far the top's dadoes stop short of the case's front edge, so the joint doesn't show from the front. A design choice, not a strength rule (owner, #283). |
 | End overhang | o_s | 0–2 | Top beyond each side. |
@@ -47,6 +47,8 @@ Ranges are proposals for the owner's review.
 | Turntable footprint | T_w × T_d | owner-entered | Width and depth of the turntable's base. Not bought yet, so a range to fit. |
 | Turntable lid height | T_h | owner-entered | Height with the lid fully open, for clearance below the window. |
 | Speaker | S_w × S_h × S_d, place | owner-entered | Sonos lists the Five at 14.33" W × 7.99" H × 6.06" D, 13.89 lb. [S1] It plays stereo lying flat and mono standing upright. [S1] Place: on the top, or on bay k's shelf. |
+| Board stock | | owner-entered | Name, actual thickness and width, and the lengths the store sells, for the boards the panels are glued from (owner, #278). Dealer hardwood sold by the board foot is #296. |
+| Panel allowances | | owner-entered | Jointing per glued edge, rip, and trim per end (`DOMAIN.md`, Edge-glued panels). No source gives them (owner, #278). |
 | Species and grain | | owner-entered | Species for every panel, and ring orientation (flatsawn, quartersawn, unknown) for movement (#284). |
 
 ## Derived geometry
@@ -94,7 +96,7 @@ Each part's placement follows `DOMAIN.md`, Implications for the data model (Geom
 ## Hardware, operations, build steps, drawings
 
 - **Hardware:** glue, and finish. No metal fasteners in version 1.
-- **Operations:** rip and crosscut boards; joint, glue up, flatten, and cut each panel to size (#278); dado; stopped dado; cut the foot cutouts; ease edges; finish.
+- **Operations:** generic code makes each panel's work from its stock (#297): cut its boards to length, joint the glued edges, glue up, flatten, rip to width, and crosscut its ends. A back rail narrower than a board is one board, cut to length and ripped. The template adds the dadoes, stopped dadoes, foot cutouts, easing edges, and finish, each of which needs an operation type and methods first.
 - **Build steps:** glue up panels; cut panels to size; cut dadoes; cut feet; dry-fit; glue up the case; fit the top; finish. Each operation's methods come from the knowledge base, for the owner's tools.
 - **Drawings:** front and end elevations with bay widths and heights; a section through a bay showing the shelf, dadoes, and back rail; each panel's cut detail with dadoes and cutout; an exploded view. Showing grain direction and movement on drawings is for #71.
 
@@ -110,7 +112,7 @@ Refused:
 
 Flags (`DOMAIN.md`, Expert-check categories):
 - **Router technique** and **table saw operations:** dadoes and stopped dadoes.
-- **Jointers, planers:** panel glue-up (#278).
+- **Jointers, planers** and **table saw operations:** raised by the panel methods that use those machines (#297).
 - **Wood movement:** the back rails' cross-grain joint, with each rail's movement across its height (#284), and the top's dadoes if species or ring orientation differ between the top and the panels.
 - **Load-bearing or tip-prone designs:** the wood left between a partition's back-to-back dadoes, t − 2·j.
 - **Load-bearing or tip-prone designs:** record shelves, and a heavy turntable or speaker on top.
@@ -120,9 +122,9 @@ Checklist, not computed:
 - Tipping: whether the loaded cabinet can tip forward. Low and deep, but confirm.
 - Joint strength of glued dadoes.
 
-## Worked example (hand-checked, provisional)
+## Worked example (hand-checked)
 
-From the rough measurements: stool about 22" high, 56" wide. The owner's choices so far: top about 2" below the stool, width to match the window trim. The trim width isn't measured yet, so 54" stands in for it.
+From the rough measurements: stool about 22" high, 56" wide. The owner's choices so far: top about 2" below the stool, width to match the window trim. The trim width isn't measured, so 54" stands in for it. The owner's exact measurements go in the app, not here.
 
 Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s = 3/4, o_f = 3/4, h_f = 5-1/4, h_c = 4, f_w = 2-1/2, h_r = 3.
 
@@ -143,6 +145,17 @@ Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s =
 | Notch | s_d × j | 1/2 × 3/16 |
 
 Cut list: top 54 × 15-3/4; sides (2) and partitions (2) 19-7/16 × 15; bottom shelves (3) 16-7/8 × 15; back rails (3) 16-7/8 × 3. All 3/4 thick.
+
+Panels, with example board stock and allowances (the owner enters both; these are for checking the arithmetic only): boards 3/4 × 5-1/2, jointing 1/16 per glued edge, rip 1/2, trim 1 per end. Boards per panel n = ⌈(width + 1/2 − 1/8) / (5-1/2 − 1/8)⌉ = ⌈(width + 0.375) / 5.375⌉; glued width n·5.5 − 0.125·(n − 1); board length = part length + 2.
+
+| Part | Width | n | Glued width | Board length | Boards |
+|---|---|---|---|---|---|
+| Top | 15.75 | ⌈16.125 / 5.375⌉ = 3, exactly | 16.25 | 56 | 3 |
+| Side, partition | 15 | ⌈15.375 / 5.375⌉ = ⌈2.86⌉ = 3 | 16.25 | 21.4375 (21-7/16) | 4 × 3 = 12 |
+| Bottom shelf | 15 | 3 | 16.25 | 18.875 (18-7/8) | 3 × 3 = 9 |
+| Back rail | 3 | ⌈3.375 / 5.375⌉ = 1 | 5.5 | 18.875 (18-7/8) | 3 |
+
+The top is an exact fit: 3 boards glue to 16.25, which is its 15.75 plus the 1/2 rip allowance, so the template's tests cover the whole-number case.
 
 Checks: a 12-3/8" jacket fits (13.25 high, 15 deep). The Five fits in a bay lying flat (14.33 ≤ 16.5 wide, 7.99 ≤ 13.25 high), or on the top beside a turntable up to 54 − 14.33 = 39.67" wide.
 
@@ -210,9 +223,10 @@ Answers suggest parameters (M8), each labeled as the owner's choice:
 
 ## Open questions
 
-1. **Measurements:** stool height A, stool depth B, apron bottom C, casing width D, stool width E.
+1. **Measurements:** decided, not needed for the spec (owner, November 1, 2026). The worked example uses the rough ones. The owner enters exact measurements in the app (stool height A, stool depth B, apron bottom C, casing width D, stool width E) when planning the build.
 2. **Dado depth:** decided, owner-entered with no limit, since no source gives one. The plan shows what's left of each partition and flags it (owner, #283).
 3. **Stopped dadoes:** decided, the setback s_d is owner-entered as a design choice (owner, #283).
 4. **Back:** decided, back rails with an open back (owner, October 31, 2026). Racking stays on the checklist for an experienced builder. If more is needed, the next step is a second rail at the bottom back of each bay, before a full back panel.
 5. **Speaker placement:** decided for the owner's plan, on the top beside the turntable, so all three bays hold records (October 31, 2026). Its top stands about 6" above the window stool. The template still offers a bay's bottom shelf.
 6. **Bays:** decided, equal bays, three in the owner's plan (October 31, 2026). Two or four cost or gain only 3/4" of record width per partition. Three keeps shelf sag negligible and gives an even front under the window.
+7. **Panel stock:** decided on #278. The owner enters board stock and allowances, with no defaults. Panels from dealer hardwood wait on #296.
