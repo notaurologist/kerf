@@ -71,6 +71,13 @@
       "when": 1793476925858,
       "tag": "0009_project_revision",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793477253551,
+      "tag": "0010_drop_login_attempts",
+      "breakpoints": true
     }
   ]
 }

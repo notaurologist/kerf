@@ -202,7 +202,6 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 | `project_progress` | One row per item ticked off in a project (#57): kind (`shopping-line`, `board`, `part`, `step`), key, and when it was done. Keys come from core's `progress/`: a lumber line by nominal size and length, a hardware line by its description, a board by its ID in the board plan (`boardIds`: line and which board of that line, so boards of other sizes do not shift it), a part's piece by part ID and instance, a step by its ID. When a snapshot is saved, rows whose item is gone or has other numbers are deleted in the same transaction (`progressToReset`). A piece's numbers include its part's cut detail, and a step's the cut details of its parts, so moved holes clear a tick even when the cut list does not change |
 | `sessions` | Session ID, fingerprint of the password hash, created, expires |
 | `login_failures` | Scope (`all`, or `address:` and a client address), window start, and failure count for rate limiting. Rows are deleted once their window has passed |
-| `login_attempts` | The previous login counter; no longer read or written, kept until the deploy before this one is gone (0014) |
 
 Snapshots are stored, not regenerated on every read. A project's plan therefore never changes underneath it when the template changes; the API reports the difference and regeneration is the owner's choice. Snapshots are parsed with their Zod schema when read back.
 
@@ -216,7 +215,7 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 
 #### Backups (manual, for now)
 
-There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions`, `login_failures`, and `login_attempts` but not their rows, so no live session token is written to a file.
+There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions` and `login_failures` but not their rows, so no live session token is written to a file.
 
 1. Install the Postgres client once: `brew install libpq`, then use `/opt/homebrew/opt/libpq/bin/pg_dump`. Its version must be 18 or later (`pg_dump --version`).
 2. Copy the direct connection string (host without `-pooler`) from the Neon console, and read it into the shell without echo: `read -rs NEON_URL`.
@@ -224,7 +223,7 @@ There are no scheduled backups. Neon's free plan restores only the last 6 hours,
 
    ```
    pg_dump "$NEON_URL" -Fc --no-owner --no-acl \
-     --exclude-table-data=sessions --exclude-table-data=login_failures --exclude-table-data=login_attempts \
+     --exclude-table-data=sessions --exclude-table-data=login_failures \
      -f ~/Backups/kerf-$(date +%F).dump
    ```
 
