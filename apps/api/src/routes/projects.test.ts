@@ -467,37 +467,142 @@ describe('POST /api/projects/preview', () => {
   });
 });
 
-describe('DELETE /api/projects/:id', () => {
-  it('deletes the project and its history rows, then answers 404 for it', async () => {
+describe('deleting, the trash, and restoring (#21)', () => {
+  const historyCount = async (client: Json, id: string) =>
+    (
+      await client.query('select count(*)::int as n from project_history where project_id = $1', [
+        id,
+      ])
+    ).rows[0]?.n;
+
+  it('moves a deleted project to the trash, out of every other route, and keeps its history', async () => {
     const { authed, client } = await createTestApp();
     const { body } = await create(authed);
     const other = await create(authed, { ...newProject, name: 'Kept' });
-    const count = async (id: string) =>
-      (
-        await client.query<{ n: number }>(
-          'select count(*)::int as n from project_history where project_id = $1',
-          [id],
-        )
-      ).rows[0]?.n;
-    const kept = await count(other.body.id);
-    expect(await count(body.id)).toBeGreaterThan(0);
+    const history = await historyCount(client, body.id);
+    expect(history).toBeGreaterThan(0);
 
     const res = await authed(`/api/projects/${body.id}`, { method: 'DELETE', body: {} });
     expect(res.status).toBe(204);
     expect(await res.text()).toBe('');
 
     expect((await authed(`/api/projects/${body.id}`)).status).toBe(404);
-    expect(await count(body.id)).toBe(0);
-    expect(await count(other.body.id)).toBe(kept);
+    expect(
+      (await authed(`/api/projects/${body.id}/regenerate`, { method: 'POST', body: {} })).status,
+    ).toBe(404);
+    expect((await authed(`/api/projects/${body.id}`, { method: 'DELETE', body: {} })).status).toBe(
+      404,
+    );
     const list = (await (await authed('/api/projects')).json()) as Json;
     expect(list.projects.map((p: Json) => p.id)).toEqual([other.body.id]);
+    expect(await historyCount(client, body.id)).toBe(history);
+
+    // Deleted at the test clock's 2026-10-28 noon, purged 30 days later.
+    const trash = (await (await authed('/api/trash')).json()) as Json;
+    expect(trash.projects).toHaveLength(1);
+    expect(trash.projects[0]).toMatchObject({
+      id: body.id,
+      name: body.name,
+      deletedAt: '2026-10-28T12:00:00.000Z',
+      purgeAt: '2026-11-27T12:00:00.000Z',
+    });
+  });
+
+  it('restores a project from the trash as it was', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    await authed(`/api/projects/${body.id}`, { method: 'DELETE', body: {} });
+    const res = await authed(`/api/trash/${body.id}/restore`, { method: 'POST', body: {} });
+    expect(res.status).toBe(204);
+    const read = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
+    expect(read.snapshot).toEqual(body.snapshot);
+    expect((await (await authed('/api/trash')).json()) as Json).toEqual({ projects: [] });
+    // Only a project in the trash can be restored.
+    expect(
+      (await authed(`/api/trash/${body.id}/restore`, { method: 'POST', body: {} })).status,
+    ).toBe(404);
+  });
+
+  it('deletes a project in the trash for good, with its history, but only from the trash', async () => {
+    const { authed, client } = await createTestApp();
+    const { body } = await create(authed);
+    expect((await authed(`/api/trash/${body.id}`, { method: 'DELETE', body: {} })).status).toBe(
+      404,
+    );
+    await authed(`/api/projects/${body.id}`, { method: 'DELETE', body: {} });
+    expect((await authed(`/api/trash/${body.id}`, { method: 'DELETE', body: {} })).status).toBe(
+      204,
+    );
+    expect(await historyCount(client, body.id)).toBe(0);
+    expect((await (await authed('/api/trash')).json()) as Json).toEqual({ projects: [] });
+  });
+
+  it('purges a project 30 days after it was deleted, not before', async () => {
+    const { authed, clock, client } = await createTestApp();
+    const { body } = await create(authed);
+    await authed(`/api/projects/${body.id}`, { method: 'DELETE', body: {} });
+    const deleted = clock.now.getTime();
+    const day = 24 * 60 * 60 * 1000;
+    clock.now = new Date(deleted + 30 * day);
+    expect(((await (await authed('/api/trash')).json()) as Json).projects).toHaveLength(1);
+    clock.now = new Date(deleted + 30 * day + 1);
+    expect(((await (await authed('/api/trash')).json()) as Json).projects).toHaveLength(0);
+    expect(await historyCount(client, body.id)).toBe(0);
   });
 
   it('answers 404 for a project that does not exist, and 400 for a malformed ID', async () => {
     const { authed } = await createTestApp();
-    const missing = '/api/projects/00000000-0000-4000-8000-000000000000';
-    expect((await authed(missing, { method: 'DELETE', body: {} })).status).toBe(404);
+    const missing = '00000000-0000-4000-8000-000000000000';
+    expect((await authed(`/api/projects/${missing}`, { method: 'DELETE', body: {} })).status).toBe(
+      404,
+    );
     expect((await authed('/api/projects/nope', { method: 'DELETE', body: {} })).status).toBe(400);
+    expect(
+      (await authed(`/api/trash/${missing}/restore`, { method: 'POST', body: {} })).status,
+    ).toBe(404);
+    expect((await authed('/api/trash/nope', { method: 'DELETE', body: {} })).status).toBe(400);
+  });
+});
+
+describe('GET /api/export (#21)', () => {
+  it('downloads every project as stored, with its ticks and the tool list, leaving out the trash', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const gone = await create(authed, { ...newProject, name: 'Gone' });
+    await authed(`/api/projects/${gone.body.id}`, { method: 'DELETE', body: {} });
+
+    const res = await authed('/api/export');
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-disposition')).toBe(
+      'attachment; filename="kerf-2026-10-28.json"',
+    );
+    const exported = (await res.json()) as Json;
+    expect(exported.kind).toBe('kerf-export');
+    expect(exported.exportedAt).toBe('2026-10-28T12:00:00.000Z');
+    expect(exported.projects.map((p: Json) => p.id)).toEqual([body.id]);
+    expect(exported.projects[0].snapshot).toEqual(body.snapshot);
+    expect(exported.projects[0].ticks).toEqual([]);
+    expect(exported.tools).toHaveProperty('tools');
+  });
+});
+
+describe('the trash and export routes', () => {
+  it('require a session', async () => {
+    const { app } = await createTestApp();
+    const id = '00000000-0000-4000-8000-000000000000';
+    for (const [path, method] of [
+      ['/api/trash', 'GET'],
+      [`/api/trash/${id}/restore`, 'POST'],
+      [`/api/trash/${id}`, 'DELETE'],
+      ['/api/export', 'GET'],
+    ] as const) {
+      const res = await app.request(path, {
+        method,
+        headers: { 'content-type': 'application/json' },
+        ...(method === 'GET' ? {} : { body: '{}' }),
+      });
+      expect({ path, status: res.status }).toEqual({ path, status: 401 });
+    }
   });
 });
 

@@ -340,7 +340,7 @@ function Specimens() {
           echo={entryEcho(heightField, text)}
           width="short"
         >
-          {(c) => <TextInput {...c} value={text} onChange={setText} />}
+          {(c) => <TextInput {...c} keyboard="decimal" marks value={text} onChange={setText} />}
         </Field>
         <Field
           id="catalog-unread"
@@ -497,8 +497,8 @@ function Specimens() {
       <Group title="Inline confirmation">
         <Card>
           <InlineConfirm
-            confirm="Delete project"
-            busyLabel="Deleting…"
+            confirm="Move to trash"
+            busyLabel="Moving…"
             variant="destructive"
             keep="Keep project"
             busy={false}
@@ -506,8 +506,8 @@ function Specimens() {
             onKeep={() => {}}
           >
             <Text>
-              <b>Delete “Backyard project”?</b> This deletes the project, its plan, and its history.
-              It cannot be undone.
+              <b>Delete “Backyard project”?</b> It moves to the trash with its plan and history. You
+              can restore it there for 30 days, then it is deleted for good.
             </Text>
           </InlineConfirm>
         </Card>
