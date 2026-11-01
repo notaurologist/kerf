@@ -196,6 +196,40 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     });
   }
 
+  // Mortises: on the face shown, solid; on the other face, dashed; in an edge, dashed from that
+  // edge as deep as the mortise.
+  for (const m of part.mortises ?? []) {
+    const [v0, v1] =
+      m.side === 'reference-edge'
+        ? [0, m.depth]
+        : m.side === 'far-edge'
+          ? [W - m.depth, W]
+          : [m.a0, m.a1];
+    prims.push({
+      kind: 'polygon',
+      role: m.side === 'far' ? 'visible' : 'hidden',
+      points: [
+        { u: m.u0, v: v0 },
+        { u: m.u1, v: v0 },
+        { u: m.u1, v: v1 },
+        { u: m.u0, v: v1 },
+      ].map(page),
+      fill: 'none',
+      part: ref,
+    });
+  }
+  // A tenon's shoulder on the face shown: the face steps down to the cheek there.
+  for (const t of part.tenons ?? []) {
+    if (t.n0 + t.thickness >= part.stock.thickness - 1e-9) continue;
+    const u = t.end === 0 ? t.length : part.length - t.length;
+    prims.push({
+      kind: 'line',
+      role: 'visible',
+      points: [page({ u, v: t.v0 }), page({ u, v: t.v0 + t.width })],
+      part: ref,
+    });
+  }
+
   // Overall length above, long point to long point.
   const us = blank.map((p) => p.u);
   const left = Math.min(...us);
@@ -342,6 +376,8 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     ...part.dadoes.flatMap((d) => [d.u0, d.u1]),
     ...part.notches.map((n) => fromEnd(n.end, n.along)),
     ...part.cutouts.map((c) => fromEnd(c.end, c.depth)),
+    ...(part.mortises ?? []).flatMap((m) => [m.u0, m.u1]),
+    ...(part.tenons ?? []).map((t) => fromEnd(t.end, t.length)),
   ];
   const candidates = ws.flatMap((w) => [0.5, 0.25, 0.75].map((f) => w.u0 + f * (w.u1 - w.u0)));
   const clear =
@@ -401,6 +437,23 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     ...part.cutouts.map(
       (c) =>
         `Cutout at the ${endName(c.end)}: ${formatLength(c.v1 - c.v0)} wide, ${formatLength(c.depth)} deep, starting ${formatLength(c.v0)} from the ${part.referenceEdge}.`,
+    ),
+    ...(part.mortises ?? []).map((m) => {
+      const onFace = m.side === 'near' || m.side === 'far';
+      const where =
+        m.side === 'far'
+          ? 'the face shown'
+          : m.side === 'near'
+            ? 'the other face (dashed)'
+            : m.side === 'reference-edge'
+              ? `the ${part.referenceEdge} (dashed)`
+              : 'the far edge (dashed)';
+      const from = onFace ? `the ${part.referenceEdge}` : 'the back face';
+      return `Mortise ${formatLength(m.u0)} from the first end, in ${where}: ${formatLength(m.u1 - m.u0)} long, ${formatLength(m.a1 - m.a0)} wide, ${formatLength(m.depth)} deep, starting ${formatLength(m.a0)} from ${from}.`;
+    }),
+    ...(part.tenons ?? []).map(
+      (t) =>
+        `Tenon at the ${endName(t.end)}: ${formatLength(t.length)} long, ${formatLength(t.thickness)} thick, ${formatLength(t.width)} wide, ${formatLength(t.n0)} from the back face and ${formatLength(t.v0)} from the ${part.referenceEdge}.`,
     ),
   ];
 

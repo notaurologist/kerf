@@ -99,6 +99,18 @@ export const SKILLS = [
       'Stack boards indoors on strips so air reaches every face, and leave them until they stop drying before you cut and glue them.',
   },
   {
+    id: 'cut-a-mortise',
+    name: 'Cutting a mortise',
+    description:
+      'Mark the pocket, remove the waste to a steady depth, and pare the walls straight and square to the marks, testing the fit with its tenon.',
+  },
+  {
+    id: 'cut-a-tenon',
+    name: 'Cutting a tenon',
+    description:
+      'Mark the shoulder around the part, cut the cheeks on the waste side to a steady thickness, and trim until it slides into its mortise with hand pressure.',
+  },
+  {
     id: 'fit-an-assembly',
     name: 'Fitting an assembly dry',
     description:

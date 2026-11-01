@@ -140,6 +140,34 @@ export const Operation = z.discriminatedUnion('type', [
     holeDiameter: z.number(),
     depth: z.number(),
   }),
+  /** A pocket for a tenon (Part.mortises): `length` along the part, `width` across, `depth` in. */
+  z.object({
+    ...onPart,
+    type: z.literal('mortise'),
+    mortise: z.number().int().nonnegative(),
+    length: z.number(),
+    width: z.number(),
+    depth: z.number(),
+  }),
+  /**
+   * A tenon on a square end (Part.tenons): `length` out from the shoulders, `tenonThickness` and
+   * `width` across. The cheeks come off each face, `cheekBack` and `cheekFront` deep, and the
+   * shoulders off each edge, `shoulderReference` and `shoulderFar` deep.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('tenon'),
+    tenon: z.number().int().nonnegative(),
+    end,
+    length: z.number(),
+    tenonThickness: z.number(),
+    width: z.number(),
+    thickness: z.number(),
+    cheekBack: z.number(),
+    cheekFront: z.number(),
+    shoulderReference: z.number(),
+    shoulderFar: z.number(),
+  }),
   /** Round over sharp edges and sand off splinters on every face a person can touch. */
   z.object({ ...onPart, type: z.literal('ease-edges') }),
   /**
@@ -237,6 +265,38 @@ export function cutAndDrillOperations(
         along: n.along,
         across: n.across,
         thickness,
+      });
+    });
+    (part.mortises ?? []).forEach((m, i) => {
+      ops.push({
+        id: `${part.id}/mortise-${i}`,
+        type: 'mortise',
+        partId: part.id,
+        count: part.quantity,
+        mortise: i,
+        length: m.u1 - m.u0,
+        width: m.a1 - m.a0,
+        depth: m.depth,
+      });
+    });
+    (part.tenons ?? []).forEach((t, i) => {
+      if (part.ends[t.end].setting !== 0)
+        throw new Error(`${part.id}/tenon-${i} is on an angled end`);
+      ops.push({
+        id: `${part.id}/tenon-${i}`,
+        type: 'tenon',
+        partId: part.id,
+        count: part.quantity,
+        tenon: i,
+        end: t.end,
+        length: t.length,
+        tenonThickness: t.thickness,
+        width: t.width,
+        thickness,
+        cheekBack: t.n0,
+        cheekFront: thickness - t.n0 - t.thickness,
+        shoulderReference: t.v0,
+        shoulderFar: width - t.v0 - t.width,
       });
     });
     part.cutouts.forEach((c, i) => {
@@ -417,6 +477,8 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   'stopped-dado': 'Stopped dado',
   notch: 'Notch',
   cutout: 'Cutout',
+  mortise: 'Mortise',
+  tenon: 'Tenon',
   'bolt-holes': 'Bolt holes',
   'ease-edges': 'Ease edges',
   'dry-fit': 'Dry-fit',

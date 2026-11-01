@@ -1,4 +1,4 @@
-import type { Part } from '../model/types.ts';
+import type { Notch, Part } from '../model/types.ts';
 
 // A part's face outline in its own frame (DOMAIN.md, Geometry; Placement in model/types.ts):
 // u along the part from its first end's long point, v across from its reference edge. The
@@ -38,7 +38,7 @@ export function blankOutline(part: Part): UV[] {
  * edge, the first end back from the far edge to the reference edge. Null when the end has none.
  */
 function endPath(part: Part, end: 0 | 1, corner: UV): UV[] | null {
-  const notches = part.notches.filter((n) => n.end === end);
+  const notches = [...part.notches, ...shoulders(part)].filter((n) => n.end === end);
   const cutouts = part.cutouts.filter((c) => c.end === end);
   if (notches.length === 0 && cutouts.length === 0) return null;
   if (part.ends[end].setting !== 0)
@@ -75,6 +75,22 @@ function endPath(part: Part, end: 0 | 1, corner: UV): UV[] | null {
       : [{ u: at, v: W }]),
   ];
   return end === 1 ? path : path.reverse();
+}
+
+/**
+ * A tenon narrower than the part, seen on the face: its shoulders at the edges, as notches as long
+ * as the tenon and as deep as each shoulder.
+ */
+function shoulders(part: Part): Notch[] {
+  const W = part.stock.width;
+  return (part.tenons ?? []).flatMap((t) => [
+    ...(t.v0 > 1e-9
+      ? [{ end: t.end, edge: 'reference' as const, along: t.length, across: t.v0 }]
+      : []),
+    ...(W - t.v0 - t.width > 1e-9
+      ? [{ end: t.end, edge: 'far' as const, along: t.length, across: W - t.v0 - t.width }]
+      : []),
+  ]);
 }
 
 /** The outline after tapers, notches, and cutouts, counterclockwise. */

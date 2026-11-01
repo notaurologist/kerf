@@ -30,7 +30,7 @@ describe('ToolPage', () => {
   });
 
   it('says when no method uses a tool, and asks for no details it does not have', () => {
-    const html = renderToString(<ToolPage id="drill-press" />);
+    const html = renderToString(<ToolPage id="impact-driver" />);
     expect(html).toContain('No method in Kerf uses it yet');
     expect(html).not.toContain('Details Kerf asks for');
   });
