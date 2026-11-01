@@ -39,7 +39,7 @@ What fits as is:
 - The plan's sections, summary, print, and modes.
 
 Gaps opened as issues:
-- #302: elevations and a section view, with section lining added to the drawing standard.
+- #302: elevations and a section view, with section lining added to the drawing standard. Built: orthographic elevations from the same solids as the 3D views, chained dimensions the template asks for, and sections whose cut faces get section lining (`diagrams.html`, the standard). Hidden edges aren't drawn in elevations; the D2 face tones show depth instead.
 - #303: notches, cutouts, and dadoes in cut details and 3D, which aren't the convex prisms `geometry/solid.ts` assumed. Built: a concave face is drawn as convex pieces, and a dado as its outline on its face. A part whose joinery makes it handed, such as a left and a right side, is listed as two parts, one per hand: a placement is right-handed, so one part's data can't describe both.
 - #304: wood movement in the plan.
 - #305: panels in the cut list, cut card, and Building mode.

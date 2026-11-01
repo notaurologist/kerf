@@ -63,7 +63,8 @@ export const Primitive = z.discriminatedUnion('kind', [
     kind: z.literal('polygon'),
     role: LineRole,
     points: z.array(Point2).min(3),
-    fill: z.union([Tone, z.literal('zone'), z.literal('none')]),
+    /** `section`: a face cut by a section plane, drawn with section lining (ASME Y14.2). */
+    fill: z.union([Tone, z.literal('zone'), z.literal('section'), z.literal('none')]),
     outline: z.boolean().optional(),
     ...part,
   }),
