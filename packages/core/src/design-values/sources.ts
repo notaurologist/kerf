@@ -60,7 +60,7 @@ export const SOURCES = {
     publisher: 'USDA Forest Service, Forest Products Laboratory (Robert J. Ross, editor)',
     edition: '2021',
     url: 'https://research.fs.usda.gov/treesearch/62200',
-    note: 'For board selection: knots, cross grain, checks, shake, decay, and warp.',
+    note: 'For board selection (knots, cross grain, checks, shake, decay, and warp) and wood movement.',
   },
   'awpa-homeowners': {
     title: 'Information for Homeowners',
