@@ -341,6 +341,41 @@
     min-inline-size: 0;
   }
 
+  /* Mark keys above a phone's keyboard (#74). Fixed to the bottom of the screen until the
+     component reads the visual viewport and sets its top, the top of the keyboard. */
+  .k-marks {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) 2fr;
+    gap: var(--space-3xs);
+    margin: 0;
+    padding: var(--space-3xs);
+    border: 0;
+    border-block-start: var(--border-thin) solid var(--border);
+    min-inline-size: 0;
+    background: var(--sunken);
+  }
+
+  .k-marks[data-placed] {
+    inset-block-end: auto;
+    inset-inline-end: auto;
+    translate: 0 -100%;
+  }
+
+  .k-marks__key {
+    min-block-size: var(--control-min);
+    border: var(--border-thin) solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--raised);
+    color: var(--text);
+    font-size: var(--size-1);
+    font-weight: 700;
+    touch-action: manipulation;
+  }
+
   .k-field[data-state="error"] .k-field__input {
     border: var(--border-thick) solid var(--error);
   }

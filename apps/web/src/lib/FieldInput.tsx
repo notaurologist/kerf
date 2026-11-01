@@ -11,11 +11,9 @@ const UNITS: Partial<Record<FormField['kind'], string>> = { angle: '°' };
 /** The format a length is typed in (content guide: hints give the format, never a sample value). */
 const LENGTH_HINT = 'Inches, or feet and inches.';
 
-/** Which on-screen keyboard to show. Lengths and fractions need ', ", /, and -. */
-function keyboard(field: FormField): 'numeric' | 'decimal' | 'text' {
-  if (field.kind === 'integer') return 'numeric';
-  if (field.kind === 'length' || (field.kind === 'number' && field.fractions)) return 'text';
-  return 'decimal';
+/** Lengths and fractions need ', ", /, -, and space: on a phone, the mark keys add them (#74). */
+function needsMarks(field: FormField): boolean {
+  return field.kind === 'length' || (field.kind === 'number' && field.fractions === true);
 }
 
 export function FieldInput(props: {
@@ -61,7 +59,8 @@ export function FieldInput(props: {
         ) : (
           <TextInput
             {...c}
-            keyboard={keyboard(field)}
+            keyboard={field.kind === 'integer' ? 'numeric' : 'decimal'}
+            marks={needsMarks(field)}
             value={text}
             onChange={props.onChange}
             readOnly={props.readOnly}

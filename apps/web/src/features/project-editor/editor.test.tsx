@@ -300,9 +300,9 @@ describe('typing a length', () => {
     expect(html).not.toMatch(/id="p-beamLength"[^>]*aria-invalid/);
   });
 
-  it('gives lengths the full keyboard, with autocorrect off, and no inch unit', () => {
+  it('gives lengths the number pad, with autocorrect off, and no inch unit', () => {
     expect(html).toMatch(
-      /id="p-beamHeight"[^>]*inputMode="text" autoCapitalize="off" autoCorrect="off"/,
+      /id="p-beamHeight"[^>]*inputMode="decimal" autoCapitalize="off" autoCorrect="off"/,
     );
     expect(html).toContain('Inches, or feet and inches.');
   });
