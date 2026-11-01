@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { suggestedValues } from '../../model/questions.ts';
 import { recordCabinet } from './definition.ts';
 import { CABINET_QUESTIONS } from './questions.ts';
 
@@ -46,19 +47,45 @@ describe('record cabinet starting questions', () => {
     expect(tall?.note).toContain('outside 16" to 30"');
   });
 
-  it('takes the turntable and speaker from the answers, and leaves the owner’s values and inputs empty', () => {
+  it('takes the turntable and speaker from the answers, and leaves every structural input empty', () => {
     expect(at(suggestions, 'speaker.place')?.value).toBe('top');
-    const paths = suggestions.map((s) => s.path);
-    for (const owner of [
-      'dadoDepth',
-      'stoppedSetback',
-      'jacket',
-      'board.width',
-      'allowances.rip',
-    ]) {
-      expect(paths).not.toContain(owner);
-    }
     expect(suggestions.every((s) => s.from === 'params')).toBe(true);
+  });
+
+  it('suggests a 1x6 board from the lumber standard, to be measured at the store', () => {
+    const thickness = at(suggestions, 'board.thickness');
+    expect([thickness?.value, at(suggestions, 'board.width')?.value]).toEqual([0.75, 5.5]);
+    expect(thickness?.basis).toEqual({
+      kind: 'source',
+      citation: 'American Softwood Lumber Standard, PS 20-10, Table 3, a dry 1x6 board',
+    });
+    expect(thickness?.note).toBe('Measure the boards at your store.');
+    expect([0, 1, 2].map((i) => at(suggestions, `board.lengths.${i}`)?.value)).toEqual([4, 6, 8]);
+  });
+
+  it('makes each dado a quarter of the panel thickness, leaving half of a partition', () => {
+    // 3/4" panels: 3/16" dadoes on both faces leave 3/4 − 2 × 3/16 = 3/8".
+    const dado = at(suggestions, 'dadoDepth');
+    expect(dado?.value).toBe(0.1875);
+    expect(dado?.basis.kind).toBe('rule-of-thumb');
+  });
+
+  it('suggests the allowances and setback as rules of thumb', () => {
+    const rules = [
+      'allowances.jointPerEdge',
+      'allowances.rip',
+      'allowances.trimPerEnd',
+      'stoppedSetback',
+    ];
+    expect(rules.map((path) => at(suggestions, path)?.value)).toEqual([0.0625, 0.5, 1, 0.5]);
+    expect(rules.every((path) => at(suggestions, path)?.basis.kind === 'rule-of-thumb')).toBe(true);
+  });
+
+  it('suggests every parameter, so a plan can be saved from the answers alone', () => {
+    const { params } = suggestedValues(recordCabinet.form, suggestions);
+    expect(
+      Object.entries(params).filter(([path, text]) => text === '' && path !== 'board.lengths.3'),
+    ).toEqual([]);
   });
 
   it('is offered by the template', () => {

@@ -7,9 +7,9 @@ import { RecordCabinetParams } from './params.ts';
 
 // Starting questions (#314; docs/templates/record-cabinet.md, Starting questions): the window
 // the cabinet stands under, and the turntable and speaker. The height and width follow the
-// owner's choices for this cabinet; the rest of the case comes from the worked example. The dado
-// depth, setback, board stock, allowances, record jacket, and every structural input are left for
-// the owner (hard rule 3).
+// owner's choices for this cabinet; the rest of the case comes from the worked example. The board
+// stock, allowances, and joint sizes come from a standard and rules of thumb (#317). Every
+// structural input is left for the owner (hard rule 3).
 
 const range = (key: 'height' | 'width') => {
   const field = RecordCabinetParams.shape[key];
@@ -98,6 +98,27 @@ const EXAMPLE: SuggestionBasis = { kind: 'example' };
 /** The owner's choice for this cabinet (spec, Starting questions): 2" below the stool. */
 const BELOW_STOOL = 2;
 
+/** A 1x6 board, dry, from the American Softwood Lumber Standard. */
+const ONE_BY_SIX: SuggestionBasis = {
+  kind: 'source',
+  citation: 'American Softwood Lumber Standard, PS 20-10, Table 3, a dry 1x6 board',
+};
+const MEASURE = 'Measure the boards at your store.';
+
+/** Rules of thumb for the panels and joints, with nothing published behind them. */
+const PANEL_RULES = {
+  'allowances.jointPerEdge': {
+    value: 0.0625,
+    rule: 'one or two jointer passes on each glued edge',
+  },
+  'allowances.rip': { value: 0.5, rule: 'about 1/2" of extra width, ripped off after glue-up' },
+  'allowances.trimPerEnd': {
+    value: 1,
+    rule: 'boards about 2" over length, cut off with the panel’s ends',
+  },
+  stoppedSetback: { value: 0.5, rule: 'far enough back that the end of the dado does not show' },
+} as const;
+
 /** A suggestion inside the parameter's range, or none, with what the answers allow. */
 function within(
   path: 'height' | 'width',
@@ -160,6 +181,35 @@ function suggest(a: CabinetAnswers): Suggestion[] {
         'railHeight',
       ] as const
     ).map(example),
+    {
+      from: 'params',
+      path: 'dadoDepth',
+      value: WORKED_EXAMPLE.panelThickness / 4,
+      basis: {
+        kind: 'rule-of-thumb',
+        rule: 'a dado at most a third of the thickness it is cut into. A partition has one on each face, so a quarter of the panel thickness leaves half of it between them',
+      },
+    },
+    example('jacket'),
+    { from: 'params', path: 'board.thickness', value: 0.75, basis: ONE_BY_SIX, note: MEASURE },
+    { from: 'params', path: 'board.width', value: 5.5, basis: ONE_BY_SIX, note: MEASURE },
+    ...WORKED_EXAMPLE.board.lengths.map(
+      (feet, i): Suggestion => ({
+        from: 'params',
+        path: `board.lengths.${i}`,
+        value: feet,
+        basis: EXAMPLE,
+        ...(i === 0 ? { note: 'Change these to the lengths your store sells.' } : {}),
+      }),
+    ),
+    ...Object.entries(PANEL_RULES).map(
+      ([path, { value, rule }]): Suggestion => ({
+        from: 'params',
+        path,
+        value,
+        basis: { kind: 'rule-of-thumb', rule },
+      }),
+    ),
     ...(['width', 'depth', 'lidHeight'] as const).map(
       (k): Suggestion => ({
         from: 'params',

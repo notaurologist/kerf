@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { PanelAllowances } from '../../lumber/panel.ts';
 
 // Parameters for template version 1 (docs/templates/record-cabinet.md, Parameters). Lengths in
-// inches. The board stock, allowances, dado depth, and setback are the owner's, with no defaults.
+// inches.
 
 /** Where the speaker goes: on the top beside the turntable, or on one bay's shelf, from the left. */
 const SpeakerPlace = z.union([z.literal('top'), z.number().int().min(1).max(4)]);

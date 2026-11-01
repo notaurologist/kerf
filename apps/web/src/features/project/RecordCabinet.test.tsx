@@ -4,6 +4,7 @@ import type { Project } from '../../lib/types.ts';
 import { projectFrom } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
 import { ModeView } from '../modes/modes.tsx';
+import { startValues } from '../project-editor/ProjectEditor.tsx';
 import { ProjectView } from './ProjectScreen.tsx';
 
 // The record cabinet's worked example through the screens: the panels, wood movement, elevations,
@@ -67,5 +68,15 @@ describe('a panel in Building mode', () => {
       />,
     );
     expect(html).toContain('Glue up 3 boards for A Top');
+  });
+});
+
+describe('a record cabinet started from the worked example', () => {
+  it('keeps the board stock, allowances, and joint sizes, so it saves without entering them', () => {
+    const start = startValues(template, { kind: 'example', index: 0 }, null);
+    if (!start.ok) throw new Error(start.message);
+    const empty = Object.entries(start.initial.params).filter(([, text]) => text === '');
+    expect(empty.map(([path]) => path)).toEqual(['board.lengths.3']);
+    expect(start.initial.params.dadoDepth).toBe('3/16');
   });
 });
