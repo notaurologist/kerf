@@ -27,6 +27,7 @@ describe('a record cabinet plan', () => {
 
   it("lists each panel's boards in the cut list", () => {
     expect(text).toContain('Panel (3/4" x 15-3/4")');
+    expect(text).toContain('Ripped from 1 board of 13/16" x 5-1/2", 18-7/8" long, ripped to 3".');
     expect(text).toContain(
       'Glued up from 3 boards of 13/16" x 5-1/2", each 56" long, glued to 16-1/4" wide and ripped to 15-3/4".',
     );

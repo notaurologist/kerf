@@ -1,6 +1,6 @@
 # Template: record cabinet
 
-Status: template version 2 is built (#301; version 2 adds the flattening allowance, #319), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Not built yet: assembling the case and finishing in the build steps (#313). The starting questions are built (#314).
+Status: template version 3 is built (#301; version 2 adds the flattening allowance, #319, and version 3 keeps a one-board rail at its board's thickness, #320), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Not built yet: assembling the case and finishing in the build steps (#313). The starting questions are built (#314).
 
 A low cabinet with record bays, for a turntable and a speaker, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
 
@@ -67,7 +67,7 @@ Ranges are proposals for the owner's review.
 - Top of the bottom shelves: z = h_f + t
 - Bay clear height: h_b = (H − t) − (h_f + t)
 - Side and partition length (height): H_p = H − t + j. The panel runs into the top's dado.
-- Back rail: from z = H − t − h_r to z = H − t, at the back, y = D_c − t to D_c.
+- Back rail: from z = H − t − h_r to z = H − t, at the back, y = D_c − r to D_c, where r is the rail's thickness.
 
 ### Part sizes
 
@@ -77,7 +77,7 @@ Ranges are proposals for the owner's review.
 | Left side, right side | 1 each | H_p | D_c | t | Shelf dado on the inside face, j deep; foot cutout. Mirror images, so two parts with their own letters (`docs/design/README.md`, Stage 11) |
 | Partition | n − 1 | H_p | D_c | t | Shelf dadoes on both faces, j deep; foot cutout |
 | Bottom shelf | n | b + 2·j | D_c | t | Housed in dadoes at both ends |
-| Back rail | n | b + 2·j | h_r | t | Housed in dadoes at both ends (rail dadoes in the sides and partitions) |
+| Back rail | n | b + 2·j | h_r | r | Housed in dadoes at both ends (rail dadoes in the sides and partitions, r wide). A rail of one board isn't flattened, so r is the board's thickness; a rail glued from boards is t (#320). |
 
 Each side and partition gets a notch at its front top corner, s_d long and j deep, so it fits the stopped dado.
 
@@ -96,7 +96,7 @@ Each part's placement follows `DOMAIN.md`, Implications for the data model (Geom
 ## Hardware, operations, build steps, drawings
 
 - **Hardware:** glue, and finish. No metal fasteners in version 1.
-- **Operations:** generic code makes each panel's work from its stock (#297): cut its boards to length, joint the glued edges, glue up, flatten, rip to width, and crosscut its ends. A back rail narrower than a board is one board, cut to length and ripped. The template adds the dadoes, stopped dadoes, foot cutouts, easing edges, and finish, each of which needs an operation type and methods first.
+- **Operations:** generic code makes each panel's work from its stock (#297): cut its boards to length, joint the glued edges, glue up, flatten, rip to width, and crosscut its ends. A back rail narrower than a board is one board, cut to length and ripped, and keeps the board's thickness. The template adds the dadoes, stopped dadoes, foot cutouts, easing edges, and finish, each of which needs an operation type and methods first.
 - **Build steps:** glue up panels; cut panels to size; cut dadoes; cut feet; dry-fit; glue up the case; fit the top; finish. Each operation's methods come from the knowledge base, for the owner's tools.
 - **Drawings:** front and end elevations with bay widths and heights; a section through a bay showing the shelf, dadoes, and back rail; each panel's cut detail with dadoes and cutout; an exploded view. Showing grain direction and movement on drawings is for #71.
 
@@ -144,7 +144,7 @@ Parameters: W = 54, H = 20, D_c = 15, n = 3, t = 3/4, j = 3/16, s_d = 1/2, o_s =
 | Left in a partition | 0.75 − 2(0.1875) | 0.375 (3/8), flagged |
 | Notch | s_d × j | 1/2 × 3/16 |
 
-Cut list: top 54 × 15-3/4; left side, right side, and partitions (2) 19-7/16 × 15; bottom shelves (3) 16-7/8 × 15; back rails (3) 16-7/8 × 3. All 3/4 thick.
+Cut list: top 54 × 15-3/4; left side, right side, and partitions (2) 19-7/16 × 15; bottom shelves (3) 16-7/8 × 15; back rails (3) 16-7/8 × 3. The panels are 3/4 thick; the rails, each one 13/16 board ripped to width, are 13/16, and their dadoes run from 15 − 13/16 = 14-3/16 to the back edge.
 
 Panels, with the suggested allowances and 4/4 hardwood surfaced two sides, 13/16 thick (Wood Handbook, Table 6-4), which flattens to t = 3/4: boards 13/16 × 5-1/2, jointing 1/16 per glued edge, rip 1/2, trim 1 per end, flattening 1/16 (13/16 − 1/16 = 3/4). Boards per panel n = ⌈(width + 1/2 − 1/8) / (5-1/2 − 1/8)⌉ = ⌈(width + 0.375) / 5.375⌉; glued width n·5.5 − 0.125·(n − 1); board length = part length + 2.
 

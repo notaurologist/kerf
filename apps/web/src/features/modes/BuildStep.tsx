@@ -7,6 +7,7 @@ import {
   formatLength,
   type geometry,
   type Plan,
+  panelMade,
   partProgressKey,
 } from '@kerf/core';
 import type { ReactNode } from 'react';
@@ -288,9 +289,10 @@ export function CutCard(props: {
             // A panel's boards are cut to their length on the boards; the panel comes later.
             <>
               <Text>
-                {row.stock}, glued up from <Readings text={row.panel.recipe} />. Cut {pieces.length}{' '}
-                of its boards from board {step.board.number}, a {step.board.nominal}{' '}
-                {formatBoardLength(step.board.feet)} long.
+                {row.stock}, {panelMade(row.panel).toLowerCase()}{' '}
+                <Readings text={row.panel.recipe} />. Cut {pieces.length} of its boards from board{' '}
+                {step.board.number}, a {step.board.nominal} {formatBoardLength(step.board.feet)}{' '}
+                long.
               </Text>
               <Stack gap="3xs">
                 <Text>Each board's length</Text>
@@ -300,8 +302,8 @@ export function CutCard(props: {
           ) : (
             <>
               <Text>
-                {row.stock}, glued up from <Readings text={row.panel.recipe} />. Make {row.quantity}
-                .
+                {row.stock}, {panelMade(row.panel).toLowerCase()}{' '}
+                <Readings text={row.panel.recipe} />. Make {row.quantity}.
               </Text>
               <Stack gap="3xs">
                 <Text>Length</Text>

@@ -1,16 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import type { TemplateDefinition } from '../../model/definition.ts';
+import type { CutListRow } from '../../outputs/cutList.ts';
 import { shapeOf } from '../../snapshot/shape.ts';
 import { createSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
 import { recordCabinet } from './definition.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
 import v2 from './snapshots/v2.json' with { type: 'json' };
+import v3 from './snapshots/v3.json' with { type: 'json' };
 
 // Stored record-cabinet projects stay readable (decision 0014). Each fixture holds the worked
 // examples as that template version stores them. Fixtures are never rewritten.
 
-const FIXTURES: Record<number, readonly unknown[]> = { 1: v1, 2: v2 };
+const FIXTURES: Record<number, readonly unknown[]> = { 1: v1, 2: v2, 3: v3 };
 const template = recordCabinet as TemplateDefinition;
+
+/** Cut list rows as shapes before 3 stored them, without each panel's board count. */
+const withoutBoards = (rows: readonly CutListRow[]) =>
+  JSON.parse(
+    JSON.stringify(
+      rows.map(({ panel, ...row }) => {
+        if (!panel) return row;
+        const { boards: _, ...rest } = panel;
+        return { ...row, panel: rest };
+      }),
+    ),
+  );
 const templates = [template];
 
 describe('record-cabinet snapshot fixtures', () => {
@@ -61,13 +75,30 @@ describe('record-cabinet snapshot fixtures', () => {
       });
       const outputs = recordCabinet.storedOutputs.parse(read.snapshot.outputs);
       const plan = recordCabinet.plan(outputs);
-      const original = (stored as { outputs: { cutList: unknown } }).outputs.cutList;
-      expect(plan.cutList).toEqual(original);
+      expect(withoutBoards(plan.cutList)).toEqual(
+        (stored as { outputs: { cutList: unknown } }).outputs.cutList,
+      );
       for (const op of plan.operations.filter((o) => o.type === 'flatten')) {
         const part = outputs.design.parts.find((p) => p.id === op.partId);
         expect(op).toMatchObject({ thickness: part?.stock.thickness });
       }
       expect(recordCabinet.drawings(outputs).cutDetails).toHaveLength(plan.cutList.length);
+    }
+  });
+
+  it('reads a version 2 plan with each panel row counting its boards from the part', () => {
+    for (const stored of v2) {
+      const read = readSnapshot(templates, stored);
+      if (!read.ok) throw new Error(read.message);
+      const outputs = recordCabinet.storedOutputs.parse(read.snapshot.outputs);
+      const original = (stored as { outputs: { cutList: unknown } }).outputs.cutList;
+      expect(withoutBoards(outputs.cutList)).toEqual(original);
+      for (const row of outputs.cutList) {
+        const part = outputs.design.parts.find((p) => p.id === row.partId);
+        expect(row.panel?.boards).toBe(
+          part && 'boards' in part.stock ? part.stock.boards : undefined,
+        );
+      }
     }
   });
 

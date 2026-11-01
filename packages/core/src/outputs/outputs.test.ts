@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { type BoardStock, panelStock } from '../lumber/panel.ts';
 import { stock } from '../lumber/stock.ts';
 import type { HardwareItem, Part } from '../model/types.ts';
-import { cutList } from './cutList.ts';
+import { cutList, panelMade } from './cutList.ts';
 import { hardwareList } from './hardwareList.ts';
 import { planLumber } from './shoppingList.ts';
 
@@ -141,12 +141,17 @@ describe('panels', () => {
     expect(side?.panel).toEqual({
       width: '15"',
       boardLength: '21-7/16"',
+      boards: 3,
       recipe:
         '3 boards of 1x6 cherry (3/4" x 5-1/2"), each 21-7/16" long, glued to 16-1/4" wide and ripped to 15"',
     });
-    expect(cutList([panel('rail', 3, 1)])[0]?.panel?.recipe).toBe(
+    const [rail] = cutList([panel('rail', 3, 1)]);
+    expect(rail?.stock).toBe('Board (3/4" x 3")');
+    expect(rail?.panel?.recipe).toBe(
       '1 board of 1x6 cherry (3/4" x 5-1/2"), 21-7/16" long, ripped to 3"',
     );
+    expect(side?.panel && panelMade(side.panel)).toBe('Glued up from');
+    expect(rail?.panel && panelMade(rail.panel)).toBe('Ripped from');
     // Dimension lumber has none, so stored cut lists read as before.
     expect(cutList([{ ...panel('post', 15, 1), stock: stock('2x4') }])[0]).not.toHaveProperty(
       'panel',

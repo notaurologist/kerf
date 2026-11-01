@@ -1,4 +1,4 @@
-import type { CutListRow } from '@kerf/core';
+import { type CutListRow, panelMade } from '@kerf/core';
 import type { ReactNode } from 'react';
 import { type Changes, marked as mark, NO_CHANGES } from '../../lib/changes.tsx';
 import { cutListPartId } from '../../lib/show.ts';
@@ -132,7 +132,7 @@ export function CutList(props: {
                 <PlainList gap="xs">
                   {row.panel && (
                     <li>
-                      Glued up from{' '}
+                      {panelMade(row.panel)}{' '}
                       {marked(`${path(row)}.panel.recipe`, <Readings text={row.panel.recipe} />)}.
                     </li>
                   )}

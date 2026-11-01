@@ -24,6 +24,8 @@ export const CutListRow = z.object({
       width: z.string(),
       /** Each board's length before gluing. */
       boardLength: z.string(),
+      /** How many boards: more than one are glued up; one is only ripped to width. */
+      boards: z.number().int().positive(),
       /** The boards, how long, and the widths it is glued and ripped to, as one sentence. */
       recipe: z.string(),
     })
@@ -48,7 +50,8 @@ const size = (s: { thickness: number; width: number }) =>
   `${formatLength(s.thickness)} x ${formatLength(s.width)}`;
 
 function stockText(stock: PartStock): string {
-  return isPanel(stock) ? `Panel (${size(stock)})` : `${stock.nominal} (${size(stock)})`;
+  if (!isPanel(stock)) return `${stock.nominal} (${size(stock)})`;
+  return `${stock.boards === 1 ? 'Board' : 'Panel'} (${size(stock)})`;
 }
 
 function panelOf(stock: PartStock): CutListRow['panel'] {
@@ -62,7 +65,12 @@ function panelOf(stock: PartStock): CutListRow['panel'] {
     boards === 1
       ? `1 board of ${named}, ${boardLength} long, ripped to ${width}`
       : `${boards} boards of ${named}, each ${boardLength} long, glued to ${formatLength(stock.gluedWidth)} wide and ripped to ${width}`;
-  return { width, boardLength, recipe };
+  return { width, boardLength, boards, recipe };
+}
+
+/** How a panel row's part is made from its boards, to go before its recipe. */
+export function panelMade(panel: NonNullable<CutListRow['panel']>): string {
+  return panel.boards === 1 ? 'Ripped from' : 'Glued up from';
 }
 
 export function cutList(parts: readonly Part[]): CutListRow[] {

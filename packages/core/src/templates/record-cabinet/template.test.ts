@@ -56,7 +56,8 @@ describe('the worked example (spec, Worked example)', () => {
       'Panel (3/4" x 15")',
       'Panel (3/4" x 15")',
       'Panel (3/4" x 15")',
-      'Panel (3/4" x 3")',
+      // One board, not flattened, keeps the 13/16" board's thickness.
+      'Board (13/16" x 3")',
     ]);
   });
 
@@ -76,10 +77,11 @@ describe('the worked example (spec, Worked example)', () => {
 
   it('cuts the dadoes, notch, and foot cutout where the spec puts them', () => {
     const side = part(worked, 'side-left');
-    // Shelf dado at h_f to h_f + t, rail pocket at H − t − h_r to H − t, from the back.
+    // Shelf dado at h_f to h_f + t, rail pocket at H − t − h_r to H − t, as wide as the rail's
+    // 13/16" board from the back: 15 − 0.8125 = 14.1875.
     expect(side.dadoes.map((d) => [d.face, d.u0, d.u1, d.v0, d.v1, d.depth])).toEqual([
       ['near', 5.25, 6, 0, 15, 0.1875],
-      ['near', 16.25, 19.25, 14.25, 15, 0.1875],
+      ['near', 16.25, 19.25, 14.1875, 15, 0.1875],
     ]);
     expect(part(worked, 'side-right').dadoes.every((d) => d.face === 'far')).toBe(true);
     expect(part(worked, 'partition').dadoes).toHaveLength(4);
