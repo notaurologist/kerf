@@ -1,6 +1,6 @@
 # Template: record cabinet
 
-Status: template version 1 is built (#301), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Not built yet: assembling the case and finishing in the build steps (#313), and the starting questions (#314).
+Status: template version 1 is built (#301), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Not built yet: assembling the case and finishing in the build steps (#313). The starting questions are built (#314).
 
 A low cabinet with record bays, for a turntable and a speaker, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
 

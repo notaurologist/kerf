@@ -9,6 +9,7 @@ import { EXAMPLES } from './examples.ts';
 import { RECORD_CABINET_FORM } from './form.ts';
 import { RecordCabinetOutputs } from './outputs.ts';
 import { RecordCabinetParams } from './params.ts';
+import { CABINET_QUESTIONS } from './questions.ts';
 import { stepOutline } from './steps.ts';
 import { RecordCabinetStructuralInputs, structuralReview } from './structural.ts';
 import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
@@ -45,6 +46,7 @@ export const recordCabinet: TemplateDefinition<
   snapshotVersion: 1,
   snapshotUpgrades: {},
   examples: EXAMPLES,
+  questions: CABINET_QUESTIONS,
   steps: (outputs) => stepOutline(outputs.design),
   plan(outputs) {
     const { review, design } = outputs;
