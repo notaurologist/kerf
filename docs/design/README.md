@@ -46,6 +46,8 @@ Built in #265 (October 2026): the frame (`Frame` in `ui/Shell.tsx`), with icons 
 
 Built in #266 (October 2026): the moves and the waiting (`lib/moves.ts`, `ui/Skeleton.tsx`). The hold uses the view transition's own update: the browser keeps showing the old screen while the new one is put in place and its data loads. Under reduced motion there is no move and no hold; the skeleton waits 300 ms before it appears, so a fast load still never shows it.
 
+Built in #267 (October 2026): Left and Right for the plan's sections and Building's steps (`lib/arrowKeys.ts`), with the key named in `aria-keyshortcuts` and shown beside Previous and Next for a fine pointer.
+
 ## Stage 8: brand (#166)
 
 `brand.html` explores the brand in three rounds, latest first. Round 1 drew five directions: a handsaw blade, a circular blade, a board cut through at 20.0° with the kerf open, the same kerf dimensioned as a drawing, and the wordmark with a slot cut between the k's stem and arm. Round 2 explored the k further (an end cut on its stem, the end cut with the slot, the k as three boards, a cut through the whole word) and added two new marks, kerf bending and the crow's foot. Round 3 refined the chosen one. The result, and how to use it, is in `brand.md`.

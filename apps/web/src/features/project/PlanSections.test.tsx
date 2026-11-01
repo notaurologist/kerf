@@ -84,14 +84,18 @@ describe('Previous and Next', () => {
   it('name the sections either side, in a navigation labeled for the plan', () => {
     const pager = pagerOf(at('structural-review'));
     expect(pager).toContain('aria-label="Plan sections"');
-    expect(textOf(pager)).toBe('Previous Diagrams Next Cut list');
-    expect(pager).toContain(`<a class="k-pager__link" href="${base}/diagrams" rel="prev">`);
-    expect(pager).toContain(`<a class="k-pager__link" href="${base}/cut-list" rel="next">`);
+    expect(textOf(pager)).toBe('Previous ← Diagrams → Next Cut list');
+    expect(pager).toContain(
+      `<a class="k-pager__link" href="${base}/diagrams" rel="prev" aria-keyshortcuts="ArrowLeft">`,
+    );
+    expect(pager).toContain(
+      `<a class="k-pager__link" href="${base}/cut-list" rel="next" aria-keyshortcuts="ArrowRight">`,
+    );
   });
 
   it('give only Next on the summary and only Previous on the last section', () => {
-    expect(textOf(pagerOf(at()))).toBe('Next Diagrams');
-    expect(textOf(pagerOf(at('parameters')))).toBe('Previous Build steps');
+    expect(textOf(pagerOf(at()))).toBe('→ Next Diagrams');
+    expect(textOf(pagerOf(at('parameters')))).toBe('Previous ← Build steps');
   });
 
   it('come after the section, outside it', () => {

@@ -10,6 +10,7 @@ import {
   partProgressKey,
 } from '@kerf/core';
 import type { ReactNode } from 'react';
+import { useArrowKeys } from '../../lib/arrowKeys.ts';
 import type { useTicks } from '../../lib/ticks.ts';
 import {
   Button,
@@ -112,11 +113,16 @@ export function StepScreen(props: {
 }) {
   const { steps, at, plan, ticks, links } = props;
   const step = steps[at];
+  const previous = steps[at - 1];
+  const next = steps[at + 1];
+  // Looking only: Right goes to the next step without marking this one done.
+  useArrowKeys({
+    previous: previous && links.step(previous.id),
+    next: next && links.step(next.id),
+  });
   if (!step) return null;
   const tick = { kind: 'step' as const, key: step.id };
   const done = ticks.isDone(tick);
-  const previous = steps[at - 1];
-  const next = steps[at + 1];
   const nextHref = next ? links.step(next.id) : links.steps;
   const drawing = drawingFor(step, props.drawings);
   return (
@@ -145,12 +151,14 @@ export function StepScreen(props: {
       )}
       <Cluster>
         {previous && (
-          <ButtonLink variant="secondary" href={links.step(previous.id)}>
+          <ButtonLink variant="secondary" href={links.step(previous.id)} keyshortcuts="ArrowLeft">
             Back
           </ButtonLink>
         )}
         {done ? (
-          <ButtonLink href={nextHref}>{next ? 'Next' : 'All steps'}</ButtonLink>
+          <ButtonLink href={nextHref} keyshortcuts={next ? 'ArrowRight' : undefined}>
+            {next ? 'Next' : 'All steps'}
+          </ButtonLink>
         ) : (
           <Button
             onClick={() => {
