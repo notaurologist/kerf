@@ -1,6 +1,6 @@
 # Template: record cabinet
 
-Status: template version 3 is built (#301; version 2 adds the flattening allowance, #319, and version 3 keeps a one-board rail at its board's thickness, #320), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. Not built yet: assembling the case and finishing in the build steps (#313). The starting questions are built (#314).
+Status: template version 4 is built (#301; version 2 adds the flattening allowance, #319, version 3 keeps a one-board rail at its board's thickness, #320, and version 4 adds assembly and finishing, #313), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. The starting questions are built (#314).
 
 A low cabinet with record bays, for a turntable and a speaker, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
 
@@ -96,8 +96,8 @@ Each part's placement follows `DOMAIN.md`, Implications for the data model (Geom
 ## Hardware, operations, build steps, drawings
 
 - **Hardware:** glue, and finish. No metal fasteners in version 1.
-- **Operations:** generic code makes each panel's work from its stock (#297): cut its boards to length, joint the glued edges, glue up, flatten, rip to width, and crosscut its ends. A back rail narrower than a board is one board, cut to length and ripped, and keeps the board's thickness. The template adds the dadoes, stopped dadoes, foot cutouts, easing edges, and finish, each of which needs an operation type and methods first.
-- **Build steps:** glue up panels; cut panels to size; cut dadoes; cut feet; dry-fit; glue up the case; fit the top; finish. Each operation's methods come from the knowledge base, for the owner's tools.
+- **Operations:** generic code makes each panel's work from its stock (#297): cut its boards to length, joint the glued edges, glue up, flatten, rip to width, and crosscut its ends. A back rail narrower than a board is one board, cut to length and ripped, and keeps the board's thickness. The template adds the dadoes, stopped dadoes, notches, foot cutouts, a dry fit of every part, gluing the case (sides, partitions, shelves, and rails, clamped across the case width W − 2·o_s), gluing on the top (clamped from the top down, H), easing the edges, and finishing every part.
+- **Build steps:** glue up panels; cut panels to size; cut dadoes; cut notches and feet; dry-fit; glue up the case; glue on the top; ease the edges, once the joints are closed so no edge that meets another is rounded; finish. Each operation's methods come from the knowledge base, for the owner's tools. The worked example's clamps must open 52-1/2 across the case and 20 for the top; with shorter clamps there is no method for gluing the case, and the step names the clamp opening it needs.
 - **Drawings:** front and end elevations with bay widths and heights; a section through a bay showing the shelf, dadoes, and back rail; each panel's cut detail with dadoes and cutout; an exploded view. Showing grain direction and movement on drawings is for #71.
 
 ## Validation and flags

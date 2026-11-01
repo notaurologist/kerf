@@ -8,11 +8,12 @@ import {
 } from '../geometry/index.ts';
 import { isPanel } from '../lumber/panel.ts';
 import type { TemplateDefinition } from '../model/definition.ts';
+import { JOINING_OPERATION_TYPES } from '../model/operations.ts';
 import type { Part, Placement } from '../model/types.ts';
 import { stepContents } from './build.ts';
 
 // Action drawings for Building mode (#118; design Stage 5, "Drawings in Building mode"): one for
-// each assembly step, a step whose operations join parts. Each draws only what the step adds,
+// each assembly step, a step whose operations join parts (a dry fit draws them all fitted). Each draws only what the step adds,
 // pulled away from where it goes with a motion arrow, on everything earlier assembly steps built.
 // Cutting steps show their board and site work the site layout, so they get none here. A step
 // that glues up panels draws each panel's boards side by side, pulled apart, with arrows to where
@@ -47,8 +48,12 @@ export function stepDrawings<O>(
       drawings.push({ stepId: step.id, drawing: glueUpDrawing(glued, `Step: ${step.title}`) });
       continue;
     }
-    const joins = step.operations.some((op) => 'partIds' in op && op.partIds.length > 1);
+    const joins = step.operations.some(
+      (op) => JOINING_OPERATION_TYPES.includes(op.type) && 'partIds' in op && op.partIds.length > 1,
+    );
     if (!joins) continue;
+    // A dry fit is taken apart again, so it shows every part fitted and builds nothing.
+    const dry = step.operations.every((op) => op.type === 'dry-fit');
     const parts = [
       ...new Set(
         step.operations.flatMap((op) =>
@@ -57,11 +62,12 @@ export function stepDrawings<O>(
       ),
     ];
     // What the step adds; a step that only works on parts already built shows them all.
-    const fresh = parts.filter((id) => !built.has(id));
+    const fresh = dry ? parts : parts.filter((id) => !built.has(id));
     const added = new Set(fresh.length > 0 ? fresh : parts);
     const before = new Set([...built].filter((id) => !added.has(id)));
     const description =
-      `Adds ${named(added)}` +
+      `${dry ? 'Fits' : 'Adds'} ${named(added)}` +
+      (dry ? ' together without glue' : '') +
       (before.size > 0 ? `, to ${named(before)} already built` : '') +
       '. A part drawn away from where it goes has an arrow back to it.';
     drawings.push({
@@ -74,7 +80,7 @@ export function stepDrawings<O>(
         `Step: ${step.title}`,
       ),
     });
-    for (const id of added) built.add(id);
+    if (!dry) for (const id of added) built.add(id);
   }
   return drawings;
 }

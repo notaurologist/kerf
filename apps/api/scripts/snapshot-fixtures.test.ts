@@ -29,6 +29,7 @@ const PINNED: Record<string, Record<string, string>> = {
   'record-cabinet': {
     'v1.json': 'b74091595976a0736584ba361abd263e0ce720235059180bc8495944fc20b24f',
     'v2.json': 'f9b7cd3d29044cfac646418e472725a70aa2c351fc2c46c6b30fe98d09f177ce',
+    'v3.json': 'f1f126fff07336e2d3602218e318849a4d5a32e3feeddef2913ed4e804e020d0',
   },
 };
 

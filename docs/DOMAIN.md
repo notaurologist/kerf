@@ -38,7 +38,7 @@ Worked check from the Handbook: a flatsawn white fir board 9.15 in. wide at 8% g
 
 ## Operations
 
-Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods. Operation types in code (`model/operations.ts`) cover what templates use: crosscut, miter, taper, joint edges, glue up, flatten, rip, dado, stopped dado, notch, cutout, bolt holes, ease edges, dig holes, and level pads.
+Operations are what needs to happen to a part. Methods are how, given specific tools. The knowledge base maps operations to methods. Operation types in code (`model/operations.ts`) cover what templates use: crosscut, miter, taper, joint edges, glue up, flatten, rip, dado, stopped dado, notch, cutout, bolt holes, ease edges, dry-fit, glue and clamp (an assembly), finish, dig holes, and level pads. A dry-fit and a glue-and-clamp name the parts they join and how far a clamp must open across them (`reach`), so a method can need clamps that open that far. Building mode draws a step whose operations join parts: a dry fit shows every part fitted and builds nothing, since it comes apart again (#313).
 
 | Operation | Example methods by tool |
 |---|---|
