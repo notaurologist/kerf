@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and waiting to be built (#265 to #267). Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is proposed and waiting for the owner. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -19,7 +19,8 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 6b. Sharper corners | #148 | Decided October 2026: eased | `corners.html` |
 | 7. A repeatable garage check | #69 | Protocol written October 2026; run when useful, not a gate | `garage-check.md` |
 | 8. Brand: logo, wordmark, icons | #166 | Decided October 2026: the end-cut k; built | `brand.html`, `brand.md` |
-| 9. An app frame, motion, loading, and the keyboard | #254 | Decided October 2026: F2, M2, L1, K1; to build (#265 to #267) | `app-frame.html` |
+| 9. An app frame, motion, loading, and the keyboard | #254 | Decided October 2026: F2, M2, L1, K1; built (#265 to #267) | `app-frame.html` |
+| 10. Another look: color, type, and the key screens | #226 | Proposed October 2026: D1, D2, D3; waiting for the owner | `look.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
 
