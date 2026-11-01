@@ -38,6 +38,8 @@ interface Piece {
   tone: Tone;
   part: PartRef;
   solid: number;
+  /** Painted after the other pieces on its plane (Solid's faces). */
+  decal?: true;
 }
 
 /** A piece as painted, in paint order. */
@@ -138,7 +140,7 @@ function paint(node: Node | null, view: Isometric, out: Piece[]) {
   if (!node) return;
   const viewerInFront = dot(node.normal, view.toViewer) > 0;
   paint(viewerInFront ? node.back : node.front, view, out);
-  out.push(...node.here);
+  out.push(...node.here.filter((p) => !p.decal), ...node.here.filter((p) => p.decal));
   paint(viewerInFront ? node.front : node.back, view, out);
 }
 
@@ -182,7 +184,8 @@ function drawSolids(
       if (dot(face.normal, view.toViewer) <= EPS) continue;
       const whole: Piece = {
         points: face.points,
-        edge: face.points.map(() => true),
+        edge: face.edge ?? face.points.map(() => true),
+        ...(face.decal ? { decal: face.decal } : {}),
         normal: face.normal,
         tone: tone(face.normal, scene.endAxis ?? 'x'),
         part: ref,

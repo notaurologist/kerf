@@ -12,9 +12,8 @@ import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { cutDetailHeadingId, cutListPartId } from '../../lib/show.ts';
 import { type Project, STATUS_LABELS } from '../../lib/types.ts';
 import {
-  Button,
-  ButtonLink,
   Definitions,
+  IconButtonLink,
   Notice,
   PlanSection,
   ScreenHeader,
@@ -28,13 +27,13 @@ import { Boards } from '../boards/Boards.tsx';
 import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { Diagrams } from '../diagrams/Diagrams.tsx';
+import { DeleteProject } from '../project-editor/DeleteProject.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import {
   STRUCTURAL_REVIEW_INTRO,
   StructuralReview,
   WOOD_MOVEMENT_INTRO,
 } from '../structural/StructuralReview.tsx';
-import { DeleteProject } from './DeleteProject.tsx';
 import { ParametersAndInputs } from './ParametersAndInputs.tsx';
 import { PlanSummary } from './PlanSummary.tsx';
 import { VersionNotice } from './VersionNotice.tsx';
@@ -151,20 +150,8 @@ export function ProjectView(props: {
         title={project.name}
         pageTitle={`${current.title} · ${project.name}`}
         actions={
-          plan.ok && (
-            <>
-              {/* Prints the plan in section order A (#40), with every "Show the working" open. */}
-              <Button variant="secondary" onClick={() => window.print()}>
-                Print
-              </Button>
-              {/* Secondary: the summary's next mode is the screen's one primary (Stage 10). */}
-              {editHref && (
-                <ButtonLink href={editHref} variant="secondary">
-                  Edit
-                </ButtonLink>
-              )}
-            </>
-          )
+          // Secondary: the summary's next mode is the screen's one primary (Stage 10).
+          plan.ok && editHref && <IconButtonLink href={editHref} icon="edit" label="Edit" />
         }
         meta={`${STATUS_LABELS[project.status]}. ${template?.name ?? project.templateId}, version ${project.templateVersion}.`}
         status={flash && <StatusLine>{flash}</StatusLine>}
@@ -177,7 +164,11 @@ export function ProjectView(props: {
         }}
       />
       {!plan.ok ? (
-        <Notice>{plan.message}</Notice>
+        // With no plan there is no Edit, which is where Delete lives otherwise.
+        <>
+          <Notice>{plan.message}</Notice>
+          <DeleteProject id={project.id} name={project.name} />
+        </>
       ) : (
         // Section order A (#40): the same reading order in the contents, on screen, and on paper.
         <WithContents items={items} current={current.id}>
@@ -260,7 +251,6 @@ export function ProjectView(props: {
           />
         </WithContents>
       )}
-      <DeleteProject id={project.id} name={project.name} />
     </Stack>
   );
 }

@@ -110,8 +110,9 @@ export function Diagram(props: {
   const pad = PX.letter * u;
   // Core bounds text by its anchor point; the text's size is known only here, so the view grows
   // to hold each label's estimated extent, and each part letter's square.
+  const placedText = placeText(drawing.primitives, u);
   const boxes = [
-    ...drawing.primitives.flatMap((p) => (p.kind === 'text' ? [textBox(p, PX[p.role] * u)] : [])),
+    ...[...placedText.values()].map((t) => t.box),
     ...placed.map((l) => ({
       x0: l.at.x - pad,
       x1: l.at.x + pad,
@@ -232,22 +233,24 @@ export function Diagram(props: {
             data-fill="none"
           />
         );
-      case 'text':
+      case 'text': {
+        const at = placedText.get(i)?.at ?? p.at;
         return (
           <text
             key={key}
             className="k-text"
-            x={p.at.x}
-            y={p.at.y}
+            x={at.x}
+            y={at.y}
             fontSize={PX[p.role] * u}
             textAnchor={p.anchor}
             dominantBaseline="middle"
             data-role={p.role}
-            transform={p.rotate ? `rotate(${p.rotate} ${p.at.x} ${p.at.y})` : undefined}
+            transform={p.rotate ? `rotate(${p.rotate} ${at.x} ${at.y})` : undefined}
           >
             {p.text}
           </text>
         );
+      }
     }
     // Letters are drawn after every shape, below.
     return null;
@@ -336,11 +339,51 @@ export function Diagram(props: {
   );
 }
 
+type Box = { x0: number; x1: number; y0: number; y1: number };
+
+/** Space kept between a label and its point, and between two labels, in CSS pixels. */
+const TEXT_GAP = 3;
+
+const overlaps = (a: Box, b: Box, gap: number) =>
+  a.x0 < b.x1 + gap && b.x0 < a.x1 + gap && a.y0 < b.y1 + gap && b.y0 < a.y1 + gap;
+
+/**
+ * Where each label is drawn, by its index in the drawing, and the area it takes. A label with a
+ * `side` sits clear of its point on that side, and moves further that way (down when it has no
+ * side) past any label drawn before it that it would land on. Turned labels stay where core put
+ * them. `u` is drawing units per CSS pixel.
+ */
+export function placeText(primitives: readonly Primitive[], u: number) {
+  const placed = new Map<number, { at: Point2; box: Box }>();
+  const gap = TEXT_GAP * u;
+  primitives.forEach((p, i) => {
+    if (p.kind !== 'text') return;
+    const size = PX[p.role] * u;
+    const away = p.side === 'above' ? -1 : 1;
+    let at = p.side ? { x: p.at.x, y: p.at.y + away * (size / 2 + gap) } : p.at;
+    let box = textBox({ ...p, at }, size);
+    if (!p.rotate) {
+      for (let moved = true; moved; ) {
+        moved = false;
+        for (const other of placed.values()) {
+          if (!overlaps(box, other.box, gap * 0.99)) continue;
+          const dy = away > 0 ? other.box.y1 + gap - box.y0 : other.box.y0 - gap - box.y1;
+          at = { x: at.x, y: at.y + dy };
+          box = textBox({ ...p, at }, size);
+          moved = true;
+        }
+      }
+    }
+    placed.set(i, { at, box });
+  });
+  return placed;
+}
+
 /**
  * The page area a label takes, estimated at 0.6 of the font size per character, for a text
  * written across the page or turned −90° to read upward.
  */
-function textBox(t: Extract<Primitive, { kind: 'text' }>, size: number) {
+function textBox(t: Extract<Primitive, { kind: 'text' }>, size: number): Box {
   const w = 0.6 * size * t.text.length;
   const [lo, hi] = t.anchor === 'start' ? [0, w] : t.anchor === 'end' ? [-w, 0] : [-w / 2, w / 2];
   if (t.rotate === -90) {

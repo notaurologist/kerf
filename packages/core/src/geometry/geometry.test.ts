@@ -195,6 +195,7 @@ describe('cut details', () => {
         `${formatAngle(70)} to the edge`,
         `${formatAngle(70)} to the edge`,
         'Drill 9/16" holes for 1/2" bolts',
+        'Grain',
       ].sort(),
     );
     expect(detail.primitives.every((p) => p.kind === 'letter' || p.part?.letter === 'A')).toBe(

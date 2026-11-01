@@ -84,7 +84,12 @@ export const Primitive = z.discriminatedUnion('kind', [
     radius: z.number().positive(),
     ...part,
   }),
-  /** Text from core's formatters. `rotate` in degrees, for text written along a line. */
+  /**
+   * Text from core's formatters. `rotate` in degrees, for text written along a line. `side` sets
+   * the text clear of `at` on that side, as a dimension's figure sits on its line, and is the way
+   * a display moves it if it lands on other text; text is sized only when it is shown, so core
+   * cannot space it in drawing units.
+   */
   z.object({
     kind: z.literal('text'),
     role: TextRole,
@@ -92,6 +97,7 @@ export const Primitive = z.discriminatedUnion('kind', [
     text: z.string(),
     anchor: z.enum(['start', 'middle', 'end']),
     rotate: z.number().optional(),
+    side: z.enum(['above', 'below']).optional(),
     ...part,
   }),
   /** A part letter in its rounded square, tied to `target` on the part by a leader. */
