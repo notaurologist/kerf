@@ -83,8 +83,8 @@ function buildingIsNext(s: ProgressSummary): boolean {
 
 /**
  * Where an in-progress project picks up: the next step once building has started or the shopping
- * is done, or else the shopping list. Null for a project that is not in progress, or has nothing
- * left.
+ * is done, or else the shopping list once a line is bought. Null for a project that is not in
+ * progress, has nothing ticked, or has nothing left.
  */
 export function resumeTarget(project: ProjectSummary) {
   const { progress } = project;
@@ -98,7 +98,7 @@ export function resumeTarget(project: ProjectSummary) {
       text: `Step ${nextStep.number} of ${steps.total}: ${nextStep.title}.`,
     };
   }
-  if (!inBuilding) {
+  if (!inBuilding && shopping.done > 0) {
     return {
       mode: 'shopping' as const,
       href: href({ screen: 'shop', id: project.id }),

@@ -307,13 +307,15 @@ describe('progress in words', () => {
     );
   });
 
-  it('resumes shopping until it is done or building starts, then the next step', () => {
+  it('resumes shopping once a line is bought, until it is done or building starts, then the next step', () => {
     const summaryOf = (progress: ReturnType<typeof summary>) => ({
       ...project(),
       status: 'in-progress' as const,
       progress,
     });
     expect(resumeTarget(summaryOf(summary([4, 11], [0, 11], 1)))?.mode).toBe('shopping');
+    // In progress with nothing ticked (a cleared tick, or the status set by hand): nothing to resume.
+    expect(resumeTarget(summaryOf(summary([0, 11], [0, 11], 1)))).toBeNull();
     expect(resumeTarget(summaryOf(summary([11, 11], [0, 11], 1)))).toMatchObject({
       mode: 'building',
       text: 'Step 1 of 11: Bolt.',
