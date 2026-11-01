@@ -255,17 +255,150 @@ details > summary { cursor: pointer; font-weight: 600; }
 .m .check .mg { font-weight: 700; font-size: 1.25rem; }
 .m[data-dir="today"] .check .mg { font-size: 1.0625rem; }
 .m[data-dir="today"] .check a.n, .m[data-dir="today"] .check a.n { color: var(--text); }
+
+/* ---------- Round 2: color with a job ----------
+   data-wood picks a palette for the lumber, the two modes, and project states; w0 is D2 as
+   proposed in round 1, with Stage 5's gray face tones. */
+.m[data-wood] { --wood-1: #ffffff; --wood-2: #dddedf; --wood-3: #babbbd; --shop-band: #1a1d23; --build-band: #1a1d23;
+  --tag-shop: var(--raised); --tag-build: var(--raised); --steel: #8e949b; --hl-1: #bfe1ff; --hl-2: #a8c4df; --hl-3: #8fa6be; --zone: #dbeede; --zone-line: #488055; --ink: var(--text); }
+.m[data-wood][data-mode="dark"] { --wood-1: #474f51; --wood-2: #2e3439; --wood-3: #1a1d23; --shop-band: #1a1d23; --build-band: #1a1d23;
+  --steel: #6b7178; --hl-1: #1d456b; --hl-2: #255e75; --hl-3: #3f777d; --zone: #1e2d21; --zone-line: #75ae81; }
+.m[data-wood="w1"] { --wood-1: #f6e2c0; --wood-2: #e3cead; --wood-3: #ccb897; --shop-band: #034649; --build-band: #4c311e; --tag-shop: #cff1f3; --tag-build: #fae5d7; }
+.m[data-wood="w1"][data-mode="dark"] { --wood-1: #6a583a; --wood-2: #59472a; --wood-3: #48381a; --shop-band: #023538; --build-band: #3c220f; --tag-shop: #153335; --tag-build: #3a2a1f; }
+.m[data-wood="w2"] { --wood-1: #fedec0; --wood-2: #ebcaac; --wood-3: #d4b496; --shop-band: #28414f; --build-band: #493319; --tag-shop: #dbedf8; --tag-build: #f7e7d5; }
+.m[data-wood="w2"][data-mode="dark"] { --wood-1: #705439; --wood-2: #5f4429; --wood-3: #4e3419; --shop-band: #18313f; --build-band: #382409; --tag-shop: #223038; --tag-build: #382b1d; }
+.m[data-wood="w3"] { --wood-1: #fedccd; --wood-2: #f1c6b4; --wood-3: #dab09e; --shop-band: #4f314c; --build-band: #542b1d; --tag-shop: #f8e1f5; --tag-build: #fee3d9; }
+.m[data-wood="w3"][data-mode="dark"] { --wood-1: #755141; --wood-2: #644131; --wood-3: #523122; --shop-band: #3e223c; --build-band: #431c0e; --tag-shop: #382736; --tag-build: #3f271f; }
+.m[data-wood] .mb[data-m="shop"] { background: var(--shop-band); color: #fbf9f5; }
+.m[data-wood] .mb[data-m="build"] { background: var(--build-band); color: #fbf9f5; }
+.m[data-wood][data-mode="dark"] .mb[data-m] { color: #edebe7; }
+.m .dwg { display: block; width: 100%; height: auto; background: var(--raised); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.m .dwg .p { stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round; }
+.m .dwg .f1 { fill: var(--wood-1); } .m .dwg .f2 { fill: var(--wood-2); } .m .dwg .f3 { fill: var(--wood-3); }
+.m .dwg .h1 { fill: var(--hl-1); } .m .dwg .h2 { fill: var(--hl-2); } .m .dwg .h3 { fill: var(--hl-3); }
+.m .dwg .p.sel { stroke-width: 2.4; }
+.m .dwg .bolt { fill: var(--steel); stroke: var(--ink); stroke-width: 1; }
+.m .dwg .ground { stroke: var(--ink); stroke-width: 2; }
+.m .dwg .zone { fill: var(--zone); stroke: var(--zone-line); stroke-width: 1.5; stroke-dasharray: 8 4; }
+.m .dwg .tag rect { fill: var(--ink); } .m .dwg .tag text { fill: var(--raised); font: 700 11px var(--sans); text-anchor: middle; dominant-baseline: central; }
+.m .dwg .lbl { fill: var(--ink); font: 700 12px var(--sans); }
+.m .dwg .off { fill: url(#off); }
+.m .chip { display: inline-block; width: 0.9em; height: 0.9em; border: 1.5px solid var(--text); vertical-align: -0.1em; margin-inline-end: 6px; border-radius: 1px; }
+.m .chip.wood { background: var(--wood-2); } .m .chip.steel { background: var(--steel); }
+.m[data-wood="w0"] .chip { display: none; }
+.m .state.shop { background: var(--tag-shop); }
+.m .state.build { background: var(--tag-build); }
+.m[data-wood]:not([data-wood="w0"]) .state.build { box-shadow: inset 4px 0 0 var(--build-band); border-color: var(--build-band); }
+.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .state.build { box-shadow: inset 4px 0 0 var(--wood-1); border-color: var(--wood-1); }
+.m[data-wood]:not([data-wood="w0"]) .state.shop { box-shadow: inset 4px 0 0 var(--shop-band); border-color: var(--shop-band); }
+.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .state.shop { box-shadow: inset 4px 0 0 #7fa9ad; border-color: #7fa9ad; }
+.m[data-wood]:not([data-wood="w0"]) .resume { border-color: var(--build-band); border-inline-start-width: 6px; }
+.m[data-wood]:not([data-wood="w0"])[data-mode="dark"] .resume { border-color: var(--wood-2); }
+.m .cap2 { font-size: 0.875rem; padding: 8px 16px 0; }
+.roles { display: grid; gap: 0; border-top: 2px solid var(--ink); }
+.roles > div { display: grid; grid-template-columns: minmax(7rem, 10rem) 1fr; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.roles .sw { display: inline-block; width: 1em; height: 1em; border: 1px solid var(--ink); vertical-align: -0.15em; margin-inline-end: 6px; }
+@media (max-width: 34rem) { .roles > div { grid-template-columns: 1fr; } }
 </style>
 
 <main>
 <header class="stack prose">
   <p class="eyebrow">Design milestone · #226 · Stage 10</p>
   <h1>Another look: color, type, and the key screens</h1>
-  <p>Every screen now exists, and the frame from Stage 9 is built. This round asks whether the key screens look like one finished product, and proposes three directions that go progressively further from what is built today. Each is drawn on the same four screens, in light and dark, and measured.</p>
+  <p>Every screen now exists, and the frame from Stage 9 is built. Round 1 asked how far to move from what is built today, and you took D2 as the starting point. Round 2, first below, asks how color can do more on top of D2. Every mock-up follows the Light and Dark switch and is measured.</p>
 </header>
 
+<section class="answers" aria-labelledby="ans2">
+  <h2 id="ans2">Round 2: what I'd like you to decide</h2>
+  <ol>
+    <li><b>Which palette for the lumber and the two modes.</b> W1 pine and spruce, W2 oak and slate, W3 cedar and plum, or none. Suggested: <b>W1</b>.</li>
+    <li><b>Which of the new jobs color should do.</b> Each can go in on its own: wood for lumber in drawings, boards and Shopping; a color for each mode's bar; the same colors on a project's state and the Resume card. Suggested: all three.</li>
+    <li>D2 from round 1 stays the base, as you said.</li>
+  </ol>
+</section>
+
+<div class="controls" role="group" aria-label="Mock-up settings">
+  <span class="seg" role="group" aria-label="Theme of the mock-ups">
+    <button type="button" data-mode="light" aria-pressed="true">Light</button>
+    <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+  </span>
+  <label for="glare">Glare <input id="glare" type="range" min="0" max="0.4" step="0.05" value="0"></label>
+  <span class="small muted">Glare lays a veil of white over the mock-ups, as light reflected off a screen does.</span>
+</div>
+
+<section class="stack" aria-labelledby="r2">
+  <div class="stack prose">
+    <h2 id="r2">Round 2: color with a job</h2>
+    <p>You took D2 as the starting point and asked whether color could be used more effectively. D2 took the blue off actions, which leaves the screens mostly graphite. This round adds color back, but each color names one thing the owner needs to tell apart, and names it the same way on every screen. That follows the research on color coding: color speeds finding things when there are a few codes and each means one thing, and slows it when color is decorative or the codes are many (Richard E. Christ, "Review and analysis of color coding research for visual displays", <i>Human Factors</i> 17(6), 1975).</p>
+    <h3>What each color means</h3>
+  </div>
+  <div class="roles prose">
+    <div><b><span class="sw" style="background:#1a1d23"></span>Graphite</b><span>Text and actions: buttons, links, ticks (D2).</span></div>
+    <div><b><span class="sw" style="background:#0e5caf"></span>Blue</b><span>Attention: input needed, focus, where you are, the selected part, dimensions. Unchanged from Stages 4 and 5.</span></div>
+    <div><b><span class="sw" style="background:#ffe8be"></span>Amber</b><span>Expert checks. Unchanged.</span></div>
+    <div><b><span class="sw" style="background:#aa295f"></span>Crimson</b><span>An error beside a field. Unchanged.</span></div>
+    <div><b><span class="sw" style="background:#e3cead"></span>Wood (new)</b><span>The lumber itself: part faces in the drawings, the boards on cut cards and in the Boards section, and the lumber lines in Shopping. Hardware is steel gray. Today the faces are three grays (Stage 5, D2 tones), so a drawing does not say what it is made of.</span></div>
+    <div><b><span class="sw" style="background:#034649"></span><span class="sw" style="background:#4c311e"></span>Mode colors (new)</b><span>Shopping and Building each get a bar color. The same color marks the project's state on the Projects list and the Resume card, so you can tell the mode from across the garage and see where each project stands. Planned and Built stay neutral.</span></div>
+    <div><b>No color</b><span>Margins, structural results and the plan's numbers. Stage 4's rules 1 and 2 still apply.</span></div>
+  </div>
+  <div class="stack prose">
+    <h3>Set aside: a color for each part</h3>
+    <p>The obvious use is to color each part (beam, legs, crossbar, gussets) and carry that color from the drawing to the cut list, the board and the step. I measured it, simulating the two common red-green forms of color blindness (Machado 2009, full severity, the same method as <code>color.html</code>), as distance in OKLab (ΔE × 100):</p>
+    <ul>
+      <li>Six hues at one lightness are 4.4 apart at the closest for normal vision, and 0.6 apart with deuteranopia, which makes two parts the same color.</li>
+      <li>The best six-color set a search found is 9.9 apart with deuteranopia, but it is two greens, two teals, a violet and a red-brown. Stage 4's rule 2 keeps red and green away from structural results, and the structural review names parts.</li>
+      <li>Today, the letters and the blue selection already tie a part's drawing, row, board and step together.</li>
+    </ul>
+    <p>So parts stay one material color, and the selected part stays blue.</p>
+  </div>
+  <div class="stack prose"><h3>A drawing and a board</h3><p>The assembly seen from the end of the beam, with the crossbar selected, and board 1 as a cut card draws it.</p></div>
+  <div class="set" data-screen="drawing" data-round="2"></div>
+  <div class="stack prose"><h3>Building and Shopping, on a phone</h3></div>
+  <div class="set" data-screen="build2" data-round="2"></div>
+  <div class="set" data-screen="shop2" data-round="2"></div>
+  <div class="stack prose"><h3>Projects, on a phone</h3></div>
+  <div class="set" data-screen="projects2" data-round="2"></div>
+
+  <article class="stack">
+    <h3>The palettes, critiqued</h3>
+    <div class="critique">
+      <div><h4>W1 · Pine and spruce</h4><ul>
+        <li><b>For:</b> pine is what the owner buys for this project (southern pine in the sample), so the drawing looks like the boards on the rack.</li>
+        <li><b>For:</b> spruce and walnut bars stay well apart: 10.6 for normal vision, 6.9 with deuteranopia, 7.7 with protanopia.</li>
+        <li><b>Against:</b> in light, pine's lightest face is close to the flag fill (2.2 apart). Flags keep their border, icon and label and never sit inside a drawing, but a flag right under a drawing reads a little like part of it.</li>
+        <li><b>Against:</b> spruce is a blue-green. Rule 2 covers structural results, and Shopping and the Projects list have none, but it is the nearest any color comes to green.</li>
+      </ul></div>
+      <div><h4>W2 · Oak and slate</h4><ul>
+        <li><b>For:</b> the quietest, closest to D2. Its state tags are the most distinct pair with color blindness (5.0 with deuteranopia).</li>
+        <li><b>Against:</b> slate is a gray-blue that sits near the attention blue. Shopping's bar could read as "selected".</li>
+        <li><b>Against:</b> oak's light face is also close to the flag fill (2.7 apart).</li>
+      </ul></div>
+      <div><h4>W3 · Cedar and plum</h4><ul>
+        <li><b>For:</b> furthest from the flag amber (4.2 apart), and the most distinctive.</li>
+        <li><b>Against:</b> cedar's pink cast reads less like construction lumber, so the drawing looks less like what is on the rack.</li>
+        <li><b>Against:</b> its state tags are the closest pair (4.0 apart for every kind of vision), and plum is the least expected color for shopping.</li>
+      </ul></div>
+    </div>
+    <div class="stack prose">
+      <h4>Suggested: W1</h4>
+      <p>It is the only palette where the wood is the wood the owner buys, and its two mode colors stay distinct for every kind of vision tested. The one cost, pine near the flag fill, is already covered: a flag always has its border, icon and label.</p>
+      <h4>What it changes</h4>
+      <ul>
+        <li>New tokens replace Stage 5's gray face tones: three for wood, one for steel, a bar color and a tag tint for each mode. Stage 5 would be amended. The highlight tones for the selected part are unchanged.</li>
+        <li>Snapshots and template output do not change, since drawing colors are in the web app only, so no template version bump.</li>
+        <li>For the next garage check (#69, #70): the colored mode bars under glare (bar text holds about 4.0:1 at 20% glare, against 4.6:1 for graphite), and whether wood faces read in a dim garage in dark.</li>
+      </ul>
+    </div>
+  </article>
+
+  <div class="stack prose"><h3>Measured</h3><p>WCAG 2.2 ratios for every new pair, with 20% glare. Every pair meets its minimum without glare.</p></div>
+  <div id="tables2" class="stack"></div>
+</section>
+
+<h2 class="prose" style="padding-top:24px;border-top:2px solid var(--line)">Round 1: how far to go</h2>
+
 <section class="answers" aria-labelledby="ans">
-  <h2 id="ans">What I'd like you to decide</h2>
+  <h2 id="ans">Round 1: what I asked you to decide</h2>
   <ol>
     <li><b>How far to go.</b> D1 changes surfaces and hierarchy and keeps the Stage 4 colors. D2 does all of D1 and takes the blue off actions. D3 does all of D1 with a new palette and a graphite band. Suggested: <b>D2</b>.</li>
     <li><b>The fixes that apply whichever you pick</b> (below the directions): the mode bar in dark, the mode bar on a phone, and the repeated shopping guide. Suggested: take all three.</li>
@@ -288,14 +421,6 @@ details > summary { cursor: pointer; font-weight: 600; }
   <p>Type and density held up: the Stage 3 scale and Atkinson Hyperlegible read well on the newer screens (glossary, tool pages, the new-project questions), and shop density now applies its space and 20 px text (#202). The proposals below change sizes only for the plan's figures and, in D3, the headings.</p>
 </section>
 
-<div class="controls" role="group" aria-label="Mock-up settings">
-  <span class="seg" role="group" aria-label="Theme of the mock-ups">
-    <button type="button" data-mode="light" aria-pressed="true">Light</button>
-    <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
-  </span>
-  <label for="glare">Glare <input id="glare" type="range" min="0" max="0.4" step="0.05" value="0"></label>
-  <span class="small muted">Glare lays a veil of white over the mock-ups, as light reflected off a screen does.</span>
-</div>
 
 <section class="stack" aria-labelledby="d-summary">
   <div class="stack prose">
@@ -547,7 +672,8 @@ const SCREENS = {
 
 let mode = 'light';
 function render() {
-  for (const set of document.querySelectorAll('.set')) {
+  render2();
+  for (const set of document.querySelectorAll('.set:not([data-round])')) {
     const screen = set.dataset.screen;
     set.innerHTML = DIRS.map(([dir, name, note]) => `
       <figure class="shot" style="margin:0">
@@ -564,6 +690,91 @@ for (const b of document.querySelectorAll('[data-mode]')) {
     render();
   });
 }
+const WOOD = {"W1": {"name": "Pine and spruce", "rows": [["Ink on wood top", 4.5, 13.31, 5.75, 3.92, 3.06], ["Ink on wood end", 4.5, 8.74, 9.5, 2.84, 3.69], ["Band text on Shopping band", 4.5, 10.11, 11.24, 4.01, 3.89], ["Band text on Building band", 4.5, 11.31, 12.35, 4.16, 3.99], ["Text on Shopping tag", 4.5, 14.09, 11.33, 4.11, 3.89], ["Text on Building tag", 4.5, 13.87, 11.52, 4.05, 3.91]], "bands": {"normal": 10.6, "deutan": 6.9, "protan": 7.7}, "tags": {"normal": 6.2, "deutan": 4.2, "protan": 3.8}, "flag": 2.2}, "W2": {"name": "Oak and slate", "rows": [["Ink on wood top", 4.5, 13.2, 5.85, 3.89, 3.08], ["Ink on wood end", 4.5, 8.66, 9.64, 2.82, 3.71], ["Band text on Shopping band", 4.5, 10.19, 11.38, 4.02, 3.9], ["Band text on Building band", 4.5, 11.28, 12.38, 4.15, 3.99], ["Text on Shopping tag", 4.5, 14.05, 11.39, 4.1, 3.9], ["Text on Building tag", 4.5, 13.94, 11.52, 4.07, 3.91]], "bands": {"normal": 9.2, "deutan": 8.4, "protan": 8.8}, "tags": {"normal": 5.3, "deutan": 5.0, "protan": 4.7}, "flag": 2.7}, "W3": {"name": "Cedar and plum", "rows": [["Ink on wood top", 4.5, 13.13, 5.86, 3.88, 3.09], ["Ink on wood end", 4.5, 8.59, 9.68, 2.8, 3.72], ["Band text on Shopping band", 4.5, 10.64, 11.77, 4.08, 3.94], ["Band text on Building band", 4.5, 11.48, 12.5, 4.18, 4.0], ["Text on Shopping tag", 4.5, 13.73, 11.67, 4.02, 3.93], ["Text on Building tag", 4.5, 13.83, 11.59, 4.04, 3.92]], "bands": {"normal": 7.4, "deutan": 7.3, "protan": 8.0}, "tags": {"normal": 4.0, "deutan": 4.0, "protan": 4.1}, "flag": 4.2}};
+const VARS = [
+  ['w0', 'D2 as proposed', 'Gray faces, graphite bars.'],
+  ['w1', 'W1 · Pine and spruce', 'Suggested.'],
+  ['w2', 'W2 · Oak and slate', ''],
+  ['w3', 'W3 · Cedar and plum', ''],
+];
+const tag = (x, y, l) => `<g class="tag"><rect x="${x - 8}" y="${y - 8}" width="16" height="16"/><text x="${x}" y="${y}">${l}</text></g>`;
+const DRAWING = `
+  <svg class="dwg" viewBox="0 0 320 230" role="img" aria-label="An A-frame seen from the end of its beam, with the crossbar selected">
+    <defs><pattern id="off" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--raised)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--hidden, #6e7278)" stroke-width="1"/></pattern></defs>
+    <rect class="zone" x="12" y="150" width="70" height="44"/>
+    <polygon class="p f2" points="58,190 74,190 168,40 152,40"/>
+    <polygon class="p f2" points="246,190 262,190 168,40 152,40"/>
+    <polygon class="p f1" points="130,70 190,70 160,96"/>
+    <rect class="p f3" x="146" y="24" width="28" height="42"/>
+    <rect class="p sel h2" x="96" y="124" width="128" height="14"/>
+    <circle class="bolt" cx="160" cy="52" r="3.5"/><circle class="bolt" cx="114" cy="131" r="3"/><circle class="bolt" cx="206" cy="131" r="3"/>
+    <line class="ground" x1="8" y1="190" x2="312" y2="190"/>
+    ${tag(196, 30, 'A')}${tag(48, 160, 'B')}${tag(272, 160, 'C')}${tag(160, 152, 'D')}${tag(212, 82, 'E')}
+    <rect class="p f1" x="10" y="206" width="300" height="18"/>
+    <rect class="p f1" x="10" y="206" width="190" height="18"/>
+    <rect class="p sel h1" x="202" y="206" width="92" height="18"/>
+    <rect class="p off" x="296" y="206" width="14" height="18"/>
+    <text class="lbl" x="18" y="219">A · 120"</text><text class="lbl" x="208" y="219">D · 58-1/4"</text>
+  </svg>`;
+const mb = (m, name) => `<div class="mb" data-m="${m}"><span class="name"><b>${name}</b> · Swing set for the cabin</span>
+  <span class="row" style="flex-wrap:nowrap"><span class="menu" aria-label="Menu">${icon('menu')}</span><span class="btn">Exit</span></span></div>`;
+const SCREENS2 = {
+  drawing: () => `<p class="cap2 mut">Diagrams · Assembly</p>${DRAWING}<div class="body" style="gap:8px"><p class="sm"><span class="letter">D</span><b>Crossbar</b> · 2x6, 59" · 2 pieces</p><p class="sm mut">Board 1, a 2x6 16' long: A, then D. The striped end is left over.</p></div>`,
+  build2: () => `${mb('build', 'Building')}
+    <div class="shop">
+      <div class="row between"><span>Step 1 of 11 · Cutting</span><a>All steps</a></div>
+      <h2>Cut board 1, a 2x6 16' long</h2>
+      <svg class="dwg" viewBox="0 0 320 30" role="img" aria-label="Board 1: A, then D, then the offcut" style="border:0;background:transparent">
+        <rect class="p f1" x="2" y="4" width="196" height="22"/><rect class="p sel h1" x="200" y="4" width="96" height="22"/><rect class="p off" x="298" y="4" width="20" height="22"/>
+        <text class="lbl" x="10" y="19">A · 120"</text><text class="lbl" x="206" y="19">D · 58-1/4"</text>
+      </svg>
+      <div class="tick"><span class="box on"></span><span class="done-line"><span class="letter">A</span>Beam ply, piece 1 of 2</span><span class="glance num">120"</span></div>
+      <div class="steps"><span class="btn sec">Back</span><span class="btn">Next</span></div>
+    </div>`,
+  shop2: () => `${mb('shop', 'Shopping')}
+    <div class="shop">
+      <div class="head"><h2>Shopping list</h2><p>1 of 12 bought.</p></div>
+      <div class="group">
+        <div class="row between"><b><span class="chip wood"></span>Lumber</b><span>1 of 3</span></div>
+        <div class="tick"><span class="box on"></span><span class="done-line"><b>2</b> × 2x6, 16' 0"</span></div>
+        <div class="tick"><span class="box"></span><span><b>4</b> × 4x4, 10' 0"</span></div>
+      </div>
+      <div class="group">
+        <div class="row between"><b><span class="chip steel"></span>Bolts and fittings</b><span>0 of 6</span></div>
+        <div class="tick"><span class="box"></span><span><b>2</b> × 1/2" through-bolt, grip 8-7/16"</span></div>
+      </div>
+    </div>`,
+  projects2: () => `
+    <div class="tb"><span>${wordmark}</span><span aria-label="Menu">${icon('menu')}</span></div>
+    <div class="body">
+      <h1>Projects</h1>
+      <div class="resume"><b>Resume building</b><span>Backyard swing set · Step 2 of 11</span></div>
+      <div class="plist">
+        <div class="pitem"><a class="t">Backyard swing set</a><span class="state build">Building</span><span class="meta">Shopping 12 of 12 · Building 1 of 11</span></div>
+        <div class="pitem"><a class="t">Swing set for the cabin</a><span class="state shop">Shopping</span><span class="meta">Shopping 3 of 12</span></div>
+        <div class="pitem"><a class="t">Swing set for the park</a><span class="state">Planned</span><span class="meta">Updated October 31.</span></div>
+      </div>
+      <span class="btn sec" style="justify-self:start">New two-swing A-frame swing set</span>
+    </div>
+    <div class="tabs"><span class="on">${icon('projects')}Projects</span><span>${icon('tools')}Tools</span><span>${icon('glossary')}Glossary</span></div>`,
+};
+function render2() {
+  for (const set of document.querySelectorAll('.set[data-round="2"]')) {
+    const screen = set.dataset.screen;
+    set.innerHTML = VARS.map(([w, name, note]) => `
+      <figure class="shot" style="margin:0">
+        <figcaption class="cap"><b>${name}</b>${note ? ` · ${note}` : ''}</figcaption>
+        <div class="glare"><div class="m phone" data-dir="d2" data-wood="${w}" data-mode="${mode}">${SCREENS2[screen]()}</div></div>
+      </figure>`).join('');
+  }
+}
+document.getElementById('tables2').innerHTML = Object.entries(WOOD).map(([k, v]) => `
+  <details${k === 'W1' ? ' open' : ''}><summary>${k} · ${v.name}</summary><div class="wrap"><table class="t">
+  <thead><tr><th>Foreground on background</th><th>Needs</th><th>Light</th><th>Dark</th><th>Light, 20% glare</th><th>Dark, 20% glare</th></tr></thead>
+  <tbody>${v.rows.map(([label, need, ...vals]) => `<tr><td>${label}</td><td class="n">${need}</td>${vals
+    .map((x) => `<td class="n${x < need ? ' low' : ''}">${x.toFixed(2)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  <p class="small muted">Shopping and Building bars, ΔE × 100 in OKLab: ${v.bands.normal} normal, ${v.bands.deutan} deuteranopia, ${v.bands.protan} protanopia. Their state tags: ${v.tags.normal}, ${v.tags.deutan}, ${v.tags.protan}. Lightest wood face to the flag fill: ${v.flag}.</p></details>`).join('');
+
 document.getElementById('glare').addEventListener('input', (e) => document.body.style.setProperty('--glare', e.target.value));
 render();
 
