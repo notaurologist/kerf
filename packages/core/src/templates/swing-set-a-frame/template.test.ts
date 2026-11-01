@@ -389,7 +389,7 @@ describe('built-up beam', () => {
   it('lists one beam part per ply and flags the ply fastening', () => {
     const beam = part(output, 'beam');
     expect(beam.quantity).toBe(2);
-    expect(beam.stock.nominal).toBe('2x6');
+    expect(beam.stock).toMatchObject({ nominal: '2x6' });
     expect(beam.length).toBe(120);
     expect(output.flags.some((f) => f.ask.includes('beam plies are fastened'))).toBe(true);
   });

@@ -768,7 +768,7 @@ export const GLOSSARY = [
     group: 'lumber',
     forms: [],
     definition:
-      'The lumber a part is cut from, named by its nominal size, such as 2x4. The cut list gives both the nominal and the actual size.',
+      'The lumber a part is cut from: dimension lumber named by its nominal size, such as 2x4, or a panel glued from boards. The cut list gives both the name and the actual size.',
     sources: [],
   },
   {

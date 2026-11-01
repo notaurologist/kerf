@@ -2,6 +2,7 @@ export * as designValues from './design-values/index.ts';
 export * as geometry from './geometry/index.ts';
 export * from './inventory/tools.ts';
 export * from './knowledge/index.ts';
+export * from './lumber/panel.ts';
 export * from './lumber/stock.ts';
 export type { SnapshotUpgrade, TemplateDefinition } from './model/definition.ts';
 export * from './model/form.ts';

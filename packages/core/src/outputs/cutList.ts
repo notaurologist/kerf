@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isPanel, type PartStock } from '../lumber/panel.ts';
 import type { Part } from '../model/types.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
@@ -12,7 +13,10 @@ export const CutListRow = z.object({
   letter: z.string(),
   name: z.string(),
   quantity: z.number().int(),
-  /** Nominal name for buying, actual size for cutting: `4x4 (3-1/2" x 3-1/2")`. */
+  /**
+   * Nominal name for buying, actual size for cutting: `4x4 (3-1/2" x 3-1/2")`. A panel gives its
+   * finished size and the boards it is glued from.
+   */
   stock: z.string(),
   /** Overall length, long point to long point. */
   length: z.string(),
@@ -30,13 +34,25 @@ function endText(setting: number, description: string): string {
   return `${description}; saw at ${formatAngle(setting)}, ${formatAngle(angleToEdge(setting))} to the edge`;
 }
 
+function stockText(stock: PartStock): string {
+  const size = (s: { thickness: number; width: number }) =>
+    `${formatLength(s.thickness)} x ${formatLength(s.width)}`;
+  if (!isPanel(stock)) return `${stock.nominal} (${size(stock)})`;
+  const { board, boards } = stock;
+  const from =
+    boards === 1
+      ? `1 board of ${board.nominal} (${size(board)}), ${formatLength(stock.boardLength)} long, ripped to width`
+      : `${boards} boards of ${board.nominal} (${size(board)}), each ${formatLength(stock.boardLength)} long, glued to ${formatLength(stock.gluedWidth)} wide`;
+  return `Panel (${size(stock)}) from ${from}`;
+}
+
 export function cutList(parts: readonly Part[]): CutListRow[] {
   return parts.map((part) => ({
     partId: part.id,
     letter: part.letter,
     name: part.name,
     quantity: part.quantity,
-    stock: `${part.stock.nominal} (${formatLength(part.stock.thickness)} x ${formatLength(part.stock.width)})`,
+    stock: stockText(part.stock),
     length: formatLength(part.length),
     ends: part.ends.map((end) => endText(end.setting, end.description)),
     endsParallel: part.endsParallel,
