@@ -37,8 +37,62 @@ export const CabinetGeometry = z.object({
   shortApron: z.number(),
   /** Each cleat's length, between the legs: D_c − 2s. */
   cleatLength: z.number(),
+  /** The sliding doors and their tracks (spec, Sliding doors on the end bays); none without doors. */
+  door: z
+    .object({
+      /** t_d: the board's thickness, which the stiles and rails keep. */
+      thickness: z.number(),
+      /** Each track's width, t_d + c_g. */
+      trackWidth: z.number(),
+      /** d_t: front to back across both tracks and their lands, 3l_g + 2(t_d + c_g). */
+      trackZone: z.number(),
+      /** Each partition's depth, behind the tracks: D_c − d_t. */
+      partitionDepth: z.number(),
+      /** Each door's height, seated d_b in each track: h_b + 2d_b. */
+      height: z.number(),
+      /** Each door's width, from its side past the partition: b + t + o_d. */
+      width: z.number(),
+      /** Each rail's length, its stub tenons included: width − 2w_s + 2g_s. */
+      railLength: z.number(),
+      /** The space between the groove bottoms across the panel's grain: width − 2w_s + 2g_s. */
+      panelSpan: z.number(),
+      /** The panel along its grain, 1/32" short of each groove bottom: height − 2w_s + 2g_s − 1/16. */
+      panelLength: z.number(),
+    })
+    .optional(),
 });
 export type CabinetGeometry = z.infer<typeof CabinetGeometry>;
+
+/** The finger recess in each door's outer stile, centered on it: rules of thumb (spec, Sliding doors). */
+export const RECESS = { along: 3, across: 0.75, depth: 0.25 } as const;
+/** A floating panel's margin at each end, along its grain (DOMAIN.md, Joints that let wood move). */
+const PANEL_END_GAP = 1 / 32;
+
+/** The board's actual thickness, which a part ripped from one board keeps. */
+const boardThickness = (p: RecordCabinetParams) =>
+  p.board.source === 'store' ? p.board.thickness : p.board.surfaced;
+
+function doorGeometry(p: RecordCabinetParams, bayWidth: number): CabinetGeometry['door'] {
+  if (p.doors === 'none') return undefined;
+  const d = p.door;
+  const thickness = boardThickness(p);
+  const trackWidth = thickness + d.clearance;
+  const trackZone = 3 * d.land + 2 * trackWidth;
+  const height = p.bayHeight + 2 * d.bottomDepth;
+  const width = bayWidth + p.panelThickness + d.overlap;
+  const between = width - 2 * d.frameWidth + 2 * d.grooveDepth;
+  return {
+    thickness,
+    trackWidth,
+    trackZone,
+    partitionDepth: p.caseDepth - trackZone,
+    height,
+    width,
+    railLength: between,
+    panelSpan: between,
+    panelLength: height - 2 * d.frameWidth + 2 * d.grooveDepth - 2 * PANEL_END_GAP,
+  };
+}
 
 export function cabinetGeometry(p: RecordCabinetParams): CabinetGeometry {
   const t = p.panelThickness;
@@ -64,6 +118,7 @@ export function cabinetGeometry(p: RecordCabinetParams): CabinetGeometry {
     longApron: caseWidth - 2 * s + 2 * p.tenonLength,
     shortApron: p.caseDepth - 2 * s + 2 * p.tenonLength,
     cleatLength: p.caseDepth - 2 * s,
+    ...(p.doors === 'sliding' ? { door: doorGeometry(p, bayWidth) } : {}),
   };
 }
 
@@ -113,6 +168,39 @@ export function validate(p: RecordCabinetParams, g: CabinetGeometry): Issue[] {
       `An apron set back ${len(p.apronSetback)} would put its tenon past the ${len(s)} leg.`,
       ['apronSetback', 'tenonThickness', 'legStock.size'],
     );
+  }
+  const d = p.door;
+  if (g.door && d.topDepth < 2 * d.bottomDepth) {
+    refuse(
+      'door-cannot-lift',
+      `A door seated ${len(d.bottomDepth)} in its bottom track lifts out of it only if the top track is at least ${len(2 * d.bottomDepth)} deep.`,
+      ['door.topDepth', 'door.bottomDepth'],
+    );
+  }
+  if (g.door && d.grooveDepth >= d.frameWidth) {
+    refuse(
+      'groove-past-frame',
+      `A ${len(d.grooveDepth)} panel groove is as deep as the ${len(d.frameWidth)} stiles and rails are wide.`,
+      ['door.grooveDepth', 'door.frameWidth'],
+    );
+  }
+  if (g.door && p.tenonThickness >= p.panelThickness) {
+    refuse(
+      'panel-no-tongue',
+      `A ${len(p.tenonThickness)} groove leaves no tongue to cut on a ${len(p.panelThickness)} panel.`,
+      ['tenonThickness', 'panelThickness'],
+    );
+  }
+  if (g.door) {
+    // The recess and the panel groove overlap across the stile; the recess must stop above it.
+    const reaches = d.frameWidth / 2 + RECESS.across / 2 > d.frameWidth - d.grooveDepth;
+    if (reaches && RECESS.depth >= (g.door.thickness - p.tenonThickness) / 2) {
+      refuse(
+        'recess-into-groove',
+        `On a ${len(d.frameWidth)} stile, the ${len(RECESS.depth)} deep finger recess would break into the panel groove.`,
+        ['door.frameWidth', 'door.grooveDepth', 'tenonThickness'],
+      );
+    }
   }
   if (p.caseDepth < p.jacket) {
     refuse(

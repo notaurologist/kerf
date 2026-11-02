@@ -2,16 +2,17 @@ import { z } from 'zod';
 import { withLetters } from '../../model/letters.ts';
 import { cutAndDrillOperations, Operation } from '../../model/operations.ts';
 import { type GenerateResult, HardwareItem, Part, Placement } from '../../model/types.ts';
+import { formatLength } from '../../units/length.ts';
 import { CabinetGeometry, cabinetGeometry, validate } from './geometry.ts';
 import { RecordCabinetParams } from './params.ts';
 import { cabinetParts } from './parts.ts';
-import type { Slot } from './structural.ts';
+import type { Allowances } from './structural.ts';
 
 // The record cabinet's design from its parameters (docs/templates/record-cabinet.md): geometry,
 // parts in cut-list order, placements, operations, and hardware. Pure.
 
 export const TEMPLATE_ID = 'record-cabinet';
-export const TEMPLATE_VERSION = 8;
+export const TEMPLATE_VERSION = 9;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
@@ -28,13 +29,22 @@ const GROUP = 'Glue and finish';
 
 export function generate(
   params: RecordCabinetParams,
-  /** How much longer each slot under the case bottom is than its round hole, and why. */
-  slot: Slot,
+  /** The case bottom's slots and the door panels' gaps, from the wood's movement. */
+  allowances: Allowances,
 ): GenerateResult<CabinetDesign> {
   const g = cabinetGeometry(params);
   const issues = validate(params, g);
+  // At its narrowest, each door panel must still reach into its grooves.
+  const gap = allowances.panelGap.length;
+  if (g.door && 2 * gap - 1 / 32 >= params.door.grooveDepth) {
+    issues.push({
+      code: 'panel-out-of-groove',
+      message: `At its narrowest, each door panel would pull out of its ${formatLength(params.door.grooveDepth)} grooves.`,
+      params: ['door.grooveDepth', 'door.frameWidth'],
+    });
+  }
   if (issues.length > 0) return { ok: false, issues };
-  const made = cabinetParts(params, g, slot);
+  const made = cabinetParts(params, g, allowances);
   if (!made.ok) return made;
   const parts = withLetters(made.parts);
   const all = parts.map((part) => part.id);
@@ -43,6 +53,8 @@ export function generate(
   const caseParts = has(['bottom', 'side-left', 'side-right', 'partition', 'rail']);
   // The top sits in dadoes on the sides and partitions only.
   const topJoins = has(['top', 'side-left', 'side-right', 'partition']);
+  // Each door's frame is glued around its panel, which floats unglued.
+  const doorParts = has(['door-stile-outer', 'door-stile-inner', 'door-rail', 'door-panel']);
   const screws = parts.flatMap((part) => (part.screwHoles ?? []).map(() => part.quantity));
   const screwCount = screws.reduce((a, b) => a + b, 0);
   const ta = parts.find((part) => part.id === 'apron-short')?.stock.thickness ?? 0;
@@ -68,6 +80,17 @@ export function generate(
       partIds: topJoins,
       reach: g.height - g.baseHeight,
     },
+    ...(g.door
+      ? [
+          {
+            id: 'doors/glue',
+            type: 'glue-assembly' as const,
+            count: 2,
+            partIds: doorParts,
+            reach: g.door.width,
+          },
+        ]
+      : []),
     { id: 'case/fasten', type: 'fasten', count: screwCount, partIds: has(['bottom', 'cleat']) },
     ...parts.map(
       (part): Operation => ({
@@ -119,7 +142,14 @@ export function generate(
       operations,
       hardware,
       hardwareNotes: [
-        'Every joint is glued but the case bottom, which is screwed to the base through slotted holes so it can move.',
+        g.door
+          ? 'Every joint is glued but the case bottom, which is screwed to the base through slotted holes so it can move, and the door panels, which float in their frames.'
+          : 'Every joint is glued but the case bottom, which is screwed to the base through slotted holes so it can move.',
+        ...(g.door
+          ? [
+              'To put a door in, lift it up into the top track, swing its bottom in, and drop it into the bottom track: the left door in the front track and the right door in the back one.',
+            ]
+          : []),
       ],
     },
   };

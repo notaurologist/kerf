@@ -8,7 +8,7 @@ import { WORKED_EXAMPLE } from './examples.ts';
 // The worked example's build steps after the cutting steps (spec, Build steps), through fitting,
 // gluing, and finishing. Its case is W − 2·o_s = 54 − 1.5 = 52-1/2" wide, and its top stands
 // H − z_b = 22-1/4 − 7-1/2 = 14-3/4" above the case bottom, so the clamps must open that far
-// across the case and from the top down.
+// across the case and from the top down. Each door is 17-3/4" wide.
 
 const made = recordCabinet.generate(WORKED_EXAMPLE, {});
 if (!made.ok) throw new Error('worked example does not generate');
@@ -31,22 +31,36 @@ const chosen = (inv: Inventory) =>
   );
 
 describe('assembling and finishing the record cabinet', () => {
-  it('runs from the joinery to a dry fit, the base, the case, the top, easing, and finishing', () => {
-    const ids = recordCabinet.steps(outputs).map((s) => s.id);
+  it('runs from the joinery to a dry fit, the base, the case, the top, the doors, easing, and finishing', () => {
+    const steps = recordCabinet.steps(outputs);
+    const ids = steps.map((s) => s.id);
     expect(ids.slice(ids.indexOf('notches'))).toEqual([
       'notches',
       'mortises',
       'tenons',
       'screw-holes',
+      'door-joints',
       'dry-fit',
       'base',
       'cleats',
       'case',
       'top',
       'fasten',
+      'doors',
       'ease',
       'finish',
     ]);
+    // The tracks are cut with the other dadoes; the aprons' tenons apart from the doors'.
+    const step = (id: string) => steps.find((s) => s.id === id)?.operationIds ?? [];
+    expect(step('dadoes')).toContain('top/dado-4');
+    expect(step('tenons')).toEqual([
+      'apron-long/tenon-0',
+      'apron-long/tenon-1',
+      'apron-short/tenon-0',
+      'apron-short/tenon-1',
+    ]);
+    expect(step('door-joints')).toContain('door-rail/tenon-0');
+    expect(step('door-joints')).toContain('door-stile-outer/finger-recess-0');
   });
 
   it('lets the lumber settle indoors before the first board is cut', () => {
@@ -60,6 +74,7 @@ describe('assembling and finishing the record cabinet', () => {
       'side-left',
       'side-right',
       'partition',
+      'door-panel',
     ]);
     expect(chosen(inventory(60))['lumber/acclimate']).toBe('acclimate-wait');
     expect(chosen(inventory(60, 'moisture-meter'))['lumber/acclimate']).toBe(
@@ -83,6 +98,12 @@ describe('assembling and finishing the record cabinet', () => {
     expect(op('top/glue')).toMatchObject({
       reach: 14.75,
       partIds: ['top', 'side-left', 'side-right', 'partition'],
+    });
+    // Each door's frame around its panel, clamped across its width.
+    expect(op('doors/glue')).toMatchObject({
+      count: 2,
+      reach: 17.75,
+      partIds: ['door-stile-outer', 'door-stile-inner', 'door-rail', 'door-panel'],
     });
   });
 
@@ -142,6 +163,7 @@ describe('assembling and finishing the record cabinet', () => {
       'case',
       'top',
       'fasten',
+      'doors',
     ]);
     expect(described('dry-fit')).toMatch(/^Fits A Top, .* together without glue\./);
     expect(described('base')).toMatch(/^Adds G Leg, H Front and back apron, I Side apron\./);
@@ -150,5 +172,8 @@ describe('assembling and finishing the record cabinet', () => {
       /^Adds B Case bottom, .*F Back rail, to G Leg, .*J Cleat already built\./,
     );
     expect(described('top')).toMatch(/^Adds A Top, to .* already built\./);
+    expect(described('doors')).toMatch(
+      /^Adds K Outer stile, L Inner stile, M Door rail, N Door panel, to /,
+    );
   });
 });

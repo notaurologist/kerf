@@ -55,19 +55,25 @@ function need<K extends keyof Inputs>(inputs: Inputs, key: K): Needed<NonNullabl
 }
 
 /** How much longer each slot under the case bottom is than its round hole, and why (#338). */
-export interface Slot {
+interface Slot {
   length: number;
   basis: string;
 }
 
+/** The movement allowances the parts are cut to: the case bottom's slots and the door panels' gap. */
+export interface Allowances {
+  slot: Slot;
+  /** The gap at each edge of a door's panel, across its grain, and why (#339). */
+  panelGap: Slot;
+}
+
 /**
- * The case bottom's movement front to back, ΔD = D · C · (M_high − M_low), plus 1/16" (DOMAIN.md,
- * Joints that let wood move). Without the species, ring orientation, and moisture range, it is
- * sized for the species in Kerf that moves most across a flatsawn face, over the Handbook's 6% to
- * 10% for individual pieces indoors (Table 13-2), and says so.
+ * A part's movement across `width`, ΔD = D · C · (M_high − M_low) (DOMAIN.md, Joints that let wood
+ * move). Without the species, ring orientation, and moisture range, it is sized for the species in
+ * Kerf that moves most across a flatsawn face, over the Handbook's 6% to 10% for individual pieces
+ * indoors (Table 13-2), and `entered` is false.
  */
-export function slotFor(p: RecordCabinetParams, inputs: Inputs): Slot {
-  const D = p.caseDepth;
+function movementAcross(width: number, inputs: Inputs): { deltaD: number; entered: boolean } {
   const species = inputs.species ? woodSpecies(inputs.species) : undefined;
   const m = inputs.moisture;
   if (species && inputs.orientation && m && m.low >= 6 && m.high <= 14 && m.low < m.high) {
@@ -75,21 +81,57 @@ export function slotFor(p: RecordCabinetParams, inputs: Inputs): Slot {
       inputs.orientation === 'quartersawn'
         ? species.dimensionalChange.radial
         : species.dimensionalChange.tangential;
-    return {
-      length: D * C * (m.high - m.low) + SLOT_MARGIN,
-      basis: `Each slot is ${formatLength(D * C * (m.high - m.low) + SLOT_MARGIN)} longer than its round hole: the case bottom's movement across its ${formatLength(D)} depth, from the species and moisture range, plus 1/16".`,
-    };
+    return { deltaD: width * C * (m.high - m.low), entered: true };
   }
   const C = Math.max(...WOOD_SPECIES.map((w) => w.dimensionalChange.tangential));
-  const length = D * C * (10 - 6) + SLOT_MARGIN;
+  return { deltaD: width * C * (10 - 6), entered: false };
+}
+
+const notEntered = (what: string) =>
+  `sized for the species in Kerf that moves most, over 6% to 10% moisture, since the species and moisture range are not entered yet. Entering them sizes ${what} for your wood.`;
+
+/** The case bottom's movement front to back, plus 1/16" (spec, The Shaker-modern base). */
+function slotFor(p: RecordCabinetParams, inputs: Inputs): Slot {
+  const D = p.caseDepth;
+  const { deltaD, entered } = movementAcross(D, inputs);
+  const length = deltaD + SLOT_MARGIN;
   return {
     length,
-    basis: `Each slot is ${formatLength(length)} longer than its round hole, sized for the species in Kerf that moves most, over 6% to 10% moisture, since the species and moisture range are not entered yet. Entering them sizes the slots for your wood.`,
+    basis: entered
+      ? `Each slot is ${formatLength(length)} longer than its round hole: the case bottom's movement across its ${formatLength(D)} depth, from the species and moisture range, plus 1/16".`
+      : `Each slot is ${formatLength(length)} longer than its round hole, ${notEntered('the slots')}`,
   };
+}
+
+/**
+ * Each door panel's gap at its edges across the grain: half its movement across the space between
+ * the groove bottoms, plus 1/32" (DOMAIN.md, Joints that let wood move; spec, Sliding doors).
+ */
+function panelGapFor(g: CabinetGeometry, inputs: Inputs): Slot {
+  const span = g.door?.panelSpan ?? 0;
+  const { deltaD, entered } = movementAcross(span, inputs);
+  const length = deltaD / 2 + PANEL_MARGIN;
+  return {
+    length,
+    basis: entered
+      ? `It floats in its grooves, unglued, with ${formatLength(length)} at each edge across its grain: half its movement across ${formatLength(span)}, from the species and moisture range, plus 1/32".`
+      : `It floats in its grooves, unglued, with ${formatLength(length)} at each edge across its grain, ${notEntered('the gap')}`,
+  };
+}
+
+/** The case bottom's slots and the door panels' gaps, from the inputs. */
+export function allowancesFor(
+  p: RecordCabinetParams,
+  g: CabinetGeometry,
+  inputs: Inputs,
+): Allowances {
+  return { slot: slotFor(p, inputs), panelGap: panelGapFor(g, inputs) };
 }
 
 /** Slack beyond the computed movement, a rule of thumb (DOMAIN.md, Joints that let wood move). */
 const SLOT_MARGIN = 1 / 16;
+/** A panel's margin at each edge beyond half its movement (DOMAIN.md, Joints that let wood move). */
+const PANEL_MARGIN = 1 / 32;
 
 export const RecordCabinetReview = z.object({
   apron: BeamChecks,
@@ -215,9 +257,11 @@ export function structuralReview(
   const movement = [
     moves('Top', g.topDepth),
     moves('Left and right sides', p.caseDepth),
-    ...(p.bays > 1 ? [moves('Partition', p.caseDepth)] : []),
+    ...(p.bays > 1 ? [moves('Partition', g.door?.partitionDepth ?? p.caseDepth)] : []),
     moves('Case bottom', p.caseDepth),
     moves('Back rail', p.railHeight),
+    // Across the space it floats in, which its gaps are sized from.
+    ...(g.door ? [moves('Door panel', g.door.panelSpan)] : []),
   ];
 
   const panels = ['side-left', 'side-right', 'partition'];

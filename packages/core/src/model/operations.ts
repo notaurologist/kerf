@@ -81,6 +81,11 @@ export const Operation = z.discriminatedUnion('type', [
    * that doesn't show at that edge.
    */
   z.object({ ...onPart, type: z.literal('stopped-rabbet'), ...dadoFields }),
+  /**
+   * A dado that reaches no edge, stopped short at both ends, such as a sliding door's track.
+   * `length` is its long way.
+   */
+  z.object({ ...onPart, type: z.literal('double-stopped-dado'), ...dadoFields }),
   /** A corner notch (Part.notches), through the part's thickness. */
   z.object({
     ...onPart,
@@ -447,8 +452,9 @@ const AT_EDGE = 1e-9;
 
 /**
  * A dado's operation, from the edges it reaches: two opposite edges make it a through dado, one a
- * stopped dado that runs in from that edge. Any other dado has no operation type yet and is
- * refused rather than mislabeled.
+ * stopped dado that runs in from that edge, an end and an edge a stopped rabbet, and none a dado
+ * stopped at both ends. Any other dado has no operation type yet and is refused rather than
+ * mislabeled.
  */
 function dadoOperation(part: Part, d: Dado, i: number): Operation {
   const W = part.stock.width;
@@ -478,6 +484,10 @@ function dadoOperation(part: Part, d: Dado, i: number): Operation {
   }
   if (uEdges === 1 && vEdges === 1) {
     return { ...base, type: 'stopped-rabbet', length: across.v, width: across.u };
+  }
+  if (uEdges === 0 && vEdges === 0) {
+    const [length, width] = across.u >= across.v ? [across.u, across.v] : [across.v, across.u];
+    return { ...base, type: 'double-stopped-dado', length, width };
   }
   throw new Error(
     `${base.id} reaches ${vEdges + uEdges} edges; add an operation type before using one`,
@@ -584,6 +594,7 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   dado: 'Dado',
   'stopped-dado': 'Stopped dado',
   'stopped-rabbet': 'Stopped rabbet',
+  'double-stopped-dado': 'Dado stopped at both ends',
   notch: 'Notch',
   cutout: 'Cutout',
   mortise: 'Mortise',

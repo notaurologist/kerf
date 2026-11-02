@@ -51,7 +51,8 @@ export function cabinetScene(outputs: StoredRecordCabinetOutputs): Scene {
 
 /**
  * How the exploded view pulls the cabinet apart: the top up, the sides out, the rails back, the
- * case bottom up off the base, and the base's aprons and cleats out from the legs.
+ * case bottom up off the base, the base's aprons and cleats out from the legs, and the doors
+ * forward, their panels farther.
  */
 export function cabinetExplode(outputs: StoredRecordCabinetOutputs): Explode[] {
   const { params: p } = outputs.design;
@@ -67,6 +68,10 @@ export function cabinetExplode(outputs: StoredRecordCabinetOutputs): Explode[] {
     'apron-long': at(0, 0, -base / 2),
     'apron-short': at(0, 0, -base / 2),
     cleat: at(0, 0, base / 2),
+    'door-stile-outer': at(0, -gap, 0),
+    'door-stile-inner': at(0, -gap, 0),
+    'door-rail': at(0, -gap, 0),
+    'door-panel': at(0, -1.5 * gap, 0),
   };
   return outputs.design.placements.flatMap((pl): Explode[] => {
     const offset =
@@ -123,7 +128,9 @@ export function drawings(outputs: StoredRecordCabinetOutputs): Drawings {
       scene,
       VIEW,
       cabinetExplode(outputs),
-      'The record cabinet pulled apart: the top lifted, the sides out, the back rails back, the case bottom off the base, and the base’s aprons and cleats out from the legs.',
+      g.door
+        ? 'The record cabinet pulled apart: the top lifted, the sides out, the back rails back, the case bottom off the base, the base’s aprons and cleats out from the legs, and the doors forward, out of their tracks, with their panels out of their frames.'
+        : 'The record cabinet pulled apart: the top lifted, the sides out, the back rails back, the case bottom off the base, and the base’s aprons and cleats out from the legs.',
       'Exploded',
     ),
     cutDetails: outputs.design.parts.map((part) => cutDetail(part)),

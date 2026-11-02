@@ -74,6 +74,7 @@ export const Method = z.object({
     'dado',
     'stopped-dado',
     'stopped-rabbet',
+    'double-stopped-dado',
     'notch',
     'cutout',
     'mortise',
@@ -170,6 +171,12 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     depth: { kind: 'length', of: (op) => op.depth },
   },
   'stopped-dado': {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
+  'double-stopped-dado': {
     count,
     width: { kind: 'length', of: (op) => op.width },
     length: { kind: 'length', of: (op) => op.length },
@@ -1383,6 +1390,74 @@ export const METHODS = [
     ],
     mistakes: [
       'Chopping the stopped end with the bevel facing the waste pushes the chisel past the line. Keep the flat of the chisel toward the end wall.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Dado stopped at both ends (reaching no edge), such as a sliding door's track
+  {
+    id: 'double-stopped-dado-router',
+    operation: 'double-stopped-dado',
+    name: 'With a router, a guide, and two stops',
+    tools: [
+      { use: 'cutting the dado', anyOf: [{ tool: 'router' }] },
+      { use: 'squaring the ends', anyOf: [{ tool: 'chisel' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'rout-along-a-guide', 'pare-to-a-line'],
+    setup: [
+      'Fit a straight bit no wider than the dado, {width}, and set it to cut {depth} deep, in shallow cuts if the bit is small.',
+      'Measure from the bit to the edge of the router base, to set the guide and the stops back by that much.',
+    ],
+    technique: [
+      'Mark both walls of the dado and both of its ends, {length} apart.',
+      'Clamp a straight board as a guide, and clamp a stop across it at each end where the router base must halt.',
+      'Start the router with the bit clear of the wood, lower it into the cut against the first stop, and rout to the second; then clear the wood between the walls the same way.',
+      'Square the rounded ends with a chisel.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Routing past a stop leaves a gap beyond the part that fits there. Clamp both stops before you start, and check them with the router unplugged.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED],
+    flags: [categoryFlag('router')],
+    easierThan: ['double-stopped-dado-drill-and-chisel'],
+    moreAccurateThan: ['double-stopped-dado-drill-and-chisel'],
+  },
+  {
+    id: 'double-stopped-dado-drill-and-chisel',
+    operation: 'double-stopped-dado',
+    name: 'With a drill and a chisel',
+    tools: [
+      { use: 'drilling out the waste', anyOf: [{ tool: 'drill-press' }, { tool: 'drill-driver' }] },
+      {
+        use: 'a bit as wide as the dado',
+        anyOf: [{ tool: 'spade-bits' }, { tool: 'auger-bits' }],
+      },
+      { use: 'paring the walls and bottom', anyOf: [{ tool: 'chisel' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'drill-straight', 'pare-to-a-line'],
+    setup: [
+      'Fit a bit {width} across, and mark it or set a stop for {depth} deep.',
+      'Clamp the part flat to the bench.',
+    ],
+    technique: [
+      'Mark both walls of the dado and both of its ends, {length} apart.',
+      'Drill a row of holes inside the marks, each {depth} deep, overlapping a little.',
+      'Pare the walls and ends to the marks with the chisel, its flat side toward the wall and held upright.',
+      'Pare the bottom flat at {depth} all along.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Drilling at a lean makes the dado wider at the bottom or wanders off the line. Keep the bit upright, checking from two sides.',
     ],
     safety: [CLAMP_THE_WORK],
     flags: [],

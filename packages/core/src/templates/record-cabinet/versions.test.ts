@@ -11,6 +11,7 @@ import v5 from './snapshots/v5.json' with { type: 'json' };
 import v6 from './snapshots/v6.json' with { type: 'json' };
 import v7 from './snapshots/v7.json' with { type: 'json' };
 import v8 from './snapshots/v8.json' with { type: 'json' };
+import v9 from './snapshots/v9.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -175,5 +176,30 @@ describe('record-cabinet template versions', () => {
       (current(fixture)[0] as { outputs: { design: { geometry: { height: number } } } }).outputs
         .design.geometry.height;
     expect([height(v7), height(v8)]).toEqual([20, 22.25]);
+  });
+
+  it('version 9 adds sliding doors on the end bays, in a case 17" deep (#339)', () => {
+    const snapshots = (fixture: readonly unknown[]) =>
+      current(fixture) as {
+        params: { doors: string; caseDepth: number };
+        outputs: { design: { parts: { id: string }[] } };
+      }[];
+    const [before, after] = [snapshots(v8), snapshots(v9)];
+    // A stored version 8 plan reads back with no doors.
+    expect(before.map((s) => s.params.doors)).toEqual(['none', 'none', 'none']);
+    expect(after.map((s) => s.params.doors)).toEqual(['sliding', 'sliding', 'none']);
+    expect([before[0]?.params.caseDepth, after[0]?.params.caseDepth]).toEqual([15, 17]);
+    const ids = (s: (typeof after)[number] | undefined) =>
+      s?.outputs.design.parts.map((part) => part.id) ?? [];
+    expect(ids(after[0]).filter((id) => !ids(before[0]).includes(id))).toEqual([
+      'door-stile-outer',
+      'door-stile-inner',
+      'door-rail',
+      'door-panel',
+    ]);
+    // The edge of range has no doors and keeps its case: only the version stamps and the
+    // doors' parameters differ.
+    const edge = changes([v8[2]], [v9[2]]);
+    expect(kinds(edge).filter((path) => !path.includes('.door'))).toEqual([]);
   });
 });

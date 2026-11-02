@@ -14,6 +14,11 @@ const length = (path: string, label: string, help?: string): FormField => ({
 });
 
 const fromDealer = (value: (path: string) => string) => value('board.source') === 'dealer';
+const withDoors = (value: (path: string) => string) => value('doors') === 'sliding';
+const door = (path: string, label: string, help: string): FormField => ({
+  ...length(`door.${path}`, label, help),
+  when: withDoors,
+});
 const fromStore = (value: (path: string) => string) => !fromDealer(value);
 
 export const RECORD_CABINET_FORM: TemplateForm = {
@@ -45,6 +50,52 @@ export const RECORD_CABINET_FORM: TemplateForm = {
           'Clear height inside each bay, from the case bottom to the underside of the top. A little more than a record jacket.',
         ),
         length('railHeight', 'Back rail height'),
+      ],
+    },
+    {
+      title: 'Doors',
+      help: 'Two doors slide in tracks in the case bottom and the top, one over each end bay, each a frame around a floating panel. The case must be deep enough for the tracks in front of the records.',
+      fields: [
+        {
+          path: 'doors',
+          label: 'Doors',
+          kind: 'choice',
+          options: [
+            { value: 'sliding', label: 'Sliding doors on the end bays' },
+            { value: 'none', label: 'None, every bay open' },
+          ],
+        },
+        door(
+          'clearance',
+          'Track clearance',
+          'Each track is this much wider than the door is thick. About 1/16" is usual.',
+        ),
+        door(
+          'land',
+          'Wood between the tracks',
+          'Between the two tracks and at their edges. About 1/4" is usual.',
+        ),
+        door(
+          'bottomDepth',
+          'Bottom track depth',
+          'How far each door sits down in its bottom track. About 1/4" is usual.',
+        ),
+        door(
+          'topDepth',
+          'Top track depth',
+          'At least twice the bottom track’s depth, so a door lifts up out of the bottom track to go in.',
+        ),
+        door(
+          'overlap',
+          'Overlap past the partition',
+          'How far each closed door runs past its partition. About 1/2" is usual.',
+        ),
+        door('frameWidth', 'Stile and rail width', 'About 2" is usual.'),
+        door(
+          'grooveDepth',
+          'Panel groove depth',
+          'The groove the panel floats in, and the rails’ stub tenons. About 3/8" is usual. Its width is the tenon thickness.',
+        ),
       ],
     },
     {

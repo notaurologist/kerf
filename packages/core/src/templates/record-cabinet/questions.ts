@@ -113,6 +113,26 @@ const BASE = {
   legLengths: [3, 4],
   apronSetback: 0.125,
 } as const;
+/** The doors' tracks and frames: rules of thumb (spec, Sliding doors on the end bays). */
+export const SUGGESTED_DOOR = {
+  clearance: 0.0625,
+  land: 0.25,
+  bottomDepth: 0.25,
+  topDepth: 0.5625,
+  overlap: 0.5,
+  frameWidth: 2,
+  grooveDepth: 0.375,
+} as const;
+const DOOR_RULES: Record<keyof typeof SUGGESTED_DOOR, string> = {
+  clearance: 'each track 1/16" wider than the door is thick, so it slides freely',
+  land: '1/4" of wood between the tracks and at their edges',
+  bottomDepth: 'each door seated 1/4" in its bottom track',
+  topDepth:
+    'twice the bottom track’s depth, plus 1/16", so a door lifts up out of the bottom track',
+  overlap: 'each door 1/2" past the partition, so no gap shows when it is closed',
+  frameWidth: 'a 2" frame, in Shaker proportion',
+  grooveDepth: 'a 3/8" groove for the panel and stub tenons',
+};
 const sixteenthsDown = (x: number) => Math.floor(x * 16) / 16;
 
 /** A 1x6 board, dry, from the American Softwood Lumber Standard. */
@@ -263,6 +283,20 @@ function suggest(a: CabinetAnswers): Suggestion[] {
       basis: rule('half the leg plus 1/4", mitered where two tenons meet'),
     },
     example('bayHeight'),
+    {
+      from: 'params',
+      path: 'doors',
+      value: 'sliding',
+      basis: rule('two sliding doors over the end bays, the owner’s choice for this cabinet'),
+    },
+    ...Object.entries(DOOR_RULES).map(
+      ([key, text]): Suggestion => ({
+        from: 'params',
+        path: `door.${key}`,
+        value: SUGGESTED_DOOR[key as keyof typeof SUGGESTED_DOOR],
+        basis: rule(text),
+      }),
+    ),
     within(
       'width',
       w.casingWidth,
