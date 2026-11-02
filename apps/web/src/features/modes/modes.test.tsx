@@ -240,32 +240,34 @@ describe('Building mode', () => {
   });
 });
 
-describe('the plan’s mode cards', () => {
+describe('the plan’s mode buttons (#356)', () => {
   it('start each mode, with its progress', () => {
     const text = renderText(<ProjectView project={project()} />);
-    expect(text).toContain('Shopping 11 lines, none bought. Start shopping');
-    expect(text).toContain('Building 11 steps, not started. Start building');
+    expect(text).toContain('Shop · 11 to buy');
+    expect(text).toContain('Build · not started');
   });
 
-  it('resume where you left off', () => {
+  it('resume where you left off, and say what is next', () => {
     const p = project([
       { kind: 'shopping-line', key: 'lumber/2x6/10' },
       { kind: 'step', key: 'board-1' },
     ]);
     const text = renderText(<ProjectView project={p} />);
-    expect(text).toContain('1 of 11 bought. Open the shopping list');
-    expect(text).toContain(
-      "Step 2 of 11 next: Cut board 2, a 4x4 12' long: Front leg (downhill). Resume",
-    );
+    expect(text).toContain('Shop · 1 of 11 bought');
+    expect(text).toContain('Build · step 2 of 11');
+    expect(text).toContain("Next: Cut board 2, a 4x4 12' long: Front leg (downhill)");
     expect(render(<ProjectView project={p} />)).toContain(`href="#/projects/${p.id}/build"`);
   });
 
-  it('make the mode to do next the only primary button on the summary', () => {
-    const primaries = (p: Project) =>
-      (render(<ProjectView project={p} />).match(/data-variant="primary"[^>]*>[^<]*/g) ?? []).map(
-        (m) => m.slice(m.indexOf('>') + 1),
-      );
-    expect(primaries(project())).toEqual(['Start shopping']);
+  it('make the mode to do next the only primary button, on every section', () => {
+    const primaries = (p: Project, section?: 'cut-list') =>
+      (
+        render(<ProjectView project={p} section={section} />).match(
+          /data-variant="primary"[^>]*>[^<]*/g,
+        ) ?? []
+      ).map((m) => m.slice(m.indexOf('>') + 1));
+    expect(primaries(project())).toEqual(['Shop · 11 to buy']);
+    expect(primaries(project(), 'cut-list')).toEqual(['Shop · 11 to buy']);
     // Building is next once it has started, even with lines left to buy.
     expect(
       primaries(
@@ -274,13 +276,13 @@ describe('the plan’s mode cards', () => {
           { kind: 'step', key: 'board-1' },
         ]),
       ),
-    ).toEqual(['Resume']);
+    ).toEqual(['Build · step 2 of 11']);
   });
 
-  it('mark each mode row with its mode, for the mode color', () => {
+  it('mark each button with its mode, for the mode color', () => {
     const html = render(<ProjectView project={project()} />);
-    expect(html).toContain('<section class="k-row" data-mode="shopping">');
-    expect(html).toContain('<section class="k-row" data-mode="building">');
+    expect(html).toContain('data-mode="shopping"');
+    expect(html).toContain('data-mode="building"');
   });
 });
 
@@ -332,9 +334,7 @@ describe('progress in words', () => {
   it('puts a Resume card above the projects list for a project in progress', () => {
     const p = project([{ kind: 'step', key: 'board-1' }]);
     const other = { ...project([{ kind: 'shopping-line', key: 'lumber/2x6/10' }]), name: 'Other' };
-    const text = renderText(
-      <ProjectList projects={[p, other]} templates={[]} onStatus={() => {}} />,
-    );
+    const text = renderText(<ProjectList projects={[p, other]} templates={[]} />);
     // One card, for the first project in the list (the most recently updated).
     expect(text.match(/Resume /g)).toHaveLength(1);
     expect(text).toContain(

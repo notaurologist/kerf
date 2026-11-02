@@ -5,9 +5,8 @@ import { mount } from '../test/dom.tsx';
 import { type Back, Frame, type FrameProject, useFrameProject } from './Shell.tsx';
 
 const places = [
-  { label: 'Projects', href: '#/projects', icon: 'projects', current: 'true' },
-  { label: 'Tools', href: '#/tools', icon: 'tools' },
-  { label: 'Glossary', href: '#/glossary', icon: 'glossary' },
+  { label: 'Projects', href: '#/projects', current: 'true' },
+  { label: 'Workshop', href: '#/workshop' },
 ] as const;
 
 const project: FrameProject = {
@@ -29,7 +28,7 @@ function Screen(props: { project: FrameProject }) {
 
 const mountFrame = (screen: FrameProject | null, back: Back) =>
   mount(
-    <Frame brandHref="#/projects" places={places} back={back} actions={null}>
+    <Frame brandHref="#/projects" places={places} back={back} end={null}>
       {screen && <Screen project={screen} />}
     </Frame>,
   ).container;
@@ -38,9 +37,7 @@ describe('the frame with a project open', () => {
   it('lists the project and its sections under Projects, marking the section on screen', () => {
     const frame = mountFrame(project, { label: 'Projects', href: '#/projects' });
     const sidebar = frame.querySelector('.k-sidebar');
-    expect(sidebar?.textContent).toBe(
-      'ProjectsBackyard swing setSummaryStructural reviewToolsGlossary',
-    );
+    expect(sidebar?.textContent).toBe('ProjectsBackyard swing setSummaryStructural reviewWorkshop');
     expect(sidebar?.querySelector('[aria-current="page"]')?.textContent).toBe('Structural review');
     expect(sidebar?.querySelector('a[href="#/projects/p1"]')?.getAttribute('aria-current')).toBe(
       'true',
@@ -53,7 +50,7 @@ describe('the frame with a project open', () => {
   it('names the project in the editor back link, and forgets it when the screen goes', () => {
     const { name, href } = project;
     const view = mount(
-      <Frame brandHref="#/projects" places={places} back="project" actions={null}>
+      <Frame brandHref="#/projects" places={places} back="project" end={null}>
         <Screen project={{ name, href }} />
       </Frame>,
     );
@@ -62,23 +59,35 @@ describe('the frame with a project open', () => {
     expect(back?.textContent).toBe('Backyard swing set');
     expect(view.container.querySelector('.k-frame')?.hasAttribute('data-sections')).toBe(false);
     view.rerender(
-      <Frame brandHref="#/projects" places={places} back="project" actions={null}>
+      <Frame brandHref="#/projects" places={places} back="project" end={null}>
         {null}
       </Frame>,
     );
-    expect(view.container.querySelector('.k-sidebar')?.textContent).toBe('ProjectsToolsGlossary');
+    expect(view.container.querySelector('.k-sidebar')?.textContent).toBe('ProjectsWorkshop');
   });
 });
 
 describe('frameFor', () => {
   it('puts each screen in its place, with a back link below the top', () => {
     expect(frameFor({ screen: 'projects' })).toEqual({ place: 'projects', top: true });
-    expect(frameFor({ screen: 'tools' })).toEqual({ place: 'tools', top: true });
-    expect(frameFor({ screen: 'glossary' })).toEqual({ place: 'glossary', top: true });
+    expect(frameFor({ screen: 'workshop' })).toEqual({ place: 'workshop', top: true });
+    const inWorkshop = {
+      place: 'workshop',
+      top: false,
+      back: { label: 'Workshop', href: '#/workshop' },
+    };
+    expect(frameFor({ screen: 'tools' })).toEqual(inWorkshop);
+    expect(frameFor({ screen: 'glossary' })).toEqual(inWorkshop);
+    expect(frameFor({ screen: 'trash' })).toEqual(inWorkshop);
     expect(frameFor({ screen: 'tools', tool: 'rafter-square' })).toEqual({
-      place: 'tools',
+      place: 'workshop',
       top: false,
       back: { label: 'Tools', href: '#/tools' },
+    });
+    expect(frameFor({ screen: 'glossary', term: 'kerf' })).toEqual({
+      place: 'workshop',
+      top: false,
+      back: { label: 'Glossary', href: '#/glossary' },
     });
     expect(frameFor({ screen: 'project', id: 'p1' })).toEqual({
       place: 'projects',

@@ -1,6 +1,6 @@
-import { type CutListRow, cutList, panelStock, stock } from '@kerf/core';
+import { cutList, type PlannedCutRow, panelStock, stock, withSettings } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { renderText } from '../../test/render.tsx';
+import { render, renderText, textOf } from '../../test/render.tsx';
 import { CutList } from './CutList.tsx';
 
 // A made-up panel next to a post: the panel's stock stays short and its boards go in the notes
@@ -36,10 +36,11 @@ const part = {
   notches: [],
   cutouts: [],
 };
-const rows: CutListRow[] = cutList([
+const parts = [
   part,
   { ...part, id: 'post', letter: 'B', name: 'Post', stock: stock('4x4'), length: 30 },
-]);
+];
+const rows: PlannedCutRow[] = withSettings(cutList(parts), parts);
 
 describe('the cut list with a panel', () => {
   const text = renderText(<CutList rows={rows} />);
@@ -54,5 +55,24 @@ describe('the cut list with a panel', () => {
   it('leaves other parts as they were', () => {
     expect(text).toContain('4x4 (3-1/2" x 3-1/2")');
     expect(text.match(/Glued up from/g)).toHaveLength(1);
+  });
+});
+
+describe('the cut list as a narrow table (#360)', () => {
+  const html = render(<CutList rows={rows} />);
+
+  it('keeps four columns: part, quantity, length, and each end’s saw setting', () => {
+    expect(
+      [...html.matchAll(/<th scope="col"[^>]*>(.*?)<\/th>/g)].map((m) => textOf(m[1] ?? '')),
+    ).toEqual(['Part', 'Qty Quantity', 'Length', 'Ends Saw setting at each end']);
+    expect(html).toContain('data-keep=""');
+    expect(html).toContain('<span class="k-setting">0.0°</span>');
+  });
+
+  it('opens each row to its details beneath, closed at first and open in print', () => {
+    expect(html.match(/<tr id="[^"]+" data-details="" hidden="">/g)).toHaveLength(2);
+    expect(html).toContain('aria-expanded="false"');
+    expect(textOf(html)).toContain('Details for A Side');
+    expect(textOf(html)).toContain('Ends parallel.');
   });
 });

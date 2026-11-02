@@ -168,6 +168,22 @@ export function projectDrawings<O>(
   };
 }
 
+/**
+ * The assembled view with no part letters, for choosing a template (#357), where the parts are not
+ * yet named. Null for a template with no assembly to draw.
+ */
+export function unletteredView<O>(
+  template: Pick<TemplateDefinition<unknown, unknown, O>, 'drawings' | 'assembly'>,
+  outputs: O,
+): Drawing | null {
+  const own = template.drawings(outputs).isometric;
+  const assembly = template.assembly(outputs);
+  if (!own || !assembly) return null;
+  return isometricView(assembly.scene, assembly.view, own.description, own.title, {
+    letters: false,
+  });
+}
+
 const CORNER_WORDS: Record<Corner, string> = {
   'front-left': 'front left',
   'front-right': 'front right',

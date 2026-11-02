@@ -1,31 +1,35 @@
 import {
   CHECKLIST_CATEGORY_LABELS,
   type ChecklistItem,
+  FLAG_CATEGORY_LABELS,
   type Flag,
   type movement,
   structural,
 } from '@kerf/core';
-import { href } from '../../lib/route.ts';
 import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
 import {
+  Card,
   CheckStatus,
   Code,
   Disclosure,
-  FlagList,
+  InputNeeded,
   List,
   Measured,
   MeasureTable,
   Readings,
+  ResultLine,
   Row,
   Rows,
+  Sidebar,
   Stack,
   Text,
 } from '../../ui/index.ts';
 import { BoltLayout } from './BoltLayout.tsx';
 import { CitationList, SourceList, SourceToggle } from './Citation.tsx';
 
-// The structural review (PRODUCT.md, MVP feature 7): structural checks with their full working,
-// the design's expert checks, and the confirmation checklist. Results are margins under stated
+// The structural review (PRODUCT.md, MVP feature 7) as Stage 15 lays it out (#359, S1): what the
+// owner has to do first (inputs needed, the design's expert checks, the confirmation checklist),
+// then one line per check with its margin, opening to its full working. Results are margins under stated
 // assumptions, never verdicts (decision 0001). Every number comes formatted from core.
 
 /** The wood movement subsection's opening line, exported for the printed plan's terms too. */
@@ -42,7 +46,7 @@ type Quantity = structural.Quantity;
 const { formatMargin, formatQuantity } = structural;
 
 export function StructuralReview(props: {
-  projectId: string;
+  inputHref: (key: string) => string;
   checks: readonly CheckResult[];
   flags: readonly Flag[];
   checklist: readonly ChecklistItem[];
@@ -50,15 +54,18 @@ export function StructuralReview(props: {
   movement?: readonly MovementResult[];
 }) {
   const movement = props.movement ?? [];
-  return (
+  const results = (
     <Stack>
+      <h3>Checks</h3>
       <Text tone="muted">
-        <Measured text={STRUCTURAL_REVIEW_INTRO} terms />
+        The lowest margin comes first, after any check still waiting for inputs, since one of those
+        could be the lowest. Open a check for its working and the assumptions its margin rests on.
       </Text>
-      <h3>Structural checks</h3>
       <Rows>
-        {props.checks.map((check) => (
-          <Check key={`${check.kind}/${check.subject}`} check={check} projectId={props.projectId} />
+        {byMargin(props.checks).map((check) => (
+          <Row key={`${check.kind}/${check.subject}`} as="section">
+            <Check check={check} inputHref={props.inputHref} />
+          </Row>
         ))}
       </Rows>
 
@@ -70,7 +77,9 @@ export function StructuralReview(props: {
           </Text>
           <Rows>
             {movement.map((m) => (
-              <Movement key={m.subject} result={m} projectId={props.projectId} />
+              <Row key={m.subject} as="section">
+                <Movement result={m} inputHref={props.inputHref} />
+              </Row>
             ))}
           </Rows>
         </>
@@ -78,54 +87,156 @@ export function StructuralReview(props: {
 
       <BoltLayout joints={props.boltLayout ?? []} />
 
-      {props.flags.length > 0 && (
-        <>
-          {/* Focusable, so the summary's flags can open the review here (#156). */}
-          <h3 id={EXPERT_CHECKS_ID} tabIndex={-1}>
-            Expert checks
-          </h3>
-          <FlagList flags={props.flags} />
-        </>
-      )}
-
       <SourcesUsed checks={props.checks} movement={movement} />
-
-      <h3>Confirmation checklist</h3>
-      <Text tone="muted">Not computed. Confirm each with an experienced builder.</Text>
-      <Rows as="ul">
-        {props.checklist.map((item) => (
-          <Row key={`${item.category}/${item.element}`} as="li">
-            <Stack gap="2xs">
-              <Text tone="muted" size="small">
-                {CHECKLIST_CATEGORY_LABELS[item.category]}
-              </Text>
-              <b>{item.element}</b>
-              <Text>
-                <Measured text={item.confirm} terms />
-              </Text>
-              <Text tone="muted">
-                <Measured text={item.why} terms />
-              </Text>
-            </Stack>
-          </Row>
-        ))}
-      </Rows>
+    </Stack>
+  );
+  const missing = missingInputs([...props.checks, ...movement]);
+  const toDo =
+    missing.length + props.flags.length + props.checklist.length > 0 ? (
+      <ToDo
+        missing={missing}
+        inputHref={props.inputHref}
+        flags={props.flags}
+        checklist={props.checklist}
+      />
+    ) : null;
+  return (
+    <Stack>
+      <Text tone="muted">
+        <Measured text={STRUCTURAL_REVIEW_INTRO} terms />
+      </Text>
+      {/* What the owner has to do leads, beside the results from 600 px (Stage 15, S1). */}
+      {toDo ? (
+        <Sidebar sideWidth="m" gap="l">
+          {toDo}
+          {results}
+        </Sidebar>
+      ) : (
+        results
+      )}
     </Stack>
   );
 }
 
-function Check(props: { check: CheckResult; projectId: string }) {
+/**
+ * The checks with the lowest margin first, after those waiting for inputs (any could be the
+ * lowest), and those that could not be computed last.
+ */
+export function byMargin(checks: readonly CheckResult[]): CheckResult[] {
+  const rank = (c: CheckResult) =>
+    c.status === 'input-needed'
+      ? -1
+      : c.status === 'computed'
+        ? c.margin
+        : Number.POSITIVE_INFINITY;
+  return [...checks].sort((a, b) => rank(a) - rank(b));
+}
+
+/** Every input the checks and estimates wait for, each once, in the order first named. */
+function missingInputs(results: readonly (CheckResult | MovementResult)[]) {
+  const seen = new Map<string, structural.MissingInput>();
+  for (const r of results) {
+    if (r.status !== 'input-needed') continue;
+    for (const m of r.missing) if (!seen.has(m.key)) seen.set(m.key, m);
+  }
+  return [...seen.values()];
+}
+
+/** What the owner has to do: inputs to enter, and what to ask and confirm with a builder. */
+function ToDo(props: {
+  missing: readonly structural.MissingInput[];
+  inputHref: (key: string) => string;
+  flags: readonly Flag[];
+  checklist: readonly ChecklistItem[];
+}) {
+  const count = props.missing.length + props.flags.length + props.checklist.length;
+  return (
+    <Card as="section">
+      <Stack>
+        <h3>To do · {count}</h3>
+        {props.missing.length > 0 && (
+          <Stack gap="xs">
+            <h4>Inputs needed</h4>
+            <MissingInputs missing={props.missing} inputHref={props.inputHref} />
+          </Stack>
+        )}
+        {props.flags.length > 0 && (
+          <Stack gap="xs">
+            {/* Focusable, so the header's count can open the review here (#156, #356). */}
+            <h4 id={EXPERT_CHECKS_ID} tabIndex={-1}>
+              Expert checks
+            </h4>
+            <Text tone="muted">Ask an experienced builder.</Text>
+            {/* What to ask, with why behind it, so the checks are not pushed out of view. */}
+            <Rows as="ul">
+              {props.flags.map((flag) => (
+                <Row key={`${flag.category}/${flag.ask}`} as="li">
+                  <ResultLine
+                    title={<Measured text={flag.ask} />}
+                    detail={FLAG_CATEGORY_LABELS[flag.category]}
+                  >
+                    <Text>
+                      Why: <Measured text={flag.why} terms />
+                    </Text>
+                  </ResultLine>
+                </Row>
+              ))}
+            </Rows>
+          </Stack>
+        )}
+        {props.checklist.length > 0 && (
+          <Stack gap="xs">
+            <h4>Confirmation checklist</h4>
+            <Text tone="muted">Not computed. Confirm each with an experienced builder.</Text>
+            <Rows as="ul">
+              {props.checklist.map((item) => (
+                <Row key={`${item.category}/${item.element}`} as="li">
+                  <ResultLine
+                    title={item.element}
+                    detail={CHECKLIST_CATEGORY_LABELS[item.category]}
+                  >
+                    <Stack gap="2xs">
+                      <Text>
+                        <Measured text={item.confirm} terms />
+                      </Text>
+                      <Text tone="muted">
+                        <Measured text={item.why} terms />
+                      </Text>
+                    </Stack>
+                  </ResultLine>
+                </Row>
+              ))}
+            </Rows>
+          </Stack>
+        )}
+      </Stack>
+    </Card>
+  );
+}
+
+/** One check as a line with its margin, opening to its working. */
+function Check(props: { check: CheckResult; inputHref: (key: string) => string }) {
   const { check } = props;
   return (
-    <Row as="section">
+    <ResultLine
+      title={<Measured text={`${check.title}: ${check.subject}`} />}
+      detail={<Measured text={check.loadCase} />}
+      result={
+        check.status === 'computed' ? (
+          formatMargin(check.margin)
+        ) : check.status === 'input-needed' ? (
+          <InputNeeded />
+        ) : (
+          'Not computed'
+        )
+      }
+    >
       <Stack gap="xs">
-        <h4>
-          <Measured text={`${check.title}: ${check.subject}`} terms />
-        </h4>
         <Text tone="muted">
           <Measured text={check.loadCase} terms />
         </Text>
-        <CheckStatus check={check} />
+        {/* Input needed is on the line already; the links to enter each follow. */}
+        {check.status !== 'input-needed' && <CheckStatus check={check} />}
         {check.status === 'computed' && (
           <>
             <Text>
@@ -137,81 +248,89 @@ function Check(props: { check: CheckResult; projectId: string }) {
           </>
         )}
         {check.status === 'input-needed' && (
-          <>
-            <List items={check.missing.map((m) => m.label)} />
-            <EnterInputs projectId={props.projectId} />
-          </>
+          <MissingInputs missing={check.missing} inputHref={props.inputHref} />
         )}
         {check.status === 'not-computed' && check.sources.length > 0 && (
           <CitationList citations={check.sources} />
         )}
       </Stack>
-    </Row>
+    </ResultLine>
   );
 }
 
-function EnterInputs(props: { projectId: string }) {
+/** Each input a result needs, as a link to its field in Edit. */
+function MissingInputs(props: {
+  missing: readonly structural.MissingInput[];
+  inputHref: (key: string) => string;
+}) {
   return (
-    <a href={href({ screen: 'edit-project', id: props.projectId, from: 'structural-review' })}>
-      Enter structural inputs
-    </a>
+    <List>
+      {props.missing.map((m) => (
+        <li key={m.key}>
+          <a href={props.inputHref(m.key)}>{m.label}</a>
+        </li>
+      ))}
+    </List>
   );
 }
 
-function Movement(props: { result: MovementResult; projectId: string }) {
+function Movement(props: { result: MovementResult; inputHref: (key: string) => string }) {
   const { result } = props;
   return (
-    <Row as="section">
-      <Stack gap="xs">
-        <h4>
-          <Measured text={result.subject} terms />
-        </h4>
-        {result.status === 'computed' && (
+    <ResultLine
+      title={<Measured text={result.subject} />}
+      result={
+        result.status === 'computed' ? (
           <>
-            <Text>
-              Changes about{' '}
-              <b>
-                <Value q={result.change} />
-              </b>{' '}
-              across the grain.
-            </Text>
-            <Disclosure summary="Show the working">
-              <Stack>
-                <h5>Inputs</h5>
-                <Quantities caption="Inputs" list={result.inputs} />
-                <h5>Formula</h5>
-                <List ordered>
-                  {result.formulas.map((f) => (
-                    <li key={f}>
-                      <Code>{f}</Code>
-                    </li>
-                  ))}
-                </List>
-                <Text tone="muted">From:</Text>
-                <CitationList citations={result.sources} />
-                <h5>Result</h5>
-                <Quantities caption="Result" list={[result.change]} />
-                <h5>Assumptions</h5>
-                <List items={result.assumptions} />
-              </Stack>
-            </Disclosure>
+            about <Value q={result.change} />
           </>
-        )}
-        {result.status === 'input-needed' && (
-          <>
-            <Text>Input needed:</Text>
-            <List items={result.missing.map((m) => m.label)} />
-            <EnterInputs projectId={props.projectId} />
-          </>
-        )}
-        {result.status === 'not-computed' && (
-          <>
-            <Text>Not computed. {result.reason}</Text>
-            <CitationList citations={result.sources} />
-          </>
-        )}
-      </Stack>
-    </Row>
+        ) : result.status === 'input-needed' ? (
+          <InputNeeded />
+        ) : (
+          'Not computed'
+        )
+      }
+    >
+      {result.status === 'computed' && (
+        <Stack>
+          <Text>
+            Changes about{' '}
+            <b>
+              <Value q={result.change} />
+            </b>{' '}
+            across the grain.
+          </Text>
+          <h5>Inputs</h5>
+          <Quantities caption="Inputs" list={result.inputs} />
+          <h5>Formula</h5>
+          <List ordered>
+            {result.formulas.map((f) => (
+              <li key={f}>
+                <Code>{f}</Code>
+              </li>
+            ))}
+          </List>
+          <Text tone="muted">From:</Text>
+          <CitationList citations={result.sources} />
+          <h5>Result</h5>
+          <Quantities caption="Result" list={[result.change]} />
+          <h5>Assumptions</h5>
+          <List items={result.assumptions} />
+        </Stack>
+      )}
+      {result.status === 'input-needed' && (
+        <Stack gap="xs">
+          <Text>Input needed:</Text>
+          <MissingInputs missing={result.missing} inputHref={props.inputHref} />
+        </Stack>
+      )}
+      {result.status === 'not-computed' && (
+        <Stack gap="xs">
+          <Text>Not computed. {result.reason}</Text>
+          <CitationList citations={result.sources} />
+        </Stack>
+      )}
+    </ResultLine>
   );
 }
 
@@ -219,84 +338,83 @@ function Value(props: { q: Pick<Quantity, 'value' | 'unit'> }) {
   return <Readings text={formatQuantity(props.q)} />;
 }
 
+/** A computed check's full working, shown when its line is opened (and always in print). */
 function Working(props: { check: Extract<CheckResult, { status: 'computed' }> }) {
   const { check } = props;
   return (
-    <Disclosure summary="Show the working">
-      <Stack>
-        <h5>Inputs</h5>
-        <Quantities caption="Inputs" list={check.inputs} />
-        <h5>Formulas</h5>
-        <List ordered>
-          {check.formulas.map((f) => (
-            <li key={f}>
-              <Code>{f}</Code>
-            </li>
-          ))}
-        </List>
-        {check.sources.length > 0 && (
-          <>
-            <Text tone="muted">Formulas from:</Text>
-            <CitationList citations={check.sources} />
-          </>
-        )}
-        {check.steps.length > 0 && (
-          <>
-            <h5>Steps</h5>
-            <Quantities caption="Steps" list={check.steps} />
-          </>
-        )}
-        {check.factors.length > 0 && (
-          <>
-            <h5>Adjustment factors</h5>
-            <MeasureTable
-              caption="Adjustment factors"
-              captionHidden
-              rows={check.factors}
-              rowKey={(f) => f.symbol}
-              columns={[
-                {
-                  key: 'factor',
-                  label: 'Factor',
-                  cell: (f) => (
-                    <>
-                      <Code>{f.symbol}</Code> {f.name}{' '}
-                      <Text tone="muted" as="span">
-                        (on {f.appliesTo.join(', ')})
-                      </Text>
-                    </>
-                  ),
-                },
-                {
-                  key: 'value',
-                  label: 'Value',
-                  numeric: true,
-                  cell: (f) => <Value q={{ value: f.value, unit: '' }} />,
-                },
-                {
-                  key: 'why',
-                  label: 'Why',
-                  cell: (f) => (
-                    <>
-                      {f.reason}
-                      <SourceToggle citations={f.sources} />
-                    </>
-                  ),
-                },
-              ]}
-            />
-          </>
-        )}
-        <h5>Result</h5>
-        <Quantities caption="Result" list={[check.computed, check.allowable]} />
-        <Text>
-          margin = {check.allowable.symbol} / {check.computed.symbol} ={' '}
-          <b>{formatMargin(check.margin)}</b>
-        </Text>
-        <h5>Assumptions</h5>
-        <List items={check.assumptions} />
-      </Stack>
-    </Disclosure>
+    <Stack>
+      <h5>Inputs</h5>
+      <Quantities caption="Inputs" list={check.inputs} />
+      <h5>Formulas</h5>
+      <List ordered>
+        {check.formulas.map((f) => (
+          <li key={f}>
+            <Code>{f}</Code>
+          </li>
+        ))}
+      </List>
+      {check.sources.length > 0 && (
+        <>
+          <Text tone="muted">Formulas from:</Text>
+          <CitationList citations={check.sources} />
+        </>
+      )}
+      {check.steps.length > 0 && (
+        <>
+          <h5>Steps</h5>
+          <Quantities caption="Steps" list={check.steps} />
+        </>
+      )}
+      {check.factors.length > 0 && (
+        <>
+          <h5>Adjustment factors</h5>
+          <MeasureTable
+            caption="Adjustment factors"
+            captionHidden
+            rows={check.factors}
+            rowKey={(f) => f.symbol}
+            columns={[
+              {
+                key: 'factor',
+                label: 'Factor',
+                cell: (f) => (
+                  <>
+                    <Code>{f.symbol}</Code> {f.name}{' '}
+                    <Text tone="muted" as="span">
+                      (on {f.appliesTo.join(', ')})
+                    </Text>
+                  </>
+                ),
+              },
+              {
+                key: 'value',
+                label: 'Value',
+                numeric: true,
+                cell: (f) => <Value q={{ value: f.value, unit: '' }} />,
+              },
+              {
+                key: 'why',
+                label: 'Why',
+                cell: (f) => (
+                  <>
+                    {f.reason}
+                    <SourceToggle citations={f.sources} />
+                  </>
+                ),
+              },
+            ]}
+          />
+        </>
+      )}
+      <h5>Result</h5>
+      <Quantities caption="Result" list={[check.computed, check.allowable]} />
+      <Text>
+        margin = {check.allowable.symbol} / {check.computed.symbol} ={' '}
+        <b>{formatMargin(check.margin)}</b>
+      </Text>
+      <h5>Assumptions</h5>
+      <List items={check.assumptions} />
+    </Stack>
   );
 }
 

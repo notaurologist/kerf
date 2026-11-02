@@ -2,10 +2,10 @@ import { type BuildStep, type Plan, type ProgressSummary, summarizeProgress } fr
 import { href } from '../../lib/route.ts';
 import { useTicks } from '../../lib/ticks.ts';
 import type { Project, ProjectSummary } from '../../lib/types.ts';
-import { ButtonLink, Card, Cluster, Row, Rows, Stack, Text } from '../../ui/index.ts';
+import { ButtonLink, Card, Cluster, Stack, Text } from '../../ui/index.ts';
 
-// The ways into Shopping and Building (#61): two rows in the plan's summary, each showing
-// progress, and a Resume card on the projects list that goes straight to where you left off.
+// The ways into Shopping and Building (#61): two buttons in the project's header, each showing
+// progress (#356), and a Resume card on the projects list that goes straight to where you left off.
 
 /** How far the shopping has got, in words. */
 export function shoppingText(s: ProgressSummary['shopping']): string {
@@ -26,53 +26,50 @@ export function buildingText(s: ProgressSummary): string {
   return `${cut}Step ${s.nextStep.number} of ${total} next: ${s.nextStep.title}.`;
 }
 
+/** Shopping's progress, short enough for a button: "4 of 11 bought". */
+function shoppingShort(s: ProgressSummary['shopping']): string {
+  if (s.done === 0) return `${s.total} to buy`;
+  if (s.done === s.total) return 'all bought';
+  return `${s.done} of ${s.total} bought`;
+}
+
+/** Building's progress, short enough for a button: "step 3 of 11". */
+function buildingShort(s: ProgressSummary): string {
+  if (!building(s)) return 'not started';
+  if (!s.nextStep) return 'all done';
+  return `step ${s.nextStep.number} of ${s.steps.total}`;
+}
+
 /**
- * The ways into Shopping and Building in the plan's summary (under its h2), as ruled rows, counted
- * with ticks not sent yet. The mode to do next is the screen's one primary button.
+ * The ways into Shopping and Building in the project's header, on every section of the plan
+ * (#356), each with its progress counted with ticks not sent yet. The mode to do next is the
+ * screen's one primary button.
  */
-export function ModeCards(props: { project: Project; plan: Plan; steps: readonly BuildStep[] }) {
+export function ModeButtons(props: { project: Project; plan: Plan; steps: readonly BuildStep[] }) {
   const { project } = props;
   const ticks = useTicks(project.id, project.ticks, project.revision);
   const summary = summarizeProgress(props.plan, props.steps, ticks.ticked());
   const { shopping, steps } = summary;
   const next = steps.total > 0 && buildingIsNext(summary) ? 'building' : 'shopping';
   return (
-    <Rows>
-      <Row as="section" mode="shopping">
-        <Cluster spread>
-          <Stack gap="3xs">
-            <h3>Shopping</h3>
-            <Text>{shoppingText(shopping)}</Text>
-          </Stack>
-          <ButtonLink
-            href={href({ screen: 'shop', id: project.id })}
-            variant={next === 'shopping' ? 'primary' : 'secondary'}
-          >
-            {shopping.done === 0 ? 'Start shopping' : 'Open the shopping list'}
-          </ButtonLink>
-        </Cluster>
-      </Row>
+    <Cluster gap="xs">
+      <ButtonLink
+        href={href({ screen: 'shop', id: project.id })}
+        variant={next === 'shopping' ? 'primary' : 'secondary'}
+        mode="shopping"
+      >
+        Shop · {shoppingShort(shopping)}
+      </ButtonLink>
       {steps.total > 0 && (
-        <Row as="section" mode="building">
-          <Cluster spread>
-            <Stack gap="3xs">
-              <h3>Building</h3>
-              <Text>{buildingText(summary)}</Text>
-            </Stack>
-            <ButtonLink
-              href={href({ screen: 'build', id: project.id })}
-              variant={next === 'building' ? 'primary' : 'secondary'}
-            >
-              {!building(summary)
-                ? 'Start building'
-                : summary.nextStep
-                  ? 'Resume'
-                  : 'Open the steps'}
-            </ButtonLink>
-          </Cluster>
-        </Row>
+        <ButtonLink
+          href={href({ screen: 'build', id: project.id })}
+          variant={next === 'building' ? 'primary' : 'secondary'}
+          mode="building"
+        >
+          Build · {buildingShort(summary)}
+        </ButtonLink>
       )}
-    </Rows>
+    </Cluster>
   );
 }
 

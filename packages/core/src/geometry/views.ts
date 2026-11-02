@@ -351,10 +351,11 @@ export function isometricView(
   view: Isometric,
   description: string,
   title = 'Isometric view',
+  options: { letters?: boolean } = {},
 ): Drawing {
   const solids = placedSolids(scene);
   const { primitives, faces } = drawSolids(scene, view, solids);
-  const all = [...primitives, ...letters(faces, primitives)];
+  const all = [...primitives, ...(options.letters === false ? [] : letters(faces, primitives))];
   return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [] };
 }
 
