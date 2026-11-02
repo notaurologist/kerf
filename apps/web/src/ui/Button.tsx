@@ -47,11 +47,14 @@ export function ButtonLink(props: {
   variant?: ButtonVariant;
   /** The key that does the same, for assistive technology, such as `ArrowLeft`. */
   keyshortcuts?: string;
+  /** A way into a shop mode, marked with the mode's color (Stage 10). */
+  mode?: 'shopping' | 'building';
 }) {
   return (
     <a
       className="k-button"
       data-variant={props.variant ?? 'primary'}
+      data-mode={props.mode}
       href={props.href}
       aria-keyshortcuts={props.keyshortcuts}
     >

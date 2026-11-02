@@ -4,8 +4,9 @@ import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from './ProjectScreen.tsx';
 
-// The plan as Stage 1 drew it (#40, revised laptop plan; #119): a summary, the contents in
-// section order A, Boards, Parameters and inputs, and Edit in the header. Numbers are the worked
+// The plan as Stage 1 drew it (#40, revised laptop plan; #119), as Stage 12 changed it (#356): a
+// header with what is next and the modes, the contents in section order A, Boards, the values
+// used on paper, and Edit in the header. Numbers are the worked
 // example's (docs/templates/swing-set-a-frame.md), as core formats them.
 
 const [complete, noInputs] = storedSnapshots;
@@ -13,55 +14,37 @@ if (!complete || !noInputs) throw new Error('fixture has the worked examples');
 const html = (snapshot: typeof complete) => render(<ProjectView project={projectFrom(snapshot)} />);
 const section = (snapshot: typeof complete, id: string) => textOf(sectionOf(html(snapshot), id));
 
-describe('the plan’s summary', () => {
-  const summary = section(complete, 'summary');
+describe('the plan’s header (#356)', () => {
+  const head = (snapshot: typeof complete) => {
+    const page = html(snapshot);
+    return page.slice(0, page.indexOf('<div class="k-with-contents"'));
+  };
 
-  it('opens the plan with the template’s key results', () => {
-    expect(summary).toContain('Summary Summary Beam 120", 4x6 Back leg (uphill) 131-1/2"');
-    expect(summary).toContain('Front leg (downhill) 138-3/8"');
-    expect(summary).toContain('Leg end cuts Saw at 20.0°, 70.0° to the edge');
-  });
-
-  it('gives the lowest margin, chosen by core, with the check it comes from', () => {
-    // Bending, 1.08 (spec, Structural model, worked example), the lowest of the four.
-    expect(summary).toContain(
-      'Lowest margin margin 1.1x under these assumptions Bending: Top beam, 4x6',
+  it('says what is next: the expert checks, and the inputs while any are needed', () => {
+    // The stored fixture predates build steps and the bolt-distance flags: three flags.
+    expect(textOf(head(complete))).toContain('3 expert checks');
+    expect(textOf(head(complete))).not.toContain('needed');
+    // Every structural input the checks name, once each.
+    expect(textOf(head(noInputs))).toContain('8 inputs needed · 3 expert checks');
+    expect(head(noInputs)).toContain(
+      `<a href="#/projects/${projectFrom(noInputs).id}/structural-review">8 inputs needed</a>`,
     );
   });
 
-  it('says input needed in place of a margin while any check lacks its inputs', () => {
-    const none = section(noInputs, 'summary');
-    expect(none).toContain(
-      'Lowest margin Input needed 4 of 4 checks need structural inputs. Enter structural inputs',
+  it('has Shop on every section, in the shopping color', () => {
+    expect(head(complete)).toMatch(
+      /<a class="k-button" data-variant="primary" data-mode="shopping" href="#\/projects\/[^/]+\/shop">Shop · 11 to buy<\/a>/,
     );
-    expect(none).not.toContain('under these assumptions');
   });
 
-  it('counts the expert checks and lists each in one line, pointing to the review', () => {
-    // The stored fixture predates the bolt-distance flags: three, all load-bearing.
-    expect(summary).toContain('3 expert checks · Load-bearing design Confirm the bolt size');
-    expect(summary).toContain('Confirm the burial depth (24")');
-    expect(summary).toContain('Read them in full in the structural review');
-    expect(sectionOf(html(complete), 'summary').match(/class="k-one-line"/g)).toHaveLength(3);
+  it('keeps no key figures or list of expert checks', () => {
+    expect(textOf(html(complete))).not.toContain('Lowest margin');
+    expect(textOf(html(complete))).not.toContain('Read them in full');
   });
 
-  it('says so when the design has no expert checks', () => {
-    const outputs = complete.outputs as { design: { flags: unknown[] } };
-    const noFlags = {
-      ...complete,
-      outputs: { ...outputs, design: { ...outputs.design, flags: [] } },
-    } as typeof complete;
-    const text = section(noFlags, 'summary');
-    expect(text).toContain('No expert checks on this design.');
-    expect(text).not.toContain('Expert check');
-  });
-
-  it('has the Shopping and Building cards', () => {
-    expect(summary).toContain('Shopping 11 lines, none bought. Start shopping');
-  });
-
-  it('shares the first printed page with the title', () => {
-    expect(sectionOf(html(complete), 'summary')).toContain('data-page="same"');
+  it('shares the first printed page with the first section', () => {
+    expect(sectionOf(html(complete), 'diagrams')).toContain('data-page="same"');
+    expect(sectionOf(html(complete), 'structural-review')).not.toContain('data-page="same"');
   });
 });
 
@@ -79,19 +62,18 @@ describe('the plan’s contents', () => {
   it('lists the sections in order A, the same order as the sections themselves', () => {
     const listed = textOf(contents.slice(contents.indexOf('<ol')));
     expect(listed).toBe(
-      'Summary Diagrams Structural review Cut list Boards Shopping list Build steps Parameters and inputs',
+      'Diagrams Structural review Cut list Boards Shopping list Build steps Values used',
     );
     const order = [...page.matchAll(/<section id="([a-z-]+)" class="k-section"/g)].map((m) => m[1]);
     expect(order).toEqual([
-      'summary',
       'diagrams',
       'structural-review',
       'cut-list',
       'boards',
       'shopping-list',
       'build-steps',
-      'parameters',
-      // Printed only, after the plan (#180).
+      // Printed only, after the plan: the values used (#356) and the terms (#180).
+      'values-used',
       'terms-used',
     ]);
   });
@@ -103,8 +85,8 @@ describe('the plan’s contents', () => {
   it('leaves out sections the plan does not have', () => {
     const none = render(<ProjectView project={projectFrom(complete, { drawings: null })} />);
     const list = none.slice(none.indexOf('<nav class="k-contents"'), none.indexOf('</nav>'));
-    expect(textOf(list.slice(list.indexOf('<ol')))).toMatch(/^Summary Structural review/);
-    expect(textOf(list)).toMatch(/^1 of 6 · Summary/);
+    expect(textOf(list.slice(list.indexOf('<ol')))).toMatch(/^Structural review Cut list/);
+    expect(textOf(list)).toMatch(/^1 of 4 · Structural review/);
   });
 });
 
@@ -127,10 +109,19 @@ describe('the plan’s header', () => {
   });
 });
 
-describe('Parameters and inputs', () => {
-  it('closes the plan with every parameter and input as entered, by part as in the editor', () => {
-    const text = section(complete, 'parameters');
-    const part = sectionOf(html(complete), 'parameters');
+describe('Values used', () => {
+  it('links to Edit from the contents, where the values are on screen', () => {
+    const page = html(complete);
+    const contents = page.slice(page.indexOf('<nav class="k-contents"'), page.indexOf('</nav>'));
+    expect(contents).toContain(
+      `</ol><a class="k-contents__end" href="#/projects/${projectFrom(complete).id}/edit?from=diagrams">Values used</a>`,
+    );
+  });
+
+  it('closes the printed plan with every parameter and input as entered, by part as in the editor', () => {
+    const text = section(complete, 'values-used');
+    const part = sectionOf(html(complete), 'values-used');
+    expect(part).toMatch(/<section id="values-used" class="k-section"[^>]*hidden/);
     expect([...part.matchAll(/<h3>([^<]*)<\/h3>/g)].map((m) => m[1])).toEqual([
       'Beam',
       'Legs',
@@ -146,19 +137,18 @@ describe('Parameters and inputs', () => {
     expect(text).toContain(`Beam length 10' 0" · 120"`);
     expect(text).toContain('Leg angle from vertical 20.0°');
     expect(text).toContain('Beam stock 4x6');
-    expect(text).toContain('Edit');
     expect(text).not.toContain('Footprint depth');
   });
 
   it('gives every section’s table equal columns, so As entered lines up from table to table', () => {
-    const part = sectionOf(html(complete), 'parameters');
+    const part = sectionOf(html(complete), 'values-used');
     const tables = part.match(/<table class="k-table[^>]*>/g) ?? [];
     expect(tables.length).toBeGreaterThan(3);
     for (const table of tables) expect(table).toBe('<table class="k-table" data-equal="">');
   });
 
   it('says input needed for structural inputs not entered, and fills nothing in', () => {
-    const text = section(noInputs, 'parameters');
+    const text = section(noInputs, 'values-used');
     expect(text.match(/Input needed/g)?.length).toBeGreaterThan(3);
     expect(text).not.toMatch(/southern|Southern/);
   });

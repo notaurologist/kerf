@@ -80,17 +80,19 @@ describe('glossary terms in the plan (#178)', () => {
   });
 
   // Terms are reachable from every section whose text uses them, not only the build steps.
-  it('marks terms in the summary, section intros, and the shopping list', () => {
-    expect(marked('summary')).toEqual([
-      'bending',
+  it('marks terms in the section intros, the cut list, and the shopping list', () => {
+    // The cut list's own words, then those in the expert checks on its parts (#356).
+    expect(marked('cut-list')).toEqual([
+      'long point',
       'flush',
+      'gusset',
+      'level cut',
       'burial depth',
       'ground contact',
       'edge distance',
-      'gusset',
+      'nds',
       'end distance',
     ]);
-    expect(marked('cut-list')).toEqual(['long point', 'level cut']);
     expect(marked('shopping-list')).toEqual([
       'grade stamp',
       'species and grade',

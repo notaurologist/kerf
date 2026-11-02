@@ -14,7 +14,12 @@ describe.each(storedSnapshots.map((s, i) => [i, s] as const))(
     if (!plan.ok) throw new Error(plan.message);
     const { checks, flags, checklist } = plan.plan;
     const html = render(
-      <StructuralReview projectId="p" checks={checks} flags={flags} checklist={checklist} />,
+      <StructuralReview
+        inputHref={() => '#/edit'}
+        checks={checks}
+        flags={flags}
+        checklist={checklist}
+      />,
     );
 
     it('links every citation in the checks to its source', () => {

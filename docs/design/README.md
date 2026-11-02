@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided; #358 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -22,8 +22,66 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 9. An app frame, motion, loading, and the keyboard | #254 | Decided October 2026: F2, M2, L1, K1; built (#265 to #267) | `app-frame.html` |
 | 10. Another look: color, type, and the key screens | #226 | Decided October 2026: D2 with color jobs in W5 (pine and indigo); built (#279 to #281) | `look.html` |
 | 11. Review for a second template (the record cabinet) | #71 | Decided November 2026: grain arrows; seams only in glue-up drawings | This section |
+| 12. Usability pass: navigation | #356 | Decided November 2026: N1 | `navigation.html` |
+| 13. Usability pass: suggesting structural inputs, and project status | #355 | Decided November 2026: R-A, every row as proposed, S-2 | `structural-suggestions.html` |
+| 14. Usability pass: starting a new project | #358 | Decided November 2026: P1, questions first | `start-from.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 14: usability pass, starting a new project (#358)
+
+The "Start from" step above a new project's form was a list of underlined links of equal weight: an empty form, each worked example, "Answer a few questions", and a copy of every earlier project of that template. `start-from.html` draws two ways to make the four kinds of start clear. Each still opens a filled form with a preview (M8).
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Direction | P1. After a template is picked, one screen asks "How do you want to start?" with four large choices, each with a line on what it does: Answer a few questions, Start from an example (a short list of the worked examples), Copy an earlier project (the three most recent, then a search), and Empty form. The form opens filled, with "Change how you started" at its top. | P2, the starts inside the template picker (#357): one screen fewer, but the picker grows, and starting another project of the same kind still goes through it. |
+| The first choice | Answer a few questions, for a template that has them; the worked examples lead for one that does not. It asks least of a beginner (owner's note, November 1). | Examples first. |
+
+Built in #358 (November 2026): `#/projects/new?template=<id>` with no start shows the choice (`StartChoice.tsx`); an empty form is now its own start, `&empty`. The examples are listed inside their card; the copy card lists the three most recent earlier projects of the template, with a search by name when there are more, and is left out when there are none. Above the form, "Started from: …" names the start, with "Change how you started" back to the choice.
+
+## Stage 13: usability pass, suggesting structural inputs and project status (#355)
+
+A new swing set opened with up to 14 fields marked "Input needed", most of which a beginner cannot know. `structural-suggestions.html` lists every swing set structural input with what Kerf could do instead (suggest a value with its source, ask a plain question and derive the value, or ask the owner to enter it, with the reason), then asks how hard rule 3 should read and how project status is set.
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Hard rule 3 | R-A. Kerf may suggest a structural input from a named source and edition or a stated rule of thumb, shown as a suggestion with its basis until the owner confirms it; a check never treats an unconfirmed suggestion as confirmed. AGENTS.md rule 3 and decision 0001 are amended; the record cabinet's moisture range and deflection limit already worked this way (M8). | R-B, questions only: keeps the rule as written, but leaves the deflection limit, swing angle, and bolts empty for an owner who has no way to choose them. |
+| Each input | As proposed. At the store: the beam's species and grade from the grade stamp, whether it is incised ("rows of small slits?"), the hanger's rated load, and, on pads, the ground anchors, each as a shopping-list line that opens its field. Asked: "Will the beam stand outdoors, uncovered?" sets the beam's moisture. Suggested: deflection limit L/240 (IBC Table 1604.3, borrowed from floor members, as the plan says); swing angle 90°, the largest the pendulum model takes; bolt diameters and counts the bolt layout check (0016) fits for the stock; ply bolts from a published fastening schedule. Entered by the owner: the two riders and the dynamic factor, for which no published value was found. Rows marked "source to verify" are checked against their sources before any number ships (hard rule 5). | None proposed per row. |
+| Project status | S-2. Status follows progress as it does now (Planned to In progress at the first tick, Built at the last step). The projects list shows it as a label (#357), and the project's Edit screen keeps a Status field, for a project built without ticking its steps or one to set back by hand. No new status is added. | S-1, inferred only: a project built without ticking its steps would stay In progress for good. S-3, by hand only: drops an inference that already works and asks the owner to remember. |
+
+## Stage 12: usability pass, navigation (#356)
+
+The November 1 walkthrough raised seven points that are one question: what the plan's summary is for, how Shopping and Building are reached, where expert checks belong, where parameters and inputs live, where Tools and the glossary go, and what the phone's bottom bar holds. `navigation.html` draws three directions on the phone and the laptop and critiques them against NN/g (hidden navigation, progressive disclosure) and Material's three to five bar destinations.
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Direction | N1. The summary goes as a section; a project opens on its first section that needs something (an input needed, else Diagrams). The project header shows the status and what is next, and carries Shop and Build buttons with progress beside each ("4 of 11 bought", "Step 3") on every section. Tools, the glossary, Trash, Download all projects, the theme, and Log out move under one place, Workshop. The phone's bottom bar goes: the title bar has Projects (back) and Workshop, and a project's sections stay in Contents. The laptop sidebar has Projects with the open project's sections, and Workshop. | N2, a slimmer summary that leads with the modes, and a bar with Projects and Workshop: the smallest change, but the modes stay one screen away from every section but one, and a two-item bar is below Material's three. N3, Plan, Shop, and Build as a bar inside a project: close to IA-1, set aside in Stage 1; a bar that changes with the screen is harder to learn. |
+| Expert checks | On the build step, structural check, or cut-list part each is about, with what to ask and why. The summary's list is dropped; the header's "next" line counts the open ones. | Keeping a full list as well: two places to read the same check, and the list is out of context. |
+| Parameters and inputs | Folded into Edit, which already shows every value with its source. The contents keep a "Values used" link to it. | A plan section, last: a read-only copy of what Edit shows. |
+
+Built in #378 (November 2026): Workshop (`features/workshop/WorkshopScreen.tsx`, `#/workshop`) lists Tools, the glossary, Trash, and Download all projects, with the theme in words and Log out below them. Tools, the glossary, and Trash are inside it, so their back links go to Workshop. The phone's title bar ends with a Workshop link on every screen, the projects list no longer links to Trash and Download, and the tab bar's three icons were removed.
+
+Built in #380 (November 2026): Parameters and inputs is no longer a section on screen. The contents end with "Values used", a link to Edit set apart from the sections and not counted ("3 of 7"), in the plan's contents and the sidebar. On paper the values still follow the last section, under "Values used". Each input a check or wood-movement estimate needs is a link to its own field in Edit (`?field=`), which opens with that field focused.
+
+Built in #379 (November 2026): each design flag shows, folded, on every cut-list part it concerns ("2 expert checks" in the part's marks and notes, opening to what to ask and why; opened for print). Build steps already showed each flag on one step, in the plan and in Building mode, so they are unchanged. Flags name the parts and hardware they concern but not a structural check, so the structural review keeps its list of every flag. The summary's list goes with the summary (#381).
+
+Built in #381 (November 2026): the summary is gone, with its key figures and its list of sections. The project's header, on every section, has the status, a line of what is next ("Next: Cut board 2 · 8 inputs needed · 6 expert checks", each a link to where it is dealt with), and Shop and Build buttons with their progress ("Shop · 4 of 11 bought", "Build · step 3 of 11"), the next mode as the one primary button and each with a bar in its mode's color. A project's own address opens on the structural review while inputs are needed, else on the diagrams, which then share the first printed page with the header. The expert-check count is all of the design's flags; Kerf does not track which have been asked about.
+
+Built in #357 (November 2026): the projects list has one "New project" button, which opens a picker at `#/projects/new` listing every template with its name, a sentence on what it is, and its first worked example drawn assembled (from `GET /api/templates/:id/drawing`, loaded only on the picker). Each row shows the project's name, its status as a tag, its template, and when it was last updated; the template version is left to the project's own notice. Status is set by hand only in Edit (Stage 13, S-2). In Workshop, Trash is now "Deleted projects" and Download all projects is "Download a backup".
+
+What does not change: IA-2 (the project is the plan, and Shopping and Building are full-screen modes launched from it), the Resume card on the projects list, the order of the remaining sections, and print, which still gives the whole plan in order. The glossary stays reachable from every marked term (#178, #192) as well as from Workshop.
 
 ## Stage 11: review for a second template (#71)
 
@@ -611,15 +669,15 @@ Rules that hold across the structure:
 - Regenerating a project with saved progress says how much would reset before it runs.
 - Printing any view of a project prints the plan in section order A.
 
-Revised in Stage 1b (#147): on screen, each section of the plan is its own screen, reached from the contents; the order and print are unchanged. Revised in Stage 9 (#254): the header and contents column become a tab bar on the phone and one sidebar from 840 px; the table below is updated.
+Revised in Stage 1b (#147): on screen, each section of the plan is its own screen, reached from the contents; the order and print are unchanged. Revised in Stage 9 (#254): the header and contents column become a tab bar on the phone and one sidebar from 840 px. Revised in Stage 12 (#356): the summary goes, Shopping and Building launch from the project header, parameters fold into Edit, and the tab bar gives way to a Workshop place; the table below is updated.
 
 Navigation by device:
 
 | Device | Navigation |
 |---|---|
-| Phone | Title bar with a back link, and a tab bar with Projects, Tools, and Glossary (Stage 9). A mode fills the screen and has only Exit and its own step controls. |
+| Phone | Title bar with a back link and Workshop; no tab bar (Stage 12). A project's header carries Shop and Build. A mode fills the screen and has only Exit and its own step controls. |
 | Tablet | Below 840 px, as the phone; from 840 px, as the laptop (Stage 9). Building in landscape puts the step beside its diagram. |
-| Laptop | One sidebar with Projects, Tools, and Glossary, and the open project's sections inside it (Stage 9); Edit opens the split screen. |
+| Laptop | One sidebar with Projects, the open project's sections inside it, and Workshop (Stage 12); Edit opens the split screen. |
 | Print | The plan document. |
 
 Issues: #61 (the modes, their routes, the Resume card, and status, R22, R25, R26, M7). R23 (step phases) was added to #52 and R24 (the regenerate warning) to #57. R27 (a stored current project) is not needed with IA-2.

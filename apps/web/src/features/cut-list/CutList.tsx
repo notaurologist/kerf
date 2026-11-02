@@ -1,8 +1,10 @@
-import { type CutListRow, panelMade } from '@kerf/core';
+import { type CutListRow, type Flag, panelMade } from '@kerf/core';
 import type { ReactNode } from 'react';
 import { type Changes, marked as mark, NO_CHANGES } from '../../lib/changes.tsx';
 import { cutListPartId } from '../../lib/show.ts';
 import {
+  Disclosure,
+  FlagList,
   Length,
   List,
   Measured,
@@ -16,7 +18,8 @@ import {
 
 // The cut list (PRODUCT.md, MVP feature 3). Every length and angle arrives as text from core's
 // cut list, which formats them with the shared formatters; nothing is rounded here. In a preview
-// (#56), `changes` marks each value that differs from the saved plan with the saved one.
+// (#56), `changes` marks each value that differs from the saved plan with the saved one. Each part
+// carries the expert checks about it (#356), folded, since one part can have several.
 
 export function CutList(props: {
   rows: readonly CutListRow[];
@@ -25,12 +28,16 @@ export function CutList(props: {
   selected?: string | null;
   /** Where a part's name goes: in the plan, the drawings with that part selected (#156). */
   partHref?: (partId: string) => string;
+  /** The design's expert checks, each shown on the parts it concerns. */
+  flags?: readonly Flag[];
 }) {
   const changes = props.changes ?? NO_CHANGES;
   const path = (row: CutListRow) => `cutList[${props.rows.indexOf(row)}]`;
   const marked = (at: string, value: ReactNode) => mark(changes, at, value);
   const removed = changes.removed('cutList') as CutListRow[];
   const chosen = props.rows.find((r) => r.partId === props.selected);
+  const flagsOn = (row: CutListRow) =>
+    (props.flags ?? []).filter((f) => f.partIds.includes(row.partId));
   return (
     <>
       {/* The row is marked too; this says which in words (#43, rule 6). */}
@@ -124,7 +131,10 @@ export function CutList(props: {
             label: 'Marks and notes',
             width: 'fill',
             cell: (row) =>
-              row.marks.length === 0 && row.notes.length === 0 && !row.panel ? (
+              row.marks.length === 0 &&
+              row.notes.length === 0 &&
+              !row.panel &&
+              flagsOn(row).length === 0 ? (
                 <Text tone="muted" as="span">
                   None
                 </Text>
@@ -152,6 +162,13 @@ export function CutList(props: {
                       <Measured text={n} />
                     </li>
                   ))}
+                  {flagsOn(row).length > 0 && (
+                    <li>
+                      <Disclosure summary={expertChecks(flagsOn(row).length)}>
+                        <FlagList flags={flagsOn(row)} />
+                      </Disclosure>
+                    </li>
+                  )}
                 </PlainList>
               ),
           },
@@ -163,3 +180,5 @@ export function CutList(props: {
     </>
   );
 }
+
+const expertChecks = (count: number) => `${count} expert ${count === 1 ? 'check' : 'checks'}`;
