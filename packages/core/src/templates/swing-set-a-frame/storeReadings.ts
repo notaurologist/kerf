@@ -34,7 +34,5 @@ export const STORE_READINGS: readonly StoreReading[] = [
     beside: { hardware: ANCHORS },
     prompt: 'Read how many anchors the maker calls for at each leg.',
     how: "The anchor package or the maker's instructions say how many to set at each post or leg. Enter that number for each leg foot.",
-    // Legs on pads need a count before the plan can be made, so this is entered before the store.
-    check: "Check it against the anchor maker's instructions.",
   },
 ];

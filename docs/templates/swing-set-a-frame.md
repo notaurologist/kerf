@@ -217,10 +217,10 @@ Every structural connection is a through-bolt with a flat washer at each end and
 - **Per bolt:** two flat washers, one locking nut, and one cap for the exposed end.
 - **Swing hangers:** 4, rated for swing use. Their rating is a structural input checked in M2.
 - **Swing seats:** 2, lightweight (CPSC p. 4), with chain set to the chain length.
-- **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none.
+- **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none. Until the count is entered the anchors are listed with no quantity, marked as waiting for it (version 16, #406), so a plan on pads can be made before the store.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
 - **Store groups** (version 12): the bolts and their washers, nuts, and caps are "Bolts and fittings"; the hangers and seats are "Swing hardware"; the ground anchors are "Ground anchors". The store checklist shows them in that order, after the lumber.
-- **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, and, on pads, the ground anchors per leg foot beside the anchors (`storeReadings.ts`). Each says where to look. Legs on pads cannot generate without an anchor count, so that one always shows the count entered, to check against the anchor maker's instructions.
+- **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, and, on pads, the ground anchors per leg foot beside the anchors (`storeReadings.ts`). Each says where to look, and once entered, shows the value with a link to change it.
 
 ### Tools for the work
 
@@ -361,7 +361,7 @@ Rejected combinations, each with a message saying which values conflict:
 - A seat closer than 8 inches to the other seat or to a frame's inside face (CPSC).
 - A seat underside less than 8 inches above the ground (CPSC).
 - Hangers of the two swings overlapping, or a hanger outside the span between the frames' inside faces.
-- A built-up beam without ply bolts, or pads without an anchor count.
+- A built-up beam without ply bolts. Pads without an anchor count generate, with the anchors' quantity still needed (#406).
 - Any length, stock dimension, or angle outside its range in the parameter schema.
 
 ## Flags

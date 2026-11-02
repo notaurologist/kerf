@@ -16,6 +16,8 @@ const GROUPS = {
 /** Names of the hardware whose ratings and counts are read at the store (`storeReadings.ts`). */
 export const HANGERS = 'Swing hangers';
 export const ANCHORS = 'Ground anchors';
+/** The anchor count's field, as the form labels it. */
+const ANCHORS_PER_FOOT = 'Ground anchors per leg foot';
 
 const FRAMES = 2;
 /** Each frame has two legs, and the crossbar and the gusset each meet both. */
@@ -30,13 +32,6 @@ export function validateHardware(p: SwingSetParams): Issue[] {
       code: 'ply-bolts-missing',
       message: 'A built-up beam needs ply bolts: enter their diameter and count.',
       params: ['hardware'],
-    });
-  }
-  if (p.burialDepth === 0 && p.hardware.anchorsPerFoot === undefined) {
-    issues.push({
-      code: 'anchors-missing',
-      message: 'Legs on pads need ground anchors: enter how many per foot.',
-      params: ['hardware', 'burialDepth'],
     });
   }
   return issues;
@@ -114,11 +109,15 @@ export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry):
       group: GROUPS.swing,
     },
   );
-  if (p.burialDepth === 0 && h.anchorsPerFoot) {
+  // On pads the anchors are listed with or without their count, which is read from the anchor
+  // maker's instructions at the store (#406).
+  if (p.burialDepth === 0) {
     items.push({
       id: 'ground-anchors',
       name: ANCHORS,
-      quantity: FEET * h.anchorsPerFoot,
+      ...(h.anchorsPerFoot === undefined
+        ? { quantityNeeded: { key: 'hardware.anchorsPerFoot', label: ANCHORS_PER_FOOT } }
+        : { quantity: FEET * h.anchorsPerFoot }),
       structural: true,
       notes: ['Bury or cover the anchors (CPSC Pub. 324, p. 4).'],
       group: GROUPS.anchors,

@@ -56,7 +56,6 @@ function paramsFrom(answers: SwingSetAnswers) {
       confirm.has(path) ? (hardware[path] ?? '') : text,
     ]),
   );
-  if (answers.feet === 'pads') entered['hardware.anchorsPerFoot'] = '1';
   return buildFromForm(SWING_SET_FORM.params, entered);
 }
 
@@ -139,6 +138,14 @@ describe('suggestions from the starting questions', () => {
     const across = Math.max(...rects.map((r) => r.yMax)) - Math.min(...rects.map((r) => r.yMin));
     expect(along).toBeLessThanOrEqual(answers.area.length);
     expect(across).toBeLessThanOrEqual(answers.area.depth);
+  });
+
+  it('plans legs on pads before the anchor count is entered, listing the anchors as needed (#406)', () => {
+    const result = swingSetAFrame.generate(paramsFrom(kidsOnly) as never, {});
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    const anchors = result.output.hardware.find((h) => h.description === 'Ground anchors');
+    expect(anchors).not.toHaveProperty('quantity');
+    expect(anchors?.quantityNeeded?.key).toBe('hardware.anchorsPerFoot');
   });
 
   it.each([kidsOnly, kidsAndAdults, smallYard, tooSmall])(

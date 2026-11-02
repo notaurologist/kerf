@@ -383,18 +383,43 @@ describe('values read at the store (#390)', () => {
     expect(text).not.toContain('Ground anchors');
   });
 
-  it('asks to check the anchor count on pads, which is entered before the plan is made', () => {
+  /** The example on pads, with the anchor count it was entered with or left empty. */
+  const onPads = (anchorsPerFoot: number | undefined, id: string) => {
     const pads = template.examples[2];
     if (!pads) throw new Error('no example on pads');
-    const madeOnPads = createSnapshot(template, pads.params, pads.structuralInputs);
-    if (!madeOnPads.ok) throw new Error('example on pads does not generate');
-    const p = projectFrom(
-      JSON.parse(JSON.stringify(madeOnPads.output)) as NonNullable<Project['snapshot']>,
-      { id: '6f1c2a3e-0000-4000-8000-0000000003a1' },
+    const { anchorsPerFoot: _, ...hardware } = (pads.params as { hardware: object }).hardware as {
+      anchorsPerFoot?: number;
+    };
+    const params = {
+      ...(pads.params as object),
+      hardware: anchorsPerFoot === undefined ? hardware : { ...hardware, anchorsPerFoot },
+    };
+    const made = createSnapshot(template, params, pads.structuralInputs);
+    if (!made.ok) throw new Error('example on pads does not generate');
+    return projectFrom(
+      JSON.parse(JSON.stringify(made.output)) as NonNullable<Project['snapshot']>,
+      { id },
     );
+  };
+
+  it('says the anchor count on pads once it is entered', () => {
+    const p = onPads(1, '6f1c2a3e-0000-4000-8000-0000000003a1');
     expect(renderText(shop(p))).toContain(
-      "4 × Ground anchors Ground anchors per leg foot: 1. Check it against the anchor maker's instructions. Change",
+      '4 × Ground anchors Ground anchors per leg foot: 1. Change',
     );
+    expect(render(shop(p))).toContain(
+      `#/projects/${p.id}/edit?from=shop&amp;field=p-hardware.anchorsPerFoot`,
+    );
+  });
+
+  // The count is read from the anchor maker's instructions at the store (#406).
+  it('lists the anchors on pads before their count is entered, and asks for it', () => {
+    const p = onPads(undefined, '6f1c2a3e-0000-4000-8000-0000000003a2');
+    const text = renderText(shop(p));
+    expect(text).toContain(
+      'Ground anchors Count needed Read how many anchors the maker calls for at each leg. Input needed',
+    );
+    expect(text).not.toContain('× Ground anchors');
     expect(render(shop(p))).toContain(
       `#/projects/${p.id}/edit?from=shop&amp;field=p-hardware.anchorsPerFoot`,
     );

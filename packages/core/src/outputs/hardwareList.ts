@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { HardwareItem } from '../model/types.ts';
+import { MissingInput } from '../structural/types.ts';
 import { formatLength, toSixteenths } from '../units/length.ts';
 
 // Hardware lines for the shopping list (PRODUCT.md, MVP feature 4). Bolts with the same diameter
@@ -9,7 +10,9 @@ import { formatLength, toSixteenths } from '../units/length.ts';
 
 export const HardwareLine = z.object({
   description: z.string(),
-  quantity: z.number().int(),
+  /** Absent while its item's quantity waits for an input (`HardwareItem.quantityNeeded`). */
+  quantity: z.number().int().optional(),
+  quantityNeeded: MissingInput.optional(),
   /** The item's store group (`HardwareItem.group`); a fitting takes its bolt's. */
   group: z.string().optional(),
 });
@@ -30,8 +33,14 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
   >();
   const others: HardwareLine[] = [];
   for (const item of items) {
-    if (!item.bolt) {
-      others.push({ description: item.name, quantity: item.quantity, group: item.group });
+    const { quantity } = item;
+    if (!item.bolt || quantity === undefined) {
+      others.push({
+        description: item.name,
+        ...(quantity === undefined ? {} : { quantity }),
+        ...(item.quantityNeeded ? { quantityNeeded: item.quantityNeeded } : {}),
+        group: item.group,
+      });
       continue;
     }
     const { diameter, grip, washers, nut, cap } = item.bolt;
@@ -42,7 +51,7 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
       quantity: 0,
       group: item.group,
     };
-    line.quantity += item.quantity;
+    line.quantity = (line.quantity ?? 0) + quantity;
     boltLines.set(key, line);
 
     const fittingKey = `${item.group}/${diameter}`;
@@ -54,10 +63,10 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
       plain: 0,
       caps: 0,
     };
-    f.washers += washers * item.quantity;
-    if (nut === 'locking') f.locking += item.quantity;
-    else f.plain += item.quantity;
-    if (cap) f.caps += item.quantity;
+    f.washers += washers * quantity;
+    if (nut === 'locking') f.locking += quantity;
+    else f.plain += quantity;
+    if (cap) f.caps += quantity;
     fittings.set(fittingKey, f);
   }
 

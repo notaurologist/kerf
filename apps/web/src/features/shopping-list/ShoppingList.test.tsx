@@ -41,6 +41,29 @@ describe('ShoppingList', () => {
     ]);
     expect(html).toContain('data-keep="" data-narrow=""');
   });
+
+  it('marks a hardware count still to be read at the store as input needed (#406)', () => {
+    const text = renderText(
+      <ShoppingList
+        lumber={plan([])}
+        hardware={[
+          { description: 'Swing hangers', quantity: 4, group: 'Swing hardware' },
+          {
+            description: 'Ground anchors',
+            quantityNeeded: {
+              key: 'hardware.anchorsPerFoot',
+              label: 'Ground anchors per leg foot',
+            },
+            group: 'Ground anchors',
+          },
+        ]}
+        hardwareNotes={[]}
+      />,
+    );
+    expect(text).toContain('4 Swing hangers');
+    expect(text).toContain('Input needed Ground anchors');
+    expect(text).not.toContain('undefined');
+  });
 });
 
 describe('values read at the store in the plan (#390)', () => {

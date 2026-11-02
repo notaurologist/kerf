@@ -205,6 +205,17 @@ describe('hardwareList', () => {
     });
   });
 
+  // The count is read from the anchor maker's instructions at the store (#406): until then the
+  // anchors are listed with the input their count waits for, and no count.
+  it('lists the ground anchors on pads before their count is entered', () => {
+    const onPads = hardwareList(output({ ...example, burialDepth: 0 }).hardware);
+    expect(onPads.at(-1)).toEqual({
+      description: 'Ground anchors',
+      quantityNeeded: { key: 'hardware.anchorsPerFoot', label: 'Ground anchors per leg foot' },
+      group: 'Ground anchors',
+    });
+  });
+
   it('keeps lines from different groups apart', () => {
     const bolt = (group: string) => ({
       id: 'b',

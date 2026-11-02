@@ -88,8 +88,7 @@ function Reading(props: { placed: PlacedReading; href: string }) {
   if (entered !== null) {
     return (
       <Text>
-        {label}: <b>{entered}</b>. {reading.check && `${reading.check} `}
-        <a href={props.href}>Change</a>
+        {label}: <b>{entered}</b>. <a href={props.href}>Change</a>
       </Text>
     );
   }

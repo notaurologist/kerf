@@ -55,9 +55,11 @@ import { flags, validate, validateSwings } from './validate.ts';
  * puts each hardware item and shopping line in a store group (#59), and rewords each bolt's note
  * as #68's audit asked; no number changes. Version 15 reports the dynamic factor at which each
  * strength check reaches margin 1.0 (#401), and lists the factor in the working after the loads it
- * multiplies; no margin changes.
+ * multiplies; no margin changes. Version 16 plans legs on pads before the anchor count is entered
+ * (#406), listing the anchors with the input their count waits for; parameters that generated
+ * before give the same output.
  */
-export const TEMPLATE_VERSION = 15;
+export const TEMPLATE_VERSION = 16;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
