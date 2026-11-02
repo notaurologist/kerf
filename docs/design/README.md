@@ -41,6 +41,8 @@ The owner took the suggested option for each (November 2026).
 | Direction | P1. After a template is picked, one screen asks "How do you want to start?" with four large choices, each with a line on what it does: Answer a few questions, Start from an example (a short list of the worked examples), Copy an earlier project (the three most recent, then a search), and Empty form. The form opens filled, with "Change how you started" at its top. | P2, the starts inside the template picker (#357): one screen fewer, but the picker grows, and starting another project of the same kind still goes through it. |
 | The first choice | Answer a few questions, for a template that has them; the worked examples lead for one that does not. It asks least of a beginner (owner's note, November 1). | Examples first. |
 
+Built in #358 (November 2026): `#/projects/new?template=<id>` with no start shows the choice (`StartChoice.tsx`); an empty form is now its own start, `&empty`. The examples are listed inside their card; the copy card lists the three most recent earlier projects of the template, with a search by name when there are more, and is left out when there are none. Above the form, "Started from: …" names the start, with "Change how you started" back to the choice.
+
 ## Stage 13: usability pass, suggesting structural inputs and project status (#355)
 
 A new swing set opened with up to 14 fields marked "Input needed", most of which a beginner cannot know. `structural-suggestions.html` lists every swing set structural input with what Kerf could do instead (suggest a value with its source, ask a plain question and derive the value, or ask the owner to enter it, with the reason), then asks how hard rule 3 should read and how project status is set.
