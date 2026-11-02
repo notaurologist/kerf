@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided; its build is in follow-up issues. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -23,8 +23,23 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 10. Another look: color, type, and the key screens | #226 | Decided October 2026: D2 with color jobs in W5 (pine and indigo); built (#279 to #281) | `look.html` |
 | 11. Review for a second template (the record cabinet) | #71 | Decided November 2026: grain arrows; seams only in glue-up drawings | This section |
 | 12. Usability pass: navigation | #356 | Decided November 2026: N1 | `navigation.html` |
+| 13. Usability pass: suggesting structural inputs, and project status | #355 | Decided November 2026: R-A, every row as proposed, S-2 | `structural-suggestions.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 13: usability pass, suggesting structural inputs and project status (#355)
+
+A new swing set opened with up to 14 fields marked "Input needed", most of which a beginner cannot know. `structural-suggestions.html` lists every swing set structural input with what Kerf could do instead (suggest a value with its source, ask a plain question and derive the value, or ask the owner to enter it, with the reason), then asks how hard rule 3 should read and how project status is set.
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Hard rule 3 | R-A. Kerf may suggest a structural input from a named source and edition or a stated rule of thumb, shown as a suggestion with its basis until the owner confirms it; a check never treats an unconfirmed suggestion as confirmed. AGENTS.md rule 3 and decision 0001 are amended; the record cabinet's moisture range and deflection limit already worked this way (M8). | R-B, questions only: keeps the rule as written, but leaves the deflection limit, swing angle, and bolts empty for an owner who has no way to choose them. |
+| Each input | As proposed. At the store: the beam's species and grade from the grade stamp, whether it is incised ("rows of small slits?"), the hanger's rated load, and, on pads, the ground anchors, each as a shopping-list line that opens its field. Asked: "Will the beam stand outdoors, uncovered?" sets the beam's moisture. Suggested: deflection limit L/240 (IBC Table 1604.3, borrowed from floor members, as the plan says); swing angle 90°, the largest the pendulum model takes; bolt diameters and counts the bolt layout check (0016) fits for the stock; ply bolts from a published fastening schedule. Entered by the owner: the two riders and the dynamic factor, for which no published value was found. Rows marked "source to verify" are checked against their sources before any number ships (hard rule 5). | None proposed per row. |
+| Project status | S-2. Status follows progress as it does now (Planned to In progress at the first tick, Built at the last step). The projects list shows it as a label (#357), and the project's Edit screen keeps a Status field, for a project built without ticking its steps or one to set back by hand. No new status is added. | S-1, inferred only: a project built without ticking its steps would stay In progress for good. S-3, by hand only: drops an inference that already works and asks the owner to remember. |
 
 ## Stage 12: usability pass, navigation (#356)
 
