@@ -9,7 +9,6 @@ import {
   formValues,
   geometry,
   parseLength,
-  planDigests,
   readSnapshot,
   schemaProblemMessage,
   structural,
@@ -24,7 +23,7 @@ const SAW = /saw at ([\d.]+°), ([\d.]+°) to the edge/;
 import { type ReactNode, useState } from 'react';
 import { Button, ButtonLink, IconButton, IconButtonLink } from './Button.tsx';
 import { InlineConfirm } from './Confirm.tsx';
-import { SectionList, SectionPager, WithContents } from './Contents.tsx';
+import { SectionPager, WithContents } from './Contents.tsx';
 import sample from './catalog-sample.json';
 import { Definitions } from './Definitions.tsx';
 import { Diagram } from './Diagram.tsx';
@@ -32,7 +31,6 @@ import { DiagramFrame } from './DiagramFrame.tsx';
 import { ConfirmDialog } from './Dialog.tsx';
 import { Disclosure } from './Disclosure.tsx';
 import { Field, FormProgress, Select, TextInput, YesNo } from './Field.tsx';
-import { Figures } from './Figures.tsx';
 import {
   ErrorSummary,
   ErrorText,
@@ -99,7 +97,6 @@ const computed = (plan: typeof first.plan) =>
 const check = computed(first.plan);
 const margin = check ? structural.formatMargin(check.margin) : '';
 const sampleFlag = first.plan.flags[0];
-const digests = planDigests(first.plan);
 // The worked example's drawings, drawn by core from its outputs (#90).
 const drawings = geometry.Drawings.parse(sample.drawings);
 const partDetail = drawings.cutDetails.find((d) => d.title.endsWith(part.name));
@@ -206,18 +203,17 @@ function Specimens() {
     <Stack gap="l">
       <Group title="Frame">
         <Text tone="muted">
-          A title bar and tab bar below 52.5rem of the frame's width, one sidebar from it.
+          A title bar below 52.5rem of the frame's width, one sidebar from it.
         </Text>
         <Frame
           preview
           brandHref="#/catalog"
           places={[
-            { label: 'Projects', href: '#/catalog', icon: 'projects', current: 'true' },
-            { label: 'Tools', href: '#/catalog/tools', icon: 'tools' },
-            { label: 'Glossary', href: '#/catalog/glossary', icon: 'glossary' },
+            { label: 'Projects', href: '#/catalog', current: 'true' },
+            { label: 'Workshop', href: '#/catalog/workshop' },
           ]}
           back={{ label: 'Projects', href: '#/catalog' }}
-          actions={<IconButton icon="log-out" label="Log out" variant="quiet" />}
+          end={<a href="#/catalog/workshop">Workshop</a>}
         >
           <Text>The screen goes here.</Text>
         </Frame>
@@ -230,26 +226,6 @@ function Specimens() {
           lede="What the screen is for, in a sentence or two."
           meta={`${template.name}, version ${template.version}.`}
           status={<StatusLine>Saved.</StatusLine>}
-        />
-      </Group>
-
-      <Group title="Figures">
-        <Figures
-          items={[
-            ...first.plan.keyResults.map((r) => ({
-              label: r.label,
-              value: <Measured text={r.value} />,
-            })),
-            ...(check
-              ? [
-                  {
-                    label: 'Lowest margin',
-                    value: <MarginLine margin={margin} />,
-                    detail: `${check.title}: ${check.subject}`,
-                  },
-                ]
-              : []),
-          ]}
         />
       </Group>
 
@@ -286,7 +262,7 @@ function Specimens() {
       <Group title="Contents">
         <WithContents
           items={[
-            { id: 'catalog-summary', title: 'Summary', href: '#/catalog' },
+            { id: 'catalog-structural', title: 'Structural review', href: '#/catalog' },
             { id: 'catalog-cut-list', title: 'Cut list', href: '#/catalog' },
             { id: 'catalog-boards', title: 'Boards', href: '#/catalog' },
           ]}
@@ -297,25 +273,10 @@ function Specimens() {
             view; narrower, the bar opens them.
           </p>
           <SectionPager
-            previous={{ title: 'Summary', href: '#/catalog' }}
+            previous={{ title: 'Structural review', href: '#/catalog' }}
             next={{ title: 'Boards', href: '#/catalog' }}
           />
         </WithContents>
-      </Group>
-
-      <Group title="Section list">
-        <SectionList
-          items={[
-            { id: 'cut-list', title: 'Cut list', href: '#/catalog', digest: digests.cutList },
-            { id: 'boards', title: 'Boards', href: '#/catalog', digest: digests.boards },
-            {
-              id: 'structural-review',
-              title: 'Structural review',
-              href: '#/catalog',
-              digest: digests.structuralReview,
-            },
-          ]}
-        />
       </Group>
 
       <Group title="Buttons">
@@ -497,7 +458,7 @@ function Specimens() {
       <Group title="Inline confirmation">
         <Card>
           <InlineConfirm
-            confirm="Move to trash"
+            confirm="Delete project"
             busyLabel="Moving…"
             variant="destructive"
             keep="Keep project"
@@ -506,8 +467,8 @@ function Specimens() {
             onKeep={() => {}}
           >
             <Text>
-              <b>Delete “Backyard project”?</b> It moves to the trash with its plan and history. You
-              can restore it there for 30 days, then it is deleted for good.
+              <b>Delete “Backyard project”?</b> It moves to Deleted projects in Workshop with its
+              plan and history. You can restore it there for 30 days, then it is deleted for good.
             </Text>
           </InlineConfirm>
         </Card>

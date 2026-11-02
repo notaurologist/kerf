@@ -63,8 +63,22 @@ describe('the structural review, no structural inputs', () => {
     expect(review.match(/Input needed/g)).toHaveLength(4);
     expect(review).toContain('Beam species and grade');
     expect(review).toContain('Swing hanger rated working load');
-    expect(review).toContain('Enter structural inputs');
     expect(review).not.toContain('under these assumptions');
+  });
+
+  it('links each missing input to its own field in Edit', () => {
+    const html = sectionOf(
+      render(<ProjectView project={projectFrom(noInputs)} />),
+      'structural-review',
+    );
+    // With inputs needed the project opens on the review, so Edit returns there.
+    const edit = `#/projects/${projectFrom(noInputs).id}/edit?from=structural-review`;
+    expect(html).toContain(
+      `<a href="${edit}&amp;field=s-beamSpeciesGrade">Beam species and grade</a>`,
+    );
+    expect(html).toContain(
+      `<a href="${edit}&amp;field=s-hangerRating">Swing hanger rated working load</a>`,
+    );
   });
 });
 
@@ -106,7 +120,13 @@ describe('wood movement in the structural review', () => {
     }),
   ];
   const html = render(
-    <StructuralReview projectId="p" checks={[]} flags={[]} checklist={[]} movement={results} />,
+    <StructuralReview
+      inputHref={(key) => `#/edit?field=s-${key}`}
+      checks={[]}
+      flags={[]}
+      checklist={[]}
+      movement={results}
+    />,
   );
   const review = textOf(html);
 
@@ -121,7 +141,7 @@ describe('wood movement in the structural review', () => {
 
   it('asks for a missing input, and says why one is not computed', () => {
     expect(review).toContain('Input needed: Species');
-    expect(html).toContain('Enter structural inputs');
+    expect(html).toContain('<a href="#/edit?field=s-Species">Species</a>');
     expect(review).toContain('Not computed. Moisture content from 4% to 10% is outside 6% to 14%');
   });
 
@@ -136,7 +156,14 @@ describe('wood movement in the structural review', () => {
 
   it('leaves the subsection out when the plan has no estimates', () => {
     const none = textOf(
-      render(<StructuralReview projectId="p" checks={[]} flags={[]} checklist={[]} />),
+      render(
+        <StructuralReview
+          inputHref={(key) => `#/edit?field=s-${key}`}
+          checks={[]}
+          flags={[]}
+          checklist={[]}
+        />,
+      ),
     );
     expect(none).not.toContain('Wood movement');
   });

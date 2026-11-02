@@ -1,5 +1,5 @@
 import { flushSync } from 'react-dom';
-import { isMode, type Route, type RouteChange } from './route.ts';
+import { isMode, PLACES, placeOf, type Route, type RouteChange } from './route.ts';
 import { screenKey } from './screenChange.ts';
 import { PLAN_SECTIONS } from './sections.ts';
 
@@ -14,23 +14,18 @@ export type Move = 'forward' | 'back' | 'mode-in' | 'mode-out' | 'none';
 /** How long the old screen holds while the new one loads, before the new one shows its skeleton. */
 export const HOLD_MS = 300;
 
-// The places in the tab bar's order.
-const PLACES = ['projects', 'tools', 'glossary'] as const;
+const place = (route: Route) => PLACES.indexOf(placeOf(route));
 
-const place = (route: Route) =>
-  PLACES.indexOf(
-    route.screen === 'tools' || route.screen === 'glossary' ? route.screen : 'projects',
-  );
-
-/** How far down its place a screen is: the place itself, a screen in it, the editor. */
+/** How far down its place a screen is: the place itself, a screen in it, one below that. */
 function depth(route: Route): number {
   switch (route.screen) {
     case 'projects':
+    case 'workshop':
       return 0;
     case 'tools':
-      return route.tool ? 1 : 0;
+      return route.tool ? 2 : 1;
     case 'glossary':
-      return route.term ? 1 : 0;
+      return route.term ? 2 : 1;
     case 'edit-project':
       return 2;
     default:

@@ -294,10 +294,6 @@ The drawings (#90) are drawn from the stored outputs; no number in them is new.
 
 Hand check, worked example: the beam's top front corner at its left end, (0, −1.75, 101.5), projects to page (1.75/√2, −(−1.75 + 2·101.5)/√6) = (1.237, −82.160), with page y down.
 
-### Key results
-
-The plan's summary (#119) opens with these, picked from the stored cut list and geometry: the beam's length and stock ("120\", 4x6"; a built-up beam says its plies, "120\", 2 plies of 2x6"), each leg's length under its cut-list name, and the legs' level cuts as a saw setting with the angle to the edge. Worked example: Beam 120", 4x6; Back leg (uphill) 131-1/2"; Front leg (downhill) 138-3/8"; Leg end cuts, saw at 20.0°, 70.0° to the edge (90° − 20°).
-
 ## Starting questions
 
 A new project can start from a few plain questions (#163). Kerf asks only what it cannot know, fills in the rest from the worked example and stated rules of thumb, and opens the form filled in, with the preview. Each suggested value says where it came from. Nothing is saved until Create. `questions.ts` implements this section.

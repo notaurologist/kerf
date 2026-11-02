@@ -1,5 +1,5 @@
 import { useState, useSyncExternalStore } from 'react';
-import { IconSelect } from '../ui/index.ts';
+import { CompactSelect, IconSelect } from '../ui/index.ts';
 
 // Light, dark, or the device's own setting (#155). The colors are light-dark() tokens picked by
 // color-scheme (tokens.css), so a choice only sets data-theme on the page's root, which forces
@@ -75,24 +75,28 @@ const subscribe = (listener: () => void) => {
 const shown = (host: ThemeHost) => parseTheme(host.root.dataset.theme ?? readTheme(host));
 
 /**
- * The theme menu, in the title bar, the sidebar, and the shop modes' bar: an icon for the
- * choice over the device's own menu, so a tap opens the native picker. The frame draws it twice
- * (title bar and sidebar), so every copy follows one choice.
+ * The theme menu: in the shop modes' bar, an icon for the choice over the device's own menu, so a
+ * tap opens the native picker; in Workshop (`named`), the choice in words. Every copy follows one
+ * choice.
  */
-export function ThemeSwitch(props: { host?: ThemeHost }) {
+export function ThemeSwitch(props: { host?: ThemeHost; named?: boolean }) {
   const [host] = useState(() => props.host ?? browserHost());
   const read = () => shown(host);
   const theme = useSyncExternalStore(subscribe, read, read);
+  const choose = (value: string) => {
+    chooseTheme(host, parseTheme(value));
+    for (const listener of listeners) listener();
+  };
+  if (props.named) {
+    return <CompactSelect label="Theme" value={theme} options={OPTIONS} onChange={choose} />;
+  }
   return (
     <IconSelect
       label="Theme"
       value={theme}
       icon={`theme-${theme}`}
       options={OPTIONS}
-      onChange={(value) => {
-        chooseTheme(host, parseTheme(value));
-        for (const listener of listeners) listener();
-      }}
+      onChange={choose}
     />
   );
 }

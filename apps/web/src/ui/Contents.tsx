@@ -4,7 +4,7 @@ import { Sidebar } from './layout.tsx';
 
 // The plan's contents (#40, section order A; #119), one section per screen (#147, #156): beside
 // the plan on a tablet or laptop with the current section marked, staying in view; on a phone a
-// bar naming where you are ("3 of 8 · Structural review") that opens the list in place. Which it
+// bar naming where you are ("3 of 7 · Structural review") that opens the list in place. Which it
 // is depends on the width the plan is given (#41, container queries), not the page's.
 
 export interface ContentsItem {
@@ -15,10 +15,15 @@ export interface ContentsItem {
   href: string;
 }
 
-/** The contents beside (or above) the sections they list. `current` is the section on screen. */
+/**
+ * The contents beside (or above) the sections they list. `current` is the section on screen.
+ * `end` is a link after the list that is not a section, such as the values in Edit; it is not
+ * counted.
+ */
 export function WithContents(props: {
   items: readonly ContentsItem[];
   current: string;
+  end?: { title: string; href: string };
   children: ReactNode;
 }) {
   const headingId = useId();
@@ -71,6 +76,11 @@ export function WithContents(props: {
               </li>
             ))}
           </ol>
+          {props.end && (
+            <a className="k-contents__end" href={props.end.href}>
+              {props.end.title}
+            </a>
+          )}
         </nav>
         <div className="l-stack">{props.children}</div>
       </Sidebar>
@@ -129,21 +139,5 @@ export function SectionPager(props: {
         )}
       </ul>
     </nav>
-  );
-}
-
-/** Each section of the plan with a line saying what is in it, linking to it: the summary's list (#156). */
-export function SectionList(props: {
-  items: readonly { id: string; title: string; href: string; digest: string }[];
-}) {
-  return (
-    <ul className="k-section-list">
-      {props.items.map((item) => (
-        <li key={item.id}>
-          <a href={item.href}>{item.title}</a>
-          <span className="k-section-list__digest">{item.digest}</span>
-        </li>
-      ))}
-    </ul>
   );
 }

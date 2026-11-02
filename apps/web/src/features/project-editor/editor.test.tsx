@@ -8,7 +8,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
-import { render, renderText } from '../../test/render.tsx';
+import { render, renderText, textOf } from '../../test/render.tsx';
 import { placeIssues, schemaIssues } from './issues.ts';
 import { changesFor, EditProject, ProjectEditor, startValues } from './ProjectEditor.tsx';
 
@@ -225,6 +225,26 @@ describe('an existing project in the form', () => {
   });
 });
 
+describe('the Edit screen’s status (#355)', () => {
+  const [complete] = storedSnapshots;
+  if (!complete) throw new Error('fixture has the worked examples');
+
+  it('offers the status, set to the project’s, with what it follows', () => {
+    const html = render(
+      <EditProject
+        project={projectFrom(complete, { status: 'in-progress' })}
+        onReload={() => {}}
+      />,
+    );
+    expect(html).toContain(
+      '<label class="k-field__label" for="project-status"><span>Status</span></label>',
+    );
+    expect(html).toContain('<option value="in-progress" selected="">In progress</option>');
+    expect(html).not.toContain('Choose…</option><option value="planned"');
+    expect(textOf(html)).toContain('Follows your progress');
+  });
+});
+
 describe('deleting from the Edit screen', () => {
   const [complete] = storedSnapshots;
   if (!complete) throw new Error('fixture has the worked examples');
@@ -354,6 +374,7 @@ describe('changesFor', () => {
   const project = {
     id: 'p',
     name: 'Backyard',
+    status: 'planned',
     snapshot: { params: example.params, structuralInputs: example.structuralInputs },
   } as unknown as Parameters<typeof changesFor>[0];
   const fromForm = (p: unknown, i: unknown) =>
@@ -362,10 +383,19 @@ describe('changesFor', () => {
       buildFromForm(template.form.structuralInputs, formValues(template.form.structuralInputs, i)),
     ] as const;
 
+  const edited = (name: string, params: unknown, inputs: unknown, status = 'planned' as const) =>
+    ({ name, status, params, inputs }) as Parameters<typeof changesFor>[1];
+
   it('sends only the name for a rename, so the plan is not regenerated', () => {
     const [p, i] = fromForm(example.params, example.structuralInputs);
-    expect(changesFor(project, 'Swing set', p, i)).toEqual({ name: 'Swing set' });
-    expect(changesFor(project, 'Backyard', p, i)).toEqual({});
+    expect(changesFor(project, edited('Swing set', p, i))).toEqual({ name: 'Swing set' });
+    expect(changesFor(project, edited('Backyard', p, i))).toEqual({});
+  });
+
+  it('sends only the status when it is set by hand (#355)', () => {
+    const [p, i] = fromForm(example.params, example.structuralInputs);
+    const built = { name: 'Backyard', status: 'built' as const, params: p, inputs: i };
+    expect(changesFor(project, built)).toEqual({ status: 'built' });
   });
 
   it('sends the parameters when one changes', () => {
@@ -373,6 +403,6 @@ describe('changesFor', () => {
       { ...(example.params as object), beamLength: 132 },
       example.structuralInputs,
     );
-    expect(Object.keys(changesFor(project, 'Backyard', p, i))).toEqual(['params']);
+    expect(Object.keys(changesFor(project, edited('Backyard', p, i)))).toEqual(['params']);
   });
 });
