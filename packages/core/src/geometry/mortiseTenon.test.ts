@@ -150,7 +150,6 @@ describe('mortises', () => {
 describe('methods', () => {
   const tools = (...ids: string[]): Inventory => ({
     tools: ids.map((toolTypeId) => ({ toolTypeId, capabilities: {} })),
-    other: [],
   });
   const [op] = cutAndDrillOperations([leg], []).filter((o) => o.type === 'mortise');
   const [ten] = cutAndDrillOperations([apron], []).filter((o) => o.type === 'tenon');
@@ -224,7 +223,6 @@ describe('screw holes', () => {
       tools: ['tape-measure', 'combination-square', 'clamps', 'drill-driver', ...ids].map(
         (toolTypeId) => ({ toolTypeId, capabilities: {} }),
       ),
-      other: [],
     });
     expect(selectMethod(op, kit('chisel')).chosen?.id).toBe('screw-holes-drill');
     expect(selectMethod(op, kit('router')).chosen?.id).toBe('screw-holes-router');

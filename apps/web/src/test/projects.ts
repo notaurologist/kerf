@@ -39,7 +39,7 @@ export function projectFrom(
     // As the API sends them: drawn by core from the stored snapshot.
     drawings: snapshot ? drawingsFor(snapshot) : null,
     // As the API sends them: chosen from the inventory, here with no tools.
-    steps: snapshot ? stepsFor(snapshot, { tools: [], other: [] }) : null,
+    steps: snapshot ? stepsFor(snapshot, { tools: [] }) : null,
     ticks: [],
     progress: snapshot ? summaryFor(snapshot, overrides.ticks ?? []) : null,
     ...overrides,

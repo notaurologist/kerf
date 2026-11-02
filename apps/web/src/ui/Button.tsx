@@ -15,6 +15,8 @@ export function Button(props: {
   busyLabel?: string;
   /** For a toggle, such as selecting a part: whether it is on. */
   pressed?: boolean;
+  /** The name in full when the words shown rely on what is beside them, such as "Remove". */
+  label?: string;
   onClick?: () => void;
   ref?: Ref<HTMLButtonElement>;
 }) {
@@ -33,6 +35,7 @@ export function Button(props: {
       data-variant={props.variant ?? 'primary'}
       aria-disabled={props.busy ? true : undefined}
       aria-pressed={props.pressed}
+      aria-label={props.label}
       onClick={click}
     >
       {props.busy && props.busyLabel ? props.busyLabel : props.children}

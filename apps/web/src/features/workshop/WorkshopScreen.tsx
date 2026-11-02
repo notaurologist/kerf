@@ -7,7 +7,7 @@ import { Button, Cluster, Row, Rows, ScreenHeader, Stack, Text } from '../../ui/
 
 const PLACES = [
   {
-    label: 'Tools',
+    label: 'My toolbox',
     href: href({ screen: 'tools' }),
     about: 'The tools you have. Build steps choose their methods from these.',
   },

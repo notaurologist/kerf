@@ -6,9 +6,7 @@ import {
   detailsNeeded,
   emptyInventory,
   fromInventory,
-  libraryMatch,
   matchingTypes,
-  moveToLibrary,
   removeTool,
   toInventory,
 } from './draft.ts';
@@ -19,7 +17,6 @@ describe('inventory drafts', () => {
       { toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.4375 } },
       { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } },
     ],
-    other: [{ name: 'Table saw', note: 'Tilts to 45' }],
   };
 
   it('round-trips an inventory, writing lengths as a plan does', () => {
@@ -45,7 +42,6 @@ describe('inventory drafts', () => {
           { toolTypeId: 'tape-measure', capabilities: {} },
           { toolTypeId: 'drill-driver', capabilities: {} },
         ],
-        other: [],
       },
     });
   });
@@ -56,7 +52,6 @@ describe('inventory drafts', () => {
         { toolTypeId: 'circular-saw', name: '', values: { depthOfCut: 'deep' } },
         { toolTypeId: 'miter-saw', name: '', values: { maxMiter: '95' } },
       ],
-      other: [],
     });
     expect(result).toEqual({
       ok: false,
@@ -92,23 +87,6 @@ describe('inventory drafts', () => {
     expect(matchingTypes('lathe')).toEqual([]);
   });
 
-  it('matches an other tool to the library by name or old ID, ignoring case and spacing', () => {
-    expect(libraryMatch(' table SAW ')?.id).toBe('table-saw');
-    expect(libraryMatch('table-saw')?.id).toBe('table-saw');
-    expect(libraryMatch('Table saw with sled')).toBeUndefined();
-    expect(libraryMatch('')).toBeUndefined();
-  });
-
-  it('moves an other tool into the library tools', () => {
-    const moved = moveToLibrary(fromInventory(inventory), 0, 'table-saw');
-    expect(moved.tools.map((t) => t.toolTypeId)).toEqual([
-      'circular-saw',
-      'miter-saw',
-      'table-saw',
-    ]);
-    expect(moved.other).toEqual([]);
-  });
-
   it('adds another tool of a type after the others, and sends names trimmed', () => {
     let draft = addTool(emptyInventory(), 'clamps');
     draft = addTool(draft, 'tape-measure');
@@ -126,7 +104,6 @@ describe('inventory drafts', () => {
           { toolTypeId: 'clamps', name: 'Short', capabilities: {} },
           { toolTypeId: 'clamps', name: 'Long', capabilities: {} },
         ],
-        other: [],
       },
     });
   });
@@ -135,17 +112,5 @@ describe('inventory drafts', () => {
     const draft = fromInventory(inventory);
     expect(draft.tools.map(detailsNeeded)).toEqual([0, 2]);
     expect(detailsNeeded({ toolTypeId: 'tape-measure', name: '', values: {} })).toBe(0);
-  });
-
-  it('trims other tools and asks for a name', () => {
-    expect(
-      toInventory({
-        tools: [],
-        other: [
-          { name: ' Router ', note: ' ' },
-          { name: ' ', note: 'x' },
-        ],
-      }),
-    ).toEqual({ ok: false, issues: [{ field: 'other.1.name', message: 'Enter a name.' }] });
   });
 });

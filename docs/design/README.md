@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided and built. Stage 15, the structural review (#359), is decided and built. Stage 16, the cut list (#360), is decided and built. Stage 17, the shopping list (#361), is decided and built. Stage 18, build steps (#362), is decided; #362 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided and built. Stage 15, the structural review (#359), is decided and built. Stage 16, the cut list (#360), is decided and built. Stage 17, the shopping list (#361), is decided and built. Stage 18, build steps (#362), is decided and built. Stage 19, My toolbox (#363), is decided and built. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -29,8 +29,24 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 16. Usability pass: the cut list | #360 | Decided November 2026: C1, end cuts as boxed saw settings | `cut-list.html` |
 | 17. Usability pass: the shopping list | #361 | Decided November 2026: L1; choosing guidance kept, folded | `shopping-list.html` |
 | 18. Usability pass: build steps | #362 | Decided November 2026: B1; a missing tool said once per step | `build-steps.html` |
+| 19. Usability pass: My toolbox | #363 | Decided November 2026: T1; other tools removed | This section |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 19: usability pass, My toolbox (#363)
+
+The Tools page was a checklist of every tool type in the library, a details section for the ones ticked, and "Other tools" by name, which build steps never used, all saved with one button at the end. The owner asked for "My toolbox": the tools they have, with an easy way to add one from the library, and a decision on other tools. The two directions were drawn in the question itself (November 2026).
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Toolbox | T1. Only the tools owned, by group, each with Remove and its capabilities inline. "Add a tool" opens a search of the library with one button per tool not owned: one tap adds it. Removing is one tap, with Undo. Every change saves as it is made; typing saves after a pause. | T2, the library checklist with owned tools on top and one Save: the list is mostly tools the owner does not have, and a change is lost if the page is left before Save. |
+| Other tools | Removed. A tool the library lacks is a reason to add it to the library, since no method can use a tool Kerf does not know. The owner said nothing stored was worth keeping. | Kept as notes: a list that changes nothing in the plan. |
+
+Built in #363: `ToolsScreen` as above, named My toolbox in Workshop, back links, and copy. The inventory has no `other` list in core, the API, or the web app; stored rows of a type the library lacks, and capabilities a type cannot use, are left out when read. The `other_tools` table is no longer used and is dropped in #398, one release later, since migrations run while the previous deploy still serves (0014).
 
 ## Stage 18: usability pass, build steps (#362)
 

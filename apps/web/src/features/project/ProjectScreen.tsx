@@ -51,7 +51,7 @@ const VALUES_USED_ID = 'values-used';
 
 const CUT_LIST_INTRO = `Lengths are long point to long point, rounded to 1/16". Angles are miter-saw settings (0° is square), with the angle to the board's edge for a protractor or sliding bevel.`;
 const BUILD_STEPS_INTRO =
-  'Methods are chosen from the tools in your tool list. Change the list to change them.';
+  'Methods are chosen from the tools in your toolbox. Change your toolbox to change them.';
 
 export function ProjectScreen(props: { id: string; section?: PlanSectionId; part?: string }) {
   const { loaded, set, reload } = useProject(props.id);

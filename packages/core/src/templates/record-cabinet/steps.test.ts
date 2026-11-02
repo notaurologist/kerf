@@ -21,7 +21,6 @@ const inventory = (maxOpening: number, ...more: string[]): Inventory => ({
     { toolTypeId: 'tape-measure', capabilities: {} },
     ...more.map((toolTypeId) => ({ toolTypeId, capabilities: {} })),
   ],
-  other: [],
 });
 const chosen = (inv: Inventory) =>
   Object.fromEntries(

@@ -23,7 +23,6 @@ function steps(inventory: Inventory): BuildStep[] {
 function inventory(...tools: [string, Record<string, number>?][]): Inventory {
   return {
     tools: tools.map(([id, caps]) => ({ toolTypeId: id, capabilities: caps ?? {} })),
-    other: [],
   };
 }
 

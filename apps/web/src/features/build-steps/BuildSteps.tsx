@@ -128,7 +128,7 @@ function MissingTools(props: { ops: readonly StepOperation[] }) {
           No method fits your tools for{' '}
           {needed.length === props.ops.length ? 'this step' : `${needed.length} of these`}.
         </b>{' '}
-        <a href={href({ screen: 'tools' })}>Add a tool in Tools</a>
+        <a href={href({ screen: 'tools' })}>Add a tool in My toolbox</a>
       </Text>
       <List>
         {unique.map((n) => (

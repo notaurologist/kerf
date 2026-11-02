@@ -33,13 +33,13 @@ export function ToolPage(props: { id: string }) {
             <Text>
               {count === 0 ? (
                 <>
-                  Not in your tool list. <a href={toolList}>Add it on the Tools screen</a> for build
-                  steps to choose methods that use it.
+                  Not in your toolbox. <a href={toolList}>Add it in My toolbox</a> for build steps
+                  to choose methods that use it.
                 </>
               ) : count === 1 ? (
-                'In your tool list.'
+                'In your toolbox.'
               ) : (
-                `${count} in your tool list.`
+                `${count} in your toolbox.`
               )}
             </Text>
           );
