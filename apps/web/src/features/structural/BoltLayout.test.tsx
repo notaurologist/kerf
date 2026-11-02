@@ -2,7 +2,7 @@ import { createSnapshot, findTemplate, type TemplateDefinition } from '@kerf/cor
 import { VERDICT_WORDS } from '@kerf/core/testing';
 import { describe, expect, it } from 'vitest';
 import { planOf } from '../../lib/plan.ts';
-import { renderText } from '../../test/render.tsx';
+import { render, renderText } from '../../test/render.tsx';
 import { BoltLayout } from './BoltLayout.tsx';
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
@@ -16,10 +16,11 @@ const joints = plan.plan.boltLayout;
 describe('the bolt layout, worked example', () => {
   const text = renderText(<BoltLayout joints={joints} />);
 
-  it('names each joint with its bolts', () => {
-    expect(text).toContain('Crossbar to leg: 2 1/2" bolts');
-    expect(text).toContain('Gusset to leg: 2 1/2" bolts');
-    expect(text).toContain('Leg to beam: 1 1/2" bolt');
+  it('gives each joint one line: its bolts, and whether any distance is outside NDS 2024 (#359)', () => {
+    expect(text).toContain('Crossbar to leg 1 of 6 distances outside an NDS 2024 value 2 × 1/2"');
+    expect(text).toContain('Gusset to leg 1 of 6 distances outside an NDS 2024 value 2 × 1/2"');
+    expect(text).toContain('Leg to beam Every distance within its NDS 2024 values 1 × 1/2"');
+    expect(render(<BoltLayout joints={joints} />).match(/data-variant="line"/g)).toHaveLength(3);
   });
 
   it('gives each distance in inches and bolt diameters, with the rows it is measured against', () => {

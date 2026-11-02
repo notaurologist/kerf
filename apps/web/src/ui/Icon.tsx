@@ -21,12 +21,6 @@ const PATHS = {
   ),
   chevron: <path d="M3.5 6l4.5 4.5L12.5 6" />,
   connection: <path d="M1.5 6.5a9.2 9.2 0 0 1 13 0M4 9.5a5.6 5.6 0 0 1 8 0M2 2l12 12" />,
-  // The three places in the tab bar (#265): a plan sheet, a framing square, an open book.
-  projects: <path d="M3.5 1.5h6l3 3v10h-9zM9.5 1.5v3h3M5.5 8h5M5.5 10.5h5" />,
-  tools: <path d="M2.5 1.5v13h12v-3h-9v-10z" />,
-  glossary: (
-    <path d="M8 3.5C6.5 2.5 4.5 2 1.5 2v10.5c3 0 5 .5 6.5 1.5 1.5-1 3.5-1.5 6.5-1.5V2c-3 0-5 .5-6.5 1.5zM8 3.5V14" />
-  ),
   edit: <path d="M10.5 2.5l3 3-8 8h-3v-3zM8.5 4.5l3 3" />,
   'log-out': <path d="M6.5 2.5h-3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3M10.5 5l3 3-3 3M13.5 8h-7" />,
   // The theme menu shows the choice (#155): half a disc for the device's own, a sun, a moon.

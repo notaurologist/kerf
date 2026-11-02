@@ -26,12 +26,17 @@ describe('moveFor', () => {
     expect(moveFor(plan('cut-list'), plan('cut-list'))).toBe('none');
   });
 
-  it("moves sideways between places in the tab bar's order, from any depth", () => {
-    expect(moveFor(projects, { screen: 'tools' })).toBe('forward');
-    expect(moveFor({ screen: 'tools' }, { screen: 'glossary' })).toBe('forward');
-    expect(moveFor({ screen: 'glossary' }, { screen: 'tools' })).toBe('back');
+  it("moves sideways between places in the sidebar's order, from any depth", () => {
+    expect(moveFor(projects, { screen: 'workshop' })).toBe('forward');
     expect(moveFor(plan('cut-list'), { screen: 'tools' })).toBe('forward');
     expect(moveFor({ screen: 'glossary', term: 'kerf' }, projects)).toBe('back');
+    expect(moveFor({ screen: 'trash' }, plan())).toBe('back');
+  });
+
+  it('moves in and out within Workshop by depth', () => {
+    expect(moveFor({ screen: 'workshop' }, { screen: 'glossary' })).toBe('forward');
+    expect(moveFor({ screen: 'glossary', term: 'kerf' }, { screen: 'glossary' })).toBe('back');
+    expect(moveFor({ screen: 'tools' }, { screen: 'workshop' })).toBe('back');
   });
 
   it('rises into a mode and drops out of it', () => {

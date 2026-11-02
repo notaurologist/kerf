@@ -1,37 +1,29 @@
-import { useRef, useState } from 'react';
-import { api, describeError, send } from '../../lib/api.ts';
+import { useState } from 'react';
+import { api, send } from '../../lib/api.ts';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
-import { newProjectLabel } from '../../lib/names.ts';
 import { href } from '../../lib/route.ts';
-import {
-  type Project,
-  type ProjectStatus,
-  type ProjectSummary,
-  STATUS_LABELS,
-  STATUSES,
-  type TemplateSummary,
-} from '../../lib/types.ts';
+import type { ProjectSummary, TemplateSummary } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import {
   ButtonLink,
   Cluster,
-  CompactSelect,
-  ErrorText,
   Row,
   RowLink,
   Rows,
   ScreenHeader,
   Stack,
   StatusLine,
+  StatusTag,
   Text,
 } from '../../ui/index.ts';
 import { buildingText, ResumeCard, resumeTarget, shoppingText } from '../modes/ModeCards.tsx';
 
 // Projects with their status (PRODUCT.md, MVP features 2 and 8), most recently updated first.
+// Status follows progress and is set by hand in Edit (#355), so the list only shows it.
 
 export function ProjectsScreen() {
-  const { loaded, update, reload } = useLoad(async () => {
+  const { loaded, reload } = useLoad(async () => {
     const [projects, templates] = await Promise.all([
       send(api.api.projects.$get()),
       send(api.api.templates.$get()),
@@ -43,31 +35,8 @@ export function ProjectsScreen() {
       value: { projects: projects.value.projects, templates: templates.value.templates },
     };
   }, 'projects');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  // "Moved to the trash." from Delete stays until the next action (#67).
+  // "Moved to Deleted projects." from Delete stays until the next action (#67).
   const [flash] = useState(takeFlash);
-  // The latest change sent for each project, so an earlier answer cannot undo a later choice.
-  const sent = useRef(new Map<string, number>());
-  type Listed = { projects: ProjectSummary[]; templates: TemplateSummary[] };
-  const change = (edit: (projects: ProjectSummary[]) => ProjectSummary[]) =>
-    update((value: Listed) => ({ ...value, projects: edit(value.projects) }));
-
-  // Shown at once and sent; put back, with the reason on the row, if the server refuses it.
-  const changeStatus = async (id: string, status: ProjectStatus, before: ProjectStatus) => {
-    const n = (sent.current.get(id) ?? 0) + 1;
-    sent.current.set(id, n);
-    setErrors(({ [id]: _, ...rest }) => rest);
-    change((projects) => withStatus(projects, id, status));
-    const result = await send(api.api.projects[':id'].$put({ param: { id }, json: { status } }));
-    if (sent.current.get(id) !== n) return;
-    if (!result.ok) {
-      change((projects) => withStatus(projects, id, before));
-      setErrors((e) => ({ ...e, [id]: describeError(result.error) }));
-      return;
-    }
-    change((projects) => savedFirst(projects, toSummary(result.value)));
-  };
-
   return (
     <Loaded
       state={loaded}
@@ -77,61 +46,17 @@ export function ProjectsScreen() {
       title="Projects"
     >
       {(value) => (
-        <ProjectList
-          projects={value.projects}
-          templates={value.templates}
-          errors={errors}
-          flash={flash}
-          onStatus={(id, status, before) => void changeStatus(id, status, before)}
-        />
+        <ProjectList projects={value.projects} templates={value.templates} flash={flash} />
       )}
     </Loaded>
   );
 }
 
-/** The list with one project's status changed in place. */
-export function withStatus(
-  projects: readonly ProjectSummary[],
-  id: string,
-  status: ProjectStatus,
-): ProjectSummary[] {
-  return projects.map((p) => (p.id === id ? { ...p, status } : p));
-}
-
-/** The list as the API would return it after a save: the saved project first. */
-export function savedFirst(
-  projects: readonly ProjectSummary[],
-  saved: ProjectSummary,
-): ProjectSummary[] {
-  return [saved, ...projects.filter((p) => p.id !== saved.id)];
-}
-
-function toSummary(project: Project): ProjectSummary {
-  const { id, name, status, templateId, templateVersion, revision, templateBehind, progress } =
-    project;
-  const { createdAt, updatedAt } = project;
-  return {
-    id,
-    name,
-    status,
-    templateId,
-    templateVersion,
-    revision,
-    templateBehind,
-    progress,
-    createdAt,
-    updatedAt,
-  };
-}
-
 export function ProjectList(props: {
   projects: ProjectSummary[];
   templates: TemplateSummary[];
-  /** Why a project's status change did not go through, by project. */
-  errors?: Readonly<Record<string, string>>;
-  /** What the last screen did, such as moving a project to the trash. */
+  /** What the last screen did, such as deleting a project. */
   flash?: string | null;
-  onStatus: (id: string, status: ProjectStatus, before: ProjectStatus) => void;
 }) {
   const resuming = props.projects.find((p) => resumeTarget(p) !== null);
   const templateName = (id: string) => props.templates.find((t) => t.id === id)?.name ?? id;
@@ -140,21 +65,21 @@ export function ProjectList(props: {
       <ScreenHeader
         title="Projects"
         status={props.flash && <StatusLine>{props.flash}</StatusLine>}
-        actions={props.templates.map((t) => (
-          // While there is somewhere to resume, Go is the screen's one primary (Stage 10).
+        actions={
+          // One way to start, whatever the templates (#357). While there is somewhere to
+          // resume, Go is the screen's one primary (Stage 10).
           <ButtonLink
-            key={t.id}
-            href={href({ screen: 'new-project', templateId: t.id })}
+            href={href({ screen: 'pick-template' })}
             variant={resuming ? 'secondary' : 'primary'}
           >
-            {newProjectLabel(t.name)}
+            New project
           </ButtonLink>
-        ))}
+        }
       />
       {/* One Resume card (#40): the most recently updated project that has somewhere to resume. */}
       {resuming && <ResumeCard project={resuming} />}
       {props.projects.length === 0 ? (
-        <Text>No projects yet. Start one with a New button above.</Text>
+        <Text>No projects yet. Start one with New project above.</Text>
       ) : (
         <Rows as="ul">
           {props.projects.map((p) => (
@@ -162,16 +87,8 @@ export function ProjectList(props: {
               <Stack gap="2xs">
                 <Cluster spread>
                   <RowLink href={href({ screen: 'project', id: p.id })}>{p.name}</RowLink>
-                  <CompactSelect
-                    label={`Status of ${p.name}`}
-                    value={p.status}
-                    options={STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
-                    onChange={(status) => props.onStatus(p.id, status as ProjectStatus, p.status)}
-                  />
+                  <StatusTag status={p.status} />
                 </Cluster>
-                {props.errors?.[p.id] && (
-                  <ErrorText alert>Status not changed. {props.errors[p.id]}</ErrorText>
-                )}
                 {p.progress && p.status !== 'planned' && (
                   <Text>
                     Shopping: {shoppingText(p.progress.shopping)}{' '}
@@ -179,27 +96,14 @@ export function ProjectList(props: {
                   </Text>
                 )}
                 <Text tone="muted">
-                  {templateName(p.templateId)}, version {p.templateVersion}. Updated{' '}
-                  {new Date(p.updatedAt).toLocaleDateString()}.
+                  {templateName(p.templateId)}. Updated {new Date(p.updatedAt).toLocaleDateString()}
+                  .
                 </Text>
-                {p.templateBehind && (
-                  <Text>
-                    The template has a newer version. Open the project to see what regenerating
-                    would change.
-                  </Text>
-                )}
               </Stack>
             </Row>
           ))}
         </Rows>
       )}
-      {/* A copy to keep: the free database restores only the last few hours (#21). */}
-      <Cluster>
-        <a href={href({ screen: 'trash' })}>Trash</a>
-        <a href="/api/export" download>
-          Download all projects
-        </a>
-      </Cluster>
     </Stack>
   );
 }

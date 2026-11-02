@@ -1,24 +1,12 @@
 import { enteredParts, type TemplateDefinition } from '@kerf/core';
 import type { Project } from '../../lib/types.ts';
-import {
-  ButtonLink,
-  Cluster,
-  InputNeeded,
-  Measured,
-  MeasureTable,
-  Stack,
-  Text,
-} from '../../ui/index.ts';
+import { InputNeeded, Measured, MeasureTable, Stack, Text } from '../../ui/index.ts';
 
-// The plan's last section (#40, section order A; #119): every parameter and structural input as
-// entered, labeled and grouped by part as in the editor and read back through core's formatters,
-// so the paper copy says what the plan was made from.
+// Printed after the plan's sections (#119; on screen these are Edit's, #356): every parameter and
+// structural input as entered, labeled and grouped by part as in the editor and read back through
+// core's formatters, so the paper copy says what the plan was made from.
 
-export function ParametersAndInputs(props: {
-  project: Project;
-  template: TemplateDefinition;
-  editHref?: string;
-}) {
+export function ParametersAndInputs(props: { project: Project; template: TemplateDefinition }) {
   const { snapshot } = props.project;
   if (!snapshot) return null;
   const parts = enteredParts(props.template.form, snapshot.params, snapshot.structuralInputs);
@@ -56,13 +44,6 @@ export function ParametersAndInputs(props: {
             />
           </Stack>
         ))}
-      {props.editHref && (
-        <Cluster>
-          <ButtonLink variant="secondary" href={props.editHref}>
-            Edit
-          </ButtonLink>
-        </Cluster>
-      )}
     </Stack>
   );
 }

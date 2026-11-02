@@ -28,6 +28,8 @@ export interface TemplateDefinition<
   /** Bumped whenever output for the same parameters would change (decision 0008). */
   version: number;
   name: string;
+  /** What the project is, in a sentence, for choosing a template (#357). */
+  description: string;
   /**
    * Words only this template's folder uses, such as the names of its parts, so a test can check
    * that generic code never mentions them (ARCHITECTURE.md, principle 6). Its ID is checked too.

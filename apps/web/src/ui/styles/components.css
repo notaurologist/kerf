@@ -93,47 +93,6 @@
     display: none;
   }
 
-  /* ---------- Figures (#119): a label over a value, as many to a row as fit ---------- */
-  /* The plan's headline figures (Stage 10): ruled like a drawing's title block, and set large so
-     the summary reads as the answer. */
-  .k-figures {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(8.5rem, 100%), 1fr));
-    column-gap: var(--space-s);
-    margin: 0;
-    border-block-start: var(--border-thick) solid var(--text);
-  }
-
-  .k-figure {
-    display: grid;
-    align-content: start;
-    gap: var(--space-3xs);
-    padding-block: var(--space-xs) var(--space-s);
-    border-block-end: var(--border-thin) solid var(--border);
-  }
-
-  .k-figure[data-wide] {
-    grid-column: 1 / -1;
-  }
-
-  .k-figure dt {
-    color: var(--muted);
-    font-size: var(--size--1);
-  }
-
-  .k-figure dd {
-    margin: 0;
-    font-size: var(--size-2);
-    font-weight: 700;
-    line-height: var(--leading-heading);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .k-figure dd.k-figure__detail {
-    font-weight: 400;
-    font-size: var(--size--1);
-  }
-
   /* ---------- Definitions ---------- */
   /* One column that content never widens, so a drawing measures the width it is given. */
   .k-definitions {
@@ -836,6 +795,43 @@
     padding-block-start: var(--space-xs);
   }
 
+  /* A row that opens (ResultLine, #359): the text color, no underline, the chevron at the end. */
+  .k-disclosure[data-variant="line"] > summary {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .k-disclosure[data-variant="line"] > summary > span {
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  .k-result-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    column-gap: var(--space-s);
+  }
+
+  .k-result-line__what {
+    display: grid;
+    gap: var(--space-3xs);
+    min-inline-size: 0;
+  }
+
+  .k-result-line__detail {
+    color: var(--muted);
+    font-size: var(--size--1);
+  }
+
+  .k-result-line__result {
+    font-size: var(--size-1);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   /* ---------- Tool icons (#86): 20 px beside 17 px text, 24 px beside 20 px shop text ---------- */
   .k-tool-icon {
     display: inline-block;
@@ -911,11 +907,13 @@
     }
   }
 
-  .k-card[data-mode] {
+  .k-card[data-mode],
+  .k-button[data-mode] {
     border-inline-start: var(--border-bar) solid var(--mode-building-mark);
   }
 
-  .k-card[data-mode="shopping"] {
+  .k-card[data-mode="shopping"],
+  .k-button[data-mode="shopping"] {
     border-inline-start-color: var(--mode-shopping-mark);
   }
 
@@ -937,14 +935,14 @@
   /* ---------- Touch (#253) ----------
      Controls answer a press by dimming, in place of the browser's gray tap flash, and a long
      press on one does not select its words. Text and numbers stay selectable. */
-  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a, .k-tabbar a) {
+  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a) {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
   }
 
-  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a, .k-tabbar a):active {
+  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a):active {
     opacity: var(--pressed-opacity);
   }
 
@@ -962,7 +960,7 @@
 
   .k-frame__layout {
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr;
     min-block-size: 100dvh;
   }
 
@@ -986,6 +984,7 @@
     padding-inline: var(--space-s);
     border-block-end: var(--border-thin) solid var(--border);
     background: var(--raised);
+    view-transition-name: k-titlebar; /* Stays still while the screen moves (Moves, below). */
   }
 
   .k-titlebar__brand {
@@ -1041,16 +1040,25 @@
     }
   }
 
-  .k-titlebar__actions {
+  /* A place reached from every screen, such as Workshop, as a link at the title bar's end. */
+  .k-titlebar__end {
     grid-column: 3;
     justify-self: end;
     display: flex;
     align-items: center;
   }
 
-  /* The same actions at the sidebar's foot, shown only when the frame is wide. */
-  .k-frame__actions {
-    display: none;
+  .k-titlebar__end a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--control-min);
+    padding-inline: var(--space-2xs);
+    text-decoration: none;
+  }
+
+  .k-titlebar__end a[aria-current] {
+    color: var(--text);
+    font-weight: 700;
   }
 
   .k-frame__side {
@@ -1061,39 +1069,7 @@
     display: none;
   }
 
-  /* The current place is marked by a bar as well as bold type; aria-current says it in words. */
-  .k-tabbar {
-    position: sticky;
-    inset-block-end: 0;
-    z-index: 2;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    padding-block-end: env(safe-area-inset-bottom, 0);
-    border-block-start: var(--border-thin) solid var(--border);
-    background: var(--raised);
-  }
-
-  .k-tabbar a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3xs);
-    min-block-size: var(--control-min);
-    padding-block: var(--space-2xs);
-    border-block-start: var(--border-bar) solid transparent;
-    color: var(--muted);
-    font-size: var(--size--1);
-    text-decoration: none;
-  }
-
-  .k-tabbar a[aria-current] {
-    border-block-start-color: var(--here);
-    color: var(--text);
-    font-weight: 700;
-  }
-
-  .k-frame[data-preview] :is(.k-titlebar, .k-tabbar) {
+  .k-frame[data-preview] .k-titlebar {
     position: static;
   }
 
@@ -1141,8 +1117,7 @@
       grid-template-rows: 1fr;
     }
 
-    .k-titlebar,
-    .k-tabbar {
+    .k-titlebar {
       display: none;
     }
 
@@ -1171,13 +1146,6 @@
       gap: var(--space-s);
     }
 
-    .k-frame__actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      margin-block-start: auto;
-    }
-
     /* The plan's sections are in the sidebar, so its own contents column goes. */
     .k-frame[data-sections] .k-with-contents .k-contents {
       display: none;
@@ -1192,15 +1160,7 @@
     view-transition-name: k-main;
   }
 
-  .k-titlebar {
-    view-transition-name: k-titlebar;
-  }
-
-  .k-tabbar {
-    view-transition-name: k-tabbar;
-  }
-
-  :root:active-view-transition-type(mode-in, mode-out) :is(.k-frame__main, .k-titlebar, .k-tabbar) {
+  :root:active-view-transition-type(mode-in, mode-out) :is(.k-frame__main, .k-titlebar) {
     view-transition-name: none;
   }
 
@@ -1232,16 +1192,12 @@
   ::view-transition-group(k-main),
   ::view-transition-group(k-titlebar),
   ::view-transition-old(k-titlebar),
-  ::view-transition-new(k-titlebar),
-  ::view-transition-group(k-tabbar),
-  ::view-transition-old(k-tabbar),
-  ::view-transition-new(k-tabbar) {
+  ::view-transition-new(k-titlebar) {
     animation: none;
   }
 
-  /* The bars stay over the screen moving under them. */
-  ::view-transition-group(k-titlebar),
-  ::view-transition-group(k-tabbar) {
+  /* The title bar stays over the screen moving under it. */
+  ::view-transition-group(k-titlebar) {
     z-index: 1;
   }
 
@@ -1954,7 +1910,8 @@
   }
 
   /* The current section is marked with a bar and bold type, and aria-current says it in words. */
-  .k-contents li > a {
+  .k-contents li > a,
+  .k-contents__end {
     display: flex;
     align-items: center;
     min-block-size: var(--control-min);
@@ -1967,6 +1924,11 @@
     color: var(--text);
     font-weight: 700;
     text-decoration: none;
+  }
+
+  /* A link after the sections that is not one, set apart from them. */
+  .k-contents__end {
+    margin-block-start: var(--space-xs);
   }
 
   .k-contents__heading {
@@ -2015,7 +1977,7 @@
   }
 
   .k-contents__heading,
-  .k-contents:not([data-open]) ol {
+  .k-contents:not([data-open]) :is(ol, .k-contents__end) {
     display: none;
   }
 
@@ -2051,6 +2013,10 @@
 
     .k-contents:not([data-open]) ol {
       display: grid;
+    }
+
+    .k-contents:not([data-open]) .k-contents__end {
+      display: flex;
     }
 
     .k-contents[data-open] ol {
@@ -2118,33 +2084,6 @@
     .k-pager [data-dir="next"] .k-pager__link {
       justify-items: end;
     }
-  }
-
-  /* ---------- The summary's list of sections (#156): each a link with its digest under it ---------- */
-  .k-section-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: var(--space-s);
-  }
-
-  .k-section-list > li {
-    display: grid;
-    gap: var(--space-3xs);
-  }
-
-  .k-section-list > li > a {
-    font-weight: 700;
-  }
-
-  .k-section-list__digest {
-    color: var(--muted);
-  }
-
-  /* Placed after the blocks they adjust (#119). */
-  .k-figure .k-margin {
-    font-size: inherit;
   }
 
   /* ---------- Moving between views (#200) ---------- */

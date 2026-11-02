@@ -4,7 +4,7 @@
 export { drawingInMove, sharedFrame, useAssemblyMotion } from './assemblyMotion.ts';
 export { Button, ButtonLink, IconButton, IconButtonLink } from './Button.tsx';
 export { InlineConfirm, useReturnFocus } from './Confirm.tsx';
-export { SectionList, SectionPager, WithContents } from './Contents.tsx';
+export { SectionPager, WithContents } from './Contents.tsx';
 export { DefinitionFigure, Definitions } from './Definitions.tsx';
 export { Diagram } from './Diagram.tsx';
 export { BlockingDialog } from './Dialog.tsx';
@@ -19,7 +19,6 @@ export {
   TextInput,
   YesNo,
 } from './Field.tsx';
-export { type Figure, Figures } from './Figures.tsx';
 export {
   ErrorSummary,
   ErrorText,
@@ -47,6 +46,7 @@ export {
   Page,
   Row,
   Rows,
+  Sidebar,
   Stack,
   Switcher,
   WithAside,
@@ -63,7 +63,7 @@ export {
   SawSetting,
 } from './numbers.tsx';
 export { InfoTip } from './Popover.tsx';
-export { CheckStatus, FlagList } from './plan.tsx';
+export { CheckStatus, FlagList, ResultLine } from './plan.tsx';
 export { ScreenHeader, ScreenHeading } from './ScreenHeader.tsx';
 export { PlanHead, PlanSection } from './Section.tsx';
 export { type Back, Frame, ModeFrame, useFrameProject } from './Shell.tsx';
