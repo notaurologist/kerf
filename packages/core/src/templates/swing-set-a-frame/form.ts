@@ -11,7 +11,10 @@ import { STRUCTURAL_INPUT_LABELS as INPUT } from './structural.ts';
 
 const stock: FieldOption[] = NOMINAL_SIZES.map((n) => ({ value: n, label: n }));
 
-const boltDiameters: FieldOption[] = [0.375, 0.5, 0.625, 0.75].map((d) => ({
+/** The bolt diameters the form offers, inches. */
+export const BOLT_DIAMETERS = [0.375, 0.5, 0.625, 0.75] as const;
+
+const boltDiameters: FieldOption[] = BOLT_DIAMETERS.map((d) => ({
   value: d,
   label: formatLength(d),
 }));
@@ -94,7 +97,7 @@ export const SWING_SET_FORM: TemplateForm = {
           path: 'hardware.plyBolts.count',
           label: 'Ply bolts, count',
           kind: 'integer',
-          help: 'Bolts fastening the beam plies together, over the whole beam. Settle the count and spacing with an experienced builder; Kerf checks each ply on its own, so it does not count on the bolts to share the load.',
+          help: 'Bolts fastening the beam plies together, over the whole beam. No published schedule gives bolts for this, so Kerf does not suggest a count: settle it with an experienced builder. Kerf checks each ply on its own, so it does not count on the bolts to share the load. For comparison, the International Residential Code (2021, R507.5) fastens deck beam plies with two rows of 10d nails at 16" on center along each edge.',
           when: builtUp,
           confirmed: true,
         },
