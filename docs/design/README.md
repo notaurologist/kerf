@@ -44,6 +44,8 @@ Built in #378 (November 2026): Workshop (`features/workshop/WorkshopScreen.tsx`,
 
 Built in #380 (November 2026): Parameters and inputs is no longer a section on screen. The contents end with "Values used", a link to Edit set apart from the sections and not counted ("3 of 7"), in the plan's contents and the sidebar. On paper the values still follow the last section, under "Values used". Each input a check or wood-movement estimate needs is a link to its own field in Edit (`?field=`), which opens with that field focused.
 
+Built in #379 (November 2026): each design flag shows, folded, on every cut-list part it concerns ("2 expert checks" in the part's marks and notes, opening to what to ask and why; opened for print). Build steps already showed each flag on one step, in the plan and in Building mode, so they are unchanged. Flags name the parts and hardware they concern but not a structural check, so the structural review keeps its list of every flag. The summary's list goes with the summary (#381).
+
 What does not change: IA-2 (the project is the plan, and Shopping and Building are full-screen modes launched from it), the Resume card on the projects list, the order of the remaining sections, and print, which still gives the whole plan in order. The glossary stays reachable from every marked term (#178, #192) as well as from Workshop.
 
 ## Stage 11: review for a second template (#71)
