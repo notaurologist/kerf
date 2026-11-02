@@ -43,7 +43,6 @@ const DIGESTS: Record<Exclude<PlanSectionId, 'summary'>, keyof PlanDigests> = {
   boards: 'boards',
   'shopping-list': 'shoppingList',
   'build-steps': 'buildSteps',
-  parameters: 'parameters',
 };
 
 export function PlanSummary(props: {

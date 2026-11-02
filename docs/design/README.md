@@ -42,6 +42,8 @@ The owner took the suggested option for each (November 2026).
 
 Built in #378 (November 2026): Workshop (`features/workshop/WorkshopScreen.tsx`, `#/workshop`) lists Tools, the glossary, Trash, and Download all projects, with the theme in words and Log out below them. Tools, the glossary, and Trash are inside it, so their back links go to Workshop. The phone's title bar ends with a Workshop link on every screen, the projects list no longer links to Trash and Download, and the tab bar's three icons were removed.
 
+Built in #380 (November 2026): Parameters and inputs is no longer a section on screen. The contents end with "Values used", a link to Edit set apart from the sections and not counted ("3 of 7"), in the plan's contents and the sidebar. On paper the values still follow the last section, under "Values used". Each input a check or wood-movement estimate needs is a link to its own field in Edit (`?field=`), which opens with that field focused.
+
 What does not change: IA-2 (the project is the plan, and Shopping and Building are full-screen modes launched from it), the Resume card on the projects list, the order of the remaining sections, and print, which still gives the whole plan in order. The glossary stays reachable from every marked term (#178, #192) as well as from Workshop.
 
 ## Stage 11: review for a second template (#71)

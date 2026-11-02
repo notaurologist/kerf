@@ -52,7 +52,9 @@ export function Screen(props: { route: Route; onLogOut?: () => void }) {
     case 'new-project':
       return <NewProjectScreen templateId={props.route.templateId} start={props.route.start} />;
     case 'edit-project':
-      return <EditProjectScreen id={props.route.id} from={props.route.from} />;
+      return (
+        <EditProjectScreen id={props.route.id} from={props.route.from} field={props.route.field} />
+      );
     case 'project':
       return (
         <ProjectScreen id={props.route.id} section={props.route.section} part={props.route.part} />

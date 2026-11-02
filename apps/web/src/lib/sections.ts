@@ -1,4 +1,5 @@
-// The plan's sections in order A (#40): the contents, the screens, and the printed order. Each
+// The plan's sections in order A (#40): the contents, the screens, and the printed order. The
+// values used are in Edit (#356) and printed after the sections. Each
 // section but the summary has its own address, `#/projects/<id>/<section>` (#147, #156), so no ID
 // may be one a mode or the editor uses (`edit`, `shop`, `build`).
 
@@ -10,7 +11,6 @@ export const PLAN_SECTIONS = [
   { id: 'boards', title: 'Boards' },
   { id: 'shopping-list', title: 'Shopping list' },
   { id: 'build-steps', title: 'Build steps' },
-  { id: 'parameters', title: 'Parameters and inputs' },
 ] as const;
 
 export type PlanSectionId = (typeof PLAN_SECTIONS)[number]['id'];

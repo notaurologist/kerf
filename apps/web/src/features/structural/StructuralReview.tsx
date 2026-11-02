@@ -5,7 +5,6 @@ import {
   type movement,
   structural,
 } from '@kerf/core';
-import { href } from '../../lib/route.ts';
 import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
 import {
   CheckStatus,
@@ -42,7 +41,7 @@ type Quantity = structural.Quantity;
 const { formatMargin, formatQuantity } = structural;
 
 export function StructuralReview(props: {
-  projectId: string;
+  inputHref: (key: string) => string;
   checks: readonly CheckResult[];
   flags: readonly Flag[];
   checklist: readonly ChecklistItem[];
@@ -58,7 +57,7 @@ export function StructuralReview(props: {
       <h3>Structural checks</h3>
       <Rows>
         {props.checks.map((check) => (
-          <Check key={`${check.kind}/${check.subject}`} check={check} projectId={props.projectId} />
+          <Check key={`${check.kind}/${check.subject}`} check={check} inputHref={props.inputHref} />
         ))}
       </Rows>
 
@@ -70,7 +69,7 @@ export function StructuralReview(props: {
           </Text>
           <Rows>
             {movement.map((m) => (
-              <Movement key={m.subject} result={m} projectId={props.projectId} />
+              <Movement key={m.subject} result={m} inputHref={props.inputHref} />
             ))}
           </Rows>
         </>
@@ -114,7 +113,7 @@ export function StructuralReview(props: {
   );
 }
 
-function Check(props: { check: CheckResult; projectId: string }) {
+function Check(props: { check: CheckResult; inputHref: (key: string) => string }) {
   const { check } = props;
   return (
     <Row as="section">
@@ -138,8 +137,7 @@ function Check(props: { check: CheckResult; projectId: string }) {
         )}
         {check.status === 'input-needed' && (
           <>
-            <List items={check.missing.map((m) => m.label)} />
-            <EnterInputs projectId={props.projectId} />
+            <MissingInputs missing={check.missing} inputHref={props.inputHref} />
           </>
         )}
         {check.status === 'not-computed' && check.sources.length > 0 && (
@@ -150,15 +148,23 @@ function Check(props: { check: CheckResult; projectId: string }) {
   );
 }
 
-function EnterInputs(props: { projectId: string }) {
+/** Each input a result needs, as a link to its field in Edit. */
+function MissingInputs(props: {
+  missing: readonly structural.MissingInput[];
+  inputHref: (key: string) => string;
+}) {
   return (
-    <a href={href({ screen: 'edit-project', id: props.projectId, from: 'structural-review' })}>
-      Enter structural inputs
-    </a>
+    <List>
+      {props.missing.map((m) => (
+        <li key={m.key}>
+          <a href={props.inputHref(m.key)}>{m.label}</a>
+        </li>
+      ))}
+    </List>
   );
 }
 
-function Movement(props: { result: MovementResult; projectId: string }) {
+function Movement(props: { result: MovementResult; inputHref: (key: string) => string }) {
   const { result } = props;
   return (
     <Row as="section">
@@ -200,8 +206,7 @@ function Movement(props: { result: MovementResult; projectId: string }) {
         {result.status === 'input-needed' && (
           <>
             <Text>Input needed:</Text>
-            <List items={result.missing.map((m) => m.label)} />
-            <EnterInputs projectId={props.projectId} />
+            <MissingInputs missing={result.missing} inputHref={props.inputHref} />
           </>
         )}
         {result.status === 'not-computed' && (

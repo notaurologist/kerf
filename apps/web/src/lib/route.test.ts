@@ -75,7 +75,7 @@ describe('parseRoute', () => {
       '#/projects/abc/structural-review',
       { screen: 'project', id: 'abc', section: 'structural-review' },
     ],
-    ['#/projects/abc/parameters', { screen: 'project', id: 'abc', section: 'parameters' }],
+    ['#/projects/abc/parameters', { screen: 'not-found' }],
     [
       '#/projects/abc/cut-list?part=leg-front',
       { screen: 'project', id: 'abc', section: 'cut-list', part: 'leg-front' },
@@ -92,6 +92,10 @@ describe('parseRoute', () => {
     ['#/projects/abc/edit?from=cut-list', { screen: 'edit-project', id: 'abc', from: 'cut-list' }],
     ['#/projects/abc/edit?from=summary', { screen: 'edit-project', id: 'abc' }],
     ['#/projects/abc/edit?from=elsewhere', { screen: 'edit-project', id: 'abc' }],
+    [
+      '#/projects/abc/edit?from=cut-list&field=s-moisture.low',
+      { screen: 'edit-project', id: 'abc', from: 'cut-list', field: 's-moisture.low' },
+    ],
     ['#/projects/%E0', { screen: 'not-found' }],
     ['#/tools/%', { screen: 'not-found' }],
   ])('%s', (hash, route) => {
@@ -110,6 +114,7 @@ describe('parseRoute', () => {
       { screen: 'glossary', term: 'long-point' },
       { screen: 'project', id: '6f1c2a3e-0000-4000-8000-000000000000' },
       { screen: 'edit-project', id: 'x y' },
+      { screen: 'edit-project', id: 'p', from: 'boards', field: 's-riderWeights.0' },
       { screen: 'new-project', templateId: 'swing-set-a-frame' },
       {
         screen: 'new-project',
@@ -165,7 +170,6 @@ describe('the plan’s sections', () => {
       'Boards',
       'Shopping list',
       'Build steps',
-      'Parameters and inputs',
     ]);
   });
 });
