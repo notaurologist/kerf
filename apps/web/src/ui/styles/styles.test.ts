@@ -149,4 +149,9 @@ describe('screen header', () => {
     expect(rule('.k-screen-header__top')).toMatch(/flex-wrap:\s*wrap/);
     expect(rule('.k-screen-header__top > :first-child')).toMatch(/min-inline-size:\s*min-content/);
   });
+
+  it('keeps the actions on the first line of a wrapping title, with its tags wrapping under it', () => {
+    // A long project name on a phone put Edit alone on a third line, under the status (#353).
+    expect(rule('.k-screen-header__top > :first-child')).toMatch(/flex:\s*1 1 12rem/);
+  });
 });
