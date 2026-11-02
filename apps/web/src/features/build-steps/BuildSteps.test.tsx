@@ -10,9 +10,10 @@ import { readSteps } from '../../lib/plan.ts';
 import { cutDetailId } from '../../lib/show.ts';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, stepsFor } from '../../test/projects.ts';
-import { render, renderText, sectionOf } from '../../test/render.tsx';
+import { render, renderText, sectionOf, textOf } from '../../test/render.tsx';
 import { TermScope } from '../../ui/index.ts';
 import { ProjectView } from '../project/ProjectScreen.tsx';
+import { groupOperations } from './BuildSteps.tsx';
 
 // #52: the shop view needs nothing beyond the project response, so a dropped connection after
 // the page loads loses no step. ProjectView renders from that one response and fetches nothing.
@@ -154,13 +155,16 @@ describe('build steps in the project view (#52)', () => {
 
   it('shows the chosen method with its numbers, and what is needed where none fits', () => {
     const text = renderText(<ProjectView project={project(shop)} />);
-    // The beam's ends, with the miter saw that cuts through the 4x6.
-    expect(text).toContain('Square crosscut: A Beam, end 1');
+    // The beam's two ends, done alike, as one line with the tools that do them (#362).
+    expect(text).toContain(
+      'Square crosscut × 2 A Beam, end 1; A Beam, end 2 Miter saw, Tape measure',
+    );
     expect(text).toContain('With a miter saw. Tools: Miter saw, Tape measure.');
     // The legs' miters at the worked example's 20° splay.
     expect(text).toContain('Set the miter saw to 20.0°, turned the way the cut detail shows.');
-    // No drill: the holes name what would allow a method.
-    expect(text).toContain('No method fits your tools.');
+    // No drill: the step says once what would allow a method.
+    expect(text).toContain('No method fits your tools for');
+    expect(text).toContain('Add a tool in Tools');
   });
 
   it("puts each tool's icon before its name in a method's tools (#86)", () => {
@@ -216,5 +220,39 @@ describe('build steps in the project view (#52)', () => {
   it('shows no build steps for a plan made before operations', () => {
     const text = renderText(<ProjectView project={projectFrom(snapshot, { steps: null })} />);
     expect(text).not.toContain('Build steps');
+  });
+});
+
+describe('a step taken in at a glance (#362)', () => {
+  const steps = readSteps(project({ tools: [], other: [] }))?.steps ?? [];
+  const legs = steps.find((s) => s.id === 'board-2');
+  if (!legs) throw new Error('the worked example has a second board');
+
+  it('takes operations of one kind done alike as one group, in the order each first comes', () => {
+    const groups = groupOperations(legs.operations);
+    expect(groups.reduce((n, g) => n + g.ops.length, 0)).toBe(legs.operations.length);
+    expect(groups.length).toBeLessThan(legs.operations.length);
+    for (const g of groups) {
+      const [first] = g.ops;
+      for (const op of g.ops) expect(op.operation.type).toBe(first?.operation.type);
+    }
+  });
+
+  it('says once per step what the tools lack, not on every operation', () => {
+    const html = sectionOf(
+      render(<ProjectView project={project({ tools: [], other: [] })} />),
+      'build-steps',
+    );
+    const text = textOf(html);
+    expect(text.match(/No method fits your tools for/g)?.length).toBe(
+      steps.filter((s) => s.operations.some((op) => !op.method && op.needed)).length,
+    );
+    expect(text).not.toContain('No method fits your tools. ');
+  });
+
+  it('puts the saw settings beside a mitered piece, and none beside a square one', () => {
+    const text = textOf(sectionOf(render(<ProjectView project={project(shop)} />), 'build-steps'));
+    expect(text).toMatch(/B Back leg \(uphill\) 131-1\/2", piece 1 of 2 20\.0° 20\.0°/);
+    expect(text).toMatch(/A Beam 120" (?!\d)/);
   });
 });

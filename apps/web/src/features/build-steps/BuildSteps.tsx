@@ -1,24 +1,28 @@
 import {
   type BuildStep,
-  type CutListRow,
   findSkill,
   findToolType,
   formatLength,
   type MethodGaps,
   OPERATION_TYPE_LABELS,
+  type PlannedCutRow,
   type StepBoard,
   type StepOperation,
 } from '@kerf/core';
 import { Fragment } from 'react';
 import { href } from '../../lib/route.ts';
 import {
-  Card,
   FlagList,
   InputNeeded,
   Length,
   List,
   Measured,
   PlainList,
+  ResultLine,
+  Row,
+  Rows,
+  SettingBox,
+  SettingBoxes,
   Stack,
   Text,
   ToolLabel,
@@ -26,13 +30,15 @@ import {
 import { SourceToggle } from '../structural/Citation.tsx';
 
 // The build steps (#105, #52), rendered from the project response: the API chose each method
-// from the tool inventory and filled its numbers, so this only lays the words out. Cutting goes
+// from the tool inventory and filled its numbers, so this only lays the words out. Stage 18 (#362,
+// B1): what to do and the pieces first, operations done alike as one line opening to the method,
+// and a missing tool said once per step. Cutting goes
 // board by board (#58), each piece opening its part's cut detail. The shop view (M7) will show the
 // same data one step at a time (`StepBody`).
 
 export function BuildSteps(props: {
   steps: readonly BuildStep[];
-  rows: readonly CutListRow[];
+  rows: readonly PlannedCutRow[];
   /** Where a piece opens its part's cut detail: in the plan, the drawings with it selected (#156). */
   pieceHref?: (partId: string) => string;
 }) {
@@ -59,7 +65,7 @@ export function BuildSteps(props: {
  */
 export function StepBody(props: {
   step: BuildStep;
-  rows: readonly CutListRow[];
+  rows: readonly PlannedCutRow[];
   pieceHref?: (partId: string) => string;
   /** Leave the board's pieces out, for a screen that shows them its own way (#118). */
   withoutBoard?: boolean;
@@ -68,6 +74,7 @@ export function StepBody(props: {
   const parts = new Map(props.rows.map((r) => [r.partId, `${r.letter} ${r.name}`]));
   const partName = (id: string) => parts.get(id) ?? id;
   const quantity = new Map(props.rows.map((r) => [r.partId, r.quantity]));
+  const settings = new Map(props.rows.map((r) => [r.partId, r.settings]));
   return (
     <Stack gap="s">
       {step.board
@@ -76,6 +83,7 @@ export function StepBody(props: {
               board={step.board}
               partName={partName}
               quantity={quantity}
+              settings={settings}
               pieceHref={props.pieceHref}
             />
           )
@@ -83,14 +91,75 @@ export function StepBody(props: {
             <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
           )}
       <FlagList flags={step.flags} />
-      <PlainList>
-        {step.operations.map((op) => (
-          <Card key={op.operation.id} as="li">
-            <Operation op={op} partName={partName} />
-          </Card>
+      <MissingTools ops={step.operations} />
+      <Rows as="ul">
+        {groupOperations(step.operations).map((group) => (
+          <Row key={group.key} as="li">
+            <OperationGroup ops={group.ops} partName={partName} />
+          </Row>
         ))}
-      </PlainList>
+      </Rows>
     </Stack>
+  );
+}
+
+/**
+ * The step's operations, those of one kind done one way with the same numbers taken together, in
+ * the order each first comes (Stage 18, B1): four identical miters are one line.
+ */
+export function groupOperations(ops: readonly StepOperation[]) {
+  const groups = new Map<string, StepOperation[]>();
+  for (const op of ops) {
+    const key = JSON.stringify([op.operation.type, op.method ?? op.needed ?? null]);
+    groups.set(key, [...(groups.get(key) ?? []), op]);
+  }
+  return [...groups].map(([key, grouped]) => ({ key, ops: grouped }));
+}
+
+/** When no method fits the tools, said once for the step rather than on every operation. */
+function MissingTools(props: { ops: readonly StepOperation[] }) {
+  const needed = props.ops.flatMap((op) => (!op.method && op.needed ? [op.needed] : []));
+  if (needed.length === 0) return null;
+  const unique = [...new Map(needed.map((n) => [JSON.stringify(n), n])).values()];
+  return (
+    <Stack gap="2xs">
+      <Text>
+        <b>
+          No method fits your tools for{' '}
+          {needed.length === props.ops.length ? 'this step' : `${needed.length} of these`}.
+        </b>{' '}
+        <a href={href({ screen: 'tools' })}>Add a tool in Tools</a>
+      </Text>
+      <List>
+        {unique.map((n) => (
+          <li key={n.methodId}>
+            {n.methodName}: you need <Gaps of={n} />
+          </li>
+        ))}
+      </List>
+    </Stack>
+  );
+}
+
+/** One line for operations done alike, naming how many, on what, and with which tools. */
+function OperationGroup(props: {
+  ops: readonly StepOperation[];
+  partName: (id: string) => string;
+}) {
+  const [first] = props.ops;
+  if (!first) return null;
+  const label = OPERATION_TYPE_LABELS[first.operation.type];
+  const on = props.ops.map((op) => operationTitle(op, props.partName).slice(label.length + 2));
+  const tools = first.method?.tools.map((t) => findToolType(t.toolTypeId)?.name ?? t.toolTypeId);
+  return (
+    <ResultLine
+      title={props.ops.length > 1 ? `${label} × ${props.ops.length}` : label}
+      detail={on.filter(Boolean).join('; ')}
+      // With no method the step's own line says what is missing, so this one does not repeat it.
+      result={tools?.join(', ')}
+    >
+      <Operation op={first} partName={props.partName} />
+    </ResultLine>
   );
 }
 
@@ -99,6 +168,7 @@ function Board(props: {
   board: StepBoard;
   partName: (id: string) => string;
   quantity: ReadonlyMap<string, number>;
+  settings: ReadonlyMap<string, readonly string[]>;
   pieceHref?: (partId: string) => string;
 }) {
   const { board } = props;
@@ -118,12 +188,30 @@ function Board(props: {
               props.partName(piece.partId)
             )}{' '}
             <Length>{formatLength(piece.length)}</Length>
-            {pieceOf(piece.instance, props.quantity.get(piece.partId))}
+            {pieceOf(piece.instance, props.quantity.get(piece.partId))}{' '}
+            <EndSettings settings={props.settings.get(piece.partId)} />
           </li>
         ))}
       </List>
       <Offcut length={board.offcut} tone="muted" />
     </Stack>
+  );
+}
+
+/**
+ * A piece's saw settings beside its length (B1), only when an end is not square, since a square
+ * cut needs no setting.
+ */
+export function EndSettings(props: { settings: readonly string[] | undefined }) {
+  const settings = props.settings ?? [];
+  if (settings.every((s) => s === '0.0°')) return null;
+  return (
+    <SettingBoxes>
+      {settings.map((s, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: the two ends are positional.
+        <SettingBox key={i}>{s}</SettingBox>
+      ))}
+    </SettingBoxes>
   );
 }
 
@@ -149,12 +237,12 @@ function operationTitle(op: StepOperation, partName: (id: string) => string): st
   return on ? `${label}: ${on}${end}` : label;
 }
 
+/** What a line of operations opens to: the method, its tools, skills, and steps. */
 function Operation(props: { op: StepOperation; partName: (id: string) => string }) {
   const { op } = props;
   const method = op.method;
   return (
     <Stack gap="xs">
-      <h4>{operationTitle(op, props.partName)}</h4>
       {method ? (
         <>
           <Text>
@@ -204,11 +292,8 @@ function Operation(props: { op: StepOperation; partName: (id: string) => string 
           )}
         </>
       ) : (
-        op.needed && (
-          <Text>
-            No method fits your tools. {op.needed.methodName}, you need <Gaps of={op.needed} />
-          </Text>
-        )
+        // The step says once what its tools lack (MissingTools).
+        <Text tone="muted">No method fits your tools; the step says what is needed.</Text>
       )}
       {op.inputNeeded.map((m) => (
         <Text key={m.methodId}>
