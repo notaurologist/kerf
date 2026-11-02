@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided and built. Stage 15, the structural review (#359), is decided and built. Stage 16, the cut list (#360), is decided and built. Stage 17, the shopping list (#361), is decided; #361 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided and built. Stage 15, the structural review (#359), is decided and built. Stage 16, the cut list (#360), is decided and built. Stage 17, the shopping list (#361), is decided and built. Stage 18, build steps (#362), is decided; #362 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -28,8 +28,22 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 15. Usability pass: the structural review | #359 | Decided November 2026: S1; bolt layouts stay, folded | `structural-review.html` |
 | 16. Usability pass: the cut list | #360 | Decided November 2026: C1, end cuts as boxed saw settings | `cut-list.html` |
 | 17. Usability pass: the shopping list | #361 | Decided November 2026: L1; choosing guidance kept, folded | `shopping-list.html` |
+| 18. Usability pass: build steps | #362 | Decided November 2026: B1; a missing tool said once per step | `build-steps.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 18: usability pass, build steps (#362)
+
+Each step listed its operations, and each operation its method, skills, flags, and tool suggestions, all as paragraphs; when no method fit the tools, the same long sentence repeated for every cut of a board. `build-steps.html` draws two ways to make a step quick to take in: what to do first, the parts and measurements, then the method detail.
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Layout | B1. A step opens with one line of what to do, then its pieces with their lengths and saw settings. Operations of one kind fold into one line naming how many and the tool ("4 miters · miter saw") that opens to the method's text. Expert checks follow the parts. The same in the plan and in Building mode. | B2, the drawing and a parts table first, closest to printed plans: long on a phone before the first instruction, and the operations stay paragraphs. |
+| A missing tool | Said once per step, naming what the step's cuts need and where to add it, instead of once per operation. | Once per operation, as before: the same sentence for every cut of a board. |
 
 ## Stage 17: usability pass, the shopping list (#361)
 
