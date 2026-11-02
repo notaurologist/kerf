@@ -1,5 +1,15 @@
 import { formatLength, structural } from '@kerf/core';
-import { Card, Length, List, MeasureTable, PlainList, Stack, Text } from '../../ui/index.ts';
+import {
+  Length,
+  List,
+  MeasureTable,
+  PlainList,
+  ResultLine,
+  Row,
+  Rows,
+  Stack,
+  Text,
+} from '../../ui/index.ts';
 import { SourceToggle } from './Citation.tsx';
 
 // Bolt distances at each joint (#93, decision 0016): where Kerf put each bolt, and the NDS 2024
@@ -20,24 +30,38 @@ export function BoltLayout(props: { joints: readonly BoltJoint[] }) {
         distance under a row's value means the joint is designed for less load, or not at all for a
         minimum. Judge each one with an experienced builder.
       </Text>
-      <Stack>
+      <Rows>
         {props.joints.map((joint) => (
-          <Joint key={joint.title} joint={joint} />
+          <Row key={joint.title} as="section">
+            <Joint joint={joint} />
+          </Row>
         ))}
-      </Stack>
+      </Rows>
     </>
   );
 }
 
+/** Whether every distance at a joint is within its NDS 2024 values, in words, for its line. */
+function jointSummary(joint: BoltJoint): string {
+  const outside = joint.distances.filter((d) => shortfalls(d).length > 0).length;
+  if (outside === 0) return 'Every distance within its NDS 2024 values';
+  return `${outside} of ${joint.distances.length} distances outside an NDS 2024 value`;
+}
+
+/** One joint as a line (Stage 15, #359), opening to its distances. */
 function Joint(props: { joint: BoltJoint }) {
   const { joint } = props;
   return (
-    <Card as="section">
+    <ResultLine
+      title={joint.title}
+      detail={jointSummary(joint)}
+      result={
+        <>
+          {joint.bolts} × <Length>{formatLength(joint.diameter)}</Length>
+        </>
+      }
+    >
       <Stack gap="xs">
-        <h4>
-          {joint.title}: {joint.bolts} <Length>{formatLength(joint.diameter)}</Length> bolt
-          {joint.bolts > 1 ? 's' : ''}
-        </h4>
         <MeasureTable
           caption={`${joint.title} distances`}
           captionHidden
@@ -75,7 +99,7 @@ function Joint(props: { joint: BoltJoint }) {
           ))}
         </List>
       </Stack>
-    </Card>
+    </ResultLine>
   );
 }
 

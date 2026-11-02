@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from '../project/ProjectScreen.tsx';
-import { StructuralReview } from './StructuralReview.tsx';
+import { byMargin, StructuralReview } from './StructuralReview.tsx';
 
 const [complete, noInputs, builtUp] = storedSnapshots;
 if (!complete || !noInputs || !builtUp) throw new Error('fixture has three worked examples');
@@ -14,6 +14,28 @@ const text = (snapshot: typeof complete) =>
 
 describe('the structural review, worked example with every input', () => {
   const review = text(complete);
+  const html = sectionOf(
+    render(<ProjectView project={projectFrom(complete)} />),
+    'structural-review',
+  );
+
+  it('puts what the owner has to do first, then the checks, lowest margin first (#359)', () => {
+    expect(review.indexOf('To do ·')).toBeLessThan(review.indexOf('Checks'));
+    expect(review.indexOf('Expert checks')).toBeLessThan(review.indexOf('Confirmation checklist'));
+    const lines = [...html.matchAll(/class="k-result-line__result">([^<]*)</g)].map((m) => m[1]);
+    const margins = lines
+      .filter((l) => l?.startsWith('margin'))
+      .map((l) => Number(l?.slice(7, -1)));
+    expect(margins.length).toBe(4);
+    expect(margins).toEqual([...margins].sort((a, b) => a - b));
+  });
+
+  it('opens each check from a line naming it, its load case, and its margin', () => {
+    expect(html).toMatch(
+      /<details class="k-disclosure" data-variant="line"><summary><span><span class="k-result-line"><span class="k-result-line__what"><b>Bending: Top beam, 4x6<\/b>/,
+    );
+    expect(html).toContain('<span class="k-result-line__result">margin 1.1x</span>');
+  });
 
   it("shows each check's margin under its assumptions", () => {
     // Bending margin 1.08 (spec, Structural model, worked example).
@@ -24,7 +46,6 @@ describe('the structural review, worked example with every input', () => {
   });
 
   it('shows the full working: inputs, formulas, steps, factors, assumptions, and sources', () => {
-    expect(review).toContain('Show the working');
     expect(review).toContain(
       'Span between support centerlines (From the template geometry) Source National Design Specification (NDS) for Wood Construction (2024), 3.2.1, p. 17 92.5 in (92-1/2")',
     );
@@ -51,7 +72,8 @@ describe('the structural review, worked example with every input', () => {
   it('shows the checklist and the expert-check flags', () => {
     expect(review).toContain('Confirmation checklist');
     expect(review).toContain('Leg-to-beam bolt and gusset, each frame');
-    expect(review).toContain('Expert check · Load-bearing design');
+    expect(review).toContain('Ask an experienced builder.');
+    expect(review).toContain('Load-bearing design Why: This joint and the gusset carry the beam');
     expect(review).toContain('Load-bearing design');
   });
 });
@@ -166,5 +188,23 @@ describe('wood movement in the structural review', () => {
       ),
     );
     expect(none).not.toContain('Wood movement');
+  });
+});
+
+describe('byMargin', () => {
+  const check = (
+    subject: string,
+    status: 'computed' | 'input-needed' | 'not-computed',
+    margin = 0,
+  ) => ({ subject, status, margin }) as unknown as Parameters<typeof byMargin>[0][number];
+
+  it('puts checks waiting for inputs first, then the lowest margin, then those not computed', () => {
+    const ordered = byMargin([
+      check('a', 'computed', 3.1),
+      check('b', 'not-computed'),
+      check('c', 'computed', 1.1),
+      check('d', 'input-needed'),
+    ]);
+    expect(ordered.map((c) => c.subject)).toEqual(['d', 'c', 'a', 'b']);
   });
 });

@@ -1,4 +1,6 @@
 import { FLAG_CATEGORY_LABELS, type Flag, structural } from '@kerf/core';
+import type { ReactNode } from 'react';
+import { Disclosure } from './Disclosure.tsx';
 import { ExpertCheck, InputNeeded } from './feedback.tsx';
 import { Changed, MarginLine, Measured } from './numbers.tsx';
 import { PlainList } from './text.tsx';
@@ -54,4 +56,32 @@ export function CheckStatus(props: { check: structural.CheckResult; was?: string
         </p>
       );
   }
+}
+
+/**
+ * One result as a row that opens to its working (Stage 15, #359): what it is about and its case on
+ * the left, the result on the right in large tabular figures, such as a check and its margin.
+ */
+export function ResultLine(props: {
+  title: ReactNode;
+  detail?: ReactNode;
+  result?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <Disclosure
+      variant="line"
+      summary={
+        <span className="k-result-line">
+          <span className="k-result-line__what">
+            <b>{props.title}</b>
+            {props.detail && <span className="k-result-line__detail">{props.detail}</span>}
+          </span>
+          {props.result && <span className="k-result-line__result">{props.result}</span>}
+        </span>
+      }
+    >
+      {props.children}
+    </Disclosure>
+  );
 }

@@ -46,6 +46,7 @@ export {
   Page,
   Row,
   Rows,
+  Sidebar,
   Stack,
   Switcher,
   WithAside,
@@ -62,7 +63,7 @@ export {
   SawSetting,
 } from './numbers.tsx';
 export { InfoTip } from './Popover.tsx';
-export { CheckStatus, FlagList } from './plan.tsx';
+export { CheckStatus, FlagList, ResultLine } from './plan.tsx';
 export { ScreenHeader, ScreenHeading } from './ScreenHeader.tsx';
 export { PlanHead, PlanSection } from './Section.tsx';
 export { type Back, Frame, ModeFrame, useFrameProject } from './Shell.tsx';
