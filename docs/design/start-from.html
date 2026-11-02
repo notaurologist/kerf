@@ -1,0 +1,286 @@
+<title>Kerf Start From</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+/* Additions shared by the usability-pass review pages. */
+.frames { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: flex-start; }
+.frames .phone { margin-inline: 0; }
+.scroll { overflow-x: auto; padding-bottom: 6px; }
+.dir { display: grid; gap: 18px; padding-top: 22px; border-top: 2px solid var(--wf-ink); }
+.dir .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+.side { border-right: 1px solid var(--wf-ink); padding: 10px; display: grid; gap: 6px; align-content: start; font-size: 11.5px; }
+.side .on { font-weight: 700; border-left: 3px solid var(--wf-ink); padding-left: 5px; }
+.side .sub { padding-left: 10px; }
+.side .foot { margin-top: 18px; color: var(--muted); }
+.lap-body { display: grid; grid-template-columns: 180px 1fr; }
+.pad { padding: 12px; display: grid; gap: 8px; align-content: start; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.card { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 8px 10px; display: grid; gap: 4px; }
+.note { color: var(--blue); font-size: 10.5px; }
+table.crit { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 0.92rem; background: var(--wf-bg); }
+table.crit th, table.crit td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.crit th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+</style>
+<main>
+<header class="stack">
+  <p class="eyebrow">Usability pass · #358 · for the owner's pick</p>
+  <h1>Starting a new project</h1>
+  <p class="prose">The "Start from" step above a new project's form is a list of underlined links with the same weight: an empty form, each worked example, "Answer a few questions", and "A copy of …" for every earlier project of that template, all above the form. Two directions make the four kinds of start clear. Each still opens a filled form with a preview (M8).</p>
+</header>
+
+<section class="answers" aria-labelledby="ask">
+  <h2 id="ask">What to decide</h2>
+  <ol>
+    <li>Which direction: <span class="pick">P1</span> (suggested) a step before the form, or <span class="pick">P2</span> starts inside the template picker (#357).</li>
+    <li>Whether "Answer a few questions" is the default first choice for a template that has questions.</li>
+  </ol>
+</section>
+
+<section class="dir">
+  <div class="head"><h2>P1 · A short step before the form</h2><span class="rec-tag">Suggested</span></div>
+  <ul class="prose">
+    <li>After picking a template, one screen asks "How do you want to start?" with four choices as large options, each with a line saying what it does: <b>Answer a few questions</b> (first, when the template has them), <b>Start from an example</b> (opens a short list of the worked examples), <b>Copy an earlier project</b> (the three most recent, then a search), <b>Empty form</b>.</li>
+    <li>The form opens filled, with "Change how you started" at its top.</li>
+  </ul>
+  <div class="frames">
+    <div class="wf phone"><div class="status"></div><div class="screen pad">
+      <span>‹ Projects</span>
+      <b style="font-size:15px">New swing set</b>
+      <span class="muted">How do you want to start?</span>
+      <div class="card"><b>Answer a few questions</b><span class="small muted">Who rides, the space, the ground. Kerf suggests the rest.</span></div>
+      <div class="card"><b>Start from an example</b><span class="small muted">2 worked examples</span></div>
+      <div class="card"><b>Copy an earlier project</b><span class="small muted">Backyard swing set · Search…</span></div>
+      <div class="card"><b>Empty form</b><span class="small muted">Every field to fill in yourself</span></div>
+    </div><div></div></div>
+    <div class="scroll"><div class="wf laptop" style="min-height:260px"><div class="bar"><b>New swing set</b></div>
+      <div class="pad" style="grid-template-columns:repeat(4, 1fr);gap:12px">
+        <div class="card"><b>Answer a few questions</b><span class="small muted">Kerf suggests the rest</span></div>
+        <div class="card"><b>Start from an example</b><span class="small muted">One beam, two swings, legs buried · Two-ply 2x6 beam, legs on pads</span></div>
+        <div class="card"><b>Copy an earlier project</b><span class="small muted">Backyard swing set · Search…</span></div>
+        <div class="card"><b>Empty form</b></div>
+      </div></div></div>
+  </div>
+</section>
+
+<section class="dir">
+  <div class="head"><h2>P2 · Starts inside the template picker</h2></div>
+  <ul class="prose">
+    <li>"New project" (#357) opens the picker; choosing a template opens its card in place with the same four starts beneath its drawing and description.</li>
+    <li>One screen fewer, but the picker grows, and starting another project of the same kind still goes through it.</li>
+  </ul>
+  <div class="frames"><div class="wf phone"><div class="status"></div><div class="screen pad">
+    <b>New project</b>
+    <div class="card"><b>Two-swing A-frame swing set</b><div class="ph" style="height:60px">drawing</div><span class="row"><span class="btn solid">Questions</span><span class="btn">Example</span><span class="btn">Copy</span><span class="btn">Empty</span></span></div>
+    <div class="card"><b>Record cabinet</b></div>
+  </div><div></div></div></div>
+</section>
+
+<section class="stack">
+  <h2>Critique</h2>
+  <div class="scroll"><table class="crit">
+    <thead><tr><th>Against</th><th>P1</th><th>P2</th></tr></thead>
+    <tbody>
+      <tr><td>Four kinds of start, clearly different</td><td>Yes, each with what it does</td><td>Yes, as short buttons</td></tr>
+      <tr><td>Scales with many earlier projects</td><td>Three recent, then search</td><td>A list under Copy</td></tr>
+      <tr><td>Least input for a beginner (owner's note, November 1)</td><td>Questions first</td><td>Questions first</td></tr>
+      <tr><td>Screens to a filled form</td><td>Picker, start, form</td><td>Picker, form</td></tr>
+      <tr><td>Depends on #357's picker</td><td>No</td><td>Yes</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="stack">
+  <h2>Sources</h2>
+  <ul class="prose small">
+    <li>Jakob Nielsen, <a href="https://www.nngroup.com/articles/progressive-disclosure/">Progressive Disclosure</a>, Nielsen Norman Group.</li>
+    <li>Kerf: <code>docs/design/new-project.html</code>, M8 in <code>docs/MILESTONES.md</code>.</li>
+  </ul>
+</section>
+</main>
