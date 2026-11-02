@@ -24,6 +24,8 @@ export function ViewSwitch(props: {
    * screen while a move plays, and what a press asks. Without them the switch keeps its own.
    */
   control?: { asked: string; shown: string; press: (id: string) => void };
+  /** Other ways to look at the views, beside the button, such as the corner they are seen from. */
+  tools?: ReactNode;
 }) {
   const [first, second] = props.views;
   const [own, setOwn] = useState(first.id);
@@ -34,6 +36,7 @@ export function ViewSwitch(props: {
   if (!second) {
     return (
       <div className="k-views">
+        {props.tools && <div className="k-views__control">{props.tools}</div>}
         <Heading>{first.label}</Heading>
         {first.content}
       </div>
@@ -46,6 +49,7 @@ export function ViewSwitch(props: {
         <Button variant="secondary" onClick={() => press(next.id)}>
           {next.action}
         </Button>
+        {props.tools}
       </div>
       <div className="k-views__stage">
         {props.views.map((view) => (

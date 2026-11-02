@@ -1694,6 +1694,9 @@
 
   .k-views__control {
     display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    align-items: center;
   }
 
   /* The views share one place, as tall as the tallest, so switching moves nothing below. */

@@ -14,8 +14,11 @@ export {
   Tone,
 } from './primitives.ts';
 export {
+  CORNERS,
+  type Corner,
   depth,
   depthOnPlane,
+  fromCorner,
   type Isometric,
   isometric,
   orthographic,

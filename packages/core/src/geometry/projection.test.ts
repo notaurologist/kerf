@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { depth, depthOnPlane, isometric, project } from './projection.ts';
+import { CORNERS, depth, depthOnPlane, fromCorner, isometric, project } from './projection.ts';
 
 // Hand check: from the front left above, (sx, sy) = (−1, −1), the viewer direction is
 // (−1, −1, 1)/√3. The page's right is z × toViewer normalized: (1, −1, 0)/√2. Its up is
@@ -56,5 +56,36 @@ describe('isometric projection', () => {
     const p = { x: 3, y: 4, z: 2 };
     const d = depthOnPlane(view, project(view, p), { x: 0, y: 0, z: 2 }, { x: 0, y: 0, z: 1 });
     expect(d).toBeCloseTo(depth(view, p), 12);
+  });
+});
+
+describe('the view from each corner (#364)', () => {
+  // Hand check: turning the front-left view to the other corners flips the viewer across x for
+  // the right corners and across y for the back ones, at the same height. The page's right is
+  // z × toViewer normalized, (−sy, sx, 0)/√2, so the point (1, 0, 0) lands −sy/√2 across the page:
+  // right of center from the front, left of it from the back.
+  const expected = {
+    'front-left': { sx: -1, sy: -1 },
+    'front-right': { sx: 1, sy: -1 },
+    'back-right': { sx: 1, sy: 1 },
+    'back-left': { sx: -1, sy: 1 },
+  };
+
+  it.each(CORNERS)('looks from the %s, above', (corner) => {
+    const { sx, sy } = expected[corner];
+    const v = fromCorner(view, corner);
+    expect(v.toViewer.x).toBeCloseTo(sx / r3, 12);
+    expect(v.toViewer.y).toBeCloseTo(sy / r3, 12);
+    expect(v.toViewer.z).toBeCloseTo(1 / r3, 12);
+    expect(project(v, { x: 1, y: 0, z: 0 }).x).toBeCloseTo(-sy / r2, 12);
+    expect(project(v, { x: 0, y: 1, z: 0 }).x).toBeCloseTo(sx / r2, 12);
+    // Up the page stays up: z projects above the origin from every corner.
+    expect(project(v, { x: 0, y: 0, z: 1 }).y).toBeLessThan(0);
+  });
+
+  it('keeps a view from the front left as it is', () => {
+    for (const corner of CORNERS) {
+      expect(fromCorner(fromCorner(view, corner), 'front-left')).toEqual(fromCorner(view, corner));
+    }
   });
 });

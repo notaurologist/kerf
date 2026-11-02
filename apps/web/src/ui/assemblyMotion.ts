@@ -88,13 +88,16 @@ export function drawingInMove(
   return { ...exploded, primitives: primitives ?? exploded.primitives };
 }
 
+const NO_STAGES: readonly Stage[] = [];
+
 /** Runs the switch between the two views; `press` starts a move, or swaps under reduced motion. */
-export function useAssemblyMotion(stages: readonly Stage[] = []) {
+export function useAssemblyMotion(stages: readonly Stage[] = NO_STAGES) {
   const count = Math.max(1, stages.length);
   const [state, setState] = useState<State>(atRest('assembled', count));
   // The clock reads these between renders.
-  const live = useRef({ stages, count, shown: state.shown, stage: state.stage, over: state.over });
-  live.current = { stages, count, shown: state.shown, stage: state.stage, over: state.over };
+  const now = { stages, count, ...state };
+  const live = useRef(now);
+  live.current = now;
   // Where the move is, from 0 (assembled) to `count` (exploded), and where it is going.
   const at = useRef(0);
   const target = useRef(0);
@@ -127,6 +130,18 @@ export function useAssemblyMotion(stages: readonly Stage[] = []) {
     },
     [],
   );
+  // Other drawings, such as the views from another corner (#364): at rest in the view asked for.
+  const drawn = useRef(stages);
+  useEffect(() => {
+    if (drawn.current === stages) return;
+    drawn.current = stages;
+    if (frame.current !== null) window.cancelAnimationFrame(frame.current);
+    frame.current = null;
+    last.current = null;
+    const { asked } = live.current;
+    at.current = asked === 'exploded' ? count : 0;
+    setState(atRest(asked, count));
+  }, [stages, count]);
 
   const step = (now: number) => {
     const dt = last.current === null ? 0 : now - last.current;

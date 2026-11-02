@@ -11,6 +11,7 @@ import { href, redirect } from '../../lib/route.ts';
 import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { cutDetailHeadingId, cutListPartId } from '../../lib/show.ts';
 import type { Project } from '../../lib/types.ts';
+import { loadCornerViews } from '../../lib/views.ts';
 import {
   Definitions,
   IconButtonLink,
@@ -208,6 +209,10 @@ export function ProjectView(props: {
                 selected={selected}
                 onSelect={select}
                 partHref={(partId) => at('cut-list', partId)}
+                corners={{
+                  key: `${project.id}/${project.revision}`,
+                  load: (corner) => loadCornerViews(project.id, corner),
+                }}
               />
             </PlanSection>
           )}

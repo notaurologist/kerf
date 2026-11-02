@@ -1,3 +1,4 @@
+import { geometry } from '@kerf/core';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -12,6 +13,7 @@ import type { ProjectService, Result } from '../services/projects.ts';
 import { valid } from './validate.ts';
 
 const ById = z.object({ id: z.uuid() });
+const ByCorner = ById.extend({ corner: z.enum(geometry.CORNERS) });
 
 /** Every project route answers a failed result the same way. */
 function failure(c: Context, result: Extract<Result<unknown>, { ok: false }>) {
@@ -62,6 +64,11 @@ export function projectRoutes(projects: ProjectService) {
     )
     .post('/projects/:id/regenerate', valid('param', ById), async (c) => {
       const result = await projects.regenerate(c.req.valid('param').id);
+      return result.ok ? c.json(result.value, 200) : failure(c, result);
+    })
+    .get('/projects/:id/views/:corner', valid('param', ByCorner), async (c) => {
+      const { id, corner } = c.req.valid('param');
+      const result = await projects.views(id, corner);
       return result.ok ? c.json(result.value, 200) : failure(c, result);
     })
     .get('/projects/:id/progress', valid('param', ById), async (c) => {
