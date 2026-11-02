@@ -1,5 +1,5 @@
 import type { geometry } from '@kerf/core';
-import { type CSSProperties, useEffect, useId, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { Motion } from './assemblyMotion.ts';
 import { DiagramFrame } from './DiagramFrame.tsx';
 
@@ -91,6 +91,14 @@ export function Diagram(props: {
 }) {
   const { drawing } = props;
   const { ref, width } = useWidth(props.assumedWidth ?? ASSUMED_WIDTH);
+  const track = props.motion?.track;
+  const wrap = useCallback(
+    (el: HTMLDivElement | null) => {
+      ref.current = el;
+      track?.(el);
+    },
+    [ref, track],
+  );
   const hatch = `${useId().replace(/:/g, '')}-hatch`;
   const b = props.frame ?? drawing.bounds;
   const narrow = width < PX.narrow;
@@ -130,8 +138,8 @@ export function Diagram(props: {
   const minY = Math.min(y0, ...boxes.map((r) => r.y0));
   const maxY = Math.max(y1, ...boxes.map((r) => r.y1));
   const viewBox = `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
-  // A moved part's shapes carry the way back to where it sits assembled, for a move to slide.
-  const moves = new Map(drawing.moves?.map((m) => [`${m.partId}/${m.instance}`, m.by]));
+  // A moving part's shapes carry how far it goes in its stage of a move, for the move to slide.
+  const moves = new Map(props.motion?.moves?.map((m) => [`${m.partId}/${m.instance}`, m.by]));
   const movesBack = (p: {
     role?: string;
     part?: { partId: string; instance: number };
@@ -140,7 +148,7 @@ export function Diagram(props: {
     if (!by) return {};
     return {
       'data-moves': '',
-      style: { '--move-x': `${-by.x}px`, '--move-y': `${-by.y}px` } as CSSProperties,
+      style: { '--move-x': `${by.x}px`, '--move-y': `${by.y}px` } as CSSProperties,
     };
   };
   // A selected part, and an action drawing's emphasis (#118), are tinted and outlined heavily.
@@ -304,12 +312,11 @@ export function Diagram(props: {
 
   return (
     <div
-      ref={ref}
+      ref={wrap}
       className="k-diagram-wrap"
       data-page={props.page ?? 'portrait'}
-      data-collapsed={props.motion?.collapsed || undefined}
       data-labels={props.motion?.labels === false ? 'hidden' : undefined}
-      data-instant={props.motion?.instant || undefined}
+      data-over={props.motion?.over}
     >
       <DiagramFrame
         label={props.label}

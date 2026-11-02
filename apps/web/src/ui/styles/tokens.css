@@ -119,7 +119,6 @@
     --focus-offset: 2px;
 
     --duration-quick: 0.15s;
-    --duration-move: 0.4s; /* MOVE_MS in ui/assemblyMotion.ts */
     /* Screen moves (Stage 9, #266): a short shift with a fade, entering a little slower than
        leaving (NN/g), eased out. */
     --duration-screen-in: 0.25s;

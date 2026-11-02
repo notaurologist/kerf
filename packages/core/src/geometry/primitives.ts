@@ -112,6 +112,20 @@ export const Primitive = z.discriminatedUnion('kind', [
 ]);
 export type Primitive = z.infer<typeof Primitive>;
 
+/**
+ * One stage of an exploded view's move (#352): the parts it moves, each with how far it is drawn
+ * from where it sits when the stage starts, on the page; the drawing where the stage ends, with
+ * no letters, left out of the last stage, which ends at the exploded view; and `from`, the
+ * fraction of the stage from which its parts slide over that drawing rather than over the one the
+ * stage starts from, the stage before's or the isometric view.
+ */
+export const Stage = z.object({
+  moves: z.array(z.object({ partId: z.string(), instance: z.number().int(), by: Point2 })),
+  from: z.number().min(0).max(1),
+  primitives: z.array(Primitive).optional(),
+});
+export type Stage = z.infer<typeof Stage>;
+
 export const Drawing = z.object({
   /** Such as "Isometric view". */
   title: z.string(),
@@ -133,13 +147,10 @@ export const Drawing = z.object({
    */
   emphasis: z.array(z.string()).optional(),
   /**
-   * In an exploded view, how far each moved part instance is drawn from where it sits in the
-   * isometric view, on the page (#200). Both views share page coordinates, so a display can slide
-   * the parts from one view to the other.
+   * In an exploded view, the move to it from the isometric view, a stage at a time (#200, #352).
+   * Both views share page coordinates, so a display can slide the parts from one to the other.
    */
-  moves: z
-    .array(z.object({ partId: z.string(), instance: z.number().int(), by: Point2 }))
-    .optional(),
+  stages: z.array(Stage).optional(),
 });
 export type Drawing = z.infer<typeof Drawing>;
 

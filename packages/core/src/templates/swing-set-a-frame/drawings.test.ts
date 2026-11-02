@@ -148,9 +148,16 @@ describe.each(EXAMPLES.map((e, i) => [e.name, i] as const))('%s', (_, i) => {
     // Hand-checked for the view from the front left, above (isometric(-1, -1)): the page's right
     // is (1, -1, 0)/√2 and its up (1, 1, 2)/√6, and page y grows downward. The beam's 30" lift
     // moves it 60/√6 = 24.495 up; a crossbar or gusset pulled 24" along x moves 24/√2 = 16.971
-    // across and 24/√6 = 9.798 down (instance 0, toward -x) or up (instance 1).
+    // across and 24/√6 = 9.798 down (instance 0, toward -x) or up (instance 1). The beam moves
+    // first, then the crossbars and gussets (#352).
+    const stages = drawings.exploded?.stages ?? [];
+    expect(stages.map((s) => [...new Set(s.moves.map((m) => m.partId))])).toEqual([
+      ['beam'],
+      ['crossbar', 'gusset'],
+    ]);
+    const moves = stages.flatMap((s) => s.moves);
     const by = (partId: string, instance: number) =>
-      drawings.exploded?.moves?.find((m) => m.partId === partId && m.instance === instance)?.by;
+      moves.find((m) => m.partId === partId && m.instance === instance)?.by;
     expect(by('beam', 0)?.x).toBeCloseTo(0, 9);
     expect(by('beam', 0)?.y).toBeCloseTo(-24.4949, 4);
     for (const id of ['crossbar', 'gusset']) {
@@ -160,9 +167,9 @@ describe.each(EXAMPLES.map((e, i) => [e.name, i] as const))('%s', (_, i) => {
       expect(by(id, 1)?.y).toBeCloseTo(-9.798, 4);
     }
     const moved = placements.filter((pl) => ['beam', 'crossbar', 'gusset'].includes(pl.partId));
-    expect(drawings.exploded?.moves).toHaveLength(moved.length);
+    expect(moves).toHaveLength(moved.length);
     // Each move is where the part's guideline goes: from its place to where it is drawn.
-    for (const move of drawings.exploded?.moves ?? []) {
+    for (const move of moves) {
       const guideline = drawings.exploded?.primitives.find(
         (p) =>
           p.kind === 'line' &&

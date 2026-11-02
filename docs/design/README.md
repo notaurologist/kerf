@@ -438,14 +438,22 @@ The button is an action button whose label says what pressing it does: "Explode"
 | A toggle button with a fixed label, such as "Exploded", and `aria-pressed` | Correct, but the label cannot change with the state (WAI-ARIA Authoring Practices, Button pattern: a label that flips together with `aria-pressed` contradicts itself), so it never says "Assemble", and a pressed "Exploded" reads less plainly than a verb. |
 | A switch (`role="switch"`, `aria-checked`) labeled "Exploded view" | WAI-ARIA Authoring Practices, Switch pattern. It reads as a setting that stays on, not as a way to look at the same drawing another way. |
 
-Switching moves the parts (the owner's choice, October 2026). Each pulled part slides between where it sits and where the exploded view draws it, over 400 ms, so you see where it goes; the part letters and guidelines, which each view lays out for itself, fade out before the move and back in after it. The isometric projection is parallel, so a part's 3D explode offset is one fixed shift on the page, which core gives with the exploded drawing (`moves`). Both views are drawn in one frame, the bounds of the two together, so nothing rescales during a move. The rejected options:
+Switching moves the parts (the owner's choice, October 2026). Each pulled part slides between where it sits and where the exploded view draws it, so you see where it goes; the part letters and guidelines, which each view lays out for itself, fade out before the move and back in after it. The isometric projection is parallel, so a part's 3D explode offset is one fixed shift on the page, which core gives with the exploded drawing. Both views are drawn in one frame, the bounds of the two together, so nothing rescales during a move. The rejected options:
 
 | Option | Why not |
 |---|---|
 | Crossfade between the two finished drawings | Always drawn right, but it shows nothing moving, so it does not show where a part goes, which is why the views share a place. |
 | Sort faces again at each step of the move | Correct overlap throughout, but a BSP sort per frame in the browser is geometry the web app should not compute (hard rule 6), for a move under half a second. |
 
-Parts slide in the exploded view's paint order, so for part of a move a part can pass in front of one it should be behind; at the end the finished drawing is shown. Under `prefers-reduced-motion: reduce` the views swap at once.
+Parts slide in stages, each in a paint order core made for it (#352, November 2026). Sliding every part over the exploded view's paint order drew parts in front of parts they were behind while they were still near home: the cabinet's front apron over the front-left leg, its door frames over the case side. A drawing has one paint order, right for where its parts are drawn, so core draws each stage where it ends, and the stage's parts slide over that drawing once they have left the joints they sat in (a tenon in its mortise, a door in its track); until then they slide over the drawing the stage starts from, the stage before's or the assembled view. A template orders the stages where one order cannot hold for a whole move: the swing set lifts its beam first, then pulls the crossbars and gussets out, since seen from behind a gusset passes in front of the beam it sits under. Each stage takes 400 ms, eased in and out. A test draws every tenth of every stage afresh for both templates' worked examples and checks that the part on top at each point is the one the move shows. While a part leaves its joint, the part it leaves can still show over the bit of it that has come out, or the reverse, for that stretch only; no fixed paint order can draw a part halfway out of another.
+
+| Option | Why not |
+|---|---|
+| Sort faces again at each frame | Correct throughout, but a BSP sort per frame in the browser is geometry the web app should not compute (hard rule 6). |
+| Send a drawing for every few frames | Correct to the frame, but each cabinet drawing is about 250 KB, and the move needs a dozen or more. |
+| Stages only, each drawn where it ends | Simpler, but a tenon still in its mortise is drawn over the leg for the first part of the stage, which is what the owner saw. |
+
+The cabinet's exploded view also moved its parts farther apart, so the top, sides, doors, and base each stand clear: the case rises off the base, which stays on the floor, and the doors come well forward, their panels farther. Under `prefers-reduced-motion: reduce` the views swap at once.
 
 ## Stage 4: color (#43)
 

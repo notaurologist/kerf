@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { solid } from '../geometry/solid.ts';
 import { createSnapshot, readSnapshot } from '../snapshot/snapshot.ts';
 import { TEMPLATES } from './index.ts';
 
@@ -23,6 +24,20 @@ describe('every template', () => {
     expect(t.storedOutputs.parse(outputs)).toEqual(outputs);
     const read = readSnapshot(TEMPLATES, asJson(made.output));
     expect(read.ok && asJson(read.snapshot.outputs)).toEqual(outputs);
+  });
+
+  it.each(examples)('%s, %s: draws every face of every part facing a direction', (_, __, t, e) => {
+    // A face with no direction cannot order the faces around it, and they went undrawn (#352).
+    const made = createSnapshot(t, e.params, e.structuralInputs);
+    if (!made.ok) throw new Error(JSON.stringify(made.issues));
+    const scene = t.assembly(t.storedOutputs.parse(asJson(made.output.outputs)))?.scene;
+    for (const pl of scene?.placements ?? []) {
+      const part = scene?.parts.find((p) => p.id === pl.partId);
+      if (!part) continue;
+      for (const f of solid(part, pl).faces) {
+        expect([f.normal.x, f.normal.y, f.normal.z].every(Number.isFinite)).toBe(true);
+      }
+    }
   });
 
   it.each(TEMPLATES.map((t) => [t.id, t] as const))('%s names its own words', (_, t) => {

@@ -117,6 +117,9 @@ export function solid(part: Part, pl: Placement, offset: Vec3 = { x: 0, y: 0, z:
   for (let i = 0; i < outline.length; i++) {
     const a = outline[i] as UV;
     const b = outline[(i + 1) % outline.length] as UV;
+    // Clipping at a tenon's shoulder can repeat a point; a side face there has no area and no
+    // direction, and a face with no direction cannot order the faces around it.
+    if (Math.hypot(b.u - a.u, b.v - a.v) < 1e-9) continue;
     const normal = unit(add(scale(pl.along, b.v - a.v), scale(pl.across, -(b.u - a.u))));
     faces.push({ points: [at(a, 0), at(b, 0), at(b, T), at(a, T)], normal });
   }

@@ -2,6 +2,7 @@ import type { CutListRow, geometry } from '@kerf/core';
 import { cutDetailHeadingId, cutDetailId } from '../../lib/show.ts';
 import {
   Diagram,
+  drawingInMove,
   Stack,
   StatusLine,
   sharedFrame,
@@ -50,7 +51,7 @@ export function Diagrams(props: {
   };
   const parts = `Parts ${lettersOf(rows)}, lettered as in the cut list.`;
   const chosen = rows.find((r) => r.partId === props.selected);
-  const motion = useAssemblyMotion();
+  const motion = useAssemblyMotion(drawings.exploded?.stages);
   // Both views at one scale, so a part can slide from one to the other.
   const frame =
     drawings.isometric && drawings.exploded
@@ -81,7 +82,11 @@ export function Diagrams(props: {
         page="landscape"
         frame={frame}
         motion={frame && motion.exploded}
-        drawing={drawings.exploded}
+        drawing={
+          drawings.isometric
+            ? drawingInMove(drawings.isometric, drawings.exploded, motion.at)
+            : drawings.exploded
+        }
         label={`Exploded view. ${drawings.exploded.description} ${parts}`}
       />
     ),

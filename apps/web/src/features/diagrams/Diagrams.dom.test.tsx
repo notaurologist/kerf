@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readDrawings, readPlan } from '../../lib/plan.ts';
 import { byText, click, mount } from '../../test/dom.tsx';
 import { projectFrom } from '../../test/projects.ts';
+import { drawingInMove } from '../../ui/index.ts';
 import { Diagrams } from './Diagrams.tsx';
 
 // A plan made now, with placements; the stored fixtures predate them.
@@ -102,6 +103,10 @@ describe('the move between the assembled and exploded views', () => {
     vi.restoreAllMocks();
   });
 
+  const clock = () =>
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'],
+    });
   const wrapOf = (container: HTMLElement, label: RegExp) =>
     [...container.querySelectorAll<HTMLElement>('.k-diagram-wrap')].find((w) =>
       label.test(w.querySelector('svg')?.getAttribute('aria-label') ?? ''),
@@ -114,30 +119,49 @@ describe('the move between the assembled and exploded views', () => {
     act(() => {
       vi.advanceTimersByTime(ms);
     });
+  const stages = worked.exploded?.stages ?? [];
+  /** The parts whose shapes slide now. */
+  const sliding = (wrap: HTMLElement) =>
+    [
+      ...new Set(
+        [...wrap.querySelectorAll('[data-moves] [data-part]')].map((e) =>
+          e.getAttribute('data-part'),
+        ),
+      ),
+    ].sort();
+  const t = (wrap: HTMLElement) => Number(wrap.style.getPropertyValue('--t'));
 
-  it('slides the parts out, then shows the letters', () => {
-    vi.useFakeTimers();
+  it('slides the parts out a stage at a time, then shows the letters', () => {
+    clock();
+    expect(stages.map((s) => [...new Set(s.moves.map((m) => m.partId))].sort())).toEqual([
+      ['beam'],
+      ['crossbar', 'gusset'],
+    ]);
     const { container } = mount(section());
     const exploded = wrapOf(container, /^Exploded view/);
     press(container, 'Explode');
-    // Shown at once with every part home and no letters, jumping there without a transition.
+    // Shown at once with every part home and no letters.
     expect(onScreen(container).label).toMatch(/^Exploded view\. /);
-    expect(exploded.dataset.collapsed).toBe('true');
-    expect(exploded.dataset.instant).toBe('true');
     expect(exploded.dataset.labels).toBe('hidden');
-    advance(20);
-    expect(exploded.dataset.collapsed).toBeUndefined();
-    expect(exploded.dataset.instant).toBeUndefined();
+    expect(sliding(exploded)).toEqual(['beam']);
+    expect(t(exploded)).toBe(0);
+    advance(200);
+    expect(t(exploded)).toBeGreaterThan(0);
+    expect(t(exploded)).toBeLessThan(1);
+    advance(300);
+    expect(sliding(exploded)).toEqual(['crossbar', 'gusset']);
     expect(exploded.dataset.labels).toBe('hidden');
     advance(400);
     expect(exploded.dataset.labels).toBeUndefined();
+    expect(exploded.dataset.over).toBe('end');
+    expect(t(exploded)).toBe(1);
   });
 
-  it('slides the parts home, then shows the assembled view with its letters', () => {
-    vi.useFakeTimers();
+  it('slides the parts home in the opposite order, then shows the assembled view with its letters', () => {
+    clock();
     const { container } = mount(section());
     press(container, 'Explode');
-    advance(500);
+    advance(1000);
     press(container, 'Assemble');
     const exploded = wrapOf(container, /^Exploded view/);
     const assembled = wrapOf(container, /^Isometric view/);
@@ -146,16 +170,32 @@ describe('the move between the assembled and exploded views', () => {
       'Explode',
     ]);
     expect(onScreen(container).label).toMatch(/^Exploded view\. /);
-    expect(exploded.dataset.collapsed).toBe('true');
-    expect(exploded.dataset.instant).toBeUndefined();
     expect(exploded.dataset.labels).toBe('hidden');
-    advance(399);
+    expect(sliding(exploded)).toEqual(['crossbar', 'gusset']);
+    advance(500);
+    expect(sliding(exploded)).toEqual(['beam']);
     expect(onScreen(container).label).toMatch(/^Exploded view\. /);
-    advance(1);
+    advance(250);
+    expect(onScreen(container).label).toMatch(/^Exploded view\. /);
+    // Frame by frame to the moment the assembled view shows, still without its letters.
+    for (let i = 0; i < 10 && /^Exploded/.test(onScreen(container).label); i++) advance(16);
     expect(onScreen(container).label).toMatch(/^Isometric view\. /);
     expect(assembled.dataset.labels).toBe('hidden');
     advance(20);
     expect(assembled.dataset.labels).toBeUndefined();
+    // The exploded view waits at rest, as it prints.
+    expect(t(exploded)).toBe(1);
+  });
+
+  it('turns back from where a move has got to when pressed again', () => {
+    clock();
+    const { container } = mount(section());
+    press(container, 'Explode');
+    advance(200);
+    press(container, 'Assemble');
+    expect(sliding(wrapOf(container, /^Exploded view/))).toEqual(['beam']);
+    advance(250);
+    expect(onScreen(container).label).toMatch(/^Isometric view\. /);
   });
 
   it('swaps at once under reduced motion', () => {
@@ -166,8 +206,8 @@ describe('the move between the assembled and exploded views', () => {
     press(container, 'Explode');
     const exploded = wrapOf(container, /^Exploded view/);
     expect(onScreen(container).label).toMatch(/^Exploded view\. /);
-    expect(exploded.dataset.collapsed).toBeUndefined();
     expect(exploded.dataset.labels).toBeUndefined();
+    expect(t(exploded)).toBe(1);
     press(container, 'Assemble');
     expect(onScreen(container).label).toMatch(/^Isometric view\. /);
     expect(wrapOf(container, /^Isometric view/).dataset.labels).toBeUndefined();
@@ -182,23 +222,53 @@ describe('the move between the assembled and exploded views', () => {
     expect(boxes[0]).toBe(boxes[1]);
   });
 
-  it('gives each moved part’s shapes the way back to where it sits assembled', () => {
+  it('gives each sliding part’s shapes how far it goes in its stage, and leaves guidelines', () => {
+    clock();
     const { container } = mount(section());
+    press(container, 'Explode');
     const exploded = wrapOf(container, /^Exploded view/);
-    for (const move of worked.exploded?.moves ?? []) {
-      const shapes = [...exploded.querySelectorAll<HTMLElement>('[data-moves]')].filter(
-        (g) => g.querySelector(`[data-part="${move.partId}"]`) !== null,
-      );
-      expect(shapes.length, move.partId).toBeGreaterThan(0);
-    }
-    const beam = worked.exploded?.moves?.find((m) => m.partId === 'beam');
+    const beam = stages[0]?.moves.find((m) => m.partId === 'beam');
     const beamShape = [...exploded.querySelectorAll<HTMLElement>('[data-moves]')].find(
       (g) => g.querySelector('[data-part="beam"]') !== null,
     );
-    expect(beamShape?.style.getPropertyValue('--move-y')).toBe(`${-(beam?.by.y ?? 0)}px`);
+    expect(beamShape?.style.getPropertyValue('--move-y')).toBe(`${beam?.by.y ?? 0}px`);
     // Guidelines stay put; they fade instead.
     for (const line of exploded.querySelectorAll('[data-role="guideline"]')) {
       expect(line.closest('[data-moves]')).toBeNull();
     }
+  });
+});
+
+describe('the drawing under a move', () => {
+  const box = (part: string): geometry.Primitive => ({
+    kind: 'polygon',
+    role: 'visible',
+    points: [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 0, y: 1 },
+    ],
+    fill: 1,
+    part: { partId: part, instance: 0, letter: 'A' },
+  });
+  const assembled = { ...(worked.isometric as geometry.Drawing), primitives: [box('home')] };
+  const exploded: geometry.Drawing = {
+    ...(worked.exploded as geometry.Drawing),
+    primitives: [box('exploded')],
+    stages: [
+      { moves: [], from: 0.2, primitives: [box('first')] },
+      { moves: [], from: 0 },
+    ],
+  };
+  const under = (stage: number, over: 'start' | 'end') =>
+    drawingInMove(assembled, exploded, { stage, over }).primitives.map(
+      (p) => p.kind === 'polygon' && p.part?.partId,
+    );
+
+  it('is the drawing a stage starts from until its parts leave their joints, then its own', () => {
+    expect(under(0, 'start')).toEqual(['home']);
+    expect(under(0, 'end')).toEqual(['first']);
+    expect(under(1, 'start')).toEqual(['first']);
+    expect(under(1, 'end')).toEqual(['exploded']);
   });
 });

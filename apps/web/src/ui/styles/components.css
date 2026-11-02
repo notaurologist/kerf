@@ -2145,14 +2145,19 @@
   }
 
   /* ---------- Moving between views (#200) ---------- */
-  /* After the diagram rules they adjust. Each moved part slides home or out; letters and
+  /* After the diagram rules they adjust. A moving part slides by its move times --t, how far
+     through its stage the move is (useAssemblyMotion): from where the stage starts it over the
+     drawing the stage starts from, back from where it ends over the stage's own. Letters and
      guidelines, laid out for one view only, fade out first and in last. */
-  .k-diagram-wrap [data-moves] {
-    transition: transform var(--duration-move) ease-in-out;
+  .k-diagram-wrap[data-over="start"] [data-moves] {
+    transform: translate(calc(var(--move-x) * var(--t, 0)), calc(var(--move-y) * var(--t, 0)));
   }
 
-  .k-diagram-wrap[data-collapsed] [data-moves] {
-    transform: translate(var(--move-x), var(--move-y));
+  .k-diagram-wrap[data-over="end"] [data-moves] {
+    transform: translate(
+      calc(var(--move-x) * (var(--t, 1) - 1)),
+      calc(var(--move-y) * (var(--t, 1) - 1))
+    );
   }
 
   .k-diagram-wrap .k-letter,
@@ -2163,9 +2168,5 @@
   .k-diagram-wrap[data-labels="hidden"] .k-letter,
   .k-diagram-wrap[data-labels="hidden"] [data-role="guideline"] {
     opacity: 0;
-  }
-
-  .k-diagram-wrap[data-instant] * {
-    transition: none;
   }
 }

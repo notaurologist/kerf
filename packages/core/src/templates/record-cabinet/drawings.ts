@@ -50,28 +50,29 @@ export function cabinetScene(outputs: StoredRecordCabinetOutputs): Scene {
 }
 
 /**
- * How the exploded view pulls the cabinet apart: the top up, the sides out, the rails back, the
- * case bottom up off the base, the base's aprons and cleats out from the legs, and the doors
- * forward, their panels farther.
+ * How the exploded view pulls the cabinet apart: the case off the base, then its top up, the
+ * sides out, the rails back, and the doors forward, their panels farther; the base's aprons and
+ * cleats out from the legs, which stay on the floor. Far enough that the top, sides, doors, and
+ * base each stand clear of the others (#352).
  */
 export function cabinetExplode(outputs: StoredRecordCabinetOutputs): Explode[] {
   const { params: p } = outputs.design;
   const gap = p.caseDepth / 2;
   const base = p.legStock.size * 2;
+  // The case and its doors rise off the base, which stays on the floor, so neither hides the other.
+  const lift = gap;
   const offsets: Record<string, Vec3> = {
-    top: at(0, 0, 2 * gap),
-    'side-left': at(-gap, 0, gap),
-    'side-right': at(gap, 0, gap),
-    partition: at(0, 0, gap),
-    rail: at(0, gap, gap),
-    bottom: at(0, 0, gap / 2),
-    'apron-long': at(0, 0, -base / 2),
-    'apron-short': at(0, 0, -base / 2),
+    top: at(0, 0, lift + 3 * gap),
+    'side-left': at(-1.5 * gap, 0, lift + gap),
+    'side-right': at(1.5 * gap, 0, lift + gap),
+    partition: at(0, 0, lift + 1.5 * gap),
+    rail: at(0, gap, lift + gap),
+    bottom: at(0, 0, lift),
     cleat: at(0, 0, base / 2),
-    'door-stile-outer': at(0, -gap, 0),
-    'door-stile-inner': at(0, -gap, 0),
-    'door-rail': at(0, -gap, 0),
-    'door-panel': at(0, -1.5 * gap, 0),
+    'door-stile-outer': at(0, -3 * gap, lift),
+    'door-stile-inner': at(0, -3 * gap, lift),
+    'door-rail': at(0, -3 * gap, lift),
+    'door-panel': at(0, -4 * gap, lift),
   };
   return outputs.design.placements.flatMap((pl): Explode[] => {
     const offset =

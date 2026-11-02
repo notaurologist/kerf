@@ -18,11 +18,16 @@ export function catalogSample() {
   const first = template.examples[0];
   const last = template.examples[template.examples.length - 1];
   const firstSnapshot = snapshot(first?.params, first?.structuralInputs);
+  const drawings = template.drawings(template.storedOutputs.parse(firstSnapshot.outputs));
   return {
     first: firstSnapshot,
     last: snapshot(last?.params, last?.structuralInputs),
     unentered: snapshot(first?.params, {}),
-    drawings: template.drawings(template.storedOutputs.parse(firstSnapshot.outputs)),
+    // The catalog shows the two views without the move between them, so it needs no stages.
+    drawings: {
+      ...drawings,
+      exploded: drawings.exploded && { ...drawings.exploded, stages: undefined },
+    },
   };
 }
 
