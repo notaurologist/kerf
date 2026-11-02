@@ -19,10 +19,10 @@ const trashed: TrashedProject = {
 };
 
 describe('TrashList', () => {
-  it('says when the trash is empty, and how long deleted projects wait', () => {
+  it('says when there are no deleted projects, and how long they wait', () => {
     const text = renderText(<TrashList projects={[]} onGone={() => {}} />);
     expect(text).toContain('Deleted projects wait here for 30 days, then are deleted for good.');
-    expect(text).toContain('The trash is empty.');
+    expect(text).toContain('No deleted projects.');
   });
 
   it('shows each project with when it was deleted and when it goes for good, and its actions', () => {

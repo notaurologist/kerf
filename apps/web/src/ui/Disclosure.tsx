@@ -10,6 +10,8 @@ export function Disclosure(props: {
   open?: boolean;
   /** A small toggle beside a value, such as "Source". */
   size?: 'small';
+  /** `line`: the summary is a whole row in the text color, such as a check and its margin. */
+  variant?: 'line';
 }) {
   const ref = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
@@ -31,7 +33,13 @@ export function Disclosure(props: {
     };
   }, []);
   return (
-    <details ref={ref} className="k-disclosure" data-size={props.size} open={props.open}>
+    <details
+      ref={ref}
+      className="k-disclosure"
+      data-size={props.size}
+      data-variant={props.variant}
+      open={props.open}
+    >
       <summary>
         <span>{props.summary}</span>
         <Icon name="chevron" />

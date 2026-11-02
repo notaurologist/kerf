@@ -54,44 +54,47 @@ describe('glossary terms in the plan (#178)', () => {
   });
 
   it('starts each section afresh: the structural review marks its own first uses', () => {
+    // The To do band comes first. A line's own words (a check's name, an expert check's
+    // question) are not marked, since a term's button there would also open the line; terms are
+    // marked in what each line opens to (#359).
     expect(marked('structural-review')).toEqual([
       'margin',
-      'bending',
-      'dynamic factor',
-      'shear',
-      'deflection',
-      'flush',
       'gusset',
-      'burial depth',
-      'ground contact',
-      'edge distance',
       'nds',
-      'end distance',
       'grip',
+      'end distances',
       'racking',
+      'burial depth',
       'backfill',
+      'ground contact',
       'knots',
       'midspan',
       'grain',
       'wane',
       'design values',
       'pressure-treated',
+      'dynamic factor',
+      'deflection',
     ]);
   });
 
   // Terms are reachable from every section whose text uses them, not only the build steps.
-  it('marks terms in the summary, section intros, and the shopping list', () => {
-    expect(marked('summary')).toEqual([
-      'bending',
+  it('marks terms in the section intros, the cut list, and the shopping list', () => {
+    // The cut list's own words, then those in the expert checks on its parts (#356).
+    expect(marked('cut-list')).toEqual([
+      'long point',
       'flush',
+      'gusset',
+      'level cut',
       'burial depth',
       'ground contact',
       'edge distance',
-      'gusset',
+      'nds',
       'end distance',
     ]);
-    expect(marked('cut-list')).toEqual(['long point', 'level cut']);
+    // The hardware's notes sit beside the lumber, before the guidance on choosing boards (#361).
     expect(marked('shopping-list')).toEqual([
+      'grip',
       'grade stamp',
       'species and grade',
       'design values',
@@ -110,7 +113,6 @@ describe('glossary terms in the plan (#178)', () => {
       'awpa u1',
       'use category',
       'ground contact',
-      'grip',
     ]);
   });
 });

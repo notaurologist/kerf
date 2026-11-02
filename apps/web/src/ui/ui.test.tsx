@@ -26,7 +26,6 @@ import {
   ErrorText,
   ExpertCheck,
   Field,
-  Figures,
   FlagList,
   FormProgress,
   Frame,
@@ -56,7 +55,6 @@ import {
   SaveFailed,
   SawSetting,
   ScreenHeader,
-  SectionList,
   SectionPager,
   Select,
   StateTag,
@@ -552,43 +550,41 @@ describe('Disclosure', () => {
 
 describe('Frame', () => {
   const places = [
-    { label: 'Projects', href: '#/projects', icon: 'projects', current: 'page' },
-    { label: 'Tools', href: '#/tools', icon: 'tools' },
-    { label: 'Glossary', href: '#/glossary', icon: 'glossary' },
+    { label: 'Projects', href: '#/projects', current: 'page' },
+    { label: 'Workshop', href: '#/workshop' },
   ] as const;
   const frame = (back?: { label: string; href: string }) =>
     render(
-      <Frame brandHref="#/projects" places={places} back={back} actions={<b>Log out</b>}>
+      <Frame brandHref="#/projects" places={places} back={back} end={<b>Workshop</b>}>
         <main>Screen</main>
       </Frame>,
     );
 
-  it('marks the current place in the sidebar and the tab bar, with an icon and a label in each tab', () => {
+  it('marks the current place in the sidebar, the one main navigation, with no tab bar', () => {
     const html = frame();
-    expect(html.match(/<nav class="k-(sidebar|tabbar)" aria-label="Main">/g)).toHaveLength(2);
+    expect(html.match(/<nav class="k-[a-z]+" aria-label="Main">/g)).toEqual([
+      '<nav class="k-sidebar" aria-label="Main">',
+    ]);
     expect(html).toContain('<a href="#/projects" aria-current="page">Projects</a>');
-    expect(html).toContain('<a href="#/tools">Tools</a>');
-    expect(html).toMatch(
-      /<a href="#\/projects" aria-current="page"><svg class="k-icon"[^>]*aria-hidden="true"[^>]*>.*?<\/svg><span>Projects<\/span><\/a>/,
-    );
+    expect(html).toContain('<a href="#/workshop">Workshop</a>');
+    expect(html).not.toContain('tabbar');
     expect(html).toContain('<div class="k-frame__main"><main>Screen</main></div>');
   });
 
-  it('gives a place the wordmark and its actions in the title bar, and again in the sidebar', () => {
+  it('gives a place the wordmark and its end in the title bar', () => {
     const html = frame();
     expect(html).toMatch(
       /<header class="k-titlebar"><a class="k-titlebar__brand" href="#\/projects">/,
     );
-    expect(html).toContain('<div class="k-titlebar__actions"><b>Log out</b></div>');
-    expect(html).toContain('<div class="k-frame__actions"><b>Log out</b></div>');
+    expect(html).toContain('<div class="k-titlebar__end"><b>Workshop</b></div>');
     expect(html).not.toContain('popover');
   });
 
-  it('gives a screen inside a place a back link and no actions in the title bar', () => {
-    const html = frame({ label: 'Tools', href: '#/tools' });
-    expect(html).toMatch(/<a class="k-titlebar__back" href="#\/tools">.*Tools<\/a>/);
+  it('gives a screen inside a place a back link, and keeps the end in the title bar', () => {
+    const html = frame({ label: 'Workshop', href: '#/workshop' });
+    expect(html).toMatch(/<a class="k-titlebar__back" href="#\/workshop">.*Workshop<\/a>/);
     expect(html).not.toContain('k-titlebar__brand');
-    expect(html).not.toContain('k-titlebar__actions');
+    expect(html).toContain('<div class="k-titlebar__end"><b>Workshop</b></div>');
   });
 });
 
@@ -916,21 +912,6 @@ function examplePlan(inputs: unknown) {
 }
 const examplePlanAsEntered = examplePlan(TEMPLATES[0]?.examples[0]?.structuralInputs);
 
-describe('Figures', () => {
-  it('pairs each label with its value and detail as a description list', () => {
-    const html = render(
-      <Figures
-        items={[
-          { label: 'Beam', value: '120", 4x6' },
-          { label: 'Lowest margin', value: 'margin 1.1x', detail: 'Bending: Top beam' },
-        ]}
-      />,
-    );
-    expect(html).toMatch(/^<dl class="k-figures"><div class="k-figure"><dt>Beam<\/dt><dd>/);
-    expect(html).toContain('<dd class="k-figure__detail">Bending: Top beam</dd>');
-  });
-});
-
 describe('Term', () => {
   const href = (id: string) => `#/glossary/${id}`;
   const buttons = (html: string) =>
@@ -1111,21 +1092,6 @@ describe('SectionPager', () => {
   });
 });
 
-describe('SectionList', () => {
-  it('links each section with its digest under it', () => {
-    const html = render(
-      <SectionList
-        items={[
-          { id: 'cut-list', title: 'Cut list', href: '#/p/cut-list', digest: '5 parts, 9 pieces' },
-        ]}
-      />,
-    );
-    expect(html).toBe(
-      '<ul class="k-section-list"><li><a href="#/p/cut-list">Cut list</a><span class="k-section-list__digest">5 parts, 9 pieces</span></li></ul>',
-    );
-  });
-});
-
 describe('OneLine', () => {
   it('keeps the whole text in the page, for screen readers and copying', () => {
     expect(render(<OneLine>A long sentence.</OneLine>)).toBe(
@@ -1137,11 +1103,11 @@ describe('OneLine', () => {
 describe('PlanSection headings', () => {
   it('can take focus after a move, and the first section can share a printed page', () => {
     const html = render(
-      <PlanSection id="summary" title="Summary" project="Backyard" newPage={false}>
-        <p>Figures</p>
+      <PlanSection id="diagrams" title="Diagrams" project="Backyard" newPage={false}>
+        <p>Drawings</p>
       </PlanSection>,
     );
-    expect(html).toContain('<h2 id="summary-heading" tabindex="-1">Summary</h2>');
+    expect(html).toContain('<h2 id="diagrams-heading" tabindex="-1">Diagrams</h2>');
     expect(html).toContain('data-page="same"');
   });
 });

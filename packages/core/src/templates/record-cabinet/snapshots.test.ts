@@ -128,7 +128,9 @@ describe('record-cabinet snapshot fixtures', () => {
       });
       const outputs = recordCabinet.storedOutputs.parse(read.snapshot.outputs);
       const plan = recordCabinet.plan(outputs);
-      expect(withoutBoards(plan.cutList)).toEqual(
+      // The saw settings are added on read (#360); the stored rows are kept as they were.
+      const rows = plan.cutList.map(({ settings: _, ...row }) => row);
+      expect(withoutBoards(rows)).toEqual(
         (stored as { outputs: { cutList: unknown } }).outputs.cutList,
       );
       for (const op of plan.operations.filter((o) => o.type === 'flatten')) {

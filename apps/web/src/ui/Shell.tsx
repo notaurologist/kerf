@@ -1,16 +1,15 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
-import { Icon, type IconName } from './Icon.tsx';
+import { Icon } from './Icon.tsx';
 import { Wordmark } from './Wordmark.tsx';
 
-// The frame around every screen. Planning screens sit in Stage 9's frame (#265): on a phone, a
-// title bar and a tab bar with the three places; from 52.5rem of the frame's width, one sidebar
-// with the places and, while a project is open, its sections. Shopping and Building cover it
-// with their own bar and Exit (M7, #61), as a modal covers a tab bar.
+// The frame around every screen. Planning screens sit in Stage 9's frame (#265) as Stage 12 changed
+// it (#356): on a phone, a title bar with a way to Workshop at its end and no tab bar; from 52.5rem
+// of the frame's width, one sidebar with the places and, while a project is open, its sections.
+// Shopping and Building cover it with their own bar and Exit (M7, #61).
 
 export interface Place {
   label: string;
   href: string;
-  icon: IconName;
   /** `page` on the place itself; `true` on a screen inside it, such as a tool's page. */
   current?: 'page' | 'true';
 }
@@ -22,6 +21,8 @@ export interface FrameProject {
   sections?: {
     items: readonly { id: string; title: string; href: string }[];
     current: string;
+    /** A link after the sections that is not one, such as the values in Edit. */
+    end?: { title: string; href: string };
   };
 }
 
@@ -41,10 +42,9 @@ export function useFrameProject(project: FrameProject) {
 }
 
 /**
- * Stage 9's frame. The title bar has the wordmark and the `actions` on a place, or a back link
- * and the open project's name below one; the sidebar has the `actions` at its foot. The actions
- * are drawn in both, one shown at a time, so they should be icon buttons that keep no state of
- * their own. The sidebar marks the current place, and the
+ * Stage 9's frame. The title bar has the wordmark on a place, or a back link and the open
+ * project's name below one, and `end` at its end on every screen; the sidebar, which replaces the
+ * title bar from 52.5rem, lists the places instead. The sidebar marks the current place, and the
  * plan's sections replace its own contents column. `preview` sizes it to its content, for the
  * catalog.
  */
@@ -52,7 +52,7 @@ export function Frame(props: {
   brandHref: string;
   places: readonly Place[];
   back?: Back;
-  actions: ReactNode;
+  end: ReactNode;
   preview?: boolean;
   children: ReactNode;
 }) {
@@ -82,7 +82,7 @@ export function Frame(props: {
               </a>
             )}
             {title && <span className="k-titlebar__title">{title}</span>}
-            {!props.back && <div className="k-titlebar__actions">{props.actions}</div>}
+            <div className="k-titlebar__end">{props.end}</div>
           </header>
           <div className="k-frame__side">
             <nav className="k-sidebar" aria-label="Main">
@@ -117,6 +117,9 @@ export function Frame(props: {
                               ))}
                             </ol>
                           )}
+                          {project.sections?.end && (
+                            <a href={project.sections.end.href}>{project.sections.end.title}</a>
+                          )}
                         </li>
                       </ul>
                     )}
@@ -124,17 +127,8 @@ export function Frame(props: {
                 ))}
               </ul>
             </nav>
-            <div className="k-frame__actions">{props.actions}</div>
           </div>
           <div className="k-frame__main">{props.children}</div>
-          <nav className="k-tabbar" aria-label="Main">
-            {props.places.map((place) => (
-              <a key={place.href} href={place.href} aria-current={place.current}>
-                <Icon name={place.icon} />
-                <span>{place.label}</span>
-              </a>
-            ))}
-          </nav>
         </div>
       </div>
     </FrameContext.Provider>

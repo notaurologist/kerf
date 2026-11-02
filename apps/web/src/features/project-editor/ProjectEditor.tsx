@@ -13,9 +13,10 @@ import {
   type TemplateDefinition,
   visibleFields,
 } from '@kerf/core';
-import { type FormEvent, type ReactNode, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
 import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
+import { fieldId } from '../../lib/fieldIds.ts';
 import { setFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { newProjectLabel } from '../../lib/names.ts';
@@ -25,7 +26,13 @@ import { projectStore } from '../../lib/projectStore.ts';
 import { href, navigate, type ProjectStart } from '../../lib/route.ts';
 import { sameJson } from '../../lib/sameJson.ts';
 import type { PlanSectionId } from '../../lib/sections.ts';
-import type { Project, ProjectSummary } from '../../lib/types.ts';
+import {
+  type Project,
+  type ProjectStatus,
+  type ProjectSummary,
+  STATUS_LABELS,
+  STATUSES,
+} from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
@@ -38,10 +45,10 @@ import {
   FormProgress,
   InfoNotice,
   Notice,
-  PlainList,
   ProblemScreen,
   SaveFailed,
   ScreenHeader,
+  Select,
   Stack,
   type SummaryItem,
   Text,
@@ -55,6 +62,7 @@ import {
 import { DeleteProject } from './DeleteProject.tsx';
 import { belongsTo, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 import { PreviewPane, usePreview } from './Preview.tsx';
+import { StartChoice, StartedFrom } from './StartChoice.tsx';
 import { StartQuestions } from './StartQuestions.tsx';
 
 // Create or edit a project's parameters and structural inputs (PRODUCT.md, MVP features 2 and
@@ -77,8 +85,9 @@ export function NewProjectScreen(props: { templateId: string; start?: ProjectSta
 }
 
 /**
- * A new project's form, empty or started from a worked example or an earlier project (#98). The
- * earlier projects of the template are loaded to offer as starts.
+ * A new project: first how to start (#358), then its form, empty or started from a worked example,
+ * an earlier project (#98), or the template's questions (#163). The earlier projects of the
+ * template are loaded to offer as starts.
  */
 function NewProject(props: { template: TemplateDefinition; start?: ProjectStart }) {
   const { template, start } = props;
@@ -98,7 +107,10 @@ function NewProject(props: { template: TemplateDefinition; start?: ProjectStart 
   return (
     <Loaded state={loaded} loading="Loading…" onRetry={reload} title={newTitle(template)}>
       {({ earlier, source }) => {
-        const starts = <StartFrom template={template} start={start} earlier={earlier} />;
+        if (!start) {
+          return <StartChoice template={template} title={newTitle(template)} earlier={earlier} />;
+        }
+        const starts = <StartedFrom template={template} start={start} earlier={earlier} />;
         if (start?.kind === 'questions' && template.questions) {
           return (
             <StartQuestions
@@ -210,62 +222,10 @@ export function startValues(
   return { ok: true, initial: { name: '', params: formValues(form.params, {}), inputs: empty } };
 }
 
-/**
- * The starts a new project can have: empty, each worked example offered as one, the template's
- * starting questions, each earlier project.
- */
-function StartFrom(props: {
-  template: TemplateDefinition;
-  start?: ProjectStart;
-  earlier: readonly ProjectSummary[];
-}) {
-  const { template, start } = props;
-  const items = [
-    { label: 'An empty form', start: undefined as ProjectStart | undefined },
-    ...template.examples.flatMap((e, index) =>
-      e.start ? [{ label: e.start, start: { kind: 'example', index } as ProjectStart }] : [],
-    ),
-    ...(template.questions
-      ? [{ label: 'Answer a few questions', start: { kind: 'questions' } as ProjectStart }]
-      : []),
-    ...props.earlier.map((p) => ({
-      label: `A copy of ${p.name}`,
-      start: { kind: 'project', id: p.id } as ProjectStart,
-    })),
-  ];
-  const isCurrent = (s: ProjectStart | undefined) => JSON.stringify(s) === JSON.stringify(start);
-  return (
-    <nav aria-labelledby="start-from">
-      <Stack gap="2xs">
-        <h2 id="start-from">Start from</h2>
-        <PlainList>
-          {items.map((item) => (
-            <li key={item.label + JSON.stringify(item.start)}>
-              {isCurrent(item.start) ? (
-                <b aria-current="page">{item.label}</b>
-              ) : (
-                <a
-                  href={href({
-                    screen: 'new-project',
-                    templateId: template.id,
-                    ...(item.start ? { start: item.start } : {}),
-                  })}
-                >
-                  {item.label}
-                </a>
-              )}
-            </li>
-          ))}
-        </PlainList>
-      </Stack>
-    </nav>
-  );
-}
-
 const newTitle = (template: TemplateDefinition) => newProjectLabel(template.name);
 
 /** `from` is the plan's section Edit was opened from: Save and Cancel go back to it (#156). */
-export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
+export function EditProjectScreen(props: { id: string; from?: PlanSectionId; field?: string }) {
   const { loaded, reload } = useLoad(
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
@@ -274,7 +234,13 @@ export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
     <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Edit project">
       {(project) => (
         // A newer revision, loaded after a save was refused, starts the form again from it.
-        <EditProject key={project.revision} project={project} from={props.from} onReload={reload} />
+        <EditProject
+          key={project.revision}
+          project={project}
+          from={props.from}
+          field={props.field}
+          onReload={reload}
+        />
       )}
     </Loaded>
   );
@@ -283,6 +249,7 @@ export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
 export function EditProject(props: {
   project: Project;
   from?: PlanSectionId;
+  field?: string;
   onReload: () => void;
 }) {
   const { project } = props;
@@ -296,7 +263,12 @@ export function EditProject(props: {
 }
 
 /** The form, or why it cannot be shown; the project can still be deleted either way. */
-function EditProjectForm(props: { project: Project; from?: PlanSectionId; onReload: () => void }) {
+function EditProjectForm(props: {
+  project: Project;
+  from?: PlanSectionId;
+  field?: string;
+  onReload: () => void;
+}) {
   const { project } = props;
   const template = findTemplate(project.templateId);
   const back = { href: href({ screen: 'project', id: project.id }), label: project.name };
@@ -322,9 +294,11 @@ function EditProjectForm(props: { project: Project; from?: PlanSectionId; onRelo
       template={template}
       project={project}
       from={props.from}
+      field={props.field}
       onReload={props.onReload}
       initial={{
         name: project.name,
+        status: project.status,
         params: formValues(template.form.params, project.snapshot.params),
         inputs: formValues(template.form.structuralInputs, project.snapshot.structuralInputs),
       }}
@@ -334,6 +308,8 @@ function EditProjectForm(props: { project: Project; from?: PlanSectionId; onRelo
 
 interface EditorValues {
   name: string;
+  /** An existing project's status, which follows progress and can be set here (#355). */
+  status?: ProjectStatus;
   params: FormValues;
   inputs: FormValues;
 }
@@ -343,6 +319,8 @@ export function ProjectEditor(props: {
   project?: Project;
   /** The plan's section to return to after Save or Cancel; the summary when absent. */
   from?: PlanSectionId;
+  /** The id of a field to start on, such as an input a check needs. */
+  field?: string;
   /** Loads the project again, for when another device saved it after this form opened. */
   onReload?: () => void;
   initial: EditorValues;
@@ -359,8 +337,18 @@ export function ProjectEditor(props: {
   const { template, project, copied } = props;
   const form = template.form;
   const { draft, setDraft, dialog } = useDraft(props.initial);
-  const { name, params, inputs } = draft;
+  // After the screen's heading has taken focus (a child's effect runs first), so this one wins.
+  const startField = props.field;
+  useEffect(() => {
+    if (!startField) return;
+    const target = document.getElementById(startField);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: 'center' });
+  }, [startField]);
+  const { name, status, params, inputs } = draft;
   const setName = (next: string) => setDraft((d) => ({ ...d, name: next }));
+  const setStatus = (next: string) =>
+    setDraft((d) => ({ ...d, status: STATUSES.find((s) => s === next) ?? d.status }));
   const setParams = (next: FormValues) => setDraft((d) => ({ ...d, params: next }));
   const setInputs = (next: FormValues) => setDraft((d) => ({ ...d, inputs: next }));
   const { issues, attempt, report } = useFormIssues({
@@ -437,7 +425,12 @@ export function ProjectEditor(props: {
 
     setSaveState({ state: 'saving' });
     const result = project
-      ? await save(project, revision ?? project.revision, name.trim(), builtParams, builtInputs)
+      ? await save(project, revision ?? project.revision, {
+          name: name.trim(),
+          status: status ?? project.status,
+          params: builtParams,
+          inputs: builtInputs,
+        })
       : await send(
           api.api.projects.$post({
             json: {
@@ -505,6 +498,24 @@ export function ProjectEditor(props: {
       <Field id="project-name" label="Project name" error={issues.name} width="medium">
         {(c) => <TextInput {...c} value={name} onChange={setName} readOnly={saving} />}
       </Field>
+      {project && status && (
+        <Field
+          id="project-status"
+          label="Status"
+          hint="Follows your progress: In progress at the first tick, Built when the last step is done. Set it here for a project built without ticking its steps."
+          width="medium"
+        >
+          {(c) => (
+            <Select
+              {...c}
+              value={status}
+              onChange={setStatus}
+              placeholder={false}
+              options={STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+            />
+          )}
+        </Field>
+      )}
       <Stack gap="xs">
         <Text tone="muted">
           Fields marked "Input needed" are yours to enter or check. Structural inputs can wait:
@@ -631,9 +642,6 @@ export function ProjectEditor(props: {
   );
 }
 
-/** The id of a field's control, which the error summary and the progress links point to. */
-const fieldId = (from: FormSource, path: string) => `${from === 'params' ? 'p' : 's'}-${path}`;
-
 /** The form's parts with only the fields that apply to the values typed so far. */
 function shownParts(template: TemplateDefinition, params: FormValues, inputs: FormValues) {
   const visible = new Set([
@@ -708,33 +716,32 @@ function named(label: string | undefined, message: string): string {
   return `${label}: ${message.charAt(0).toLowerCase()}${message.slice(1)}`;
 }
 
+/** What the editor holds for an existing project, as it would be saved. */
+interface Edited {
+  name: string;
+  status: ProjectStatus;
+  params: Record<string, unknown>;
+  inputs: Record<string, unknown>;
+}
+
 /**
  * What to send for an edit: only what changed, so renaming a project never regenerates it (and
  * never moves it to a newer template version without the owner changing a value).
  */
-export function changesFor(
-  project: Project,
-  name: string,
-  params: Record<string, unknown>,
-  inputs: Record<string, unknown>,
-) {
+export function changesFor(project: Project, edited: Edited) {
+  const { name, status, params, inputs } = edited;
   const stored = project.snapshot;
   return {
     ...(name !== project.name ? { name } : {}),
+    ...(status !== project.status ? { status } : {}),
     ...(stored && !sameJson(params, stored.params) ? { params } : {}),
     ...(stored && !sameJson(inputs, stored.structuralInputs) ? { structuralInputs: inputs } : {}),
   };
 }
 
 /** Saves the changed fields against `revision`; another device's other changes stand. */
-async function save(
-  project: Project,
-  revision: number,
-  name: string,
-  params: Record<string, unknown>,
-  inputs: Record<string, unknown>,
-) {
-  const changes = changesFor(project, name, params, inputs);
+async function save(project: Project, revision: number, edited: Edited) {
+  const changes = changesFor(project, edited);
   if (Object.keys(changes).length === 0) return { ok: true as const, value: project };
   return send(
     api.api.projects[':id'].$put({ param: { id: project.id }, json: { ...changes, revision } }),

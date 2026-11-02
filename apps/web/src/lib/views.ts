@@ -28,3 +28,20 @@ export async function loadCornerViews(
         },
       };
 }
+
+/** A template's first worked example, assembled (#357), drawn by the API and parsed with core's schema. */
+export async function loadTemplateDrawing(id: string): Promise<ApiResult<geometry.Drawing | null>> {
+  const result = await send(api.api.templates[':id'].drawing.$get({ param: { id } }));
+  if (!result.ok) return result;
+  const parsed = geometry.Drawing.nullable().safeParse(result.value.drawing);
+  return parsed.success
+    ? { ok: true, value: parsed.data }
+    : {
+        ok: false,
+        error: {
+          kind: 'failed',
+          status: 200,
+          message: 'The drawing the server sent could not be read.',
+        },
+      };
+}

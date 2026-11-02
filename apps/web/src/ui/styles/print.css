@@ -36,11 +36,15 @@
 
     .k-card,
     .k-row,
-    .k-figure,
     .k-callout[data-tone="flag"],
     .k-definition,
     .k-table tr {
       break-inside: avoid;
+    }
+
+    /* Every row's details print, open (#360). */
+    .k-table tr[data-details][hidden] {
+      display: table-row;
     }
 
     .k-disclosure > summary .k-icon {
@@ -48,8 +52,8 @@
     }
 
     .k-button,
+    .k-table__toggle,
     .k-titlebar,
-    .k-tabbar,
     .k-frame__side,
     .k-modebar {
       display: none;

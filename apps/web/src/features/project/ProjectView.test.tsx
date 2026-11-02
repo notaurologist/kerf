@@ -44,7 +44,7 @@ describe('ProjectView, from a stored snapshot', () => {
     );
   });
 
-  it('keeps the cut list’s short columns narrow and gives the rest to end cuts and marks (#158)', () => {
+  it('keeps the cut list’s short columns narrow, with the stock under the part (#158, #360)', () => {
     const html = render(<ProjectView project={projectFrom(workedExample)} />);
     const header = (label: string) => new RegExp(`<th scope="col"[^>]*>(?:<span[^>]*>)?${label}<`);
     const width = (label: string) =>
@@ -54,10 +54,11 @@ describe('ProjectView, from a stored snapshot', () => {
     expect(html).toMatch(header('Part'));
     expect(width('Part')).toBeUndefined();
     expect(width('Qty')).toBe('fit');
-    expect(width('Stock')).toBe('fit');
     expect(width('Length')).toBe('fit');
-    expect(width('End cuts')).toBe('fill');
-    expect(width('Marks and notes')).toBe('fill');
+    expect(width('Ends')).toBe('fit');
+    const cutList = sectionOf(html, 'cut-list');
+    expect(cutList).not.toMatch(header('Stock'));
+    expect(cutList).not.toMatch(header('Marks and notes'));
     // Stock breaks only between its nominal size and its actual size.
     expect(html).toContain(
       '<span class="k-length">4x6</span> <span class="k-length">(3-1/2&quot; x 5-1/2&quot;)</span>',
@@ -65,8 +66,9 @@ describe('ProjectView, from a stored snapshot', () => {
   });
 
   it('shows the shopping list, with board lengths and pieces through formatLength', () => {
-    expect(text).toContain(`4x4 12' 0" 4`);
-    expect(text).toContain(`4x6 12' 0" 1`);
+    // The count to buy first (#361).
+    expect(text).toContain(`4 4x4 12' 0"`);
+    expect(text).toContain(`1 4x6 12' 0"`);
     for (const line of outputs.hardware) expect(text).toContain(line.description);
   });
 
@@ -111,13 +113,13 @@ describe('the plan’s hardware list', () => {
 
   it('is split by store group, in the order each group first comes (#59)', () => {
     const text = list(hardware);
-    expect(text).toMatch(/Bolts and fittings .*Bolts 4 .*Washers 8 .*Swing hardware .*Hangers 4/);
+    expect(text).toMatch(/Bolts and fittings .*4 Bolts .*8 Washers .*Swing hardware .*4 Hangers/);
   });
 
   it('has no group headings for a plan made before groups', () => {
     const text = list(hardware.map(({ description, quantity }) => ({ description, quantity })));
     expect(text).not.toContain('Bolts and fittings');
-    expect(text).toMatch(/Bolts 4 .*Hangers 4 .*Washers 8/);
+    expect(text).toMatch(/4 Bolts .*4 Hangers .*8 Washers/);
   });
 });
 
