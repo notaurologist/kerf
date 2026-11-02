@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { boardIds } from '../outputs/shoppingList.ts';
 import {
+  checklistProgressKey,
+  flagProgressKey,
+  isReviewProgress,
+  PROGRESS_KINDS,
   type ProgressItem,
   progressToReset,
   shoppingGroups,
   summarizeProgress,
+  summarizeReview,
 } from './progress.ts';
 
 describe('boardIds', () => {
@@ -89,6 +94,38 @@ describe('summarizeProgress', () => {
   it('has no next step when every step is done', () => {
     const ticked = steps.map((s) => ({ kind: 'step' as const, key: s.id }));
     expect(summarizeProgress(plan, steps, ticked).nextStep).toBeNull();
+  });
+});
+
+describe('summarizeReview', () => {
+  const flag = (ask: string) => ({ category: 'load-bearing' as const, ask });
+  const item = (element: string) => ({ category: 'racking' as const, element });
+  const plan = {
+    // A flag repeated in a plan shares its tick, so it counts once.
+    flags: [flag('Bolt size?'), flag('Burial depth?'), flag('Bolt size?')],
+    checklist: [item('A-frames'), item('Beam')],
+  } as unknown as Parameters<typeof summarizeReview>[0];
+
+  it('counts the expert checks not asked and the checklist items not confirmed', () => {
+    expect(
+      summarizeReview(plan, [
+        { kind: 'flag', key: flagProgressKey(flag('Bolt size?')) },
+        { kind: 'checklist-item', key: checklistProgressKey(item('Beam')) },
+        // Another kind with the same key is another item.
+        { kind: 'step', key: flagProgressKey(flag('Burial depth?')) },
+      ]),
+    ).toEqual({ flags: { open: 1, total: 2 }, checklist: { open: 1, total: 2 } });
+  });
+
+  it('keys a flag by its category and ask, and a checklist item by its category and element', () => {
+    expect(flagProgressKey(flag('Bolt size?'))).toBe('load-bearing/Bolt size?');
+    expect(checklistProgressKey(item('Beam'))).toBe('racking/Beam');
+  });
+});
+
+describe('isReviewProgress', () => {
+  it('is true for the structural review kinds only', () => {
+    expect(PROGRESS_KINDS.filter(isReviewProgress)).toEqual(['flag', 'checklist-item']);
   });
 });
 

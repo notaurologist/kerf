@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { Drawings } from '../geometry/index.ts';
 import type { TemplateDefinition } from '../model/definition.ts';
 import { CUTTING_OPERATION_TYPES } from '../model/operations.ts';
+import type { ChecklistItem, Flag } from '../model/types.ts';
 import type { Plan } from '../outputs/plan.ts';
 import { boardIds, lumberLineKey } from '../outputs/shoppingList.ts';
 import { type StepOutline, stepContents } from '../steps/build.ts';
@@ -12,11 +13,27 @@ import { type StepOutline, stepContents } from '../steps/build.ts';
 // pieces moved, or a step whose holes moved, would say work is done that was done to other
 // numbers. The comparison is made once, at regeneration, with both plans read by the same code, so
 // it can include drawings: a part's cut detail holds its holes and marks, which the cut list does
-// not.
+// not. The structural review's expert checks and confirmation checklist are ticked too (#393): a
+// tick there says the owner asked or confirmed it, never that the design is adequate.
 
-export const PROGRESS_KINDS = ['shopping-line', 'board', 'part', 'step'] as const;
+export const PROGRESS_KINDS = [
+  'shopping-line',
+  'board',
+  'part',
+  'step',
+  'flag',
+  'checklist-item',
+] as const;
 export const ProgressKind = z.enum(PROGRESS_KINDS);
 export type ProgressKind = z.infer<typeof ProgressKind>;
+
+/**
+ * The kinds ticked in the structural review rather than in Shopping or Building. They record what
+ * was asked and confirmed, not work done on the project, so they never move its status.
+ */
+export const REVIEW_PROGRESS_KINDS = ['flag', 'checklist-item'] as const satisfies ProgressKind[];
+export const isReviewProgress = (kind: ProgressKind) =>
+  (REVIEW_PROGRESS_KINDS as readonly ProgressKind[]).includes(kind);
 
 /** Something in a plan that can be ticked off. */
 export interface ProgressItem {
@@ -24,7 +41,8 @@ export interface ProgressItem {
   /**
    * Stable across regenerations: a lumber line by its stock's name and length ("lumber/2x6/12"),
    * a hardware line by its description ("hardware/..."), a board by its ID in the board plan
-   * (`boardIds`), a part's piece by part ID and instance from 0 ("post/3"), a step by its ID.
+   * (`boardIds`), a part's piece by part ID and instance from 0 ("post/3"), a step by its ID, an
+   * expert check by its category and what to ask, a checklist item by its category and element.
    */
   key: string;
   /** The numbers the item was made with, as canonical JSON, compared exactly. */
@@ -42,7 +60,25 @@ const lumberProgressKey = (line: Parameters<typeof lumberLineKey>[0]) =>
   `lumber/${lumberLineKey(line)}`;
 const hardwareProgressKey = (description: string) => `hardware/${description}`;
 
+/**
+ * An expert check's key: its category and what to ask. The ask carries the design's numbers, so
+ * a flag asked about other numbers is another item.
+ */
+export const flagProgressKey = (flag: Pick<Flag, 'category' | 'ask'>) =>
+  `${flag.category}/${flag.ask}`;
+
+/** A confirmation checklist item's key: its category and the design element it is about. */
+export const checklistProgressKey = (item: Pick<ChecklistItem, 'category' | 'element'>) =>
+  `${item.category}/${item.element}`;
+
 const json = (value: unknown) => JSON.stringify(value);
+
+/** Items with the first of each key, so two with one key share a tick. */
+function firstByKey<T>(items: readonly T[], key: (item: T) => string): { key: string; item: T }[] {
+  const seen = new Map<string, T>();
+  for (const item of items) if (!seen.has(key(item))) seen.set(key(item), item);
+  return [...seen].map(([k, item]) => ({ key: k, item }));
+}
 
 /**
  * The shopping lines as they are ticked: lumber, then hardware, each with its key. Two hardware
@@ -62,13 +98,15 @@ function shoppingLines(
 
 /**
  * Every item in a plan that can be ticked off, in the plan's order: shopping lines (lumber, then
- * hardware), boards, each part's pieces, and the build steps. A piece's numbers include its
- * part's cut detail, and a step's the cut details of the parts it works on and, for site work, the
- * site layout. Needs no inventory: which method does a step does not change what the step is.
+ * hardware), boards, each part's pieces, the build steps, then the expert checks and checklist
+ * items. A piece's numbers include its part's cut detail, and a step's the cut details of the
+ * parts it works on and, for site work, the site layout. An expert check's or checklist item's
+ * numbers are the whole item, so a tick clears when its wording or the parts it concerns change.
+ * Needs no inventory: which method does a step does not change what the step is.
  */
 function planProgressItems(
   outline: readonly StepOutline[],
-  plan: Pick<Plan, 'operations' | 'lumber' | 'hardware' | 'cutList'>,
+  plan: Pick<Plan, 'operations' | 'lumber' | 'hardware' | 'cutList' | 'flags' | 'checklist'>,
   drawings: Pick<Drawings, 'cutDetails' | 'siteLayout'>,
 ): ProgressItem[] {
   const { lumber } = plan;
@@ -132,6 +170,12 @@ function planProgressItems(
         site: onSite ? drawings.siteLayout : null,
       }),
     });
+  }
+  for (const { key, item } of firstByKey(plan.flags, flagProgressKey)) {
+    items.push({ kind: 'flag', key, numbers: json(item) });
+  }
+  for (const { key, item } of firstByKey(plan.checklist, checklistProgressKey)) {
+    items.push({ kind: 'checklist-item', key, numbers: json(item) });
   }
   return items;
 }
@@ -256,6 +300,28 @@ export function summarizeProgress(
     },
     steps: { done: steps.filter((s) => isDone('step', s.id)).length, total: steps.length },
     nextStep: step ? { id: step.id, number: next + 1, title: step.title } : null,
+  };
+}
+
+/** How many of the structural review's expert checks and checklist items are still open. */
+export interface ReviewProgress {
+  flags: { open: number; total: number };
+  checklist: { open: number; total: number };
+}
+
+/** Counts the expert checks not yet asked and the checklist items not yet confirmed (#393). */
+export function summarizeReview(
+  plan: { flags: readonly Flag[]; checklist: readonly ChecklistItem[] },
+  ticked: readonly Pick<ProgressItem, 'kind' | 'key'>[],
+): ReviewProgress {
+  const done = new Set(ticked.map(progressId));
+  const count = (kind: ProgressKind, keys: readonly { key: string }[]) => ({
+    open: keys.filter(({ key }) => !done.has(progressId({ kind, key }))).length,
+    total: keys.length,
+  });
+  return {
+    flags: count('flag', firstByKey(plan.flags, flagProgressKey)),
+    checklist: count('checklist-item', firstByKey(plan.checklist, checklistProgressKey)),
   };
 }
 

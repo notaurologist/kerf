@@ -1,4 +1,4 @@
-import { PROGRESS_KINDS } from '@kerf/core';
+import { findTemplate, flagProgressKey, PROGRESS_KINDS } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 import { swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
@@ -42,7 +42,14 @@ async function setup() {
       method: 'PUT',
       body: { ...body, revision: await revision() },
     });
-  return { ...test, id, tick, progress, save, revision };
+  /** The expert checks in the stored plan, as core reads them. */
+  const flags = async () => {
+    const project = (await (await test.authed(`/api/projects/${id}`)).json()) as Json;
+    const template = findTemplate('swing-set-a-frame');
+    if (!template) throw new Error('no swing-set template');
+    return template.plan(template.storedOutputs.parse(project.snapshot.outputs)).flags;
+  };
+  return { ...test, id, tick, progress, save, revision, flags };
 }
 
 const done = (kind: string, key: string) => ({ kind, key, done: true });
@@ -222,6 +229,45 @@ describe('project progress', () => {
     expect((await tick([done('step', 'beam')])).body.status).toBe('in-progress');
     await tick([{ kind: 'step', key: 'beam', done: false }]);
     expect((await tick([done('step', 'beam')])).body.status).toBe('built');
+  });
+
+  it('saves and clears ticks on expert checks and checklist items, which move no status', async () => {
+    const { tick, progress, flags } = await setup();
+    const [flag] = await flags();
+    if (!flag) throw new Error('the worked example has no expert checks');
+    const asked = flagProgressKey(flag);
+    const { status, body } = await tick([
+      done('flag', asked),
+      done('checklist-item', 'racking/A-frames and crossbars'),
+    ]);
+    expect(status).toBe(200);
+    expect(keys(body.ticks).sort()).toEqual([
+      'checklist-item racking/A-frames and crossbars',
+      `flag ${asked}`,
+    ]);
+    // Asking and confirming is not work on the project: it stays Planned.
+    expect(body.status).toBe('planned');
+    await tick([{ kind: 'flag', key: asked, done: false }]);
+    expect(keys(await progress())).toEqual(['checklist-item racking/A-frames and crossbars']);
+    // An item the review does not have is refused, as for any kind.
+    expect((await tick([done('checklist-item', 'racking/Swing seats')])).status).toBe(422);
+  });
+
+  it('clears a tick on an expert check whose numbers a regeneration changes', async () => {
+    // Core's worked example: the flag on the projecting ends names the crossbar ends' heights, so
+    // raising the crossbar makes it another question. The checklist items do not change.
+    const { tick, progress, save, flags } = await setup();
+    const ends = (await flags()).find((f) => f.ask.startsWith("For the bolts' end distance"));
+    if (!ends) throw new Error('the worked example has no flag on the projecting ends');
+    await tick([
+      done('flag', flagProgressKey(ends)),
+      done('checklist-item', 'racking/A-frames and crossbars'),
+    ]);
+    const res = await save({ params: { ...swingSetParams, crossbarHeight: 44 } });
+    expect(((await res.json()) as Json).progressReset).toEqual([
+      { kind: 'flag', key: flagProgressKey(ends), reason: 'removed' },
+    ]);
+    expect(keys(await progress())).toEqual(['checklist-item racking/A-frames and crossbars']);
   });
 
   it('lists each project with its progress summary and no snapshot', async () => {

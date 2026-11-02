@@ -11,6 +11,7 @@ import { useProject } from '../../lib/projectStore.ts';
 import { href, redirect } from '../../lib/route.ts';
 import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { cutDetailHeadingId, cutListPartId } from '../../lib/show.ts';
+import { useTicks } from '../../lib/ticks.ts';
 import type { Project } from '../../lib/types.ts';
 import { loadCornerViews } from '../../lib/views.ts';
 import {
@@ -75,6 +76,7 @@ export function ProjectView(props: {
   const { project } = props;
   const template = findTemplate(project.templateId);
   const { plan, drawings, steps } = useReadProject(project);
+  const ticks = useTicks(project.id, project.ticks, project.revision);
   // Plans made before operations have no build steps.
   const hasSteps = steps !== null && steps.steps.length > 0;
   const terms = useMemo(
@@ -241,6 +243,7 @@ export function ProjectView(props: {
               checks={plan.plan.checks}
               flags={plan.plan.flags}
               checklist={plan.plan.checklist}
+              ticks={ticks}
               boltLayout={plan.plan.boltLayout}
               movement={plan.plan.movement}
             />

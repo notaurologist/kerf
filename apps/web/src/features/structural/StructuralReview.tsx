@@ -1,12 +1,16 @@
 import {
   CHECKLIST_CATEGORY_LABELS,
   type ChecklistItem,
+  checklistProgressKey,
   FLAG_CATEGORY_LABELS,
   type Flag,
+  flagProgressKey,
   type movement,
   structural,
+  summarizeReview,
 } from '@kerf/core';
 import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
+import type { Ticks } from '../../lib/ticks.ts';
 import {
   Card,
   CheckStatus,
@@ -23,14 +27,17 @@ import {
   Sidebar,
   Stack,
   Text,
+  Tick,
 } from '../../ui/index.ts';
+import { Waiting } from '../modes/modes.tsx';
 import { BoltLayout } from './BoltLayout.tsx';
 import { CitationList, SourceList, SourceToggle } from './Citation.tsx';
 
 // The structural review (PRODUCT.md, MVP feature 7) as Stage 15 lays it out (#359, S1): what the
 // owner has to do first (inputs needed, the design's expert checks, the confirmation checklist),
 // then one line per check with its margin, opening to its full working. Results are margins under stated
-// assumptions, never verdicts (decision 0001). Every number comes formatted from core.
+// assumptions, never verdicts (decision 0001). Every number comes formatted from core. Each expert
+// check and checklist item has a tick (#393) that says it was asked or confirmed, nothing more.
 
 /** The wood movement subsection's opening line, exported for the printed plan's terms too. */
 export const WOOD_MOVEMENT_INTRO =
@@ -50,6 +57,7 @@ export function StructuralReview(props: {
   checks: readonly CheckResult[];
   flags: readonly Flag[];
   checklist: readonly ChecklistItem[];
+  ticks: Ticks;
   boltLayout?: readonly structural.BoltJoint[];
   movement?: readonly MovementResult[];
 }) {
@@ -98,6 +106,7 @@ export function StructuralReview(props: {
         inputHref={props.inputHref}
         flags={props.flags}
         checklist={props.checklist}
+        ticks={props.ticks}
       />
     ) : null;
   return (
@@ -142,18 +151,33 @@ function missingInputs(results: readonly (CheckResult | MovementResult)[]) {
   return [...seen.values()];
 }
 
-/** What the owner has to do: inputs to enter, and what to ask and confirm with a builder. */
+/**
+ * What the owner has to do: inputs to enter, and what to ask and confirm with a builder. The count
+ * is what is still open: inputs clear when entered, the rest when ticked.
+ */
 function ToDo(props: {
   missing: readonly structural.MissingInput[];
   inputHref: (key: string) => string;
   flags: readonly Flag[];
   checklist: readonly ChecklistItem[];
+  ticks: Ticks;
 }) {
-  const count = props.missing.length + props.flags.length + props.checklist.length;
+  const { ticks } = props;
+  const review = summarizeReview(props, ticks.ticked());
+  const count = props.missing.length + review.flags.open + review.checklist.open;
+  const tick = (kind: 'flag' | 'checklist-item', key: string) => {
+    const item = { kind, key };
+    return {
+      done: ticks.isDone(item),
+      waiting: ticks.isWaiting(item),
+      onChange: (done: boolean) => ticks.set(item, done),
+    };
+  };
   return (
     <Card as="section">
       <Stack>
         <h3>To do · {count}</h3>
+        <Waiting ticks={ticks} />
         {props.missing.length > 0 && (
           <Stack gap="xs">
             <h4>Inputs needed</h4>
@@ -166,19 +190,27 @@ function ToDo(props: {
             <h4 id={EXPERT_CHECKS_ID} tabIndex={-1}>
               Expert checks
             </h4>
-            <Text tone="muted">Ask an experienced builder.</Text>
+            <Text tone="muted">
+              Ask an experienced builder, and tick Asked once you have. A tick stays until the plan
+              asks something else.
+            </Text>
             {/* What to ask, with why behind it, so the checks are not pushed out of view. */}
             <Rows as="ul">
               {props.flags.map((flag) => (
                 <Row key={`${flag.category}/${flag.ask}`} as="li">
-                  <ResultLine
-                    title={<Measured text={flag.ask} />}
-                    detail={FLAG_CATEGORY_LABELS[flag.category]}
-                  >
-                    <Text>
-                      Why: <Measured text={flag.why} terms />
-                    </Text>
-                  </ResultLine>
+                  <Stack gap="2xs">
+                    <ResultLine
+                      title={<Measured text={flag.ask} />}
+                      detail={FLAG_CATEGORY_LABELS[flag.category]}
+                    >
+                      <Text>
+                        Why: <Measured text={flag.why} terms />
+                      </Text>
+                    </ResultLine>
+                    <Tick {...tick('flag', flagProgressKey(flag))} context={`: ${flag.ask}`}>
+                      Asked
+                    </Tick>
+                  </Stack>
                 </Row>
               ))}
             </Rows>
@@ -187,23 +219,34 @@ function ToDo(props: {
         {props.checklist.length > 0 && (
           <Stack gap="xs">
             <h4>Confirmation checklist</h4>
-            <Text tone="muted">Not computed. Confirm each with an experienced builder.</Text>
+            <Text tone="muted">
+              Not computed. Confirm each with an experienced builder, and tick Confirmed once you
+              have. A tick stays until the plan changes the item.
+            </Text>
             <Rows as="ul">
               {props.checklist.map((item) => (
                 <Row key={`${item.category}/${item.element}`} as="li">
-                  <ResultLine
-                    title={item.element}
-                    detail={CHECKLIST_CATEGORY_LABELS[item.category]}
-                  >
-                    <Stack gap="2xs">
-                      <Text>
-                        <Measured text={item.confirm} terms />
-                      </Text>
-                      <Text tone="muted">
-                        <Measured text={item.why} terms />
-                      </Text>
-                    </Stack>
-                  </ResultLine>
+                  <Stack gap="2xs">
+                    <ResultLine
+                      title={item.element}
+                      detail={CHECKLIST_CATEGORY_LABELS[item.category]}
+                    >
+                      <Stack gap="2xs">
+                        <Text>
+                          <Measured text={item.confirm} terms />
+                        </Text>
+                        <Text tone="muted">
+                          <Measured text={item.why} terms />
+                        </Text>
+                      </Stack>
+                    </ResultLine>
+                    <Tick
+                      {...tick('checklist-item', checklistProgressKey(item))}
+                      context={`: ${item.element}`}
+                    >
+                      Confirmed
+                    </Tick>
+                  </Stack>
                 </Row>
               ))}
             </Rows>
