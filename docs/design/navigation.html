@@ -1,0 +1,361 @@
+<title>Kerf Navigation</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Review pages for the design milestone. Layout: one reading column; wireframe sets break out wider and sit
+   side by side when the screen allows. Wireframes are graphite on white; annotations are in
+   non-photo blue, the drafting pencil that does not reproduce. Neither is a visual-design choice
+   for Kerf: color and type are decided in #42 and #43. */
+:root {
+  --paper: #f3f4f5;
+  --ink: #1c2024;
+  --muted: #59626c;
+  --line: #c6ccd2;
+  --wf-bg: #ffffff;
+  --wf-ink: #2b2f33;
+  --wf-block: #dde1e5;
+  --wf-soft: #eef0f2;
+  --blue: #1f6fae;
+  --blue-soft: #d7ebf8;
+  --met: #2c7a4b;
+  --partly: #9a6400;
+  --notmet: #a8322a;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.625rem;
+  --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+    --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+    --blue: #7dbdf0; --blue-soft: #1c3448;
+    --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171a; --ink: #e4e7ea; --muted: #9aa3ac; --line: #353c43;
+  --wf-bg: #1d2226; --wf-ink: #d9dde1; --wf-block: #343b42; --wf-soft: #262c31;
+  --blue: #7dbdf0; --blue-soft: #1c3448;
+  --met: #6cc596; --partly: #e0a845; --notmet: #f08a80;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--sans);
+  font-size: var(--step-0); line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+main > *, .stack > *, .stack-lg > *, .wide-set > *, .direction > * { min-width: 0; }
+.prose { max-width: 68ch; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+h4 { font-size: var(--step-0); }
+p { margin: 0; }
+.stack { display: grid; gap: 14px; }
+.stack-lg { display: grid; gap: 28px; }
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+a { color: var(--blue); }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* The answers box */
+.answers { border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 4px; padding: 18px 20px; display: grid; gap: 12px; }
+.answers ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.answers li { padding-left: 4px; }
+.pick { font-family: var(--mono); font-size: 0.9em; background: var(--wf-bg); border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+
+/* Section headers */
+.place { display: grid; gap: 8px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.place .where { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); color: var(--muted); }
+
+/* Direction sets */
+.directions { display: grid; gap: 28px; grid-template-columns: repeat(auto-fit, minmax(min(310px, 100%), 1fr)); align-items: start; }
+.direction { display: grid; gap: 14px; min-width: 0; }
+.direction header { display: grid; gap: 4px; }
+.letter { font-family: var(--mono); font-weight: 700; color: var(--blue); }
+.wide-set { display: grid; gap: 40px; }
+
+/* Critique */
+.critique { display: grid; gap: 10px; font-size: 0.95rem; }
+.critique dl { margin: 0; display: grid; gap: 8px; }
+.critique dt { font-weight: 600; }
+.critique dd { margin: 0; color: var(--ink); }
+.critique dd + dt { margin-top: 4px; }
+.verdict { border-left: 3px solid var(--line); padding-left: 12px; }
+.needs { font-size: var(--step--1); color: var(--muted); }
+.needs a { font-family: var(--mono); }
+
+/* Wireframe surfaces */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.scroll-hint { font-size: var(--step--1); color: var(--muted); }
+.wf { background: var(--wf-bg); color: var(--wf-ink); border: 1.5px solid var(--wf-ink); font-family: var(--sans); font-size: 12px; line-height: 1.35; position: relative; }
+.wf .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wf b { font-weight: 650; }
+.wf .bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--wf-ink); }
+.wf .bar .grow { flex: 1; }
+.wf .blk { background: var(--wf-block); border-radius: 2px; height: 8px; }
+.wf .btn { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 3px 8px; font-size: 11px; white-space: nowrap; }
+.wf .btn.solid { background: var(--wf-ink); color: var(--wf-bg); }
+.wf .tab { padding: 4px 8px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.wf .tab.on { border-bottom-color: var(--wf-ink); font-weight: 650; }
+.wf .field { display: grid; gap: 2px; }
+.wf .field .in { border: 1px solid var(--wf-ink); border-radius: 2px; padding: 3px 6px; background: var(--wf-bg); }
+.wf .field .in.focus { outline: 2px solid var(--blue); }
+.wf .sec { font-weight: 650; padding: 6px 0 2px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.wf table { border-collapse: collapse; width: 100%; }
+.wf th, .wf td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wf th { font-weight: 600; font-size: 11px; color: var(--muted); }
+.wf td.r, .wf th.r { text-align: right; }
+.wf .hl { background: var(--blue-soft); }
+.wf .chg { color: var(--blue); font-family: var(--mono); font-size: 10.5px; }
+.wf .flag { border: 1.2px dashed var(--wf-ink); padding: 6px 8px; display: grid; gap: 2px; }
+.wf .flag .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+.wf .ph { border: 1px dashed var(--muted); color: var(--muted); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 11px; }
+.wf .tag { display: inline-block; border: 1px solid var(--wf-ink); border-radius: 9px; padding: 0 6px; font-size: 10px; }
+.wf .check { width: 22px; height: 22px; border: 1.5px solid var(--wf-ink); border-radius: 3px; flex: none; display: grid; place-items: center; font-size: 14px; }
+.wf .check.on { background: var(--wf-ink); color: var(--wf-bg); }
+.wf svg { display: block; width: 100%; height: auto; }
+.wf svg .ink { stroke: var(--wf-ink); fill: none; stroke-width: 1.5; }
+.wf svg .thin { stroke: var(--wf-ink); fill: none; stroke-width: 0.8; }
+.wf svg .fillblk { fill: var(--wf-block); stroke: var(--wf-ink); stroke-width: 1; }
+.wf svg .sel { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.wf svg text { fill: var(--wf-ink); font-family: var(--mono); font-size: 10px; }
+.wf svg .zone { fill: var(--wf-soft); stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.wf .marker { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); color: var(--wf-bg); font: 700 11px/18px var(--mono); text-align: center; }
+.notes { margin: 0; padding-left: 1.4em; font-size: var(--step--1); color: var(--muted); display: grid; gap: 4px; }
+.notes li::marker { color: var(--blue); font-family: var(--mono); font-weight: 700; }
+
+/* Board bar: proportions are each board's lengths from the snapshot */
+.board { display: flex; height: 26px; border: 1.2px solid var(--wf-ink); font-size: 10px; }
+.board > span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; border-right: 1px solid var(--wf-ink); }
+.board > span:last-child { border-right: 0; }
+.board .pc { background: var(--wf-block); }
+.board .off { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+
+/* Laptop frame */
+.laptop { width: 900px; min-height: 520px; display: grid; grid-template-rows: auto 1fr; border-radius: 6px 6px 0 0; }
+
+/* Phone frame */
+.phone { width: min(300px, 100%); height: 600px; border-radius: 22px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; margin-inline: auto; }
+.phone .screen { overflow: hidden; position: relative; }
+.phone .screen::after { content: ""; position: absolute; inset: auto 0 0; height: 36px; background: linear-gradient(to bottom, transparent, var(--wf-bg)); pointer-events: none; }
+.phone .status { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone .status::before { content: ""; width: 70px; height: 6px; border-radius: 3px; background: var(--wf-ink); }
+.phone .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 1px solid var(--wf-ink); }
+.phone .tabs span { text-align: center; padding: 10px 2px 14px; font-size: 11px; }
+.phone .tabs span.on { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.tablet { width: 860px; height: 560px; border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+
+/* Questions */
+.q { display: grid; gap: 12px; padding: 18px 0; border-top: 1px solid var(--line); }
+.opts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.opt { border: 1px solid var(--line); background: var(--wf-bg); border-radius: 4px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.opt.rec { border: 1.5px solid var(--blue); }
+.opt .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt .rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+
+/* Requirements */
+.req-wrap { overflow-x: auto; }
+table.req { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 0.92rem; background: var(--wf-bg); }
+table.req th, table.req td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.req th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+table.req td:first-child { font-family: var(--mono); white-space: nowrap; }
+.st { white-space: nowrap; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.st::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; }
+.st.met { color: var(--met); }
+.st.met::before { background: currentColor; }
+.st.partly { color: var(--partly); }
+.st.partly::before { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.st.not { color: var(--notmet); }
+
+@media (max-width: 520px) {
+  h1 { font-size: var(--step-2); }
+  h2 { font-size: var(--step-1); }
+}
+</style>
+<style>
+/* Additions shared by the usability-pass review pages. */
+.frames { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: flex-start; }
+.frames .phone { margin-inline: 0; }
+.scroll { overflow-x: auto; padding-bottom: 6px; }
+.dir { display: grid; gap: 18px; padding-top: 22px; border-top: 2px solid var(--wf-ink); }
+.dir .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.rec-tag { font-size: var(--step--1); color: var(--blue); font-weight: 600; }
+.side { border-right: 1px solid var(--wf-ink); padding: 10px; display: grid; gap: 6px; align-content: start; font-size: 11.5px; }
+.side .on { font-weight: 700; border-left: 3px solid var(--wf-ink); padding-left: 5px; }
+.side .sub { padding-left: 10px; }
+.side .foot { margin-top: 18px; color: var(--muted); }
+.lap-body { display: grid; grid-template-columns: 180px 1fr; }
+.pad { padding: 12px; display: grid; gap: 8px; align-content: start; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.card { border: 1.2px solid var(--wf-ink); border-radius: 3px; padding: 8px 10px; display: grid; gap: 4px; }
+.note { color: var(--blue); font-size: 10.5px; }
+table.crit { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 0.92rem; background: var(--wf-bg); }
+table.crit th, table.crit td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.crit th { font-size: var(--step--1); color: var(--muted); font-weight: 600; background: var(--paper); }
+</style>
+<main>
+<header class="stack">
+  <p class="eyebrow">Usability pass · #356 · for the owner's pick</p>
+  <h1>How the app is navigated</h1>
+  <p class="prose">From the November 1 walkthrough, seven points that are one question: what the summary is for, how Shopping and Building are reached, where expert checks belong, where parameters and inputs live, where Tools and the glossary go, and what the phone's bottom bar holds. Three directions follow, each drawn on the phone and the laptop, then a critique and the questions to answer. Nothing is rebuilt until one is picked (<code>PRODUCT.md</code>, principle 6).</p>
+</header>
+
+<section class="answers" aria-labelledby="ask">
+  <h2 id="ask">What to decide</h2>
+  <ol>
+    <li>Which direction: <span class="pick">N1</span> (suggested), <span class="pick">N2</span>, or <span class="pick">N3</span>.</li>
+    <li>Whether expert checks move onto the step, check, or part they are about, with the summary's list dropped (all three directions do this; say if you want to keep the list too).</li>
+    <li>Whether "Parameters and inputs" stays a plan section, or folds into Edit.</li>
+  </ol>
+</section>
+
+<section class="stack">
+  <h2>Where things are now</h2>
+  <ul class="prose">
+    <li><b>Phone:</b> a bottom bar with Projects, Tools, and Glossary. A project opens on its summary; a Contents bar opens the eight sections; Shopping and Building are cards on the summary.</li>
+    <li><b>Laptop:</b> a sidebar with the same three places, and the open project's eight sections under Projects.</li>
+    <li><b>The summary</b> leads with four key figures (beam, legs, saw setting, lowest margin), then the two mode cards, then every expert check, then a one-line digest of each section.</li>
+  </ul>
+  <p class="prose muted">IA-2 (#40) stays in every direction: the project is the plan, and Shopping and Building are full-screen modes launched from it. What changes is where the launch points sit, and what surrounds the plan.</p>
+</section>
+
+<!-- N1 -->
+<section class="dir">
+  <div class="head"><h2>N1 · The project header carries Shop and Build; Tools and the glossary go under Workshop</h2><span class="rec-tag">Suggested</span></div>
+  <ul class="prose">
+    <li><b>Summary:</b> gone as a section. A project opens on its first section that needs something (an input needed, else Diagrams), and the header shows status and what is next.</li>
+    <li><b>Shopping and Building:</b> two buttons in the project's header, on every section, with progress beside each ("4 of 11 bought").</li>
+    <li><b>Expert checks:</b> on the build step, structural check, or cut-list part each is about. The header's "next" line counts the open ones.</li>
+    <li><b>Parameters and inputs:</b> fold into Edit, which already shows every value with its source; the plan keeps a link "Values used" in its contents.</li>
+    <li><b>Tools and glossary:</b> under one place, <b>Workshop</b>: My toolbox, Glossary, Trash, Download all projects, theme, Log out.</li>
+    <li><b>Phone bottom bar:</b> gone. The title bar has Projects (back) and a Workshop button; a project's sections stay in Contents.</li>
+  </ul>
+  <div class="frames">
+    <div class="wf phone">
+      <div class="status"></div>
+      <div class="screen pad">
+        <div class="row"><span>‹ Projects</span><span class="grow" style="flex:1"></span><span class="btn">Workshop</span></div>
+        <b style="font-size:15px">Backyard swing set</b>
+        <div class="row"><span class="tag">In progress</span><span class="muted">Next: cut the legs</span></div>
+        <div class="row"><span class="btn solid">Shop · 4 of 11</span><span class="btn">Build · step 3</span></div>
+        <div class="card"><span class="row"><b>2 of 8 · Diagrams</b><span style="flex:1"></span>Contents ⌄</span></div>
+        <div class="ph" style="height:150px">assembled view</div>
+        <div class="flag"><span class="k">Expert check · on this part</span>Leg-to-beam bolts: ask about edge distance.</div>
+        <span class="note">① Shop and Build ride along on every section, so the plan never has to be left to reach them.</span>
+      </div>
+      <div></div>
+    </div>
+    <div class="scroll"><div class="wf laptop">
+      <div class="bar"><b>kerf</b><span class="grow"></span><span>Workshop ⌄</span></div>
+      <div class="lap-body">
+        <div class="side">
+          <span>Projects</span><span class="on sub">Backyard swing set</span>
+          <span class="sub">Diagrams</span><span class="sub">Structural review</span><span class="sub">Cut list</span><span class="sub">Boards</span><span class="sub">Shopping list</span><span class="sub">Build steps</span>
+          <span class="foot">Workshop: toolbox, glossary, trash, download</span>
+        </div>
+        <div class="pad">
+          <div class="row"><b style="font-size:16px">Backyard swing set</b><span class="tag">In progress</span><span style="flex:1"></span><span class="btn solid">Shop · 4 of 11</span><span class="btn">Build · step 3</span><span class="btn">Edit</span></div>
+          <span class="muted">Next: cut the legs · 2 expert checks open · 1 input needed</span>
+          <div class="sec">Structural review</div>
+          <div class="card"><b>Bending, top beam · margin 1.1x under these assumptions</b><div class="flag"><span class="k">Expert check</span>Beam size for adult use.</div></div>
+          <span class="note">② Expert checks sit with the check they qualify.</span>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<!-- N2 -->
+<section class="dir">
+  <div class="head"><h2>N2 · A slimmer summary stays; the bottom bar keeps Projects and Workshop</h2></div>
+  <ul class="prose">
+    <li><b>Summary:</b> stays as the project's front page, but leads with Shopping and Building and what is next; the four key figures move to the bottom as "At a glance".</li>
+    <li><b>Shopping and Building:</b> the two cards, first on the summary, and nowhere else.</li>
+    <li><b>Expert checks:</b> on what they are about, with a count on the summary linking to each.</li>
+    <li><b>Parameters and inputs:</b> stays a section, last.</li>
+    <li><b>Tools and glossary:</b> Workshop, as in N1.</li>
+    <li><b>Phone bottom bar:</b> two places, Projects and Workshop.</li>
+  </ul>
+  <div class="frames">
+    <div class="wf phone">
+      <div class="status"></div>
+      <div class="screen pad">
+        <span>‹ Projects</span>
+        <b style="font-size:15px">Backyard swing set</b>
+        <div class="card"><b>Shopping</b><span class="muted">4 of 11 bought</span><span class="btn solid">Continue shopping</span></div>
+        <div class="card"><b>Building</b><span class="muted">Next: cut the legs</span><span class="btn">Start building</span></div>
+        <span>2 expert checks · 1 input needed</span>
+        <div class="sec">At a glance</div><span class="muted">Beam 120", 4x6 · lowest margin 1.1x</span>
+      </div>
+      <div class="tabs"><span class="on">Projects</span><span>Workshop</span></div>
+    </div>
+  </div>
+  <p class="prose muted">On the laptop N2 matches today's sidebar with Workshop in place of Tools and Glossary.</p>
+</section>
+
+<!-- N3 -->
+<section class="dir">
+  <div class="head"><h2>N3 · Plan, Shop, and Build as the project's own bar</h2></div>
+  <ul class="prose">
+    <li><b>Summary:</b> gone; a project opens on Plan.</li>
+    <li><b>Shopping and Building:</b> while a project is open, the bottom bar becomes Plan, Shop, Build. The modes are still full-screen when entered, but entered from the bar.</li>
+    <li><b>Expert checks, parameters:</b> as in N1.</li>
+    <li><b>Tools and glossary:</b> Workshop, reached from the projects list's header.</li>
+    <li><b>Phone bottom bar:</b> only inside a project; the projects list has none.</li>
+  </ul>
+  <div class="frames">
+    <div class="wf phone">
+      <div class="status"></div>
+      <div class="screen pad">
+        <span>‹ Projects</span>
+        <b style="font-size:15px">Backyard swing set</b>
+        <div class="card"><span class="row"><b>Diagrams</b><span style="flex:1"></span>Contents ⌄</span></div>
+        <div class="ph" style="height:170px">assembled view</div>
+      </div>
+      <div class="tabs"><span class="on">Plan</span><span>Shop</span><span>Build</span></div>
+    </div>
+  </div>
+  <p class="prose muted">N3 is close to IA-1, which #40 set aside: a bar that changes with the screen is harder to learn, and the modes stop being one tap from anywhere.</p>
+</section>
+
+<section class="stack">
+  <h2>Critique</h2>
+  <div class="scroll"><table class="crit">
+    <thead><tr><th>Against</th><th>N1</th><th>N2</th><th>N3</th></tr></thead>
+    <tbody>
+      <tr><td>Shop and Build one tap from anywhere in the plan</td><td>Yes, in the header</td><td>Only from the summary</td><td>Yes, in the bar</td></tr>
+      <tr><td>Visible navigation (NN/g: hiding the main navigation cuts discoverability almost in half)</td><td>Projects and Workshop in the title bar; sections in Contents, as now</td><td>Both places in a visible bar</td><td>Visible inside a project only</td></tr>
+      <tr><td>A bottom bar holds 3 to 5 destinations (Material; fewer than three suggests another pattern)</td><td>No bar, so no 1- or 2-item bar</td><td>Two items, below the guideline</td><td>Three, inside a project</td></tr>
+      <tr><td>Progressive disclosure (NN/g: rarely used features go to a secondary screen)</td><td>Toolbox, glossary, trash, and download together, out of the way</td><td>Same</td><td>Same</td></tr>
+      <tr><td>Expert checks in context (principle 3: say what to ask and why, where it applies)</td><td>Yes</td><td>Yes, with a count on the summary</td><td>Yes</td></tr>
+      <tr><td>Change from today</td><td>Largest: summary goes, header grows</td><td>Smallest</td><td>Reopens IA-1</td></tr>
+    </tbody>
+  </table></div>
+  <p class="prose">N1 is suggested: it answers every point in the walkthrough, keeps navigation visible without a near-empty bar, and puts the modes where the owner already is. The glossary stays reachable from every marked term (#192) and from Workshop.</p>
+</section>
+
+<section class="stack">
+  <h2>Sources</h2>
+  <ul class="prose small">
+    <li>Kara Pernice and Raluca Budiu, <a href="https://www.nngroup.com/articles/hamburger-menus/">Hamburger Menus and Hidden Navigation Hurt UX Metrics</a>, Nielsen Norman Group.</li>
+    <li>Jakob Nielsen, <a href="https://www.nngroup.com/articles/progressive-disclosure/">Progressive Disclosure</a>, Nielsen Norman Group.</li>
+    <li>Material 3 navigation bar, as quoted in the <a href="https://kotlinlang.org/api/compose-multiplatform/material3/androidx.compose.material3/-navigation-bar.html">Compose reference</a> ("three to five" items) and <a href="https://github.com/material-components/material-components-ios/blob/c8b8acabf8c78b9e266c33803848e9e67967fe73/components/BottomNavigation/docs/README.md">Material Components for iOS</a> (fewer than three: consider tabs).</li>
+    <li>Kerf's own record: <code>docs/design/information-architecture.html</code> (IA-1 to IA-3, #40).</li>
+  </ul>
+</section>
+</main>
