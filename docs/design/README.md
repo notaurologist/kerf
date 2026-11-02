@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided and built. Stage 15, the structural review (#359), is decided; #359 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided and built. Stage 15, the structural review (#359), is decided and built. Stage 16, the cut list (#360), is decided; #360 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -26,8 +26,22 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 13. Usability pass: suggesting structural inputs, and project status | #355 | Decided November 2026: R-A, every row as proposed, S-2 | `structural-suggestions.html` |
 | 14. Usability pass: starting a new project | #358 | Decided November 2026: P1, questions first | `start-from.html` |
 | 15. Usability pass: the structural review | #359 | Decided November 2026: S1; bolt layouts stay, folded | `structural-review.html` |
+| 16. Usability pass: the cut list | #360 | Decided November 2026: C1, end cuts as boxed saw settings | `cut-list.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 16: usability pass, the cut list (#360)
+
+Each row of the cut list held a part's name, stock (nominal and actual), length, both end cuts with the saw setting and the angle to the edge, holes, quantity, and long notes, and the text ran together. `cut-list.html` draws two directions on the swing set's worked example, checked against the cabinet's, on the phone, the laptop, and paper. At the saw the questions are which part, how many, how long, and how each end is cut; reference face, edge angles, holes, and marking are read once at the bench.
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Layout | C1. A narrow table: letter and part, quantity, stock (nominal, with the actual size smaller under it), length (large, tabular figures), and end cuts. Each row opens beneath to its details: each end's cut in words with the angle to the edge, whether the ends are parallel, marks, notes, the panel's boards, and the part's expert checks. In print every row is open. The table is as wide as its columns, and four columns fit 375 px without scrolling sideways. | C2, a card per part like Building mode's cut card: the lengths of two parts are no longer in one column to compare (NN/g, data tables), and the cabinet's 14 parts make a long scroll. |
+| End cuts in the row | Two small boxes, each end's saw setting ("20.0°  20.0°"); the words and the angle to the edge are in the row's details. | Words in the row ("Saw at 20.0°, 70.0° to the edge"): clearer once, but wide and slow to scan down a column. |
 
 ## Stage 15: usability pass, the structural review (#359)
 
