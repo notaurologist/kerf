@@ -26,17 +26,17 @@ describe('a record cabinet plan', () => {
   const text = renderText(<ProjectView project={project} />);
 
   it("lists each panel's boards in the cut list", () => {
-    expect(text).toContain('Panel (3/4" x 15-3/4")');
+    expect(text).toContain('Panel (3/4" x 17-3/4")');
     expect(text).toContain('Ripped from 1 board of 13/16" x 5-1/2", 18-7/8" long, ripped to 3".');
     expect(text).toContain(
-      'Glued up from 3 boards of 13/16" x 5-1/2", each 56" long, glued to 16-1/4" wide and ripped to 15-3/4".',
+      'Glued up from 4 boards of 13/16" x 5-1/2", each 56" long, glued to 21-5/8" wide and ripped to 17-3/4".',
     );
   });
 
   it('shows the aprons’ check, the movement estimates, and the elevations', () => {
     expect(text).toContain('Deflection: Front and back aprons');
     expect(text).toContain('Wood movement');
-    expect(text).toContain('Changes about 0.156 in across the grain');
+    expect(text).toContain('Changes about 0.176 in across the grain');
     expect(text).toContain('Elevations and sections');
     expect(text).toContain('Section through the first bay');
   });
@@ -58,7 +58,7 @@ describe('a panel in Building mode', () => {
     const text = card('size', 'top');
     expect(text).toContain('Make 1.');
     expect(text).toContain('Length 54"');
-    expect(text).toContain('Width 15-3/4"');
+    expect(text).toContain('Width 17-3/4"');
   });
 
   it('draws the glue-up step as the boards pulled apart', () => {
@@ -68,7 +68,7 @@ describe('a panel in Building mode', () => {
         project={project}
       />,
     );
-    expect(html).toContain('Glue up 3 boards for A Top');
+    expect(html).toContain('Glue up 4 boards for A Top');
   });
 });
 

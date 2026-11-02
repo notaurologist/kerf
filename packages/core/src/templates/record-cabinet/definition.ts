@@ -7,11 +7,12 @@ import { formatLength } from '../../units/length.ts';
 import { cabinetExplode, cabinetScene, drawings, VIEW } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { RECORD_CABINET_FORM } from './form.ts';
+import { cabinetGeometry } from './geometry.ts';
 import { RecordCabinetOutputs, StoredRecordCabinetOutputs } from './outputs.ts';
 import { RecordCabinetParams } from './params.ts';
-import { CABINET_QUESTIONS } from './questions.ts';
+import { CABINET_QUESTIONS, SUGGESTED_DOOR } from './questions.ts';
 import { stepOutline } from './steps.ts';
-import { RecordCabinetStructuralInputs, slotFor, structuralReview } from './structural.ts';
+import { allowancesFor, RecordCabinetStructuralInputs, structuralReview } from './structural.ts';
 import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
 
 /** What says most about the cabinet at a glance: its size, and each bay's clear opening. */
@@ -202,6 +203,21 @@ const toLegBase: SnapshotUpgrade = (snapshot) => {
   };
 };
 
+/**
+ * Shape 8 to 9: sliding doors (#339). A stored plan has no doors, and keeps its parts, drawings,
+ * and numbers as they were. The doors' parameters, which an older plan never had, take the values
+ * the starting questions suggest, so the editor shows them if the owner turns the doors on.
+ */
+const toDoors: SnapshotUpgrade = (snapshot) => {
+  const params = (o: unknown) => ({ ...(o as Stored), doors: 'none', door: { ...SUGGESTED_DOOR } });
+  const outputs = snapshot.outputs as { design: { params: Stored } };
+  return {
+    ...snapshot,
+    params: params(snapshot.params),
+    outputs: { ...outputs, design: { ...outputs.design, params: params(outputs.design.params) } },
+  };
+};
+
 export const recordCabinet: TemplateDefinition<
   RecordCabinetParams,
   RecordCabinetStructuralInputs,
@@ -217,7 +233,7 @@ export const recordCabinet: TemplateDefinition<
   outputs: RecordCabinetOutputs,
   storedOutputs: StoredRecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
-  snapshotVersion: 8,
+  snapshotVersion: 9,
   // Shape 3 to 4 adds assembly and finish operations, which older plans simply do not have.
   snapshotUpgrades: {
     1: addFlattening,
@@ -228,6 +244,7 @@ export const recordCabinet: TemplateDefinition<
     5: (snapshot) => snapshot,
     6: toTopItem,
     7: toLegBase,
+    8: toDoors,
   },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,
@@ -260,7 +277,10 @@ export const recordCabinet: TemplateDefinition<
     explode: cabinetExplode(outputs),
   }),
   generate(params, structuralInputs) {
-    const design = generate(params, slotFor(params, structuralInputs));
+    const design = generate(
+      params,
+      allowancesFor(params, cabinetGeometry(params), structuralInputs),
+    );
     if (!design.ok) return design;
     const review = structuralReview(params, design.output.geometry, structuralInputs);
     return {

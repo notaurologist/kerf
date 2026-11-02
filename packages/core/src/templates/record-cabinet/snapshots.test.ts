@@ -4,6 +4,7 @@ import type { CutListRow } from '../../outputs/cutList.ts';
 import { shapeOf } from '../../snapshot/shape.ts';
 import { createSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
 import { recordCabinet } from './definition.ts';
+import { SUGGESTED_DOOR } from './questions.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
 import v2 from './snapshots/v2.json' with { type: 'json' };
 import v3 from './snapshots/v3.json' with { type: 'json' };
@@ -12,6 +13,7 @@ import v5 from './snapshots/v5.json' with { type: 'json' };
 import v6 from './snapshots/v6.json' with { type: 'json' };
 import v7 from './snapshots/v7.json' with { type: 'json' };
 import v8 from './snapshots/v8.json' with { type: 'json' };
+import v9 from './snapshots/v9.json' with { type: 'json' };
 
 // Stored record-cabinet projects stay readable (decision 0014). Each fixture holds the worked
 // examples as that template version stores them. Fixtures are never rewritten.
@@ -25,6 +27,7 @@ const FIXTURES: Record<number, readonly unknown[]> = {
   6: v6,
   7: v7,
   8: v8,
+  9: v9,
 };
 const template = recordCabinet as TemplateDefinition;
 
@@ -105,7 +108,8 @@ describe('record-cabinet snapshot fixtures', () => {
         ...kept
       } = params;
       // The turntable became the largest item on the top (#331), and the leg base's parameters
-      // take the starting questions' suggestions, its bay height the plan's own (#338).
+      // take the starting questions' suggestions, its bay height the plan's own (#338). It has
+      // no doors, with the doors' suggested sizes ready if they are turned on (#339).
       expect(read.snapshot.params).toEqual({
         ...kept,
         allowances: { ...params.allowances, flatten: 0 },
@@ -119,6 +123,8 @@ describe('record-cabinet snapshot fixtures', () => {
         apronSetback: 0.125,
         tenonThickness: Math.floor((params.board.thickness / 3) * 16) / 16,
         tenonLength: 1,
+        doors: 'none',
+        door: SUGGESTED_DOOR,
       });
       const outputs = recordCabinet.storedOutputs.parse(read.snapshot.outputs);
       const plan = recordCabinet.plan(outputs);

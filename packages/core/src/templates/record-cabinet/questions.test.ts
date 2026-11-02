@@ -116,6 +116,27 @@ describe('record cabinet starting questions', () => {
     expect(rules.every((path) => at(suggestions, path)?.basis.kind === 'rule-of-thumb')).toBe(true);
   });
 
+  it('suggests sliding doors on the end bays, with their tracks and frames as rules of thumb', () => {
+    expect(at(suggestions, 'doors')?.value).toBe('sliding');
+    const door = [
+      'clearance',
+      'land',
+      'bottomDepth',
+      'topDepth',
+      'overlap',
+      'frameWidth',
+      'grooveDepth',
+    ];
+    expect(door.map((key) => at(suggestions, `door.${key}`)?.value)).toEqual([
+      0.0625, 0.25, 0.25, 0.5625, 0.5, 2, 0.375,
+    ]);
+    expect(
+      door.every((key) => at(suggestions, `door.${key}`)?.basis.kind === 'rule-of-thumb'),
+    ).toBe(true);
+    // Deep enough for records behind the tracks (spec, Sliding doors).
+    expect(at(suggestions, 'caseDepth')?.value).toBe(17);
+  });
+
   it('suggests every parameter, and they make a plan', () => {
     const { params } = suggestedValues(recordCabinet.form, suggestions);
     const empty = Object.entries(params).filter(([, text]) => text === '');

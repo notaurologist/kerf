@@ -1,6 +1,6 @@
 # Template: record cabinet
 
-Status: template version 8 is built (#301; version 2 adds the flattening allowance, #319, version 3 keeps a one-board rail at its board's thickness, #320, version 4 adds assembly and finishing, #313, version 5 adds dealer hardwood, #296, version 6 lets the lumber settle before cutting, #332, version 7 asks about what stands on the top, #331, and version 8 sets the case on a Shaker-modern leg base, #338), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. The starting questions are built (#314).
+Status: template version 9 is built (#301; version 2 adds the flattening allowance, #319, version 3 keeps a one-board rail at its board's thickness, #320, version 4 adds assembly and finishing, #313, version 5 adds dealer hardwood, #296, version 6 lets the lumber settle before cutting, #332, version 7 asks about what stands on the top, #331, version 8 sets the case on a Shaker-modern leg base, #338, and version 9 adds sliding doors on the end bays, #339), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. The starting questions are built (#314).
 
 A low cabinet with record bays, with room on the top for a turntable, a speaker, or whatever the owner puts there, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
 
@@ -71,7 +71,7 @@ After the panels and their dadoes and rabbets: cut the notches, the mortises in 
 
 The owner agreed to the design on November 1, 2026, with the legs bought as square stock rather than laminated. It was built in this order, each its own pull request: mortise and tenon joints (#343), parts from board stock and slotted screw holes (#344), then the template (#338).
 
-## Sliding doors on the end bays (#339, agreed; being built)
+## Sliding doors on the end bays (template version 9, #339)
 
 Stage 2 of the Shaker-modern cabinet. The owner chose on November 1, 2026: two **sliding doors in two tracks**, one per end bay, each sliding over the open middle bay; each door a **frame with a solid floating panel**; and a **routed finger recess** for a pull. This replaces the hinged doors first scoped on #339.
 
@@ -95,8 +95,11 @@ Stage 2 of the Shaker-modern cabinet. The owner chose on November 1, 2026: two *
 | Door overlap past the partition | o_d | 1/2 | Rule of thumb, so no gap shows at the middle bay |
 | Stile and rail width | w_s | 2 | Rule of thumb, Shaker proportion |
 | Stub tenon and groove depth | g_s | 3/8 | Rule of thumb |
-| Finger recess | | 3/4 wide, 3 tall, 1/4 deep, 1 from the outer stile's edge | Rule of thumb |
+| Finger recess | | 3/4 wide, 3 tall, 1/4 deep, centered on the outer stile | Rule of thumb; fixed, not a parameter |
 | Case depth | D_c | 17 (was 15) | So records fit behind the tracks; see below |
+| Doors | | sliding | The owner's choice; "none" leaves every bay open, as in version 8 |
+
+The panel grooves are as wide as the aprons' tenons, t_t, and the rails' stub tenons as thick, so one setting cuts both. A stored version 8 plan reads back with no doors and these suggestions, ready if the owner turns them on.
 
 Derived: the groove width is t_d + c_g, where t_d is the board's thickness; the track zone is d_t = 3·l_g + 2·(t_d + c_g); the door height is h_b + d_b + d_b (seated 1/4 in the bottom and 1/4 up into the top); the door width is b + t + o_d.
 
@@ -107,19 +110,22 @@ Boards 13/16, t = 3/4, b = 16-1/2, h_b = 13-1/4, back rails 13/16 thick.
 - Groove 13/16 + 1/16 = **7/8**; track zone d_t = 3 × 1/4 + 2 × 7/8 = **2-1/2**.
 - Record depth behind the tracks, D_c − 2.5 − 0.8125: at 15, **11-11/16**, less than a 12-3/8 jacket; at 16, **12-11/16**, 5/16 to spare; at 17, **13-11/16**. The suggestion is 17.
 - Door **13-3/4** high (13.25 + 0.25 + 0.25), **17-3/4** wide (16.5 + 0.75 + 0.5). Lifted in, its top rises into the 9/16 top groove: it has 13.25 + 0.5625 − 13.75 + 0.25 = 5/16 of lift, and needs 1/4 to clear the bottom groove, so 1/16 to spare.
-- Stiles 2 × 13-3/4; rails 17.75 − 2 × 2 + 2 × 3/8 = **14-1/2** long, 2 wide. The panel opening is 13-3/4 × 9-3/4.
+- Stiles 2 × 13-3/4; rails 17.75 − 2 × 2 + 2 × 3/8 = **14-1/2** long, 2 wide. The panel opening is 13-3/4 × 9-3/4. The grooves are t_t = 1/4 wide, centered in the 13/16 frame, 9/32 from each face.
+- Panel thickness t = 3/4, rabbeted 3/8 wide and (3/4 − 1/4)/2 = 1/4 deep on both faces at every edge, to a 1/4 tongue.
 - Panel: across its grain (horizontal) 13.75 + 2 × 3/8 = 14.5 into the grooves; flatsawn cherry, 6% to 10%, moves ΔD = 14.5 × 0.00248 × 4 = 0.144, so a gap of 0.072 + 1/32 = **0.103** at each edge, and the panel is **14.29** wide. Along its grain, 9.75 + 2 × 3/8 − 2 × 1/32 = **10-7/16** high.
 
-### What it needs first (generic work)
+- Clamps for each door's glue-up open across its 17-3/4 width. With 17" of case, the top is 17-3/4 deep and glues up from four boards, the side aprons are 16 long, and the cleats 14, slotted 17 × 0.00248 × 4 + 1/16 = 0.2311. The top's check under 35 lb becomes 1.5 × 0.0040254 = 0.006038 (I = 17.75 × 0.75³ / 12 = 0.624023 in⁴).
 
-- A groove along a part's edge, through or stopped, for the stiles and rails (today's dadoes are cut in a face).
-- A rabbet along a part's edges, to make the panel's tongue.
-- A finger recess routed into a face.
-- The tracks reuse the dado operations, running the length of the case bottom and the top.
+### Parts, refusals, and build steps
+
+- **Tracks** are dadoes stopped at both ends, between the sides' inside faces, so none shows at the case's ends: a generic operation, cut with a router between two stops or with a drill and chisel. The partitions' stopped dadoes in the top and case bottom start d_t + s_d from the front.
+- **Each door** is an outer stile, with the finger recess in its front face, an inner stile, two rails, and a panel. The two doors' parts are the same, so each is cut twice: the right door's outer stile is the left one's turned end for end.
+- **Refused:** a top track less than twice the bottom's depth (the door cannot lift out), a panel groove as deep as the frame is wide, a groove as thick as the panel (no tongue), a recess that would break into the groove, a panel that pulls out of its grooves at its narrowest (2 × gap − 1/32 ≥ g_s), and fewer than s_r of bay between the tracks and the back rails.
+- **Build steps:** the tracks with the other dadoes; then the doors' grooves, stub tenons, rabbets, and recesses; the doors are glued up after the case is screwed to the base, each frame around its panel, which is not glued and is best finished first. The hardware notes say how to lift a door in. The door panel's movement is on the plan with the other parts'.
 
 ### Decided
 
-The owner agreed on November 1, 2026: a 17" case depth and a 2" frame. It is built in this order, each its own pull request: edge grooves, edge rabbets, and finger recesses, then the template.
+The owner agreed on November 1, 2026: a 17" case depth and a 2" frame. It was built in this order, each its own pull request: edge grooves, edge rabbets, and finger recesses, then the template, which also added the dado stopped at both ends for the tracks.
 
 ## Coordinates
 

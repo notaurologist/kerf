@@ -10,7 +10,7 @@ import type { RecordCabinetStructuralInputs } from './structural.ts';
 export const WORKED_EXAMPLE: RecordCabinetParams = {
   width: 54,
   bayHeight: 13.25,
-  caseDepth: 15,
+  caseDepth: 17,
   bays: 3,
   panelThickness: 0.75,
   dadoDepth: 0.1875,
@@ -24,6 +24,16 @@ export const WORKED_EXAMPLE: RecordCabinetParams = {
   apronSetback: 0.125,
   tenonThickness: 0.25,
   tenonLength: 1,
+  doors: 'sliding',
+  door: {
+    clearance: 0.0625,
+    land: 0.25,
+    bottomDepth: 0.25,
+    topDepth: 0.5625,
+    overlap: 0.5,
+    frameWidth: 2,
+    grooveDepth: 0.375,
+  },
   railHeight: 3,
   jacket: 12.375,
   topItem: { width: 16.5, depth: 13.5, height: 15 },
@@ -57,6 +67,8 @@ const EDGE_EXAMPLE: RecordCabinetParams = {
   apronSetback: 0,
   tenonThickness: 0.375,
   tenonLength: 1.25,
+  // Too shallow for records behind the tracks, so the edge of range has no doors.
+  doors: 'none',
   topItem: { width: 15, depth: 13, height: 15 },
   // 5/4 surfaced two sides is 1-1/16" (Wood Handbook, Table 6-4), which flattens to 1".
   board: { source: 'store', thickness: 1.0625, width: 5.5, lengths: [4, 6, 8] },

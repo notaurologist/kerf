@@ -42,6 +42,25 @@ export const RecordCabinetParams = z.object({
   tenonThickness: z.number().positive(),
   /** l_t: each tenon's length into its leg. */
   tenonLength: z.number().positive(),
+  /** Sliding doors on the end bays (#339), or none. */
+  doors: z.enum(['sliding', 'none']),
+  /** The doors' tracks and frames (spec, Sliding doors on the end bays). */
+  door: z.object({
+    /** c_g: each track groove is the door's thickness plus this. */
+    clearance: z.number().min(0).max(0.125),
+    /** l_g: wood between and around the track grooves. */
+    land: z.number().min(0.125).max(0.5),
+    /** d_b: each bottom track's depth. */
+    bottomDepth: z.number().min(0.125).max(0.5),
+    /** d_u: each top track's depth, deeper so a door lifts in. */
+    topDepth: z.number().min(0.25).max(1),
+    /** o_d: how far each door runs past the partition, over the next bay. */
+    overlap: z.number().min(0).max(2),
+    /** w_s: each stile's and rail's width. */
+    frameWidth: z.number().min(1.5).max(4),
+    /** g_s: the panel grooves' depth, and the rails' stub tenons' length. */
+    grooveDepth: z.number().min(0.25).max(0.5),
+  }),
   /** h_r: vertical width of each back rail. */
   railHeight: z.number().min(2).max(4),
   /** s_r: one of the owner's record jackets, measured. */
