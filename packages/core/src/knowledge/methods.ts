@@ -79,6 +79,9 @@ export const Method = z.object({
     'mortise',
     'tenon',
     'screw-holes',
+    'groove',
+    'rabbet',
+    'finger-recess',
     'bolt-holes',
     'ease-edges',
     'dry-fit',
@@ -194,6 +197,24 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     count,
     length: { kind: 'length', of: (op) => op.length },
     width: { kind: 'length', of: (op) => op.width },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
+  groove: {
+    count,
+    length: { kind: 'length', of: (op) => op.length },
+    width: { kind: 'length', of: (op) => op.width },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
+  rabbet: {
+    count,
+    length: { kind: 'length', of: (op) => op.length },
+    width: { kind: 'length', of: (op) => op.width },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
+  'finger-recess': {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    height: { kind: 'length', of: (op) => op.height },
     depth: { kind: 'length', of: (op) => op.depth },
   },
   'screw-holes': {
@@ -1696,6 +1717,138 @@ export const METHODS = [
     flags: [categoryFlag('router')],
     easierThan: [],
     moreAccurateThan: ['screw-holes-drill'],
+  },
+
+  // Groove (along an edge)
+  {
+    id: 'groove-router',
+    operation: 'groove',
+    name: 'With a router and an edge guide',
+    tools: [{ use: 'cutting the groove', anyOf: [{ tool: 'router' }] }, TAPE, CLAMPS],
+    skills: ['measure-and-mark', 'rout-along-a-guide'],
+    setup: [
+      'Fit a straight bit {width} across, and set it to cut {depth} deep, a little deeper each time.',
+      'Clamp the part on edge between two scraps flush with it, so the router base has room to sit, and set the edge guide so the bit runs where the groove is marked.',
+    ],
+    technique: [
+      'Rout the groove along the edge, {length} long, with the guide against the face.',
+      'Lower the bit and repeat until the groove is {depth} deep.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'A router tipping on a narrow edge cuts the groove crooked. Clamp scraps flush on both sides so the base sits flat.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED],
+    flags: [categoryFlag('router')],
+    easierThan: ['groove-table-saw'],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'groove-table-saw',
+    operation: 'groove',
+    name: 'With a table saw, a cut at a time',
+    tools: [{ use: 'cutting the groove', anyOf: [{ tool: 'table-saw' }] }, TAPE],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'Raise the blade {depth} above the table, and set the fence so the blade cuts where the groove is marked.',
+    ],
+    technique: [
+      'Run the part on edge along the fence, pushing it past the blade with a push stick.',
+      'Move the fence a blade’s width and repeat until the groove is {width} wide.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Letting the part drift from the fence widens the groove unevenly. Keep it pressed against the fence the whole length.',
+    ],
+    safety: [TABLE_SAW_KICKBACK, RIP_BLADE],
+    flags: [categoryFlag('table-saw')],
+    easierThan: [],
+    moreAccurateThan: ['groove-router'],
+  },
+
+  // Rabbet (along an edge or end, into one face)
+  {
+    id: 'rabbet-router',
+    operation: 'rabbet',
+    name: 'With a router and a guide',
+    tools: [{ use: 'cutting the rabbet', anyOf: [{ tool: 'router' }] }, TAPE, CLAMPS],
+    skills: ['measure-and-mark', 'rout-along-a-guide'],
+    setup: [
+      'Fit a straight bit, set to cut {depth} deep, a little deeper each time.',
+      'Clamp the part flat, with a straight board as a guide so the bit cuts {width} in from the edge.',
+    ],
+    technique: [
+      'Rout along the edge, {length} long, then repeat until the rabbet is {depth} deep.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Routing across the grain at an end tears out the far corner. Rout the ends first, then the long edges.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED],
+    flags: [categoryFlag('router')],
+    easierThan: ['rabbet-table-saw'],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'rabbet-table-saw',
+    operation: 'rabbet',
+    name: 'With a table saw, in two cuts',
+    tools: [{ use: 'cutting the rabbet', anyOf: [{ tool: 'table-saw' }] }, TAPE],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'For the first cut, raise the blade {depth} and set the fence {width} from the blade’s far side.',
+    ],
+    technique: [
+      'Run the part flat along the fence, pushing it past the blade with a push stick.',
+      'For the second cut, raise the blade {width}, stand the part on edge against the fence, and cut away the strip.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Letting the cut-off strip sit between the blade and the fence can throw it back. Set the fence so the strip falls away from the fence side.',
+    ],
+    safety: [TABLE_SAW_KICKBACK, RIP_BLADE],
+    flags: [categoryFlag('table-saw')],
+    easierThan: [],
+    moreAccurateThan: ['rabbet-router'],
+  },
+
+  // Finger recess (a scoop in a face)
+  {
+    id: 'finger-recess-router',
+    operation: 'finger-recess',
+    name: 'With a router and stops',
+    tools: [{ use: 'cutting the recess', anyOf: [{ tool: 'router' }] }, TAPE, SQUARE, CLAMPS],
+    skills: ['measure-and-mark', 'rout-along-a-guide'],
+    setup: [
+      'Fit a round-bottomed bit about {width} across, and set it to cut {depth} deep, a little deeper each time.',
+      'Clamp the part flat, with a straight board as a guide and stops at each end so the bit runs {height} along the marked line.',
+    ],
+    technique: [
+      'Lower the spinning bit at one stop and rout to the other, then sand the edges smooth.',
+      'Cut {count} this way.',
+    ],
+    mistakes: ['Routing past a stop leaves a slot that shows. Clamp the stops before you start.'],
+    safety: [ROUTER_BIT, ROUTER_FEED],
+    flags: [categoryFlag('router')],
+    easierThan: ['finger-recess-chisel'],
+    moreAccurateThan: ['finger-recess-chisel'],
+  },
+  {
+    id: 'finger-recess-chisel',
+    operation: 'finger-recess',
+    name: 'With a chisel',
+    tools: [{ use: 'carving the recess', anyOf: [{ tool: 'chisel' }] }, TAPE, SQUARE, CLAMPS],
+    skills: ['measure-and-mark', 'pare-to-a-line'],
+    setup: ['Mark the recess, {width} wide and {height} long, and clamp the part flat.'],
+    technique: [
+      'Pare toward the middle from each end, a little at a time, until it is {depth} deep, then sand it smooth.',
+      'Cut {count} this way.',
+    ],
+    mistakes: ['Paring toward an edge splits it out. Work from the edges toward the middle.'],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
   },
 
   // Bolt holes

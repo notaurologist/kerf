@@ -185,6 +185,34 @@ export const Operation = z.discriminatedUnion('type', [
     slot: z.number(),
     thickness: z.number(),
   }),
+  /** A groove along an edge (Part.grooves), `length` long; `stopped` when it reaches neither end. */
+  z.object({
+    ...onPart,
+    type: z.literal('groove'),
+    groove: z.number().int().nonnegative(),
+    length: z.number(),
+    width: z.number(),
+    depth: z.number(),
+    stopped: z.boolean(),
+  }),
+  /** A rabbet along an edge or end (Part.rabbets), the whole `length` of it. */
+  z.object({
+    ...onPart,
+    type: z.literal('rabbet'),
+    rabbet: z.number().int().nonnegative(),
+    length: z.number(),
+    width: z.number(),
+    depth: z.number(),
+  }),
+  /** A finger recess in a face (Part.recesses). */
+  z.object({
+    ...onPart,
+    type: z.literal('finger-recess'),
+    recess: z.number().int().nonnegative(),
+    width: z.number(),
+    height: z.number(),
+    depth: z.number(),
+  }),
   /** Round over sharp edges and sand off splinters on every face a person can touch. */
   z.object({ ...onPart, type: z.literal('ease-edges') }),
   /**
@@ -321,6 +349,44 @@ export function cutAndDrillOperations(
         cheekFront: thickness - t.n0 - t.thickness,
         shoulderReference: t.v0,
         shoulderFar: width - t.v0 - t.width,
+      });
+    });
+    (part.grooves ?? []).forEach((g, i) => {
+      const L = part.length;
+      ops.push({
+        id: `${part.id}/groove-${i}`,
+        type: 'groove',
+        partId: part.id,
+        count: part.quantity,
+        groove: i,
+        length: g.u1 - g.u0,
+        width: g.width,
+        depth: g.depth,
+        stopped: g.u0 > AT_EDGE || g.u1 < L - AT_EDGE,
+      });
+    });
+    (part.rabbets ?? []).forEach((r, i) => {
+      ops.push({
+        id: `${part.id}/rabbet-${i}`,
+        type: 'rabbet',
+        partId: part.id,
+        count: part.quantity,
+        rabbet: i,
+        length: r.edge === 'reference' || r.edge === 'far' ? part.length : width,
+        width: r.width,
+        depth: r.depth,
+      });
+    });
+    (part.recesses ?? []).forEach((r, i) => {
+      ops.push({
+        id: `${part.id}/finger-recess-${i}`,
+        type: 'finger-recess',
+        partId: part.id,
+        count: part.quantity,
+        recess: i,
+        width: r.width,
+        height: r.height,
+        depth: r.depth,
       });
     });
     const screws = part.screwHoles ?? [];
@@ -523,6 +589,9 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   mortise: 'Mortise',
   tenon: 'Tenon',
   'screw-holes': 'Screw holes',
+  groove: 'Groove',
+  rabbet: 'Rabbet',
+  'finger-recess': 'Finger recess',
   'bolt-holes': 'Bolt holes',
   'ease-edges': 'Ease edges',
   'dry-fit': 'Dry-fit',
