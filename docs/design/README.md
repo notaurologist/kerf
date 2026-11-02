@@ -45,6 +45,8 @@ The owner took the suggested option for each (November 2026).
 | Layout | B1. A step opens with one line of what to do, then its pieces with their lengths and saw settings. Operations of one kind fold into one line naming how many and the tool ("4 miters · miter saw") that opens to the method's text. Expert checks follow the parts. The same in the plan and in Building mode. | B2, the drawing and a parts table first, closest to printed plans: long on a phone before the first instruction, and the operations stay paragraphs. |
 | A missing tool | Said once per step, naming what the step's cuts need and where to add it, instead of once per operation. | Once per operation, as before: the same sentence for every cut of a board. |
 
+Built in #362 (November 2026), in `StepBody`, so the plan and Building mode match. A step keeps its title (what to do), then its board's pieces with each length and, where an end is not square, its saw settings (`SettingBox`). Operations of one type done the same way with the same numbers are one `ResultLine`: the type and how many ("Miter × 4"), what each works on, and the tools, opening to the method's setup, technique, mistakes, and safety. When no method fits, the step says so once with what each closest method lacks and a link to Tools, and its operation lines leave the result empty.
+
 ## Stage 17: usability pass, the shopping list (#361)
 
 On the laptop the shopping list's tables stretched across the page, so a row's stock, length, and count sat far apart, and the guidance on choosing boards ran on below them as dense paragraphs. `shopping-list.html` draws two directions, grouped the way a trip through the store goes.

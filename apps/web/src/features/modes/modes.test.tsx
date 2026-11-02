@@ -103,8 +103,9 @@ describe('Building mode', () => {
     expect(text).toContain('Trim 1/2" off the factory end to square it');
     expect(text).toContain('Each saw cut takes 1/8"');
     // Both crossbars, each with its tick, its length to cut, and its cut card.
-    expect(text).toContain('D Crossbar, piece 1 of 2 cut 59" Cut card');
-    expect(text).toContain('D Crossbar, piece 2 of 2 cut 59" Cut card');
+    // The saw settings beside the length, since a crossbar's ends are mitered (#362).
+    expect(text).toContain('D Crossbar, piece 1 of 2 cut 59" 20.0° 20.0° Cut card');
+    expect(text).toContain('D Crossbar, piece 2 of 2 cut 59" 20.0° 20.0° Cut card');
     expect(html.match(/class="k-glance"/g)).toHaveLength(2);
     expect(html.match(/checked=""/g)).toHaveLength(1);
     expect(html).toContain(`href="#/projects/${p.id}/build/board-6/crossbar"`);
@@ -112,7 +113,8 @@ describe('Building mode', () => {
     // pieces and before the methods (#134).
     const at = (x: string) => html.indexOf(x);
     expect(at('k-steplayout__lead')).toBeLessThan(at('k-steplayout__drawing'));
-    expect(at('k-steplayout__drawing')).toBeLessThan(at('Miter: D Crossbar'));
+    expect(at('k-steplayout__drawing')).toBeLessThan(at('class="k-result-line"'));
+    expect(at('class="k-result-line"')).toBeGreaterThan(-1);
     expect(html).toContain('A 2x6 board 10');
     expect(text).toContain('Back Done, next');
   });

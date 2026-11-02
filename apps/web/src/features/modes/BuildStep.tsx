@@ -1,12 +1,12 @@
 import {
   angleToEdge,
   type BuildStep,
-  type CutListRow,
   formatAngle,
   formatBoardLength,
   formatLength,
   type geometry,
   type Plan,
+  type PlannedCutRow,
   panelMade,
   partProgressKey,
 } from '@kerf/core';
@@ -33,7 +33,7 @@ import {
   Text,
   Tick,
 } from '../../ui/index.ts';
-import { Offcut, pieceOf, StepBody } from '../build-steps/BuildSteps.tsx';
+import { EndSettings, Offcut, pieceOf, StepBody } from '../build-steps/BuildSteps.tsx';
 
 // Building mode's screens (#118; design Stage 1, G-A to G-C): one step at a time in shop density,
 // the numbers you cut to set for glance distance (#42), and every word in the text color (#43,
@@ -182,7 +182,7 @@ export function StepScreen(props: {
  */
 function BoardPieces(props: {
   step: BuildStep;
-  rows: readonly CutListRow[];
+  rows: readonly PlannedCutRow[];
   ticks: Ticks;
   links: StepLinks;
 }) {
@@ -213,7 +213,10 @@ function BoardPieces(props: {
                   {pieceOf(piece.instance, r?.quantity)} cut
                 </Tick>
                 <Cluster spread>
-                  <Glance>{formatLength(piece.length)}</Glance>
+                  <Cluster gap="xs">
+                    <Glance>{formatLength(piece.length)}</Glance>
+                    <EndSettings settings={r?.settings} />
+                  </Cluster>
                   <ButtonLink variant="secondary" href={props.links.piece(step.id, piece.partId)}>
                     Cut card
                   </ButtonLink>
