@@ -32,7 +32,7 @@ All in `apps/web/public`, linked from `apps/web/index.html`, and made by `brand/
 | `og.png` | 1200 by 630, the wordmark and "Plans for woodworking projects" | The preview when a link is shared. `index.html` names it by its production URL, as link previews need an absolute address. |
 | `../src/ui/wordmark-outline.ts` | The wordmark's outline | The `Wordmark` component |
 
-The icons for installable web apps (192 and 512 px, and a manifest) are left out: installable web apps are a non-goal in `PRODUCT.md`.
+The icons for installable web apps (192 and 512 px, and a manifest) are left out: Kerf has no manifest (0005). Since iOS 26, a site added to the Home Screen opens as a web app without one and uses `apple-touch-icon.png`.
 
 To change the wordmark or icons, change the script and run it again; never edit the generated files.
 
