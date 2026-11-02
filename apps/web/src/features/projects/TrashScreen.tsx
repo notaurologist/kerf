@@ -30,7 +30,13 @@ export function TrashScreen() {
       projects: value.projects.filter((p) => p.id !== id),
     }));
   return (
-    <Loaded state={loaded} shape="list" loading="Loading the trash…" onRetry={reload} title="Trash">
+    <Loaded
+      state={loaded}
+      shape="list"
+      loading="Loading deleted projects…"
+      onRetry={reload}
+      title="Deleted projects"
+    >
       {(value) => (
         <TrashList
           projects={value.projects}
@@ -57,12 +63,12 @@ export function TrashList(props: {
   return (
     <Stack>
       <ScreenHeader
-        title="Trash"
+        title="Deleted projects"
         lede="Deleted projects wait here for 30 days, then are deleted for good."
         status={props.said && <StatusLine>{props.said}</StatusLine>}
       />
       {props.projects.length === 0 ? (
-        <Text>The trash is empty.</Text>
+        <Text>No deleted projects.</Text>
       ) : (
         <Rows as="ul">
           {props.projects.map((p) => (
@@ -113,7 +119,7 @@ function TrashedRow(props: {
           confirm="Delete for good"
           busyLabel="Deleting…"
           variant="destructive"
-          keep="Keep in trash"
+          keep="Keep it here"
           busy={busy}
           error={error}
           onConfirm={() => void run('deleted')}

@@ -26,7 +26,13 @@ import { projectStore } from '../../lib/projectStore.ts';
 import { href, navigate, type ProjectStart } from '../../lib/route.ts';
 import { sameJson } from '../../lib/sameJson.ts';
 import type { PlanSectionId } from '../../lib/sections.ts';
-import type { Project, ProjectSummary } from '../../lib/types.ts';
+import {
+  type Project,
+  type ProjectStatus,
+  type ProjectSummary,
+  STATUS_LABELS,
+  STATUSES,
+} from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
@@ -43,6 +49,7 @@ import {
   ProblemScreen,
   SaveFailed,
   ScreenHeader,
+  Select,
   Stack,
   type SummaryItem,
   Text,
@@ -339,6 +346,7 @@ function EditProjectForm(props: {
       onReload={props.onReload}
       initial={{
         name: project.name,
+        status: project.status,
         params: formValues(template.form.params, project.snapshot.params),
         inputs: formValues(template.form.structuralInputs, project.snapshot.structuralInputs),
       }}
@@ -348,6 +356,8 @@ function EditProjectForm(props: {
 
 interface EditorValues {
   name: string;
+  /** An existing project's status, which follows progress and can be set here (#355). */
+  status?: ProjectStatus;
   params: FormValues;
   inputs: FormValues;
 }
@@ -383,8 +393,10 @@ export function ProjectEditor(props: {
     target?.focus({ preventScroll: true });
     target?.scrollIntoView({ block: 'center' });
   }, [startField]);
-  const { name, params, inputs } = draft;
+  const { name, status, params, inputs } = draft;
   const setName = (next: string) => setDraft((d) => ({ ...d, name: next }));
+  const setStatus = (next: string) =>
+    setDraft((d) => ({ ...d, status: STATUSES.find((s) => s === next) ?? d.status }));
   const setParams = (next: FormValues) => setDraft((d) => ({ ...d, params: next }));
   const setInputs = (next: FormValues) => setDraft((d) => ({ ...d, inputs: next }));
   const { issues, attempt, report } = useFormIssues({
@@ -461,7 +473,12 @@ export function ProjectEditor(props: {
 
     setSaveState({ state: 'saving' });
     const result = project
-      ? await save(project, revision ?? project.revision, name.trim(), builtParams, builtInputs)
+      ? await save(project, revision ?? project.revision, {
+          name: name.trim(),
+          status: status ?? project.status,
+          params: builtParams,
+          inputs: builtInputs,
+        })
       : await send(
           api.api.projects.$post({
             json: {
@@ -529,6 +546,24 @@ export function ProjectEditor(props: {
       <Field id="project-name" label="Project name" error={issues.name} width="medium">
         {(c) => <TextInput {...c} value={name} onChange={setName} readOnly={saving} />}
       </Field>
+      {project && status && (
+        <Field
+          id="project-status"
+          label="Status"
+          hint="Follows your progress: In progress at the first tick, Built when the last step is done. Set it here for a project built without ticking its steps."
+          width="medium"
+        >
+          {(c) => (
+            <Select
+              {...c}
+              value={status}
+              onChange={setStatus}
+              placeholder={false}
+              options={STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+            />
+          )}
+        </Field>
+      )}
       <Stack gap="xs">
         <Text tone="muted">
           Fields marked "Input needed" are yours to enter or check. Structural inputs can wait:
@@ -729,33 +764,32 @@ function named(label: string | undefined, message: string): string {
   return `${label}: ${message.charAt(0).toLowerCase()}${message.slice(1)}`;
 }
 
+/** What the editor holds for an existing project, as it would be saved. */
+interface Edited {
+  name: string;
+  status: ProjectStatus;
+  params: Record<string, unknown>;
+  inputs: Record<string, unknown>;
+}
+
 /**
  * What to send for an edit: only what changed, so renaming a project never regenerates it (and
  * never moves it to a newer template version without the owner changing a value).
  */
-export function changesFor(
-  project: Project,
-  name: string,
-  params: Record<string, unknown>,
-  inputs: Record<string, unknown>,
-) {
+export function changesFor(project: Project, edited: Edited) {
+  const { name, status, params, inputs } = edited;
   const stored = project.snapshot;
   return {
     ...(name !== project.name ? { name } : {}),
+    ...(status !== project.status ? { status } : {}),
     ...(stored && !sameJson(params, stored.params) ? { params } : {}),
     ...(stored && !sameJson(inputs, stored.structuralInputs) ? { structuralInputs: inputs } : {}),
   };
 }
 
 /** Saves the changed fields against `revision`; another device's other changes stand. */
-async function save(
-  project: Project,
-  revision: number,
-  name: string,
-  params: Record<string, unknown>,
-  inputs: Record<string, unknown>,
-) {
-  const changes = changesFor(project, name, params, inputs);
+async function save(project: Project, revision: number, edited: Edited) {
+  const changes = changesFor(project, edited);
   if (Object.keys(changes).length === 0) return { ok: true as const, value: project };
   return send(
     api.api.projects[':id'].$put({ param: { id: project.id }, json: { ...changes, revision } }),

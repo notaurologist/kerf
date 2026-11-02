@@ -458,7 +458,7 @@ function Specimens() {
       <Group title="Inline confirmation">
         <Card>
           <InlineConfirm
-            confirm="Move to trash"
+            confirm="Delete project"
             busyLabel="Moving…"
             variant="destructive"
             keep="Keep project"
@@ -467,8 +467,8 @@ function Specimens() {
             onKeep={() => {}}
           >
             <Text>
-              <b>Delete “Backyard project”?</b> It moves to the trash with its plan and history. You
-              can restore it there for 30 days, then it is deleted for good.
+              <b>Delete “Backyard project”?</b> It moves to Deleted projects in Workshop with its
+              plan and history. You can restore it there for 30 days, then it is deleted for good.
             </Text>
           </InlineConfirm>
         </Card>

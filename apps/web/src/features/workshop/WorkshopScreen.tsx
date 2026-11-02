@@ -17,9 +17,9 @@ const PLACES = [
     about: 'The woodworking and structural terms the plans use.',
   },
   {
-    label: 'Trash',
+    label: 'Deleted projects',
     href: href({ screen: 'trash' }),
-    about: 'Deleted projects, kept for 30 days.',
+    about: 'Kept for 30 days, then deleted for good. Restore one from here.',
   },
 ] as const;
 
@@ -40,7 +40,7 @@ export function WorkshopScreen(props: { onLogOut: () => void }) {
           {/* A copy to keep: the free database restores only the last few hours (#21). */}
           <Stack gap="3xs">
             <a href="/api/export" download>
-              Download all projects
+              Download a backup
             </a>
             <Text tone="muted">Every project and your tools, as one file to keep.</Text>
           </Stack>
