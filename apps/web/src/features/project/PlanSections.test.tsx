@@ -26,7 +26,7 @@ const project = projectFrom(stored, {
   drawings: template.drawings(outputs),
   steps: {
     inventoryKey: 'none',
-    steps: buildSteps(template.steps(outputs), template.plan(outputs), { tools: [], other: [] }),
+    steps: buildSteps(template.steps(outputs), template.plan(outputs), { tools: [] }),
   },
 });
 const base = `#/projects/${project.id}`;

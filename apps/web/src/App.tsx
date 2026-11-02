@@ -125,7 +125,7 @@ export function frameFor(route: Route): { place: PlaceId; top: boolean; back?: B
     case 'workshop':
       return { place, top: true };
     case 'tools':
-      return route.tool ? up('Tools', 'tools') : up('Workshop', 'workshop');
+      return route.tool ? up('My toolbox', 'tools') : up('Workshop', 'workshop');
     case 'glossary':
       return route.term ? up('Glossary', 'glossary') : up('Workshop', 'workshop');
     case 'trash':

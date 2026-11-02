@@ -7,7 +7,7 @@ import { formatLength } from '../units/length.ts';
 // The tool inventory (PRODUCT.md, MVP feature 1; DOMAIN.md, Tool). The API stores it and the
 // web app edits it, and both check it with these schemas. Tools come from the tool-type library
 // (knowledge/tools.ts) with the capabilities it defines; a capability left out is "input needed"
-// (hard rule 3). Tools the library does not have go in `other`, by name, and methods ignore them.
+// (hard rule 3). Only library tools are kept: methods can use nothing else (#363).
 
 export const CapabilityValue = z.union([z.boolean(), z.number()]);
 export type CapabilityValue = z.infer<typeof CapabilityValue>;
@@ -62,13 +62,6 @@ export const Tool = z
   });
 export type Tool = z.infer<typeof Tool>;
 
-/** A tool the library does not have. Build steps do not use it. */
-export const OtherTool = z.object({
-  name: z.string().trim().min(1, 'Enter a name.').max(80),
-  note: z.string().trim().max(500),
-});
-export type OtherTool = z.infer<typeof OtherTool>;
-
 export const Inventory = z.object({
   tools: z
     .array(Tool)
@@ -95,7 +88,6 @@ export const Inventory = z.object({
         }
       });
     }),
-  other: z.array(OtherTool).max(200),
 });
 export type Inventory = z.infer<typeof Inventory>;
 
@@ -130,44 +122,22 @@ export interface StoredTool {
 }
 
 /**
- * Reads stored tool rows into the current shape, losing nothing. A row whose ID is a library
- * tool keeps the capabilities that fit it; a row whose ID is not, and any capability that does
- * not fit, moves to `other` under the old ID, with the old values written in its note.
+ * Reads stored tool rows into the current shape. A row whose ID is a library tool keeps the
+ * capabilities that fit it; a row whose ID is not, and any capability that does not fit, is left
+ * out, since no method could use it (#363).
  */
-export function readStoredTools(rows: readonly StoredTool[]): {
-  tools: Tool[];
-  moved: OtherTool[];
-} {
-  const tools: Tool[] = [];
-  const moved: OtherTool[] = [];
-  for (const row of rows) {
+export function readStoredTools(rows: readonly StoredTool[]): Tool[] {
+  return rows.flatMap((row) => {
+    const type = findToolType(row.toolTypeId);
+    if (!type) return [];
     const entries = Object.entries(
       typeof row.capabilities === 'object' && row.capabilities !== null ? row.capabilities : {},
     );
-    const type = findToolType(row.toolTypeId);
-    if (!type) {
-      moved.push(movedTool(row.toolTypeId, 'Not a tool type in the library.', entries));
-      continue;
-    }
     const capabilities: Record<string, CapabilityValue> = {};
-    const left: [string, unknown][] = [];
     for (const [id, value] of entries) {
       const field = type.capabilities.find((c) => c.id === id);
       if (field && !capabilityProblem(field, value)) capabilities[id] = value as CapabilityValue;
-      else left.push([id, value]);
     }
-    tools.push({ toolTypeId: type.id, ...(row.name ? { name: row.name } : {}), capabilities });
-    if (left.length > 0) {
-      moved.push(
-        movedTool(row.toolTypeId, `Details the ${type.name.toLowerCase()} entry cannot use.`, left),
-      );
-    }
-  }
-  return { tools, moved };
-}
-
-function movedTool(name: string, why: string, entries: [string, unknown][]): OtherTool {
-  const values = entries.map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('; ');
-  const note = `Moved here from your tool list. ${why}${values ? ` Earlier values: ${values}.` : ''}`;
-  return { name, note: note.slice(0, 500) };
+    return [{ toolTypeId: type.id, ...(row.name ? { name: row.name } : {}), capabilities }];
+  });
 }

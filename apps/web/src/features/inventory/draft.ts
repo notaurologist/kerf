@@ -21,14 +21,8 @@ export interface ToolDraft {
   values: FormValues;
 }
 
-export interface OtherDraft {
-  name: string;
-  note: string;
-}
-
 export interface InventoryDraft {
   tools: ToolDraft[];
-  other: OtherDraft[];
 }
 
 const ORDER: ReadonlyMap<string, number> = new Map(TOOL_TYPES.map((t, i) => [t.id, i]));
@@ -46,11 +40,10 @@ export function fromInventory(inventory: Inventory): InventoryDraft {
         return { toolTypeId: tool.toolTypeId, name: tool.name ?? '', values };
       })
       .sort(byLibrary),
-    other: inventory.other.map((o) => ({ ...o })),
   };
 }
 
-export const emptyInventory = (): InventoryDraft => ({ tools: [], other: [] });
+export const emptyInventory = (): InventoryDraft => ({ tools: [] });
 
 /** Adds a library tool with nothing entered. */
 export function addTool(draft: InventoryDraft, toolTypeId: string): InventoryDraft {
@@ -73,23 +66,6 @@ export function removeAt(draft: InventoryDraft, index: number): InventoryDraft {
 
 export function removeTool(draft: InventoryDraft, toolTypeId: string): InventoryDraft {
   return { ...draft, tools: draft.tools.filter((t) => t.toolTypeId !== toolTypeId) };
-}
-
-const nameKey = (name: string) =>
-  name
-    .trim()
-    .toLowerCase()
-    .replace(/[-\s]+/g, ' ');
-
-/** The library type an other tool's name names, as typed or as an old ID like `table-saw`. */
-export function libraryMatch(name: string) {
-  const key = nameKey(name);
-  return key ? TOOL_TYPES.find((t) => nameKey(t.name) === key || nameKey(t.id) === key) : undefined;
-}
-
-export function moveToLibrary(draft: InventoryDraft, other: number, toolTypeId: string) {
-  const moved = addTool(draft, toolTypeId);
-  return { ...moved, other: moved.other.filter((_, i) => i !== other) };
 }
 
 export function matchingTypes(query: string) {
@@ -121,8 +97,7 @@ export function toInventory(
     const name = tool.name.trim();
     return { toolTypeId: tool.toolTypeId, ...(name ? { name } : {}), capabilities };
   });
-  const other = draft.other.map((o) => ({ name: o.name.trim(), note: o.note.trim() }));
-  const parsed = Inventory.safeParse({ tools, other });
+  const parsed = Inventory.safeParse({ tools });
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
       const field = issue.path.map(String).join('.');

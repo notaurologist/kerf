@@ -159,7 +159,7 @@ describe('GET /api/projects/:id build steps (#52)', () => {
     // No tools yet: every operation has a step, and none has a method. A part cut from two boards
     // has its cuts in both boards' steps (#58).
     const before = await read();
-    const empty = { tools: [], other: [] };
+    const empty = { tools: [] };
     expect(BuildSteps.parse(before.steps).inventoryKey).toBe(inventoryKey(empty));
     const operations = before.snapshot.outputs.design.operations;
     const stepped = before.steps.steps.flatMap((s: Json) => s.operations);
@@ -175,7 +175,6 @@ describe('GET /api/projects/:id build steps (#52)', () => {
         { toolTypeId: 'miter-saw', capabilities: { cutDepth: 4, crosscutWidth: 12 } },
         { toolTypeId: 'tape-measure', capabilities: {} },
       ],
-      other: [],
     };
     expect((await authed('/api/tools', { method: 'PUT', body: tools })).status).toBe(200);
     const after = await read();
@@ -212,7 +211,6 @@ describe('project history (#106)', () => {
       { toolTypeId: 'miter-saw', capabilities: { cutDepth: 4, crosscutWidth: 12, maxMiter: 50 } },
       { toolTypeId: 'tape-measure', capabilities: {} },
     ],
-    other: [],
   };
 
   it('writes a row for every operation when a project is created', async () => {
@@ -226,7 +224,7 @@ describe('project history (#106)', () => {
     // No tools yet: no method, no skills, and the empty inventory's key.
     expect(rows.every((r) => r.method_id === null && r.skills.length === 0)).toBe(true);
     expect(new Set(rows.map((r) => r.inventory_key))).toEqual(
-      new Set([inventoryKey({ tools: [], other: [] })]),
+      new Set([inventoryKey({ tools: [] })]),
     );
   });
 
@@ -259,7 +257,7 @@ describe('project history (#106)', () => {
     });
 
     // Regenerating rewrites them too, from the tools at that moment.
-    await authed('/api/tools', { method: 'PUT', body: { tools: [], other: [] } });
+    await authed('/api/tools', { method: 'PUT', body: { tools: [] } });
     const regenerated = await authed(`/api/projects/${body.id}/regenerate`, {
       method: 'POST',
       body: {},

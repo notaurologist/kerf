@@ -30,7 +30,6 @@ const shop: Inventory = {
     { toolTypeId: 'miter-saw', capabilities: { cutDepth: 4, crosscutWidth: 12, maxMiter: 50 } },
     { toolTypeId: 'tape-measure', capabilities: {} },
   ],
-  other: [],
 };
 
 function project(inventory: Inventory): Project {
@@ -130,7 +129,6 @@ describe('build steps in the project view (#52)', () => {
         },
         { toolTypeId: 'tape-measure', capabilities: {} },
       ],
-      other: [],
     };
     const text = renderText(<ProjectView project={project(named)} />);
     expect(text).toContain('With a miter saw. Tools: Miter saw (Sliding), Tape measure.');
@@ -164,7 +162,7 @@ describe('build steps in the project view (#52)', () => {
     expect(text).toContain('Set the miter saw to 20.0°, turned the way the cut detail shows.');
     // No drill: the step says once what would allow a method.
     expect(text).toContain('No method fits your tools for');
-    expect(text).toContain('Add a tool in Tools');
+    expect(text).toContain('Add a tool in My toolbox');
   });
 
   it("puts each tool's icon before its name in a method's tools (#86)", () => {
@@ -182,7 +180,7 @@ describe('build steps in the project view (#52)', () => {
 
   it('says which inventory the steps were chosen from, so a stale list can be found', () => {
     const withShop = readSteps(project(shop));
-    const withNone = readSteps(project({ tools: [], other: [] }));
+    const withNone = readSteps(project({ tools: [] }));
     expect(withShop?.inventoryKey).toMatch(/^[0-9a-f]{8}$/);
     expect(withShop?.inventoryKey).not.toBe(withNone?.inventoryKey);
   });
@@ -224,7 +222,7 @@ describe('build steps in the project view (#52)', () => {
 });
 
 describe('a step taken in at a glance (#362)', () => {
-  const steps = readSteps(project({ tools: [], other: [] }))?.steps ?? [];
+  const steps = readSteps(project({ tools: [] }))?.steps ?? [];
   const legs = steps.find((s) => s.id === 'board-2');
   if (!legs) throw new Error('the worked example has a second board');
 
@@ -239,10 +237,7 @@ describe('a step taken in at a glance (#362)', () => {
   });
 
   it('says once per step what the tools lack, not on every operation', () => {
-    const html = sectionOf(
-      render(<ProjectView project={project({ tools: [], other: [] })} />),
-      'build-steps',
-    );
+    const html = sectionOf(render(<ProjectView project={project({ tools: [] })} />), 'build-steps');
     const text = textOf(html);
     expect(text.match(/No method fits your tools for/g)?.length).toBe(
       steps.filter((s) => s.operations.some((op) => !op.method && op.needed)).length,

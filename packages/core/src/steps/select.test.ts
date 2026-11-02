@@ -20,7 +20,6 @@ const post: Operation = {
 function inventory(...tools: [string, Record<string, number>?][]): Inventory {
   return {
     tools: tools.map(([id, caps]) => ({ toolTypeId: id, capabilities: caps ?? {} })),
-    other: [],
   };
 }
 
@@ -47,7 +46,6 @@ describe('several tools of one type', () => {
         named('circular-saw', 'Also big', { depthOfCut: 4 }),
         ...inventory(...marking).tools,
       ],
-      other: [],
     };
     const s = selectMethod(post, shop);
     expect(s.chosen?.id).toBe('crosscut-circular-saw');
@@ -62,7 +60,6 @@ describe('several tools of one type', () => {
         named('circular-saw', 'Small', { depthOfCut: 1.5 }),
         named('circular-saw', 'Medium', { depthOfCut: 2.375 }),
       ],
-      other: [],
     };
     const fit = fitMethod(method('crosscut-circular-saw'), post, shop);
     expect(fit.gaps[0]?.anyOf[0]?.short).toEqual([
@@ -91,7 +88,6 @@ describe('several tools of one type', () => {
         named('clamps', 'Short', { maxOpening: 6 }),
         named('clamps', 'Long', { maxOpening: 12 }),
       ],
-      other: [],
     };
     expect(meetingTool(holding, holes, shop)?.name).toBe('Long');
   });
@@ -468,6 +464,5 @@ describe('inventoryKey', () => {
     expect(inventoryKey(a)).toMatch(/^[0-9a-f]{8}$/);
     const deeper = inventory(['hand-saw'], ['circular-saw', { depthOfCut: 2.5 }]);
     expect(inventoryKey(deeper)).not.toBe(inventoryKey(a));
-    expect(inventoryKey({ ...a, other: [{ name: 'Rasp', note: '' }] })).toBe(inventoryKey(a));
   });
 });

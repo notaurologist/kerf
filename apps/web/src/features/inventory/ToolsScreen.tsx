@@ -1,5 +1,5 @@
 import { capabilityForm, findToolType, TOOL_GROUP_LABELS, TOOL_GROUPS } from '@kerf/core';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { Loaded } from '../../lib/Loaded.tsx';
@@ -7,14 +7,14 @@ import { href } from '../../lib/route.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import {
   Button,
-  Card,
   Cluster,
   Disclosure,
   ErrorSummary,
   Field,
-  FieldGroup,
   Grid,
   InputNeeded,
+  Row,
+  Rows,
   SaveFailed,
   ScreenHeader,
   Stack,
@@ -22,7 +22,6 @@ import {
   type SummaryItem,
   Text,
   TextInput,
-  Tick,
   ToolLabel,
   useDraft,
   useFormIssues,
@@ -34,26 +33,31 @@ import {
   fromInventory,
   type InventoryDraft,
   issueFor,
-  libraryMatch,
   matchingTypes,
-  moveToLibrary,
-  type OtherDraft,
   removeAt,
-  removeTool,
   restoreTools,
   type ToolDraft,
   toInventory,
 } from './draft.ts';
 
-// The tool inventory editor (PRODUCT.md, MVP feature 1). The owner ticks the tool types they own,
-// then enters each one's capabilities when ready, none filled in (hard rule 3). Tools the library
-// does not have go under "Other tools", which build steps do not use. Saving replaces the whole
-// inventory.
+// My toolbox (PRODUCT.md, MVP feature 1; Stage 19, #363): the tools the owner has, each with the
+// capabilities build steps choose methods by, none filled in (hard rule 3). A tool is added from
+// the library in one tap and removed in one, with Undo; every change saves as it is made, typing
+// a moment after the last key.
+
+/** How long after the last key a typed capability saves. */
+const TYPING_MS = 800;
 
 export function ToolsScreen() {
   const { loaded, set, reload } = useLoad(() => send(api.api.tools.$get()), 'tools');
   return (
-    <Loaded state={loaded} shape="list" loading="Loading tools…" onRetry={reload} title="Tools">
+    <Loaded
+      state={loaded}
+      shape="list"
+      loading="Loading tools…"
+      onRetry={reload}
+      title="My toolbox"
+    >
       {(inventory) => <ToolsEditor saved={fromInventory(inventory)} onSaved={set} />}
     </Loaded>
   );
@@ -63,158 +67,173 @@ export function ToolsEditor(props: {
   saved: InventoryDraft;
   onSaved?: (inventory: Parameters<typeof fromInventory>[0]) => void;
 }) {
-  const { draft, setDraft, dialog } = useDraft(props.saved);
+  // What the server has, so leaving with a change not yet saved asks first.
+  const [stored, setStored] = useState(props.saved);
+  const { draft, setDraft, dialog } = useDraft(stored);
   const { issues, attempt, report } = useFormIssues<FieldIssue[]>([]);
   const [save, setSave] = useState<SaveState>({ state: 'idle' });
-  const [query, setQuery] = useState('');
-  // Tools unticked by mistake come back, with what was typed, when ticked again.
-  const [unticked, setUnticked] = useState<Record<string, ToolDraft[]>>({});
-  useEffect(() => setDraft(props.saved), [props.saved, setDraft]);
+  const [removed, setRemoved] = useState<{ tools: ToolDraft[]; name: string } | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
 
-  const change = (next: (d: InventoryDraft) => InventoryDraft) => {
-    setDraft(next);
-    setSave({ state: 'idle' });
-  };
-  const editTool = (t: number, edit: (tool: ToolDraft) => ToolDraft) =>
-    change((d) => ({ ...d, tools: d.tools.map((tool, i) => (i === t ? edit(tool) : tool)) }));
-  const editOther = (o: number, edit: Partial<OtherDraft>) =>
-    change((d) => ({
-      ...d,
-      other: d.other.map((x, i) => (i === o ? { ...x, ...edit } : x)),
-    }));
-
-  const submit = async () => {
-    const checked = toInventory(draft);
+  const saveNow = async (next: InventoryDraft) => {
+    clearTimeout(timer.current);
+    const checked = toInventory(next);
     report(checked.ok ? [] : checked.issues, !checked.ok);
     if (!checked.ok) return;
     setSave({ state: 'saving' });
     const result = await send(api.api.tools.$put({ json: checked.inventory }));
     if (result.ok) {
       setSave({ state: 'saved' });
+      setStored(next);
       props.onSaved?.(result.value);
     } else {
       if (result.error.kind === 'invalid') report(result.error.issues, true);
       setSave({ state: 'failed', failure: failureOf(result.error) });
     }
   };
-
-  const owned = new Set(draft.tools.map((t) => t.toolTypeId));
-  const ofType = (toolTypeId: string) => draft.tools.filter((t) => t.toolTypeId === toolTypeId);
-  const setOwned = (toolTypeId: string, own: boolean) => {
-    if (!own) setUnticked((u) => ({ ...u, [toolTypeId]: ofType(toolTypeId) }));
-    const restore = unticked[toolTypeId];
-    change((d) => {
-      if (!own) return removeTool(d, toolTypeId);
-      return restore ? restoreTools(d, restore) : addTool(d, toolTypeId);
-    });
+  /** A tool added or removed saves at once; typing waits for a pause. */
+  const change = (next: InventoryDraft, when: 'now' | 'after-typing') => {
+    setDraft(next);
+    setSave({ state: 'idle' });
+    clearTimeout(timer.current);
+    if (when === 'now') void saveNow(next);
+    else timer.current = setTimeout(() => void saveNow(next), TYPING_MS);
   };
-  const matching = matchingTypes(query);
-  const withDetails = draft.tools
-    .map((tool, t) => ({ tool, t, repeated: ofType(tool.toolTypeId).length > 1 }))
-    .filter(
-      ({ tool, repeated }) =>
-        repeated || (findToolType(tool.toolTypeId)?.capabilities.length ?? 0) > 0,
+  const editTool = (t: number, edit: (tool: ToolDraft) => ToolDraft) =>
+    change(
+      { ...draft, tools: draft.tools.map((tool, i) => (i === t ? edit(tool) : tool)) },
+      'after-typing',
     );
+  const add = (toolTypeId: string) => {
+    setRemoved(null);
+    change(addTool(draft, toolTypeId), 'now');
+  };
+  const remove = (t: number) => {
+    const tool = draft.tools[t];
+    if (!tool) return;
+    const type = findToolType(tool.toolTypeId);
+    setRemoved({ tools: [tool], name: tool.name.trim() || type?.name || tool.toolTypeId });
+    change(removeAt(draft, t), 'now');
+  };
+  const undo = () => {
+    if (!removed) return;
+    setRemoved(null);
+    change(restoreTools(draft, removed.tools), 'now');
+  };
 
+  const owned = draft.tools.map((tool, t) => ({
+    tool,
+    t,
+    type: findToolType(tool.toolTypeId),
+    repeated: draft.tools.filter((x) => x.toolTypeId === tool.toolTypeId).length > 1,
+  }));
   return (
     <Stack>
       <ScreenHeader
-        title="Tools"
-        lede="The tool types you own. Build steps choose a method for each cut and joint from these."
+        title="My toolbox"
+        lede="The tools you have. Build steps choose a method for each cut and joint from these."
+        status={
+          removed ? (
+            <StatusLine>
+              Removed {removed.name}.{' '}
+              <Button variant="link" onClick={undo}>
+                Undo
+              </Button>
+            </StatusLine>
+          ) : save.state === 'saved' ? (
+            <StatusLine>Saved.</StatusLine>
+          ) : save.state === 'saving' ? (
+            <StatusLine>Saving…</StatusLine>
+          ) : undefined
+        }
       />
       <ErrorSummary items={summaryItems(issues)} attempt={attempt} />
+      {save.state === 'failed' && issues.length === 0 && <SaveFailed failure={save.failure} />}
 
-      <Stack as="section">
-        <h2>Your tools</h2>
+      {owned.length === 0 ? (
+        <Text>No tools yet. Add the ones you have, and build steps choose methods from them.</Text>
+      ) : (
+        TOOL_GROUPS.map((group) => {
+          const mine = owned.filter(({ type }) => type?.group === group);
+          if (mine.length === 0) return null;
+          return (
+            <Stack key={group} as="section" gap="xs">
+              <h2>{TOOL_GROUP_LABELS[group]}</h2>
+              <Rows as="ul">
+                {mine.map(({ tool, t, repeated }) => (
+                  // Keyed by position: names can be blank or repeated while typing.
+                  <Row key={t} as="li">
+                    <OwnedTool
+                      tool={tool}
+                      index={t}
+                      repeated={repeated}
+                      issues={issues}
+                      onChange={(path, text) =>
+                        editTool(t, (x) => ({ ...x, values: { ...x.values, [path]: text } }))
+                      }
+                      onName={(name) => editTool(t, (x) => ({ ...x, name }))}
+                      onAddAnother={() => change(addAnother(draft, tool.toolTypeId), 'now')}
+                      onRemove={() => remove(t)}
+                    />
+                  </Row>
+                ))}
+              </Rows>
+            </Stack>
+          );
+        })
+      )}
+
+      {/* After your tools, so one just added is in view; open while there are none. */}
+      <AddTool
+        owned={new Set(draft.tools.map((t) => t.toolTypeId))}
+        open={owned.length === 0}
+        onAdd={add}
+      />
+      {dialog}
+    </Stack>
+  );
+}
+
+/** The library, searched, with each tool not yet owned one tap from being added. */
+function AddTool(props: {
+  owned: ReadonlySet<string>;
+  open: boolean;
+  onAdd: (toolTypeId: string) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const matching = matchingTypes(query).filter((t) => !props.owned.has(t.id));
+  return (
+    <Disclosure summary="Add a tool" open={props.open || undefined}>
+      <Stack gap="s">
         <Field id="tool-search" label="Find a tool">
           {(c) => <TextInput {...c} type="search" value={query} onChange={setQuery} />}
         </Field>
         {matching.length === 0 && (
-          <Text>No tool in the library matches "{query.trim()}". Add it under Other tools.</Text>
+          <Text>
+            {query.trim()
+              ? `No tool in the library matches "${query.trim()}" that you do not have already.`
+              : 'You have every tool in the library.'}
+          </Text>
         )}
         {TOOL_GROUPS.map((group) => {
           const types = matching.filter((t) => t.group === group);
           if (types.length === 0) return null;
           return (
-            <FieldGroup key={group} legend={TOOL_GROUP_LABELS[group]}>
-              <Grid min="s" gap="2xs">
+            <Stack key={group} gap="2xs">
+              <h3>{TOOL_GROUP_LABELS[group]}</h3>
+              <Cluster gap="xs">
                 {types.map((type) => (
-                  <Tick
-                    key={type.id}
-                    done={owned.has(type.id)}
-                    onChange={(own) => setOwned(type.id, own)}
-                  >
+                  <Button key={type.id} variant="secondary" onClick={() => props.onAdd(type.id)}>
                     <ToolLabel toolTypeId={type.id}>{type.name}</ToolLabel>
-                  </Tick>
+                  </Button>
                 ))}
-              </Grid>
-            </FieldGroup>
+              </Cluster>
+            </Stack>
           );
         })}
       </Stack>
-
-      {withDetails.length > 0 && (
-        <Stack as="section">
-          <h2>Tool details</h2>
-          <Text tone="muted">
-            Build steps use these to choose between methods. Enter each from the tool's manual or by
-            measuring it. One not entered is input needed.
-          </Text>
-          {withDetails.map(({ tool, t, repeated }) => (
-            <ToolDetails
-              // Keyed by position: names can be blank or repeated while typing.
-              key={t}
-              tool={tool}
-              index={t}
-              repeated={repeated}
-              issues={issues}
-              onChange={(path, text) =>
-                editTool(t, (x) => ({ ...x, values: { ...x.values, [path]: text } }))
-              }
-              onName={(name) => editTool(t, (x) => ({ ...x, name }))}
-              onAddAnother={() => change((d) => addAnother(d, tool.toolTypeId))}
-              onRemove={() => change((d) => removeAt(d, t))}
-            />
-          ))}
-        </Stack>
-      )}
-
-      <Stack as="section">
-        <h2>Other tools</h2>
-        <Text tone="muted">
-          Tools the library does not have. Kerf keeps them here, but build steps do not use them.
-        </Text>
-        {draft.other.map((other, o) => (
-          <OtherCard
-            // biome-ignore lint/suspicious/noArrayIndexKey: other tools are edited in place by position; names can be blank or repeated while typing.
-            key={o}
-            other={other}
-            index={o}
-            issues={issues}
-            onChange={(edit) => editOther(o, edit)}
-            onRemove={() => change((d) => ({ ...d, other: d.other.filter((_, i) => i !== o) }))}
-            onMove={(toolTypeId) => change((d) => moveToLibrary(d, o, toolTypeId))}
-          />
-        ))}
-        <Cluster>
-          <Button
-            variant="secondary"
-            onClick={() => change((d) => ({ ...d, other: [...d.other, { name: '', note: '' }] }))}
-          >
-            Add another tool
-          </Button>
-        </Cluster>
-      </Stack>
-
-      <Cluster>
-        <Button busy={save.state === 'saving'} busyLabel="Saving…" onClick={() => void submit()}>
-          Save tools
-        </Button>
-      </Cluster>
-      {save.state === 'saved' && <StatusLine>Saved.</StatusLine>}
-      {save.state === 'failed' && issues.length === 0 && <SaveFailed failure={save.failure} />}
-      {dialog}
-    </Stack>
+    </Disclosure>
   );
 }
 
@@ -227,7 +246,7 @@ function summaryItems(issues: readonly FieldIssue[]): SummaryItem[] {
   return issues.map((i) => ({ field: controlId(i.field ?? ''), message: i.message }));
 }
 
-function ToolDetails(props: {
+function OwnedTool(props: {
   tool: ToolDraft;
   index: number;
   repeated: boolean;
@@ -246,42 +265,33 @@ function ToolDetails(props: {
   const name = props.tool.name.trim();
   const lower = type.name.toLowerCase();
   const nameIssue = issueFor(props.issues, `${at}.name`);
-  const hasIssue =
-    nameIssue !== undefined ||
-    fields.some((f) => issueFor(props.issues, `${at}.capabilities.${f.path}`));
   return (
-    <Disclosure
-      open={hasIssue || undefined}
-      summary={
-        <>
+    <Stack gap="xs">
+      <Cluster spread>
+        <span>
           <ToolLabel toolTypeId={type.id}>{name ? `${type.name}: ${name}` : type.name}</ToolLabel>{' '}
-          {needed > 0 ? (
+          {needed > 0 && (
             <InputNeeded>
               {needed === 1 ? '1 detail needed' : `${needed} details needed`}
             </InputNeeded>
-          ) : (
-            fields.length > 0 && (
-              <Text as="span" tone="muted">
-                Details entered
-              </Text>
-            )
           )}
-        </>
-      }
-    >
-      <Stack gap="s">
-        <Text tone="muted">
-          {type.description} <a href={href({ screen: 'tools', tool: type.id })}>About this tool</a>
-        </Text>
+        </span>
+        <Button variant="link" label={`Remove ${name || lower}`} onClick={props.onRemove}>
+          Remove
+        </Button>
+      </Cluster>
+      {(fields.length > 0 || props.repeated) && (
         <Grid min="m" gap="s">
-          <Field
-            id={controlId(`${at}.name`)}
-            label="Name"
-            hint="Optional unless you add another. Build steps use it to say which one."
-            error={nameIssue}
-          >
-            {(c) => <TextInput {...c} value={props.tool.name} onChange={props.onName} />}
-          </Field>
+          {props.repeated && (
+            <Field
+              id={controlId(`${at}.name`)}
+              label="Name"
+              hint="Build steps use it to say which one."
+              error={nameIssue}
+            >
+              {(c) => <TextInput {...c} value={props.tool.name} onChange={props.onName} />}
+            </Field>
+          )}
           {fields.map((field) => (
             <FieldInput
               key={field.path}
@@ -294,80 +304,15 @@ function ToolDetails(props: {
             />
           ))}
         </Grid>
+      )}
+      {fields.length > 0 && (
         <Cluster>
-          <Button variant="secondary" onClick={props.onAddAnother}>
+          <Button variant="link" onClick={props.onAddAnother}>
             {lower.endsWith('s') ? `Add another set of ${lower}` : `Add another ${lower}`}
           </Button>
-          {props.repeated && (
-            <Button variant="link" onClick={props.onRemove}>
-              {`Remove ${name || 'this one'}`}
-            </Button>
-          )}
+          <a href={href({ screen: 'tools', tool: type.id })}>About this tool</a>
         </Cluster>
-      </Stack>
-    </Disclosure>
-  );
-}
-
-function OtherCard(props: {
-  other: OtherDraft;
-  index: number;
-  issues: FieldIssue[];
-  onChange: (edit: Partial<OtherDraft>) => void;
-  onRemove: () => void;
-  onMove: (toolTypeId: string) => void;
-}) {
-  const at = `other.${props.index}`;
-  const match = libraryMatch(props.other.name);
-  return (
-    <Card as="section">
-      <Stack gap="s">
-        <Grid min="m" gap="s">
-          <Field
-            id={controlId(`${at}.name`)}
-            label="Name"
-            error={issueFor(props.issues, `${at}.name`)}
-          >
-            {(c) => (
-              <TextInput
-                {...c}
-                value={props.other.name}
-                onChange={(name) => props.onChange({ name })}
-              />
-            )}
-          </Field>
-          <Field
-            id={controlId(`${at}.note`)}
-            label="Note"
-            hint="Optional."
-            error={issueFor(props.issues, `${at}.note`)}
-          >
-            {(c) => (
-              <TextInput
-                {...c}
-                value={props.other.note}
-                onChange={(note) => props.onChange({ note })}
-              />
-            )}
-          </Field>
-        </Grid>
-        {match && (
-          <Text>
-            {match.name} is in the library now.
-            {props.other.note.trim() && ' Moving it does not keep the note.'}
-          </Text>
-        )}
-        <Cluster>
-          {match && (
-            <Button variant="secondary" onClick={() => props.onMove(match.id)}>
-              {`Move ${match.name.toLowerCase()} to your tools`}
-            </Button>
-          )}
-          <Button variant="link" onClick={props.onRemove}>
-            {`Remove ${props.other.name.trim() || 'this tool'}`}
-          </Button>
-        </Cluster>
-      </Stack>
-    </Card>
+      )}
+    </Stack>
   );
 }

@@ -31,7 +31,9 @@ export const tools = pgTable('tools', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// Tools the library does not have, in the order the owner listed them. Build steps ignore them.
+// No longer read or written (#363): "other tools" are gone. Kept until the deploy that stopped
+// using it is live, since migrations run while the previous deploy still serves (0014); the
+// migration that drops it is #398.
 export const otherTools = pgTable('other_tools', {
   position: integer('position').primaryKey(),
   name: text('name').notNull(),

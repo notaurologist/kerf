@@ -82,7 +82,7 @@ describe('frameFor', () => {
     expect(frameFor({ screen: 'tools', tool: 'rafter-square' })).toEqual({
       place: 'workshop',
       top: false,
-      back: { label: 'Tools', href: '#/tools' },
+      back: { label: 'My toolbox', href: '#/tools' },
     });
     expect(frameFor({ screen: 'glossary', term: 'kerf' })).toEqual({
       place: 'workshop',

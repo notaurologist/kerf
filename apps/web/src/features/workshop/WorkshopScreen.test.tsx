@@ -4,14 +4,14 @@ import { click, mount } from '../../test/dom.tsx';
 import { WorkshopScreen } from './WorkshopScreen.tsx';
 
 describe('WorkshopScreen', () => {
-  it('links to Tools, the glossary, the trash, and the download of every project', () => {
+  it('links to My toolbox, the glossary, the trash, and the download of every project', () => {
     const { container } = mount(<WorkshopScreen onLogOut={() => {}} />);
     const links = [...container.querySelectorAll('a')].map((a) => [
       a.textContent,
       a.getAttribute('href'),
     ]);
     expect(links).toEqual([
-      ['Tools', '#/tools'],
+      ['My toolbox', '#/tools'],
       ['Glossary', '#/glossary'],
       ['Deleted projects', '#/trash'],
       ['Download a backup', '/api/export'],

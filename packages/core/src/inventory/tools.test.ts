@@ -14,7 +14,6 @@ describe('Inventory', () => {
         { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } },
         { toolTypeId: 'clamps', capabilities: {} },
       ],
-      other: [{ name: 'Table saw', note: '' }],
     };
     expect(Inventory.parse(inventory)).toEqual(inventory);
   });
@@ -45,7 +44,7 @@ describe('Inventory', () => {
       { toolTypeId: 'clamps', name: 'Short', capabilities: { maxOpening: 6 } },
       { toolTypeId: 'clamps', name: 'Long', capabilities: { maxOpening: 24 } },
     ];
-    expect(Inventory.parse({ tools, other: [] }).tools).toEqual(tools);
+    expect(Inventory.parse({ tools }).tools).toEqual(tools);
   });
 
   it('asks for a name on each tool of a repeated type, different from the others', () => {
@@ -55,13 +54,11 @@ describe('Inventory', () => {
         { toolTypeId: 'level', name: 'Short', capabilities: {} },
         { toolTypeId: 'level', name: 'short ', capabilities: {} },
       ],
-      other: [{ name: '  ', note: '' }],
     });
     expect(messages(result)).toEqual([
       'tools.0.name: Name each one, so build steps can say which level to use.',
       'tools.1.name: Give each one a different name.',
       'tools.2.name: Give each one a different name.',
-      'other.0.name: Enter a name.',
     ]);
   });
 });
@@ -105,45 +102,23 @@ describe('readStoredTools', () => {
   it('keeps a library tool and the capabilities that fit it', () => {
     expect(
       readStoredTools([{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }]),
-    ).toEqual({
-      tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }],
-      moved: [],
-    });
+    ).toEqual([{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }]);
   });
 
-  it('moves a free-text tool to other tools, with its earlier values in the note', () => {
-    expect(readStoredTools([{ toolTypeId: 'lathe', capabilities: { tilts: true } }])).toEqual({
-      tools: [],
-      moved: [
-        {
-          name: 'lathe',
-          note: 'Moved here from your tool list. Not a tool type in the library. Earlier values: tilts: true.',
-        },
-      ],
-    });
+  it('leaves out a tool the library does not have, since no method can use it (#363)', () => {
+    expect(readStoredTools([{ toolTypeId: 'lathe', capabilities: { tilts: true } }])).toEqual([]);
   });
 
-  it('moves capabilities a library tool cannot use, keeping the tool', () => {
+  it('leaves out capabilities a library tool cannot use, keeping the tool', () => {
     const read = readStoredTools([
-      {
-        toolTypeId: 'circular-saw',
-        capabilities: { bevels: true, depthOfCut: 'deep' },
-      },
+      { toolTypeId: 'circular-saw', capabilities: { bevels: true, depthOfCut: 'deep' } },
       { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } },
     ]);
-    expect(read).toEqual({
-      tools: [
-        { toolTypeId: 'circular-saw', capabilities: {} },
-        { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } },
-      ],
-      moved: [
-        {
-          name: 'circular-saw',
-          note: 'Moved here from your tool list. Details the circular saw entry cannot use. Earlier values: bevels: true; depthOfCut: "deep".',
-        },
-      ],
-    });
+    expect(read).toEqual([
+      { toolTypeId: 'circular-saw', capabilities: {} },
+      { toolTypeId: 'miter-saw', capabilities: { maxMiter: 50 } },
+    ]);
     // What it reads is a valid inventory.
-    expect(Inventory.safeParse({ tools: read.tools, other: read.moved }).success).toBe(true);
+    expect(Inventory.safeParse({ tools: read }).success).toBe(true);
   });
 });

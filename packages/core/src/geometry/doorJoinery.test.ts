@@ -105,7 +105,6 @@ describe('grooves, rabbets, and finger recesses', () => {
         toolTypeId,
         capabilities: {},
       })),
-      other: [],
     });
     expect(selectMethod(op('groove'), kit('router')).chosen?.id).toBe('groove-router');
     expect(selectMethod(op('groove'), kit('table-saw')).chosen?.id).toBe('groove-table-saw');
