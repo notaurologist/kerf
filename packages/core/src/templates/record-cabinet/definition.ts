@@ -1,5 +1,5 @@
 import type { SnapshotUpgrade, TemplateDefinition } from '../../model/definition.ts';
-import { cutList } from '../../outputs/cutList.ts';
+import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { planLumber } from '../../outputs/shoppingList.ts';
 import { cabinetExplode, cabinetScene, drawings, VIEW } from './drawings.ts';
@@ -237,7 +237,7 @@ export const recordCabinet: TemplateDefinition<
   plan(outputs) {
     const { review, design } = outputs;
     return {
-      cutList: outputs.cutList,
+      cutList: withSettings(outputs.cutList, design.parts),
       lumber: outputs.lumber,
       hardware: outputs.hardware,
       hardwareNotes: design.hardwareNotes,

@@ -1,6 +1,6 @@
 import type { SnapshotUpgrade, TemplateDefinition } from '../../model/definition.ts';
 import { withLetters } from '../../model/letters.ts';
-import { cutList } from '../../outputs/cutList.ts';
+import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { DEFAULT_BOARD_OPTIONS, planLumber } from '../../outputs/shoppingList.ts';
 import { assembly, drawings } from './drawings.ts';
@@ -140,7 +140,7 @@ export const swingSetAFrame: TemplateDefinition<
   plan(outputs) {
     const review = outputs.structuralReview;
     return {
-      cutList: outputs.cutList,
+      cutList: withSettings(outputs.cutList, outputs.design.parts),
       lumber: { ...outputs.lumber, selection: outputs.lumber.selection ?? [] },
       hardware: outputs.hardware,
       hardwareNotes: outputs.design.hardwareNotes,

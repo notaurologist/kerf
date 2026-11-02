@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { BOARD_GUIDES } from '../knowledge/boardSelection.ts';
 import type { ChecklistItem, Flag } from '../model/types.ts';
-import type { CutListRow } from '../outputs/cutList.ts';
+import type { PlannedCutRow } from '../outputs/cutList.ts';
 import type { LumberPlan } from '../outputs/shoppingList.ts';
 import type { CheckResult } from '../structural/types.ts';
 import type { BuildStep, FilledMethod } from './build.ts';
 import { planTerms, planText } from './terms.ts';
 
 const flag = (ask: string, why: string) => ({ category: 'load-bearing', ask, why }) as Flag;
-const row = (ends: string[]) => ({ ends }) as CutListRow;
+const row = (ends: string[]) => ({ ends, settings: [] }) as unknown as PlannedCutRow;
 const plan = (p: {
   flags?: Flag[];
   checks?: Pick<CheckResult, 'title' | 'subject' | 'loadCase'>[];
   checklist?: Pick<ChecklistItem, 'confirm' | 'why'>[];
-  cutList?: CutListRow[];
+  cutList?: PlannedCutRow[];
   lumber?: Pick<LumberPlan, 'notes' | 'selection'>;
   hardwareNotes?: string[];
 }) => ({

@@ -61,6 +61,8 @@ export {
   PartLetter,
   Readings,
   SawSetting,
+  SettingBox,
+  SettingBoxes,
 } from './numbers.tsx';
 export { InfoTip } from './Popover.tsx';
 export { CheckStatus, FlagList, ResultLine } from './plan.tsx';

@@ -111,6 +111,19 @@ export function SawSetting(props: { setting: string; toEdge: string }) {
 }
 
 /**
+ * A saw setting alone, boxed like `SawSetting`'s but at text size, for a table's narrow column
+ * (#360). The angle to the edge goes with the row's details.
+ */
+export function SettingBox(props: { children: ReactNode }) {
+  return <span className="k-setting">{props.children}</span>;
+}
+
+/** A part's end settings side by side, in end order. */
+export function SettingBoxes(props: { children: ReactNode }) {
+  return <span className="k-settings">{props.children}</span>;
+}
+
+/**
  * A structural margin: "margin 1.1x under these assumptions", in the text color (#43, rule 1).
  * In a preview, `was` is the saved plan's margin, or its words when it had none (#56).
  */

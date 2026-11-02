@@ -31,8 +31,10 @@ describe.each(TEMPLATES.map((t) => [t.id, t] as const))(
       for (const flag of plan.flags) {
         for (const partId of flag.partIds) {
           expect(cutList).toContain(`id="${cutListPartId(partId)}"`);
+          // The part's row, then the details row beneath it (#360).
           const row = cutList.slice(cutList.indexOf(`id="${cutListPartId(partId)}"`));
-          const own = row.slice(0, row.indexOf('</tr>'));
+          const end = row.indexOf('</tr>', row.indexOf('</tr>') + 1);
+          const own = row.slice(0, end);
           expect(textOf(own), `${flag.ask} on ${partId}`).toContain(flag.ask);
         }
       }
@@ -42,9 +44,9 @@ describe.each(TEMPLATES.map((t) => [t.id, t] as const))(
       for (const flag of plan.flags) expect(steps).toContain(flag.ask);
     });
 
-    it('counts a part’s checks and folds them', () => {
-      const counts = [...cutList.matchAll(/<summary><span>(\d+) expert checks?<\/span>/g)];
-      expect(counts.length).toBeGreaterThan(0);
+    it('keeps a part’s checks in its details, closed until opened', () => {
+      expect(cutList).not.toContain('k-callout" data-tone="flag"></div>');
+      expect(cutList.match(/data-details="" hidden=""/g)?.length).toBe(plan.cutList.length);
     });
   },
 );

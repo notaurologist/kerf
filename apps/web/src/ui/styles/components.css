@@ -578,6 +578,24 @@
     white-space: nowrap;
   }
 
+  /* A saw setting in a table's column (#360): boxed as the cut card's, at text size. */
+  .k-setting {
+    display: inline-block;
+    padding: 0 var(--space-3xs);
+    border: var(--border-thin) solid var(--text);
+    border-radius: var(--radius);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Side by side with room; stacked in a narrow column, so a phone's table never scrolls. */
+  .k-settings {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs);
+  }
+
   .k-saw {
     display: flex;
     flex-wrap: wrap;
@@ -702,8 +720,15 @@
     }
   }
 
+  /* A table with room keeps a part's end settings side by side (#360). */
+  @container (width >= 40rem) {
+    .k-settings {
+      flex-wrap: nowrap;
+    }
+  }
+
   @container (width < 40rem) {
-    .k-table thead {
+    .k-table:not([data-keep]) thead {
       position: absolute;
       inline-size: 1px;
       block-size: 1px;
@@ -712,14 +737,14 @@
       white-space: nowrap;
     }
 
-    .k-table tr {
+    .k-table:not([data-keep]) tr {
       display: grid;
       gap: var(--space-3xs);
       padding-block: var(--space-xs);
       border-block-end: var(--border-thin) solid var(--border);
     }
 
-    .k-table td {
+    .k-table:not([data-keep]) td {
       display: grid;
       grid-template-columns: 8rem 1fr;
       gap: var(--space-xs);
@@ -728,35 +753,35 @@
     }
 
     /* Stacked, the whole row carries the bar. */
-    .k-table tr[data-changed] {
+    .k-table:not([data-keep]) tr[data-changed] {
       box-shadow: inset var(--border-bar) 0 0 var(--changed);
       padding-inline-start: var(--space-xs);
     }
 
-    .k-table tr[data-changed] > :first-child {
+    .k-table:not([data-keep]) tr[data-changed] > :first-child {
       box-shadow: none;
       padding-inline-start: 0;
     }
 
-    .k-table td::before {
+    .k-table:not([data-keep]) td::before {
       content: attr(data-label);
       font-size: var(--size--1);
       font-weight: 600;
     }
 
     /* Stacked, a value may break between its readings; each reading stays whole (Readings). */
-    .k-table [data-numeric] {
+    .k-table:not([data-keep]) [data-numeric] {
       text-align: start;
       white-space: normal;
     }
 
     /* The row's first cell names it, so it needs no label. */
-    .k-table td:first-child {
+    .k-table:not([data-keep]) td:first-child {
       grid-template-columns: 1fr;
       font-weight: 700;
     }
 
-    .k-table td:first-child::before {
+    .k-table:not([data-keep]) td:first-child::before {
       content: none;
     }
   }
@@ -793,6 +818,41 @@
 
   .k-disclosure__body {
     padding-block-start: var(--space-xs);
+  }
+
+  /* A row's details (#360): opened by the toggle under its name, beneath the row, all open in
+     print. */
+  .k-table__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    min-block-size: var(--control-min);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--link);
+    font: inherit;
+    font-size: var(--size--1);
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+    cursor: pointer;
+  }
+
+  .k-table__chevron {
+    display: inline-flex;
+  }
+
+  .k-table__toggle[aria-expanded="true"] .k-table__chevron {
+    transform: rotate(180deg);
+  }
+
+  .k-table tr[data-open] > td {
+    border-block-end: 0;
+  }
+
+  .k-table tr[data-details] > td {
+    padding-block: 0 var(--space-s);
   }
 
   /* A row that opens (ResultLine, #359): the text color, no underline, the chevron at the end. */
