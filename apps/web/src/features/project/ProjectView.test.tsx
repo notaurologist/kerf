@@ -66,8 +66,9 @@ describe('ProjectView, from a stored snapshot', () => {
   });
 
   it('shows the shopping list, with board lengths and pieces through formatLength', () => {
-    expect(text).toContain(`4x4 12' 0" 4`);
-    expect(text).toContain(`4x6 12' 0" 1`);
+    // The count to buy first (#361).
+    expect(text).toContain(`4 4x4 12' 0"`);
+    expect(text).toContain(`1 4x6 12' 0"`);
     for (const line of outputs.hardware) expect(text).toContain(line.description);
   });
 
@@ -112,13 +113,13 @@ describe('the plan’s hardware list', () => {
 
   it('is split by store group, in the order each group first comes (#59)', () => {
     const text = list(hardware);
-    expect(text).toMatch(/Bolts and fittings .*Bolts 4 .*Washers 8 .*Swing hardware .*Hangers 4/);
+    expect(text).toMatch(/Bolts and fittings .*4 Bolts .*8 Washers .*Swing hardware .*4 Hangers/);
   });
 
   it('has no group headings for a plan made before groups', () => {
     const text = list(hardware.map(({ description, quantity }) => ({ description, quantity })));
     expect(text).not.toContain('Bolts and fittings');
-    expect(text).toMatch(/Bolts 4 .*Hangers 4 .*Washers 8/);
+    expect(text).toMatch(/4 Bolts .*4 Hangers .*8 Washers/);
   });
 });
 

@@ -44,6 +44,8 @@ The owner took the suggested option for each (November 2026).
 | Layout | L1. Groups in store order (lumber, then the template's hardware groups), each a table only as wide as its columns, the count to buy first, with the group's notes under it. On a laptop the groups sit side by side. | L2, one checklist of sentences with the count first: closest to Shopping mode, but lengths sit inside sentences instead of one column to compare. |
 | Choosing boards | Kept in the plan's shopping list, so it prints with the plan, as closed disclosures with what each covers showing; Shopping mode keeps it per board as now. | Only in Shopping mode: the printed plan would lose it. |
 
+Built in #361 (November 2026): lumber and hardware sit side by side from about 50rem of the section's width and stack below it. Each table keeps a table on a phone and is as wide as its columns (`MeasureTable` with `keepTable` and `narrow`): Buy (bold), Stock, Length, and Board feet for dealer hardwood; hardware is Buy and Item, by store group. Each guide under "Choosing boards" is one line (`ResultLine`) naming the parts it is for, opening to its checks with their reasons and sources; Shopping mode's board cards keep the guides open.
+
 ## Stage 16: usability pass, the cut list (#360)
 
 Each row of the cut list held a part's name, stock (nominal and actual), length, both end cuts with the saw setting and the angle to the edge, holes, quantity, and long notes, and the text ran together. `cut-list.html` draws two directions on the swing set's worked example, checked against the cabinet's, on the phone, the laptop, and paper. At the saw the questions are which part, how many, how long, and how each end is cut; reference face, edge angles, holes, and marking are read once at the bench.

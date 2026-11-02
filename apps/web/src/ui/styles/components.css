@@ -668,6 +668,11 @@
     border-collapse: collapse;
   }
 
+  /* As wide as its columns (#361): a short row's count, stock, and length stay together. */
+  .k-table[data-narrow] {
+    inline-size: auto;
+  }
+
   .k-table caption {
     text-align: start;
     font-weight: 700;

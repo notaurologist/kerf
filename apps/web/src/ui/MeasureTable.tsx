@@ -37,6 +37,8 @@ export function MeasureTable<Row>(props: {
   equalColumns?: boolean;
   /** A table at every width, for a few columns that fit a phone. */
   keepTable?: boolean;
+  /** As wide as its columns rather than its container, so a short row's values stay together. */
+  narrow?: boolean;
   /** What a row opens to beneath it, and the row's name for its toggle. */
   details?: { content: (row: Row) => ReactNode; name: (row: Row) => string };
 }) {
@@ -49,6 +51,7 @@ export function MeasureTable<Row>(props: {
         className="k-table"
         data-equal={props.equalColumns ? '' : undefined}
         data-keep={props.keepTable ? '' : undefined}
+        data-narrow={props.narrow ? '' : undefined}
       >
         <caption className={props.captionHidden ? 'k-visually-hidden' : undefined}>
           {props.caption}

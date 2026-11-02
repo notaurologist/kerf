@@ -1,5 +1,5 @@
 import { BOARD_GUIDES, type LumberPlan } from '@kerf/core';
-import { List, Measured, Stack, Text } from '../../ui/index.ts';
+import { List, Measured, ResultLine, Row, Rows, Stack, Text } from '../../ui/index.ts';
 import { SourceToggle } from '../structural/Citation.tsx';
 
 // What to look for when choosing boards at the store (#53): each guide the plan's parts use, in
@@ -13,6 +13,8 @@ export function BoardSelection(props: {
   partIds?: readonly string[];
   /** The heading; a board card nests it one level lower. */
   heading?: { level: 3 | 4; text: string };
+  /** In the plan (#361): each guide one line, naming the parts, opening to its checks. */
+  folded?: boolean;
 }) {
   const only = props.partIds;
   const selection = props.lumber.selection.filter((s) => !only || only.includes(s.partId));
@@ -32,27 +34,45 @@ export function BoardSelection(props: {
   return (
     <Stack as="section">
       <Heading>{text}</Heading>
-      {guides.map(({ guide, parts }) => (
-        <Stack key={guide.id} gap="xs">
-          <GuideHeading>{guide.title}</GuideHeading>
-          <Text tone="muted">For: {parts.join(', ')}.</Text>
-          <List>
-            {guide.checks.map((check) => (
-              <li key={check.look}>
-                <Stack gap="3xs">
-                  <span>
-                    <Measured text={check.look} terms />
-                  </span>
-                  <Text tone="muted" as="span">
-                    Why: <Measured text={check.why} terms />
-                  </Text>
-                  <SourceToggle citations={check.sources} />
-                </Stack>
-              </li>
-            ))}
-          </List>
-        </Stack>
-      ))}
+      {props.folded ? (
+        <Rows>
+          {guides.map(({ guide, parts }) => (
+            <Row key={guide.id} as="section">
+              <ResultLine title={guide.title} detail={`For: ${parts.join(', ')}.`}>
+                <Checks checks={guide.checks} />
+              </ResultLine>
+            </Row>
+          ))}
+        </Rows>
+      ) : (
+        guides.map(({ guide, parts }) => (
+          <Stack key={guide.id} gap="xs">
+            <GuideHeading>{guide.title}</GuideHeading>
+            <Text tone="muted">For: {parts.join(', ')}.</Text>
+            <Checks checks={guide.checks} />
+          </Stack>
+        ))
+      )}
     </Stack>
+  );
+}
+
+function Checks(props: { checks: (typeof BOARD_GUIDES)[number]['checks'] }) {
+  return (
+    <List>
+      {props.checks.map((check) => (
+        <li key={check.look}>
+          <Stack gap="3xs">
+            <span>
+              <Measured text={check.look} terms />
+            </span>
+            <Text tone="muted" as="span">
+              Why: <Measured text={check.why} terms />
+            </Text>
+            <SourceToggle citations={check.sources} />
+          </Stack>
+        </li>
+      ))}
+    </List>
   );
 }
