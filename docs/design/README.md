@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided; #358 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -24,8 +24,22 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 11. Review for a second template (the record cabinet) | #71 | Decided November 2026: grain arrows; seams only in glue-up drawings | This section |
 | 12. Usability pass: navigation | #356 | Decided November 2026: N1 | `navigation.html` |
 | 13. Usability pass: suggesting structural inputs, and project status | #355 | Decided November 2026: R-A, every row as proposed, S-2 | `structural-suggestions.html` |
+| 14. Usability pass: starting a new project | #358 | Decided November 2026: P1, questions first | `start-from.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 14: usability pass, starting a new project (#358)
+
+The "Start from" step above a new project's form was a list of underlined links of equal weight: an empty form, each worked example, "Answer a few questions", and a copy of every earlier project of that template. `start-from.html` draws two ways to make the four kinds of start clear. Each still opens a filled form with a preview (M8).
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Direction | P1. After a template is picked, one screen asks "How do you want to start?" with four large choices, each with a line on what it does: Answer a few questions, Start from an example (a short list of the worked examples), Copy an earlier project (the three most recent, then a search), and Empty form. The form opens filled, with "Change how you started" at its top. | P2, the starts inside the template picker (#357): one screen fewer, but the picker grows, and starting another project of the same kind still goes through it. |
+| The first choice | Answer a few questions, for a template that has them; the worked examples lead for one that does not. It asks least of a beginner (owner's note, November 1). | Examples first. |
 
 ## Stage 13: usability pass, suggesting structural inputs and project status (#355)
 
