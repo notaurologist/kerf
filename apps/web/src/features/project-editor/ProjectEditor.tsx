@@ -45,7 +45,6 @@ import {
   FormProgress,
   InfoNotice,
   Notice,
-  PlainList,
   ProblemScreen,
   SaveFailed,
   ScreenHeader,
@@ -63,6 +62,7 @@ import {
 import { DeleteProject } from './DeleteProject.tsx';
 import { belongsTo, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 import { PreviewPane, usePreview } from './Preview.tsx';
+import { StartChoice, StartedFrom } from './StartChoice.tsx';
 import { StartQuestions } from './StartQuestions.tsx';
 
 // Create or edit a project's parameters and structural inputs (PRODUCT.md, MVP features 2 and
@@ -85,8 +85,9 @@ export function NewProjectScreen(props: { templateId: string; start?: ProjectSta
 }
 
 /**
- * A new project's form, empty or started from a worked example or an earlier project (#98). The
- * earlier projects of the template are loaded to offer as starts.
+ * A new project: first how to start (#358), then its form, empty or started from a worked example,
+ * an earlier project (#98), or the template's questions (#163). The earlier projects of the
+ * template are loaded to offer as starts.
  */
 function NewProject(props: { template: TemplateDefinition; start?: ProjectStart }) {
   const { template, start } = props;
@@ -106,7 +107,10 @@ function NewProject(props: { template: TemplateDefinition; start?: ProjectStart 
   return (
     <Loaded state={loaded} loading="Loading…" onRetry={reload} title={newTitle(template)}>
       {({ earlier, source }) => {
-        const starts = <StartFrom template={template} start={start} earlier={earlier} />;
+        if (!start) {
+          return <StartChoice template={template} title={newTitle(template)} earlier={earlier} />;
+        }
+        const starts = <StartedFrom template={template} start={start} earlier={earlier} />;
         if (start?.kind === 'questions' && template.questions) {
           return (
             <StartQuestions
@@ -216,58 +220,6 @@ export function startValues(
     };
   }
   return { ok: true, initial: { name: '', params: formValues(form.params, {}), inputs: empty } };
-}
-
-/**
- * The starts a new project can have: empty, each worked example offered as one, the template's
- * starting questions, each earlier project.
- */
-function StartFrom(props: {
-  template: TemplateDefinition;
-  start?: ProjectStart;
-  earlier: readonly ProjectSummary[];
-}) {
-  const { template, start } = props;
-  const items = [
-    { label: 'An empty form', start: undefined as ProjectStart | undefined },
-    ...template.examples.flatMap((e, index) =>
-      e.start ? [{ label: e.start, start: { kind: 'example', index } as ProjectStart }] : [],
-    ),
-    ...(template.questions
-      ? [{ label: 'Answer a few questions', start: { kind: 'questions' } as ProjectStart }]
-      : []),
-    ...props.earlier.map((p) => ({
-      label: `A copy of ${p.name}`,
-      start: { kind: 'project', id: p.id } as ProjectStart,
-    })),
-  ];
-  const isCurrent = (s: ProjectStart | undefined) => JSON.stringify(s) === JSON.stringify(start);
-  return (
-    <nav aria-labelledby="start-from">
-      <Stack gap="2xs">
-        <h2 id="start-from">Start from</h2>
-        <PlainList>
-          {items.map((item) => (
-            <li key={item.label + JSON.stringify(item.start)}>
-              {isCurrent(item.start) ? (
-                <b aria-current="page">{item.label}</b>
-              ) : (
-                <a
-                  href={href({
-                    screen: 'new-project',
-                    templateId: template.id,
-                    ...(item.start ? { start: item.start } : {}),
-                  })}
-                >
-                  {item.label}
-                </a>
-              )}
-            </li>
-          ))}
-        </PlainList>
-      </Stack>
-    </nav>
-  );
 }
 
 const newTitle = (template: TemplateDefinition) => newProjectLabel(template.name);

@@ -43,6 +43,10 @@ describe('parseRoute', () => {
       },
     ],
     [
+      '#/projects/new?template=swing-set-a-frame&empty',
+      { screen: 'new-project', templateId: 'swing-set-a-frame', start: { kind: 'empty' } },
+    ],
+    [
       '#/projects/new?template=swing-set-a-frame&questions',
       {
         screen: 'new-project',
@@ -123,6 +127,7 @@ describe('parseRoute', () => {
         start: { kind: 'example', index: 0 },
       },
       { screen: 'new-project', templateId: 'swing set', start: { kind: 'project', id: 'a b' } },
+      { screen: 'new-project', templateId: 'swing-set-a-frame', start: { kind: 'empty' } },
       { screen: 'shop', id: 'abc' },
       { screen: 'build', id: 'abc' },
       { screen: 'build-steps', id: 'abc' },

@@ -9,7 +9,7 @@ import { isPlanSection, type PlanSectionId } from './sections.ts';
 export type Route =
   | { screen: 'projects' }
   // `start` fills the form from a worked example or an earlier project (#98), or from answers to
-  // the template's starting questions (#163); none is empty.
+  // the template's starting questions (#163), or leaves it empty; none asks how to start (#358).
   | { screen: 'new-project'; templateId: string; start?: ProjectStart }
   // Choosing what to make, before the new-project form (#357).
   | { screen: 'pick-template' }
@@ -38,13 +38,14 @@ export type Route =
   | { screen: 'not-found' };
 
 /**
- * Where a new project's form starts: a template's worked example, an earlier project, or the
- * template's starting questions.
+ * Where a new project's form starts: a template's worked example, an earlier project, the
+ * template's starting questions, or nothing.
  */
 export type ProjectStart =
   | { kind: 'example'; index: number }
   | { kind: 'project'; id: string }
-  | { kind: 'questions' };
+  | { kind: 'questions' }
+  | { kind: 'empty' };
 
 export function parseRoute(hash: string): Route {
   const [path = '', query = ''] = hash.replace(/^#/, '').split('?');
@@ -110,7 +111,8 @@ function startOf(search: URLSearchParams): ProjectStart | undefined {
   if (example !== null && /^\d+$/.test(example)) return { kind: 'example', index: Number(example) };
   const project = search.get('project');
   if (project) return { kind: 'project', id: project };
-  return search.has('questions') ? { kind: 'questions' } : undefined;
+  if (search.has('questions')) return { kind: 'questions' };
+  return search.has('empty') ? { kind: 'empty' } : undefined;
 }
 
 function project(id: string, section: PlanSectionId | undefined, part: string | null): Route {
@@ -136,7 +138,9 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
             ? `&project=${encodeURIComponent(route.start.id)}`
             : route.start?.kind === 'questions'
               ? '&questions'
-              : '';
+              : route.start?.kind === 'empty'
+                ? '&empty'
+                : '';
       return `#/projects/new?template=${encodeURIComponent(route.templateId)}${start}`;
     }
     case 'project': {

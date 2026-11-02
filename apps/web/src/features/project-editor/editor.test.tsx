@@ -117,8 +117,8 @@ describe('the form’s layout (#164)', () => {
 describe('starting a new project (#98)', () => {
   const earlier = projectFrom(storedSnapshots[0] ?? null, { name: 'First swing set' });
 
-  it('starts empty with no start chosen', () => {
-    const start = startValues(template, undefined, null);
+  it('starts empty from an empty form (#358)', () => {
+    const start = startValues(template, { kind: 'empty' }, null);
     if (!start.ok) throw new Error(start.message);
     expect(Object.values(start.initial.params).every((v) => v === '')).toBe(true);
     expect(Object.values(start.initial.inputs).every((v) => v === '')).toBe(true);
