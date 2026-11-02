@@ -67,8 +67,11 @@
     justify-content: space-between;
   }
 
+  /* The title's basis is short, so the actions keep the title's first line when a long title
+     wraps on a phone and the title's tags wrap under it. Actions too wide for that line still
+     wrap under the title. */
   .k-screen-header__top > :first-child {
-    flex: 1 1 auto;
+    flex: 1 1 12rem;
     min-inline-size: min-content;
   }
 
