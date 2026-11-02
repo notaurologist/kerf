@@ -286,7 +286,7 @@ export const SWING_SET_FORM: TemplateForm = {
           label: INPUT.dynamicFactor,
           kind: 'number',
           unit: '',
-          help: 'Multiplier on the smooth pendulum load for snap loads from slack chains. Choose it with an experienced builder.',
+          help: 'How much harder than a smooth swing the chains pull when they go slack and snap tight, as a multiplier on the pendulum load. No published value covers home swings, so Kerf does not suggest one: choose it with an experienced builder.',
         },
       ],
     },
