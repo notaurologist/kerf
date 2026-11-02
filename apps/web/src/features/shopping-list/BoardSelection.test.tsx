@@ -27,4 +27,13 @@ describe('BoardSelection', () => {
     const none = { ...firstExampleLumber(), selection: [] };
     expect(renderToString(<BoardSelection lumber={none} />)).toBe('');
   });
+
+  it('folds each guide to one line naming its parts, in the plan (#361)', () => {
+    const html = renderToString(<BoardSelection lumber={firstExampleLumber()} folded />);
+    expect(html).toContain('<details class="k-disclosure" data-variant="line">');
+    expect(html).toMatch(
+      /<b>Every board that carries load<\/b><span class="k-result-line__detail">For: /,
+    );
+    expect(html).toContain('AWPA U1');
+  });
 });

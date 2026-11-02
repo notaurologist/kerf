@@ -92,7 +92,9 @@ describe('glossary terms in the plan (#178)', () => {
       'nds',
       'end distance',
     ]);
+    // The hardware's notes sit beside the lumber, before the guidance on choosing boards (#361).
     expect(marked('shopping-list')).toEqual([
+      'grip',
       'grade stamp',
       'species and grade',
       'design values',
@@ -111,7 +113,6 @@ describe('glossary terms in the plan (#178)', () => {
       'awpa u1',
       'use category',
       'ground contact',
-      'grip',
     ]);
   });
 });
