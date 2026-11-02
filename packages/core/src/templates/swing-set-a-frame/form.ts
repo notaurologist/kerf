@@ -300,7 +300,7 @@ export const SWING_SET_FORM: TemplateForm = {
           label: INPUT.dynamicFactor,
           kind: 'number',
           unit: '',
-          help: 'How much harder than a smooth swing the chains pull when they go slack and snap tight, as a multiplier on the pendulum load. No published value covers home swings, so Kerf does not suggest one. Ask an experienced builder: "How many times the steady swing pull should a backyard swing beam be designed for when the chains snap tight?"',
+          help: 'How much harder than a smooth swing the chains pull when they go slack and snap tight, as a multiplier on the pendulum load. No published value covers home swings, so Kerf does not suggest one. Once the other inputs are entered, Kerf shows under this field the factor at which each strength check reaches margin 1.0, to compare against. Ask an experienced builder: "How many times the steady swing pull should a backyard swing beam be designed for when the chains snap tight?"',
         },
       ],
     },

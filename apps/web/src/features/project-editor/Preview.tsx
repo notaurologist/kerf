@@ -108,8 +108,12 @@ export function usePreview(
   project: Project | null,
   params: FormValues,
   inputs: FormValues,
+  /** Asks for nothing, such as while the saved plan cannot be read. */
+  off = false,
 ): PreviewState {
-  const request = previewRequest(template, project, params, inputs);
+  const request: PreviewRequest = off
+    ? { kind: 'saved' }
+    : previewRequest(template, project, params, inputs);
   const key = JSON.stringify(request);
   const [state, setState] = useState<PreviewState>({ kind: project ? 'saved' : 'incomplete' });
   const latest = useRef(0);

@@ -33,6 +33,7 @@ export {
   type HardwareCheckInput,
   hardwareCheck,
   type LoadCase,
+  type LoadFactor,
   type MaterialInput,
   type PointLoad,
   type UniformLoad,

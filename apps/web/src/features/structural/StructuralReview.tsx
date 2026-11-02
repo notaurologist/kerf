@@ -50,7 +50,7 @@ export const STRUCTURAL_REVIEW_INTRO =
 type CheckResult = structural.CheckResult;
 type MovementResult = movement.MovementResult;
 type Quantity = structural.Quantity;
-const { formatMargin, formatQuantity } = structural;
+const { formatBreakEven, formatMargin, formatQuantity } = structural;
 
 export function StructuralReview(props: {
   inputHref: (key: string) => string;
@@ -280,6 +280,11 @@ function Check(props: { check: CheckResult; inputHref: (key: string) => string }
         </Text>
         {/* Input needed is on the line already; the links to enter each follow. */}
         {check.status !== 'input-needed' && <CheckStatus check={check} />}
+        {check.status !== 'not-computed' && check.breakEven && (
+          <Text>
+            <Readings text={breakEvenLine(check.breakEven)} />
+          </Text>
+        )}
         {check.status === 'computed' && (
           <>
             <Text>
@@ -299,6 +304,11 @@ function Check(props: { check: CheckResult; inputHref: (key: string) => string }
       </Stack>
     </ResultLine>
   );
+}
+
+/** Where a check reaches margin 1.0 as its load factor grows, other inputs as entered (#401). */
+function breakEvenLine(b: structural.BreakEven): string {
+  return `With the other inputs as entered: ${formatBreakEven(b)}.`;
 }
 
 /** Each input a result needs, as a link to its field in Edit. */

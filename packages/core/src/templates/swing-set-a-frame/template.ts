@@ -53,9 +53,11 @@ import { flags, validate, validateSwings } from './validate.ts';
  * each flag and checklist item concerns (#51); no number or wording changes. Version 11 stores the
  * board plan's kerf and end trim (#58), the values it always used; nothing else changes. Version 12
  * puts each hardware item and shopping line in a store group (#59), and rewords each bolt's note
- * as #68's audit asked; no number changes.
+ * as #68's audit asked; no number changes. Version 15 reports the dynamic factor at which each
+ * strength check reaches margin 1.0 (#401), and lists the factor in the working after the loads it
+ * multiplies; no margin changes.
  */
-export const TEMPLATE_VERSION = 14;
+export const TEMPLATE_VERSION = 15;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

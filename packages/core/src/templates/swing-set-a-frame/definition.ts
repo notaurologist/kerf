@@ -119,8 +119,9 @@ export const swingSetAFrame: TemplateDefinition<
   // every plan was made with. Shape 12 adds each hardware item's and line's store group (#59),
   // optional: a plan stored before it shows its hardware as one group. Shape 13 adds each part's
   // dadoes, notches, and cutouts (#300), optional: a swing set has none, so an older part reads as
-  // having none.
-  snapshotVersion: 13,
+  // having none. Shape 14 adds the dynamic factor at which each strength check reaches margin 1.0
+  // (#401), optional.
+  snapshotVersion: 14,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -134,6 +135,7 @@ export const swingSetAFrame: TemplateDefinition<
     10: addBoardAllowances,
     11: (snapshot) => snapshot,
     12: (snapshot) => snapshot,
+    13: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   questions: SWING_SET_QUESTIONS,

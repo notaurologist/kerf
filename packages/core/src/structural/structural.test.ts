@@ -10,9 +10,15 @@ import {
   type SpanLoad,
   type SpanLoads,
 } from './beam.ts';
-import { type BeamCheckInput, type BeamChecks, beamChecks, hardwareCheck } from './checks.ts';
+import {
+  type BeamCheckInput,
+  type BeamChecks,
+  beamChecks,
+  hardwareCheck,
+  type LoadFactor,
+} from './checks.ts';
 import type { ServiceConditions } from './factors.ts';
-import type { CheckResult, ComputedCheck } from './types.ts';
+import { type CheckResult, type ComputedCheck, formatBreakEven } from './types.ts';
 
 // Hand-checked worked examples for the generic checks, on a made-up member (each template tests
 // its own structural model in its own folder). Expected values were computed independently from
@@ -333,6 +339,91 @@ describe('hardware check', () => {
         rating: { missing: [{ key: 'hangerRating', label: 'Hanger rated load' }] },
       }),
     ).toMatchObject({ status: 'input-needed', missing: [{ key: 'hangerRating' }] });
+  });
+});
+
+const impact = (value: number | undefined): LoadFactor => ({
+  key: 'impact',
+  symbol: 'C_i',
+  label: 'Impact factor',
+  basis: 'Entered',
+  value: value === undefined ? { missing: [{ key: 'impact', label: 'Impact factor' }] } : { value },
+});
+
+/** The rail with its strength loads at factor 1 and the given factor, and a uniform load w. */
+function factored(value: number | undefined, w?: number): BeamCheckInput {
+  const input = rail();
+  const loads = input.strength.loads;
+  if (!('value' in loads)) throw new Error('rail loads');
+  return {
+    ...input,
+    strength: {
+      ...input.strength,
+      loads: {
+        value: {
+          points: loads.value.points.map((p) => ({ ...p, P: p.P / 2 })),
+          ...(w ? { uniform: { w, label: 'Weight' } } : {}),
+        },
+      },
+      factor: impact(value),
+    },
+  };
+}
+
+describe('a load factor', () => {
+  // The rail's 400 lb loads as 200 lb times a factor of 2: the same margins as above.
+  it('multiplies the point loads, and lists itself in the working', () => {
+    const b = computed(beamChecks(factored(2)).bending);
+    expect(b.margin).toBeCloseTo(1.82292, 4);
+    expect(b.inputs.find((q) => q.symbol === 'C_i')).toMatchObject({ value: 2, basis: 'Entered' });
+    expect(b.inputs.find((q) => q.symbol === 'P1')?.value).toBe(400);
+  });
+
+  // With no uniform load the break-even factor is the margin at factor 1: Fb'·S = 17,500.0
+  // against M = 200·24 = 4,800 per unit factor, C = 3.6458 (twice the margin at factor 2).
+  it('reaches margin 1.0 at the break-even factor, entered or not', () => {
+    const entered = computed(beamChecks(factored(2)).bending);
+    expect(entered.breakEven).toMatchObject({ key: 'impact', symbol: 'C_i' });
+    expect(entered.breakEven?.value).toBeCloseTo(1.82292 * 2, 4);
+    const held = beamChecks(factored(undefined)).bending;
+    expect(held).toMatchObject({ status: 'input-needed', missing: [{ key: 'impact' }] });
+    expect(held.status === 'input-needed' && held.breakEven?.value).toBeCloseTo(
+      entered.breakEven?.value ?? 0,
+      9,
+    );
+    const at = computed(beamChecks(factored(entered.breakEven?.value)).bending);
+    expect(at.margin).toBeCloseTo(1, 9);
+  });
+
+  // A uniform load of 20 lb/in gives w·L²/8 = 23,040 lb·in, past Fb'·S = 17,500.0 on its own.
+  it('is 0 when the loads it does not multiply reach margin 1.0 on their own', () => {
+    expect(computed(beamChecks(factored(1, 20)).bending).breakEven?.value).toBe(0);
+  });
+
+  it('reaches margin 1.0 on a hardware check at the rating over the load', () => {
+    const r = computed(
+      hardwareCheck({
+        subject: 'Hanger',
+        loadCase: 'Strength',
+        load: { value: { value: 200, working: [], assumptions: [] } },
+        factor: impact(2),
+        rating: { value: 1000 },
+      }),
+    );
+    expect(r.computed.value).toBe(400);
+    expect(r.margin).toBeCloseTo(2.5, 9);
+    expect(r.breakEven?.value).toBeCloseTo(5, 9);
+  });
+
+  it('reads as a margin of 1.0 or more, rounded down', () => {
+    const b = { key: 'impact', symbol: 'C_i', label: 'Impact factor' };
+    expect(formatBreakEven({ ...b, value: 2.1999 })).toBe(
+      'margin 1.0 or more while the impact factor is 2.1 or less',
+    );
+    expect(formatBreakEven({ ...b, value: 1.9999999999999 })).toBe(
+      'margin 1.0 or more while the impact factor is 2.0 or less',
+    );
+    expect(formatBreakEven({ ...b, value: 0 })).toMatch(/^below margin 1\.0 at any impact factor/);
   });
 });
 

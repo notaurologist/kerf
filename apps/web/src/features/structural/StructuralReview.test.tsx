@@ -1,4 +1,11 @@
-import { checklistProgressKey, flagProgressKey, movement } from '@kerf/core';
+import {
+  checklistProgressKey,
+  createSnapshot,
+  findTemplate,
+  flagProgressKey,
+  movement,
+  type TemplateDefinition,
+} from '@kerf/core';
 import { VERDICT_WORDS } from '@kerf/core/testing';
 import { describe, expect, it } from 'vitest';
 import { readPlan } from '../../lib/plan.ts';
@@ -7,6 +14,7 @@ import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from '../project/ProjectScreen.tsx';
 import { byMargin, StructuralReview } from './StructuralReview.tsx';
 
+const swingSet = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const [complete, noInputs, builtUp] = storedSnapshots;
 if (!complete || !noInputs || !builtUp) throw new Error('fixture has three worked examples');
 /** The plan's structural review section, as text. */
@@ -68,6 +76,20 @@ describe('the structural review, worked example with every input', () => {
       '<span class="k-length">170.2 in</span> <span class="k-length">(170-3/16&quot;)</span>',
     );
     expect(html).not.toMatch(/class="k-length">[^<]* \(/);
+  });
+
+  it('says where each strength check reaches margin 1.0 as the dynamic factor grows (#401)', () => {
+    // A plan made now: the stored fixture predates the break-even factor.
+    const made = createSnapshot(swingSet, complete.params, complete.structuralInputs);
+    if (!made.ok) throw new Error('worked example should generate');
+    const review = text(JSON.parse(JSON.stringify(made.output)));
+    expect(review).toContain(
+      'With the other inputs as entered: margin 1.0 or more while the dynamic factor is 2.1 or less.',
+    );
+    expect(review).toContain(
+      'With the other inputs as entered: margin 1.0 or more while the dynamic factor is 8.0 or less.',
+    );
+    expect(review.match(/With the other inputs as entered/g)).toHaveLength(3);
   });
 
   it('shows the checklist and the expert-check flags', () => {

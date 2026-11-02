@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import { referenceRow, type SpeciesGradeId, speciesGrade } from '../design-values/sawnLumber.ts';
 import { type Citation, SOURCE_LINKS } from '../design-values/sources.ts';
-import { maxDeflectionTimesEI, maxMoment, reactions, type SpanLoads } from './beam.ts';
+import { maxDeflectionTimesEI, maxMoment, maxShear, reactions, type SpanLoads } from './beam.ts';
 import { type AdjustedValues, adjustedValues, type ServiceConditions } from './factors.ts';
 import {
+  type BreakEven,
   type CheckKind,
   CheckResult,
   type ComputedCheck,
@@ -65,10 +66,27 @@ export interface MaterialInput {
   incised: boolean;
 }
 
+/**
+ * A factor on a load case's point loads but not its uniform load, such as a dynamic factor for
+ * snap loads that does not apply to the member's own weight. Checks that use it also report the
+ * factor at which their margin reaches 1.0.
+ */
+export interface LoadFactor {
+  /** The input it comes from, as in a missing input's key. */
+  key: string;
+  symbol: string;
+  label: string;
+  /** How it was obtained, as in a quantity's basis. */
+  basis: string;
+  value: Needed<number>;
+}
+
 export interface LoadCase {
   /** Named by the template, such as 'Strength: peak load'. */
   name: string;
+  /** Before any factor. */
   loads: Needed<BeamLoads>;
+  factor?: LoadFactor;
   /** Template inputs and intermediate values behind the loads, shown with every result. */
   working: Quantity[];
   assumptions: string[];
@@ -247,8 +265,12 @@ export function beamChecks(input: BeamCheckInput): BeamChecks {
   if (isMissing(input.material)) {
     const m = input.material;
     return {
-      bending: { ...h.bending, status: 'input-needed', missing: missingFrom(m, s.loads) },
-      shear: { ...h.shear, status: 'input-needed', missing: missingFrom(m, s.loads) },
+      bending: {
+        ...h.bending,
+        status: 'input-needed',
+        missing: missingFrom(m, ...strengthNeeds(s)),
+      },
+      shear: { ...h.shear, status: 'input-needed', missing: missingFrom(m, ...strengthNeeds(s)) },
       deflection: {
         ...h.deflection,
         status: 'input-needed',
@@ -304,6 +326,50 @@ export function beamChecks(input: BeamCheckInput): BeamChecks {
   };
 }
 
+/** What a strength check needs: its loads, and its factor if it has one. */
+function strengthNeeds(lc: LoadCase): Needed<unknown>[] {
+  return lc.factor ? [lc.loads, lc.factor.value] : [lc.loads];
+}
+
+/** The loads with every point load multiplied by `C`; the uniform load is left as it is. */
+function scaled<T extends BeamLoads | SpanLoads>(loads: T, C: number): T {
+  return { ...loads, points: loads.points.map((p) => ({ ...p, P: p.P * C })) };
+}
+
+/** The factor's value as an input in the working. */
+function factorQuantity(factor: LoadFactor, value: number): Quantity {
+  return { symbol: factor.symbol, label: factor.label, value, unit: '', basis: factor.basis };
+}
+
+/**
+ * The factor C at which `demand(C)` reaches `allowable`, found by bisection. Demand never falls as
+ * C grows, since every load acts downward, so the first C that reaches it is unique. Undefined
+ * when the factor does not change the demand.
+ */
+function factorAtMarginOne(demand: (C: number) => number, allowable: number): number | undefined {
+  if (demand(0) >= allowable) return 0;
+  if (demand(1) <= demand(0)) return undefined;
+  let low = 0;
+  let high = 1;
+  while (demand(high) < allowable) {
+    low = high;
+    high *= 2;
+  }
+  // 100 halvings take the bracket below the precision of a double.
+  for (let i = 0; i < 100; i++) {
+    const mid = (low + high) / 2;
+    if (demand(mid) < allowable) low = mid;
+    else high = mid;
+  }
+  return high;
+}
+
+function breakEven(factor: LoadFactor, value: number | undefined): BreakEven | undefined {
+  return value === undefined
+    ? undefined
+    : { key: factor.key, symbol: factor.symbol, label: factor.label, value };
+}
+
 function factorsFor(adjusted: AdjustedValues, value: 'Fb' | 'Fv' | 'E') {
   return adjusted.factors.filter((f) => f.appliesTo.includes(value));
 }
@@ -317,12 +383,41 @@ function strengthCheck(
   assumptions: string[],
 ): CheckResult {
   const lc = input.strength;
-  if (isMissing(lc.loads)) return { ...head, status: 'input-needed', missing: lc.loads.missing };
-  const prepared = prepare(input.member, lc.loads.value);
-  if (typeof prepared === 'string')
-    return { ...head, status: 'not-computed', reason: prepared, sources: [] };
-  const { L, plyLoads } = prepared;
+  if (isMissing(lc.loads)) {
+    return { ...head, status: 'input-needed', missing: missingFrom(...strengthNeeds(lc)) };
+  }
+  const unfactored = prepare(input.member, lc.loads.value);
+  if (typeof unfactored === 'string')
+    return { ...head, status: 'not-computed', reason: unfactored, sources: [] };
   const { plyBreadth: b, depth: dd } = input.member;
+  const allowed = which === 'bending' ? adjusted.Fb : adjusted.Fv;
+  const factor = lc.factor;
+  const atMarginOne =
+    factor &&
+    breakEven(
+      factor,
+      factorAtMarginOne((C) => {
+        const loads = scaled(unfactored.plyLoads, C);
+        return which === 'bending'
+          ? maxMoment(unfactored.L, loads).M / ((b * dd * dd) / 6)
+          : (3 * maxShear(unfactored.L, loads)) / (2 * b * dd);
+      }, allowed),
+    );
+  if (factor && isMissing(factor.value)) {
+    return {
+      ...head,
+      status: 'input-needed',
+      missing: factor.value.missing,
+      ...(atMarginOne ? { breakEven: atMarginOne } : {}),
+    };
+  }
+  const C = factor && !isMissing(factor.value) ? factor.value.value : undefined;
+  const prepared =
+    C === undefined
+      ? unfactored
+      : // Scaling moves no load, so the positions `unfactored` accepted still hold.
+        (prepare(input.member, scaled(lc.loads.value, C)) as Prepared);
+  const { L, plyLoads } = prepared;
   const R = reactions(L, plyLoads);
   const per = input.member.plies > 1 ? ' per ply' : '';
   const reactionSteps: Quantity[] = [
@@ -332,9 +427,21 @@ function strengthCheck(
   const common = {
     ...head,
     status: 'computed' as const,
-    inputs: [...prepared.inputs, ...lc.working, ...reference],
+    inputs: [
+      ...prepared.inputs,
+      ...lc.working,
+      ...(factor && C !== undefined ? [factorQuantity(factor, C)] : []),
+      ...reference,
+    ],
     assumptions: [...assumptions, ...lc.assumptions],
+    ...(atMarginOne ? { breakEven: atMarginOne } : {}),
   };
+  const factored =
+    factor && C !== undefined
+      ? [
+          `Each point load P = ${factor.symbol} · its load before the factor; the uniform load w is not multiplied`,
+        ]
+      : [];
 
   if (which === 'bending') {
     const { M, x } = maxMoment(L, plyLoads);
@@ -343,6 +450,7 @@ function strengthCheck(
     const result: ComputedCheck = {
       ...common,
       formulas: [
+        ...factored,
         ...(input.member.plies > 1 ? ['Load per ply = P / n and w / n'] : []),
         'R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2 (a = distance of each load from the left support)',
         'M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign',
@@ -387,6 +495,7 @@ function strengthCheck(
       'Loads near the supports are not reduced (NDS 3.4.2.2 permits it for some support conditions; not used).',
     ],
     formulas: [
+      ...factored,
       ...(input.member.plies > 1 ? ['Load per ply = P / n and w / n'] : []),
       'R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2',
       'V = larger of R1 and R2',
@@ -488,8 +597,9 @@ export interface HardwareCheckInput {
   /** Named by the template, such as 'Rated connector'. */
   subject: string;
   loadCase: string;
-  /** The load on one piece of hardware, with its working. */
+  /** The load on one piece of hardware before any factor, with its working. */
   load: Needed<{ value: number; working: Quantity[]; assumptions: string[] }>;
+  factor?: LoadFactor;
   /** Manufacturer's rated working load for one piece, pounds. */
   rating: Needed<number>;
 }
@@ -497,16 +607,31 @@ export interface HardwareCheckInput {
 /** Hardware load against the manufacturer's rated working load (DOMAIN.md, Structural checks). */
 export function hardwareCheck(input: HardwareCheckInput): CheckResult {
   const head = header('hardware', 'Rated load', input.subject, input.loadCase);
+  const { factor } = input;
+  const needs = [input.load, ...(factor ? [factor.value] : []), input.rating];
   if (isMissing(input.load) || isMissing(input.rating)) {
-    return { ...head, status: 'input-needed', missing: missingFrom(input.load, input.rating) };
+    return { ...head, status: 'input-needed', missing: missingFrom(...needs) };
   }
   const load = input.load.value;
   const rating = input.rating.value;
+  // Rating / (C · load) = 1 at C = rating / load.
+  const atMarginOne = factor && breakEven(factor, rating / load.value);
+  if (factor && isMissing(factor.value)) {
+    return {
+      ...head,
+      status: 'input-needed',
+      missing: factor.value.missing,
+      ...(atMarginOne ? { breakEven: atMarginOne } : {}),
+    };
+  }
+  const C = factor && !isMissing(factor.value) ? factor.value.value : undefined;
+  const P = load.value * (C ?? 1);
   return {
     ...head,
     status: 'computed',
     inputs: [
       ...load.working,
+      ...(factor && C !== undefined ? [factorQuantity(factor, C)] : []),
       {
         symbol: 'R_rated',
         label: 'Rated working load, one piece',
@@ -515,7 +640,10 @@ export function hardwareCheck(input: HardwareCheckInput): CheckResult {
         basis: "Entered from the manufacturer's specification",
       },
     ],
-    formulas: ['margin = rated working load / computed load'],
+    formulas: [
+      ...(factor && C !== undefined ? [`P = ${factor.symbol} · load before the factor`] : []),
+      'margin = rated working load / computed load',
+    ],
     steps: [],
     factors: [],
     assumptions: [
@@ -523,8 +651,9 @@ export function hardwareCheck(input: HardwareCheckInput): CheckResult {
       "The rating is the manufacturer's working load for this use, installed as the manufacturer specifies.",
     ],
     sources: [],
-    computed: { symbol: 'P', label: 'Load on one piece', value: load.value, unit: 'lb' },
+    computed: { symbol: 'P', label: 'Load on one piece', value: P, unit: 'lb' },
     allowable: { symbol: 'R_rated', label: 'Rated working load', value: rating, unit: 'lb' },
-    margin: rating / load.value,
+    margin: rating / P,
+    ...(atMarginOne ? { breakEven: atMarginOne } : {}),
   };
 }

@@ -28,6 +28,8 @@ export function FieldInput(props: {
   confirm?: string;
   /** Where a suggested value came from (#163); see `Field`. */
   about?: string;
+  /** What the current plan gives to compare this value against; see `Field`. */
+  compare?: string;
 }) {
   const { field, text } = props;
   const unit = field.unit || UNITS[field.kind];
@@ -43,6 +45,7 @@ export function FieldInput(props: {
       needed={props.needed && text.trim() === ''}
       confirm={props.confirm}
       about={props.about}
+      compare={props.compare}
       unit={unit}
       width={field.kind === 'choice' || field.kind === 'yes-no' ? 'medium' : 'short'}
     >

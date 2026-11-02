@@ -319,7 +319,7 @@ The review in #355 proposed asking "Will the beam stand outdoors, uncovered?" to
 
 Bolts (#389): for each joint, the largest diameter the form offers (3/8" to 3/4") whose distances in the bolt layout below are all within NDS 2024 Tables 12.5.1A to 12.5.1D on the suggested frame, and two bolts per crossbar and gusset joint, the worked example's count. Basis: NDS 2024, those tables; note: Kerf computes no bolt capacity, so settle the size with an experienced builder. Hand check, worked example: a board's bolts are 3-1/2 / 2 = 1-3/4" from the leg's loaded edge, and 4D is 1-1/2" for 3/8" and 2" for 1/2", so 3/8" at the crossbars and gussets; the leg-to-beam bolt is 5-1/2 / 2 = 2-3/4" from the beam's edges, and 4D is 2-1/2" for 5/8" and 3" for 3/4", so 5/8". The two-ply 2x6 beam gives the same. With no frame (a yard too small for a beam), the sizes stay empty.
 
-Not suggested: ply bolts (no published schedule gives bolts; IRC 2021 R507.5 nails deck beam plies, two rows of 10d at 16" on center, and the help says so), ground anchors (the anchor maker's instructions), and the structural inputs only the owner or what they buy can say (species and grade, incised, hanger rating; #390 prompts for these at the store), and the dynamic factor, for which no published value was found. Stock comes from the worked example and is never sized from the loads; the preview shows its margin under the owner's loads (`PRODUCT.md`, Non-goals).
+Not suggested: ply bolts (no published schedule gives bolts; IRC 2021 R507.5 nails deck beam plies, two rows of 10d at 16" on center, and the help says so), ground anchors (the anchor maker's instructions), and the structural inputs only the owner or what they buy can say (species and grade, incised, hanger rating; #390 prompts for these at the store), and the dynamic factor, for which no published value was found; the review and the field show the factor at which each strength check reaches margin 1.0 instead (#401). Stock comes from the worked example and is never sized from the loads; the preview shows its margin under the owner's loads (`PRODUCT.md`, Non-goals).
 
 ### Rules
 
@@ -545,6 +545,7 @@ None has a default (decision 0001). A missing input makes every check that needs
 - **Swing load:** chain tension at the bottom of the arc T = W·(3 − 2·cos θ). For a pendulum of length r released from rest at θ, the speed at the bottom gives v² = 2·g·r·(1 − cos θ), and T = W + W·v²/(g·r) = W·(3 − 2·cos θ). It is 1·W at rest, 2·W at 60°, and 3·W at 90°.
 - **Per hanger:** T / 2, assuming a centered rider. Both swings are taken at the bottom of their arcs together.
 - **Strength** (bending, shear, hanger): per-hanger load times the dynamic factor.
+- **Break-even dynamic factor** (#401): each strength check also reports the dynamic factor at which its margin reaches 1.0, with every other input as entered (`DOMAIN.md`, Structural checks). For the hanger it is the rating over the smooth-swing load on the most loaded hanger. For bending and shear it is solved from the check, since the beam's weight is not multiplied: C = (allowable − the weight's part) / the hangers' part at factor 1. It is shown with the check and under the dynamic factor's field in Edit, and it is reported while the factor is still missing; the checks stay "input needed" until the factor is entered.
 - **Deflection:** per-hanger load without the dynamic factor.
 - **Beam:** supported at the frame centerlines, `geometry.supportsX`, with a point load at each hanger, `swings.hangersX`. The unbraced length for beam stability is the span, since each frame holds the beam against rotation (a checklist item). The beam's own weight is a uniform load over the span, not multiplied by the dynamic factor; the overhangs' weight is left out, which slightly raises the moment between the supports.
 - **Service conditions:** wet service (outdoors, uncovered), C_t = 1.0 (no sustained heat above 100°F), C_D = 1.0 (the impact increase is not used, and the NDS bars factors above 1.6 for lumber treated with water-borne preservatives), no repetitive member factor (one beam).
@@ -584,6 +585,9 @@ Beam stability: ℓu/d = 92.5/5.5 = 16.8 > 14.3, so ℓe = 1.84·92.5 = 170.2.
 | δ·EI at midspan: two symmetric pairs (DA6 Fig. 9), [150·16.25·(3·92.5² − 4·16.25²) + 150·36.25·(3·92.5² − 4·36.25²)] / 24 = 7,124,414, plus 5·w·L⁴/384 = 413,517 (DA6 Fig. 1) | 7,537,931 / 61,142,813 = 0.1233 in |
 | Limit 92.5/240 | 0.3854 in; margin 3.13 |
 | Hanger | 300 lb against 1200; margin 4.0 |
+| Break-even dynamic factor, bending | Fb'·S = 992.08 · 17.6458 = 17,506.13 lb·in; the hangers give 7,875 per unit factor and the weight 463.96, so C = (17,506.13 − 463.96) / 7,875 = 2.164 (not margin × factor, 1.08 · 2 = 2.16, since the weight is not multiplied) |
+| Break-even dynamic factor, shear | Fv'·2·b·d/3 = 2,178.46 lb; C = (2,178.46 − 20.06) / 300 = 7.195 |
+| Break-even dynamic factor, hanger | 1200 / 150 = 8.0 |
 
 **Example 2, asymmetric, 4x6:** 200 lb on the left swing, 80 lb on the right. Strength loads per hanger 400, 400, 160, 160.
 
@@ -604,6 +608,7 @@ Beam stability: ℓu/d = 92.5/5.5 = 16.8 > 14.3, so ℓe = 1.84·92.5 = 170.2.
 | f_b = 8073.84 / 7.5625 | 1067.62 psi; margin 903.09 / 1067.62 = 0.85 |
 | f_v = 3·308.60 / (2·1.5·5.5) | 56.11 psi; margin 3.03 |
 | δ | 0.1427 in; margin 2.70 |
+| Break-even dynamic factor, bending | Fb'·S = 903.09 · 7.5625 = 6,829.64 per ply; C = (6,829.64 − 198.84) / 3,937.5 = 1.684 |
 
 The two-ply 2x6 has less margin in bending than the 4x6 under the same inputs, for two reasons: two 2x6 plies (3.0 in) are narrower than a 4x6 (3.5 in), and one ply is far more slender for beam stability. The beam's weight lowers each bending margin by about 3%. Maximum moments and deflections were also found by sampling the summed DA6 curves at 200,000 points; the code finds them exactly, and both agree to the precision shown.
 
