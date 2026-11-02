@@ -13,8 +13,8 @@ describe('WorkshopScreen', () => {
     expect(links).toEqual([
       ['Tools', '#/tools'],
       ['Glossary', '#/glossary'],
-      ['Trash', '#/trash'],
-      ['Download all projects', '/api/export'],
+      ['Deleted projects', '#/trash'],
+      ['Download a backup', '/api/export'],
     ]);
     expect(container.querySelector('a[href="/api/export"]')?.hasAttribute('download')).toBe(true);
   });

@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { ProjectSummary } from '../../lib/types.ts';
 import { render as renderHtml, textOf } from '../../test/render.tsx';
-import { ProjectList, savedFirst, withStatus } from './ProjectsScreen.tsx';
+import { ProjectList } from './ProjectsScreen.tsx';
 
-const templates = [{ id: 'swing-set-a-frame', version: 2, name: 'Two-swing A-frame swing set' }];
+const templates = [
+  {
+    id: 'swing-set-a-frame',
+    version: 2,
+    name: 'Two-swing A-frame swing set',
+    description: 'A backyard swing set.',
+  },
+];
 
 const project = (overrides: Partial<ProjectSummary> = {}): ProjectSummary => ({
   id: '6f1c2a3e-0000-4000-8000-000000000001',
@@ -20,14 +27,15 @@ const project = (overrides: Partial<ProjectSummary> = {}): ProjectSummary => ({
 });
 
 const render = (projects: ProjectSummary[]) =>
-  renderHtml(<ProjectList projects={projects} templates={templates} onStatus={() => {}} />);
+  renderHtml(<ProjectList projects={projects} templates={templates} />);
 
 describe('ProjectList', () => {
-  it('says when there are no projects, and offers a new one for each template', () => {
+  it('says when there are no projects, and offers one New project whatever the templates', () => {
     const html = render([]);
     expect(html).toContain('No projects yet.');
-    expect(html).toContain('New two-swing A-frame swing set');
-    expect(html).toContain('href="#/projects/new?template=swing-set-a-frame"');
+    expect(html.match(/class="k-button"/g)).toHaveLength(1);
+    expect(html).toContain('href="#/projects/new">New project</a>');
+    expect(html).not.toContain('New two-swing');
   });
 
   it('says what Delete did, and leaves the trash and the download to Workshop', () => {
@@ -38,19 +46,21 @@ describe('ProjectList', () => {
       <ProjectList
         projects={[]}
         templates={templates}
-        flash="Moved “Shed” to the trash."
-        onStatus={() => {}}
+        flash="Moved “Shed” to Deleted projects in Workshop."
       />,
     );
-    expect(textOf(flashed)).toContain('Moved “Shed” to the trash.');
+    expect(textOf(flashed)).toContain('Moved “Shed” to Deleted projects in Workshop.');
   });
 
-  it('shows each project with its template, version, and status', () => {
+  it('shows each project with its template, its status as a label, and no version', () => {
     const html = render([project()]);
     expect(html).toContain('href="#/projects/6f1c2a3e-0000-4000-8000-000000000001"');
-    expect(html).toContain('Two-swing A-frame swing set, version 2');
-    expect(html).toMatch(/<option value="in-progress" selected="">In progress<\/option>/);
-    expect(html).not.toContain('newer version');
+    expect(textOf(html)).toContain('Two-swing A-frame swing set. Updated');
+    expect(html).toContain(
+      '<span class="k-tag" data-tone="status" data-status="in-progress">In progress</span>',
+    );
+    expect(html).not.toContain('<select');
+    expect(textOf(html)).not.toContain('version');
   });
 
   it('names each project as a row link, not an underlined link', () => {
@@ -60,7 +70,7 @@ describe('ProjectList', () => {
   });
 
   it('makes New the primary button only while there is nothing to resume', () => {
-    expect(render([])).toContain('data-variant="primary" href="#/projects/new?');
+    expect(render([])).toContain('data-variant="primary" href="#/projects/new"');
     const resuming = project({
       progress: {
         shopping: { done: 1, total: 3 },
@@ -69,44 +79,12 @@ describe('ProjectList', () => {
         nextStep: { id: 's1', number: 1, title: 'Cut' },
       },
     });
-    expect(render([resuming])).toContain('data-variant="secondary" href="#/projects/new?');
+    expect(render([resuming])).toContain('data-variant="secondary" href="#/projects/new"');
   });
 
-  it('marks a project whose template version is behind', () => {
-    expect(render([project({ templateVersion: 1, templateBehind: true })])).toContain(
-      'The template has a newer version.',
+  it('leaves a template version that is behind to the project itself', () => {
+    expect(render([project({ templateVersion: 1, templateBehind: true })])).not.toContain(
+      'newer version',
     );
-  });
-});
-
-describe('changing a status', () => {
-  const first = project();
-  const second = project({ id: '6f1c2a3e-0000-4000-8000-000000000002', name: 'Bench' });
-
-  it('shows the new status in place at once', () => {
-    expect(withStatus([first, second], second.id, 'built')).toEqual([
-      first,
-      { ...second, status: 'built' },
-    ]);
-  });
-
-  it('moves the saved project to the top, as the API orders the list', () => {
-    const saved = { ...second, status: 'built' as const };
-    expect(savedFirst([first, second], saved)).toEqual([saved, first]);
-  });
-
-  it('says on the row why a change did not go through', () => {
-    const html = renderHtml(
-      <ProjectList
-        projects={[first, second]}
-        templates={templates}
-        errors={{ [second.id]: 'The server could not be reached.' }}
-        onStatus={() => {}}
-      />,
-    );
-    const rows = html.split('<li').slice(1).map(textOf);
-    expect(rows[0]).not.toContain('Status not changed');
-    expect(rows[1]).toContain('Status not changed. The server could not be reached.');
-    expect(html).toContain('role="alert"');
   });
 });

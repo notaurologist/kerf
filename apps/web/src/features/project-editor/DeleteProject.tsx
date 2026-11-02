@@ -13,7 +13,7 @@ import {
   useReturnFocus,
 } from '../../ui/index.ts';
 
-// Deleting moves the project to the trash, where it can be restored for 30 days before it is
+// Deleting moves the project to Deleted projects (the trash), where it can be restored for 30 days before it is
 // deleted for good (#21). Since it can be undone, one confirmation is enough. It sits at the foot
 // of the Edit screen, away from the plan's Previous and Next, so it is never tapped on the way
 // somewhere else.
@@ -44,7 +44,9 @@ export function DeleteProject(props: { id: string; name: string }) {
     setBusy(false);
     if (result.ok) {
       projectStore.forget(props.id);
-      setFlash(`Moved “${props.name.trim()}” to the trash. You can restore it there for 30 days.`);
+      setFlash(
+        `Moved “${props.name.trim()}” to Deleted projects in Workshop. You can restore it there for 30 days.`,
+      );
       navigate({ screen: 'projects' });
     } else setError(describeError(result.error));
   };
@@ -52,7 +54,7 @@ export function DeleteProject(props: { id: string; name: string }) {
   return (
     <Card as="section">
       <InlineConfirm
-        confirm="Move to trash"
+        confirm="Delete project"
         busyLabel="Moving…"
         variant="destructive"
         keep="Keep project"
@@ -65,8 +67,8 @@ export function DeleteProject(props: { id: string; name: string }) {
         }}
       >
         <Text>
-          <b>Delete “{props.name}”?</b> It moves to the trash with its plan and history. You can
-          restore it there for 30 days, then it is deleted for good.
+          <b>Delete “{props.name}”?</b> It moves to Deleted projects in Workshop with its plan and
+          history. You can restore it there for 30 days, then it is deleted for good.
         </Text>
       </InlineConfirm>
     </Card>

@@ -1,4 +1,4 @@
-import { recordCabinet, swingSetAFrame } from '@kerf/core';
+import { recordCabinet, swingSetAFrame, type TemplateDefinition, unletteredView } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 
@@ -112,7 +112,7 @@ describe('/api/tools', () => {
 });
 
 describe('/api/templates', () => {
-  it('lists each template with its current version', async () => {
+  it('lists each template with its current version and what it is', async () => {
     const { authed } = await createTestApp();
     expect(await (await authed('/api/templates')).json()).toEqual({
       templates: [
@@ -120,9 +120,39 @@ describe('/api/templates', () => {
           id: 'swing-set-a-frame',
           version: swingSetAFrame.definition.version,
           name: 'Two-swing A-frame swing set',
+          description: swingSetAFrame.definition.description,
         },
-        { id: 'record-cabinet', version: recordCabinet.definition.version, name: 'Record cabinet' },
+        {
+          id: 'record-cabinet',
+          version: recordCabinet.definition.version,
+          name: 'Record cabinet',
+          description: recordCabinet.definition.description,
+        },
       ],
     });
+  });
+
+  it("draws a template's first worked example, assembled and unlettered, from core", async () => {
+    const { authed } = await createTestApp();
+    // The two templates' types differ, so they are read through the shared definition type.
+    const definitions: TemplateDefinition[] = [swingSetAFrame.definition, recordCabinet.definition];
+    for (const definition of definitions) {
+      const example = definition.examples[0];
+      if (!example) throw new Error('no worked example');
+      const made = definition.generate(example.params, example.structuralInputs);
+      if (!made.ok) throw new Error('worked example does not generate');
+      const expected = JSON.parse(JSON.stringify(unletteredView(definition, made.output)));
+      expect(expected.primitives.some((p: { kind: string }) => p.kind === 'letter')).toBe(false);
+      const res = await authed(`/api/templates/${definition.id}/drawing`);
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ drawing: expected });
+    }
+  });
+
+  it('answers an unknown template with not-found', async () => {
+    const { authed } = await createTestApp();
+    const res = await authed('/api/templates/shed/drawing');
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: 'not-found' });
   });
 });

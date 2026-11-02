@@ -334,9 +334,7 @@ describe('progress in words', () => {
   it('puts a Resume card above the projects list for a project in progress', () => {
     const p = project([{ kind: 'step', key: 'board-1' }]);
     const other = { ...project([{ kind: 'shopping-line', key: 'lumber/2x6/10' }]), name: 'Other' };
-    const text = renderText(
-      <ProjectList projects={[p, other]} templates={[]} onStatus={() => {}} />,
-    );
+    const text = renderText(<ProjectList projects={[p, other]} templates={[]} />);
     // One card, for the first project in the list (the most recently updated).
     expect(text.match(/Resume /g)).toHaveLength(1);
     expect(text).toContain(

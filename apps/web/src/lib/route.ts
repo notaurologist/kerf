@@ -11,6 +11,8 @@ export type Route =
   // `start` fills the form from a worked example or an earlier project (#98), or from answers to
   // the template's starting questions (#163); none is empty.
   | { screen: 'new-project'; templateId: string; start?: ProjectStart }
+  // Choosing what to make, before the new-project form (#357).
+  | { screen: 'pick-template' }
   // The plan, one section per screen (#156). No section is the one the project opens on (#356).
   // `part` is the part selected in the drawings and the cut list, kept in the address so a reload
   // keeps it.
@@ -31,7 +33,7 @@ export type Route =
   | { screen: 'glossary'; term?: string }
   | { screen: 'catalog' }
   | { screen: 'trash' }
-  // Tools, the glossary, Trash, Download, the theme, and Log out, in one place (#356).
+  // Tools, the glossary, deleted projects, the backup, the theme, and Log out, in one place (#356).
   | { screen: 'workshop' }
   | { screen: 'not-found' };
 
@@ -70,7 +72,7 @@ export function parseRoute(hash: string): Route {
   if (second === undefined) return { screen: 'projects' };
   if (second === 'new' && parts.length === 2) {
     const templateId = search.get('template');
-    if (!templateId) return { screen: 'not-found' };
+    if (!templateId) return { screen: 'pick-template' };
     const start = startOf(search);
     return start
       ? { screen: 'new-project', templateId, start }
@@ -124,6 +126,8 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
   switch (route.screen) {
     case 'projects':
       return '#/projects';
+    case 'pick-template':
+      return '#/projects/new';
     case 'new-project': {
       const start =
         route.start?.kind === 'example'

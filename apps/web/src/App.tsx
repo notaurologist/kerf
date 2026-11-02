@@ -8,6 +8,7 @@ import { ModeScreen } from './features/modes/modes.tsx';
 import { ProjectScreen } from './features/project/ProjectScreen.tsx';
 import { EditProjectScreen, NewProjectScreen } from './features/project-editor/ProjectEditor.tsx';
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
+import { TemplatePicker } from './features/projects/TemplatePicker.tsx';
 import { TrashScreen } from './features/projects/TrashScreen.tsx';
 import { WorkshopScreen } from './features/workshop/WorkshopScreen.tsx';
 import {
@@ -49,6 +50,8 @@ export function Screen(props: { route: Route; onLogOut?: () => void }) {
       return <ProjectsScreen />;
     case 'tools':
       return props.route.tool ? <ToolPage id={props.route.tool} /> : <ToolsScreen />;
+    case 'pick-template':
+      return <TemplatePicker />;
     case 'new-project':
       return <NewProjectScreen templateId={props.route.templateId} start={props.route.start} />;
     case 'edit-project':

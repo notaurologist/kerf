@@ -210,6 +210,8 @@ export const recordCabinet: TemplateDefinition<
   id: TEMPLATE_ID,
   version: TEMPLATE_VERSION,
   name: 'Record cabinet',
+  description:
+    'A low cabinet of glued-up solid-wood panels, with bays for records and room on the top for a turntable.',
   ownWords: ['partition', 'partitions', 'jacket'],
   params: RecordCabinetParams,
   structuralInputs: RecordCabinetStructuralInputs,
