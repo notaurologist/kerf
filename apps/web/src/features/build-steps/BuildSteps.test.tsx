@@ -54,28 +54,27 @@ describe('glossary terms in the plan (#178)', () => {
   });
 
   it('starts each section afresh: the structural review marks its own first uses', () => {
+    // The To do band comes first. A line's own words (a check's name, an expert check's
+    // question) are not marked, since a term's button there would also open the line; terms are
+    // marked in what each line opens to (#359).
     expect(marked('structural-review')).toEqual([
       'margin',
-      'bending',
-      'dynamic factor',
-      'shear',
-      'deflection',
-      'flush',
       'gusset',
-      'burial depth',
-      'ground contact',
-      'edge distance',
       'nds',
-      'end distance',
       'grip',
+      'end distances',
       'racking',
+      'burial depth',
       'backfill',
+      'ground contact',
       'knots',
       'midspan',
       'grain',
       'wane',
       'design values',
       'pressure-treated',
+      'dynamic factor',
+      'deflection',
     ]);
   });
 

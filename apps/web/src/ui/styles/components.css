@@ -795,6 +795,43 @@
     padding-block-start: var(--space-xs);
   }
 
+  /* A row that opens (ResultLine, #359): the text color, no underline, the chevron at the end. */
+  .k-disclosure[data-variant="line"] > summary {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .k-disclosure[data-variant="line"] > summary > span {
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  .k-result-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    column-gap: var(--space-s);
+  }
+
+  .k-result-line__what {
+    display: grid;
+    gap: var(--space-3xs);
+    min-inline-size: 0;
+  }
+
+  .k-result-line__detail {
+    color: var(--muted);
+    font-size: var(--size--1);
+  }
+
+  .k-result-line__result {
+    font-size: var(--size-1);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   /* ---------- Tool icons (#86): 20 px beside 17 px text, 24 px beside 20 px shop text ---------- */
   .k-tool-icon {
     display: inline-block;

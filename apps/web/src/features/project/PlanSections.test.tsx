@@ -154,7 +154,7 @@ describe('links between sections', () => {
     const head = page.slice(0, page.indexOf('<div class="k-with-contents"'));
     expect(head).toContain(`<a href="${base}/structural-review">6 expert checks</a>`);
     expect(sectionOf(at('structural-review'), 'structural-review')).toContain(
-      '<h3 id="expert-checks" tabindex="-1">Expert checks</h3>',
+      '<h4 id="expert-checks" tabindex="-1">Expert checks</h4>',
     );
   });
 });
