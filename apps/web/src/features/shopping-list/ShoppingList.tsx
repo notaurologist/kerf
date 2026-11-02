@@ -13,6 +13,7 @@ import { type Changes, marked, NO_CHANGES } from '../../lib/changes.tsx';
 import {
   ErrorText,
   Grid,
+  InputNeeded,
   Length,
   List,
   Measured,
@@ -152,7 +153,8 @@ export function ShoppingList(props: {
                       marked(
                         changes,
                         `${line(h, props.hardware, 'hardware')}.quantity`,
-                        <b>{h.quantity}</b>,
+                        // A count read at the store: its prompt is under the table (#406).
+                        h.quantity === undefined ? <InputNeeded /> : <b>{h.quantity}</b>,
                       ),
                   },
                   {
@@ -181,7 +183,11 @@ export function ShoppingList(props: {
             <Text>
               No longer bought:{' '}
               <Measured
-                text={removedHardware.map((h) => `${h.quantity} x ${h.description}`).join('; ')}
+                text={removedHardware
+                  .map((h) =>
+                    h.quantity === undefined ? h.description : `${h.quantity} x ${h.description}`,
+                  )
+                  .join('; ')}
               />
               .
             </Text>

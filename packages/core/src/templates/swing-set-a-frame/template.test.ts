@@ -296,8 +296,7 @@ describe('hardware', () => {
     expect(item(builtUp, 'ply-bolts')).toMatchObject({ quantity: 6, bolt: { grip: 3 } });
   });
 
-  it('requires anchors for pads and ply bolts for a built-up beam', () => {
-    expect(issueCodes({ ...example, burialDepth: 0 })).toEqual(['anchors-missing']);
+  it('requires ply bolts for a built-up beam', () => {
     expect(issueCodes({ ...example, beamStock: '2x6', beamPlies: 2 })).toEqual([
       'ply-bolts-missing',
     ]);

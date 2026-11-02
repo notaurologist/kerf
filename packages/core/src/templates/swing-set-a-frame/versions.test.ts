@@ -16,6 +16,7 @@ import v11 from './snapshots/v11.json' with { type: 'json' };
 import v12 from './snapshots/v12.json' with { type: 'json' };
 import v13 from './snapshots/v13.json' with { type: 'json' };
 import v14 from './snapshots/v14.json' with { type: 'json' };
+import v15 from './snapshots/v15.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -431,5 +432,16 @@ describe('swing-set template versions', () => {
       }
     }
     expect(withBreakEven).toBeGreaterThan(0);
+  });
+
+  // Every worked example generated before, so none changes; version 16 only lets a plan on pads
+  // be made without its anchor count (#406), which no stored plan can be.
+  it('version 16 changes nothing for parameters that generated before (#406)', () => {
+    for (const stored of v15) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(15);
+      expect(regenerated(read.snapshot).changes).toEqual([]);
+    }
   });
 });

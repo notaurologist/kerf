@@ -29,10 +29,9 @@ function jointsAt(params: Record<string, unknown>, diameter: number): BoltJoint[
       legBoltDiameter: diameter,
       crossbarBolts: { diameter, perJoint: PER_JOINT },
       gussetBolts: { diameter, perJoint: PER_JOINT },
-      // Required to generate a built-up beam or legs on pads; neither changes these joints'
-      // distances, and neither is suggested.
+      // Required to generate a built-up beam; it does not change these joints' distances, and it
+      // is not suggested.
       plyBolts: { diameter, count: 1 },
-      anchorsPerFoot: 1,
     },
   });
   return made.ok ? (made.output.boltLayout ?? null) : null;

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { FlagCategory } from '../knowledge/categories.ts';
 import { PartStock } from '../lumber/panel.ts';
+import { MissingInput } from '../structural/types.ts';
 
 // Shared shapes of template output. Each is a Zod schema with its type inferred from it, so the
 // same definition types the code and parses a project snapshot (decision 0003). These are what a
@@ -316,7 +317,13 @@ export type Placement = z.infer<typeof Placement>;
 export const HardwareItem = z.object({
   id: z.string(),
   name: z.string(),
-  quantity: z.number().int(),
+  /** Absent while the input it is counted from is not entered; `quantityNeeded` names it. */
+  quantity: z.number().int().optional(),
+  /**
+   * The input the quantity waits for, such as a count read from the maker's instructions at the
+   * store. The item is still listed, so the plan can be made and shopped for without it.
+   */
+  quantityNeeded: MissingInput.optional(),
   /**
    * Through-bolts only: diameter, grip (thickness of wood the bolt passes through), and the
    * fittings each bolt takes. The template decides the fittings; shopping lists total them.

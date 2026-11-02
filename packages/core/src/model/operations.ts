@@ -424,7 +424,7 @@ export function cutAndDrillOperations(
     });
   }
   for (const item of hardware) {
-    if (!item.bolt) continue;
+    if (!item.bolt || item.quantity === undefined) continue;
     const partIds = parts
       .filter(
         (p) =>

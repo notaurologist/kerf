@@ -27,11 +27,6 @@ export interface StoreReading {
   prompt: string;
   /** How to find it: where to look on the board or package, and what it looks like. */
   how: string;
-  /**
-   * What to do with the value once entered, for one that must be entered before a plan can be
-   * made, such as a count to check against the maker's instructions.
-   */
-  check?: string;
   /** A drawing of what to read, from the glossary's illustrations. */
   illustration?: IllustrationId;
 }

@@ -20,6 +20,7 @@ import {
   ButtonLink,
   Cluster,
   Disclosure,
+  InputNeeded,
   Material,
   Measured,
   ModeFrame,
@@ -133,6 +134,10 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
                       <>
                         <b>{line.count}</b> × {line.nominal},{' '}
                         <Measured text={formatBoardLength(line.feet)} />
+                      </>
+                    ) : line.quantity === undefined ? (
+                      <>
+                        <Measured text={line.description} /> <InputNeeded>Count needed</InputNeeded>
                       </>
                     ) : (
                       <>
