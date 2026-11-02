@@ -165,11 +165,24 @@ function tapered(
     return { points: ps, normal: normalOf(ps) };
   });
   faces.push({ points: points.map((p) => at(p, T)), normal: pl.through });
+  // A point on a straight run of the outline, such as one added at u = s, joins two side faces in
+  // one plane: the edge between them is not the part's own.
+  const straight = (i: number) => {
+    const n = points.length;
+    const p = points[(i + n - 1) % n] as UV;
+    const a = points[i] as UV;
+    const b = points[(i + 1) % n] as UV;
+    return Math.abs((a.u - p.u) * (b.v - a.v) - (a.v - p.v) * (b.u - a.u)) < 1e-9;
+  };
   for (let i = 0; i < points.length; i++) {
     const a = points[i] as UV;
     const b = points[(i + 1) % points.length] as UV;
     const normal = unit(add(scale(pl.along, b.v - a.v), scale(pl.across, -(b.u - a.u))));
-    faces.push({ points: [at(a, near(a.u)), at(b, near(b.u)), at(b, T), at(a, T)], normal });
+    faces.push({
+      points: [at(a, near(a.u)), at(b, near(b.u)), at(b, T), at(a, T)],
+      normal,
+      edge: [true, !straight((i + 1) % points.length), true, !straight(i)],
+    });
   }
   return { partId: pl.partId, instance: pl.instance, faces };
 }

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { solid } from '../../geometry/solid.ts';
+import { cross, dot, sub, unit } from '../../geometry/vec.ts';
 import { isPanel } from '../../lumber/panel.ts';
 import type { Part, Placement, Vec3 } from '../../model/types.ts';
 import { recordCabinet } from './definition.ts';
@@ -436,6 +438,39 @@ describe('plan and drawings', () => {
       'Top: Everything on the top at the middle of a span, for years',
     ]);
     expect(plan.movement).toHaveLength(6);
+  });
+
+  it('draws no line across a leg’s flat faces, only where two faces meet at an angle', () => {
+    // Each leg's outside faces are flat from top to foot; a line at the taper's start is no edge
+    // of the wood (#351). The crease where a tapered face meets the straight part above stays.
+    const leg = part(worked, 'leg');
+    const key = (p: Vec3) => [p.x, p.y, p.z].map((c) => c.toFixed(6)).join(',');
+    const normalOf = (ps: Vec3[]) =>
+      unit(cross(sub(ps[1] as Vec3, ps[0] as Vec3), sub(ps[2] as Vec3, ps[0] as Vec3)));
+    let creases = 0;
+    for (let instance = 0; instance < leg.quantity; instance++) {
+      const faces = solid(leg, placed(worked, 'leg', instance)).faces;
+      const edges = faces.flatMap((f, i) =>
+        f.points.map((a, j) => ({
+          face: i,
+          from: key(a),
+          to: key(f.points[(j + 1) % f.points.length] as Vec3),
+          drawn: f.edge?.[j] ?? true,
+        })),
+      );
+      for (const e of edges.filter((x) => x.drawn)) {
+        const other = edges.find((x) => x.from === e.to && x.to === e.from);
+        if (!other) throw new Error(`leg ${instance}: edge ${e.from} to ${e.to} has one face`);
+        const [a, b] = [faces[e.face], faces[other.face]].map((f) => normalOf(f?.points ?? []));
+        const angle = 1 - dot(a as Vec3, b as Vec3);
+        expect(angle, `leg ${instance}: a drawn edge between faces in one plane`).toBeGreaterThan(
+          1e-9,
+        );
+        if (angle < 0.1 && e.from < e.to) creases++;
+      }
+    }
+    // Each leg's two tapered faces meet the straight faces above them in two shallow creases.
+    expect(creases).toBe(leg.quantity * 2);
   });
 
   it('draws a cut detail per part, front and end elevations, and a section through a bay', () => {
