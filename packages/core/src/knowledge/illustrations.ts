@@ -18,6 +18,7 @@ export const ILLUSTRATION_IDS = [
   'crook',
   'twist',
   'bolt-distances',
+  'grade-stamp',
 ] as const;
 export const IllustrationId = z.enum(ILLUSTRATION_IDS);
 export type IllustrationId = z.infer<typeof IllustrationId>;
@@ -322,6 +323,96 @@ function boltDistances(): Drawing {
   );
 }
 
+/**
+ * A grade stamp on a board's face, each part labeled. PS 20-25 (2.8) says every grade stamp shows
+ * the mill, the agency's symbol, the species, whether the board was dry or green when surfaced,
+ * and the grade; 6.2.6 sets the dry or green marks (S-DRY, S-GRN, KD). Each agency lays its stamp
+ * out its own way, so the markings are samples and the symbol is no agency's. The mill stands as a
+ * word, since a stamp's mill number would break the words-only rule for labels.
+ */
+function gradeStamp(): Drawing {
+  const box = { x0: 0, x1: 9, y0: 0, y1: 8.8 };
+  const middle = (box.x0 + box.x1) / 2;
+  const rows = [1.5, 3.4, 4.9, 6.4, 7.9] as const;
+  const board = { x0: -1.6, x1: 11, y0: -2.6, y1: 10.2 };
+  // The break's zigzag sits above the stamp, clear of the leaders that cross the board's end.
+  const zigzag = (x: number) =>
+    line(
+      'break',
+      { x, y: board.y0 - 0.3 },
+      { x, y: -2.1 },
+      { x: x - 0.4, y: -1.6 },
+      { x: x + 0.4, y: -1.0 },
+      { x, y: -0.5 },
+      { x, y: board.y1 + 0.3 },
+    );
+  const labelX = 12.6;
+  const row = (y: number, words: string): Primitive[] => [
+    text({ x: labelX, y }, words, 'start'),
+    leader({ x: labelX - 0.25, y }, { x: box.x1, y }),
+  ];
+  const [mark, mill, grade, dryness, species] = rows;
+  return drawing(
+    'Grade stamp',
+    "A grade stamp inked on a board's face: the grading agency's mark, the mill number, the grade, whether the board was dry or green when surfaced, and the species, each labeled.",
+    [
+      {
+        kind: 'polygon',
+        role: 'visible',
+        points: [
+          { x: board.x0, y: board.y0 },
+          { x: board.x1, y: board.y0 },
+          { x: board.x1, y: board.y1 },
+          { x: board.x0, y: board.y1 },
+        ],
+        fill: 2,
+        outline: false,
+      },
+      line('visible', { x: board.x0, y: board.y0 }, { x: board.x1, y: board.y0 }),
+      line('visible', { x: board.x0, y: board.y1 }, { x: board.x1, y: board.y1 }),
+      zigzag(board.x0),
+      zigzag(board.x1),
+      {
+        kind: 'polygon',
+        role: 'visible',
+        points: [
+          { x: box.x0, y: box.y0 },
+          { x: box.x1, y: box.y0 },
+          { x: box.x1, y: box.y1 },
+          { x: box.x0, y: box.y1 },
+        ],
+        fill: 'none',
+      },
+      // The agency's mark: a ring around a plain shape, standing for any agency's symbol.
+      { kind: 'circle', role: 'visible', center: { x: middle, y: mark }, radius: 0.9 },
+      {
+        kind: 'polygon',
+        role: 'visible',
+        points: [
+          { x: middle, y: mark - 0.5 },
+          { x: middle + 0.5, y: mark + 0.35 },
+          { x: middle - 0.5, y: mark + 0.35 },
+        ],
+        fill: 'none',
+      },
+      text({ x: middle, y: mill }, 'MILL', 'middle'),
+      text({ x: middle, y: grade }, 'SELECT STRUCTURAL', 'middle'),
+      text({ x: middle, y: dryness }, 'S-DRY', 'middle'),
+      text({ x: middle, y: species }, 'SOUTHERN PINE', 'middle'),
+      ...row(mark, 'Agency'),
+      ...row(mill, 'Mill'),
+      ...row(grade, 'Grade'),
+      ...row(dryness, 'Dry or green'),
+      ...row(species, 'Species'),
+    ],
+    [
+      'The markings are samples. Each grading agency lays out its own stamp, but every stamp shows these five. The mill is often a number.',
+      'Dry or green: S-DRY (surfaced dry), KD (kiln-dried), or S-GRN (surfaced green).',
+      'The structural checks ask for the species and the grade. Some stamps also name the grading rule paragraph.',
+    ],
+  );
+}
+
 // Isometric views: a short length of board lying on its wide face, length along x, width along
 // y, thickness up z, seen from above the cut end.
 
@@ -488,4 +579,5 @@ export const ILLUSTRATIONS: Record<IllustrationId, Drawing> = {
   crook: crook(),
   twist: twist(),
   'bolt-distances': boltDistances(),
+  'grade-stamp': gradeStamp(),
 };

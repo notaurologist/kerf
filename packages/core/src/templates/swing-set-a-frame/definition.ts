@@ -10,6 +10,7 @@ import { StoredSwingSetOutputs, SwingSetOutputs, withConcerns } from './outputs.
 import { SwingSetParams } from './params.ts';
 import { SWING_SET_QUESTIONS } from './questions.ts';
 import { stepOutline } from './steps.ts';
+import { STORE_READINGS } from './storeReadings.ts';
 import { SwingSetStructuralInputs, structuralReview } from './structural.ts';
 import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
 
@@ -136,6 +137,7 @@ export const swingSetAFrame: TemplateDefinition<
   },
   examples: EXAMPLES,
   questions: SWING_SET_QUESTIONS,
+  storeReadings: STORE_READINGS,
   steps: (outputs) => stepOutline(outputs.design),
   plan(outputs) {
     const review = outputs.structuralReview;

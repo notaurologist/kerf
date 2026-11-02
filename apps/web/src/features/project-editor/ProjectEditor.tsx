@@ -23,9 +23,8 @@ import { newProjectLabel } from '../../lib/names.ts';
 import { readPlan } from '../../lib/plan.ts';
 import { describeReset } from '../../lib/progress.ts';
 import { projectStore } from '../../lib/projectStore.ts';
-import { href, navigate, type ProjectStart } from '../../lib/route.ts';
+import { type EditFrom, editReturn, href, navigate, type ProjectStart } from '../../lib/route.ts';
 import { sameJson } from '../../lib/sameJson.ts';
-import type { PlanSectionId } from '../../lib/sections.ts';
 import {
   type Project,
   type ProjectStatus,
@@ -224,8 +223,11 @@ export function startValues(
 
 const newTitle = (template: TemplateDefinition) => newProjectLabel(template.name);
 
-/** `from` is the plan's section Edit was opened from: Save and Cancel go back to it (#156). */
-export function EditProjectScreen(props: { id: string; from?: PlanSectionId; field?: string }) {
+/**
+ * `from` is the plan's section Edit was opened from, or Shopping mode: Save and Cancel go back to
+ * it (#156, #390).
+ */
+export function EditProjectScreen(props: { id: string; from?: EditFrom; field?: string }) {
   const { loaded, reload } = useLoad(
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
@@ -248,7 +250,7 @@ export function EditProjectScreen(props: { id: string; from?: PlanSectionId; fie
 
 export function EditProject(props: {
   project: Project;
-  from?: PlanSectionId;
+  from?: EditFrom;
   field?: string;
   onReload: () => void;
 }) {
@@ -265,7 +267,7 @@ export function EditProject(props: {
 /** The form, or why it cannot be shown; the project can still be deleted either way. */
 function EditProjectForm(props: {
   project: Project;
-  from?: PlanSectionId;
+  from?: EditFrom;
   field?: string;
   onReload: () => void;
 }) {
@@ -318,7 +320,7 @@ export function ProjectEditor(props: {
   template: TemplateDefinition;
   project?: Project;
   /** The plan's section to return to after Save or Cancel; the summary when absent. */
-  from?: PlanSectionId;
+  from?: EditFrom;
   /** The id of a field to start on, such as an input a check needs. */
   field?: string;
   /** Loads the project again, for when another device saved it after this form opened. */
@@ -446,7 +448,7 @@ export function ProjectEditor(props: {
       const reset = 'progressReset' in result.value ? result.value.progressReset : undefined;
       setFlash(project ? ['Saved.', describeReset(reset)].filter(Boolean).join(' ') : 'Created.');
       projectStore.set(result.value);
-      navigate({ screen: 'project', id: result.value.id, section: props.from });
+      navigate(editReturn(result.value.id, props.from));
       return;
     }
     if (result.error.kind === 'invalid') {
@@ -594,11 +596,7 @@ export function ProjectEditor(props: {
         {submitButton}
         <ButtonLink
           variant="secondary"
-          href={
-            project
-              ? href({ screen: 'project', id: project.id, section: props.from })
-              : href({ screen: 'projects' })
-          }
+          href={project ? href(editReturn(project.id, props.from)) : href({ screen: 'projects' })}
         >
           Cancel
         </ButtonLink>

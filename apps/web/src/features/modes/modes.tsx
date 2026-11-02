@@ -1,10 +1,13 @@
 import {
   formatBoardLength,
+  readingsBesideHardware,
+  readingsBesideLumber,
   type ShoppingGroup,
   shoppingGroups,
   summarizeProgress,
 } from '@kerf/core';
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
 import { useProject } from '../../lib/projectStore.ts';
@@ -24,9 +27,15 @@ import {
   PlainList,
   ScreenHeader,
   Stack,
+  StatusLine,
   Text,
   Tick,
 } from '../../ui/index.ts';
+import {
+  projectStoreReadings,
+  readingHref,
+  StoreReadings,
+} from '../shopping-list/StoreReadings.tsx';
 import { BoardCards } from './BoardCards.tsx';
 import { CutCard, StepScreen } from './BuildStep.tsx';
 
@@ -68,6 +77,12 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
   const { plan, drawings } = read;
   const steps = read.steps?.steps ?? [];
   const ticks = useTicks(project.id, project.ticks, project.revision);
+  // "Saved." from Edit, opened here for a value read at the store (#390).
+  const [flash] = useState(takeFlash);
+  const readings = useMemo(
+    () => (plan.ok ? projectStoreReadings(project, plan.plan) : undefined),
+    [project, plan],
+  );
   const frame = (children: ReactNode) => (
     <ModeFrame mode={mode} context={project.name} exitHref={exitHref} end={<ThemeSwitch />}>
       <Stack>
@@ -92,6 +107,7 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
           title="Shopping list"
           meta={`${summary.shopping.done} of ${summary.shopping.total} bought.`}
         />
+        {flash && <StatusLine>{flash}</StatusLine>}
         {shoppingGroups(plan.plan).map((group) => (
           <Stack key={group.title} gap="xs">
             <Cluster spread>
@@ -124,6 +140,16 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
                       </>
                     )}
                   </Tick>
+                  {readings && (
+                    <StoreReadings
+                      readings={
+                        'nominal' in line
+                          ? readingsBesideLumber(readings, line)
+                          : readingsBesideHardware(readings, line)
+                      }
+                      readingHref={readingHref(project, 'shop')}
+                    />
+                  )}
                   {'nominal' in line && (
                     <Disclosure
                       summary={

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { href, navigate, parseRoute, type Route, redirect } from './route.ts';
+import { editReturn, href, navigate, parseRoute, type Route, redirect } from './route.ts';
 import { PLAN_SECTIONS } from './sections.ts';
 
 describe('parseRoute', () => {
@@ -95,6 +95,7 @@ describe('parseRoute', () => {
     ['#/projects/abc/cutlist', { screen: 'not-found' }],
     ['#/projects/abc/edit?from=cut-list', { screen: 'edit-project', id: 'abc', from: 'cut-list' }],
     ['#/projects/abc/edit?from=summary', { screen: 'edit-project', id: 'abc' }],
+    ['#/projects/abc/edit?from=shop', { screen: 'edit-project', id: 'abc', from: 'shop' }],
     ['#/projects/abc/edit?from=elsewhere', { screen: 'edit-project', id: 'abc' }],
     [
       '#/projects/abc/edit?from=cut-list&field=s-moisture.low',
@@ -151,6 +152,18 @@ describe('parseRoute', () => {
   it('gives the project’s own address no section, and has no summary section', () => {
     expect(href({ screen: 'project', id: 'p' })).toBe('#/projects/p');
     expect(parseRoute('#/projects/p/summary')).toEqual({ screen: 'not-found' });
+  });
+});
+
+describe('editReturn', () => {
+  it('goes back to the section Edit was opened from, or to Shopping mode', () => {
+    expect(editReturn('abc', 'cut-list')).toEqual({
+      screen: 'project',
+      id: 'abc',
+      section: 'cut-list',
+    });
+    expect(editReturn('abc', undefined)).toEqual({ screen: 'project', id: 'abc' });
+    expect(editReturn('abc', 'shop')).toEqual({ screen: 'shop', id: 'abc' });
   });
 });
 

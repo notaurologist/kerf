@@ -13,6 +13,10 @@ const GROUPS = {
   anchors: 'Ground anchors',
 } as const;
 
+/** Names of the hardware whose ratings and counts are read at the store (`storeReadings.ts`). */
+export const HANGERS = 'Swing hangers';
+export const ANCHORS = 'Ground anchors';
+
 const FRAMES = 2;
 /** Each frame has two legs, and the crossbar and the gusset each meet both. */
 const JOINTS = 4;
@@ -93,7 +97,7 @@ export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry):
   items.push(
     {
       id: 'swing-hangers',
-      name: 'Swing hangers',
+      name: HANGERS,
       quantity: 4,
       structural: true,
       notes: ['Rated for swing use. The rating is checked in the structural review.'],
@@ -113,7 +117,7 @@ export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry):
   if (p.burialDepth === 0 && h.anchorsPerFoot) {
     items.push({
       id: 'ground-anchors',
-      name: 'Ground anchors',
+      name: ANCHORS,
       quantity: FEET * h.anchorsPerFoot,
       structural: true,
       notes: ['Bury or cover the anchors (CPSC Pub. 324, p. 4).'],
