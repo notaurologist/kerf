@@ -46,7 +46,7 @@ async function releaseOn(
 }
 
 async function contents(client: PGlite) {
-  const tables = ['projects', 'project_history', 'project_progress', 'tools', 'other_tools'];
+  const tables = ['projects', 'project_history', 'project_progress', 'tools'];
   return Promise.all(tables.map(async (t) => (await client.query(`select * from ${t}`)).rows));
 }
 
