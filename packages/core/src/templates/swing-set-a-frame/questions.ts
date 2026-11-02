@@ -3,6 +3,7 @@ import { stock } from '../../lumber/stock.ts';
 import type { FormSection } from '../../model/form.ts';
 import { type Suggestion, type SuggestionBasis, startingQuestions } from '../../model/questions.ts';
 import { formatLength } from '../../units/length.ts';
+import { boltSuggestions } from './boltSuggestions.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
 import { CLEARANCES } from './layout.ts';
 import { BEAM_HEIGHT } from './params.ts';
@@ -11,8 +12,11 @@ import { SwingSetStructuralInputs } from './structural.ts';
 // Starting questions (#163; docs/templates/swing-set-a-frame.md, Starting questions). Kerf asks
 // only what it cannot know: who rides, how heavy the heaviest riders are, the open space, the
 // ground, and pads or burial. Everything else comes from the worked example or a stated rule of
-// thumb. Hardware and every structural input but rider weight are left for the owner (hard
-// rule 3), and stock comes from the worked example: Kerf never sizes lumber from loads.
+// thumb. Three structural inputs are suggested from a named source or a stated bound, shown as
+// suggestions until the owner saves the form (hard rule 3 as amended, #355): the deflection limit,
+// the swing angle, and the beam's moisture content. Hardware, the species and grade, incising,
+// the hanger rating, and the dynamic factor are left for the owner, and stock comes from the
+// worked example: Kerf never sizes lumber from loads.
 
 const RIDERS = ['kids', 'kids-and-adults'] as const;
 type Riders = (typeof RIDERS)[number];
@@ -135,6 +139,24 @@ const gap = CLEARANCES.seatGap.value;
 /** The space front to back the swing zones need for a beam at height H: H in front and behind. */
 const depthFor = (height: number) => 2 * zones.value * height;
 
+/** IBC 2021 Table 1604.3, read at codes.iccsafe.org (#388). */
+const FLOOR_DEFLECTION: SuggestionBasis = {
+  kind: 'source',
+  citation:
+    'International Building Code (2021), Table 1604.3, floor members under dead plus live load, l/240',
+};
+/** The pendulum model's largest angle (spec, Structural model): 3 − 2 cos 90° = 3. */
+const LARGEST_SWING: SuggestionBasis = {
+  kind: 'rule-of-thumb',
+  rule: "the largest angle Kerf's pendulum model takes, chains level with the beam, so the largest load it gives",
+};
+/** The fiber saturation point, where Simpson's density equations change form (`woodDensity`). */
+const FIBER_SATURATION: SuggestionBasis = {
+  kind: 'source',
+  citation:
+    'Simpson, Specific Gravity, Moisture Content, and Density Relationship for Wood (FPL-GTR-76, 1993), Equation 4, wood at its fiber saturation point, about 30%',
+};
+
 const EXAMPLE: SuggestionBasis = { kind: 'example' };
 const ANSWER: SuggestionBasis = { kind: 'answer' };
 
@@ -229,6 +251,11 @@ function crossbarHeight(height: number | null): Suggestion {
 }
 
 export function suggest(answers: SwingSetAnswers): Suggestion[] {
+  const others = suggestWithoutBolts(answers);
+  return [...others, ...boltSuggestions(others)];
+}
+
+function suggestWithoutBolts(answers: SwingSetAnswers): Suggestion[] {
   const ex = WORKED_EXAMPLE;
   const height = beamHeight(answers);
   const param = (
@@ -274,6 +301,27 @@ export function suggest(answers: SwingSetAnswers): Suggestion[] {
         basis: ANSWER,
       }),
     ),
+    {
+      from: 'structuralInputs',
+      path: 'maxSwingAngle',
+      value: 90,
+      basis: LARGEST_SWING,
+      note: 'A bound, not a guess at how high anyone swings. Enter less if you know it.',
+    },
+    {
+      from: 'structuralInputs',
+      path: 'deflectionLimit',
+      value: 240,
+      basis: FLOOR_DEFLECTION,
+      note: 'A swing beam is not in the table, so this borrows the closest member type. A larger number allows less sag.',
+    },
+    {
+      from: 'structuralInputs',
+      path: 'beamMoistureContent',
+      value: 30,
+      basis: FIBER_SATURATION,
+      note: 'The plan treats the beam as outdoors and uncovered. Pressure-treated lumber is often sold wetter, which weighs more; enter its moisture if you know it.',
+    },
   ];
 }
 

@@ -84,13 +84,31 @@ describe('the form filled in from the answers', () => {
     expect(html).toMatch(/id="p-beamHeight"[^>]*aria-describedby="[^"]*p-beamHeight-about/);
   });
 
-  it('leaves hardware and every structural input but rider weight empty (rule 3)', () => {
-    for (const path of confirmedPaths(template.form.params)) expect(params[path]).toBe('');
+  it('fills only the bolts and structural inputs it has a basis for (rule 3, #388, #389)', () => {
+    const bolts = [
+      'hardware.legBoltDiameter',
+      'hardware.crossbarBolts.diameter',
+      'hardware.gussetBolts.diameter',
+    ];
+    for (const path of confirmedPaths(template.form.params)) {
+      if (bolts.includes(path) || path.endsWith('.perJoint')) expect(params[path]).not.toBe('');
+      else expect(params[path]).toBe('');
+    }
     const filled = Object.entries(inputs).filter(([, t]) => t !== '');
-    expect(filled.map(([path]) => path)).toEqual(['riderWeights.0', 'riderWeights.1']);
-    expect(html).toMatch(
-      /Leg-to-beam bolt diameter<\/span><span class="k-tag" data-tone="needed">/,
+    expect(filled.map(([path]) => path).sort()).toEqual(
+      [
+        'beamMoistureContent',
+        'deflectionLimit',
+        'maxSwingAngle',
+        'riderWeights.0',
+        'riderWeights.1',
+      ].sort(),
     );
+    // Each says where it came from, as the form shows it under the field.
+    expect(html).toContain('Table 1604.3');
+    // A bolt says its basis and that Kerf computes no capacity.
+    expect(html).toContain('Tables 12.5.1A to 12.5.1D');
+    expect(html).toContain('Kerf computes no bolt capacity');
   });
 
   it('stops saying where a value came from once the owner changes it', () => {

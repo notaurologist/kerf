@@ -11,7 +11,10 @@ import { STRUCTURAL_INPUT_LABELS as INPUT } from './structural.ts';
 
 const stock: FieldOption[] = NOMINAL_SIZES.map((n) => ({ value: n, label: n }));
 
-const boltDiameters: FieldOption[] = [0.375, 0.5, 0.625, 0.75].map((d) => ({
+/** The bolt diameters the form offers, inches. */
+export const BOLT_DIAMETERS = [0.375, 0.5, 0.625, 0.75] as const;
+
+const boltDiameters: FieldOption[] = BOLT_DIAMETERS.map((d) => ({
   value: d,
   label: formatLength(d),
 }));
@@ -20,19 +23,27 @@ const builtUp = (value: (path: string) => string) => Number(value('beamPlies')) 
 const onPads = (value: (path: string) => string) =>
   value('burialDepth').trim() !== '' && Number(value('burialDepth')) === 0;
 
+/** How to find a bolt's diameter, for every bolt the owner confirms (#403). */
+const BOLT_DIAMETER_HELP =
+  'Read it on the bolt package: the first size, such as 1/2" in 1/2" × 7". The structural review\'s bolt layout shows how this size fits the wood; settle it with an experienced builder.';
+/** How to find how many bolts fit at a joint. */
+const BOLT_COUNT_HELP =
+  "The structural review's bolt layout shows how many fit at their edge and end distances; settle it with an experienced builder.";
+
 const bolts = (path: string, label: string, help: string): FormField[] => [
   {
     path: `${path}.diameter`,
     label: `${label}, diameter`,
     kind: 'choice',
     options: boltDiameters,
+    help: BOLT_DIAMETER_HELP,
     confirmed: true,
   },
   {
     path: `${path}.perJoint`,
     label: `${label}, per joint`,
     kind: 'integer',
-    help,
+    help: `${help} ${BOLT_COUNT_HELP}`,
     confirmed: true,
   },
 ];
@@ -78,6 +89,7 @@ export const SWING_SET_FORM: TemplateForm = {
           label: 'Ply bolts, diameter',
           kind: 'choice',
           options: boltDiameters,
+          help: BOLT_DIAMETER_HELP,
           when: builtUp,
           confirmed: true,
         },
@@ -85,7 +97,7 @@ export const SWING_SET_FORM: TemplateForm = {
           path: 'hardware.plyBolts.count',
           label: 'Ply bolts, count',
           kind: 'integer',
-          help: 'Bolts fastening the beam plies together, over the whole beam.',
+          help: 'Bolts fastening the beam plies together, over the whole beam. No published schedule gives bolts for this, so Kerf does not suggest a count: settle it with an experienced builder. Kerf checks each ply on its own, so it does not count on the bolts to share the load. For comparison, the International Residential Code (2021, R507.5) fastens deck beam plies with two rows of 10d nails at 16" on center along each edge.',
           when: builtUp,
           confirmed: true,
         },
@@ -128,6 +140,7 @@ export const SWING_SET_FORM: TemplateForm = {
           label: 'Leg-to-beam bolt diameter',
           kind: 'choice',
           options: boltDiameters,
+          help: BOLT_DIAMETER_HELP,
           confirmed: true,
         },
       ],
@@ -177,6 +190,7 @@ export const SWING_SET_FORM: TemplateForm = {
           path: 'hardware.anchorsPerFoot',
           label: 'Ground anchors per leg foot',
           kind: 'integer',
+          help: "From the anchor maker's instructions for your soil, on the package or the maker's product sheet. Ask the store which ground anchors are meant for a swing set.",
           when: onPads,
           confirmed: true,
         },
@@ -222,27 +236,27 @@ export const SWING_SET_FORM: TemplateForm = {
           label: INPUT.beamSpeciesGrade,
           kind: 'choice',
           options: SPECIES_GRADES.map((s) => ({ value: s.id, label: `${s.species} ${s.grade}` })),
-          help: 'From the grade stamp on the boards you buy.',
+          help: 'Read the grade stamp on the beam boards at the store: an inked block on a face or edge naming the species group (such as SYP for Southern Pine) and the grade (such as No. 2). If a board has no stamp, ask the yard for the species and grade on its paperwork.',
         },
         {
           path: 'beamIncised',
           label: INPUT.beamIncised,
           kind: 'yes-no',
-          help: 'Incised lumber has rows of small slits on its faces from pressure treatment.',
+          help: 'Look at the faces of the beam boards: incised lumber has rows of small slits pressed in for the treatment to soak in. No slits means not incised.',
         },
         {
           path: 'beamMoistureContent',
           label: INPUT.beamMoistureContent,
           kind: 'number',
           unit: '%',
-          help: "Percent of oven-dry weight, for the beam's own weight. Pressure-treated lumber is often sold above 30%.",
+          help: "Percent of oven-dry weight, for the beam's own weight. Measure it with a pin moisture meter pushed into a fresh cut, or use the suggested 30%. Pressure-treated lumber is often sold wetter.",
         },
         {
           path: 'deflectionLimit',
           label: INPUT.deflectionLimit,
           kind: 'number',
           unit: '',
-          help: 'Allowed sag is the span divided by this number, such as 240.',
+          help: 'How far the beam may sag under riders, as its span divided by this number: 240 lets a 120" span sag 1/2". The suggestion borrows the building code\'s limit for floors. A larger number allows less sag.',
         },
       ],
     },
@@ -254,7 +268,7 @@ export const SWING_SET_FORM: TemplateForm = {
           label: INPUT.hangerRating,
           kind: 'number',
           unit: 'lb',
-          help: "From the manufacturer's specification for one hanger.",
+          help: "Printed on the hanger's package or the maker's product sheet: the rated or working load for one hanger, not its breaking strength.",
         },
       ],
     },
@@ -266,27 +280,27 @@ export const SWING_SET_FORM: TemplateForm = {
           label: 'Heaviest rider on the left swing, with seat and chain',
           kind: 'number',
           unit: 'lb',
-          help: '0 for a swing left empty.',
+          help: 'Weigh the rider on a bathroom scale holding the seat and chain, or weigh each and add. 0 for a swing left empty.',
         },
         {
           path: 'riderWeights.1',
           label: 'Heaviest rider on the right swing, with seat and chain',
           kind: 'number',
           unit: 'lb',
-          help: '0 for a swing left empty.',
+          help: 'Weigh the rider on a bathroom scale holding the seat and chain, or weigh each and add. 0 for a swing left empty.',
         },
         {
           path: 'maxSwingAngle',
           label: INPUT.maxSwingAngle,
           kind: 'angle',
-          help: 'Largest angle the chains reach, from vertical. 90° is level with the beam.',
+          help: 'Largest angle the chains reach, from vertical: watch a swing at its highest and judge the chains against straight down. 90° is level with the beam, the most the model takes, and what Kerf suggests.',
         },
         {
           path: 'dynamicFactor',
           label: INPUT.dynamicFactor,
           kind: 'number',
           unit: '',
-          help: 'Multiplier on the smooth pendulum load for snap loads from slack chains. Choose it with an experienced builder.',
+          help: 'How much harder than a smooth swing the chains pull when they go slack and snap tight, as a multiplier on the pendulum load. No published value covers home swings, so Kerf does not suggest one. Ask an experienced builder: "How many times the steady swing pull should a backyard swing beam be designed for when the chains snap tight?"',
         },
       ],
     },

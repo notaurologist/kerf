@@ -5,6 +5,7 @@ import { swingSetAFrame } from './definition.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';
 import { SWING_SET_QUESTIONS, type SwingSetAnswers, shortestBeam, suggest } from './questions.ts';
+import { pendulumFactor } from './structural.ts';
 
 // Starting questions (#163; spec, Starting questions). Each answer set's values are worked by
 // hand in the spec.
@@ -141,18 +142,58 @@ describe('suggestions from the starting questions', () => {
   });
 
   it.each([kidsOnly, kidsAndAdults, smallYard, tooSmall])(
-    'fills in no structural input but rider weight, and no hardware (rule 3)',
+    'suggests only the structural inputs and bolts with a source or a stated bound (rule 3, #355)',
     (answers) => {
       const s = suggest(answers);
       const inputs = s.filter((x) => x.from === 'structuralInputs').map((x) => x.path);
-      expect(inputs).toEqual(['riderWeights.0', 'riderWeights.1']);
+      expect(inputs).toEqual([
+        'riderWeights.0',
+        'riderWeights.1',
+        'maxSwingAngle',
+        'deflectionLimit',
+        'beamMoistureContent',
+      ]);
+      // The bolts the layout check fits (#389); not the ply bolts, which no published schedule
+      // gives, nor the anchors, which only the anchor maker's instructions can.
       const confirm = confirmedPaths(SWING_SET_FORM.params);
-      expect(s.filter((x) => confirm.has(x.path))).toEqual([]);
+      expect(s.filter((x) => confirm.has(x.path)).map((x) => x.path)).toEqual([
+        'hardware.legBoltDiameter',
+        'hardware.crossbarBolts.diameter',
+        'hardware.crossbarBolts.perJoint',
+        'hardware.gussetBolts.diameter',
+        'hardware.gussetBolts.perJoint',
+      ]);
       const { inputs: text } = suggestedValues(SWING_SET_FORM, s);
-      const filled = Object.entries(text).filter(([, t]) => t !== '');
-      expect(filled.map(([path]) => path)).toEqual(['riderWeights.0', 'riderWeights.1']);
+      // Left for the owner: what only the boards and hardware bought can say, and the dynamic
+      // factor, which no published value covers.
+      const empty = Object.entries(text)
+        .filter(([, t]) => t === '')
+        .map(([path]) => path);
+      expect(empty.sort()).toEqual(
+        ['beamIncised', 'beamSpeciesGrade', 'dynamicFactor', 'hangerRating'].sort(),
+      );
     },
   );
+
+  it('suggests the swing angle, deflection limit, and moisture with their bases (#388)', () => {
+    const s = suggest(kidsOnly);
+    const at = (path: string) => s.find((x) => x.from === 'structuralInputs' && x.path === path);
+    // 90°: chains level with the beam, where the pendulum factor 3 − 2 cos θ is largest, 3.
+    expect(at('maxSwingAngle')).toMatchObject({ value: 90, basis: { kind: 'rule-of-thumb' } });
+    expect(pendulumFactor(90)).toBeCloseTo(3, 12);
+    // IBC 2021 Table 1604.3: floor members, l/240 under dead plus live load, the load the
+    // deflection check uses (the swing load plus the beam's own weight).
+    expect(at('deflectionLimit')).toMatchObject({
+      value: 240,
+      basis: { kind: 'source', citation: expect.stringContaining('Table 1604.3') },
+    });
+    // 30%, the fiber saturation point of Simpson's density equations (FPL-GTR-76, Eq. 4).
+    expect(at('beamMoistureContent')).toMatchObject({
+      value: 30,
+      basis: { kind: 'source', citation: expect.stringContaining('FPL-GTR-76') },
+    });
+    expect(s.find((x) => x.path === 'dynamicFactor')).toBeUndefined();
+  });
 
   it('suggests every parameter that is not hardware, each with where it came from', () => {
     const s = suggest(kidsOnly);

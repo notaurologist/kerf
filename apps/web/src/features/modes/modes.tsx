@@ -13,7 +13,7 @@ import { useReadProject } from '../../lib/plan.ts';
 import { useProject } from '../../lib/projectStore.ts';
 import { href, type Route, redirect } from '../../lib/route.ts';
 import { ThemeSwitch } from '../../lib/theme.tsx';
-import { describeWaiting, useTicks } from '../../lib/ticks.ts';
+import { describeWaiting, type Ticks, useTicks } from '../../lib/ticks.ts';
 import type { Project } from '../../lib/types.ts';
 import { useWakeLock } from '../../lib/wakeLock.ts';
 import {
@@ -272,7 +272,7 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
 }
 
 /** What is waiting to be saved, and why, in words; nothing when all is saved. */
-function Waiting(props: { ticks: ReturnType<typeof useTicks> }) {
+export function Waiting(props: { ticks: Ticks }) {
   const { ticks } = props;
   const waiting = describeWaiting(ticks);
   return (

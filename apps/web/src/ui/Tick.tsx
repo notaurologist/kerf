@@ -2,9 +2,10 @@ import type { ReactNode } from 'react';
 import { Pending } from './feedback.tsx';
 
 /**
- * Marks one item done in Shopping or Building (#57, #61), or a tool owned: a native checkbox, so
- * its state is a shape and its name is the label, at least the control height. A tick not saved
- * yet says so with `Pending` beside the label, and in the checkbox's name.
+ * Marks one item done in Shopping or Building (#57, #61), an expert check asked or a checklist item
+ * confirmed (#393), or a tool owned: a native checkbox, so its state is a shape and its name is the
+ * label, at least the control height. A tick not saved yet says so with `Pending` beside the label,
+ * and in the checkbox's name.
  */
 export function Tick(props: {
   done: boolean;
@@ -14,6 +15,8 @@ export function Tick(props: {
   waiting?: boolean;
   onChange: (done: boolean) => void;
   children: ReactNode;
+  /** Read after the label by a screen reader only, for a short label the item beside it explains. */
+  context?: ReactNode;
 }) {
   return (
     <label className="k-tick" data-done={props.done || undefined}>
@@ -24,7 +27,10 @@ export function Tick(props: {
         onChange={(e) => props.onChange(e.currentTarget.checked)}
       />
       <span className="k-tick__label">
-        <span>{props.children}</span>
+        <span>
+          {props.children}
+          {props.context && <span className="k-visually-hidden">{props.context}</span>}
+        </span>
         {props.waiting && <Pending />}
       </span>
     </label>

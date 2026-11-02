@@ -8,7 +8,22 @@ import {
   TEMPLATES,
 } from '@kerf/core';
 import fixtures from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v1.json';
+import type { Ticks } from '../lib/ticks.ts';
 import type { Project } from '../lib/types.ts';
+
+/** Ticks for a component rendered on its own: nothing ticked or waiting, and nothing sent. */
+export const noTicks: Ticks = {
+  done: new Set(),
+  waiting: new Set(),
+  status: null,
+  problem: null,
+  dropped: null,
+  offline: false,
+  isDone: () => false,
+  isWaiting: () => false,
+  set: () => {},
+  ticked: () => [],
+};
 
 // Stored snapshots from core's committed fixture (decision 0014), upgraded to the current shape
 // and wrapped as the API returns a project: the worked example with every input, the same with

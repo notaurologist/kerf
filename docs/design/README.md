@@ -108,6 +108,8 @@ The owner took the suggested option for each (November 2026).
 
 Built in #359 (November 2026) with `ResultLine`. The To do band is a card from 16rem wide, beside the checks where the plan has room and above them otherwise: the inputs needed, each linking to its field in Edit; the expert checks, each its question with the reason when opened; and the confirmation checklist, each its element and category with what to confirm and why when opened. The count in its heading is all three. Each check, wood movement estimate, and bolt joint is one line; a joint's line says how many of its distances are outside an NDS 2024 value. "Show the working" is gone: a check's line opens straight to its working. In print every line is open.
 
+Ticks built in #393 (November 2026): under each expert check an Asked tick, and under each checklist item a Confirmed one, saved with the project's other ticks so every device sees them. A tick records that the owner asked or confirmed, never a verdict, and moves no project status. Inputs needed have none; they clear when entered. The band's count and the header's expert checks count only what is still open. A tick clears when a regeneration changes the item, as other ticks do.
+
 ## Stage 14: usability pass, starting a new project (#358)
 
 The "Start from" step above a new project's form was a list of underlined links of equal weight: an empty form, each worked example, "Answer a few questions", and a copy of every earlier project of that template. `start-from.html` draws two ways to make the four kinds of start clear. Each still opens a filled form with a preview (M8).

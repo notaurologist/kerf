@@ -307,7 +307,19 @@ A new project can start from a few plain questions (#163). Kerf asks only what i
 | Ground: level, or sloped front to back and by how much | Ground slope g (0 for level) |
 | Leg feet: on pads or buried | Burial depth d |
 
-Not suggested: hardware (every field marked confirmed: bolt sizes and counts, ply bolts, anchors), and every structural input except rider weight (species and grade, incised, moisture content, swing angle, dynamic factor, deflection limit, hanger rating). Stock comes from the worked example and is never sized from the loads; the preview shows its margin under the owner's loads (`PRODUCT.md`, Non-goals).
+Three structural inputs are suggested with no question, each shown with its basis until the form is saved (hard rule 3 as amended in #355; #388):
+
+| Input | Suggested | Basis |
+|---|---|---|
+| Maximum swing angle | 90°, chains level with the beam | The largest angle the pendulum model takes, so the largest load it gives: 3 − 2·cos 90° = 3. A stated bound, not a guess at how high anyone swings. |
+| Deflection limit | 240 (span / 240) | International Building Code (2021), Table 1604.3, floor members, l/240 under dead plus live load, read at codes.iccsafe.org. The deflection check's load is dead plus live (the swing load and the beam's own weight). A swing beam is not in the table, so the note says the limit is borrowed from the closest member type. |
+| Beam moisture content | 30% | The fiber saturation point of Simpson's density equations (FPL-GTR-76, 1993, Eq. 4), which `woodDensity` already uses. The plan treats the beam as wet service, outdoors and uncovered; the note says pressure-treated lumber is often sold wetter and weighs more. |
+
+The review in #355 proposed asking "Will the beam stand outdoors, uncovered?" to set the moisture. The plan already treats the beam as wet service whatever the answer, so the question would change only the beam's weight; it is left out until the wet-service factor follows an answer too.
+
+Bolts (#389): for each joint, the largest diameter the form offers (3/8" to 3/4") whose distances in the bolt layout below are all within NDS 2024 Tables 12.5.1A to 12.5.1D on the suggested frame, and two bolts per crossbar and gusset joint, the worked example's count. Basis: NDS 2024, those tables; note: Kerf computes no bolt capacity, so settle the size with an experienced builder. Hand check, worked example: a board's bolts are 3-1/2 / 2 = 1-3/4" from the leg's loaded edge, and 4D is 1-1/2" for 3/8" and 2" for 1/2", so 3/8" at the crossbars and gussets; the leg-to-beam bolt is 5-1/2 / 2 = 2-3/4" from the beam's edges, and 4D is 2-1/2" for 5/8" and 3" for 3/4", so 5/8". The two-ply 2x6 beam gives the same. With no frame (a yard too small for a beam), the sizes stay empty.
+
+Not suggested: ply bolts (no published schedule gives bolts; IRC 2021 R507.5 nails deck beam plies, two rows of 10d at 16" on center, and the help says so), ground anchors (the anchor maker's instructions), and the structural inputs only the owner or what they buy can say (species and grade, incised, hanger rating; #390 prompts for these at the store), and the dynamic factor, for which no published value was found. Stock comes from the worked example and is never sized from the loads; the preview shows its margin under the owner's loads (`PRODUCT.md`, Non-goals).
 
 ### Rules
 

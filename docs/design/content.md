@@ -52,6 +52,10 @@ Everything a person acts on (steps, methods, flags, checklist items, errors, but
 
 **Margins.** "margin 1.1x under these assumptions", with no adjective, no color (#43, rule 1), and no comparison word such as "only" or "plenty". The page says once what a margin is.
 
+**Field help.** What the value is, then how to find it: where to read it ("Read it on the bolt package"), what to measure and how ("Stand on a bathroom scale holding…"), or whom to ask and the question to ask them, word for word. Every structural input and every hardware size or count the owner confirms has help (owner's rule, #403; `templates/fieldHelp.test.ts`). When there is no way to find it, say so and say what Kerf offers instead, such as a suggestion with its basis. "Choose it with an experienced builder" alone is not help. Generic, never a brand (hard rule 11). Tool capabilities say it the same way, in `readFrom`.
+
+> Look at the faces of the beam boards: incised lumber has rows of small slits pressed in for the treatment to soak in. No slits means not incised.
+
 **Input needed.** "Input needed", then the input's name, then what it decides.
 
 > Input needed: deflection limit. It decides the deflection check.

@@ -103,10 +103,18 @@ export const projectHistory = pgTable(
   (t) => [uniqueIndex('project_history_operation').on(t.projectId, t.operationId)],
 );
 
-export const PROGRESS_KINDS = ['shopping-line', 'board', 'part', 'step'] as const;
+export const PROGRESS_KINDS = [
+  'shopping-line',
+  'board',
+  'part',
+  'step',
+  'flag',
+  'checklist-item',
+] as const;
 
-// What has been ticked off in a project (#57): shopping lines, boards, parts' pieces, and build
-// steps, by the keys core gives them (progress/). A row means done; clearing a tick deletes it.
+// What has been ticked off in a project (#57): shopping lines, boards, parts' pieces, build steps,
+// and the structural review's expert checks and checklist items (#393), by the keys core gives
+// them (progress/). A row means done; clearing a tick deletes it.
 // When a snapshot is saved, rows whose item is gone or has other numbers are deleted in the same
 // transaction. Every device reads the same rows.
 export const projectProgress = pgTable(
@@ -121,7 +129,10 @@ export const projectProgress = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.projectId, t.kind, t.key] }),
-    check('project_progress_kind', sql`${t.kind} in ('shopping-line', 'board', 'part', 'step')`),
+    check(
+      'project_progress_kind',
+      sql`${t.kind} in ('shopping-line', 'board', 'part', 'step', 'flag', 'checklist-item')`,
+    ),
   ],
 );
 

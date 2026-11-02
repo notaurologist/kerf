@@ -275,12 +275,14 @@ export const RECORD_CABINET_FORM: TemplateForm = {
           path: 'species',
           label: INPUT.species,
           kind: 'choice',
+          help: 'The kind of wood, from the store\'s label or the lumber yard\'s paperwork. If a board is sold only as "hardwood", ask which species it is.',
           options: WOOD_SPECIES.map((s) => ({ value: s.id, label: s.name })),
         },
         {
           path: 'orientation',
           label: INPUT.orientation,
           kind: 'choice',
+          help: "Look at a board's end grain. Growth rings running across the width, close to flat, are flatsawn; rings running up and down through the thickness are quartersawn. Mixed, or not sure: Unknown, which Kerf treats as flatsawn, the one that moves more.",
           options: [
             { value: 'flatsawn', label: 'Flatsawn' },
             { value: 'quartersawn', label: 'Quartersawn' },
@@ -299,7 +301,7 @@ export const RECORD_CABINET_FORM: TemplateForm = {
           label: 'Highest moisture content in service',
           kind: 'number',
           unit: '%',
-          help: 'How damp the wood gets indoors in the most humid part of the year, which sets how much the panels swell.',
+          help: 'How damp the wood gets indoors in the most humid part of the year, which sets how much the panels swell. Use the top of the Wood Handbook range given under the lowest, for your area; a room you know is damp can go higher.',
         },
       ],
     },
@@ -323,7 +325,7 @@ export const RECORD_CABINET_FORM: TemplateForm = {
           label: INPUT.recordLoad,
           kind: 'number',
           unit: 'lb/ft',
-          help: 'Weigh a foot of your records.',
+          help: 'Stand on a bathroom scale holding a foot of records from your shelf, then without them, and take the difference.',
         },
         {
           path: 'deflectionLimit',
