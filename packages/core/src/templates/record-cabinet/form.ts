@@ -23,8 +23,7 @@ export const RECORD_CABINET_FORM: TemplateForm = {
       title: 'Size',
       fields: [
         length('width', 'Overall width', 'Length of the top, end to end.'),
-        length('height', 'Overall height', 'Floor to the top surface.'),
-        length('caseDepth', 'Case depth', 'Front to back of the sides and shelves.'),
+        length('caseDepth', 'Case depth', 'Front to back of the case.'),
         {
           path: 'bays',
           label: 'Bays',
@@ -37,17 +36,56 @@ export const RECORD_CABINET_FORM: TemplateForm = {
       ],
     },
     {
-      title: 'Bays and feet',
+      title: 'Bays',
       fields: [
         length('jacket', 'Record jacket', 'Measure one of your records.'),
-        length('shelfHeight', 'Shelf height', 'Floor to the underside of the bottom shelves.'),
         length(
-          'cutoutHeight',
-          'Cutout height',
-          'Height of the opening between the feet; 0 for none.',
+          'bayHeight',
+          'Bay height',
+          'Clear height inside each bay, from the case bottom to the underside of the top. A little more than a record jacket.',
         ),
-        length('footWidth', 'Foot width', 'Front to back width of each foot.'),
         length('railHeight', 'Back rail height'),
+      ],
+    },
+    {
+      title: 'Legs and aprons',
+      help: 'The case sits on four tapered legs joined by aprons. The top’s height follows from these and the bays.',
+      fields: [
+        length('legShowing', 'Leg below the aprons', 'Floor to the bottom of the aprons.'),
+        length('apronHeight', 'Apron height'),
+        length(
+          'legStock.size',
+          'Leg stock size',
+          'Square stock, as the store sells it. Measure it: about 1-1/2" is usual.',
+        ),
+        ...[0, 1, 2, 3].map(
+          (i): FormField => ({
+            path: `legStock.lengths.${i}`,
+            label: `Leg stock length sold ${i + 1}`,
+            kind: 'integer',
+            unit: 'ft',
+          }),
+        ),
+        length(
+          'footSize',
+          'Foot size',
+          'What is left at the floor after the two inside faces are tapered. About two-thirds of the leg is usual.',
+        ),
+        length(
+          'apronSetback',
+          'Apron setback',
+          'How far each apron sits back from the legs’ outside faces. About 1/8" is usual.',
+        ),
+        length(
+          'tenonThickness',
+          'Tenon thickness',
+          'About a third of the apron’s thickness is usual.',
+        ),
+        length(
+          'tenonLength',
+          'Tenon length',
+          'Into the leg. About half the leg plus 1/4" is usual; two tenons that meet inside a leg are mitered.',
+        ),
       ],
     },
     {

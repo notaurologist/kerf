@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { isPanel } from '../../lumber/panel.ts';
-import type { Part } from '../../model/types.ts';
+import type { Part, Placement, Vec3 } from '../../model/types.ts';
 import { recordCabinet } from './definition.ts';
 import { EXAMPLES, WORKED_EXAMPLE } from './examples.ts';
 import type { RecordCabinetOutputs } from './outputs.ts';
 
 // docs/templates/record-cabinet.md: every number here is from the spec's hand-checked worked
-// examples (Worked example, Edge of range, Structural model).
+// examples (Worked example, Edge of range, Structural model, The Shaker-modern base).
 
 function made(index: number): RecordCabinetOutputs {
   const example = EXAMPLES[index];
@@ -23,32 +23,45 @@ const part = (o: RecordCabinetOutputs, id: string): Part => {
   if (!found) throw new Error(`no part ${id}`);
   return found;
 };
+const placed = (o: RecordCabinetOutputs, id: string, instance = 0): Placement => {
+  const pl = o.design.placements.find((x) => x.partId === id && x.instance === instance);
+  if (!pl) throw new Error(`${id}/${instance} is not placed`);
+  return pl;
+};
+/** A point in a part's frame, in the cabinet's coordinates. */
+const world = (pl: Placement, u: number, v: number, n: number): Vec3 => ({
+  x: pl.origin.x + pl.along.x * u + pl.across.x * v + pl.through.x * n,
+  y: pl.origin.y + pl.along.y * u + pl.across.y * v + pl.through.y * n,
+  z: pl.origin.z + pl.along.z * u + pl.across.z * v + pl.through.z * n,
+});
 
-describe('the worked example (spec, Worked example)', () => {
+describe('the worked example (spec, Worked example and The Shaker-modern base)', () => {
   const g = worked.design.geometry;
 
-  it('derives the case, bays, and heights', () => {
-    expect(g.caseWidth).toBe(52.5);
-    expect(g.clearWidth).toBe(51);
-    expect(g.bayWidth).toBe(16.5);
+  it('derives the case, bays, base, and heights', () => {
+    expect([g.caseWidth, g.clearWidth, g.bayWidth]).toEqual([52.5, 51, 16.5]);
     expect(g.panelX).toEqual([0.75, 18, 35.25, 52.5]);
-    // Right side's left face: W − o_s − t.
-    expect(g.panelX.at(-1)).toBe(54 - 0.75 - 0.75);
     expect(g.topDepth).toBe(15.75);
-    expect(g.bayHeight).toBe(13.25);
-    expect(g.panelLength).toBe(19.4375);
-    expect(g.shelfLength).toBe(16.875);
-    expect(g.partitionLeft).toBe(0.375);
+    // 5 + 2-1/2 = 7-1/2 to the case bottom; + 3/4 + 13-1/4 + 3/4 = 22-1/4 to the top.
+    expect([g.baseHeight, g.height]).toEqual([7.5, 22.25]);
+    // 13-1/4 + 2 × 3/16 between the dadoes' bottoms; 16-1/2 + 2 × 3/16 for a rail.
+    expect([g.panelLength, g.railLength, g.partitionLeft]).toEqual([13.625, 16.875, 0.375]);
+    // 52-1/2 − 2 × 1-1/2 + 2 × 1 = 51-1/2; 15 − 3 + 2 = 14; 15 − 3 = 12.
+    expect([g.legLength, g.longApron, g.shortApron, g.cleatLength]).toEqual([7.5, 51.5, 14, 12]);
   });
 
-  it('lists the parts in cut-list order, with a left and a right side', () => {
+  it('lists the parts in cut-list order, the legs from leg stock', () => {
     expect(worked.cutList.map((r) => [r.letter, r.name, r.quantity, r.length])).toEqual([
       ['A', 'Top', 1, '54"'],
-      ['B', 'Left side', 1, '19-7/16"'],
-      ['C', 'Right side', 1, '19-7/16"'],
-      ['D', 'Partition', 2, '19-7/16"'],
-      ['E', 'Bottom shelf', 3, '16-7/8"'],
+      ['B', 'Case bottom', 1, '52-1/2"'],
+      ['C', 'Left side', 1, '13-5/8"'],
+      ['D', 'Right side', 1, '13-5/8"'],
+      ['E', 'Partition', 2, '13-5/8"'],
       ['F', 'Back rail', 3, '16-7/8"'],
+      ['G', 'Leg', 4, '7-1/2"'],
+      ['H', 'Front and back apron', 2, '51-1/2"'],
+      ['I', 'Side apron', 2, '14"'],
+      ['J', 'Cleat', 2, '12"'],
     ]);
     expect(worked.cutList.map((r) => r.stock)).toEqual([
       'Panel (3/4" x 15-3/4")',
@@ -58,80 +71,129 @@ describe('the worked example (spec, Worked example)', () => {
       'Panel (3/4" x 15")',
       // One board, not flattened, keeps the 13/16" board's thickness.
       'Board (13/16" x 3")',
+      '1-1/2" x 1-1/2"',
+      'Board (13/16" x 2-1/2")',
+      'Board (13/16" x 2-1/2")',
+      'Board (13/16" x 1")',
     ]);
   });
 
-  it('glues each panel from the boards the spec works out', () => {
-    // Spec, Panels: n = ⌈(width + 0.375) / 5.375⌉; the top is an exact fit of 3 boards.
-    const panel = (id: string) => {
+  it('glues the top and case bottom from three boards each', () => {
+    for (const id of ['top', 'bottom']) {
       const s = part(worked, id).stock;
-      if (!isPanel(s)) throw new Error(`${id} is not a panel`);
-      return [s.boards, s.gluedWidth, s.boardLength];
-    };
-    expect(panel('top')).toEqual([3, 16.25, 56]);
-    expect(panel('side-left')).toEqual([3, 16.25, 21.4375]);
-    expect(panel('partition')).toEqual([3, 16.25, 21.4375]);
-    expect(panel('shelf')).toEqual([3, 16.25, 18.875]);
-    expect(panel('rail')).toEqual([1, 5.5, 18.875]);
+      expect(isPanel(s) && s.boards).toBe(3);
+    }
   });
 
-  it('cuts the dadoes, notch, and foot cutout where the spec puts them', () => {
-    const side = part(worked, 'side-left');
-    // Shelf dado at h_f to h_f + t, rail pocket at H − t − h_r to H − t, as wide as the rail's
-    // 13/16" board from the back: 15 − 0.8125 = 14.1875.
-    expect(side.dadoes.map((d) => [d.face, d.u0, d.u1, d.v0, d.v1, d.depth])).toEqual([
-      ['near', 5.25, 6, 0, 15, 0.1875],
-      ['near', 16.25, 19.25, 14.1875, 15, 0.1875],
+  it('houses the sides and partitions in stopped dadoes in the top and case bottom', () => {
+    // Top: from o_f + s_d = 1-1/4 to its back edge, at each panel's x. Case bottom: from s_d to
+    // the back, at each panel's x less o_s, so the sides' are rabbets at its ends.
+    expect(part(worked, 'top').dadoes.map((d) => [d.face, d.u0, d.v0, d.v1])).toEqual([
+      ['near', 0.75, 1.25, 15.75],
+      ['near', 18, 1.25, 15.75],
+      ['near', 35.25, 1.25, 15.75],
+      ['near', 52.5, 1.25, 15.75],
     ]);
-    expect(part(worked, 'side-right').dadoes.every((d) => d.face === 'far')).toBe(true);
-    expect(part(worked, 'partition').dadoes).toHaveLength(4);
-    expect(side.notches).toEqual([{ end: 1, edge: 'reference', along: 0.1875, across: 0.5 }]);
-    // Cutout width D_c − 2 f_w = 10.
-    expect(side.cutouts).toEqual([{ end: 0, v0: 2.5, v1: 12.5, depth: 4 }]);
-    // The top's stopped dadoes run from o_f + s_d = 1.25 to the back edge at D_t.
-    const top = part(worked, 'top');
-    expect(top.dadoes.map((d) => [d.u0, d.v0, d.v1])).toEqual([
-      [0.75, 1.25, 15.75],
-      [18, 1.25, 15.75],
-      [35.25, 1.25, 15.75],
-      [52.5, 1.25, 15.75],
+    expect(part(worked, 'bottom').dadoes.map((d) => [d.face, d.u0, d.u1, d.v0])).toEqual([
+      ['far', 0, 0.75, 0.5],
+      ['far', 17.25, 18, 0.5],
+      ['far', 34.5, 35.25, 0.5],
+      ['far', 51.75, 52.5, 0.5],
+    ]);
+    const ops = worked.design.operations.filter((o) => 'partId' in o && o.partId === 'bottom');
+    expect(
+      ops.map((o) => o.type).filter((t) => t.includes('dado') || t.includes('rabbet')),
+    ).toEqual(['stopped-rabbet', 'stopped-dado', 'stopped-dado', 'stopped-rabbet']);
+    // Each side and partition is notched at both front corners to fit them.
+    expect(part(worked, 'side-left').notches).toEqual([
+      { end: 0, edge: 'reference', along: 0.1875, across: 0.5 },
+      { end: 1, edge: 'reference', along: 0.1875, across: 0.5 },
     ]);
   });
 
-  it('flags the 3/8" left between a partition’s dadoes', () => {
-    expect(worked.review.flags[0]?.ask).toContain('3/8" of wood');
+  it('tapers each leg on its two inside faces to a 1" foot, and mortises them for the aprons', () => {
+    const leg = part(worked, 'leg');
+    expect(leg.tapers.map((t) => [t.start, t.end, t.plane ?? 'width'])).toEqual([
+      [{ u: 5, v: 0 }, { u: 0, v: 0.5 }, 'width'],
+      [{ u: 5, v: 0 }, { u: 0, v: 0.5 }, 'thickness'],
+    ]);
+    // Tenons 2" wide from 1/4" above the apron's bottom edge at h_l = 5, 1/4" thick, centered in
+    // the 13/16" apron set back 1/8": 1-1/2 − 1/8 − 13/16 + 9/32 = 27/32 from the inside face.
+    expect(leg.mortises?.map((m) => [m.side, m.u0, m.u1, m.a0, m.a1, m.depth])).toEqual([
+      ['near', 5.25, 7.25, 0.84375, 1.09375, 1],
+      ['reference-edge', 5.25, 7.25, 0.84375, 1.09375, 1],
+    ]);
+    expect(part(worked, 'apron-long').tenons?.[0]).toEqual({
+      end: 0,
+      length: 1,
+      n0: 0.28125,
+      thickness: 0.25,
+      v0: 0.25,
+      width: 2,
+    });
+  });
+
+  it('slots the cleats by the case bottom’s movement: 15 × 0.00248 × 4 + 1/16 = 0.2113"', () => {
+    const holes = part(worked, 'cleat').screwHoles ?? [];
+    expect(holes.map((h) => h.u)).toEqual([1, 6, 11]);
+    expect(holes[0]?.slot).toBe(0);
+    for (const h of holes.slice(1)) expect(h.slot).toBeCloseTo(15 * 0.00248 * 4 + 0.0625, 12);
+  });
+
+  it('sizes the slots for the species that moves most when none is entered', () => {
+    // White oak's C_T, 0.00376, the largest in Kerf's list: 15 × 0.00376 × 4 + 1/16 = 0.288".
+    const none = made(1);
+    const slot = part(none, 'cleat').screwHoles?.[1]?.slot;
+    expect(slot).toBeCloseTo(15 * 0.00376 * 4 + 0.0625, 12);
+    expect(part(none, 'cleat').notes.join(' ')).toContain('since the species and moisture');
   });
 });
 
 describe('fit (spec, Placements)', () => {
-  const { placements, params: p, geometry: g } = worked.design;
-  const at = (id: string, instance = 0) => {
-    const pl = placements.find((x) => x.partId === id && x.instance === instance);
-    if (!pl) throw new Error(`${id}/${instance} is not placed`);
-    return pl;
-  };
+  const p = WORKED_EXAMPLE;
+  const g = worked.design.geometry;
 
-  it('stands every side and partition on the floor, its top end in the top’s dado', () => {
-    for (const pl of placements.filter(
+  it('stands every side and partition in the case bottom’s dadoes, its top end in the top’s', () => {
+    for (const pl of worked.design.placements.filter(
       (x) => x.partId.startsWith('side') || x.partId === 'partition',
     )) {
-      expect(pl.origin.z).toBe(0);
-      // Its top end at H_p = H − t + j: j above the top's underside, at the dado's bottom.
-      expect(pl.origin.z + g.panelLength).toBe(p.height - p.panelThickness + p.dadoDepth);
+      // From z_b + t − j = 8-1/16 to H − t + j = 21-11/16.
+      expect(pl.origin.z).toBe(g.baseHeight + p.panelThickness - p.dadoDepth);
+      expect(pl.origin.z + g.panelLength).toBe(g.height - p.panelThickness + p.dadoDepth);
     }
   });
 
-  it('puts the right side’s right face at W − o_s', () => {
-    // Through runs −x from the origin, so the origin is the right face.
-    expect(at('side-right').origin.x).toBe(54 - 0.75);
+  it('puts the legs’ outside faces flush with the case’s corners', () => {
+    const corners = [0, 1, 2, 3].map((i) => {
+      const pl = placed(worked, 'leg', i);
+      // The outside corner is at v = s and n = s, at the floor.
+      const c = world(pl, 0, 1.5, 1.5);
+      return [c.x, c.y, c.z];
+    });
+    expect(corners).toEqual([
+      [0.75, 0, 0],
+      [53.25, 0, 0],
+      [0.75, 15, 0],
+      [53.25, 15, 0],
+    ]);
   });
 
-  it('runs each shelf and rail from one dado’s bottom to the other’s', () => {
-    for (let k = 0; k < p.bays; k++) {
-      const left = at('shelf', k).origin.x;
-      expect(left).toBe((g.panelX[k] as number) + p.panelThickness - p.dadoDepth);
-      expect(left + g.shelfLength).toBe((g.panelX[k + 1] as number) + p.dadoDepth);
-      expect(at('rail', k).origin.x).toBe(left);
+  it('sets each apron’s tenon into its leg’s mortise', () => {
+    // The front apron's first tenon: from its end to its shoulder, in the front-left leg.
+    const apron = placed(worked, 'apron-long', 0);
+    const tip = world(apron, 0, 0.25, 0.28125);
+    const shoulder = world(apron, 1, 0.25, 0.28125);
+    expect([tip.x, shoulder.x]).toEqual([1.25, 2.25]);
+    // The leg's inside face is at x = o_s + s = 2.25, so the tenon goes 1" into it.
+    expect(world(placed(worked, 'leg', 0), 0, 0, 0).x).toBe(2.25);
+    expect(tip.z).toBe(5.25);
+  });
+
+  it('lays each cleat flush with the side aprons’ tops, under the case bottom', () => {
+    for (const i of [0, 1]) {
+      const pl = placed(worked, 'cleat', i);
+      const top = Math.max(world(pl, 0, 0, 0).z, world(pl, 0, 0, 0.8125).z);
+      expect(top).toBeCloseTo(g.baseHeight, 12);
     }
   });
 });
@@ -139,13 +201,10 @@ describe('fit (spec, Placements)', () => {
 describe('the edge of the range (spec, Edge of range)', () => {
   const g = edge.design.geometry;
 
-  it('derives a two-bay case with 1" panels', () => {
+  it('derives a two-bay case with 1" panels on 1-3/4" legs', () => {
     expect([g.caseWidth, g.clearWidth, g.bayWidth]).toEqual([28, 26, 12.5]);
-    expect(g.panelX[1]).toBe(14.5);
-    expect([g.topDepth, g.bayHeight, g.panelLength, g.shelfLength]).toEqual([14, 18, 29.25, 13]);
-    expect(g.partitionLeft).toBe(0.5);
-    const cut = part(edge, 'side-left').cutouts[0];
-    expect(cut && cut.v1 - cut.v0).toBe(7);
+    // 3 + 2 + 1 + 15 + 1 = 22.
+    expect([g.topDepth, g.bayHeight, g.panelLength, g.height]).toEqual([14, 15, 15.5, 22]);
   });
 });
 
@@ -155,11 +214,15 @@ describe('refusals (spec, Validation)', () => {
     return result.ok ? [] : result.issues.map((i) => i.code);
   };
 
-  it('refuses a bay lower than a record, dadoes that meet, and feet that meet', () => {
+  it('refuses a bay lower than a record and dadoes that meet', () => {
     expect(refused({ jacket: 13.5 })).toEqual(['bay-too-low']);
     expect(refused({ dadoDepth: 0.375 })).toEqual(['dadoes-meet']);
-    expect(refused({ footWidth: 7.5 })).toEqual(['feet-meet']);
-    expect(refused({ cutoutHeight: 5.25 })).toEqual(['cutout-too-tall']);
+  });
+
+  it('refuses a leg with no taper, a tenon through the leg, and an apron off the leg', () => {
+    expect(refused({ footSize: 1.5 })).toEqual(['foot-not-tapered']);
+    expect(refused({ tenonLength: 1.5 })).toEqual(['tenon-too-long']);
+    expect(refused({ apronSetback: 1.25 })).toEqual(['apron-off-leg']);
   });
 
   it('refuses a largest item wider than the 54" top or deeper than its 15-3/4"', () => {
@@ -171,32 +234,25 @@ describe('refusals (spec, Validation)', () => {
 });
 
 describe('structural (spec, Structural model, Worked examples)', () => {
-  const computed = (o: RecordCabinetOutputs) => {
-    const d = o.review.shelf.deflection;
+  it('works out the front and back aprons’ long-term sag: 1.5 × 0.10019"', () => {
+    // L = 52.5 − 3 = 49.5; records 40/12 × 3 × 16.5 = 165 lb and 35 lb on the top, 200 lb, half
+    // on each apron: w = 200 / 49.5 / 2 = 2.0202 lb/in. I = 13/16 × 2.5³ / 12 = 1.057943 in⁴.
+    // δ = 5 × 2.0202 × 49.5⁴ / (384 × 1,490,000 × 1.057943) = 0.10019".
+    const d = worked.review.apron.deflection;
     if (d.status !== 'computed') throw new Error(d.status);
-    return d.computed.value;
-  };
-
-  it('works out the cherry shelf’s long-term sag: 1.5 × 0.004891"', () => {
-    expect(computed(worked)).toBeCloseTo(0.007336, 6);
+    expect(d.computed.value).toBeCloseTo(0.150279, 6);
   });
 
-  it('works out the walnut edge-of-range shelf: 1.5 × 0.000792"', () => {
-    expect(computed(edge)).toBeCloseTo(0.001188, 6);
+  it('works out the top under 35 lb at midspan: 1.5 × 0.004537"', () => {
+    const d = worked.review.top.deflection;
+    if (d.status !== 'computed') throw new Error(d.status);
+    expect(d.computed.value).toBeCloseTo(0.006805, 6);
   });
 
   it('says what is needed when no structural inputs are entered', () => {
     const none = made(1);
-    expect(none.review.shelf.deflection.status).toBe('input-needed');
+    expect(none.review.apron.deflection.status).toBe('input-needed');
     expect(none.review.movement.every((m) => m.status === 'input-needed')).toBe(true);
-  });
-
-  it('works out the top under 35 lb at midspan: 1.5 × 0.004537"', () => {
-    // Spec, Structural model: L = 17.25, I = 15.75 × 0.75³ / 12 = 0.553711 in⁴,
-    // δ = 35 × 17.25³ / (48 × 1,490,000 × 0.553711) = 179,653.4 / 39,601,406 = 0.004537".
-    const d = worked.review.top.deflection;
-    if (d.status !== 'computed') throw new Error(d.status);
-    expect(d.computed.value).toBeCloseTo(0.006805, 6);
   });
 });
 
@@ -210,7 +266,7 @@ describe('wood movement', () => {
       ['Top', expect.closeTo(15.75 * 0.00248 * 4, 12)],
       ['Left and right sides', expect.closeTo(15 * 0.00248 * 4, 12)],
       ['Partition', expect.closeTo(15 * 0.00248 * 4, 12)],
-      ['Bottom shelf', expect.closeTo(15 * 0.00248 * 4, 12)],
+      ['Case bottom', expect.closeTo(15 * 0.00248 * 4, 12)],
       ['Back rail', expect.closeTo(3 * 0.00248 * 4, 12)],
     ]);
   });
@@ -220,16 +276,16 @@ describe('plan and drawings', () => {
   const plan = recordCabinet.plan(worked);
   const drawings = recordCabinet.drawings(worked);
 
-  it('shows the shelf and top checks and the movement estimates', () => {
+  it('shows the aprons’ and top’s checks and the movement estimates', () => {
     expect(plan.checks.map((c) => `${c.subject}: ${c.loadCase}`)).toEqual([
-      'Bottom shelf: Records along the shelf, for years',
+      'Front and back aprons: Records and everything on the top, for years',
       'Top: Everything on the top at the middle of a span, for years',
     ]);
     expect(plan.movement).toHaveLength(5);
   });
 
   it('draws a cut detail per part, front and end elevations, and a section through a bay', () => {
-    expect(drawings.cutDetails).toHaveLength(6);
+    expect(drawings.cutDetails).toHaveLength(10);
     expect(drawings.elevations?.map((d) => d.title)).toEqual([
       'Front elevation',
       'End elevation',
@@ -237,15 +293,19 @@ describe('plan and drawings', () => {
     ]);
     const section = drawings.elevations?.[2];
     const lined = section?.primitives.filter((p) => p.kind === 'polygon' && p.fill === 'section');
-    // The plane cuts the first bay's shelf, its back rail, and the top.
-    expect(new Set(lined?.map((p) => p.part?.partId))).toEqual(new Set(['shelf', 'rail', 'top']));
+    // The plane cuts the case bottom, the first bay's back rail, the top, and the long aprons.
+    expect(new Set(lined?.map((p) => p.part?.partId))).toEqual(
+      new Set(['bottom', 'rail', 'top', 'apron-long']),
+    );
   });
 
-  it('dimensions each bay’s clear width on the front elevation', () => {
+  it('dimensions each bay’s clear width and the base’s heights on the front elevation', () => {
     const front = drawings.elevations?.[0];
     const texts = front?.primitives.flatMap((p) =>
       p.kind === 'text' && p.role === 'dimension' ? [p.text] : [],
     );
     expect(texts?.filter((t) => t === '16-1/2"')).toHaveLength(3);
+    // Leg showing 5, apron 2-1/2, case bottom 3/4, bay 13-1/4, top 3/4.
+    for (const t of ['5"', '2-1/2"', '13-1/4"']) expect(texts).toContain(t);
   });
 });

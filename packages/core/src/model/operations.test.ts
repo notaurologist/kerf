@@ -268,11 +268,13 @@ describe('dadoes, notches, and cutouts', () => {
     expect(boardCuts(ops)).toEqual([]);
   });
 
-  it('refuses a dado closed on every side, or reaching two edges at a corner', () => {
+  it('refuses a dado closed on every side, and makes one at a corner a stopped rabbet', () => {
     const closed = { ...housing, dadoes: [dado(6, 7, 1, 2)] };
     expect(() => cutAndDrillOperations([closed], [])).toThrow(/side\/dado-0 reaches 0 edges/);
+    // Open at the second end (u = 20) and the far edge (v = 5.5), stopped short of the other.
     const corner = { ...housing, dadoes: [dado(18, 20, 5, 5.5)] };
-    expect(() => cutAndDrillOperations([corner], [])).toThrow(/side\/dado-0 reaches 2 edges/);
+    const [op] = cutAndDrillOperations([corner], []).filter((o) => o.id === 'side/dado-0');
+    expect(op).toMatchObject({ type: 'stopped-rabbet', length: 0.5, width: 2 });
   });
 
   it('makes a notch and a cutout through the thickness, each from a square end', () => {

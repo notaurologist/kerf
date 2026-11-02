@@ -10,6 +10,7 @@ import v4 from './snapshots/v4.json' with { type: 'json' };
 import v5 from './snapshots/v5.json' with { type: 'json' };
 import v6 from './snapshots/v6.json' with { type: 'json' };
 import v7 from './snapshots/v7.json' with { type: 'json' };
+import v8 from './snapshots/v8.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -150,5 +151,29 @@ describe('record-cabinet template versions', () => {
     ).toBe(true);
     const ask = list.find((c) => c.path.endsWith('.ask'));
     expect(ask?.after).toContain('the top under everything that stands on it');
+  });
+
+  it('version 8 sets the case on a leg base: legs, aprons, cleats, and a case bottom (#338)', () => {
+    const ids = (fixture: readonly unknown[]) =>
+      current(fixture).map((snapshot) =>
+        (snapshot as { outputs: { design: { parts: { id: string }[] } } }).outputs.design.parts.map(
+          (part) => part.id,
+        ),
+      );
+    // The bottom shelves go; the case bottom, legs, aprons, and cleats come in.
+    const [before, after] = [ids(v7)[0] ?? [], ids(v8)[0] ?? []];
+    expect(before.filter((id) => !after.includes(id))).toEqual(['shelf']);
+    expect(after.filter((id) => !before.includes(id))).toEqual([
+      'bottom',
+      'leg',
+      'apron-long',
+      'apron-short',
+      'cleat',
+    ]);
+    // The top's height follows from the base now: 22-1/4" in place of the stored 20".
+    const height = (fixture: readonly unknown[]) =>
+      (current(fixture)[0] as { outputs: { design: { geometry: { height: number } } } }).outputs
+        .design.geometry.height;
+    expect([height(v7), height(v8)]).toEqual([20, 22.25]);
   });
 });

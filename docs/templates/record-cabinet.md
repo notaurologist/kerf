@@ -1,6 +1,6 @@
 # Template: record cabinet
 
-Status: template version 5 is built (#301; version 2 adds the flattening allowance, #319, version 3 keeps a one-board rail at its board's thickness, #320, version 4 adds assembly and finishing, #313, version 5 adds dealer hardwood, #296, and version 6 lets the lumber settle before cutting, #332, and version 7 asks about what stands on the top, #331), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. The starting questions are built (#314).
+Status: template version 8 is built (#301; version 2 adds the flattening allowance, #319, version 3 keeps a one-board rail at its board's thickness, #320, version 4 adds assembly and finishing, #313, version 5 adds dealer hardwood, #296, version 6 lets the lumber settle before cutting, #332, version 7 asks about what stands on the top, #331, and version 8 sets the case on a Shaker-modern leg base, #338), in `packages/core/src/templates/record-cabinet/`. The worked example uses the owner's rough window measurements (stool about 22" high and 56" wide). That's enough for the spec, since every size is a parameter: the owner enters exact measurements in the app when planning the build. The starting questions are built (#314).
 
 A low cabinet with record bays, with room on the top for a turntable, a speaker, or whatever the owner puts there, to stand in front of a window. Following `docs/templates/README.md`: this spec comes before any code, and the template depends on generic work that lands first. Edge-glued panels (#278, #297), wood movement (#284), and shelf deflection for furniture species and long-term loads (#288) have landed. The design-system review (#71) is still to come.
 
@@ -17,61 +17,59 @@ A low cabinet with record bays, with room on the top for a turntable, a speaker,
 
 Not covered in version 1: doors, drawers, a back panel, adjustable shelves, a bay for anything but records, separate legs or a stand, arched or shaped cutouts, bays of different widths, a solid top on a frame with fasteners that allow movement (#292).
 
-## The Shaker-modern base (#338, agreed; being built)
+## The Shaker-modern base (template version 8, #338)
 
-The cabinet as built stands on its panels with a cutout between them, which looks plainer than the direction on #273: Shaker with mid-century proportions. On November 1, 2026 the owner chose to build that style in stages: this base first, then doors on the two end bays (#339). This section is the design for the base. The rest of the spec changes to match when the template is built, and the template version goes up with it.
+The cabinet first stood on its panels with a cutout between them, which looked plainer than the direction on #273: Shaker with mid-century proportions. On November 1, 2026 the owner chose to build that style in stages: this base first, then doors on the two end bays (#339). Version 8 builds the base. Where the sections below describe the panels standing on the floor (shelf height h_f, the foot cutout, the bottom shelves and their check), they are versions 1 to 7, kept for plans stored then; this section replaces them.
 
-### What changes
+### What changed
 
-- **The case sits on a base** of four legs joined by aprons, instead of its sides reaching the floor. The sides and partitions run from a **case bottom** to the top. The case bottom is one panel across all the bays, housed in dadoes in the two sides, and the partitions stand in dadoes across its top face. It replaces the three bottom shelves. The foot cutouts and the shelf height h_f go away.
-- **Height comes from the parts** (owner, November 1, 2026: "taller cabinet"), not from the window. The base keeps about 5" of leg showing under the apron, and the record bays keep their 13" opening, so the top lands above the stool. The cabinet stands in front of the stool, off the wall by at least the stool's depth B. The starting questions say so.
-- **Legs** are square, laminated from two boards of the panel stock glued face to face, so they come from the same lumber. They taper on their two inside faces only, from the bottom of the apron to the foot, the Shaker way (owner). The outside faces stay straight and flush with the case's corners.
-- **Aprons** are one board thick and h_a high. Each joins its legs with a **mortise and tenon** (owner), set back from the legs' outside faces.
-- **The case fastens to the base with screws in slotted holes** (owner, #292; `DOMAIN.md`, Joints that let wood move). They go up through cleats glued inside the side aprons and into the case bottom. The front screw on each side is in a round hole, so the front stays flush with the legs and the case bottom moves toward the back. The rest are slotted front to back, each slot the screw's shank plus the case bottom's movement ΔD plus 1/16".
+- **The case sits on a base** of four legs joined by aprons. A **case bottom**, one panel the full width and depth of the case, replaces the three bottom shelves and is the floor of every bay. The sides and partitions stand in stopped dadoes across its top face, the mirror of the top's, so the sides' at its two ends are stopped rabbets (open at the end). Each side and partition is notched at both front corners to fit them. The foot cutouts, h_f, h_c, and f_w go away.
+- **Height comes from the parts** (owner, November 1, 2026: "taller cabinet"), not from the window: H = h_l + h_a + t + h_b + t, with the bay's clear height h_b a parameter. The cabinet stands in front of the stool, off the wall by at least the stool's depth B, and the starting questions say so.
+- **Legs** are cut from square leg stock the owner buys, such as 1-1/2" hardwood squares (owner, #344), rather than laminated. They taper on their two inside faces only, from the bottom of the aprons to the foot, the Shaker way. Their outside faces stay straight and flush with the case's corners.
+- **Aprons** are one board ripped to h_a, so as thick as the board stock. Each joins its legs with a **mortise and tenon**, set back r_a from the legs' outside faces. Tenons are centered in the apron with 1/4" shoulders above and below (rule of thumb), and mitered where two meet inside a leg.
+- **The case fastens to the base with screws in slotted holes** (owner, #292; `DOMAIN.md`, Joints that let wood move). They go up through a 1"-wide cleat (rule of thumb) glued inside each side apron, flush with its top, into the case bottom: a round hole 1" from the front, so the front stays flush and the case bottom moves toward the back, and slots at the middle and 1" from the back, each ΔD + 1/16" longer than the round hole. ΔD is the case bottom's movement across D_c from the species, ring orientation, and moisture range; until those are entered, it is sized for the species in Kerf's list that moves most (white oak, C_T = 0.00376) over 6% to 10% (Wood Handbook, Table 13-2), and the plan says so. Screw size is the owner's to confirm (hard rule 3).
 
-### New parameters, each with a suggestion
+### Parameters added and removed
 
 | Parameter | Symbol | Suggested | Basis |
 |---|---|---|---|
-| Leg showing below the apron | h_l | 5 | The owner's choice for this cabinet |
+| Bay clear height | h_b | 13-1/4 | The worked example; a little over a 12-3/8 jacket |
+| Leg showing below the aprons | h_l | 5 | The owner's choice for this cabinet |
 | Apron height | h_a | 2-1/2 | Rule of thumb, mid-century proportion; checked for sag below |
-| Leg square | s | 2 × board thickness | Laminated from two boards |
-| Foot square | s_f | 2/3 × s, rounded to 1/16 | Rule of thumb for a Shaker taper |
-| Apron setback from the leg's face | r_a | 1/8 | Rule of thumb, a shadow line |
-| Tenon thickness | t_t | apron thickness / 3, rounded to 1/16 | Rule of thumb, shown and flagged for an expert check |
-| Tenon length | l_t | s/2 + 1/4 | Rule of thumb, mitered where two meet inside a leg |
-| Screw | | #8 wood screw | Hardware, confirmed by the owner (hard rule 3) |
+| Leg stock size and lengths sold | s | 1-1/2; 3, 4 ft | Rule of thumb; measured at the store |
+| Foot | s_f | 2/3 × s, rounded down to 1/16 | Rule of thumb for a Shaker taper |
+| Apron setback from the legs' faces | r_a | 1/8 | Rule of thumb, a shadow line |
+| Tenon thickness | t_t | board thickness / 3, rounded down to 1/16 | Rule of thumb |
+| Tenon length | l_t | s/2 + 1/4 | Rule of thumb |
 
-H is no longer a parameter: H = h_l + h_a + t + h_b + t, where h_b is the bay's clear height from the record jacket.
+H, h_f, h_c, and f_w are removed. Validation refuses s_f ≥ s (no taper), l_t ≥ s (a tenon through the leg), and r_a + t_t ≥ s (an apron off its leg).
 
 ### Worked example (hand-checked)
 
-Store boards 3/4, t = 3/4, the 12-3/8 jacket's 13-1/4 bay, W = 54, D_c = 15, o_s = o_f = 3/4, three bays.
+The worked example: boards 13/16 × 5-1/2, t = 3/4, h_b = 13-1/4, W = 54, D_c = 15, o_s = o_f = 3/4, three bays; h_l = 5, h_a = 2-1/2, s = 1-1/2, s_f = 1, r_a = 1/8, t_t = 1/4, l_t = 1; cherry, flatsawn, 6% to 10%.
 
-- H = 5 + 2.5 + 0.75 + 13.25 + 0.75 = **22.25**, 1/4 above a 22 stool, so the cabinet stands at least B off the wall.
-- Leg s = 2 × 0.75 = **1.5**; foot s_f = ⌊(2/3 × 1.5) × 16⌋ / 16 = **1**; leg length h_l + h_a = **7.5**, tapering over the bottom 5.
-- The case's outside is W_c × D_c = 52.5 × 15, with the legs at its corners. The front and back aprons' clear span between legs is 52.5 − 2 × 1.5 = **49.5**; the side aprons' is 15 − 3 = **12**.
-- Tenon t_t = ⌊(0.75/3) × 16⌋ / 16 = **1/4**; l_t = 0.75 + 0.25 = **1**.
-- Case bottom movement, 15 wide, flatsawn cherry, 6% to 10%: ΔD = 15 × 0.00248 × 4 = **0.149**. A #8 screw's shank is 0.164 (to be checked against the NDS wood screw table before it goes into data), so each slot is 0.164 + 0.149 + 0.0625 = **0.375**, with the back slot taking the whole ΔD.
+- z_b = h_l + h_a = **7.5**; H = 7.5 + 0.75 + 13.25 + 0.75 = **22.25**, 1/4 above a 22 stool.
+- Sides and partitions: h_b + 2j = 13.25 + 0.375 = **13.625**, from z_b + t − j = 8.0625.
+- Legs **7.5** long, tapering over the bottom 5 to a 1" foot: each taper at atan(0.5/5) = 5.71°.
+- Aprons: front and back 52.5 − 3 + 2 = **51.5**, sides 15 − 3 + 2 = **14**, all 13/16 thick, so each tenon's cheeks are (13/16 − 1/4)/2 = **9/32** and its mortise starts 1.5 − 0.125 − 0.8125 + 0.28125 = **27/32** from the leg's inside face, from 5.25 to 7.25 up the leg.
+- Cleats **12** long; slots ΔD + 1/16 = 15 × 0.00248 × 4 + 0.0625 = **0.2113**; without the species, 15 × 0.00376 × 4 + 0.0625 = **0.2881**.
 
-### Structural model, added
+### Structural model, version 8
 
-- **Each front and back apron** as a simply supported span between legs, L = 49.5, breadth 3/4, depth h_a = 2.5 (I = 0.75 × 2.5³ / 12 = 0.97656 in⁴), carrying half of everything in the case: records along three 16.5 bays at 40 lb/ft, 3.3333 × 49.5 = 165 lb, plus 35 lb on the top, 200 lb in all, spread as w = 200 / 49.5 / 2 = 2.0202 lb/in on each apron.
-  - δ = 5 × 2.0202 × 49.5⁴ / (384 × 1,490,000 × 0.97656) = 0.10853"
-  - Long-term: 1.5 × 0.10853 = **0.16280"** (span / 304), against L/144's 0.344
+- **Each front and back apron** as a simply supported span between legs, L = 52.5 − 2 × 1.5 = 49.5, breadth 13/16 (the board), depth h_a = 2.5 (I = 0.8125 × 2.5³ / 12 = 1.05794 in⁴), carrying half of everything in the case: records along three 16.5 bays at 40 lb/ft, 3.3333 × 49.5 = 165 lb, plus 35 lb on the top, 200 lb in all, spread as w = 200 / 49.5 / 2 = 2.0202 lb/in on each apron.
+  - δ = 5 × 2.0202 × 49.5⁴ / (384 × 1,490,000 × 1.05794) = 0.10019"
+  - Long-term: 1.5 × 0.10019 = **0.15028"** (span / 329), against L/144's 0.344
   - Taking the apron alone ignores the case bottom and sides above it, which stiffen it, so this overstates the sag.
-- **On the checklist,** not computed: the mortise-and-tenon joints under racking and the cabinet tipping forward on a narrower footprint. Both are flagged for an experienced builder.
+- It replaces the bottom shelf's check. The top's check is unchanged.
+- **On the checklist,** not computed: the mortise-and-tenon joints under racking, and the loaded cabinet tipping. Both are for an experienced builder.
 
-### What it needs first (generic work)
+### Build steps, version 8
 
-- Mortise and tenon operations, each with two methods: a drill and chisel, or a router for mortises; a hand saw, or a table saw, for tenons. Each with sourced safety notes.
-- Laminating a leg: the glue-up operation applied face to face.
-- Slotted screw holes: an operation and methods, and wood screws in the hardware list.
-- The leg tapers use the existing taper operation.
+After the panels and their dadoes and rabbets: cut the notches, the mortises in the legs, and the tenons on the aprons, and drill the cleats' screw holes; fit everything dry; glue up the base, then the cleats into it, then the case on it, then the top; screw the case to the base (a generic `fasten` operation, by drill/driver or impact driver); ease the edges; finish.
 
 ### Decided
 
-The owner agreed to the proposal as written on November 1, 2026: the proportions above, and a top 1/4" above the stool. It is built in this order, each its own pull request: mortise and tenon operations, laminated parts and slotted screw holes, then the template.
+The owner agreed to the design on November 1, 2026, with the legs bought as square stock rather than laminated. It was built in this order, each its own pull request: mortise and tenon joints (#343), parts from board stock and slotted screw holes (#344), then the template (#338).
 
 ## Coordinates
 

@@ -7,20 +7,20 @@ import { formatLength } from '../../units/length.ts';
 import { cabinetExplode, cabinetScene, drawings, VIEW } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { RECORD_CABINET_FORM } from './form.ts';
-import { RecordCabinetOutputs } from './outputs.ts';
+import { RecordCabinetOutputs, StoredRecordCabinetOutputs } from './outputs.ts';
 import { RecordCabinetParams } from './params.ts';
 import { CABINET_QUESTIONS } from './questions.ts';
 import { stepOutline } from './steps.ts';
-import { RecordCabinetStructuralInputs, structuralReview } from './structural.ts';
+import { RecordCabinetStructuralInputs, slotFor, structuralReview } from './structural.ts';
 import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
 
 /** What says most about the cabinet at a glance: its size, and each bay's clear opening. */
-function keyResults(outputs: RecordCabinetOutputs): KeyResult[] {
+function keyResults(outputs: StoredRecordCabinetOutputs): KeyResult[] {
   const { params: p, geometry: g } = outputs.design;
   return [
     {
       label: 'Overall',
-      value: `${formatLength(p.width)} wide, ${formatLength(p.height)} high, ${formatLength(g.topDepth)} deep`,
+      value: `${formatLength(p.width)} wide, ${formatLength(g.height)} high, ${formatLength(g.topDepth)} deep`,
     },
     {
       label: `Each of ${p.bays} bays`,
@@ -147,9 +147,65 @@ const toTopItem: SnapshotUpgrade = (snapshot) => {
   };
 };
 
+/**
+ * Shape 7 to 8: the leg base (#338). A stored plan keeps its parts, drawings, and numbers as they
+ * were; its bay height carries over, and its base height and overall height are its shelf height
+ * and height. The base's new parameters, which an older plan never had, take the values the
+ * starting questions suggest, so the editor shows them if the owner regenerates. Its shelf's
+ * check becomes the slot the aprons' check now fills.
+ */
+const toLegBase: SnapshotUpgrade = (snapshot) => {
+  type Old = Stored & {
+    height: number;
+    shelfHeight: number;
+    board: { source: string; thickness?: number; surfaced?: number };
+  };
+  const old = snapshot.params as Old;
+  const outputs = snapshot.outputs as {
+    design: { params: Old; geometry: Stored & { bayHeight: number; shelfLength: number } };
+    review: Stored & { shelf: unknown };
+  };
+  const { shelfLength, ...geometry } = outputs.design.geometry;
+  const params = (o: Old) => {
+    const { height: _, shelfHeight: __, cutoutHeight: ___, footWidth: ____, ...rest } = o;
+    const board = o.board.source === 'store' ? (o.board.thickness ?? 0) : (o.board.surfaced ?? 0);
+    return {
+      ...rest,
+      bayHeight: geometry.bayHeight,
+      legShowing: 5,
+      apronHeight: 2.5,
+      legStock: { size: 1.5, lengths: [3, 4] },
+      footSize: 1,
+      apronSetback: 0.125,
+      tenonThickness: Math.floor((board / 3) * 16) / 16,
+      tenonLength: 1,
+    };
+  };
+  const { shelf, ...review } = outputs.review;
+  return {
+    ...snapshot,
+    params: params(old),
+    outputs: {
+      ...outputs,
+      design: {
+        ...outputs.design,
+        params: params(outputs.design.params),
+        geometry: {
+          ...geometry,
+          baseHeight: old.shelfHeight,
+          height: old.height,
+          railLength: shelfLength,
+        },
+      },
+      review: { ...review, apron: shelf },
+    },
+  };
+};
+
 export const recordCabinet: TemplateDefinition<
   RecordCabinetParams,
   RecordCabinetStructuralInputs,
+  StoredRecordCabinetOutputs,
   RecordCabinetOutputs
 > = {
   id: TEMPLATE_ID,
@@ -159,9 +215,9 @@ export const recordCabinet: TemplateDefinition<
   params: RecordCabinetParams,
   structuralInputs: RecordCabinetStructuralInputs,
   outputs: RecordCabinetOutputs,
-  storedOutputs: RecordCabinetOutputs,
+  storedOutputs: StoredRecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
-  snapshotVersion: 7,
+  snapshotVersion: 8,
   // Shape 3 to 4 adds assembly and finish operations, which older plans simply do not have.
   snapshotUpgrades: {
     1: addFlattening,
@@ -171,6 +227,7 @@ export const recordCabinet: TemplateDefinition<
     // Shape 5 to 6 adds the operation that lets the lumber settle, which older plans do not have.
     5: (snapshot) => snapshot,
     6: toTopItem,
+    7: toLegBase,
   },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,
@@ -184,7 +241,7 @@ export const recordCabinet: TemplateDefinition<
       hardware: outputs.hardware,
       hardwareNotes: design.hardwareNotes,
       flags: review.flags,
-      checks: [review.shelf.deflection, review.top.deflection],
+      checks: [review.apron.deflection, review.top.deflection],
       movement: review.movement,
       checklist: review.checklist,
       boltLayout: [],
@@ -203,7 +260,7 @@ export const recordCabinet: TemplateDefinition<
     explode: cabinetExplode(outputs),
   }),
   generate(params, structuralInputs) {
-    const design = generate(params);
+    const design = generate(params, slotFor(params, structuralInputs));
     if (!design.ok) return design;
     const review = structuralReview(params, design.output.geometry, structuralInputs);
     return {
