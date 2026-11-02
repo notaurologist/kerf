@@ -40,6 +40,8 @@ The owner took the suggested option for each (November 2026).
 | Expert checks | On the build step, structural check, or cut-list part each is about, with what to ask and why. The summary's list is dropped; the header's "next" line counts the open ones. | Keeping a full list as well: two places to read the same check, and the list is out of context. |
 | Parameters and inputs | Folded into Edit, which already shows every value with its source. The contents keep a "Values used" link to it. | A plan section, last: a read-only copy of what Edit shows. |
 
+Built in #378 (November 2026): Workshop (`features/workshop/WorkshopScreen.tsx`, `#/workshop`) lists Tools, the glossary, Trash, and Download all projects, with the theme in words and Log out below them. Tools, the glossary, and Trash are inside it, so their back links go to Workshop. The phone's title bar ends with a Workshop link on every screen, the projects list no longer links to Trash and Download, and the tab bar's three icons were removed.
+
 What does not change: IA-2 (the project is the plan, and Shopping and Building are full-screen modes launched from it), the Resume card on the projects list, the order of the remaining sections, and print, which still gives the whole plan in order. The glossary stays reachable from every marked term (#178, #192) as well as from Workshop.
 
 ## Stage 11: review for a second template (#71)

@@ -206,18 +206,17 @@ function Specimens() {
     <Stack gap="l">
       <Group title="Frame">
         <Text tone="muted">
-          A title bar and tab bar below 52.5rem of the frame's width, one sidebar from it.
+          A title bar below 52.5rem of the frame's width, one sidebar from it.
         </Text>
         <Frame
           preview
           brandHref="#/catalog"
           places={[
-            { label: 'Projects', href: '#/catalog', icon: 'projects', current: 'true' },
-            { label: 'Tools', href: '#/catalog/tools', icon: 'tools' },
-            { label: 'Glossary', href: '#/catalog/glossary', icon: 'glossary' },
+            { label: 'Projects', href: '#/catalog', current: 'true' },
+            { label: 'Workshop', href: '#/catalog/workshop' },
           ]}
           back={{ label: 'Projects', href: '#/catalog' }}
-          actions={<IconButton icon="log-out" label="Log out" variant="quiet" />}
+          end={<a href="#/catalog/workshop">Workshop</a>}
         >
           <Text>The screen goes here.</Text>
         </Frame>
