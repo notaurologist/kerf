@@ -253,6 +253,8 @@ Accepted cost: on the phone in Safari (not installed, 0005), the tab bar sits ab
 
 Build issues: #265 (the frame), #266 (moves and waiting, after #265), #267 (the keyboard).
 
+Changed in November 2026: Stage 12 removed the phone's tab bar, so the two bars at the bottom are gone. The owner now uses Kerf from the phone's Home Screen (0005, #414), which also removes Safari's own bars. It still has to work in Safari.
+
 Built in #265 (October 2026): the frame (`Frame` in `ui/Shell.tsx`), with icons for the three places (a plan sheet, a framing square, an open book) and a Menu for the theme and Log out. Two details settled in the build: the title bar names the project only once the page has scrolled past the screen's own heading (a scroll-driven fade; where a browser lacks scroll timelines, it always shows), and the sidebar marks the open project as well as its current section.
 
 Built in #266 (October 2026): the moves and the waiting (`lib/moves.ts`, `ui/Skeleton.tsx`). The hold uses the view transition's own update: the browser keeps showing the old screen while the new one is put in place and its data loads. Under reduced motion there is no move and no hold; the skeleton waits 300 ms before it appears, so a fast load still never shows it.
@@ -275,7 +277,7 @@ Built in #267 (October 2026): Left and Right for the plan's sections and Buildin
 | Name | Kept: Kerf. The owner was open to a new name if it branded better; the trouble in rounds 1 and 2 was symbols that look like other symbols, which a different woodworking name would share. | Renaming: churn in packages, storage keys, and hosting for no clear gain. |
 | Spacing | The font's own kerning, evened at display size: k–e −30, e–r −14, r–f +22 font units. | Rounds 1 and 2 tightened every pair by 12 units and ignored the font's kerning, which left r–f 42 units too tight. |
 | Small sizes | The icon fitted to a 16-unit grid, so its straight edges land on whole pixels at 16 and 32 px. | The outline scaled down: gray, blurred edges in the tab. |
-| Files | An SVG icon that follows the system's light or dark setting, an ICO fallback on a paper tile, the 180 px home-screen icon, and a social preview image, made by a script from the font. | Installable-app icons and a manifest: installable web apps are a non-goal. |
+| Files | An SVG icon that follows the system's light or dark setting, an ICO fallback on a paper tile, the 180 px home-screen icon, and a social preview image, made by a script from the font. | Installable-app icons and a manifest: Kerf has no manifest (0005). |
 
 ## Stage 6: design system (#45)
 

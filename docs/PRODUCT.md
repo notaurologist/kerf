@@ -89,7 +89,7 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 - AI-generated dimensions or diagrams.
 - Accounts, sharing, other users.
 - Cut optimization (fitting parts into boards to minimize waste).
-- Native apps and installable web apps (PWA).
+- Native apps, and a web app manifest or service worker for installing Kerf. Adding Kerf to the phone's Home Screen works without either (0005).
 - Offline use (see After the MVP).
 
 ## After the MVP (candidates)
