@@ -1,7 +1,7 @@
 // Kerf's design system (docs/design/README.md, Stage 6). Screens build only from these, and the
 // layout primitives; they write no classes or styles of their own.
 
-export { sharedFrame, useAssemblyMotion } from './assemblyMotion.ts';
+export { drawingInMove, sharedFrame, useAssemblyMotion } from './assemblyMotion.ts';
 export { Button, ButtonLink, IconButton, IconButtonLink } from './Button.tsx';
 export { InlineConfirm, useReturnFocus } from './Confirm.tsx';
 export { SectionList, SectionPager, WithContents } from './Contents.tsx';

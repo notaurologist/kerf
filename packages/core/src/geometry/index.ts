@@ -9,6 +9,7 @@ export {
   PartRef,
   Point2,
   Primitive,
+  Stage,
   TextRole,
   Tone,
 } from './primitives.ts';

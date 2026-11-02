@@ -3,7 +3,7 @@ import { formatLength } from '../units/length.ts';
 import { signedArea2 } from './clip.ts';
 import { convexPieces } from './convex.ts';
 import { partOutline, type UV } from './outline.ts';
-import type { Drawing, PartRef, Point2, Primitive, Tone } from './primitives.ts';
+import type { Drawing, PartRef, Point2, Primitive, Stage, Tone } from './primitives.ts';
 import { boundsOf } from './primitives.ts';
 import { depth, depthOnPlane, type Isometric, project } from './projection.ts';
 import { type Solid, solid, solidCentroid } from './solid.ts';
@@ -31,6 +31,11 @@ export interface Explode {
   partId: string;
   instance: number;
   offset: Vec3;
+  /**
+   * When it moves as the view explodes: a stage at a time, lowest first, so each stage can be
+   * drawn in an order that holds while it moves (#352). 0 when left out.
+   */
+  stage?: number;
 }
 
 /** A face, or a piece of one, in 3D. `edge[i]` says whether the edge from point i is real. */
@@ -383,13 +388,99 @@ export function explodedView(
     ];
   });
   const all = [...guidelines, ...primitives, ...letters(faces, primitives)];
-  // Projection is linear, so a part's 3D offset projects to its shift on the page.
-  const moves = explode.map((e) => ({
-    partId: e.partId,
-    instance: e.instance,
-    by: project(view, e.offset),
-  }));
-  return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [], moves };
+  const stages = explodeStages(scene, view, explode);
+  return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [], stages };
+}
+
+const stageOf = (e: Explode) => e.stage ?? 0;
+
+/**
+ * The move from the assembled view to the exploded one, a stage at a time (#352). A drawing has
+ * one paint order, which is right for where its parts are drawn; a part sliding past another can
+ * need the other order. So each stage is drawn where it ends, and its parts slide out over that
+ * drawing, from `from` of the way through the stage, once they have left the joints they sat in
+ * and nothing they pass changes which is in front. Until then they slide over the drawing the
+ * stage starts from: the stage before's, or the assembled view for the first. The last stage
+ * ends at the exploded view itself, so it has no primitives of its own.
+ */
+function explodeStages(scene: Scene, view: Isometric, explode: readonly Explode[]): Stage[] {
+  const order = [...new Set(explode.map(stageOf))].sort((a, b) => a - b);
+  const offsets = (keep: (stage: number) => boolean) => (pl: Placement) =>
+    explode.find((e) => e.partId === pl.partId && e.instance === pl.instance && keep(stageOf(e)))
+      ?.offset;
+  return order.map((n, k) => {
+    const moving = explode.filter((e) => stageOf(e) === n);
+    const start = placedSolids(
+      scene,
+      offsets((m) => m < n),
+    );
+    const primitives =
+      k === order.length - 1
+        ? undefined
+        : drawSolids(
+            scene,
+            view,
+            placedSolids(
+              scene,
+              offsets((m) => m <= n),
+            ),
+          ).primitives;
+    return {
+      // Projection is linear, so a part's 3D offset projects to its shift on the page.
+      moves: moving.map((e) => ({
+        partId: e.partId,
+        instance: e.instance,
+        by: project(view, e.offset),
+      })),
+      from: clearOfJoints(start, moving),
+      ...(primitives ? { primitives } : {}),
+    };
+  });
+}
+
+/** How much two boxes must share in every direction to count as one sitting in the other. */
+const JOINED = 1e-6;
+
+/**
+ * The fraction of a stage at which its parts have left every part they sit in, judged by boxes
+ * around the solids: a tenon in its mortise, a panel in its groove, a part in its dado. Parts
+ * that only touch are not joined.
+ */
+function clearOfJoints(
+  solids: readonly { solid: Solid; ref: PartRef }[],
+  moving: readonly Explode[],
+): number {
+  const boxes = solids.map(({ solid: s, ref }) => {
+    const points = s.faces.flatMap((f) => f.points);
+    const axis = (k: 'x' | 'y' | 'z') => [
+      Math.min(...points.map((p) => p[k])),
+      Math.max(...points.map((p) => p[k])),
+    ];
+    const offset = moving.find(
+      (e) => e.partId === ref.partId && e.instance === ref.instance,
+    )?.offset;
+    return { box: { x: axis('x'), y: axis('y'), z: axis('z') }, offset };
+  });
+  let from = 0;
+  for (const a of boxes) {
+    if (!a.offset) continue;
+    for (const b of boxes) {
+      if (a === b) continue;
+      const by = sub(a.offset, b.offset ?? { x: 0, y: 0, z: 0 });
+      const shared = (['x', 'y', 'z'] as const).map((k) => {
+        const [a0, a1] = a.box[k] as [number, number];
+        const [b0, b1] = b.box[k] as [number, number];
+        return { k, depth: Math.min(a1, b1) - Math.max(a0, b0) };
+      });
+      if (shared.some((s) => s.depth <= JOINED)) continue;
+      // They part when the first direction they share stops being shared.
+      const apart = Math.min(
+        ...shared.map((s) => (Math.abs(by[s.k]) > EPS ? s.depth / Math.abs(by[s.k]) : Infinity)),
+      );
+      if (Number.isFinite(apart)) from = Math.max(from, apart);
+    }
+  }
+  return Math.min(1, from);
 }
 
 /** What one assembly step shows (#118): the parts it adds and the parts already built. */
