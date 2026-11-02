@@ -46,7 +46,7 @@ The owner took the suggested option for each (November 2026).
 | Toolbox | T1. Only the tools owned, by group, each with Remove and its capabilities inline. "Add a tool" opens a search of the library with one button per tool not owned: one tap adds it. Removing is one tap, with Undo. Every change saves as it is made; typing saves after a pause. | T2, the library checklist with owned tools on top and one Save: the list is mostly tools the owner does not have, and a change is lost if the page is left before Save. |
 | Other tools | Removed. A tool the library lacks is a reason to add it to the library, since no method can use a tool Kerf does not know. The owner said nothing stored was worth keeping. | Kept as notes: a list that changes nothing in the plan. |
 
-Built in #363: `ToolsScreen` as above, named My toolbox in Workshop, back links, and copy. The inventory has no `other` list in core, the API, or the web app; stored rows of a type the library lacks, and capabilities a type cannot use, are left out when read. The `other_tools` table is no longer used and is dropped in #398, one release later, since migrations run while the previous deploy still serves (0014).
+Built in #363: `ToolsScreen` as above, named My toolbox in Workshop, back links, and copy. The inventory has no `other` list in core, the API, or the web app; stored rows of a type the library lacks, and capabilities a type cannot use, are left out when read. The `other_tools` table was dropped one release later (#398, migration 0013), since migrations run while the previous deploy still serves (0014).
 
 ## Stage 18: usability pass, build steps (#362)
 

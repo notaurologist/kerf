@@ -31,16 +31,6 @@ export const tools = pgTable('tools', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// No longer read or written (#363): "other tools" are gone. Kept until the deploy that stopped
-// using it is live, since migrations run while the previous deploy still serves (0014); the
-// migration that drops it is #398.
-export const otherTools = pgTable('other_tools', {
-  position: integer('position').primaryKey(),
-  name: text('name').notNull(),
-  note: text('note').notNull().default(''),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-});
-
 export const PROJECT_STATUSES = ['planned', 'in-progress', 'built'] as const;
 
 // A project and its stored snapshot. The snapshot is regenerated only when the parameters or
