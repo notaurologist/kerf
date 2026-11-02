@@ -202,6 +202,43 @@ export const ScrewHole = z.object({
 });
 export type ScrewHole = z.infer<typeof ScrewHole>;
 
+/**
+ * A groove along an edge, such as the one a frame's panel floats in: `width` across the edge from
+ * n0 (the near face), `depth` into the part, from u0 to u1; through when it reaches both ends.
+ */
+export const EdgeGroove = z.object({
+  edge: z.enum(['reference', 'far']),
+  u0: z.number(),
+  u1: z.number(),
+  n0: z.number(),
+  width: z.number(),
+  depth: z.number(),
+});
+export type EdgeGroove = z.infer<typeof EdgeGroove>;
+
+/**
+ * A rabbet along an edge or end, cut into one face the whole way along it: `width` in from the
+ * edge, `depth` down from the face, such as the step that makes a panel's tongue.
+ */
+export const EdgeRabbet = z.object({
+  edge: z.enum(['reference', 'far', 'first-end', 'second-end']),
+  face: z.enum(['near', 'far']),
+  width: z.number(),
+  depth: z.number(),
+});
+export type EdgeRabbet = z.infer<typeof EdgeRabbet>;
+
+/** A shallow scoop in a face to pull with, centered at (u, v): `width` along u, `height` along v. */
+export const FingerRecess = z.object({
+  face: z.enum(['near', 'far']),
+  u: z.number(),
+  v: z.number(),
+  width: z.number(),
+  height: z.number(),
+  depth: z.number(),
+});
+export type FingerRecess = z.infer<typeof FingerRecess>;
+
 export const Part = z.object({
   id: z.string(),
   /** Names the part in the cut list and every drawing, assigned in cut-list order (#66). */
@@ -239,6 +276,9 @@ export const Part = z.object({
   mortises: z.array(Mortise).optional(),
   tenons: z.array(Tenon).optional(),
   screwHoles: z.array(ScrewHole).optional(),
+  grooves: z.array(EdgeGroove).optional(),
+  rabbets: z.array(EdgeRabbet).optional(),
+  recesses: z.array(FingerRecess).optional(),
 });
 export type Part = z.infer<typeof Part>;
 

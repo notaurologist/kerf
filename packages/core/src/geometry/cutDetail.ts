@@ -260,6 +260,67 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     }
   }
 
+  // A groove along an edge, dashed as deep as it goes; a rabbet's step, solid on the face shown
+  // and dashed on the other; a finger recess's outline the same way.
+  const L = part.length;
+  for (const g of part.grooves ?? []) {
+    const [v0, v1] = g.edge === 'reference' ? [0, g.depth] : [W - g.depth, W];
+    prims.push({
+      kind: 'polygon',
+      role: 'hidden',
+      points: [
+        { u: g.u0, v: v0 },
+        { u: g.u1, v: v0 },
+        { u: g.u1, v: v1 },
+        { u: g.u0, v: v1 },
+      ].map(page),
+      fill: 'none',
+      part: ref,
+    });
+  }
+  for (const rb of part.rabbets ?? []) {
+    const line: UV[] =
+      rb.edge === 'reference'
+        ? [
+            { u: 0, v: rb.width },
+            { u: L, v: rb.width },
+          ]
+        : rb.edge === 'far'
+          ? [
+              { u: 0, v: W - rb.width },
+              { u: L, v: W - rb.width },
+            ]
+          : rb.edge === 'first-end'
+            ? [
+                { u: rb.width, v: 0 },
+                { u: rb.width, v: W },
+              ]
+            : [
+                { u: L - rb.width, v: 0 },
+                { u: L - rb.width, v: W },
+              ];
+    prims.push({
+      kind: 'line',
+      role: rb.face === 'far' ? 'visible' : 'hidden',
+      points: line.map(page),
+      part: ref,
+    });
+  }
+  for (const rc of part.recesses ?? []) {
+    prims.push({
+      kind: 'polygon',
+      role: rc.face === 'far' ? 'visible' : 'hidden',
+      points: [
+        { u: rc.u - rc.width / 2, v: rc.v - rc.height / 2 },
+        { u: rc.u + rc.width / 2, v: rc.v - rc.height / 2 },
+        { u: rc.u + rc.width / 2, v: rc.v + rc.height / 2 },
+        { u: rc.u - rc.width / 2, v: rc.v + rc.height / 2 },
+      ].map(page),
+      fill: 'none',
+      part: ref,
+    });
+  }
+
   // Overall length above, long point to long point.
   const us = blank.map((p) => p.u);
   const left = Math.min(...us);
@@ -482,6 +543,30 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       return `Mortise ${formatLength(m.u0)} from the first end, in ${where}: ${formatLength(m.u1 - m.u0)} long, ${formatLength(m.a1 - m.a0)} wide, ${formatLength(m.depth)} deep, starting ${formatLength(m.a0)} from ${from}.`;
     }),
     ...screwNotes(part),
+    ...(part.grooves ?? []).map((g) => {
+      const edge = g.edge === 'reference' ? `the ${part.referenceEdge}` : 'the far edge';
+      const through = g.u0 <= 1e-9 && g.u1 >= L - 1e-9;
+      const where = through
+        ? 'end to end'
+        : `from ${formatLength(g.u0)} to ${formatLength(g.u1)} from the first end`;
+      return `Groove along ${edge}, ${where}: ${formatLength(g.width)} wide, ${formatLength(g.depth)} deep, ${formatLength(g.n0)} from the back face (dashed).`;
+    }),
+    ...(part.rabbets ?? []).map((rb) => {
+      const along =
+        rb.edge === 'reference'
+          ? `the ${part.referenceEdge}`
+          : rb.edge === 'far'
+            ? 'the far edge'
+            : rb.edge === 'first-end'
+              ? 'the first end'
+              : 'the second end';
+      const face = rb.face === 'far' ? 'the face shown' : 'the back face (dashed)';
+      return `Rabbet along ${along}, in ${face}: ${formatLength(rb.width)} wide, ${formatLength(rb.depth)} deep.`;
+    }),
+    ...(part.recesses ?? []).map(
+      (rc) =>
+        `Finger recess in ${rc.face === 'far' ? 'the face shown' : 'the back face (dashed)'}: ${formatLength(rc.width)} by ${formatLength(rc.height)}, ${formatLength(rc.depth)} deep, centered ${formatLength(rc.u)} from the first end and ${formatLength(rc.v)} from the ${part.referenceEdge}.`,
+    ),
     ...part.tapers
       .filter((t) => t.plane)
       .map(
