@@ -13,6 +13,7 @@ describe('parseRoute', () => {
     ['#/tools/miter-saw/x', { screen: 'not-found' }],
     ['#/catalog', { screen: 'catalog' }],
     ['#/trash', { screen: 'trash' }],
+    ['#/workshop', { screen: 'workshop' }],
     ['#/trash/x', { screen: 'not-found' }],
     ['#/catalog/x', { screen: 'not-found' }],
     ['#/glossary', { screen: 'glossary' }],
@@ -74,7 +75,7 @@ describe('parseRoute', () => {
       '#/projects/abc/structural-review',
       { screen: 'project', id: 'abc', section: 'structural-review' },
     ],
-    ['#/projects/abc/parameters', { screen: 'project', id: 'abc', section: 'parameters' }],
+    ['#/projects/abc/parameters', { screen: 'not-found' }],
     [
       '#/projects/abc/cut-list?part=leg-front',
       { screen: 'project', id: 'abc', section: 'cut-list', part: 'leg-front' },
@@ -91,6 +92,10 @@ describe('parseRoute', () => {
     ['#/projects/abc/edit?from=cut-list', { screen: 'edit-project', id: 'abc', from: 'cut-list' }],
     ['#/projects/abc/edit?from=summary', { screen: 'edit-project', id: 'abc' }],
     ['#/projects/abc/edit?from=elsewhere', { screen: 'edit-project', id: 'abc' }],
+    [
+      '#/projects/abc/edit?from=cut-list&field=s-moisture.low',
+      { screen: 'edit-project', id: 'abc', from: 'cut-list', field: 's-moisture.low' },
+    ],
     ['#/projects/%E0', { screen: 'not-found' }],
     ['#/tools/%', { screen: 'not-found' }],
   ])('%s', (hash, route) => {
@@ -104,10 +109,12 @@ describe('parseRoute', () => {
       { screen: 'tools', tool: 'post-hole-digger' },
       { screen: 'catalog' },
       { screen: 'trash' },
+      { screen: 'workshop' },
       { screen: 'glossary' },
       { screen: 'glossary', term: 'long-point' },
       { screen: 'project', id: '6f1c2a3e-0000-4000-8000-000000000000' },
       { screen: 'edit-project', id: 'x y' },
+      { screen: 'edit-project', id: 'p', from: 'boards', field: 's-riderWeights.0' },
       { screen: 'new-project', templateId: 'swing-set-a-frame' },
       {
         screen: 'new-project',
@@ -126,10 +133,8 @@ describe('parseRoute', () => {
 
   it('reads back every section’s address, with and without a part, so a reload stays put', () => {
     for (const { id } of PLAN_SECTIONS) {
-      const section = id === 'summary' ? {} : { section: id };
-      const route: Route = { screen: 'project', id: 'p 1', ...section };
+      const route: Route = { screen: 'project', id: 'p 1', section: id };
       expect(parseRoute(href(route))).toEqual(route);
-      if (id === 'summary') continue;
       const withPart: Route = { ...route, part: 'leg-back' };
       expect(parseRoute(href(withPart))).toEqual(withPart);
       const edit: Route = { screen: 'edit-project', id: 'p 1', from: id };
@@ -137,9 +142,9 @@ describe('parseRoute', () => {
     }
   });
 
-  it('gives the summary the project’s own address, and Edit from it no section', () => {
-    expect(href({ screen: 'project', id: 'p', section: 'summary' })).toBe('#/projects/p');
-    expect(href({ screen: 'edit-project', id: 'p', from: 'summary' })).toBe('#/projects/p/edit');
+  it('gives the project’s own address no section, and has no summary section', () => {
+    expect(href({ screen: 'project', id: 'p' })).toBe('#/projects/p');
+    expect(parseRoute('#/projects/p/summary')).toEqual({ screen: 'not-found' });
   });
 });
 
@@ -156,14 +161,12 @@ describe('the plan’s sections', () => {
 
   it('are in order A', () => {
     expect(PLAN_SECTIONS.map((s) => s.title)).toEqual([
-      'Summary',
       'Diagrams',
       'Structural review',
       'Cut list',
       'Boards',
       'Shopping list',
       'Build steps',
-      'Parameters and inputs',
     ]);
   });
 });

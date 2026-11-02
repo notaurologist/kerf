@@ -193,13 +193,6 @@ export function ProjectList(props: {
           ))}
         </Rows>
       )}
-      {/* A copy to keep: the free database restores only the last few hours (#21). */}
-      <Cluster>
-        <a href={href({ screen: 'trash' })}>Trash</a>
-        <a href="/api/export" download>
-          Download all projects
-        </a>
-      </Cluster>
     </Stack>
   );
 }

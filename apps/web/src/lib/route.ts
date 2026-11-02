@@ -11,11 +11,13 @@ export type Route =
   // `start` fills the form from a worked example or an earlier project (#98), or from answers to
   // the template's starting questions (#163); none is empty.
   | { screen: 'new-project'; templateId: string; start?: ProjectStart }
-  // The plan, one section per screen (#156). No section is the summary. `part` is the part
-  // selected in the drawings and the cut list, kept in the address so a reload keeps it.
+  // The plan, one section per screen (#156). No section is the one the project opens on (#356).
+  // `part` is the part selected in the drawings and the cut list, kept in the address so a reload
+  // keeps it.
   | { screen: 'project'; id: string; section?: PlanSectionId; part?: string }
   // `from` is the section Edit was opened from, which Save and Cancel return to.
-  | { screen: 'edit-project'; id: string; from?: PlanSectionId }
+  // `field` is the id of a field to start on, such as an input a check needs.
+  | { screen: 'edit-project'; id: string; from?: PlanSectionId; field?: string }
   // Shopping and Building, full-screen modes launched from the plan (#61). The URL carries the
   // mode and step, so a reload or a shared link reopens the same place.
   | { screen: 'shop'; id: string }
@@ -29,6 +31,8 @@ export type Route =
   | { screen: 'glossary'; term?: string }
   | { screen: 'catalog' }
   | { screen: 'trash' }
+  // Tools, the glossary, Trash, Download, the theme, and Log out, in one place (#356).
+  | { screen: 'workshop' }
   | { screen: 'not-found' };
 
 /**
@@ -57,6 +61,7 @@ export function parseRoute(hash: string): Route {
   }
   if (first === 'catalog' && parts.length === 1) return { screen: 'catalog' };
   if (first === 'trash' && parts.length === 1) return { screen: 'trash' };
+  if (first === 'workshop' && parts.length === 1) return { screen: 'workshop' };
   if (first === 'glossary' && parts.length === 1) return { screen: 'glossary' };
   if (first === 'glossary' && parts.length === 2 && second && findGlossaryEntry(second)) {
     return { screen: 'glossary', term: second };
@@ -74,12 +79,15 @@ export function parseRoute(hash: string): Route {
   if (third === undefined) return project(second, undefined, null);
   if (third === 'edit' && parts.length === 3) {
     const from = search.get('from');
-    return isPlanSection(from) && from !== 'summary'
-      ? { screen: 'edit-project', id: second, from }
-      : { screen: 'edit-project', id: second };
+    const field = search.get('field');
+    return {
+      screen: 'edit-project',
+      id: second,
+      ...(isPlanSection(from) ? { from } : {}),
+      ...(field ? { field } : {}),
+    };
   }
-  // The summary has the project's own address, so `summary` is not one of its sections'.
-  if (isPlanSection(third) && third !== 'summary') {
+  if (isPlanSection(third)) {
     return parts.length === 3
       ? project(second, third, search.get('part'))
       : { screen: 'not-found' };
@@ -128,15 +136,16 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
       return `#/projects/new?template=${encodeURIComponent(route.templateId)}${start}`;
     }
     case 'project': {
-      const section =
-        route.section && route.section !== 'summary' ? `/${encodeURIComponent(route.section)}` : '';
+      const section = route.section ? `/${encodeURIComponent(route.section)}` : '';
       const part = route.part ? `?part=${encodeURIComponent(route.part)}` : '';
       return `#/projects/${encodeURIComponent(route.id)}${section}${part}`;
     }
     case 'edit-project': {
-      const from =
-        route.from && route.from !== 'summary' ? `?from=${encodeURIComponent(route.from)}` : '';
-      return `#/projects/${encodeURIComponent(route.id)}/edit${from}`;
+      const query = new URLSearchParams({
+        ...(route.from ? { from: route.from } : {}),
+        ...(route.field ? { field: route.field } : {}),
+      }).toString();
+      return `#/projects/${encodeURIComponent(route.id)}/edit${query ? `?${query}` : ''}`;
     }
     case 'shop':
       return `#/projects/${encodeURIComponent(route.id)}/shop`;
@@ -156,6 +165,8 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
       return '#/catalog';
     case 'trash':
       return '#/trash';
+    case 'workshop':
+      return '#/workshop';
   }
 }
 
@@ -168,6 +179,17 @@ export function redirect(route: Exclude<Route, { screen: 'not-found' }>) {
   const target = href(route);
   leaveGate.allow(target);
   window.location.replace(target);
+}
+
+/** The frame's places, in the sidebar's order (#356). */
+export const PLACES = ['projects', 'workshop'] as const;
+export type PlaceId = (typeof PLACES)[number];
+
+const IN_WORKSHOP: readonly Route['screen'][] = ['workshop', 'tools', 'glossary', 'trash'];
+
+/** The place a screen is in. Every screen not in Workshop belongs to Projects. */
+export function placeOf(route: Route): PlaceId {
+  return IN_WORKSHOP.includes(route.screen) ? 'workshop' : 'projects';
 }
 
 /** True for Shopping and Building, which fill the screen under their own bar (#61). */

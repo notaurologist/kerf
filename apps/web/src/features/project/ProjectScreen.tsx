@@ -1,6 +1,7 @@
 import { findTemplate, planTerms } from '@kerf/core';
 import { useMemo, useState } from 'react';
 import { useArrowKeys } from '../../lib/arrowKeys.ts';
+import { inputFieldId } from '../../lib/fieldIds.ts';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
@@ -11,6 +12,7 @@ import { href, redirect } from '../../lib/route.ts';
 import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { cutDetailHeadingId, cutListPartId } from '../../lib/show.ts';
 import type { Project } from '../../lib/types.ts';
+import { loadCornerViews } from '../../lib/views.ts';
 import {
   Definitions,
   IconButtonLink,
@@ -30,6 +32,7 @@ import { Boards } from '../boards/Boards.tsx';
 import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { Diagrams } from '../diagrams/Diagrams.tsx';
+import { ModeButtons } from '../modes/ModeCards.tsx';
 import { DeleteProject } from '../project-editor/DeleteProject.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import {
@@ -38,8 +41,10 @@ import {
   WOOD_MOVEMENT_INTRO,
 } from '../structural/StructuralReview.tsx';
 import { ParametersAndInputs } from './ParametersAndInputs.tsx';
-import { PlanSummary } from './PlanSummary.tsx';
+import { inputsNeeded, ProjectNext } from './ProjectNext.tsx';
 import { VersionNotice } from './VersionNotice.tsx';
+
+const VALUES_USED_ID = 'values-used';
 
 // One project, rendered from the snapshot the API returns (ARCHITECTURE.md, apps/web). The
 // stored plan is shown as stored; the web app computes none of its numbers.
@@ -61,7 +66,7 @@ export function ProjectScreen(props: { id: string; section?: PlanSectionId; part
 
 export function ProjectView(props: {
   project: Project;
-  /** The section on screen (#156); the summary when absent. */
+  /** The section on screen (#156); when absent, the first that needs something (#356). */
   section?: PlanSectionId;
   /** The part selected in the drawings and the cut list, from the address. */
   part?: string;
@@ -85,20 +90,33 @@ export function ProjectView(props: {
     [plan, steps, hasSteps],
   );
   const shown = (id: PlanSectionId) =>
-    (id !== 'diagrams' || drawings !== null) &&
-    (id !== 'build-steps' || hasSteps) &&
-    (id !== 'parameters' || (template !== undefined && project.snapshot !== null));
+    (id !== 'diagrams' || drawings !== null) && (id !== 'build-steps' || hasSteps);
   const sections = PLAN_SECTIONS.filter((s) => shown(s.id));
-  // A section this plan does not have, such as build steps in an old plan, shows the summary.
-  const current = sections.find((s) => s.id === props.section) ?? PLAN_SECTIONS[0];
+  // A project opens on the structural review while inputs are needed, else on its drawings; a
+  // section this plan does not have, such as build steps in an old plan, does the same.
+  const landing =
+    (plan.ok && inputsNeeded(plan.plan) > 0) || !shown('diagrams')
+      ? 'structural-review'
+      : 'diagrams';
+  const current =
+    sections.find((s) => s.id === props.section) ??
+    sections.find((s) => s.id === landing) ??
+    PLAN_SECTIONS[0];
   const at = (section: PlanSectionId, part?: string) =>
     href({ screen: 'project', id: project.id, section, ...(part ? { part } : {}) });
+  const editHref = plan.ok
+    ? href({ screen: 'edit-project', id: project.id, from: current.id })
+    : undefined;
   const items = sections.map((s) => ({ id: s.id, title: s.title, href: at(s.id) }));
+  // The values the plan was made from are in Edit (#356); the contents end with a way there.
+  const valuesUsed = editHref && { title: 'Values used', href: editHref };
   // From 52.5rem the frame's sidebar lists the sections in place of the contents column (#265).
   useFrameProject({
     name: project.name,
     href: href({ screen: 'project', id: project.id }),
-    ...(plan.ok ? { sections: { items, current: current.id } } : {}),
+    ...(plan.ok
+      ? { sections: { items, current: current.id, ...(valuesUsed ? { end: valuesUsed } : {}) } }
+      : {}),
   });
   // The part selected in a drawing or the cut list (#39, Q3), carried in the address (#156).
   // Selecting it replaces the history entry, so selections do not fill Back; selecting it again
@@ -114,13 +132,15 @@ export function ProjectView(props: {
   // "Saved." from the editor stays until the next action (#67), not a toast that disappears. A
   // regenerate that clears ticks says so the same way (#57).
   const [flash, setFlashLine] = useState(takeFlash);
-  const editHref = plan.ok
-    ? href({
-        screen: 'edit-project',
-        id: project.id,
-        ...(current.id === 'summary' ? {} : { from: current.id }),
-      })
-    : undefined;
+  const inputHref = (key: string) => {
+    const field = template && inputFieldId(template.form, key);
+    return href({
+      screen: 'edit-project',
+      id: project.id,
+      from: current.id,
+      ...(field ? { field } : {}),
+    });
+  };
 
   // After a move, focus goes to the section's heading; arriving with a part goes to it instead.
   usePlanMoves(
@@ -146,6 +166,8 @@ export function ProjectView(props: {
     title: PLAN_SECTIONS.find((s) => s.id === id)?.title ?? id,
     project: project.name,
     hidden: id !== current.id,
+    // The first section shares the printed first page with the header (#119).
+    ...(id === sections[0]?.id ? { newPage: false } : {}),
   });
   return (
     <Stack gap="l">
@@ -154,7 +176,7 @@ export function ProjectView(props: {
           title={project.name}
           pageTitle={`${current.title} · ${project.name}`}
           actions={
-            // Secondary: the summary's next mode is the screen's one primary (Stage 10).
+            // Quiet: the next mode in the header is the screen's one primary (Stage 10).
             plan.ok &&
             editHref && <IconButtonLink href={editHref} icon="edit" label="Edit" variant="quiet" />
           }
@@ -169,6 +191,17 @@ export function ProjectView(props: {
           }
           status={flash && <StatusLine>{flash}</StatusLine>}
         />
+        {plan.ok && (
+          <>
+            <ProjectNext
+              project={project}
+              plan={plan.plan}
+              steps={steps?.steps ?? []}
+              reviewHref={at('structural-review')}
+            />
+            <ModeButtons project={project} plan={plan.plan} steps={steps?.steps ?? []} />
+          </>
+        )}
         <VersionNotice
           project={project}
           onRegenerated={(p) => {
@@ -185,20 +218,7 @@ export function ProjectView(props: {
         </>
       ) : (
         // Section order A (#40): the same reading order in the contents, on screen, and on paper.
-        <WithContents items={items} current={current.id}>
-          <PlanSection {...section('summary')} newPage={false}>
-            <PlanSummary
-              project={project}
-              plan={plan.plan}
-              steps={steps?.steps ?? []}
-              drawings={drawings}
-              template={template}
-              sections={sections
-                .filter((s) => s.id !== 'summary')
-                .map((s) => ({ id: s.id, title: s.title, href: at(s.id) }))}
-              editHref={editHref}
-            />
-          </PlanSection>
+        <WithContents items={items} current={current.id} end={valuesUsed || undefined}>
           {drawings && (
             <PlanSection {...section('diagrams')}>
               <Diagrams
@@ -208,12 +228,16 @@ export function ProjectView(props: {
                 selected={selected}
                 onSelect={select}
                 partHref={(partId) => at('cut-list', partId)}
+                corners={{
+                  key: `${project.id}/${project.revision}`,
+                  load: (corner) => loadCornerViews(project.id, corner),
+                }}
               />
             </PlanSection>
           )}
           <PlanSection {...section('structural-review')}>
             <StructuralReview
-              projectId={project.id}
+              inputHref={inputHref}
               checks={plan.plan.checks}
               flags={plan.plan.flags}
               checklist={plan.plan.checklist}
@@ -224,6 +248,7 @@ export function ProjectView(props: {
           <PlanSection {...section('cut-list')} intro={CUT_LIST_INTRO}>
             <CutList
               rows={plan.plan.cutList}
+              flags={plan.plan.flags}
               selected={selected}
               partHref={drawings ? (partId) => at('diagrams', partId) : undefined}
             />
@@ -251,9 +276,10 @@ export function ProjectView(props: {
               />
             </PlanSection>
           )}
-          {template && shown('parameters') && (
-            <PlanSection {...section('parameters')}>
-              <ParametersAndInputs project={project} template={template} editHref={editHref} />
+          {/* On paper the plan says what it was made from; on screen that is Edit. */}
+          {template && project.snapshot && (
+            <PlanSection id={VALUES_USED_ID} title="Values used" project={project.name} hidden>
+              <ParametersAndInputs project={project} template={template} />
             </PlanSection>
           )}
           {/* A term's popover cannot open on paper, so the printed plan ends with the terms it

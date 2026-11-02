@@ -1,10 +1,14 @@
 import {
   actionView,
   boardDrawings,
+  type Corner,
   type Drawing,
   type Drawings,
   type Explode,
+  explodedView,
+  fromCorner,
   isometric,
+  isometricView,
 } from '../geometry/index.ts';
 import { isPanel } from '../lumber/panel.ts';
 import type { TemplateDefinition } from '../model/definition.ts';
@@ -161,5 +165,45 @@ export function projectDrawings<O>(
     ...template.drawings(outputs),
     boards: boardDrawings(plan.lumber, plan.cutList),
     steps: stepDrawings(template, outputs),
+  };
+}
+
+const CORNER_WORDS: Record<Corner, string> = {
+  'front-left': 'front left',
+  'front-right': 'front right',
+  'back-right': 'back right',
+  'back-left': 'back left',
+};
+
+/**
+ * The assembled and exploded views seen from one corner (#364): the template's own from the front
+ * left, and from another corner the same scene and explode turned to it, each described as the
+ * template describes its own, and where it is seen from.
+ */
+export function cornerViews<O>(
+  template: Pick<TemplateDefinition<unknown, unknown, O>, 'drawings' | 'assembly'>,
+  outputs: O,
+  corner: Corner,
+): Pick<Drawings, 'isometric' | 'exploded'> {
+  const own = template.drawings(outputs);
+  const assembly = template.assembly(outputs);
+  if (corner === 'front-left' || !assembly) {
+    return { isometric: own.isometric, exploded: own.exploded };
+  }
+  const view = fromCorner(assembly.view, corner);
+  const seen = ` Seen from the ${CORNER_WORDS[corner]}, above.`;
+  return {
+    isometric:
+      own.isometric &&
+      isometricView(assembly.scene, view, own.isometric.description + seen, own.isometric.title),
+    exploded:
+      own.exploded &&
+      explodedView(
+        assembly.scene,
+        view,
+        assembly.explode,
+        own.exploded.description + seen,
+        own.exploded.title,
+      ),
   };
 }

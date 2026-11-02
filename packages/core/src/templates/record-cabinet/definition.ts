@@ -1,9 +1,7 @@
 import type { SnapshotUpgrade, TemplateDefinition } from '../../model/definition.ts';
 import { cutList } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
-import type { KeyResult } from '../../outputs/plan.ts';
 import { planLumber } from '../../outputs/shoppingList.ts';
-import { formatLength } from '../../units/length.ts';
 import { cabinetExplode, cabinetScene, drawings, VIEW } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { RECORD_CABINET_FORM } from './form.ts';
@@ -14,21 +12,6 @@ import { CABINET_QUESTIONS, SUGGESTED_DOOR } from './questions.ts';
 import { stepOutline } from './steps.ts';
 import { allowancesFor, RecordCabinetStructuralInputs, structuralReview } from './structural.ts';
 import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
-
-/** What says most about the cabinet at a glance: its size, and each bay's clear opening. */
-function keyResults(outputs: StoredRecordCabinetOutputs): KeyResult[] {
-  const { params: p, geometry: g } = outputs.design;
-  return [
-    {
-      label: 'Overall',
-      value: `${formatLength(p.width)} wide, ${formatLength(g.height)} high, ${formatLength(g.topDepth)} deep`,
-    },
-    {
-      label: `Each of ${p.bays} bays`,
-      value: `${formatLength(g.bayWidth)} wide, ${formatLength(g.bayHeight)} high`,
-    },
-  ];
-}
 
 type Stored = Record<string, unknown>;
 
@@ -252,7 +235,6 @@ export const recordCabinet: TemplateDefinition<
   plan(outputs) {
     const { review, design } = outputs;
     return {
-      keyResults: keyResults(outputs),
       cutList: outputs.cutList,
       lumber: outputs.lumber,
       hardware: outputs.hardware,

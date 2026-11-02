@@ -50,23 +50,31 @@ describe('each section on its own screen', () => {
     const html = at(id);
     // Only the current section shows; the rest stay in the page, hidden, for print.
     expect(shownSections(html)).toEqual([id]);
-    // The eight, and the terms the plan uses, which only print (#180).
-    expect(html.match(/<section id="[a-z-]+" class="k-section"/g)).toHaveLength(9);
+    // The six, then the values used and the terms the plan uses, which only print (#356, #180).
+    expect(html.match(/<section id="[a-z-]+" class="k-section"/g)).toHaveLength(8);
     // The contents mark it as the page, with its own address.
-    const href = id === 'summary' ? base : `${base}/${id}`;
-    expect(contentsOf(html)).toContain(`<a href="${href}" aria-current="page">${title}</a>`);
+    expect(contentsOf(html)).toContain(`<a href="${base}/${id}" aria-current="page">${title}</a>`);
     expect(contentsOf(html).match(/aria-current/g)).toHaveLength(1);
   });
 
-  it('opens on the summary when the address names no section', () => {
-    expect(shownSections(at())).toEqual(['summary']);
+  it('opens on the drawings when the address names no section and no input is needed', () => {
+    expect(shownSections(at())).toEqual(['diagrams']);
   });
 
-  it('opens on the summary for a section the plan does not have', () => {
+  it('opens on the structural review while inputs are needed', () => {
+    const none = createSnapshot(template, example?.params, {});
+    if (!none.ok) throw new Error('worked example should generate without inputs');
+    const html = render(
+      <ProjectView project={projectFrom(JSON.parse(JSON.stringify(none.output)))} />,
+    );
+    expect(shownSections(html)).toEqual(['structural-review']);
+  });
+
+  it('opens where it would have for a section the plan does not have', () => {
     const old = render(
       <ProjectView project={projectFrom(stored, { steps: null })} section="build-steps" />,
     );
-    expect(shownSections(old)).toEqual(['summary']);
+    expect(shownSections(old)).toEqual(['diagrams']);
   });
 });
 
@@ -74,8 +82,8 @@ describe('the phone’s bar', () => {
   it('says which section of how many, and opens the contents', () => {
     const bar = (html: string) =>
       textOf(contentsOf(html).slice(0, contentsOf(html).indexOf('</button>')));
-    expect(bar(at('structural-review'))).toBe('3 of 8 · Structural review Contents');
-    expect(bar(at())).toBe('1 of 8 · Summary Contents');
+    expect(bar(at('structural-review'))).toBe('2 of 6 · Structural review Contents');
+    expect(bar(at())).toBe('1 of 6 · Diagrams Contents');
     expect(contentsOf(at('boards'))).toMatch(/<button type="button" [^>]*aria-expanded="false"/);
   });
 });
@@ -93,9 +101,9 @@ describe('Previous and Next', () => {
     );
   });
 
-  it('give only Next on the summary and only Previous on the last section', () => {
-    expect(textOf(pagerOf(at()))).toBe('Next Diagrams');
-    expect(textOf(pagerOf(at('parameters')))).toBe('Previous Build steps');
+  it('give only Next on the first section and only Previous on the last', () => {
+    expect(textOf(pagerOf(at()))).toBe('Next Structural review');
+    expect(textOf(pagerOf(at('build-steps')))).toBe('Previous Shopping list');
   });
 
   it('come after the section, outside it', () => {
@@ -141,43 +149,23 @@ describe('links between sections', () => {
     expect(steps).toContain(`<a href="${base}/diagrams?part=leg-back">B Back leg (uphill)</a>`);
   });
 
-  it('open the structural review at the expert checks from the summary’s flags', () => {
-    const summary = sectionOf(at(), 'summary');
-    expect(summary).toContain(
-      `<a href="${base}/structural-review">Read them in full in the structural review</a>`,
-    );
+  it('open the structural review at the expert checks from the header’s count', () => {
+    const page = at('cut-list');
+    const head = page.slice(0, page.indexOf('<div class="k-with-contents"'));
+    expect(head).toContain(`<a href="${base}/structural-review">6 expert checks</a>`);
     expect(sectionOf(at('structural-review'), 'structural-review')).toContain(
       '<h3 id="expert-checks" tabindex="-1">Expert checks</h3>',
     );
   });
 });
 
-describe('the summary’s list of sections', () => {
-  it('links every other section with core’s digest of it, in order A', () => {
-    const summary = sectionOf(at(), 'summary');
-    const list = summary.slice(summary.indexOf('<ul class="k-section-list"'));
-    expect(textOf(list.slice(0, list.indexOf('</ul>')))).toBe(
-      [
-        'Diagrams Assembled, exploded, and site views · 5 cut details',
-        'Structural review 4 checks, lowest margin 1.1x · 6 expert checks · 7 items to confirm',
-        'Cut list 5 parts, 9 pieces',
-        'Boards 9 pieces from 7 boards',
-        'Shopping list 4 lumber lines, 7 hardware lines',
-        'Build steps 11 steps: 7 boards to cut, then 4 more',
-        'Parameters and inputs Every structural input entered',
-      ].join(' '),
-    );
-    expect(list).toContain(`<a href="${base}/boards">Boards</a>`);
-  });
-});
-
 describe('Edit', () => {
   it('carries the section it was opened from', () => {
     expect(at('cut-list')).toContain(`href="${base}/edit?from=cut-list"`);
-    expect(at()).toContain(`href="${base}/edit"`);
+    expect(at()).toContain(`href="${base}/edit?from=diagrams"`);
   });
 
-  it('enters structural inputs from the review and returns there', () => {
+  it('enters each missing structural input from the review, on its field, and returns there', () => {
     const none = createSnapshot(template, example?.params, {});
     if (!none.ok) throw new Error('worked example should generate without inputs');
     const html = render(
@@ -187,7 +175,7 @@ describe('Edit', () => {
       />,
     );
     expect(sectionOf(html, 'structural-review')).toContain(
-      `href="${base}/edit?from=structural-review">Enter structural inputs</a>`,
+      `href="${base}/edit?from=structural-review&amp;field=s-dynamicFactor">Dynamic factor</a>`,
     );
   });
 });
