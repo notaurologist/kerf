@@ -130,3 +130,16 @@ From the five-lens engineering review of October 31, 2026 (architecture, backend
 - Gates that would have caught these: release and migration tests, fixture locks, the web build in CI, and token tests (#215, #216, #219, #223).
 
 **Accept when:** every High and Medium finding is fixed or closed with a recorded reason; each fix that the review marked as enforceable has its test or check; and the decisions are recorded in `docs/decisions/`.
+
+## Usability pass
+
+From the owner's walkthrough of November 1, 2026. Issues #351 to #364.
+
+- Diagram defects: lines across a tapered part's flat faces (#351), and parts drawn in the wrong order while the exploded view moves, with the record cabinet's explode spacing (#352).
+- Small layout fixes: the edit button on a phone's title row (#353), and dropdowns on the laptop (#354).
+- Owner decisions on suggesting structural inputs from cited sources and inferring project status (#355), and on how the app is navigated: the summary, Shopping and Building, expert checks in context, Tools, the glossary, and the phone's bottom bar (#356).
+- The projects list and starting a project (#357, #358).
+- The structural review, cut list, shopping list, and build steps made easy to read (#359 to #362).
+- My toolbox (#363), and diagrams from any corner (#364).
+
+**Accept when:** the decisions are recorded; each reworked screen was chosen from at least two sketched directions and is built on the design system; and the diagrams and reworked screens are checked at 375 px and on the laptop.
