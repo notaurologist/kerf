@@ -1,7 +1,8 @@
-import { movement } from '@kerf/core';
+import { checklistProgressKey, flagProgressKey, movement } from '@kerf/core';
 import { VERDICT_WORDS } from '@kerf/core/testing';
 import { describe, expect, it } from 'vitest';
-import { projectFrom, storedSnapshots } from '../../test/projects.ts';
+import { readPlan } from '../../lib/plan.ts';
+import { noTicks, projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from '../project/ProjectScreen.tsx';
 import { byMargin, StructuralReview } from './StructuralReview.tsx';
@@ -72,9 +73,51 @@ describe('the structural review, worked example with every input', () => {
   it('shows the checklist and the expert-check flags', () => {
     expect(review).toContain('Confirmation checklist');
     expect(review).toContain('Leg-to-beam bolt and gusset, each frame');
-    expect(review).toContain('Ask an experienced builder.');
+    expect(review).toContain('Ask an experienced builder, and tick Asked once you have.');
     expect(review).toContain('Load-bearing design Why: This joint and the gusset carry the beam');
     expect(review).toContain('Load-bearing design');
+  });
+});
+
+describe('ticks in the To do band (#393)', () => {
+  const plan = readPlan(projectFrom(complete));
+  if (!plan.ok) throw new Error(plan.message);
+  const { flags, checklist } = plan.plan;
+  const [flag] = flags;
+  const [item] = checklist;
+  if (!flag || !item) throw new Error('the worked example has expert checks and a checklist');
+  const project = projectFrom(complete, {
+    id: '6f1c2a3e-0000-4000-8000-000000000393',
+    ticks: [
+      { kind: 'flag', key: flagProgressKey(flag), doneAt: '2026-11-02T12:00:00.000Z' },
+      {
+        kind: 'checklist-item',
+        key: checklistProgressKey(item),
+        doneAt: '2026-11-02T12:00:00.000Z',
+      },
+    ],
+  });
+  const html = render(<ProjectView project={project} section="structural-review" />);
+  const review = sectionOf(html, 'structural-review');
+
+  it('gives each expert check an Asked tick and each checklist item a Confirmed one', () => {
+    expect(review.match(/type="checkbox"/g)).toHaveLength(flags.length + checklist.length);
+    expect(textOf(review).match(/Asked: /g)).toHaveLength(flags.length);
+    expect(textOf(review).match(/Confirmed: /g)).toHaveLength(checklist.length);
+    expect(textOf(review)).toContain(`Asked: ${flag.ask}`);
+    expect(textOf(review)).toContain(`Confirmed: ${item.element}`);
+  });
+
+  it('shows the saved ticks, and counts only what is still open', () => {
+    expect(review.match(/checked=""/g)).toHaveLength(2);
+    // Every input is entered, so the count is the expert checks and checklist items not ticked.
+    expect(textOf(review)).toContain(`To do · ${flags.length + checklist.length - 2}`);
+  });
+
+  it('counts only the expert checks not yet asked in the project header', () => {
+    const open = flags.length - 1;
+    expect(textOf(html)).toContain(`${open} ${open === 1 ? 'expert check' : 'expert checks'}`);
+    expect(textOf(html)).not.toContain(`${flags.length} expert checks`);
   });
 });
 
@@ -147,6 +190,7 @@ describe('wood movement in the structural review', () => {
       checks={[]}
       flags={[]}
       checklist={[]}
+      ticks={noTicks}
       movement={results}
     />,
   );
@@ -184,6 +228,7 @@ describe('wood movement in the structural review', () => {
           checks={[]}
           flags={[]}
           checklist={[]}
+          ticks={noTicks}
         />,
       ),
     );

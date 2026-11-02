@@ -1,7 +1,7 @@
 import { designValues, type structural } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { readPlan } from '../../lib/plan.ts';
-import { projectFrom, storedSnapshots } from '../../test/projects.ts';
+import { noTicks, projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render } from '../../test/render.tsx';
 import { citationsIn, StructuralReview } from './StructuralReview.tsx';
 
@@ -19,6 +19,7 @@ describe.each(storedSnapshots.map((s, i) => [i, s] as const))(
         checks={checks}
         flags={flags}
         checklist={checklist}
+        ticks={noTicks}
       />,
     );
 

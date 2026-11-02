@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TemplateDefinition } from '../../model/definition.ts';
-import { progressItems, progressToReset } from '../../progress/progress.ts';
+import { flagProgressKey, progressItems, progressToReset } from '../../progress/progress.ts';
 import { readSnapshot } from '../../snapshot/snapshot.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
@@ -20,6 +20,14 @@ function generate(params: SwingSetParams) {
 }
 
 const before = progressItems(swingSetAFrame, generate(example.params));
+const { flags } = swingSetAFrame.plan(generate(example.params));
+/** The expert check on the crossbar and gusset ends that project past the legs. */
+const PROJECTING_ENDS = flagProgressKey(
+  flags.find((f) => f.ask.startsWith("For the bolts' end distance")) ?? {
+    category: 'load-bearing',
+    ask: '',
+  },
+);
 const keys = (kind: string) => before.filter((i) => i.kind === kind).map((i) => i.key);
 
 describe('progress items for the worked example', () => {
@@ -66,6 +74,19 @@ describe('progress items for the worked example', () => {
       'frames',
       'beam',
     ]);
+    // Expert checks by category and what to ask, which carries the design's numbers.
+    expect(keys('flag')).toEqual(flags.map((f) => `${f.category}/${f.ask}`));
+    expect(keys('flag')).toHaveLength(6);
+    expect(PROJECTING_ENDS).toContain(`2' 10-1/2" to 3' 4" above the ground`);
+    expect(keys('checklist-item')).toEqual([
+      'bolted-connections/Leg-to-beam bolt and gusset, each frame',
+      'check-assumptions/Beam ends at the frames',
+      'racking/A-frames and crossbars',
+      'tipping-and-anchoring/Buried legs',
+      'bolted-connections/Swing hangers',
+      'lumber-quality/Beam and legs',
+      'long-term-condition/Whole frame',
+    ]);
   });
 
   it('keeps every tick when a change leaves the plan the same', () => {
@@ -89,8 +110,14 @@ describe('progress items for the worked example', () => {
       expect.closeTo(56.081, 3),
     ]);
     const reset = progressToReset(before, before, progressItems(swingSetAFrame, outputs));
-    expect(reset.every((r) => r.reason === 'changed')).toBe(true);
-    expect(reset.map((r) => `${r.kind} ${r.key}`)).toEqual([
+    // The flag on the projecting ends names the crossbar ends' heights, 40 - 5.5 = 34.5 (2'
+    // 10-1/2") to 40 (3' 4"): at 44 it asks about other heights, so it is another question and its
+    // tick goes. No other flag or checklist item changes.
+    const flag = reset.find((r) => r.kind === 'flag');
+    const work = reset.filter((r) => r !== flag);
+    expect(flag).toEqual({ kind: 'flag', key: PROJECTING_ENDS, reason: 'removed' });
+    expect(work.every((r) => r.reason === 'changed')).toBe(true);
+    expect(work.map((r) => `${r.kind} ${r.key}`)).toEqual([
       'board 2x6/10/1',
       'part leg-back/0',
       'part leg-back/1',
@@ -125,6 +152,7 @@ describe('progress items for the worked example', () => {
       'board 2x6/10/1',
       'board 2x8/8/1',
       'step board-7',
+      `flag ${PROJECTING_ENDS}`,
     ]);
   });
 });

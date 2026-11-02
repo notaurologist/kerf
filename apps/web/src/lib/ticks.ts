@@ -258,6 +258,9 @@ export function useTicks(projectId: string, seed: readonly Tick[], revision: num
   };
 }
 
+/** A project's ticks as a screen has them. */
+export type Ticks = ReturnType<typeof useTicks>;
+
 /** The line saying how many changes wait, or null when none do. */
 export function describeWaiting(state: Pick<TicksState, 'waiting' | 'offline'>): string | null {
   const n = state.waiting.size;

@@ -739,6 +739,15 @@ describe('Tick', () => {
     ).toBe('Crossbar cut');
   });
 
+  it('adds context to a short label for a screen reader only (#393)', () => {
+    const html = render(
+      <Tick done={false} onChange={none} context=": Bolt size?">
+        Asked
+      </Tick>,
+    );
+    expect(html).toContain('Asked<span class="k-visually-hidden">: Bolt size?</span>');
+  });
+
   it('says when a tick is not saved yet, in its name', () => {
     expect(
       renderText(

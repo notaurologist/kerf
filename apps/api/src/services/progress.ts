@@ -1,4 +1,5 @@
 import {
+  isReviewProgress,
   type ProgressKind,
   ProgressKind as ProgressKindSchema,
   type ProgressReset,
@@ -24,7 +25,8 @@ export const ProgressChanges = z.object({
     .array(
       z.object({
         kind: ProgressKindSchema,
-        key: z.string().min(1).max(300),
+        // An expert check's key holds what to ask, numbers and all.
+        key: z.string().min(1).max(1000),
         done: z.boolean(),
       }),
     )
@@ -148,8 +150,9 @@ type Status = (typeof PROJECT_STATUSES)[number];
 /**
  * A project's status after a write to its ticks (#61; information architecture, "Status follows
  * what you do"): Built when the write finishes the last step, In progress when a Planned project
- * gets its first tick. Only these forward moves are made; any status can still be set by hand,
- * and clearing a tick never moves it back.
+ * gets its first tick in Shopping or Building. A tick in the structural review is not work on the
+ * project, so it moves nothing (#393). Only these forward moves are made; any status can still be
+ * set by hand, and clearing a tick never moves it back.
  */
 export function statusAfterTicks(
   status: Status,
@@ -159,6 +162,8 @@ export function statusAfterTicks(
 ): Status {
   const { done, total } = after.steps;
   if (total > 0 && done === total && before.steps.done < total) return 'built';
-  if (status === 'planned' && changes.some((c) => c.done)) return 'in-progress';
+  if (status === 'planned' && changes.some((c) => c.done && !isReviewProgress(c.kind))) {
+    return 'in-progress';
+  }
   return status;
 }
