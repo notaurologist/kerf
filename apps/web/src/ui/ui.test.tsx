@@ -18,6 +18,7 @@ import {
   Card,
   Changed,
   CheckStatus,
+  CompactSelect,
   Definitions,
   Diagram,
   Disclosure,
@@ -209,6 +210,28 @@ describe('Select', () => {
     );
     expect(html).toContain('<option value="" selected="">Choose…</option>');
     expect(html).not.toMatch(/value="4x6" selected/);
+  });
+
+  it('draws the menu in a box with the chevron after it, as every menu with words does', () => {
+    // The device's own menu look did not match the text inputs on the laptop (#354).
+    const field = render(
+      <Field id="s" label="Beam stock">
+        {(c) => <Select {...c} value="" onChange={none} options={[]} />}
+      </Field>,
+    );
+    const compact = render(
+      <CompactSelect
+        label="Status"
+        value="a"
+        onChange={none}
+        options={[{ value: 'a', label: 'A' }]}
+      />,
+    );
+    for (const html of [field, compact]) {
+      expect(html).toMatch(
+        /<span class="k-select"><select [^>]*class="k-field__input"[^>]*>.*<\/select><svg class="k-icon"/,
+      );
+    }
   });
 });
 

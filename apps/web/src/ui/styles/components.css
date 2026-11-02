@@ -308,7 +308,31 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .k-compact-select .k-field__input {
+  /* A menu (#354): the device's own look is off, so its border, height, and padding are the
+     text input's on every browser, with the chevron drawn over the end. The box takes the
+     field's width, so the chevron stays at the menu's end. */
+  .k-select {
+    display: inline-grid;
+    inline-size: 100%;
+  }
+
+  .k-select > * {
+    grid-area: 1 / 1;
+  }
+
+  .k-select > select {
+    appearance: none;
+    padding-inline-end: calc(var(--space-xs) * 2 + 1em);
+  }
+
+  .k-select > .k-icon {
+    align-self: center;
+    justify-self: end;
+    margin-inline-end: var(--space-xs);
+    pointer-events: none;
+  }
+
+  .k-compact-select :is(.k-select, .k-field__input) {
     inline-size: auto;
   }
 
@@ -390,12 +414,12 @@
 
   /* Inputs sized to what is typed in them (GOV.UK, Text input: fixed-width inputs), never
      wider than the field. */
-  .k-field[data-width="short"] .k-field__input {
+  .k-field[data-width="short"] :is(.k-field__input, .k-select) {
     inline-size: 10rem;
     max-inline-size: 100%;
   }
 
-  .k-field[data-width="medium"] .k-field__input {
+  .k-field[data-width="medium"] :is(.k-field__input, .k-select) {
     max-inline-size: 20rem;
   }
 
