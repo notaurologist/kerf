@@ -27,6 +27,23 @@ export function isometric(sx: 1 | -1, sy: 1 | -1): Isometric {
   return { toViewer, right, up };
 }
 
+/** The four corners the assembled and exploded views can be seen from (#364). */
+export const CORNERS = ['front-left', 'front-right', 'back-right', 'back-left'] as const;
+export type Corner = (typeof CORNERS)[number];
+
+/**
+ * A template's view from its front left, turned to look from another corner at the same height:
+ * the right corners across x from the left, the back ones across y from the front.
+ */
+export function fromCorner(frontLeft: Isometric, corner: Corner): Isometric {
+  const sx: 1 | -1 = frontLeft.toViewer.x < 0 ? -1 : 1;
+  const sy: 1 | -1 = frontLeft.toViewer.y < 0 ? -1 : 1;
+  const across = (s: 1 | -1, turn: boolean): 1 | -1 => (turn === (s === 1) ? -1 : 1);
+  const right = corner === 'front-right' || corner === 'back-right';
+  const back = corner === 'back-right' || corner === 'back-left';
+  return isometric(across(sx, right), across(sy, back));
+}
+
 /**
  * A parallel view straight at one side of the model, such as a front elevation: the viewer in
  * direction `toViewer`, with `up` up the page. Nothing is foreshortened, so lengths in the

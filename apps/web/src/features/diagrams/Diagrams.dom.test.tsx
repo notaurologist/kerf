@@ -1,5 +1,11 @@
 // @vitest-environment happy-dom
-import { createSnapshot, findTemplate, type geometry, type TemplateDefinition } from '@kerf/core';
+import {
+  cornerViews,
+  createSnapshot,
+  findTemplate,
+  type geometry,
+  type TemplateDefinition,
+} from '@kerf/core';
 import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readDrawings, readPlan } from '../../lib/plan.ts';
@@ -270,5 +276,95 @@ describe('the drawing under a move', () => {
     expect(under(0, 'end')).toEqual(['first']);
     expect(under(1, 'start')).toEqual(['first']);
     expect(under(1, 'end')).toEqual(['exploded']);
+  });
+});
+
+describe('the corner the views are seen from (#364)', () => {
+  const outputs = template.storedOutputs.parse(JSON.parse(JSON.stringify(made.output.outputs)));
+  const backRight = JSON.parse(JSON.stringify(cornerViews(template, outputs, 'back-right')));
+  const menu = (container: HTMLElement) => {
+    const select = container.querySelector<HTMLSelectElement>('.k-views__control select');
+    if (!select) throw new Error('no corner menu');
+    return select;
+  };
+  const choose = async (container: HTMLElement, corner: string) => {
+    await act(async () => {
+      const select = menu(container);
+      select.value = corner;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  };
+  const withCorners = (load: (c: geometry.Corner) => Promise<unknown>, key = 'abc/1') => (
+    <Diagrams
+      drawings={worked}
+      rows={rows}
+      describedBy="cut-list"
+      selected={selected}
+      onSelect={() => {}}
+      partHref={(id) => `#/projects/abc/cut-list?part=${id}`}
+      corners={{ key, load: load as never }}
+    />
+  );
+
+  it('offers the four corners beside the button, the plan’s own from the front left', () => {
+    const { container } = mount(withCorners(async () => ({ ok: true, value: backRight })));
+    expect([...menu(container).options].map((o) => o.textContent)).toEqual([
+      'From the front left',
+      'From the front right',
+      'From the back right',
+      'From the back left',
+    ]);
+    expect(menu(container).value).toBe('front-left');
+    expect(menu(container).closest('.k-views__control')?.querySelector('button')?.textContent).toBe(
+      'Explode',
+    );
+  });
+
+  it('draws both views from a corner when chosen, fetching each corner once', async () => {
+    const asked: string[] = [];
+    const { container } = mount(
+      withCorners(async (c) => {
+        asked.push(c);
+        return { ok: true, value: backRight };
+      }),
+    );
+    await choose(container, 'back-right');
+    expect(onScreen(container).label).toMatch(
+      /^Isometric view\. .*Seen from the back right, above\./,
+    );
+    await click(byText(container, 'button', 'Explode'));
+    expect(onScreen(container).label).toMatch(
+      /^Exploded view\. .*Seen from the back right, above\./,
+    );
+    await choose(container, 'front-left');
+    expect(onScreen(container).label).not.toMatch(/Seen from/);
+    await choose(container, 'back-right');
+    expect(asked).toEqual(['back-right']);
+  });
+
+  it('keeps the views it shows, and says so, when a corner cannot be fetched', async () => {
+    const { container } = mount(
+      withCorners(async () => ({
+        ok: false,
+        error: { kind: 'failed', status: 0, message: 'Offline.' },
+      })),
+    );
+    await choose(container, 'back-left');
+    expect(menu(container).value).toBe('front-left');
+    expect(onScreen(container).label).not.toMatch(/Seen from/);
+    expect(container.textContent).toContain(
+      'The view from that corner could not be drawn. Offline.',
+    );
+  });
+
+  it('goes back to the front left when the plan changes', async () => {
+    const load = async () => ({ ok: true, value: backRight });
+    const { container, rerender } = mount(withCorners(load, 'abc/1'));
+    await choose(container, 'back-right');
+    expect(onScreen(container).label).toMatch(/Seen from the back right/);
+    rerender(withCorners(load, 'abc/2'));
+    expect(menu(container).value).toBe('front-left');
+    expect(onScreen(container).label).not.toMatch(/Seen from/);
   });
 });

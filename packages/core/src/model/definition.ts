@@ -57,7 +57,8 @@ export interface TemplateDefinition<
   drawings(outputs: StoredOutputs): Drawings;
   /**
    * What the 3D views are drawn from, as data: the scene, the viewpoint, and how parts are pulled
-   * apart. Generic code draws each assembly step's action drawing from it (#118). Null for a plan
+   * apart. The viewpoint is from the front left, above; generic code turns it to the other
+   * corners (#364) and draws each assembly step's action drawing from it (#118). Null for a plan
    * made before placements, which has no 3D views.
    */
   assembly(outputs: StoredOutputs): { scene: Scene; view: Isometric; explode: Explode[] } | null;

@@ -1,6 +1,8 @@
 import {
   BuildSteps,
+  cornerViews,
   createSnapshot,
+  geometry,
   type Inventory,
   inventoryKey,
   projectDrawings,
@@ -112,6 +114,39 @@ describe('GET /api/projects/:id drawings', () => {
     expect(project.drawings.boards).toHaveLength(plan.lumber.boards.length);
     expect(project.drawings.isometric.title).toBe('Isometric view');
     expect(project.drawings.cutDetails).toHaveLength(project.snapshot.outputs.cutList.length);
+  });
+});
+
+describe('GET /api/projects/:id/views/:corner (#364)', () => {
+  it('draws the assembled and exploded views from each corner, the front left as the project has', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const project = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
+    const outputs = swingSetAFrame.definition.storedOutputs.parse(project.snapshot.outputs);
+    for (const corner of geometry.CORNERS) {
+      const res = await authed(`/api/projects/${body.id}/views/${corner}`);
+      expect(res.status).toBe(200);
+      const views = (await res.json()) as Json;
+      const expected = cornerViews(swingSetAFrame.definition, outputs, corner);
+      expect(views).toEqual(JSON.parse(JSON.stringify(expected)));
+    }
+    const frontLeft = (await (
+      await authed(`/api/projects/${body.id}/views/front-left`)
+    ).json()) as Json;
+    expect(frontLeft.isometric).toEqual(project.drawings.isometric);
+    expect(frontLeft.exploded).toEqual(project.drawings.exploded);
+    const back = (await (await authed(`/api/projects/${body.id}/views/back-right`)).json()) as Json;
+    expect(back.isometric.description).toBe(
+      'The swing set, assembled. Seen from the back right, above.',
+    );
+  });
+
+  it('answers 404 for a missing project and 400 for a corner it does not know', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const missing = '00000000-0000-4000-8000-000000000000';
+    expect((await authed(`/api/projects/${missing}/views/front-right`)).status).toBe(404);
+    expect((await authed(`/api/projects/${body.id}/views/top`)).status).toBe(400);
   });
 });
 

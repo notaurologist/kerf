@@ -1,6 +1,10 @@
-import type { CutListRow, geometry } from '@kerf/core';
+import { type CutListRow, geometry } from '@kerf/core';
+import { useEffect, useRef, useState } from 'react';
+import { type ApiResult, describeError } from '../../lib/api.ts';
 import { cutDetailHeadingId, cutDetailId } from '../../lib/show.ts';
+import type { CornerViews } from '../../lib/views.ts';
 import {
+  CompactSelect,
   Diagram,
   drawingInMove,
   Stack,
@@ -42,8 +46,16 @@ export function Diagrams(props: {
   onSelect: (partId: string) => void;
   /** The cut list with this part selected. */
   partHref: (partId: string) => string;
+  /**
+   * The views from the other corners (#364), fetched when asked for and kept until `key`, the
+   * plan they were drawn from, changes. The plan's own drawings are from the front left.
+   */
+  corners?: {
+    key: string;
+    load: (corner: geometry.Corner) => Promise<ApiResult<CornerViews>>;
+  };
 }) {
-  const { drawings, rows } = props;
+  const { rows } = props;
   const common = {
     describedBy: props.describedBy,
     selected: props.selected,
@@ -51,6 +63,8 @@ export function Diagrams(props: {
   };
   const parts = `Parts ${lettersOf(rows)}, lettered as in the cut list.`;
   const chosen = rows.find((r) => r.partId === props.selected);
+  const corner = useCorner(props.drawings, props.corners);
+  const drawings = { ...props.drawings, ...corner.views };
   const motion = useAssemblyMotion(drawings.exploded?.stages);
   // Both views at one scale, so a part can slide from one to the other.
   const frame =
@@ -106,7 +120,23 @@ export function Diagrams(props: {
           <a href={props.partHref(chosen.partId)}>Show it in the cut list</a>
         </StatusLine>
       )}
-      {assembly && <ViewSwitch views={assembly} control={frame && motion.control} />}
+      {assembly && (
+        <ViewSwitch
+          views={assembly}
+          control={frame && motion.control}
+          tools={
+            props.corners && (
+              <CompactSelect
+                label="Seen from"
+                value={corner.asked}
+                options={geometry.CORNERS.map((c) => ({ value: c, label: CORNER_LABELS[c] }))}
+                onChange={(c) => corner.choose(c as geometry.Corner)}
+              />
+            )
+          }
+        />
+      )}
+      {corner.status}
       {(drawings.elevations ?? []).length > 0 && (
         <>
           <h3>Elevations and sections</h3>
@@ -153,4 +183,70 @@ export function Diagrams(props: {
       )}
     </Stack>
   );
+}
+
+const CORNER_LABELS: Record<geometry.Corner, string> = {
+  'front-left': 'From the front left',
+  'front-right': 'From the front right',
+  'back-right': 'From the back right',
+  'back-left': 'From the back left',
+};
+
+/**
+ * Which corner the assembled and exploded views are seen from (#364): the plan's own from the
+ * front left, another fetched the first time it is chosen. The drawings on screen stay until the
+ * new ones arrive.
+ */
+function useCorner(drawings: Drawings, corners: Parameters<typeof Diagrams>[0]['corners']) {
+  const [asked, setAsked] = useState<geometry.Corner>('front-left');
+  const [shown, setShown] = useState<geometry.Corner>('front-left');
+  const [loaded, setLoaded] = useState<{ key?: string; views: Map<geometry.Corner, CornerViews> }>({
+    views: new Map(),
+  });
+  const [failure, setFailure] = useState<string | null>(null);
+  const key = corners?.key;
+  const latest = useRef(key);
+  latest.current = key;
+  // A changed plan is drawn afresh from the front left.
+  useEffect(() => {
+    if (key === undefined) return;
+    setAsked('front-left');
+    setShown('front-left');
+    setFailure(null);
+  }, [key]);
+  const views = loaded.key === key ? loaded.views : new Map<geometry.Corner, CornerViews>();
+  const choose = async (corner: geometry.Corner) => {
+    setAsked(corner);
+    setFailure(null);
+    if (corner === 'front-left' || views.has(corner) || !corners) {
+      setShown(corner);
+      return;
+    }
+    const result = await corners.load(corner);
+    // The plan changed while this corner was drawn: its views are of the old plan.
+    if (latest.current !== key) return;
+    if (!result.ok) {
+      setFailure(describeError(result.error));
+      setAsked(shown);
+      return;
+    }
+    setLoaded((l) => ({
+      key,
+      views: new Map(l.key === key ? l.views : []).set(corner, result.value),
+    }));
+    setShown(corner);
+  };
+  const own = { isometric: drawings.isometric, exploded: drawings.exploded };
+  const current = shown === 'front-left' ? own : (views.get(shown) ?? own);
+  return {
+    asked,
+    choose,
+    views: current,
+    status:
+      failure !== null ? (
+        <StatusLine>The view from that corner could not be drawn. {failure}</StatusLine>
+      ) : asked !== shown ? (
+        <StatusLine>Drawing the view {CORNER_LABELS[asked].toLowerCase()}…</StatusLine>
+      ) : null,
+  };
 }

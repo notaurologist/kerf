@@ -453,6 +453,8 @@ Parts slide in stages, each in a paint order core made for it (#352, November 20
 | Send a drawing for every few frames | Correct to the frame, but each cabinet drawing is about 250 KB, and the move needs a dozen or more. |
 | Stages only, each drawn where it ends | Simpler, but a tenon still in its mortise is drawn over the leg for the first part of the stage, which is what the owner saw. |
 
+The owner can choose the corner both views are seen from (#364, the owner's preference over free rotation): a menu beside the button, "From the front left" and the other three corners, the same height. A template draws from its front left; core turns the same scene to the other corners, so the letters, guidelines, and stages are laid out for each view, and the explode is the same parts pulled the same way, seen from there. The menu changes only the screen, like the button, and goes back to the front left when the plan changes. A corner's views are fetched the first time it is chosen, with a status line while they are drawn.
+
 The cabinet's exploded view also moved its parts farther apart, so the top, sides, doors, and base each stand clear: the case rises off the base, which stays on the floor, and the doors come well forward, their panels farther. Under `prefers-reduced-motion: reduce` the views swap at once.
 
 ## Stage 4: color (#43)

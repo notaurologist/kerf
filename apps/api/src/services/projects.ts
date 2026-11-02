@@ -3,6 +3,7 @@ import {
   type Change,
   compareSnapshots,
   compareWithCurrent,
+  cornerViews,
   createSnapshot,
   type geometry,
   type Issue,
@@ -118,6 +119,9 @@ export interface Preview {
   changes: Change[];
   truncated: boolean;
 }
+
+/** A plan's assembled and exploded views from one corner. */
+type CornerViews = Pick<geometry.Drawings, 'isometric' | 'exploded'>;
 
 export type Result<T> =
   | { ok: true; value: T }
@@ -274,6 +278,18 @@ export function createProjectService(deps: {
     async get(id: string): Promise<Result<Project>> {
       const row = await load(id);
       return row ? view(row) : { ok: false, error: 'not-found' };
+    },
+
+    /** The plan's assembled and exploded views seen from one corner (#364), drawn on read. */
+    async views(id: string, corner: geometry.Corner): Promise<Result<CornerViews>> {
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      const template = findTemplate(row.templateId);
+      if (!template) return { ok: false, error: 'missing-template' };
+      const result = read(row);
+      if (!result.ok) return { ok: false, error: 'unreadable-snapshot' };
+      const outputs = template.storedOutputs.parse(result.snapshot.outputs);
+      return { ok: true, value: cornerViews(template, outputs, corner) };
     },
 
     async create(input: NewProject): Promise<Result<Project>> {
