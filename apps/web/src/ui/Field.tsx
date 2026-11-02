@@ -165,14 +165,29 @@ export function Select(
 ) {
   const { value, onChange, options, placeholder = true, ...rest } = props;
   return (
-    <select {...rest} value={value} onChange={(e) => onChange(e.target.value)}>
-      {placeholder && <option value="">Choose…</option>}
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    <SelectBox>
+      <select {...rest} value={value} onChange={(e) => onChange(e.target.value)}>
+        {placeholder && <option value="">Choose…</option>}
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </SelectBox>
+  );
+}
+
+/**
+ * The box a menu is drawn in: the device's own menu with its look turned off, and Kerf's chevron
+ * over its end, so it matches the text inputs in every browser (#354).
+ */
+function SelectBox(props: { children: ReactNode }) {
+  return (
+    <span className="k-select">
+      {props.children}
+      <Icon name="chevron" />
+    </span>
   );
 }
 
@@ -189,17 +204,19 @@ export function CompactSelect(props: {
   return (
     <label className="k-compact-select">
       <span className="k-visually-hidden">{props.label}</span>
-      <select
-        className="k-field__input"
-        value={props.value}
-        onChange={(e) => props.onChange(e.target.value)}
-      >
-        {props.options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      <SelectBox>
+        <select
+          className="k-field__input"
+          value={props.value}
+          onChange={(e) => props.onChange(e.target.value)}
+        >
+          {props.options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </SelectBox>
     </label>
   );
 }
