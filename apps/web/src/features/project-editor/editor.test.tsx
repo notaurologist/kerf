@@ -1,11 +1,13 @@
 import {
   buildFromForm,
   confirmedPaths,
+  createSnapshot,
   findTemplate,
   formValues,
   type TemplateDefinition,
 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
+import { fieldId } from '../../lib/fieldIds.ts';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, renderText, textOf } from '../../test/render.tsx';
@@ -222,6 +224,39 @@ describe('an existing project in the form', () => {
     // The beam length, read back through core's formatter.
     expect(html).toContain('10&#x27; 0&quot;');
     expect(html).toMatch(/<option value="southern-pine-no2" selected="">Southern Pine No.2</);
+  });
+});
+
+describe('a structural input with a break-even value (#401)', () => {
+  // A plan made now: the stored fixture predates the break-even factor.
+  const [stored] = storedSnapshots;
+  const made = createSnapshot(template, stored?.params, stored?.structuralInputs);
+  if (!made.ok) throw new Error('worked example should generate');
+  const complete = JSON.parse(JSON.stringify(made.output));
+  const project = projectFrom(complete);
+  const html = render(
+    <ProjectEditor
+      template={template}
+      project={project}
+      initial={{
+        name: project.name,
+        params: formValues(template.form.params, complete.params),
+        inputs: formValues(template.form.structuralInputs, complete.structuralInputs),
+      }}
+    />,
+  );
+
+  // The worked example's break-even factors: 2.164, 7.195, and 8.0 (spec, Structural model).
+  it('shows under the dynamic factor where each strength check reaches margin 1.0', () => {
+    const id = fieldId('structuralInputs', 'dynamicFactor');
+    expect(html).toMatch(new RegExp(`id="${id}"[^>]*aria-describedby="[^"]*${id}-compare`));
+    expect(textOf(html)).toContain(
+      'With the other inputs as entered: Top beam, 4x6, bending: margin 1.0 or more while the dynamic factor is 2.1 or less; Top beam, 4x6, shear: margin 1.0 or more while the dynamic factor is 7.1 or less; Swing hanger, rated load: margin 1.0 or more while the dynamic factor is 8.0 or less.',
+    );
+  });
+
+  it('shows it under no other field', () => {
+    expect(html.match(/-compare"/g)).toHaveLength(2);
   });
 });
 

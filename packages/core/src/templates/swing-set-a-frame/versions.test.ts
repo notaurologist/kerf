@@ -15,6 +15,7 @@ import v10 from './snapshots/v10.json' with { type: 'json' };
 import v11 from './snapshots/v11.json' with { type: 'json' };
 import v12 from './snapshots/v12.json' with { type: 'json' };
 import v13 from './snapshots/v13.json' with { type: 'json' };
+import v14 from './snapshots/v14.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -78,6 +79,14 @@ const VERSION_12 = [/^design\.hardware\[\d+\]\.(group|notes\[0\])$/, /^hardware\
 const VERSION_13 = [/^structuralReview\.\w+\.bending\.steps\[\d+\](\.label)?$/];
 /** Version 14's additions (#300): each part's dadoes, notches, and cutouts, all empty. */
 const VERSION_14 = [/^design\.parts\[\d+\]\.(dadoes|notches|cutouts)$/];
+/**
+ * Version 15's changes (#401): each strength check's break-even dynamic factor, the factor moved
+ * after the loads it multiplies in the working, a formula saying what it multiplies, and the
+ * missing inputs listed in the order the checks now ask for them.
+ */
+const VERSION_15 = [
+  /^structuralReview\.(beam\.(bending|shear)|hanger)\.(inputs|formulas|missing|breakEven)\b/,
+];
 const notVersion6 = (c: { path: string }) =>
   ![
     ...VERSION_6,
@@ -87,22 +96,33 @@ const notVersion6 = (c: { path: string }) =>
     ...VERSION_12,
     ...VERSION_13,
     ...VERSION_14,
+    ...VERSION_15,
   ].some((r) => r.test(c.path));
 const notVersion7 = (c: { path: string }) =>
-  ![...VERSION_7, ...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13, ...VERSION_14].some(
+  ![
+    ...VERSION_7,
+    ...VERSION_9,
+    ...VERSION_10,
+    ...VERSION_12,
+    ...VERSION_13,
+    ...VERSION_14,
+    ...VERSION_15,
+  ].some((r) => r.test(c.path));
+const notVersion9 = (c: { path: string }) =>
+  ![...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13, ...VERSION_14, ...VERSION_15].some(
     (r) => r.test(c.path),
   );
-const notVersion9 = (c: { path: string }) =>
-  ![...VERSION_9, ...VERSION_10, ...VERSION_12, ...VERSION_13, ...VERSION_14].some((r) =>
+const notVersion10 = (c: { path: string }) =>
+  ![...VERSION_10, ...VERSION_12, ...VERSION_13, ...VERSION_14, ...VERSION_15].some((r) =>
     r.test(c.path),
   );
-const notVersion10 = (c: { path: string }) =>
-  ![...VERSION_10, ...VERSION_12, ...VERSION_13, ...VERSION_14].some((r) => r.test(c.path));
 const notVersion12 = (c: { path: string }) =>
-  ![...VERSION_12, ...VERSION_13, ...VERSION_14].some((r) => r.test(c.path));
+  ![...VERSION_12, ...VERSION_13, ...VERSION_14, ...VERSION_15].some((r) => r.test(c.path));
 const notVersion13 = (c: { path: string }) =>
-  ![...VERSION_13, ...VERSION_14].some((r) => r.test(c.path));
-const notVersion14 = (c: { path: string }) => !VERSION_14.some((r) => r.test(c.path));
+  ![...VERSION_13, ...VERSION_14, ...VERSION_15].some((r) => r.test(c.path));
+const notVersion14 = (c: { path: string }) =>
+  ![...VERSION_14, ...VERSION_15].some((r) => r.test(c.path));
+const notVersion15 = (c: { path: string }) => !VERSION_15.some((r) => r.test(c.path));
 
 describe('swing-set template versions', () => {
   it('version 2 adds sources and bases to the structural working, and changes no number (#36)', () => {
@@ -353,7 +373,7 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(13);
-      const { changes } = regenerated(read.snapshot);
+      const changes = regenerated(read.snapshot).changes.filter(notVersion15);
       expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter(notVersion14)).toEqual([]);
       for (const c of changes) {
@@ -361,5 +381,55 @@ describe('swing-set template versions', () => {
         expect(c.after).toEqual([]);
       }
     }
+  });
+
+  it('version 15 adds the break-even dynamic factor, and changes no margin or computed value (#401)', () => {
+    type Check = {
+      status: string;
+      margin?: number;
+      computed?: unknown;
+      allowable?: unknown;
+      inputs?: { symbol: string; value: number }[];
+      missing?: { key: string }[];
+      breakEven?: { key: string; value: number };
+    };
+    type Review = { beam: { bending: Check; shear: Check }; hanger: Check };
+    let withBreakEven = 0;
+    for (const stored of v14) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(14);
+      const { changes } = regenerated(read.snapshot);
+      expect(changes.filter(notVersion15)).toEqual([]);
+
+      const now = createSnapshot(template, read.snapshot.params, read.snapshot.structuralInputs);
+      if (!now.ok) throw new Error('worked example no longer generates');
+      const before = (read.snapshot.outputs as { structuralReview: Review }).structuralReview;
+      const after = (now.output.outputs as { structuralReview: Review }).structuralReview;
+      const pairs: [Check, Check][] = [
+        [before.beam.bending, after.beam.bending],
+        [before.beam.shear, after.beam.shear],
+        [before.hanger, after.hanger],
+      ];
+      for (const [old, current] of pairs) {
+        expect(current.status).toBe(old.status);
+        expect(current.margin).toBe(old.margin);
+        expect(current.computed).toEqual(old.computed);
+        expect(current.allowable).toEqual(old.allowable);
+        // The same inputs are missing, in a new order.
+        const keys = (c: Check) => (c.missing ?? []).map((m) => m.key).sort();
+        expect(keys(current)).toEqual(keys(old));
+        if (current.breakEven) {
+          expect(current.breakEven.key).toBe('dynamicFactor');
+          withBreakEven += 1;
+        }
+      }
+      // The beam checks list the same quantities, the factor now after the loads.
+      for (const kind of ['bending', 'shear'] as const) {
+        const listed = (c: Check) => (c.inputs ?? []).map((q) => `${q.symbol} ${q.value}`).sort();
+        expect(listed(after.beam[kind])).toEqual(listed(before.beam[kind]));
+      }
+    }
+    expect(withBreakEven).toBeGreaterThan(0);
   });
 });

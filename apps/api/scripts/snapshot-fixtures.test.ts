@@ -25,6 +25,7 @@ const PINNED: Record<string, Record<string, string>> = {
     'v11.json': '1217ee4cdc6df87857d0c755b0d74fae86ddd3b2deb3710f834982f8ef1b51b3',
     'v12.json': 'c7f81f3c29fe7e0f4ff609e16aac8f42c7d537544c35a7048a44d175679a2b47',
     'v13.json': 'b0109364a4ff20247065d30f8b0407488375154f00ce75af331c1c0a084220cf',
+    'v14.json': '325b2bf424c09a89602c67f9e005b78761f3c28335bb209ee468ca5bc59af975',
   },
   'record-cabinet': {
     'v1.json': 'b74091595976a0736584ba361abd263e0ce720235059180bc8495944fc20b24f',

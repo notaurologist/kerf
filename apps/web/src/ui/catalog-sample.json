@@ -1,8 +1,8 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 14,
-    "snapshotVersion": 13,
+    "templateVersion": 15,
+    "snapshotVersion": 14,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -2138,13 +2138,6 @@
                 "unit": "lb"
               },
               {
-                "symbol": "C_dyn",
-                "label": "Dynamic factor",
-                "value": 2,
-                "unit": "",
-                "basis": "Entered"
-              },
-              {
                 "symbol": "MC",
                 "label": "Beam moisture content",
                 "value": 30,
@@ -2197,6 +2190,13 @@
                 "label": "Beam weight, ρ·A / 1728",
                 "value": 0.4337982156278033,
                 "unit": "lb/in"
+              },
+              {
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2,
+                "unit": "",
+                "basis": "Entered"
               },
               {
                 "symbol": "Fb",
@@ -2281,7 +2281,14 @@
               "Each swing's load is split equally between its two hangers (a centered rider).",
               "The dynamic factor covers snap loads from slack chains, which exceed the smooth pendulum load. It is not applied to the beam's own weight."
             ],
+            "breakEven": {
+              "key": "dynamicFactor",
+              "symbol": "C_dyn",
+              "label": "Dynamic factor",
+              "value": 2.16408481293555
+            },
             "formulas": [
+              "Each point load P = C_dyn · its load before the factor; the uniform load w is not multiplied",
               "R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2 (a = distance of each load from the left support)",
               "M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign",
               "S = b·d² / 6",
@@ -2685,13 +2692,6 @@
                 "unit": "lb"
               },
               {
-                "symbol": "C_dyn",
-                "label": "Dynamic factor",
-                "value": 2,
-                "unit": "",
-                "basis": "Entered"
-              },
-              {
                 "symbol": "MC",
                 "label": "Beam moisture content",
                 "value": 30,
@@ -2744,6 +2744,13 @@
                 "label": "Beam weight, ρ·A / 1728",
                 "value": 0.4337982156278033,
                 "unit": "lb/in"
+              },
+              {
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2,
+                "unit": "",
+                "basis": "Entered"
               },
               {
                 "symbol": "Fb",
@@ -2829,7 +2836,14 @@
               "The dynamic factor covers snap loads from slack chains, which exceed the smooth pendulum load. It is not applied to the beam's own weight.",
               "Loads near the supports are not reduced (NDS 3.4.2.2 permits it for some support conditions; not used)."
             ],
+            "breakEven": {
+              "key": "dynamicFactor",
+              "symbol": "C_dyn",
+              "label": "Dynamic factor",
+              "value": 7.1946505528684925
+            },
             "formulas": [
+              "Each point load P = C_dyn · its load before the factor; the uniform load w is not multiplied",
               "R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2",
               "V = larger of R1 and R2",
               "f_v = 3·V / (2·b·d)",
@@ -3428,17 +3442,17 @@
               "unit": "lb"
             },
             {
+              "symbol": "T / 2",
+              "label": "Smooth swing load on the most loaded hanger",
+              "value": 149.99999999999997,
+              "unit": "lb"
+            },
+            {
               "symbol": "C_dyn",
               "label": "Dynamic factor",
               "value": 2,
               "unit": "",
               "basis": "Entered"
-            },
-            {
-              "symbol": "P",
-              "label": "Load on the most loaded hanger, C_dyn·T / 2",
-              "value": 299.99999999999994,
-              "unit": "lb"
             },
             {
               "symbol": "R_rated",
@@ -3448,7 +3462,10 @@
               "basis": "Entered from the manufacturer's specification"
             }
           ],
-          "formulas": ["margin = rated working load / computed load"],
+          "formulas": [
+            "P = C_dyn · load before the factor",
+            "margin = rated working load / computed load"
+          ],
           "steps": [],
           "factors": [],
           "assumptions": [
@@ -3470,7 +3487,13 @@
             "value": 1200,
             "unit": "lb"
           },
-          "margin": 4.000000000000001
+          "margin": 4.000000000000001,
+          "breakEven": {
+            "key": "dynamicFactor",
+            "symbol": "C_dyn",
+            "label": "Dynamic factor",
+            "value": 8.000000000000002
+          }
         },
         "checklist": [
           {
@@ -3535,8 +3558,8 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 14,
-    "snapshotVersion": 13,
+    "templateVersion": 15,
+    "snapshotVersion": 14,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -5774,13 +5797,6 @@
                 "unit": "lb"
               },
               {
-                "symbol": "C_dyn",
-                "label": "Dynamic factor",
-                "value": 2,
-                "unit": "",
-                "basis": "Entered"
-              },
-              {
                 "symbol": "MC",
                 "label": "Beam moisture content",
                 "value": 30,
@@ -5833,6 +5849,13 @@
                 "label": "Beam weight, ρ·A / 1728",
                 "value": 0.37182704196668853,
                 "unit": "lb/in"
+              },
+              {
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2,
+                "unit": "",
+                "basis": "Entered"
               },
               {
                 "symbol": "Fb",
@@ -5918,7 +5941,14 @@
               "Each swing's load is split equally between its two hangers (a centered rider).",
               "The dynamic factor covers snap loads from slack chains, which exceed the smooth pendulum load. It is not applied to the beam's own weight."
             ],
+            "breakEven": {
+              "key": "dynamicFactor",
+              "symbol": "C_dyn",
+              "label": "Dynamic factor",
+              "value": 1.6840128448163088
+            },
             "formulas": [
+              "Each point load P = C_dyn · its load before the factor; the uniform load w is not multiplied",
               "Load per ply = P / n and w / n",
               "R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2 (a = distance of each load from the left support)",
               "M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign",
@@ -6335,13 +6365,6 @@
                 "unit": "lb"
               },
               {
-                "symbol": "C_dyn",
-                "label": "Dynamic factor",
-                "value": 2,
-                "unit": "",
-                "basis": "Entered"
-              },
-              {
                 "symbol": "MC",
                 "label": "Beam moisture content",
                 "value": 30,
@@ -6394,6 +6417,13 @@
                 "label": "Beam weight, ρ·A / 1728",
                 "value": 0.37182704196668853,
                 "unit": "lb/in"
+              },
+              {
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2,
+                "unit": "",
+                "basis": "Entered"
               },
               {
                 "symbol": "Fb",
@@ -6480,7 +6510,14 @@
               "The dynamic factor covers snap loads from slack chains, which exceed the smooth pendulum load. It is not applied to the beam's own weight.",
               "Loads near the supports are not reduced (NDS 3.4.2.2 permits it for some support conditions; not used)."
             ],
+            "breakEven": {
+              "key": "dynamicFactor",
+              "symbol": "C_dyn",
+              "label": "Dynamic factor",
+              "value": 6.166843331030138
+            },
             "formulas": [
+              "Each point load P = C_dyn · its load before the factor; the uniform load w is not multiplied",
               "Load per ply = P / n and w / n",
               "R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2",
               "V = larger of R1 and R2",
@@ -7100,17 +7137,17 @@
               "unit": "lb"
             },
             {
+              "symbol": "T / 2",
+              "label": "Smooth swing load on the most loaded hanger",
+              "value": 149.99999999999997,
+              "unit": "lb"
+            },
+            {
               "symbol": "C_dyn",
               "label": "Dynamic factor",
               "value": 2,
               "unit": "",
               "basis": "Entered"
-            },
-            {
-              "symbol": "P",
-              "label": "Load on the most loaded hanger, C_dyn·T / 2",
-              "value": 299.99999999999994,
-              "unit": "lb"
             },
             {
               "symbol": "R_rated",
@@ -7120,7 +7157,10 @@
               "basis": "Entered from the manufacturer's specification"
             }
           ],
-          "formulas": ["margin = rated working load / computed load"],
+          "formulas": [
+            "P = C_dyn · load before the factor",
+            "margin = rated working load / computed load"
+          ],
           "steps": [],
           "factors": [],
           "assumptions": [
@@ -7142,7 +7182,13 @@
             "value": 1200,
             "unit": "lb"
           },
-          "margin": 4.000000000000001
+          "margin": 4.000000000000001,
+          "breakEven": {
+            "key": "dynamicFactor",
+            "symbol": "C_dyn",
+            "label": "Dynamic factor",
+            "value": 8.000000000000002
+          }
         },
         "checklist": [
           {
@@ -7215,8 +7261,8 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 14,
-    "snapshotVersion": 13,
+    "templateVersion": 15,
+    "snapshotVersion": 14,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -9202,12 +9248,12 @@
                 "label": "Maximum swing angle"
               },
               {
-                "key": "dynamicFactor",
-                "label": "Dynamic factor"
-              },
-              {
                 "key": "beamMoistureContent",
                 "label": "Beam moisture content"
+              },
+              {
+                "key": "dynamicFactor",
+                "label": "Dynamic factor"
               }
             ]
           },
@@ -9235,12 +9281,12 @@
                 "label": "Maximum swing angle"
               },
               {
-                "key": "dynamicFactor",
-                "label": "Dynamic factor"
-              },
-              {
                 "key": "beamMoistureContent",
                 "label": "Beam moisture content"
+              },
+              {
+                "key": "dynamicFactor",
+                "label": "Dynamic factor"
               }
             ]
           },

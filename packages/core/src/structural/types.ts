@@ -50,6 +50,20 @@ export type AppliedFactor = z.infer<typeof AppliedFactor>;
 export const CheckKind = z.enum(['beam-bending', 'beam-shear', 'beam-deflection', 'hardware']);
 export type CheckKind = z.infer<typeof CheckKind>;
 
+/**
+ * The value of a load factor, such as a dynamic factor, at which a check's margin reaches 1.0 with
+ * every other input as entered. 0 when the loads the factor does not multiply reach margin 1.0 on
+ * their own. Shown beside the check and the factor's field, so a factor can be chosen against it.
+ */
+export const BreakEven = z.object({
+  /** The factor's input, so a form can point at it. */
+  key: z.string(),
+  symbol: z.string(),
+  label: z.string(),
+  value: z.number().min(0),
+});
+export type BreakEven = z.infer<typeof BreakEven>;
+
 const CheckHeader = {
   kind: CheckKind,
   /** Such as 'Bending'. */
@@ -74,6 +88,7 @@ export const ComputedCheck = z.object({
   allowable: Quantity,
   /** allowable / computed: "margin 2.1x under these assumptions". */
   margin: z.number(),
+  breakEven: BreakEven.optional(),
 });
 export type ComputedCheck = z.infer<typeof ComputedCheck>;
 
@@ -81,6 +96,8 @@ export const InputNeededCheck = z.object({
   ...CheckHeader,
   status: z.literal('input-needed'),
   missing: z.array(MissingInput),
+  /** Known once only the factor is missing. */
+  breakEven: BreakEven.optional(),
 });
 export type InputNeededCheck = z.infer<typeof InputNeededCheck>;
 
@@ -103,4 +120,18 @@ export type CheckResult = z.infer<typeof CheckResult>;
 /** Formats a margin the way results read it: "margin 2.1x". */
 export function formatMargin(margin: number): string {
   return `margin ${margin.toFixed(1)}x`;
+}
+
+/**
+ * A break-even factor as results read it, rounded down to 0.1 so the margin is 1.0 or more at the
+ * value shown: "margin 1.0 or more while the dynamic factor is 2.1 or less".
+ */
+export function formatBreakEven(b: BreakEven): string {
+  const name = b.label.toLowerCase();
+  if (b.value === 0) {
+    return `below margin 1.0 at any ${name}: the loads it does not multiply reach margin 1.0 on their own`;
+  }
+  // The small allowance keeps a value such as 2.0 from showing as 1.9 after floating-point error.
+  const shown = Math.floor(b.value * 10 + 1e-9) / 10;
+  return `margin 1.0 or more while the ${name} is ${shown.toFixed(1)} or less`;
 }

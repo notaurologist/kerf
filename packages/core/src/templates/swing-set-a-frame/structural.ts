@@ -9,6 +9,7 @@ import {
   beamChecks,
   hardwareCheck,
   type LoadCase,
+  type LoadFactor,
   type PointLoad,
 } from '../../structural/checks.ts';
 import type { ServiceConditions } from '../../structural/factors.ts';
@@ -49,7 +50,10 @@ export const SwingSetStructuralInputs = z
       .refine(([a, b]) => a + b > 0, 'At least one swing needs a rider.'),
     /** Largest angle the chains swing to, from vertical, degrees. */
     maxSwingAngle: z.number().min(0).max(90),
-    /** Multiplier on the pendulum load for snap loads, chosen with an experienced builder. */
+    /**
+     * Multiplier on the pendulum load for snap loads, chosen with an experienced builder against
+     * the factor at which each strength check reaches margin 1.0.
+     */
     dynamicFactor: z.number().min(1).max(5),
     /** Deflection limit as span divided by this number. */
     deflectionLimit: z.number().min(60).max(1000),
@@ -247,25 +251,15 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
   const swing = mapNeeded(need(inputs, 'riderWeights', 'maxSwingAngle'), (v) =>
     swingLoads(v.riderWeights, v.maxSwingAngle),
   );
-  const strengthLoads = mapNeeded(
-    need(inputs, 'riderWeights', 'maxSwingAngle', 'dynamicFactor'),
-    (v) => {
-      const base = swingLoads(v.riderWeights, v.maxSwingAngle);
-      return {
-        perHanger: base.perHanger.map((P) => P * v.dynamicFactor),
-        working: [
-          ...base.working,
-          {
-            symbol: 'C_dyn',
-            label: 'Dynamic factor',
-            value: v.dynamicFactor,
-            unit: '',
-            basis: 'Entered',
-          },
-        ],
-      };
-    },
-  );
+  // Applied by the strength checks to the swing loads only, which also report the factor at which
+  // their margin reaches 1.0 (#401).
+  const dynamicFactor: LoadFactor = {
+    key: 'dynamicFactor',
+    symbol: 'C_dyn',
+    label: STRUCTURAL_INPUT_LABELS.dynamicFactor,
+    basis: 'Entered',
+    value: mapNeeded(need(inputs, 'dynamicFactor'), (v) => v.dynamicFactor),
+  };
 
   // The beam's own weight, from its density at the entered moisture content. With no design values
   // for the size there is no G either; the beam checks then report that.
@@ -309,13 +303,13 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
       ...(weight ? { uniform: { w: weight.w, label: "Beam's own weight" } } : {}),
       working: [...loads.working, ...(weight?.working ?? [])],
     }));
-  const strengthBeam = withWeight(strengthLoads);
-  const deflectionBeam = withWeight(swing);
+  const swingBeam = withWeight(swing);
 
   const strength: LoadCase = {
     name: LOAD_CASES.strength,
-    loads: mapNeeded(strengthBeam, ({ points, uniform }) => ({ points, uniform })),
-    working: 'value' in strengthBeam ? strengthBeam.value.working : [],
+    loads: mapNeeded(swingBeam, ({ points, uniform }) => ({ points, uniform })),
+    factor: dynamicFactor,
+    working: 'value' in swingBeam ? swingBeam.value.working : [],
     assumptions: [
       ...SWING_ASSUMPTIONS,
       "The dynamic factor covers snap loads from slack chains, which exceed the smooth pendulum load. It is not applied to the beam's own weight.",
@@ -323,8 +317,8 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
   };
   const deflection: LoadCase & { limitRatio: Needed<number> } = {
     name: LOAD_CASES.deflection,
-    loads: mapNeeded(deflectionBeam, ({ points, uniform }) => ({ points, uniform })),
-    working: 'value' in deflectionBeam ? deflectionBeam.value.working : [],
+    loads: mapNeeded(swingBeam, ({ points, uniform }) => ({ points, uniform })),
+    working: 'value' in swingBeam ? swingBeam.value.working : [],
     assumptions: [
       ...SWING_ASSUMPTIONS,
       'Deflection describes normal use, so the dynamic factor is not applied.',
@@ -363,15 +357,15 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
   const hanger = hardwareCheck({
     subject: 'Swing hanger',
     loadCase: LOAD_CASES.strength,
-    load: mapNeeded(strengthLoads, (l) => {
+    load: mapNeeded(swing, (l) => {
       const P = Math.max(...l.perHanger);
       return {
         value: P,
         working: [
           ...l.working,
           {
-            symbol: 'P',
-            label: 'Load on the most loaded hanger, C_dyn·T / 2',
+            symbol: 'T / 2',
+            label: 'Smooth swing load on the most loaded hanger',
             value: P,
             unit: 'lb',
           },
@@ -379,6 +373,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
         assumptions: [...SWING_ASSUMPTIONS],
       };
     }),
+    factor: dynamicFactor,
     rating: mapNeeded(need(inputs, 'hangerRating'), (v) => v.hangerRating),
   });
 

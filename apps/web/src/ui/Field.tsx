@@ -36,6 +36,8 @@ export function Field(props: {
    * control while the value is the suggestion.
    */
   about?: string;
+  /** What the current plan gives to compare this value against, such as a break-even factor. */
+  compare?: string;
   /** Use a fixed id, so an error summary can link to the control. */
   id?: string;
   unit?: string;
@@ -52,6 +54,7 @@ export function Field(props: {
   const errorId = `${id}-error`;
   const echoId = `${id}-echo`;
   const aboutId = `${id}-about`;
+  const compareId = `${id}-compare`;
   const unitId = `${id}-unit`;
   const describedBy = [
     props.error ? errorId : undefined,
@@ -59,6 +62,7 @@ export function Field(props: {
     props.hint ? hintId : undefined,
     props.echo ? echoId : undefined,
     props.about ? aboutId : undefined,
+    props.compare ? compareId : undefined,
   ]
     .filter(Boolean)
     .join(' ');
@@ -100,6 +104,11 @@ export function Field(props: {
       {props.about && (
         <span id={aboutId} className="k-field__about">
           {props.about}
+        </span>
+      )}
+      {props.compare && (
+        <span id={compareId} className="k-field__about">
+          {props.compare}
         </span>
       )}
     </div>

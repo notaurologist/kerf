@@ -113,6 +113,32 @@ describe('example 1: 4x6 Southern Pine No.2, 150 lb riders on both swings, θ = 
     expect(computed(r.hanger).margin).toBeCloseTo(4, 9);
   });
 
+  // At factor C the hangers give 7,875·C and the beam's weight 463.96, which the factor does not
+  // multiply: bending reaches Fb'·S = 992.0829 · 17.645833 = 17,506.13 at
+  // C = (17,506.13 − 463.96) / 7,875 = 2.1641. Shear reaches Fv'·2bd/3 = 2,178.46 at
+  // C = (2,178.46 − 20.06) / 300 = 7.1947. The hanger reaches 1,200 at C = 1,200 / 150 = 8.
+  it('reports the dynamic factor at which each strength check reaches margin 1.0 (#401)', () => {
+    expect(computed(r.beam.bending).breakEven).toMatchObject({ key: 'dynamicFactor' });
+    expect(computed(r.beam.bending).breakEven?.value).toBeCloseTo(2.164085, 5);
+    expect(computed(r.beam.shear).breakEven?.value).toBeCloseTo(7.194651, 5);
+    expect(computed(r.hanger).breakEven?.value).toBeCloseTo(8, 9);
+    // Not margin × factor (2.159): the beam's weight is not multiplied.
+    expect(computed(r.beam.bending).breakEven?.value).not.toBeCloseTo(1.07969 * 2, 3);
+    expect(computed(r.beam.deflection).breakEven).toBeUndefined();
+  });
+
+  it('lists the factor after the loads it multiplies', () => {
+    const b = computed(r.beam.bending);
+    expect(b.inputs.find((q) => q.symbol === 'C_dyn')).toMatchObject({
+      value: 2,
+      basis: 'Entered',
+    });
+    expect(b.formulas[0]).toContain('C_dyn');
+    const h = computed(r.hanger);
+    expect(h.inputs.find((q) => q.symbol === 'T / 2')?.value).toBeCloseTo(150, 9);
+    expect(h.computed.value).toBeCloseTo(300, 9);
+  });
+
   it('uses the stated service conditions', () => {
     const b = computed(r.beam.bending);
     const f = (s: string) => b.factors.find((x) => x.symbol === s)?.value;
@@ -166,6 +192,12 @@ describe('example 3: two-ply 2x6 beam, same loads as example 1', () => {
     expect(computed(r.beam.deflection).margin).toBeCloseTo(2.70081, 4);
   });
 
+  // Per ply: the hangers give 3,937.5·C and the weight 198.84; Fb'·S = 903.093 · 7.5625 =
+  // 6,829.64, reached at C = (6,829.64 − 198.84) / 3,937.5 = 1.6840.
+  it('reaches margin 1.0 in bending at a dynamic factor of 1.684', () => {
+    expect(computed(r.beam.bending).breakEven?.value).toBeCloseTo(1.684013, 4);
+  });
+
   it('puts ply fastening on the checklist', () => {
     expect(r.checklist.some((c) => c.element.startsWith('Beam plies'))).toBe(true);
   });
@@ -185,8 +217,8 @@ describe('missing inputs', () => {
       'beamIncised',
       'riderWeights',
       'maxSwingAngle',
-      'dynamicFactor',
       'beamMoistureContent',
+      'dynamicFactor',
     ]);
     expect(keys(r.hanger)).toEqual([
       'riderWeights',
@@ -205,6 +237,29 @@ describe('missing inputs', () => {
       missing: [{ key: 'dynamicFactor' }],
     });
     expect(r.hanger).toMatchObject({ status: 'input-needed', missing: [{ key: 'dynamicFactor' }] });
+  });
+
+  it('reports the break-even factor while the dynamic factor is missing, the same as when entered', () => {
+    const { dynamicFactor: _, ...rest } = inputs;
+    const r = review(params, rest);
+    const entered = review(params, inputs);
+    for (const [held, done] of [
+      [r.beam.bending, entered.beam.bending],
+      [r.beam.shear, entered.beam.shear],
+      [r.hanger, entered.hanger],
+    ] as const) {
+      expect(held.status).toBe('input-needed');
+      expect(held.status === 'input-needed' && held.breakEven).toEqual(
+        done.status === 'computed' && done.breakEven,
+      );
+    }
+  });
+
+  it('needs every other input for the break-even factor', () => {
+    const { dynamicFactor: _, hangerRating: __, beamMoistureContent: ___, ...rest } = inputs;
+    const r = review(params, rest);
+    expect(r.beam.bending).not.toHaveProperty('breakEven');
+    expect(r.hanger).not.toHaveProperty('breakEven');
   });
 
   it('holds the beam checks, not the hanger, until the moisture content is entered', () => {

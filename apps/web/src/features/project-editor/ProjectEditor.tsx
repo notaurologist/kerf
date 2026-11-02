@@ -10,6 +10,7 @@ import {
   formValues,
   type Plan,
   type SuggestedField,
+  structural,
   type TemplateDefinition,
   visibleFields,
 } from '@kerf/core';
@@ -495,6 +496,18 @@ export function ProjectEditor(props: {
     </Button>
   );
 
+  // A saved project's output shows beside the form, previewed before saving (#39, L-A; #56).
+  const saved = project ? readPlan(project) : null;
+  const showsPlan = saved?.ok || !project;
+  const preview = usePreview(template, project ?? null, params, inputs, !showsPlan);
+  // The plan for the values in the form, when there is one: for comparing a value against.
+  const current =
+    preview.kind === 'ready'
+      ? preview.plan
+      : preview.kind === 'saved' && saved?.ok
+        ? saved.plan
+        : null;
+
   const editing = (
     <Stack gap="l">
       <Field id="project-name" label="Project name" error={issues.name} width="medium">
@@ -539,6 +552,7 @@ export function ProjectEditor(props: {
               needed={from === 'structuralInputs' || field.confirmed}
               confirm={waitingFor[from].has(field.path) ? 'Copied, confirm' : undefined}
               about={aboutField(props.suggested, from, field.path, values[from][field.path])}
+              compare={from === 'structuralInputs' ? compareWith(current, field.path) : undefined}
               onChange={(text) => onChange[from]({ ...values[from], [field.path]: text })}
             />
           ))}
@@ -556,8 +570,6 @@ export function ProjectEditor(props: {
     </Stack>
   );
 
-  // A saved project's output shows beside the form, previewed before saving (#39, L-A; #56).
-  const saved = project ? readPlan(project) : null;
   const actions = (
     <Stack gap="s">
       <FormProgress
@@ -624,15 +636,7 @@ export function ProjectEditor(props: {
         )}
         <WithAside head={actions}>
           {editing}
-          {(saved?.ok || !project) && (
-            <EditPreview
-              template={template}
-              project={project ?? null}
-              saved={saved?.ok ? saved.plan : null}
-              params={params}
-              inputs={inputs}
-            />
-          )}
+          {showsPlan && <PreviewPane saved={saved?.ok ? saved.plan : null} state={preview} />}
         </WithAside>
       </Stack>
       {dialog}
@@ -656,15 +660,17 @@ function shownParts(template: TemplateDefinition, params: FormValues, inputs: Fo
     .filter((part) => part.fields.length > 0);
 }
 
-function EditPreview(props: {
-  template: TemplateDefinition;
-  project: Project | null;
-  saved: Plan | null;
-  params: FormValues;
-  inputs: FormValues;
-}) {
-  const state = usePreview(props.template, props.project, props.params, props.inputs);
-  return <PreviewPane saved={props.saved} state={state} />;
+/**
+ * Where each check that uses this input reaches margin 1.0 as it grows, from the plan for the
+ * values in the form (#401), so a value can be chosen against it.
+ */
+function compareWith(plan: Plan | null, path: string): string | undefined {
+  const lines = (plan?.checks ?? []).flatMap((c) =>
+    c.status !== 'not-computed' && c.breakEven?.key === path
+      ? [`${c.subject}, ${c.title.toLowerCase()}: ${structural.formatBreakEven(c.breakEven)}`]
+      : [],
+  );
+  return lines.length > 0 ? `With the other inputs as entered: ${lines.join('; ')}.` : undefined;
 }
 
 /**
