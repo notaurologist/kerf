@@ -42,11 +42,17 @@
       break-inside: avoid;
     }
 
+    /* Every row's details print, open (#360). */
+    .k-table tr[data-details][hidden] {
+      display: table-row;
+    }
+
     .k-disclosure > summary .k-icon {
       display: none;
     }
 
     .k-button,
+    .k-table__toggle,
     .k-titlebar,
     .k-frame__side,
     .k-modebar {

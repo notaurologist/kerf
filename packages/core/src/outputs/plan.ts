@@ -3,7 +3,7 @@ import type { ChecklistItem, EndCut, Flag } from '../model/types.ts';
 import type { MovementResult } from '../movement/movement.ts';
 import type { BoltJoint } from '../structural/boltDistances.ts';
 import type { CheckResult } from '../structural/types.ts';
-import type { CutListRow } from './cutList.ts';
+import type { PlannedCutRow } from './cutList.ts';
 import type { HardwareLine } from './hardwareList.ts';
 import type { LumberPlan } from './shoppingList.ts';
 
@@ -13,7 +13,7 @@ import type { LumberPlan } from './shoppingList.ts';
  * mapping only picks values out, it never computes.
  */
 export interface Plan {
-  cutList: CutListRow[];
+  cutList: PlannedCutRow[];
   lumber: LumberPlan;
   hardware: HardwareLine[];
   /** Notes to show with the hardware list. */

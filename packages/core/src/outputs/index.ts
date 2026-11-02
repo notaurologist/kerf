@@ -1,4 +1,10 @@
-export { CutListRow, cutList, panelMade } from './cutList.ts';
+export {
+  CutListRow,
+  cutList,
+  type PlannedCutRow,
+  panelMade,
+  withSettings,
+} from './cutList.ts';
 export { HardwareLine, hardwareList } from './hardwareList.ts';
 export type { Plan } from './plan.ts';
 export {

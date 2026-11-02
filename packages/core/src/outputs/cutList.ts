@@ -100,3 +100,23 @@ export function cutList(parts: readonly Part[]): CutListRow[] {
     notes: part.notes,
   }));
 }
+
+/**
+ * A cut-list row as a plan shows it (#360): with each end's saw setting on its own, for a narrow
+ * column. Stored rows lack it, so it is added on read from the stored parts' end cuts.
+ */
+export type PlannedCutRow = CutListRow & {
+  /** Each end's saw setting, in the miter-saw convention (0.0° is square), in end order. */
+  settings: string[];
+};
+
+/** The rows with each part's end settings, formatted by core; a part not found gets none. */
+export function withSettings(
+  rows: readonly CutListRow[],
+  parts: readonly { id: string; ends: readonly { setting: number }[] }[],
+): PlannedCutRow[] {
+  return rows.map((row) => ({
+    ...row,
+    settings: parts.find((p) => p.id === row.partId)?.ends.map((e) => formatAngle(e.setting)) ?? [],
+  }));
+}

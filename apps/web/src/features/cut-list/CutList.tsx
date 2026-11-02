@@ -1,9 +1,8 @@
-import { type CutListRow, type Flag, panelMade } from '@kerf/core';
+import { type PlannedCutRow as CutListRow, type Flag, panelMade } from '@kerf/core';
 import type { ReactNode } from 'react';
 import { type Changes, marked as mark, NO_CHANGES } from '../../lib/changes.tsx';
 import { cutListPartId } from '../../lib/show.ts';
 import {
-  Disclosure,
   FlagList,
   Length,
   List,
@@ -12,14 +11,18 @@ import {
   PartLetter,
   PlainList,
   Readings,
+  SettingBox,
+  SettingBoxes,
+  Stack,
   StatusLine,
   Text,
 } from '../../ui/index.ts';
 
 // The cut list (PRODUCT.md, MVP feature 3). Every length and angle arrives as text from core's
 // cut list, which formats them with the shared formatters; nothing is rounded here. In a preview
-// (#56), `changes` marks each value that differs from the saved plan with the saved one. Each part
-// carries the expert checks about it (#356), folded, since one part can have several.
+// (#56), `changes` marks each value that differs from the saved plan with the saved one. Stage 16
+// (#360, C1): a narrow table of what is compared at the saw (part, how many, how long, each end's
+// saw setting), each row opening to what is read once, including the part's expert checks (#356).
 
 export function CutList(props: {
   rows: readonly CutListRow[];
@@ -50,15 +53,23 @@ export function CutList(props: {
       <MeasureTable
         caption="Cut list"
         captionHidden
+        keepTable
         rows={props.rows}
         rowKey={(row) => row.partId}
         rowChanged={(row) => changes.under(path(row))}
         rowSelected={(row) => props.selected === row.partId}
+        details={{
+          name: (row) => `${row.letter} ${row.name}`,
+          content: (row) => (
+            <Details row={row} path={path(row)} marked={marked} flags={flagsOn(row)} />
+          ),
+        }}
         columns={[
           {
             key: 'part',
             label: 'Part',
-            // The letter first, as magazine plans list parts, then the name (#66).
+            // The letter first, as magazine plans list parts, then the name (#66), and the stock
+            // under it: nominal for buying, the actual size for cutting.
             cell: (row) => {
               const name = (
                 <>
@@ -67,15 +78,22 @@ export function CutList(props: {
                 </>
               );
               const partHref = props.partHref;
-              return marked(
-                path(row),
-                partHref ? (
-                  <a id={cutListPartId(row.partId)} href={partHref(row.partId)}>
-                    {name}
-                  </a>
-                ) : (
-                  name
-                ),
+              return (
+                <>
+                  {marked(
+                    path(row),
+                    partHref ? (
+                      <a id={cutListPartId(row.partId)} href={partHref(row.partId)}>
+                        {name}
+                      </a>
+                    ) : (
+                      name
+                    ),
+                  )}
+                  <Text tone="muted" size="small">
+                    {marked(`${path(row)}.stock`, <Readings text={row.stock} />)}
+                  </Text>
+                </>
               );
             },
           },
@@ -86,12 +104,6 @@ export function CutList(props: {
             numeric: true,
             width: 'fit',
             cell: (row) => marked(`${path(row)}.quantity`, row.quantity),
-          },
-          {
-            key: 'stock',
-            label: 'Stock',
-            width: 'fit',
-            cell: (row) => marked(`${path(row)}.stock`, <Readings text={row.stock} />),
           },
           {
             key: 'length',
@@ -108,69 +120,19 @@ export function CutList(props: {
           },
           {
             key: 'ends',
-            label: 'End cuts',
-            width: 'fill',
+            label: 'Ends',
+            fullLabel: 'Saw setting at each end',
+            width: 'fit',
             cell: (row) => (
-              <>
-                <List ordered>
-                  {row.ends.map((end, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: the two ends are positional.
-                    <li key={i}>
-                      {marked(`${path(row)}.ends[${i}]`, <Measured text={end} terms />)}
-                    </li>
-                  ))}
-                </List>
-                <Text tone="muted" size="small">
-                  {row.endsParallel ? 'Ends parallel.' : 'Ends mirror each other.'}
-                </Text>
-              </>
+              <SettingBoxes>
+                {row.settings.map((setting, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: the two ends are positional.
+                  <span key={i}>
+                    {marked(`${path(row)}.ends[${i}]`, <SettingBox>{setting}</SettingBox>)}
+                  </span>
+                ))}
+              </SettingBoxes>
             ),
-          },
-          {
-            key: 'marks',
-            label: 'Marks and notes',
-            width: 'fill',
-            cell: (row) =>
-              row.marks.length === 0 &&
-              row.notes.length === 0 &&
-              !row.panel &&
-              flagsOn(row).length === 0 ? (
-                <Text tone="muted" as="span">
-                  None
-                </Text>
-              ) : (
-                <PlainList gap="xs">
-                  {row.panel && (
-                    <li>
-                      {panelMade(row.panel)}{' '}
-                      {marked(`${path(row)}.panel.recipe`, <Readings text={row.panel.recipe} />)}.
-                    </li>
-                  )}
-                  {row.marks.map((m, i) => (
-                    <li key={m.label}>
-                      {m.label}:{' '}
-                      {marked(
-                        `${path(row)}.marks[${i}].value`,
-                        <b>
-                          <Length>{m.value}</Length>
-                        </b>,
-                      )}
-                    </li>
-                  ))}
-                  {row.notes.map((n) => (
-                    <li key={n}>
-                      <Measured text={n} />
-                    </li>
-                  ))}
-                  {flagsOn(row).length > 0 && (
-                    <li>
-                      <Disclosure summary={expertChecks(flagsOn(row).length)}>
-                        <FlagList flags={flagsOn(row)} />
-                      </Disclosure>
-                    </li>
-                  )}
-                </PlainList>
-              ),
           },
         ]}
       />
@@ -181,4 +143,56 @@ export function CutList(props: {
   );
 }
 
-const expertChecks = (count: number) => `${count} expert ${count === 1 ? 'check' : 'checks'}`;
+/**
+ * What a row opens to (#360): what is read once at the bench rather than compared down the
+ * column. Each end in words with the angle to the edge, marks, the panel's boards, notes, and
+ * the expert checks about the part.
+ */
+function Details(props: {
+  row: CutListRow;
+  path: string;
+  marked: (at: string, value: ReactNode) => ReactNode;
+  flags: readonly Flag[];
+}) {
+  const { row, path, marked } = props;
+  return (
+    <Stack gap="xs">
+      <List ordered>
+        {row.ends.map((end, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: the two ends are positional.
+          <li key={i}>{marked(`${path}.ends[${i}]`, <Measured text={end} terms />)}</li>
+        ))}
+      </List>
+      <Text tone="muted" size="small">
+        {row.endsParallel ? 'Ends parallel.' : 'Ends mirror each other.'}
+      </Text>
+      {(row.marks.length > 0 || row.notes.length > 0 || row.panel) && (
+        <PlainList gap="xs">
+          {row.panel && (
+            <li>
+              {panelMade(row.panel)}{' '}
+              {marked(`${path}.panel.recipe`, <Readings text={row.panel.recipe} />)}.
+            </li>
+          )}
+          {row.marks.map((m, i) => (
+            <li key={m.label}>
+              {m.label}:{' '}
+              {marked(
+                `${path}.marks[${i}].value`,
+                <b>
+                  <Length>{m.value}</Length>
+                </b>,
+              )}
+            </li>
+          ))}
+          {row.notes.map((n) => (
+            <li key={n}>
+              <Measured text={n} />
+            </li>
+          ))}
+        </PlainList>
+      )}
+      <FlagList flags={props.flags} />
+    </Stack>
+  );
+}
