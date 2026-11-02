@@ -71,7 +71,7 @@ After the panels and their dadoes and rabbets: cut the notches, the mortises in 
 
 The owner agreed to the design on November 1, 2026, with the legs bought as square stock rather than laminated. It was built in this order, each its own pull request: mortise and tenon joints (#343), parts from board stock and slotted screw holes (#344), then the template (#338).
 
-## Proposed: sliding doors on the end bays (#339, for the owner's review)
+## Sliding doors on the end bays (#339, agreed; being built)
 
 Stage 2 of the Shaker-modern cabinet. The owner chose on November 1, 2026: two **sliding doors in two tracks**, one per end bay, each sliding over the open middle bay; each door a **frame with a solid floating panel**; and a **routed finger recess** for a pull. This replaces the hinged doors first scoped on #339.
 
@@ -117,10 +117,9 @@ Boards 13/16, t = 3/4, b = 16-1/2, h_b = 13-1/4, back rails 13/16 thick.
 - A finger recess routed into a face.
 - The tracks reuse the dado operations, running the length of the case bottom and the top.
 
-### Open questions for the owner
+### Decided
 
-1. Is a 17" case depth acceptable? The top becomes 17-3/4" deep. At 16" the records fit with 5/16" to spare.
-2. Is a 2" frame right, or would you like a narrower, more mid-century 1-1/2" frame?
+The owner agreed on November 1, 2026: a 17" case depth and a 2" frame. It is built in this order, each its own pull request: edge grooves, edge rabbets, and finger recesses, then the template.
 
 ## Coordinates
 
