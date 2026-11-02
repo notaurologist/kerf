@@ -937,14 +937,14 @@
   /* ---------- Touch (#253) ----------
      Controls answer a press by dimming, in place of the browser's gray tap flash, and a long
      press on one does not select its words. Text and numbers stay selectable. */
-  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a, .k-tabbar a) {
+  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a) {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
   }
 
-  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a, .k-tabbar a):active {
+  :is(.k-button, .k-tick, .k-titlebar a, .k-icon-select, .k-sidebar a):active {
     opacity: var(--pressed-opacity);
   }
 
@@ -962,7 +962,7 @@
 
   .k-frame__layout {
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr;
     min-block-size: 100dvh;
   }
 
@@ -986,6 +986,7 @@
     padding-inline: var(--space-s);
     border-block-end: var(--border-thin) solid var(--border);
     background: var(--raised);
+    view-transition-name: k-titlebar; /* Stays still while the screen moves (Moves, below). */
   }
 
   .k-titlebar__brand {
@@ -1041,16 +1042,25 @@
     }
   }
 
-  .k-titlebar__actions {
+  /* A place reached from every screen, such as Workshop, as a link at the title bar's end. */
+  .k-titlebar__end {
     grid-column: 3;
     justify-self: end;
     display: flex;
     align-items: center;
   }
 
-  /* The same actions at the sidebar's foot, shown only when the frame is wide. */
-  .k-frame__actions {
-    display: none;
+  .k-titlebar__end a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--control-min);
+    padding-inline: var(--space-2xs);
+    text-decoration: none;
+  }
+
+  .k-titlebar__end a[aria-current] {
+    color: var(--text);
+    font-weight: 700;
   }
 
   .k-frame__side {
@@ -1061,39 +1071,7 @@
     display: none;
   }
 
-  /* The current place is marked by a bar as well as bold type; aria-current says it in words. */
-  .k-tabbar {
-    position: sticky;
-    inset-block-end: 0;
-    z-index: 2;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    padding-block-end: env(safe-area-inset-bottom, 0);
-    border-block-start: var(--border-thin) solid var(--border);
-    background: var(--raised);
-  }
-
-  .k-tabbar a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3xs);
-    min-block-size: var(--control-min);
-    padding-block: var(--space-2xs);
-    border-block-start: var(--border-bar) solid transparent;
-    color: var(--muted);
-    font-size: var(--size--1);
-    text-decoration: none;
-  }
-
-  .k-tabbar a[aria-current] {
-    border-block-start-color: var(--here);
-    color: var(--text);
-    font-weight: 700;
-  }
-
-  .k-frame[data-preview] :is(.k-titlebar, .k-tabbar) {
+  .k-frame[data-preview] .k-titlebar {
     position: static;
   }
 
@@ -1141,8 +1119,7 @@
       grid-template-rows: 1fr;
     }
 
-    .k-titlebar,
-    .k-tabbar {
+    .k-titlebar {
       display: none;
     }
 
@@ -1171,13 +1148,6 @@
       gap: var(--space-s);
     }
 
-    .k-frame__actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      margin-block-start: auto;
-    }
-
     /* The plan's sections are in the sidebar, so its own contents column goes. */
     .k-frame[data-sections] .k-with-contents .k-contents {
       display: none;
@@ -1192,15 +1162,7 @@
     view-transition-name: k-main;
   }
 
-  .k-titlebar {
-    view-transition-name: k-titlebar;
-  }
-
-  .k-tabbar {
-    view-transition-name: k-tabbar;
-  }
-
-  :root:active-view-transition-type(mode-in, mode-out) :is(.k-frame__main, .k-titlebar, .k-tabbar) {
+  :root:active-view-transition-type(mode-in, mode-out) :is(.k-frame__main, .k-titlebar) {
     view-transition-name: none;
   }
 
@@ -1232,16 +1194,12 @@
   ::view-transition-group(k-main),
   ::view-transition-group(k-titlebar),
   ::view-transition-old(k-titlebar),
-  ::view-transition-new(k-titlebar),
-  ::view-transition-group(k-tabbar),
-  ::view-transition-old(k-tabbar),
-  ::view-transition-new(k-tabbar) {
+  ::view-transition-new(k-titlebar) {
     animation: none;
   }
 
-  /* The bars stay over the screen moving under them. */
-  ::view-transition-group(k-titlebar),
-  ::view-transition-group(k-tabbar) {
+  /* The title bar stays over the screen moving under it. */
+  ::view-transition-group(k-titlebar) {
     z-index: 1;
   }
 

@@ -29,6 +29,8 @@ export type Route =
   | { screen: 'glossary'; term?: string }
   | { screen: 'catalog' }
   | { screen: 'trash' }
+  // Tools, the glossary, Trash, Download, the theme, and Log out, in one place (#356).
+  | { screen: 'workshop' }
   | { screen: 'not-found' };
 
 /**
@@ -57,6 +59,7 @@ export function parseRoute(hash: string): Route {
   }
   if (first === 'catalog' && parts.length === 1) return { screen: 'catalog' };
   if (first === 'trash' && parts.length === 1) return { screen: 'trash' };
+  if (first === 'workshop' && parts.length === 1) return { screen: 'workshop' };
   if (first === 'glossary' && parts.length === 1) return { screen: 'glossary' };
   if (first === 'glossary' && parts.length === 2 && second && findGlossaryEntry(second)) {
     return { screen: 'glossary', term: second };
@@ -156,6 +159,8 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
       return '#/catalog';
     case 'trash':
       return '#/trash';
+    case 'workshop':
+      return '#/workshop';
   }
 }
 
@@ -168,6 +173,17 @@ export function redirect(route: Exclude<Route, { screen: 'not-found' }>) {
   const target = href(route);
   leaveGate.allow(target);
   window.location.replace(target);
+}
+
+/** The frame's places, in the sidebar's order (#356). */
+export const PLACES = ['projects', 'workshop'] as const;
+export type PlaceId = (typeof PLACES)[number];
+
+const IN_WORKSHOP: readonly Route['screen'][] = ['workshop', 'tools', 'glossary', 'trash'];
+
+/** The place a screen is in. Every screen not in Workshop belongs to Projects. */
+export function placeOf(route: Route): PlaceId {
+  return IN_WORKSHOP.includes(route.screen) ? 'workshop' : 'projects';
 }
 
 /** True for Shopping and Building, which fill the screen under their own bar (#61). */

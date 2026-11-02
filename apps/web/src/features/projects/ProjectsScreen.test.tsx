@@ -30,10 +30,10 @@ describe('ProjectList', () => {
     expect(html).toContain('href="#/projects/new?template=swing-set-a-frame"');
   });
 
-  it('links to the trash and the download of every project, and says what Delete did', () => {
+  it('says what Delete did, and leaves the trash and the download to Workshop', () => {
     const html = render([project()]);
-    expect(html).toContain('href="#/trash"');
-    expect(html).toMatch(/<a href="\/api\/export" download="">Download all projects<\/a>/);
+    expect(html).not.toContain('href="#/trash"');
+    expect(html).not.toContain('/api/export');
     const flashed = renderHtml(
       <ProjectList
         projects={[]}

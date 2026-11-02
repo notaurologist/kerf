@@ -9,6 +9,7 @@ import { ProjectScreen } from './features/project/ProjectScreen.tsx';
 import { EditProjectScreen, NewProjectScreen } from './features/project-editor/ProjectEditor.tsx';
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { TrashScreen } from './features/projects/TrashScreen.tsx';
+import { WorkshopScreen } from './features/workshop/WorkshopScreen.tsx';
 import {
   api,
   CONNECTION_MESSAGE,
@@ -18,15 +19,13 @@ import {
 } from './lib/api.ts';
 import { leaveGate } from './lib/leave.ts';
 import { changeScreen } from './lib/moves.ts';
-import { href, isMode, type Route, useRoute } from './lib/route.ts';
+import { href, isMode, type PlaceId, placeOf, type Route, useRoute } from './lib/route.ts';
 import { useScreenChange } from './lib/screenChange.ts';
-import { ThemeSwitch } from './lib/theme.tsx';
 import {
   type Back,
   Button,
   Cluster,
   Frame,
-  IconButton,
   Notice,
   Page,
   ProblemScreen,
@@ -43,7 +42,8 @@ const Catalog = lazy(() => import('./ui/Catalog.tsx').then((m) => ({ default: m.
 // `expired` keeps the screen mounted under the login, so a form keeps what was typed.
 type Session = 'checking' | 'logged-out' | 'logged-in' | 'expired' | { unreachable: string };
 
-export function Screen(props: { route: Route }) {
+/** `onLogOut` is for Workshop's Log out; without it, Log out does nothing, as in tests. */
+export function Screen(props: { route: Route; onLogOut?: () => void }) {
   switch (props.route.screen) {
     case 'projects':
       return <ProjectsScreen />;
@@ -68,6 +68,8 @@ export function Screen(props: { route: Route }) {
       return <GlossaryScreen term={props.route.term} />;
     case 'trash':
       return <TrashScreen />;
+    case 'workshop':
+      return <WorkshopScreen onLogOut={props.onLogOut ?? (() => {})} />;
     case 'catalog':
       return (
         <Suspense
@@ -103,37 +105,38 @@ export function Screen(props: { route: Route }) {
 
 const entryHref = (term: GlossaryId) => href({ screen: 'glossary', term });
 
-type PlaceId = 'projects' | 'tools' | 'glossary';
+const PLACE_LABELS: Record<PlaceId, string> = { projects: 'Projects', workshop: 'Workshop' };
 
 /** The place a planning screen is in, whether it is the place itself, and its back link (#265). */
 export function frameFor(route: Route): { place: PlaceId; top: boolean; back?: Back } {
-  const to = (place: PlaceId) => ({
-    label: place === 'projects' ? 'Projects' : place === 'tools' ? 'Tools' : 'Glossary',
-    href: href({ screen: place }),
+  const place = placeOf(route);
+  const up = (label: string, to: 'projects' | 'workshop' | 'tools' | 'glossary') => ({
+    place,
+    top: false,
+    back: { label, href: href({ screen: to }) },
   });
   switch (route.screen) {
     case 'projects':
-      return { place: 'projects', top: true };
+    case 'workshop':
+      return { place, top: true };
     case 'tools':
-      return route.tool
-        ? { place: 'tools', top: false, back: to('tools') }
-        : { place: 'tools', top: true };
+      return route.tool ? up('Tools', 'tools') : up('Workshop', 'workshop');
     case 'glossary':
-      return route.term
-        ? { place: 'glossary', top: false, back: to('glossary') }
-        : { place: 'glossary', top: true };
+      return route.term ? up('Glossary', 'glossary') : up('Workshop', 'workshop');
+    case 'trash':
+      return up('Workshop', 'workshop');
     case 'edit-project':
-      return { place: 'projects', top: false, back: 'project' };
+      return { place, top: false, back: 'project' };
     default:
-      return { place: 'projects', top: false, back: to('projects') };
+      return up('Projects', 'projects');
   }
 }
 
 /** A screen with its scope for marking the first use of each glossary term. */
-function ScreenWithTerms(props: { route: Route }) {
+function ScreenWithTerms(props: { route: Route; onLogOut?: () => void }) {
   return (
     <TermScope entryHref={entryHref}>
-      <Screen route={props.route} />
+      <Screen route={props.route} onLogOut={props.onLogOut} />
     </TermScope>
   );
 }
@@ -213,36 +216,30 @@ export function App() {
     );
   }
   const frame = frameFor(route);
-  const place = (id: PlaceId, label: string) => ({
-    label,
+  const place = (id: PlaceId) => ({
+    label: PLACE_LABELS[id],
     href: href({ screen: id }),
-    icon: id,
     current: frame.place === id ? (frame.top ? ('page' as const) : ('true' as const)) : undefined,
   });
+  const workshop = place('workshop');
+  // A back link to Workshop already goes there, so the title bar says it once.
+  const backToWorkshop = typeof frame.back === 'object' && frame.back.href === workshop.href;
   return (
     <>
       <Frame
         brandHref={href({ screen: 'projects' })}
-        places={[
-          place('projects', 'Projects'),
-          place('tools', 'Tools'),
-          place('glossary', 'Glossary'),
-        ]}
+        places={[place('projects'), workshop]}
         back={frame.back}
-        actions={
-          <>
-            <ThemeSwitch />
-            <IconButton
-              icon="log-out"
-              label="Log out"
-              variant="quiet"
-              onClick={() => leaveGate.confirm(() => void logout())}
-            />
-          </>
+        end={
+          !backToWorkshop && (
+            <a href={workshop.href} aria-current={workshop.current}>
+              {workshop.label}
+            </a>
+          )
         }
       >
         <Page>
-          <ScreenWithTerms route={route} />
+          <ScreenWithTerms route={route} onLogOut={() => leaveGate.confirm(() => void logout())} />
         </Page>
       </Frame>
       {loginAgain}
