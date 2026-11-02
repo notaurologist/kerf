@@ -142,7 +142,7 @@ describe('suggestions from the starting questions', () => {
   });
 
   it.each([kidsOnly, kidsAndAdults, smallYard, tooSmall])(
-    'suggests only the structural inputs with a source or a stated bound, and no hardware (rule 3, #355)',
+    'suggests only the structural inputs and bolts with a source or a stated bound (rule 3, #355)',
     (answers) => {
       const s = suggest(answers);
       const inputs = s.filter((x) => x.from === 'structuralInputs').map((x) => x.path);
@@ -153,8 +153,16 @@ describe('suggestions from the starting questions', () => {
         'deflectionLimit',
         'beamMoistureContent',
       ]);
+      // The bolts the layout check fits (#389); not the ply bolts, which no published schedule
+      // gives, nor the anchors, which only the anchor maker's instructions can.
       const confirm = confirmedPaths(SWING_SET_FORM.params);
-      expect(s.filter((x) => confirm.has(x.path))).toEqual([]);
+      expect(s.filter((x) => confirm.has(x.path)).map((x) => x.path)).toEqual([
+        'hardware.legBoltDiameter',
+        'hardware.crossbarBolts.diameter',
+        'hardware.crossbarBolts.perJoint',
+        'hardware.gussetBolts.diameter',
+        'hardware.gussetBolts.perJoint',
+      ]);
       const { inputs: text } = suggestedValues(SWING_SET_FORM, s);
       // Left for the owner: what only the boards and hardware bought can say, and the dynamic
       // factor, which no published value covers.

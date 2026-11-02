@@ -3,6 +3,7 @@ import { stock } from '../../lumber/stock.ts';
 import type { FormSection } from '../../model/form.ts';
 import { type Suggestion, type SuggestionBasis, startingQuestions } from '../../model/questions.ts';
 import { formatLength } from '../../units/length.ts';
+import { boltSuggestions } from './boltSuggestions.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
 import { CLEARANCES } from './layout.ts';
 import { BEAM_HEIGHT } from './params.ts';
@@ -250,6 +251,11 @@ function crossbarHeight(height: number | null): Suggestion {
 }
 
 export function suggest(answers: SwingSetAnswers): Suggestion[] {
+  const others = suggestWithoutBolts(answers);
+  return [...others, ...boltSuggestions(others)];
+}
+
+function suggestWithoutBolts(answers: SwingSetAnswers): Suggestion[] {
   const ex = WORKED_EXAMPLE;
   const height = beamHeight(answers);
   const param = (
