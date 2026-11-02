@@ -15,7 +15,8 @@ export type Route =
   // selected in the drawings and the cut list, kept in the address so a reload keeps it.
   | { screen: 'project'; id: string; section?: PlanSectionId; part?: string }
   // `from` is the section Edit was opened from, which Save and Cancel return to.
-  | { screen: 'edit-project'; id: string; from?: PlanSectionId }
+  // `field` is the id of a field to start on, such as an input a check needs.
+  | { screen: 'edit-project'; id: string; from?: PlanSectionId; field?: string }
   // Shopping and Building, full-screen modes launched from the plan (#61). The URL carries the
   // mode and step, so a reload or a shared link reopens the same place.
   | { screen: 'shop'; id: string }
@@ -77,9 +78,13 @@ export function parseRoute(hash: string): Route {
   if (third === undefined) return project(second, undefined, null);
   if (third === 'edit' && parts.length === 3) {
     const from = search.get('from');
-    return isPlanSection(from) && from !== 'summary'
-      ? { screen: 'edit-project', id: second, from }
-      : { screen: 'edit-project', id: second };
+    const field = search.get('field');
+    return {
+      screen: 'edit-project',
+      id: second,
+      ...(isPlanSection(from) && from !== 'summary' ? { from } : {}),
+      ...(field ? { field } : {}),
+    };
   }
   // The summary has the project's own address, so `summary` is not one of its sections'.
   if (isPlanSection(third) && third !== 'summary') {
@@ -137,9 +142,11 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
       return `#/projects/${encodeURIComponent(route.id)}${section}${part}`;
     }
     case 'edit-project': {
-      const from =
-        route.from && route.from !== 'summary' ? `?from=${encodeURIComponent(route.from)}` : '';
-      return `#/projects/${encodeURIComponent(route.id)}/edit${from}`;
+      const query = new URLSearchParams({
+        ...(route.from && route.from !== 'summary' ? { from: route.from } : {}),
+        ...(route.field ? { field: route.field } : {}),
+      }).toString();
+      return `#/projects/${encodeURIComponent(route.id)}/edit${query ? `?${query}` : ''}`;
     }
     case 'shop':
       return `#/projects/${encodeURIComponent(route.id)}/shop`;

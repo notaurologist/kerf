@@ -13,9 +13,10 @@ import {
   type TemplateDefinition,
   visibleFields,
 } from '@kerf/core';
-import { type FormEvent, type ReactNode, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
 import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
+import { fieldId } from '../../lib/fieldIds.ts';
 import { setFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { newProjectLabel } from '../../lib/names.ts';
@@ -265,7 +266,7 @@ function StartFrom(props: {
 const newTitle = (template: TemplateDefinition) => newProjectLabel(template.name);
 
 /** `from` is the plan's section Edit was opened from: Save and Cancel go back to it (#156). */
-export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
+export function EditProjectScreen(props: { id: string; from?: PlanSectionId; field?: string }) {
   const { loaded, reload } = useLoad(
     () => send(api.api.projects[':id'].$get({ param: { id: props.id } })),
     props.id,
@@ -274,7 +275,13 @@ export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
     <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Edit project">
       {(project) => (
         // A newer revision, loaded after a save was refused, starts the form again from it.
-        <EditProject key={project.revision} project={project} from={props.from} onReload={reload} />
+        <EditProject
+          key={project.revision}
+          project={project}
+          from={props.from}
+          field={props.field}
+          onReload={reload}
+        />
       )}
     </Loaded>
   );
@@ -283,6 +290,7 @@ export function EditProjectScreen(props: { id: string; from?: PlanSectionId }) {
 export function EditProject(props: {
   project: Project;
   from?: PlanSectionId;
+  field?: string;
   onReload: () => void;
 }) {
   const { project } = props;
@@ -296,7 +304,12 @@ export function EditProject(props: {
 }
 
 /** The form, or why it cannot be shown; the project can still be deleted either way. */
-function EditProjectForm(props: { project: Project; from?: PlanSectionId; onReload: () => void }) {
+function EditProjectForm(props: {
+  project: Project;
+  from?: PlanSectionId;
+  field?: string;
+  onReload: () => void;
+}) {
   const { project } = props;
   const template = findTemplate(project.templateId);
   const back = { href: href({ screen: 'project', id: project.id }), label: project.name };
@@ -322,6 +335,7 @@ function EditProjectForm(props: { project: Project; from?: PlanSectionId; onRelo
       template={template}
       project={project}
       from={props.from}
+      field={props.field}
       onReload={props.onReload}
       initial={{
         name: project.name,
@@ -343,6 +357,8 @@ export function ProjectEditor(props: {
   project?: Project;
   /** The plan's section to return to after Save or Cancel; the summary when absent. */
   from?: PlanSectionId;
+  /** The id of a field to start on, such as an input a check needs. */
+  field?: string;
   /** Loads the project again, for when another device saved it after this form opened. */
   onReload?: () => void;
   initial: EditorValues;
@@ -359,6 +375,14 @@ export function ProjectEditor(props: {
   const { template, project, copied } = props;
   const form = template.form;
   const { draft, setDraft, dialog } = useDraft(props.initial);
+  // After the screen's heading has taken focus (a child's effect runs first), so this one wins.
+  const startField = props.field;
+  useEffect(() => {
+    if (!startField) return;
+    const target = document.getElementById(startField);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: 'center' });
+  }, [startField]);
   const { name, params, inputs } = draft;
   const setName = (next: string) => setDraft((d) => ({ ...d, name: next }));
   const setParams = (next: FormValues) => setDraft((d) => ({ ...d, params: next }));
@@ -630,9 +654,6 @@ export function ProjectEditor(props: {
     </form>
   );
 }
-
-/** The id of a field's control, which the error summary and the progress links point to. */
-const fieldId = (from: FormSource, path: string) => `${from === 'params' ? 'p' : 's'}-${path}`;
 
 /** The form's parts with only the fields that apply to the values typed so far. */
 function shownParts(template: TemplateDefinition, params: FormValues, inputs: FormValues) {

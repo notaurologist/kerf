@@ -79,7 +79,7 @@ describe('the plan’s contents', () => {
   it('lists the sections in order A, the same order as the sections themselves', () => {
     const listed = textOf(contents.slice(contents.indexOf('<ol')));
     expect(listed).toBe(
-      'Summary Diagrams Structural review Cut list Boards Shopping list Build steps Parameters and inputs',
+      'Summary Diagrams Structural review Cut list Boards Shopping list Build steps Values used',
     );
     const order = [...page.matchAll(/<section id="([a-z-]+)" class="k-section"/g)].map((m) => m[1]);
     expect(order).toEqual([
@@ -90,8 +90,8 @@ describe('the plan’s contents', () => {
       'boards',
       'shopping-list',
       'build-steps',
-      'parameters',
-      // Printed only, after the plan (#180).
+      // Printed only, after the plan: the values used (#356) and the terms (#180).
+      'values-used',
       'terms-used',
     ]);
   });
@@ -127,10 +127,19 @@ describe('the plan’s header', () => {
   });
 });
 
-describe('Parameters and inputs', () => {
-  it('closes the plan with every parameter and input as entered, by part as in the editor', () => {
-    const text = section(complete, 'parameters');
-    const part = sectionOf(html(complete), 'parameters');
+describe('Values used', () => {
+  it('links to Edit from the contents, where the values are on screen', () => {
+    const page = html(complete);
+    const contents = page.slice(page.indexOf('<nav class="k-contents"'), page.indexOf('</nav>'));
+    expect(contents).toContain(
+      `<a href="#/projects/${projectFrom(complete).id}/edit">Values used</a>`,
+    );
+  });
+
+  it('closes the printed plan with every parameter and input as entered, by part as in the editor', () => {
+    const text = section(complete, 'values-used');
+    const part = sectionOf(html(complete), 'values-used');
+    expect(part).toMatch(/<section id="values-used" class="k-section"[^>]*hidden/);
     expect([...part.matchAll(/<h3>([^<]*)<\/h3>/g)].map((m) => m[1])).toEqual([
       'Beam',
       'Legs',
@@ -146,19 +155,18 @@ describe('Parameters and inputs', () => {
     expect(text).toContain(`Beam length 10' 0" · 120"`);
     expect(text).toContain('Leg angle from vertical 20.0°');
     expect(text).toContain('Beam stock 4x6');
-    expect(text).toContain('Edit');
     expect(text).not.toContain('Footprint depth');
   });
 
   it('gives every section’s table equal columns, so As entered lines up from table to table', () => {
-    const part = sectionOf(html(complete), 'parameters');
+    const part = sectionOf(html(complete), 'values-used');
     const tables = part.match(/<table class="k-table[^>]*>/g) ?? [];
     expect(tables.length).toBeGreaterThan(3);
     for (const table of tables) expect(table).toBe('<table class="k-table" data-equal="">');
   });
 
   it('says input needed for structural inputs not entered, and fills nothing in', () => {
-    const text = section(noInputs, 'parameters');
+    const text = section(noInputs, 'values-used');
     expect(text.match(/Input needed/g)?.length).toBeGreaterThan(3);
     expect(text).not.toMatch(/southern|Southern/);
   });

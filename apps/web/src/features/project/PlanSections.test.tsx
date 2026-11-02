@@ -95,7 +95,7 @@ describe('Previous and Next', () => {
 
   it('give only Next on the summary and only Previous on the last section', () => {
     expect(textOf(pagerOf(at()))).toBe('Next Diagrams');
-    expect(textOf(pagerOf(at('parameters')))).toBe('Previous Build steps');
+    expect(textOf(pagerOf(at('build-steps')))).toBe('Previous Shopping list');
   });
 
   it('come after the section, outside it', () => {
@@ -164,7 +164,6 @@ describe('the summary’s list of sections', () => {
         'Boards 9 pieces from 7 boards',
         'Shopping list 4 lumber lines, 7 hardware lines',
         'Build steps 11 steps: 7 boards to cut, then 4 more',
-        'Parameters and inputs Every structural input entered',
       ].join(' '),
     );
     expect(list).toContain(`<a href="${base}/boards">Boards</a>`);
@@ -177,7 +176,7 @@ describe('Edit', () => {
     expect(at()).toContain(`href="${base}/edit"`);
   });
 
-  it('enters structural inputs from the review and returns there', () => {
+  it('enters each missing structural input from the review, on its field, and returns there', () => {
     const none = createSnapshot(template, example?.params, {});
     if (!none.ok) throw new Error('worked example should generate without inputs');
     const html = render(
@@ -187,7 +186,7 @@ describe('Edit', () => {
       />,
     );
     expect(sectionOf(html, 'structural-review')).toContain(
-      `href="${base}/edit?from=structural-review">Enter structural inputs</a>`,
+      `href="${base}/edit?from=structural-review&amp;field=s-dynamicFactor">Dynamic factor</a>`,
     );
   });
 });

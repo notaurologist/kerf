@@ -1,6 +1,7 @@
 import { findTemplate, planTerms } from '@kerf/core';
 import { useMemo, useState } from 'react';
 import { useArrowKeys } from '../../lib/arrowKeys.ts';
+import { inputFieldId } from '../../lib/fieldIds.ts';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
@@ -41,6 +42,8 @@ import {
 import { ParametersAndInputs } from './ParametersAndInputs.tsx';
 import { PlanSummary } from './PlanSummary.tsx';
 import { VersionNotice } from './VersionNotice.tsx';
+
+const VALUES_USED_ID = 'values-used';
 
 // One project, rendered from the snapshot the API returns (ARCHITECTURE.md, apps/web). The
 // stored plan is shown as stored; the web app computes none of its numbers.
@@ -86,15 +89,24 @@ export function ProjectView(props: {
     [plan, steps, hasSteps],
   );
   const shown = (id: PlanSectionId) =>
-    (id !== 'diagrams' || drawings !== null) &&
-    (id !== 'build-steps' || hasSteps) &&
-    (id !== 'parameters' || (template !== undefined && project.snapshot !== null));
+    (id !== 'diagrams' || drawings !== null) && (id !== 'build-steps' || hasSteps);
   const sections = PLAN_SECTIONS.filter((s) => shown(s.id));
   // A section this plan does not have, such as build steps in an old plan, shows the summary.
   const current = sections.find((s) => s.id === props.section) ?? PLAN_SECTIONS[0];
   const at = (section: PlanSectionId, part?: string) =>
     href({ screen: 'project', id: project.id, section, ...(part ? { part } : {}) });
-  const items = sections.map((s) => ({ id: s.id, title: s.title, href: at(s.id) }));
+  const editHref = plan.ok
+    ? href({
+        screen: 'edit-project',
+        id: project.id,
+        ...(current.id === 'summary' ? {} : { from: current.id }),
+      })
+    : undefined;
+  // The values the plan was made from are in Edit (#356); the contents end with a way there.
+  const items = [
+    ...sections.map((s) => ({ id: s.id, title: s.title, href: at(s.id) })),
+    ...(editHref ? [{ id: VALUES_USED_ID, title: 'Values used', href: editHref }] : []),
+  ];
   // From 52.5rem the frame's sidebar lists the sections in place of the contents column (#265).
   useFrameProject({
     name: project.name,
@@ -115,13 +127,15 @@ export function ProjectView(props: {
   // "Saved." from the editor stays until the next action (#67), not a toast that disappears. A
   // regenerate that clears ticks says so the same way (#57).
   const [flash, setFlashLine] = useState(takeFlash);
-  const editHref = plan.ok
-    ? href({
-        screen: 'edit-project',
-        id: project.id,
-        ...(current.id === 'summary' ? {} : { from: current.id }),
-      })
-    : undefined;
+  const inputHref = (key: string) => {
+    const field = template && inputFieldId(template.form, key);
+    return href({
+      screen: 'edit-project',
+      id: project.id,
+      from: current.id,
+      ...(field ? { field } : {}),
+    });
+  };
 
   // After a move, focus goes to the section's heading; arriving with a part goes to it instead.
   usePlanMoves(
@@ -218,7 +232,7 @@ export function ProjectView(props: {
           )}
           <PlanSection {...section('structural-review')}>
             <StructuralReview
-              projectId={project.id}
+              inputHref={inputHref}
               checks={plan.plan.checks}
               flags={plan.plan.flags}
               checklist={plan.plan.checklist}
@@ -256,9 +270,10 @@ export function ProjectView(props: {
               />
             </PlanSection>
           )}
-          {template && shown('parameters') && (
-            <PlanSection {...section('parameters')}>
-              <ParametersAndInputs project={project} template={template} editHref={editHref} />
+          {/* On paper the plan says what it was made from; on screen that is Edit. */}
+          {template && project.snapshot && (
+            <PlanSection id={VALUES_USED_ID} title="Values used" project={project.name} hidden>
+              <ParametersAndInputs project={project} template={template} />
             </PlanSection>
           )}
           {/* A term's popover cannot open on paper, so the printed plan ends with the terms it
