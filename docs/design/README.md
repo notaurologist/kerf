@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided; #358 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided and built. Stage 15, the structural review (#359), is decided; #359 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -25,8 +25,22 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 12. Usability pass: navigation | #356 | Decided November 2026: N1 | `navigation.html` |
 | 13. Usability pass: suggesting structural inputs, and project status | #355 | Decided November 2026: R-A, every row as proposed, S-2 | `structural-suggestions.html` |
 | 14. Usability pass: starting a new project | #358 | Decided November 2026: P1, questions first | `start-from.html` |
+| 15. Usability pass: the structural review | #359 | Decided November 2026: S1; bolt layouts stay, folded | `structural-review.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 15: usability pass, the structural review (#359)
+
+Each check showed its inputs, formula, factors, assumptions, and source in full, the bolt layouts added a table per joint, and the confirmation checklist sat alongside, so the result and what it depends on were hard to find. `structural-review.html` draws two layouts that lead with each check's margin and subject, keep the working one step away, and set what the owner has to do apart from what Kerf computed. No copy says safe, unsafe, pass, or fail.
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Layout | S1. A To do band leads: the inputs needed, each a link to its field in Edit, and the checklist items to confirm with an experienced builder. Then one line per check: subject and load case on the left, the margin on the right in large tabular figures, the lowest margin first. Opening a line shows its working: inputs with sources, formula, factors with their values and reasons, assumptions. On a laptop the To do band sits beside the checks; a phone has the same order. In print every working is open. | S2, a table of checks (check, member, computed, allowed, margin): five columns do not fit 375 px, so the phone would fall back to S1 anyway, and in print each check's working splits the table. |
+| Bolt layouts | Stay in the structural review, one folded line per joint ("Crossbar to leg: 2 × 1/2"; every distance at or above NDS 2024's full value") with the table inside. | Moving each layout to the cut detail of the part it is drilled in: the layout is a check against NDS spacing, and reading it beside the other checks keeps the review whole. |
 
 ## Stage 14: usability pass, starting a new project (#358)
 
