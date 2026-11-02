@@ -1912,7 +1912,8 @@
   }
 
   /* The current section is marked with a bar and bold type, and aria-current says it in words. */
-  .k-contents li > a {
+  .k-contents li > a,
+  .k-contents__end {
     display: flex;
     align-items: center;
     min-block-size: var(--control-min);
@@ -1925,6 +1926,11 @@
     color: var(--text);
     font-weight: 700;
     text-decoration: none;
+  }
+
+  /* A link after the sections that is not one, set apart from them. */
+  .k-contents__end {
+    margin-block-start: var(--space-xs);
   }
 
   .k-contents__heading {
@@ -1973,7 +1979,7 @@
   }
 
   .k-contents__heading,
-  .k-contents:not([data-open]) ol {
+  .k-contents:not([data-open]) :is(ol, .k-contents__end) {
     display: none;
   }
 
@@ -2009,6 +2015,10 @@
 
     .k-contents:not([data-open]) ol {
       display: grid;
+    }
+
+    .k-contents:not([data-open]) .k-contents__end {
+      display: flex;
     }
 
     .k-contents[data-open] ol {

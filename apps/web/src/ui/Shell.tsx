@@ -21,6 +21,8 @@ export interface FrameProject {
   sections?: {
     items: readonly { id: string; title: string; href: string }[];
     current: string;
+    /** A link after the sections that is not one, such as the values in Edit. */
+    end?: { title: string; href: string };
   };
 }
 
@@ -114,6 +116,9 @@ export function Frame(props: {
                                 </li>
                               ))}
                             </ol>
+                          )}
+                          {project.sections?.end && (
+                            <a href={project.sections.end.href}>{project.sections.end.title}</a>
                           )}
                         </li>
                       </ul>

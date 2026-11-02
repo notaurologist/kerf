@@ -74,8 +74,8 @@ describe('the phone’s bar', () => {
   it('says which section of how many, and opens the contents', () => {
     const bar = (html: string) =>
       textOf(contentsOf(html).slice(0, contentsOf(html).indexOf('</button>')));
-    expect(bar(at('structural-review'))).toBe('3 of 8 · Structural review Contents');
-    expect(bar(at())).toBe('1 of 8 · Summary Contents');
+    expect(bar(at('structural-review'))).toBe('3 of 7 · Structural review Contents');
+    expect(bar(at())).toBe('1 of 7 · Summary Contents');
     expect(contentsOf(at('boards'))).toMatch(/<button type="button" [^>]*aria-expanded="false"/);
   });
 });

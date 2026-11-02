@@ -104,7 +104,7 @@ describe('the plan’s contents', () => {
     const none = render(<ProjectView project={projectFrom(complete, { drawings: null })} />);
     const list = none.slice(none.indexOf('<nav class="k-contents"'), none.indexOf('</nav>'));
     expect(textOf(list.slice(list.indexOf('<ol')))).toMatch(/^Summary Structural review/);
-    expect(textOf(list)).toMatch(/^1 of 6 · Summary/);
+    expect(textOf(list)).toMatch(/^1 of 5 · Summary/);
   });
 });
 
@@ -132,7 +132,7 @@ describe('Values used', () => {
     const page = html(complete);
     const contents = page.slice(page.indexOf('<nav class="k-contents"'), page.indexOf('</nav>'));
     expect(contents).toContain(
-      `<a href="#/projects/${projectFrom(complete).id}/edit">Values used</a>`,
+      `</ol><a class="k-contents__end" href="#/projects/${projectFrom(complete).id}/edit">Values used</a>`,
     );
   });
 

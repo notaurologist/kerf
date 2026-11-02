@@ -102,16 +102,16 @@ export function ProjectView(props: {
         ...(current.id === 'summary' ? {} : { from: current.id }),
       })
     : undefined;
+  const items = sections.map((s) => ({ id: s.id, title: s.title, href: at(s.id) }));
   // The values the plan was made from are in Edit (#356); the contents end with a way there.
-  const items = [
-    ...sections.map((s) => ({ id: s.id, title: s.title, href: at(s.id) })),
-    ...(editHref ? [{ id: VALUES_USED_ID, title: 'Values used', href: editHref }] : []),
-  ];
+  const valuesUsed = editHref && { title: 'Values used', href: editHref };
   // From 52.5rem the frame's sidebar lists the sections in place of the contents column (#265).
   useFrameProject({
     name: project.name,
     href: href({ screen: 'project', id: project.id }),
-    ...(plan.ok ? { sections: { items, current: current.id } } : {}),
+    ...(plan.ok
+      ? { sections: { items, current: current.id, ...(valuesUsed ? { end: valuesUsed } : {}) } }
+      : {}),
   });
   // The part selected in a drawing or the cut list (#39, Q3), carried in the address (#156).
   // Selecting it replaces the history entry, so selections do not fill Back; selecting it again
@@ -200,7 +200,7 @@ export function ProjectView(props: {
         </>
       ) : (
         // Section order A (#40): the same reading order in the contents, on screen, and on paper.
-        <WithContents items={items} current={current.id}>
+        <WithContents items={items} current={current.id} end={valuesUsed || undefined}>
           <PlanSection {...section('summary')} newPage={false}>
             <PlanSummary
               project={project}
