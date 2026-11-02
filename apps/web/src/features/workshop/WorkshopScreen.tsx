@@ -1,6 +1,7 @@
+import { type BackupHost, useBackup } from '../../lib/backup.ts';
 import { href } from '../../lib/route.ts';
 import { ThemeSwitch } from '../../lib/theme.tsx';
-import { Button, Cluster, Row, Rows, ScreenHeader, Stack, Text } from '../../ui/index.ts';
+import { Button, Cluster, Notice, Row, Rows, ScreenHeader, Stack, Text } from '../../ui/index.ts';
 
 // Stage 12's Workshop (#356): what is not one project, out of the way of the plan. The glossary is
 // mostly read from a marked term (#178), so here it is one way in of several.
@@ -23,7 +24,12 @@ const PLACES = [
   },
 ] as const;
 
-export function WorkshopScreen(props: { onLogOut: () => void }) {
+export function WorkshopScreen(props: {
+  onLogOut: () => void;
+  backupHost?: () => BackupHost;
+  fetchBackup?: Parameters<typeof useBackup>[1];
+}) {
+  const { backup, onDownload } = useBackup(props.backupHost, props.fetchBackup);
   return (
     <Stack>
       <ScreenHeader title="Workshop" />
@@ -39,10 +45,19 @@ export function WorkshopScreen(props: { onLogOut: () => void }) {
         <Row as="li">
           {/* A copy to keep: the free database restores only the last few hours (#21). */}
           <Stack gap="3xs">
-            <a href="/api/export" download>
+            <a href="/api/export" download onClick={onDownload}>
               Download a backup
             </a>
             <Text tone="muted">Every project and your tools, as one file to keep.</Text>
+            {backup.state === 'preparing' && <Text tone="muted">Preparing the backup…</Text>}
+            {backup.state === 'ready' && (
+              <Text>The backup is ready. Tap Download a backup again to save it.</Text>
+            )}
+            {backup.state === 'failed' && (
+              <Notice icon={backup.failure.connection ? 'connection' : 'error'}>
+                {backup.failure.message}
+              </Notice>
+            )}
           </Stack>
         </Row>
       </Rows>
