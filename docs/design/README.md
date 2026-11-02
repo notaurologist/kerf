@@ -46,6 +46,8 @@ Built in #380 (November 2026): Parameters and inputs is no longer a section on s
 
 Built in #379 (November 2026): each design flag shows, folded, on every cut-list part it concerns ("2 expert checks" in the part's marks and notes, opening to what to ask and why; opened for print). Build steps already showed each flag on one step, in the plan and in Building mode, so they are unchanged. Flags name the parts and hardware they concern but not a structural check, so the structural review keeps its list of every flag. The summary's list goes with the summary (#381).
 
+Built in #381 (November 2026): the summary is gone, with its key figures and its list of sections. The project's header, on every section, has the status, a line of what is next ("Next: Cut board 2 · 8 inputs needed · 6 expert checks", each a link to where it is dealt with), and Shop and Build buttons with their progress ("Shop · 4 of 11 bought", "Build · step 3 of 11"), the next mode as the one primary button and each with a bar in its mode's color. A project's own address opens on the structural review while inputs are needed, else on the diagrams, which then share the first printed page with the header. The expert-check count is all of the design's flags; Kerf does not track which have been asked about.
+
 What does not change: IA-2 (the project is the plan, and Shopping and Building are full-screen modes launched from it), the Resume card on the projects list, the order of the remaining sections, and print, which still gives the whole plan in order. The glossary stays reachable from every marked term (#178, #192) as well as from Workshop.
 
 ## Stage 11: review for a second template (#71)
