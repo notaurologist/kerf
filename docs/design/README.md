@@ -1,6 +1,6 @@
 # Design
 
-Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided and built. Stage 15, the structural review (#359), is decided and built. Stage 16, the cut list (#360), is decided; #360 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
+Status: Stages 0 to 6 are decided and built. Stage 9 (an app frame, motion, loading, and the keyboard) is decided and built (#265 to #267). Stage 10 (another look at color, type, and the key screens, #226) is decided and built (#279 to #281). Stage 11, the review for a second template (#71), is decided; its gaps are #302 to #305. Stage 12, navigation from the usability pass (#356), is decided and built (#378 to #381). Stage 13, suggesting structural inputs and project status (#355), is decided; its build is in follow-up issues. Stage 14, starting a new project (#358), is decided and built. Stage 15, the structural review (#359), is decided and built. Stage 16, the cut list (#360), is decided and built. Stage 17, the shopping list (#361), is decided; #361 builds it. Still open in the design milestone: the repeatable garage check (#69: protocol in `garage-check.md`, run when useful), the device accessibility pass (#87), and the brand (#166: chosen and built; see `brand.md`).
 
 The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explores two or three directions, critiques them against named principles and published precedents, and records the owner's choice here with the rejected directions and why. Later stages build only on recorded choices.
 
@@ -27,8 +27,22 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 | 14. Usability pass: starting a new project | #358 | Decided November 2026: P1, questions first | `start-from.html` |
 | 15. Usability pass: the structural review | #359 | Decided November 2026: S1; bolt layouts stay, folded | `structural-review.html` |
 | 16. Usability pass: the cut list | #360 | Decided November 2026: C1, end cuts as boxed saw settings | `cut-list.html` |
+| 17. Usability pass: the shopping list | #361 | Decided November 2026: L1; choosing guidance kept, folded | `shopping-list.html` |
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
+
+## Stage 17: usability pass, the shopping list (#361)
+
+On the laptop the shopping list's tables stretched across the page, so a row's stock, length, and count sat far apart, and the guidance on choosing boards ran on below them as dense paragraphs. `shopping-list.html` draws two directions, grouped the way a trip through the store goes.
+
+### Choices
+
+The owner took the suggested option for each (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| Layout | L1. Groups in store order (lumber, then the template's hardware groups), each a table only as wide as its columns, the count to buy first, with the group's notes under it. On a laptop the groups sit side by side. | L2, one checklist of sentences with the count first: closest to Shopping mode, but lengths sit inside sentences instead of one column to compare. |
+| Choosing boards | Kept in the plan's shopping list, so it prints with the plan, as closed disclosures with what each covers showing; Shopping mode keeps it per board as now. | Only in Shopping mode: the printed plan would lose it. |
 
 ## Stage 16: usability pass, the cut list (#360)
 
