@@ -71,10 +71,13 @@ describe('the structural review, no structural inputs', () => {
       render(<ProjectView project={projectFrom(noInputs)} />),
       'structural-review',
     );
-    const edit = `#/projects/${projectFrom(noInputs).id}/edit`;
-    expect(html).toContain(`<a href="${edit}?field=s-beamSpeciesGrade">Beam species and grade</a>`);
+    // With inputs needed the project opens on the review, so Edit returns there.
+    const edit = `#/projects/${projectFrom(noInputs).id}/edit?from=structural-review`;
     expect(html).toContain(
-      `<a href="${edit}?field=s-hangerRating">Swing hanger rated working load</a>`,
+      `<a href="${edit}&amp;field=s-beamSpeciesGrade">Beam species and grade</a>`,
+    );
+    expect(html).toContain(
+      `<a href="${edit}&amp;field=s-hangerRating">Swing hanger rated working load</a>`,
     );
   });
 });

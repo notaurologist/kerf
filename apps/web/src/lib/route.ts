@@ -11,8 +11,9 @@ export type Route =
   // `start` fills the form from a worked example or an earlier project (#98), or from answers to
   // the template's starting questions (#163); none is empty.
   | { screen: 'new-project'; templateId: string; start?: ProjectStart }
-  // The plan, one section per screen (#156). No section is the summary. `part` is the part
-  // selected in the drawings and the cut list, kept in the address so a reload keeps it.
+  // The plan, one section per screen (#156). No section is the one the project opens on (#356).
+  // `part` is the part selected in the drawings and the cut list, kept in the address so a reload
+  // keeps it.
   | { screen: 'project'; id: string; section?: PlanSectionId; part?: string }
   // `from` is the section Edit was opened from, which Save and Cancel return to.
   // `field` is the id of a field to start on, such as an input a check needs.
@@ -82,12 +83,11 @@ export function parseRoute(hash: string): Route {
     return {
       screen: 'edit-project',
       id: second,
-      ...(isPlanSection(from) && from !== 'summary' ? { from } : {}),
+      ...(isPlanSection(from) ? { from } : {}),
       ...(field ? { field } : {}),
     };
   }
-  // The summary has the project's own address, so `summary` is not one of its sections'.
-  if (isPlanSection(third) && third !== 'summary') {
+  if (isPlanSection(third)) {
     return parts.length === 3
       ? project(second, third, search.get('part'))
       : { screen: 'not-found' };
@@ -136,14 +136,13 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
       return `#/projects/new?template=${encodeURIComponent(route.templateId)}${start}`;
     }
     case 'project': {
-      const section =
-        route.section && route.section !== 'summary' ? `/${encodeURIComponent(route.section)}` : '';
+      const section = route.section ? `/${encodeURIComponent(route.section)}` : '';
       const part = route.part ? `?part=${encodeURIComponent(route.part)}` : '';
       return `#/projects/${encodeURIComponent(route.id)}${section}${part}`;
     }
     case 'edit-project': {
       const query = new URLSearchParams({
-        ...(route.from && route.from !== 'summary' ? { from: route.from } : {}),
+        ...(route.from ? { from: route.from } : {}),
         ...(route.field ? { field: route.field } : {}),
       }).toString();
       return `#/projects/${encodeURIComponent(route.id)}/edit${query ? `?${query}` : ''}`;

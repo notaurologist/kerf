@@ -4,7 +4,7 @@
 export { drawingInMove, sharedFrame, useAssemblyMotion } from './assemblyMotion.ts';
 export { Button, ButtonLink, IconButton, IconButtonLink } from './Button.tsx';
 export { InlineConfirm, useReturnFocus } from './Confirm.tsx';
-export { SectionList, SectionPager, WithContents } from './Contents.tsx';
+export { SectionPager, WithContents } from './Contents.tsx';
 export { DefinitionFigure, Definitions } from './Definitions.tsx';
 export { Diagram } from './Diagram.tsx';
 export { BlockingDialog } from './Dialog.tsx';
@@ -19,7 +19,6 @@ export {
   TextInput,
   YesNo,
 } from './Field.tsx';
-export { type Figure, Figures } from './Figures.tsx';
 export {
   ErrorSummary,
   ErrorText,

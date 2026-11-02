@@ -26,7 +26,6 @@ import {
   ErrorText,
   ExpertCheck,
   Field,
-  Figures,
   FlagList,
   FormProgress,
   Frame,
@@ -56,7 +55,6 @@ import {
   SaveFailed,
   SawSetting,
   ScreenHeader,
-  SectionList,
   SectionPager,
   Select,
   StateTag,
@@ -914,21 +912,6 @@ function examplePlan(inputs: unknown) {
 }
 const examplePlanAsEntered = examplePlan(TEMPLATES[0]?.examples[0]?.structuralInputs);
 
-describe('Figures', () => {
-  it('pairs each label with its value and detail as a description list', () => {
-    const html = render(
-      <Figures
-        items={[
-          { label: 'Beam', value: '120", 4x6' },
-          { label: 'Lowest margin', value: 'margin 1.1x', detail: 'Bending: Top beam' },
-        ]}
-      />,
-    );
-    expect(html).toMatch(/^<dl class="k-figures"><div class="k-figure"><dt>Beam<\/dt><dd>/);
-    expect(html).toContain('<dd class="k-figure__detail">Bending: Top beam</dd>');
-  });
-});
-
 describe('Term', () => {
   const href = (id: string) => `#/glossary/${id}`;
   const buttons = (html: string) =>
@@ -1109,21 +1092,6 @@ describe('SectionPager', () => {
   });
 });
 
-describe('SectionList', () => {
-  it('links each section with its digest under it', () => {
-    const html = render(
-      <SectionList
-        items={[
-          { id: 'cut-list', title: 'Cut list', href: '#/p/cut-list', digest: '5 parts, 9 pieces' },
-        ]}
-      />,
-    );
-    expect(html).toBe(
-      '<ul class="k-section-list"><li><a href="#/p/cut-list">Cut list</a><span class="k-section-list__digest">5 parts, 9 pieces</span></li></ul>',
-    );
-  });
-});
-
 describe('OneLine', () => {
   it('keeps the whole text in the page, for screen readers and copying', () => {
     expect(render(<OneLine>A long sentence.</OneLine>)).toBe(
@@ -1135,11 +1103,11 @@ describe('OneLine', () => {
 describe('PlanSection headings', () => {
   it('can take focus after a move, and the first section can share a printed page', () => {
     const html = render(
-      <PlanSection id="summary" title="Summary" project="Backyard" newPage={false}>
-        <p>Figures</p>
+      <PlanSection id="diagrams" title="Diagrams" project="Backyard" newPage={false}>
+        <p>Drawings</p>
       </PlanSection>,
     );
-    expect(html).toContain('<h2 id="summary-heading" tabindex="-1">Summary</h2>');
+    expect(html).toContain('<h2 id="diagrams-heading" tabindex="-1">Diagrams</h2>');
     expect(html).toContain('data-page="same"');
   });
 });

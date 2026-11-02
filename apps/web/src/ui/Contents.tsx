@@ -141,19 +141,3 @@ export function SectionPager(props: {
     </nav>
   );
 }
-
-/** Each section of the plan with a line saying what is in it, linking to it: the summary's list (#156). */
-export function SectionList(props: {
-  items: readonly { id: string; title: string; href: string; digest: string }[];
-}) {
-  return (
-    <ul className="k-section-list">
-      {props.items.map((item) => (
-        <li key={item.id}>
-          <a href={item.href}>{item.title}</a>
-          <span className="k-section-list__digest">{item.digest}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}

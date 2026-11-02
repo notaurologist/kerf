@@ -93,47 +93,6 @@
     display: none;
   }
 
-  /* ---------- Figures (#119): a label over a value, as many to a row as fit ---------- */
-  /* The plan's headline figures (Stage 10): ruled like a drawing's title block, and set large so
-     the summary reads as the answer. */
-  .k-figures {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(8.5rem, 100%), 1fr));
-    column-gap: var(--space-s);
-    margin: 0;
-    border-block-start: var(--border-thick) solid var(--text);
-  }
-
-  .k-figure {
-    display: grid;
-    align-content: start;
-    gap: var(--space-3xs);
-    padding-block: var(--space-xs) var(--space-s);
-    border-block-end: var(--border-thin) solid var(--border);
-  }
-
-  .k-figure[data-wide] {
-    grid-column: 1 / -1;
-  }
-
-  .k-figure dt {
-    color: var(--muted);
-    font-size: var(--size--1);
-  }
-
-  .k-figure dd {
-    margin: 0;
-    font-size: var(--size-2);
-    font-weight: 700;
-    line-height: var(--leading-heading);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .k-figure dd.k-figure__detail {
-    font-weight: 400;
-    font-size: var(--size--1);
-  }
-
   /* ---------- Definitions ---------- */
   /* One column that content never widens, so a drawing measures the width it is given. */
   .k-definitions {
@@ -911,11 +870,13 @@
     }
   }
 
-  .k-card[data-mode] {
+  .k-card[data-mode],
+  .k-button[data-mode] {
     border-inline-start: var(--border-bar) solid var(--mode-building-mark);
   }
 
-  .k-card[data-mode="shopping"] {
+  .k-card[data-mode="shopping"],
+  .k-button[data-mode="shopping"] {
     border-inline-start-color: var(--mode-shopping-mark);
   }
 
@@ -2086,33 +2047,6 @@
     .k-pager [data-dir="next"] .k-pager__link {
       justify-items: end;
     }
-  }
-
-  /* ---------- The summary's list of sections (#156): each a link with its digest under it ---------- */
-  .k-section-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: var(--space-s);
-  }
-
-  .k-section-list > li {
-    display: grid;
-    gap: var(--space-3xs);
-  }
-
-  .k-section-list > li > a {
-    font-weight: 700;
-  }
-
-  .k-section-list__digest {
-    color: var(--muted);
-  }
-
-  /* Placed after the blocks they adjust (#119). */
-  .k-figure .k-margin {
-    font-size: inherit;
   }
 
   /* ---------- Moving between views (#200) ---------- */

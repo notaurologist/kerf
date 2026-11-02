@@ -32,6 +32,7 @@ import { Boards } from '../boards/Boards.tsx';
 import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { Diagrams } from '../diagrams/Diagrams.tsx';
+import { ModeButtons } from '../modes/ModeCards.tsx';
 import { DeleteProject } from '../project-editor/DeleteProject.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import {
@@ -40,7 +41,7 @@ import {
   WOOD_MOVEMENT_INTRO,
 } from '../structural/StructuralReview.tsx';
 import { ParametersAndInputs } from './ParametersAndInputs.tsx';
-import { PlanSummary } from './PlanSummary.tsx';
+import { inputsNeeded, ProjectNext } from './ProjectNext.tsx';
 import { VersionNotice } from './VersionNotice.tsx';
 
 const VALUES_USED_ID = 'values-used';
@@ -65,7 +66,7 @@ export function ProjectScreen(props: { id: string; section?: PlanSectionId; part
 
 export function ProjectView(props: {
   project: Project;
-  /** The section on screen (#156); the summary when absent. */
+  /** The section on screen (#156); when absent, the first that needs something (#356). */
   section?: PlanSectionId;
   /** The part selected in the drawings and the cut list, from the address. */
   part?: string;
@@ -91,16 +92,20 @@ export function ProjectView(props: {
   const shown = (id: PlanSectionId) =>
     (id !== 'diagrams' || drawings !== null) && (id !== 'build-steps' || hasSteps);
   const sections = PLAN_SECTIONS.filter((s) => shown(s.id));
-  // A section this plan does not have, such as build steps in an old plan, shows the summary.
-  const current = sections.find((s) => s.id === props.section) ?? PLAN_SECTIONS[0];
+  // A project opens on the structural review while inputs are needed, else on its drawings; a
+  // section this plan does not have, such as build steps in an old plan, does the same.
+  const landing =
+    (plan.ok && inputsNeeded(plan.plan) > 0) || !shown('diagrams')
+      ? 'structural-review'
+      : 'diagrams';
+  const current =
+    sections.find((s) => s.id === props.section) ??
+    sections.find((s) => s.id === landing) ??
+    PLAN_SECTIONS[0];
   const at = (section: PlanSectionId, part?: string) =>
     href({ screen: 'project', id: project.id, section, ...(part ? { part } : {}) });
   const editHref = plan.ok
-    ? href({
-        screen: 'edit-project',
-        id: project.id,
-        ...(current.id === 'summary' ? {} : { from: current.id }),
-      })
+    ? href({ screen: 'edit-project', id: project.id, from: current.id })
     : undefined;
   const items = sections.map((s) => ({ id: s.id, title: s.title, href: at(s.id) }));
   // The values the plan was made from are in Edit (#356); the contents end with a way there.
@@ -161,6 +166,8 @@ export function ProjectView(props: {
     title: PLAN_SECTIONS.find((s) => s.id === id)?.title ?? id,
     project: project.name,
     hidden: id !== current.id,
+    // The first section shares the printed first page with the header (#119).
+    ...(id === sections[0]?.id ? { newPage: false } : {}),
   });
   return (
     <Stack gap="l">
@@ -169,7 +176,7 @@ export function ProjectView(props: {
           title={project.name}
           pageTitle={`${current.title} · ${project.name}`}
           actions={
-            // Secondary: the summary's next mode is the screen's one primary (Stage 10).
+            // Quiet: the next mode in the header is the screen's one primary (Stage 10).
             plan.ok &&
             editHref && <IconButtonLink href={editHref} icon="edit" label="Edit" variant="quiet" />
           }
@@ -184,6 +191,17 @@ export function ProjectView(props: {
           }
           status={flash && <StatusLine>{flash}</StatusLine>}
         />
+        {plan.ok && (
+          <>
+            <ProjectNext
+              project={project}
+              plan={plan.plan}
+              steps={steps?.steps ?? []}
+              reviewHref={at('structural-review')}
+            />
+            <ModeButtons project={project} plan={plan.plan} steps={steps?.steps ?? []} />
+          </>
+        )}
         <VersionNotice
           project={project}
           onRegenerated={(p) => {
@@ -201,19 +219,6 @@ export function ProjectView(props: {
       ) : (
         // Section order A (#40): the same reading order in the contents, on screen, and on paper.
         <WithContents items={items} current={current.id} end={valuesUsed || undefined}>
-          <PlanSection {...section('summary')} newPage={false}>
-            <PlanSummary
-              project={project}
-              plan={plan.plan}
-              steps={steps?.steps ?? []}
-              drawings={drawings}
-              template={template}
-              sections={sections
-                .filter((s) => s.id !== 'summary')
-                .map((s) => ({ id: s.id, title: s.title, href: at(s.id) }))}
-              editHref={editHref}
-            />
-          </PlanSection>
           {drawings && (
             <PlanSection {...section('diagrams')}>
               <Diagrams

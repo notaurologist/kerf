@@ -133,10 +133,8 @@ describe('parseRoute', () => {
 
   it('reads back every section’s address, with and without a part, so a reload stays put', () => {
     for (const { id } of PLAN_SECTIONS) {
-      const section = id === 'summary' ? {} : { section: id };
-      const route: Route = { screen: 'project', id: 'p 1', ...section };
+      const route: Route = { screen: 'project', id: 'p 1', section: id };
       expect(parseRoute(href(route))).toEqual(route);
-      if (id === 'summary') continue;
       const withPart: Route = { ...route, part: 'leg-back' };
       expect(parseRoute(href(withPart))).toEqual(withPart);
       const edit: Route = { screen: 'edit-project', id: 'p 1', from: id };
@@ -144,9 +142,9 @@ describe('parseRoute', () => {
     }
   });
 
-  it('gives the summary the project’s own address, and Edit from it no section', () => {
-    expect(href({ screen: 'project', id: 'p', section: 'summary' })).toBe('#/projects/p');
-    expect(href({ screen: 'edit-project', id: 'p', from: 'summary' })).toBe('#/projects/p/edit');
+  it('gives the project’s own address no section, and has no summary section', () => {
+    expect(href({ screen: 'project', id: 'p' })).toBe('#/projects/p');
+    expect(parseRoute('#/projects/p/summary')).toEqual({ screen: 'not-found' });
   });
 });
 
@@ -163,7 +161,6 @@ describe('the plan’s sections', () => {
 
   it('are in order A', () => {
     expect(PLAN_SECTIONS.map((s) => s.title)).toEqual([
-      'Summary',
       'Diagrams',
       'Structural review',
       'Cut list',
