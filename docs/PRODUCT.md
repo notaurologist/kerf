@@ -94,7 +94,8 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 
 ## After the MVP (candidates)
 
-- More templates: workbench, bookshelf, box, cutting board, outdoor bench.
+- More templates: workbench, bookshelf, box, cutting board, outdoor bench. New templates are made in Claude Code, starting from pictures of what I want (0019).
+- Template families: generalize templates so one covers a kind of furniture through its options, such as a case for bookshelves and boxes, or a leg-and-apron frame for benches and workbenches (#100).
 - References to past projects: when a step uses a method or skill I've used before, the step points back to it ("you cut these angles on the swing set legs"). Built on the project history recorded in the MVP.
 - Skill progression (the Fitbod-like part: what I've done, what to try next).
 - Cut optimization for board yield.
@@ -116,7 +117,7 @@ The questions this section used to list are settled in `docs/decisions/`:
 - Hosting: 0006. Login: 0007.
 - Rendering: SVG (0004).
 - Knowledge base format: typed data in the repository (0009).
-- Template authoring: TypeScript functions (0008).
+- Template authoring: TypeScript functions (0008), made in Claude Code from pictures (0019).
 
 ## Open questions
 

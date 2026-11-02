@@ -1,6 +1,6 @@
 # 0008: Templates as versioned TypeScript functions
 
-Status: Accepted (October 2026)
+Status: Accepted (October 2026). Amended by 0019: templates are made in Claude Code, starting from the owner's pictures.
 
 ## Context
 A template turns parameters into parts, hardware, operations, and 3D geometry (`DOMAIN.md`, data model). The options were TypeScript functions or a declarative format interpreted by the app. The swing set alone involves trigonometry for leg splay, brace angles, and bolt positions; a declarative format would need most of a programming language to express that.
