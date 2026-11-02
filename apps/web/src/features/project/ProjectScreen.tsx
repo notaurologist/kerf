@@ -243,6 +243,7 @@ export function ProjectView(props: {
           <PlanSection {...section('cut-list')} intro={CUT_LIST_INTRO}>
             <CutList
               rows={plan.plan.cutList}
+              flags={plan.plan.flags}
               selected={selected}
               partHref={drawings ? (partId) => at('diagrams', partId) : undefined}
             />

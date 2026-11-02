@@ -90,7 +90,18 @@ describe('glossary terms in the plan (#178)', () => {
       'gusset',
       'end distance',
     ]);
-    expect(marked('cut-list')).toEqual(['long point', 'level cut']);
+    // The cut list's own words, then those in the expert checks on its parts (#356).
+    expect(marked('cut-list')).toEqual([
+      'long point',
+      'flush',
+      'gusset',
+      'level cut',
+      'burial depth',
+      'ground contact',
+      'edge distance',
+      'nds',
+      'end distance',
+    ]);
     expect(marked('shopping-list')).toEqual([
       'grade stamp',
       'species and grade',
