@@ -3,6 +3,18 @@ import { useEffect, useState } from 'react';
 import { leaveGate } from './leave.ts';
 import { isPlanSection, type PlanSectionId } from './sections.ts';
 
+/** Where Edit was opened from: a plan section, or Shopping mode for a value read at the store. */
+export type EditFrom = PlanSectionId | 'shop';
+
+/** The screen Edit's Save and Cancel go back to. */
+export function editReturn(
+  id: string,
+  from: EditFrom | undefined,
+): Extract<Route, { screen: 'shop' | 'project' }> {
+  if (from === 'shop') return { screen: 'shop', id };
+  return from ? { screen: 'project', id, section: from } : { screen: 'project', id };
+}
+
 // Screens are chosen from the URL hash, so links, reload, and the back button work without a
 // router library.
 
@@ -17,9 +29,9 @@ export type Route =
   // `part` is the part selected in the drawings and the cut list, kept in the address so a reload
   // keeps it.
   | { screen: 'project'; id: string; section?: PlanSectionId; part?: string }
-  // `from` is the section Edit was opened from, which Save and Cancel return to.
+  // `from` is the section Edit was opened from, or Shopping mode, which Save and Cancel return to.
   // `field` is the id of a field to start on, such as an input a check needs.
-  | { screen: 'edit-project'; id: string; from?: PlanSectionId; field?: string }
+  | { screen: 'edit-project'; id: string; from?: EditFrom; field?: string }
   // Shopping and Building, full-screen modes launched from the plan (#61). The URL carries the
   // mode and step, so a reload or a shared link reopens the same place.
   | { screen: 'shop'; id: string }
@@ -86,7 +98,7 @@ export function parseRoute(hash: string): Route {
     return {
       screen: 'edit-project',
       id: second,
-      ...(isPlanSection(from) ? { from } : {}),
+      ...(isPlanSection(from) || from === 'shop' ? { from } : {}),
       ...(field ? { field } : {}),
     };
   }

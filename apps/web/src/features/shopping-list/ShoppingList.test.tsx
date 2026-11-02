@@ -42,3 +42,73 @@ describe('ShoppingList', () => {
     expect(html).toContain('data-keep="" data-narrow=""');
   });
 });
+
+describe('values read at the store in the plan (#390)', () => {
+  const lumber: LumberPlan = {
+    ...plan([
+      { nominal: '4x6', feet: 12, count: 1 },
+      { nominal: '4x4', feet: 12, count: 2 },
+    ]),
+    boards: [
+      {
+        nominal: '4x6',
+        feet: 12,
+        pieces: [{ partId: 'top', name: 'Top', length: 120 }],
+        offcut: 1,
+      },
+      {
+        nominal: '4x4',
+        feet: 12,
+        pieces: [{ partId: 'post', name: 'Post', length: 120 }],
+        offcut: 1,
+      },
+    ],
+  };
+  const stamp = {
+    from: 'structuralInputs' as const,
+    path: 'grade',
+    beside: { part: 'top' },
+    prompt: 'Read the grade stamp on the top boards.',
+    how: 'Inked on a face of each board.',
+    illustration: 'grade-stamp' as const,
+  };
+  const rating = {
+    from: 'structuralInputs' as const,
+    path: 'rating',
+    beside: { hardware: 'Clips' },
+    prompt: 'Read the rating on the clip package.',
+    how: 'Printed on the package.',
+  };
+  const list = (entered: string | null) => (
+    <ShoppingList
+      lumber={lumber}
+      hardware={[{ description: 'Clips', quantity: 4 }]}
+      hardwareNotes={[]}
+      readings={{
+        byLine: {
+          lumber: new Map([['4x6/12', [{ reading: stamp, label: 'Grade', entered }]]]),
+          hardware: new Map([['Clips', [{ reading: rating, label: 'Clip rating', entered }]]]),
+        },
+        href: (r) => `#edit/${r.path}`,
+      }}
+    />
+  );
+
+  it('follows the table of the lines they are read from, each opening its field', () => {
+    const text = renderText(list(null));
+    expect(text).toContain(
+      'Read the grade stamp on the top boards. Input needed Inked on a face of each board.',
+    );
+    expect(text).toContain('Grade stamp: what each part says');
+    expect(text.indexOf('Read the rating')).toBeGreaterThan(text.indexOf('Clips'));
+    const html = render(list(null));
+    expect(html).toContain('href="#edit/grade"');
+    expect(html).toContain('href="#edit/rating"');
+  });
+
+  it('says what was entered once it is', () => {
+    const text = renderText(list('No. 2'));
+    expect(text).toContain('Grade: No. 2. Change');
+    expect(text).not.toContain('Input needed');
+  });
+});

@@ -36,6 +36,11 @@ import { ModeButtons } from '../modes/ModeCards.tsx';
 import { DeleteProject } from '../project-editor/DeleteProject.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import {
+  neededReadings,
+  projectStoreReadings,
+  readingHref,
+} from '../shopping-list/StoreReadings.tsx';
+import {
   STRUCTURAL_REVIEW_INTRO,
   StructuralReview,
   WOOD_MOVEMENT_INTRO,
@@ -75,6 +80,10 @@ export function ProjectView(props: {
   const { project } = props;
   const template = findTemplate(project.templateId);
   const { plan, drawings, steps } = useReadProject(project);
+  const readings = useMemo(
+    () => (plan.ok ? projectStoreReadings(project, plan.plan) : undefined),
+    [project, plan],
+  );
   // Plans made before operations have no build steps.
   const hasSteps = steps !== null && steps.steps.length > 0;
   const terms = useMemo(
@@ -85,9 +94,10 @@ export function ProjectView(props: {
             ...(plan.plan.movement.length > 0 ? [WOOD_MOVEMENT_INTRO] : []),
             CUT_LIST_INTRO,
             ...(hasSteps ? [BUILD_STEPS_INTRO] : []),
+            ...neededReadings(readings).map((p) => p.reading.how),
           ])
         : [],
-    [plan, steps, hasSteps],
+    [plan, steps, hasSteps, readings],
   );
   const shown = (id: PlanSectionId) =>
     (id !== 'diagrams' || drawings !== null) && (id !== 'build-steps' || hasSteps);
@@ -265,6 +275,9 @@ export function ProjectView(props: {
               lumber={plan.plan.lumber}
               hardware={plan.plan.hardware}
               hardwareNotes={plan.plan.hardwareNotes}
+              readings={
+                readings && { byLine: readings, href: readingHref(project, 'shopping-list') }
+              }
             />
           </PlanSection>
           {hasSteps && (

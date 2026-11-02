@@ -4,6 +4,10 @@ import {
   groupHardware,
   type HardwareLine,
   type LumberPlan,
+  readingsBesideHardware,
+  readingsBesideLumber,
+  type StoreReading,
+  type StoreReadingsByLine,
 } from '@kerf/core';
 import { type Changes, marked, NO_CHANGES } from '../../lib/changes.tsx';
 import {
@@ -17,21 +21,28 @@ import {
   Text,
 } from '../../ui/index.ts';
 import { BoardSelection } from './BoardSelection.tsx';
+import { StoreReadings, uniqueReadings } from './StoreReadings.tsx';
 
 // The shopping list (PRODUCT.md, MVP feature 4): boards to buy, what to look for in them, and
 // hardware, as Stage 17 lays it out (#361, L1): narrow tables with the count first, grouped in
 // store order, and the guidance on choosing boards folded. Which parts come from which board is
 // the plan's Boards section (#119). Board lengths are stored in feet and shown through core's
 // formatter, so they round the same way as the cut list. In a preview (#56), `changes` marks
-// each line that differs from the saved plan with the saved value.
+// each line that differs from the saved plan with the saved value. Values read at the store
+// (#390) follow the table of the lines they are read from.
 
 export function ShoppingList(props: {
   lumber: LumberPlan;
   hardware: readonly HardwareLine[];
   hardwareNotes: readonly string[];
   changes?: Changes;
+  /** What to read at the store, by line, and where each opens in Edit. */
+  readings?: {
+    byLine: StoreReadingsByLine;
+    href: (reading: StoreReading) => string;
+  };
 }) {
-  const { lumber } = props;
+  const { lumber, readings } = props;
   const changes = props.changes ?? NO_CHANGES;
   const line = (l: object, list: readonly object[], name: string) => `${name}[${list.indexOf(l)}]`;
   const removedLumber = changes.removed('lumber.lines') as LumberPlan['lines'];
@@ -96,6 +107,14 @@ export function ShoppingList(props: {
             rowChanged={(l) => changes.under(line(l, lumber.lines, 'lumber.lines'))}
             columns={lumberColumns}
           />
+          {readings && (
+            <StoreReadings
+              readings={uniqueReadings(
+                lumber.lines.map((l) => readingsBesideLumber(readings.byLine, l)),
+              )}
+              readingHref={readings.href}
+            />
+          )}
           {removedLumber.length > 0 && (
             <Text>
               No longer bought:{' '}
@@ -148,6 +167,14 @@ export function ShoppingList(props: {
                   },
                 ]}
               />
+              {readings && (
+                <StoreReadings
+                  readings={uniqueReadings(
+                    group.lines.map((h) => readingsBesideHardware(readings.byLine, h)),
+                  )}
+                  readingHref={readings.href}
+                />
+              )}
             </Stack>
           ))}
           {removedHardware.length > 0 && (

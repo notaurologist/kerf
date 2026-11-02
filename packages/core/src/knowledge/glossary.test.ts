@@ -59,7 +59,6 @@ describe('glossary', () => {
       'end-grain',
       'flush',
       'footprint',
-      'grade-stamp',
       'grip',
       'gusset',
       'kerf',

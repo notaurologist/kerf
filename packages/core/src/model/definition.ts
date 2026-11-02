@@ -4,6 +4,7 @@ import type { Plan } from '../outputs/plan.ts';
 import type { StepOutline } from '../steps/build.ts';
 import type { TemplateForm } from './form.ts';
 import type { StartingQuestions } from './questions.ts';
+import type { StoreReading } from './storeReadings.ts';
 import type { GenerateResult } from './types.ts';
 
 /** Turns a stored snapshot of one shape version into the next (decision 0014). */
@@ -99,4 +100,9 @@ export interface TemplateDefinition<
    * filled in as inputs; hardware and the other inputs are never suggested (hard rule 3).
    */
   questions?: StartingQuestions;
+  /**
+   * Structural inputs and confirmed hardware only what is bought can say, such as the grade
+   * stamp, each asked for beside the shopping line it is read from (#390).
+   */
+  storeReadings?: readonly StoreReading[];
 }

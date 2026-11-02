@@ -357,8 +357,16 @@ export const GLOSSARY = [
     term: 'Grade stamp',
     group: 'lumber',
     forms: ['grade stamps'],
-    definition: 'The ink stamp on a board that names its species and grade.',
-    sources: [],
+    definition:
+      "The ink stamp on a board from the agency that graded it: the agency's mark, the mill, the species, the grade, and whether the board was dry or green when surfaced.",
+    illustration: 'grade-stamp',
+    sources: [
+      {
+        source: 'nist-ps-20-25',
+        locator: '2.8, Grade marked (grade stamped); 6.2.6, Grade marking',
+        url: 'https://www.nist.gov/document/ps-20-25-final',
+      },
+    ],
   },
   {
     id: 'grain',

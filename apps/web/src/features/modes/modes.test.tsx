@@ -345,3 +345,58 @@ describe('progress in words', () => {
     expect(text).toContain('Shopping: 11 lines, none bought. Building: Step 2 of 11 next');
   });
 });
+
+describe('values read at the store (#390)', () => {
+  const empty = template.examples[1];
+  if (!empty) throw new Error('no example without inputs');
+  const bare = createSnapshot(template, empty.params, empty.structuralInputs);
+  if (!bare.ok) throw new Error('example without inputs does not generate');
+  const needing = projectFrom(
+    JSON.parse(JSON.stringify(bare.output)) as NonNullable<Project['snapshot']>,
+    { id: '6f1c2a3e-0000-4000-8000-0000000003a0' },
+  );
+  const shop = (p: Project) => <ModeView route={{ screen: 'shop', id: p.id }} project={p} />;
+
+  it('asks for each beside its line while needed, opening Edit on the field', () => {
+    const text = renderText(shop(needing));
+    const html = render(shop(needing));
+    expect(text).toContain(
+      `1 × 4x6, 12' 0" Read the grade stamp on the beam boards. Input needed The grade stamp is inked`,
+    );
+    expect(text).toContain("Do the beam boards' faces have rows of small slits? Input needed");
+    expect(text).toContain(
+      '4 × Swing hangers Read the rated load on the swing hanger package. Input needed',
+    );
+    const edit = `#/projects/${needing.id}/edit?from=shop&amp;field=`;
+    expect(html).toContain(`${edit}s-beamSpeciesGrade`);
+    expect(html).toContain(`${edit}s-beamIncised`);
+    expect(html).toContain(`${edit}s-hangerRating`);
+    expect(text).toContain('Grade stamp: what each part says');
+  });
+
+  it('says what was entered once it is', () => {
+    const p = project();
+    const text = renderText(shop(p));
+    expect(text).toContain('Beam species and grade: Southern Pine No.2. Change');
+    expect(text).toContain('Swing hanger rated working load: 1200 lb. Change');
+    expect(text).not.toContain('Read the grade stamp on the beam boards');
+    expect(text).not.toContain('Ground anchors');
+  });
+
+  it('asks to check the anchor count on pads, which is entered before the plan is made', () => {
+    const pads = template.examples[2];
+    if (!pads) throw new Error('no example on pads');
+    const madeOnPads = createSnapshot(template, pads.params, pads.structuralInputs);
+    if (!madeOnPads.ok) throw new Error('example on pads does not generate');
+    const p = projectFrom(
+      JSON.parse(JSON.stringify(madeOnPads.output)) as NonNullable<Project['snapshot']>,
+      { id: '6f1c2a3e-0000-4000-8000-0000000003a1' },
+    );
+    expect(renderText(shop(p))).toContain(
+      "4 × Ground anchors Ground anchors per leg foot: 1. Check it against the anchor maker's instructions. Change",
+    );
+    expect(render(shop(p))).toContain(
+      `#/projects/${p.id}/edit?from=shop&amp;field=p-hardware.anchorsPerFoot`,
+    );
+  });
+});

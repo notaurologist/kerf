@@ -35,6 +35,7 @@ describe('glossary illustrations', () => {
       twist: 'twist',
       'edge-distance': 'bolt-distances',
       'end-distance': 'bolt-distances',
+      'grade-stamp': 'grade-stamp',
     });
   });
 

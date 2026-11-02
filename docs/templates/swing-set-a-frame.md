@@ -220,6 +220,7 @@ Every structural connection is a through-bolt with a flat washer at each end and
 - **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
 - **Store groups** (version 12): the bolts and their washers, nuts, and caps are "Bolts and fittings"; the hangers and seats are "Swing hardware"; the ground anchors are "Ground anchors". The store checklist shows them in that order, after the lumber.
+- **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, and, on pads, the ground anchors per leg foot beside the anchors (`storeReadings.ts`). Each says where to look. Legs on pads cannot generate without an anchor count, so that one always shows the count entered, to check against the anchor maker's instructions.
 
 ### Tools for the work
 

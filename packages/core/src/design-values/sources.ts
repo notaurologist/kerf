@@ -102,6 +102,13 @@ export const SOURCES = {
     url: 'https://811beforeyoudig.com/',
     note: 'For having buried utility lines marked before digging.',
   },
+  'nist-ps-20-25': {
+    title: 'Voluntary Product Standard PS 20-25, American Softwood Lumber Standard',
+    publisher: 'National Institute of Standards and Technology, U.S. Department of Commerce',
+    edition: 'Effective January 2025',
+    url: 'https://www.nist.gov/document/ps-20-25-final',
+    note: 'For what a grade stamp shows.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;
