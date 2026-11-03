@@ -69,6 +69,14 @@ export const SOURCES = {
     url: 'https://awpa.com/info/technical/homeowners',
     note: 'For ground-contact use categories and end tags.',
   },
+  'awpa-u1': {
+    title: 'Standard U1-25, Use Category System: User Specification for Treated Wood (excerpt)',
+    publisher: 'American Wood Protection Association',
+    edition:
+      '2025; the free excerpt of Sections 1 to 6 and Commodity Specification A, read November 2026',
+    url: 'https://awpa.com/images/2025/U1-25_excerpt.pdf',
+    note: 'For which ground-contact parts need UC4B rather than UC4A.',
+  },
   'osha-3080': {
     title: 'Hand and Power Tools (OSHA 3080)',
     publisher: 'U.S. Department of Labor, Occupational Safety and Health Administration',

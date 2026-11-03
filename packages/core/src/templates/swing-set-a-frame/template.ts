@@ -80,7 +80,7 @@ import { flags, validate, validateSwings } from './validate.ts';
  * else to buy when the store has none of its boards: other lengths, and other beam sizes that keep
  * the beam checks' margin, each with its margin (#450). No number changes.
  */
-export const TEMPLATE_VERSION = 25;
+export const TEMPLATE_VERSION = 26;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

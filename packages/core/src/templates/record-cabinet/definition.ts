@@ -253,7 +253,11 @@ export const recordCabinet: TemplateDefinition<
       hardware: outputs.hardware,
       hardwareNotes: design.hardwareNotes,
       flags: review.flags,
-      checks: [review.apron.deflection, review.top.deflection],
+      checks: [
+        ...(review.bottom ? [review.bottom.deflection] : []),
+        review.apron.deflection,
+        review.top.deflection,
+      ],
       movement: review.movement,
       checklist: review.checklist,
       boltLayout: [],

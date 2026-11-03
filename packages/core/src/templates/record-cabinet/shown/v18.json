@@ -936,8 +936,9 @@
         {
           "category": "load-bearing",
           "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
-          "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
+          "why": "Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.",
           "partIds": [
+            "bottom",
             "apron-long",
             "leg",
             "top"
@@ -946,6 +947,184 @@
         }
       ],
       "checks": [
+        {
+          "kind": "beam-deflection",
+          "title": "Deflection",
+          "subject": "Case bottom, in each bay",
+          "loadCase": "Records along the bay, for years",
+          "status": "computed",
+          "inputs": [
+            {
+              "symbol": "L",
+              "label": "Span between support centerlines",
+              "value": 17.25,
+              "unit": "in",
+              "basis": "From the template geometry"
+            },
+            {
+              "symbol": "b",
+              "label": "Breadth",
+              "value": 17,
+              "unit": "in",
+              "basis": "Panel size from the template"
+            },
+            {
+              "symbol": "d",
+              "label": "Depth",
+              "value": 0.75,
+              "unit": "in",
+              "basis": "Panel size from the template"
+            },
+            {
+              "symbol": "w_LT",
+              "label": "Records, per inch of bay, over the span",
+              "value": 3.3333333333333335,
+              "unit": "lb/in"
+            },
+            {
+              "symbol": "L",
+              "label": "Span, between the centerlines of the panels on either side",
+              "value": 17.25,
+              "unit": "in",
+              "basis": "b + t, from the template geometry"
+            },
+            {
+              "symbol": "E",
+              "label": "Modulus of elasticity, Cherry, black, clear wood at 12% moisture content",
+              "value": 1490000,
+              "unit": "psi",
+              "basis": "Table 5-3b",
+              "sources": [
+                {
+                  "source": "fpl-gtr-282",
+                  "locator": "Chapter 5, Table 5-3b, p. 5-9",
+                  "url": "https://research.fs.usda.gov/treesearch/62244"
+                },
+                {
+                  "source": "fpl-gtr-282",
+                  "locator": "Chapter 5, Table 5-3b, notes a and c, p. 5-13",
+                  "url": "https://research.fs.usda.gov/treesearch/62244"
+                }
+              ]
+            },
+            {
+              "symbol": "K_cr",
+              "label": "Creep factor, seasoned lumber in dry service",
+              "value": 1.5,
+              "unit": "",
+              "basis": "NDS 3.5.2",
+              "sources": [
+                {
+                  "source": "nds-2024",
+                  "locator": "3.5.2, Eq. 3.5-1, p. 22",
+                  "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+                }
+              ]
+            },
+            {
+              "symbol": "N",
+              "label": "Deflection limit, span divided by",
+              "value": 144,
+              "unit": "",
+              "basis": "Entered",
+              "input": "deflectionLimit"
+            }
+          ],
+          "formulas": [
+            "For each load P at a (b = L − a): δ(x) = P·b·x·(L² − b² − x²) / (6·E·I·L) for x ≤ a, mirrored for x ≥ a",
+            "For the uniform load w: δ(x) = w·x·(L³ − 2·L·x² + x³) / (24·E·I)",
+            "Δ_T(x) = K_cr · Δ_LT(x) + Δ_ST(x); δ = largest Δ_T over the span",
+            "I = b·d³ / 12",
+            "Allowed deflection = L / N",
+            "margin = (L / N) / δ"
+          ],
+          "steps": [
+            {
+              "symbol": "I",
+              "label": "Moment of inertia",
+              "value": 0.59765625,
+              "unit": "in⁴"
+            },
+            {
+              "symbol": "Δ_LT",
+              "label": "Largest immediate deflection from the long-term loads",
+              "value": 0.004315550360244769,
+              "unit": "in"
+            },
+            {
+              "symbol": "x_max",
+              "label": "Position of largest deflection",
+              "value": 8.624999999992156,
+              "unit": "in"
+            }
+          ],
+          "factors": [],
+          "assumptions": [
+            "Each bay of the case bottom is a simply supported span between the panels on either side, which stand on it over the aprons; the dadoes hold it but are taken as pinned.",
+            "Records fill the bay evenly, end to end.",
+            "Taking the span to the panel centerlines, where the case bottom really bears under each panel, overstates it slightly.",
+            "The front and back aprons under its edges also carry it; taking it as spanning only along its grain, between the panels, overstates its sag.",
+            "Simply supported between the two supports.",
+            "E is the average for small, clear, straight-grained specimens; boards with knots or cross grain may be less stiff.",
+            "E includes shear deflection, so bending deflection alone is computed.",
+            "E is at 12% moisture content; most properties increase as wood dries below that, so drier indoor wood is stiffer.",
+            "No NDS adjustment factors apply to a clear-wood value."
+          ],
+          "sources": [
+            {
+              "source": "awc-da6",
+              "locator": "Figure 8, Simple Beam, Concentrated Load at Any Point, p. 7; Figure 1, p. 4"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "3.5.1, p. 22",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "3.5.2, Eq. 3.5-1, p. 22",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Table 5-3b, p. 5-9",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Table 5-3b, notes a and c, p. 5-13",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Mechanical Properties of Clear Straight-Grained Wood, p. 5-21",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Moisture Content, p. 5-34",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Creep and Relaxation, p. 5-39",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            }
+          ],
+          "computed": {
+            "symbol": "δ",
+            "label": "Largest deflection, long-term",
+            "value": 0.006473325540367153,
+            "unit": "in"
+          },
+          "allowable": {
+            "symbol": "L/N",
+            "label": "Allowed deflection",
+            "value": 0.11979166666666667,
+            "unit": "in"
+          },
+          "margin": 18.505429075002514
+        },
         {
           "kind": "beam-deflection",
           "title": "Deflection",
@@ -1859,9 +2038,10 @@
         {
           "category": "check-assumptions",
           "element": "Bending and shear of the aprons and top",
-          "confirm": "Confirm the aprons and top are strong enough, not only stiff enough.",
+          "confirm": "Confirm the case bottom, aprons, and top are strong enough, not only stiff enough.",
           "why": "There are no published design values for furniture lumber, so Kerf checks only deflection.",
           "partIds": [
+            "bottom",
             "apron-long",
             "top"
           ],
@@ -3899,7 +4079,7 @@
               {
                 "category": "load-bearing",
                 "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
-                "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
+                "why": "Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.",
                 "sources": []
               }
             ]
@@ -24616,7 +24796,7 @@
               {
                 "category": "load-bearing",
                 "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
-                "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
+                "why": "Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.",
                 "sources": []
               }
             ]
@@ -42781,8 +42961,9 @@
         {
           "category": "load-bearing",
           "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
-          "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
+          "why": "Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.",
           "partIds": [
+            "bottom",
             "apron-long",
             "leg",
             "top"
@@ -42791,6 +42972,27 @@
         }
       ],
       "checks": [
+        {
+          "kind": "beam-deflection",
+          "title": "Deflection",
+          "subject": "Case bottom, in each bay",
+          "loadCase": "Records along the bay, for years",
+          "status": "input-needed",
+          "missing": [
+            {
+              "key": "species",
+              "label": "Species"
+            },
+            {
+              "key": "recordLoad",
+              "label": "Records, pounds per foot"
+            },
+            {
+              "key": "deflectionLimit",
+              "label": "Deflection limit (span divided by)"
+            }
+          ]
+        },
         {
           "kind": "beam-deflection",
           "title": "Deflection",
@@ -43000,9 +43202,10 @@
         {
           "category": "check-assumptions",
           "element": "Bending and shear of the aprons and top",
-          "confirm": "Confirm the aprons and top are strong enough, not only stiff enough.",
+          "confirm": "Confirm the case bottom, aprons, and top are strong enough, not only stiff enough.",
           "why": "There are no published design values for furniture lumber, so Kerf checks only deflection.",
           "partIds": [
+            "bottom",
             "apron-long",
             "top"
           ],
@@ -45040,7 +45243,7 @@
               {
                 "category": "load-bearing",
                 "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
-                "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
+                "why": "Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.",
                 "sources": []
               }
             ]
@@ -65757,7 +65960,7 @@
               {
                 "category": "load-bearing",
                 "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
-                "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
+                "why": "Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.",
                 "sources": []
               }
             ]
@@ -83618,8 +83821,9 @@
         {
           "category": "load-bearing",
           "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
-          "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
+          "why": "Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.",
           "partIds": [
+            "bottom",
             "apron-long",
             "leg",
             "top"
@@ -83628,6 +83832,184 @@
         }
       ],
       "checks": [
+        {
+          "kind": "beam-deflection",
+          "title": "Deflection",
+          "subject": "Case bottom, in each bay",
+          "loadCase": "Records along the bay, for years",
+          "status": "computed",
+          "inputs": [
+            {
+              "symbol": "L",
+              "label": "Span between support centerlines",
+              "value": 13.5,
+              "unit": "in",
+              "basis": "From the template geometry"
+            },
+            {
+              "symbol": "b",
+              "label": "Breadth",
+              "value": 13,
+              "unit": "in",
+              "basis": "Panel size from the template"
+            },
+            {
+              "symbol": "d",
+              "label": "Depth",
+              "value": 1,
+              "unit": "in",
+              "basis": "Panel size from the template"
+            },
+            {
+              "symbol": "w_LT",
+              "label": "Records, per inch of bay, over the span",
+              "value": 3.3333333333333335,
+              "unit": "lb/in"
+            },
+            {
+              "symbol": "L",
+              "label": "Span, between the centerlines of the panels on either side",
+              "value": 13.5,
+              "unit": "in",
+              "basis": "b + t, from the template geometry"
+            },
+            {
+              "symbol": "E",
+              "label": "Modulus of elasticity, Walnut, black, clear wood at 12% moisture content",
+              "value": 1680000,
+              "unit": "psi",
+              "basis": "Table 5-3b",
+              "sources": [
+                {
+                  "source": "fpl-gtr-282",
+                  "locator": "Chapter 5, Table 5-3b, p. 5-11",
+                  "url": "https://research.fs.usda.gov/treesearch/62244"
+                },
+                {
+                  "source": "fpl-gtr-282",
+                  "locator": "Chapter 5, Table 5-3b, notes a and c, p. 5-13",
+                  "url": "https://research.fs.usda.gov/treesearch/62244"
+                }
+              ]
+            },
+            {
+              "symbol": "K_cr",
+              "label": "Creep factor, seasoned lumber in dry service",
+              "value": 1.5,
+              "unit": "",
+              "basis": "NDS 3.5.2",
+              "sources": [
+                {
+                  "source": "nds-2024",
+                  "locator": "3.5.2, Eq. 3.5-1, p. 22",
+                  "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+                }
+              ]
+            },
+            {
+              "symbol": "N",
+              "label": "Deflection limit, span divided by",
+              "value": 144,
+              "unit": "",
+              "basis": "Entered",
+              "input": "deflectionLimit"
+            }
+          ],
+          "formulas": [
+            "For each load P at a (b = L − a): δ(x) = P·b·x·(L² − b² − x²) / (6·E·I·L) for x ≤ a, mirrored for x ≥ a",
+            "For the uniform load w: δ(x) = w·x·(L³ − 2·L·x² + x³) / (24·E·I)",
+            "Δ_T(x) = K_cr · Δ_LT(x) + Δ_ST(x); δ = largest Δ_T over the span",
+            "I = b·d³ / 12",
+            "Allowed deflection = L / N",
+            "margin = (L / N) / δ"
+          ],
+          "steps": [
+            {
+              "symbol": "I",
+              "label": "Moment of inertia",
+              "value": 1.0833333333333333,
+              "unit": "in⁴"
+            },
+            {
+              "symbol": "Δ_LT",
+              "label": "Largest immediate deflection from the long-term loads",
+              "value": 0.0007921021849244507,
+              "unit": "in"
+            },
+            {
+              "symbol": "x_max",
+              "label": "Position of largest deflection",
+              "value": 6.749999999993861,
+              "unit": "in"
+            }
+          ],
+          "factors": [],
+          "assumptions": [
+            "Each bay of the case bottom is a simply supported span between the panels on either side, which stand on it over the aprons; the dadoes hold it but are taken as pinned.",
+            "Records fill the bay evenly, end to end.",
+            "Taking the span to the panel centerlines, where the case bottom really bears under each panel, overstates it slightly.",
+            "The front and back aprons under its edges also carry it; taking it as spanning only along its grain, between the panels, overstates its sag.",
+            "Simply supported between the two supports.",
+            "E is the average for small, clear, straight-grained specimens; boards with knots or cross grain may be less stiff.",
+            "E includes shear deflection, so bending deflection alone is computed.",
+            "E is at 12% moisture content; most properties increase as wood dries below that, so drier indoor wood is stiffer.",
+            "No NDS adjustment factors apply to a clear-wood value."
+          ],
+          "sources": [
+            {
+              "source": "awc-da6",
+              "locator": "Figure 8, Simple Beam, Concentrated Load at Any Point, p. 7; Figure 1, p. 4"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "3.5.1, p. 22",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "3.5.2, Eq. 3.5-1, p. 22",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Table 5-3b, p. 5-11",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Table 5-3b, notes a and c, p. 5-13",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Mechanical Properties of Clear Straight-Grained Wood, p. 5-21",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Moisture Content, p. 5-34",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            },
+            {
+              "source": "fpl-gtr-282",
+              "locator": "Chapter 5, Creep and Relaxation, p. 5-39",
+              "url": "https://research.fs.usda.gov/treesearch/62244"
+            }
+          ],
+          "computed": {
+            "symbol": "δ",
+            "label": "Largest deflection, long-term",
+            "value": 0.001188153277386676,
+            "unit": "in"
+          },
+          "allowable": {
+            "symbol": "L/N",
+            "label": "Allowed deflection",
+            "value": 0.09375,
+            "unit": "in"
+          },
+          "margin": 78.90396111703838
+        },
         {
           "kind": "beam-deflection",
           "title": "Deflection",
@@ -84459,9 +84841,10 @@
         {
           "category": "check-assumptions",
           "element": "Bending and shear of the aprons and top",
-          "confirm": "Confirm the aprons and top are strong enough, not only stiff enough.",
+          "confirm": "Confirm the case bottom, aprons, and top are strong enough, not only stiff enough.",
           "why": "There are no published design values for furniture lumber, so Kerf checks only deflection.",
           "partIds": [
+            "bottom",
             "apron-long",
             "top"
           ],
@@ -85912,7 +86295,7 @@
               {
                 "category": "load-bearing",
                 "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
-                "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
+                "why": "Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.",
                 "sources": []
               }
             ]
@@ -97832,7 +98215,7 @@
               {
                 "category": "load-bearing",
                 "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
-                "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
+                "why": "Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.",
                 "sources": []
               }
             ]
