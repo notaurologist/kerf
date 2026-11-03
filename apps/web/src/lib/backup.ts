@@ -55,16 +55,35 @@ export async function shareBackup(host: BackupHost, file: File): Promise<BackupS
   }
 }
 
-/** Fetches every project and the tools as the backup file. */
-export async function fetchBackup(): Promise<
-  { ok: true; file: File } | { ok: false; failure: Failure }
-> {
-  const result = await send(api.api.export.$get());
+const INCOMPLETE: Failure = {
+  message: 'The backup came back incomplete. Try again.',
+  connection: false,
+};
+
+/**
+ * Fetches every project and the tools as the backup file. The API streams it, so a connection
+ * lost partway leaves text that does not parse, and that is reported rather than saved.
+ */
+export async function fetchBackup(
+  client = api,
+): Promise<{ ok: true; file: File } | { ok: false; failure: Failure }> {
+  const result = await send(client.api.export.$get());
   if (!result.ok) return { ok: false, failure: failureOf(result.error) };
-  const name = `kerf-${result.value.exportedAt.slice(0, 10)}.json`;
+  const backup: unknown = result.value;
+  if (
+    typeof backup !== 'object' ||
+    backup === null ||
+    !('kind' in backup) ||
+    backup.kind !== 'kerf-export' ||
+    !('exportedAt' in backup) ||
+    typeof backup.exportedAt !== 'string'
+  ) {
+    return { ok: false, failure: INCOMPLETE };
+  }
+  const name = `kerf-${backup.exportedAt.slice(0, 10)}.json`;
   return {
     ok: true,
-    file: new File([JSON.stringify(result.value)], name, { type: 'application/json' }),
+    file: new File([JSON.stringify(backup)], name, { type: 'application/json' }),
   };
 }
 

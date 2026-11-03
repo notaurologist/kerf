@@ -616,11 +616,47 @@ describe('GET /api/export (#21)', () => {
     );
     const exported = (await res.json()) as Json;
     expect(exported.kind).toBe('kerf-export');
+    expect(exported.formatVersion).toBe(1);
     expect(exported.exportedAt).toBe('2026-10-28T12:00:00.000Z');
     expect(exported.projects.map((p: Json) => p.id)).toEqual([body.id]);
     expect(exported.projects[0].snapshot).toEqual(body.snapshot);
     expect(exported.projects[0].ticks).toEqual([]);
     expect(exported.tools).toHaveProperty('tools');
+  });
+
+  it('streams a backup larger than the 4.5 MB Vercel allows an unstreamed response', async () => {
+    const { authed, client } = await createTestApp();
+    const { body } = await create(authed);
+    // Copies of one stored project, enough to pass the limit whatever a snapshot measures.
+    const snapshotBytes = JSON.stringify(body.snapshot).length;
+    const LIMIT = 4.5 * 1024 * 1024;
+    const copies = Math.ceil(LIMIT / snapshotBytes) + 5;
+    await client.query(
+      `insert into projects (name, status, template_id, template_version, snapshot)
+       select name || ' ' || n, status, template_id, template_version, snapshot
+       from projects, generate_series(1, $1) as n`,
+      [copies],
+    );
+
+    const res = await authed('/api/export');
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-length')).toBeNull();
+    const reader = (res.body as ReadableStream<Uint8Array>).getReader();
+    const decoder = new TextDecoder();
+    let text = '';
+    let pieces = 0;
+    for (let read = await reader.read(); !read.done; read = await reader.read()) {
+      pieces += 1;
+      text += decoder.decode(read.value, { stream: true });
+    }
+    text += decoder.decode();
+
+    expect(new TextEncoder().encode(text).length).toBeGreaterThan(LIMIT);
+    expect(pieces).toBeGreaterThan(copies);
+    const exported = JSON.parse(text) as Json;
+    expect(exported).toMatchObject({ kind: 'kerf-export', formatVersion: 1 });
+    expect(exported.projects).toHaveLength(copies + 1);
+    expect(exported.projects.at(-1).snapshot).toEqual(body.snapshot);
   });
 });
 

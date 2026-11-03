@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { shareBackup } from './backup.ts';
+import { createClient } from './api.ts';
+import { fetchBackup, shareBackup } from './backup.ts';
 
 const file = new File(['{}'], 'kerf-2026-11-02.json', { type: 'application/json' });
 
@@ -36,5 +37,33 @@ describe('shareBackup', () => {
     expect(result).toMatchObject({ state: 'failed', failure: { connection: false } });
     if (result.state === 'failed') expect(result.failure.message).toContain('Safari');
     expect(await shareBackup({ standalone: true }, file)).toMatchObject({ state: 'failed' });
+  });
+});
+
+describe('fetchBackup', () => {
+  const answering = (body: string) =>
+    createClient(
+      async () => new Response(body, { headers: { 'content-type': 'application/json' } }),
+    );
+  const backup = {
+    kind: 'kerf-export',
+    formatVersion: 1,
+    exportedAt: '2026-11-02T12:00:00.000Z',
+    projects: [],
+    tools: { tools: [] },
+  };
+
+  it('names the file by the day it was exported and keeps what the API sent', async () => {
+    const result = await fetchBackup(answering(JSON.stringify(backup)));
+    if (!result.ok) throw new Error('expected the backup');
+    expect(result.file.name).toBe('kerf-2026-11-02.json');
+    expect(JSON.parse(await result.file.text())).toEqual(backup);
+  });
+
+  it('reports a backup cut off partway rather than saving it', async () => {
+    const whole = JSON.stringify(backup);
+    const result = await fetchBackup(answering(whole.slice(0, whole.length - 5)));
+    expect(result).toMatchObject({ ok: false, failure: { connection: false } });
+    if (!result.ok) expect(result.failure.message).toContain('incomplete');
   });
 });

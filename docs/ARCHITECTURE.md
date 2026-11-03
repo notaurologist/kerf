@@ -188,7 +188,7 @@ The preference order is the order of `METHODS` in `knowledge/methods.ts`, where 
 | `GET /api/trash` | Projects in the trash, most recently deleted first, each with `deletedAt` and `purgeAt` (30 days later). Reading it or the project list first purges anything past that |
 | `POST /api/trash/:id/restore` | Take a project out of the trash, as it was (204) |
 | `DELETE /api/trash/:id` | Delete a project in the trash for good, with its history and progress rows (204) |
-| `GET /api/export` | Every project not in the trash, as stored, with its ticks, and the tool list, as a JSON download (`kerf-YYYY-MM-DD.json`) |
+| `GET /api/export` | Every project not in the trash, as stored, with its ticks, and the tool list, as a streamed JSON download (`kerf-YYYY-MM-DD.json`) with `formatVersion` |
 
 Errors are JSON with an `error` code: 400 for a malformed request (with `issues` and their paths), 401 without a session, 404 for a missing project, 415 for a state-changing request that is not JSON, 422 when core rejects the parameters or inputs (with core's `issues`), 429 when login is rate limited, and 500 `internal` for anything unexpected, which is logged. A malformed JSON body is a 400 `invalid-request`, and an unknown route with a session is a 404 `not-found`. A stored project whose progress cannot be counted is listed with `progress: null` rather than failing the list. A project whose snapshot cannot be read, including one whose template this code no longer has, opens with `snapshot: null` and `unreadable` saying why; one whose version report, drawings, or build steps throw opens with that field null, and the error is logged. Routes call services in `services/`, the only code that touches the database. The project routes' request bodies are in `services/projectBodies.ts`, and history rows, including the release backfill, in `services/history.ts`.
 
@@ -224,7 +224,9 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 
 #### Backups (manual, for now)
 
-The likeliest mistake, deleting the wrong project, is covered by the trash: a deleted project can be restored for 30 days (#21). The projects screen also offers "Download all projects", the JSON from `GET /api/export`, a copy the owner keeps anywhere. Neither covers a bad migration or losing the Neon project; for those, take a dump.
+The likeliest mistake, deleting the wrong project, is covered by the trash: a deleted project can be restored for 30 days (#21). The workshop screen also offers "Download a backup", the JSON from `GET /api/export`, a copy the owner keeps anywhere. The file starts with `kind: "kerf-export"` and `formatVersion` (now 1), raised whenever its shape changes. Neither covers a bad migration or losing the Neon project; for those, take a dump.
+
+Vercel limits a function's response to 4.5 MB unless the response is streamed, and snapshots measure 40 to 78 KB, so an unstreamed backup would fail with a 413 past roughly 55 projects. The route reads every row first, so a database error is still a 500, then streams the JSON one project at a time (`services/exportFile.ts`). A route test streams a backup past 4.5 MB. A connection lost partway leaves a file that does not parse: the share-sheet path in the Home Screen app checks this and says the backup came back incomplete, while a browser's own download may save the cut file, which shows as invalid JSON when opened.
 
 There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions` and `login_failures` but not their rows, so no live session token is written to a file.
 
