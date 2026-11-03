@@ -1321,7 +1321,29 @@
             "symbol": "C_dyn",
             "label": "Dynamic factor",
             "value": 1.6454005556671611
-          }
+          },
+          "deeperStock": [
+            {
+              "subject": "Top beam, 4x8",
+              "margin": 1.3155384003110364,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2.654889343562836
+              }
+            },
+            {
+              "subject": "Top beam, 3 plies of 2x8",
+              "margin": 1.0411890268770343,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2.0863745513648992
+              }
+            }
+          ]
         },
         {
           "kind": "beam-shear",
@@ -2320,6 +2342,26 @@
             "label": "Dynamic factor",
             "value": 8.000000000000002
           }
+        },
+        {
+          "kind": "column",
+          "title": "Compression",
+          "subject": "Front legs, 4x4",
+          "loadCase": "Strength: swing load times the dynamic factor",
+          "status": "not-computed",
+          "reason": "ℓe/d is 63.4 along the beam, over 50, the NDS limit for a solid column. A buried leg is taken as fixed at grade. At the top the frame can lean along the beam and turn about the leg-to-beam bolt, so the leg's top is free to move and to turn (NDS Table G1, case e, Ke = 2.10). ℓ runs from grade to the underside of the beam, where the gusset carries the beam into the legs.",
+          "sources": [
+            {
+              "source": "nds-2024",
+              "locator": "3.7.1.4, p. 23",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "Appendix G and Table G1, p. 183",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Appendix.pdf"
+            }
+          ]
         }
       ],
       "movement": [],
@@ -13220,6 +13262,26 @@
             {
               "key": "hangerRating",
               "label": "Swing hanger rated working load"
+            }
+          ]
+        },
+        {
+          "kind": "column",
+          "title": "Compression",
+          "subject": "Front legs, 4x4",
+          "loadCase": "Strength: swing load times the dynamic factor",
+          "status": "not-computed",
+          "reason": "ℓe/d is 63.4 along the beam, over 50, the NDS limit for a solid column. A buried leg is taken as fixed at grade. At the top the frame can lean along the beam and turn about the leg-to-beam bolt, so the leg's top is free to move and to turn (NDS Table G1, case e, Ke = 2.10). ℓ runs from grade to the underside of the beam, where the gusset carries the beam into the legs.",
+          "sources": [
+            {
+              "source": "nds-2024",
+              "locator": "3.7.1.4, p. 23",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "Appendix G and Table G1, p. 183",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Appendix.pdf"
             }
           ]
         }
@@ -24858,7 +24920,39 @@
             "symbol": "C_dyn",
             "label": "Dynamic factor",
             "value": 1.3733200229165963
-          }
+          },
+          "deeperStock": [
+            {
+              "subject": "Top beam, 2 plies of 2x8",
+              "margin": 1.0148652620007972,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2.0306920905250916
+              }
+            },
+            {
+              "subject": "Top beam, 4x8",
+              "margin": 1.4102412349685771,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2.8514418936210264
+              }
+            },
+            {
+              "subject": "Top beam, 3 plies of 2x8",
+              "margin": 1.4988192958287112,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 3.046038135787637
+              }
+            }
+          ]
         },
         {
           "kind": "beam-shear",
@@ -25885,6 +25979,21 @@
             "label": "Dynamic factor",
             "value": 8.000000000000002
           }
+        },
+        {
+          "kind": "column",
+          "title": "Compression",
+          "subject": "Legs, 4x4",
+          "loadCase": "Strength: swing load times the dynamic factor",
+          "status": "not-computed",
+          "reason": "On pads, no end condition Kerf can count holds a leg along the beam: each foot can turn on its pad, and the frame can turn about the leg-to-beam bolt, so NDS Appendix G gives no buckling length. What holds the frame along the beam is the ground anchors and how tightly the bolts clamp, which an experienced builder judges.",
+          "sources": [
+            {
+              "source": "nds-2024",
+              "locator": "Appendix G and Table G1, p. 183",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Appendix.pdf"
+            }
+          ]
         }
       ],
       "movement": [],

@@ -145,6 +145,28 @@ describe('the structural review, worked example with every input', () => {
     expect(review.match(/With the other inputs as entered/g)).toHaveLength(3);
   });
 
+  it('gives bending in the next deeper stock, from the plan (#466)', () => {
+    const params = complete.params as { hardware: object };
+    const made = createSnapshot(
+      swingSet,
+      {
+        ...params,
+        hardware: { ...params.hardware, hangerMounting: { kind: 'vertical-bolt', diameter: 0.5 } },
+      },
+      complete.structuralInputs,
+    );
+    if (!made.ok) throw new Error('worked example should generate');
+    const review = text(JSON.parse(JSON.stringify(made.output)));
+    // The spec's worked example: break-even 2.655 and 2.086, margins 1.32 and 1.04.
+    expect(review).toContain('In the next deeper stock, with the other inputs as entered:');
+    expect(review).toContain(
+      'Top beam, 4x8: margin 1.3x; margin 1.0 or more while the dynamic factor is 2.6 or less.',
+    );
+    expect(review).toContain(
+      'Top beam, 3 plies of 2x8: margin 1.0x; margin 1.0 or more while the dynamic factor is 2.0 or less.',
+    );
+  });
+
   it('shows the checklist and the expert-check flags', () => {
     expect(review).toContain('Confirmation checklist');
     expect(review).toContain('Leg-to-beam bolt and gusset, each frame');

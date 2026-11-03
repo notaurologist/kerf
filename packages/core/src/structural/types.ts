@@ -92,6 +92,19 @@ export const BreakEven = z.object({
 });
 export type BreakEven = z.infer<typeof BreakEven>;
 
+/**
+ * The same check with the member in another stock and every other input as entered, so the stock
+ * can be chosen against the break-even factor. The template lists the stock; it does not choose.
+ */
+const OtherStock = z.object({
+  /** The member in that stock, as the check names its subject. */
+  subject: z.string(),
+  /** Missing while the factor is. */
+  margin: z.number().optional(),
+  breakEven: BreakEven,
+});
+export type OtherStock = z.infer<typeof OtherStock>;
+
 const CheckHeader = {
   kind: CheckKind,
   /** Such as 'Bending'. */
@@ -117,6 +130,8 @@ export const ComputedCheck = z.object({
   /** allowable / computed: "margin 2.1x under these assumptions". */
   margin: z.number(),
   breakEven: BreakEven.optional(),
+  /** The check in the next deeper stock the template can build; empty when there is none. */
+  deeperStock: z.array(OtherStock).optional(),
 });
 export type ComputedCheck = z.infer<typeof ComputedCheck>;
 
@@ -126,6 +141,7 @@ export const InputNeededCheck = z.object({
   missing: z.array(MissingInput),
   /** Known once only the factor is missing. */
   breakEven: BreakEven.optional(),
+  deeperStock: z.array(OtherStock).optional(),
 });
 export type InputNeededCheck = z.infer<typeof InputNeededCheck>;
 

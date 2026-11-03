@@ -34,6 +34,7 @@ import v28 from './snapshots/v28.json' with { type: 'json' };
 import v29 from './snapshots/v29.json' with { type: 'json' };
 import v30 from './snapshots/v30.json' with { type: 'json' };
 import v31 from './snapshots/v31.json' with { type: 'json' };
+import v32 from './snapshots/v32.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -165,11 +166,15 @@ const isVersion31 = (c: { path: string; before?: unknown; after?: unknown }) =>
     ASSEMBLY.includes(String((c.after as { type?: string }).type))) ||
     (/^design\.flags\[\d+\]$/.test(c.path) && (c.after as { step?: string }).step === 'raise'));
 
+/** Version 32's change (#466): bending in the next deeper beam stock, added beside the plan's. */
+const isVersion32 = (c: { path: string }) =>
+  /^structuralReview\.beam\.bending\.deeperStock(\.|\[|$)/.test(c.path);
+
 /**
- * Version 32's change (#468): the legs' column check, new in the review with nothing before it.
+ * Version 33's change (#468): the legs' column check, new in the review with nothing before it.
  * Set aside like version 18's.
  */
-const isVersion32 = (c: { path: string; before?: unknown }) =>
+const isVersion33 = (c: { path: string; before?: unknown }) =>
   c.path === 'structuralReview.legs' && c.before === undefined;
 
 /**
@@ -191,6 +196,7 @@ function regenerated(
   later?: unknown,
   keepVersion31 = false,
   keepVersion32 = false,
+  keepVersion33 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -210,7 +216,8 @@ function regenerated(
         (keepVersion29 || later !== undefined || !isVersion29(c)) &&
         (keepVersion30 || !isVersion30(c)) &&
         (keepVersion31 || !isVersion31(c)) &&
-        (keepVersion32 || !isVersion32(c)),
+        (keepVersion32 || !isVersion32(c)) &&
+        (keepVersion33 || !isVersion33(c)),
     ),
   };
   return keepVersion18
@@ -729,7 +736,8 @@ describe('swing-set template versions', () => {
           !isVersion29(c) &&
           !isVersion30(c) &&
           !isVersion31(c) &&
-          !isVersion32(c),
+          !isVersion32(c) &&
+          !isVersion33(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1079,17 +1087,39 @@ describe('swing-set template versions', () => {
     ]);
   });
 
-  // Hand check in structural.test.ts: the worked example's front leg runs (96 + 3.313) / cos 20° =
-  // 105.687 from grade to the beam, so ℓe/d = 2.10 · 105.687 / 3.5 = 63.4 along the beam, over 50.
-  it("version 32 adds the legs' column check, and changes nothing else (#468)", () => {
+  // Hand check in the spec, Structural model, example 1: the 4x8's break-even factor 2.655 and
+  // three plies of 2x8's 2.086, against the 4x6's own 1.645, which does not change.
+  it('version 32 adds bending in the next deeper stock, and changes nothing else (#466)', () => {
     const keep32 = [...Array(10).fill(false), undefined, false, true] as const;
     for (const stored of v31) {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(31);
-      expect(snapshot.outputs).not.toHaveProperty('structuralReview.legs');
+      // An example without the structural inputs has no break-even factor, so no deeper stock.
       const { changes } = regenerated(snapshot, ...keep32);
-      expect(changes).toHaveLength(1);
       expect(changes.filter((c) => !isVersion32(c))).toEqual([]);
+      expect(changes.every((c) => c.before === undefined)).toBe(true);
+    }
+    const deeper = at(fresh(read(v31[0])), 'structuralReview.beam.bending.deeperStock') as {
+      subject: string;
+      breakEven: { value: number };
+    }[];
+    expect(deeper.map((d) => [d.subject, Number(d.breakEven.value.toFixed(3))])).toEqual([
+      ['Top beam, 4x8', 2.655],
+      ['Top beam, 3 plies of 2x8', 2.086],
+    ]);
+  });
+
+  // Hand check in structural.test.ts: the worked example's front leg runs (96 + 3.313) / cos 20° =
+  // 105.687 from grade to the beam, so ℓe/d = 2.10 · 105.687 / 3.5 = 63.4 along the beam, over 50.
+  it("version 33 adds the legs' column check, and changes nothing else (#468)", () => {
+    const keep33 = [...Array(10).fill(false), undefined, false, false, true] as const;
+    for (const stored of v32) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(32);
+      expect(snapshot.outputs).not.toHaveProperty('structuralReview.legs');
+      const { changes } = regenerated(snapshot, ...keep33);
+      expect(changes).toHaveLength(1);
+      expect(changes.filter((c) => !isVersion33(c))).toEqual([]);
       expect(changes[0]?.after).toMatchObject({ kind: 'column' });
     }
   });

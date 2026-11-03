@@ -380,6 +380,9 @@ function Check(props: {
             <Readings text={breakEvenLine(check.breakEven)} />
           </Text>
         )}
+        {check.status !== 'not-computed' && check.deeperStock && (
+          <DeeperStock others={check.deeperStock} />
+        )}
         {check.status === 'computed' && (
           <>
             <Text>
@@ -424,6 +427,25 @@ function ChangesWith(props: { fields: readonly FieldLink[] }) {
 /** Where a check reaches margin 1.0 as its load factor grows, other inputs as entered (#401). */
 function breakEvenLine(b: structural.BreakEven): string {
   return `With the other inputs as entered: ${formatBreakEven(b)}.`;
+}
+
+/** The check in the next deeper stock, so the stock can be chosen against its break-even. */
+function DeeperStock(props: { others: readonly structural.OtherStock[] }) {
+  if (props.others.length === 0) return <Text>Kerf has no deeper stock for this member.</Text>;
+  return (
+    <Stack gap="xs">
+      <Text>In the next deeper stock, with the other inputs as entered:</Text>
+      <List>
+        {props.others.map((o) => (
+          <li key={o.subject}>
+            <Readings
+              text={`${o.subject}: ${o.margin === undefined ? '' : `${formatMargin(o.margin)}; `}${formatBreakEven(o.breakEven)}.`}
+            />
+          </li>
+        ))}
+      </List>
+    </Stack>
+  );
 }
 
 /** Each input a result needs, as a link to its field in Edit. */
