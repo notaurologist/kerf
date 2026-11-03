@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ApiError, ApiResult } from './api.ts';
+import { useLatest } from './latest.ts';
 import { arrive, startLoading } from './moves.ts';
 
 export type LoadState<T> =
@@ -33,17 +34,16 @@ const shown = <T>(kept: Kept<T> | undefined): LoadState<T> => {
  */
 export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string, kept?: Kept<T>) {
   const [loaded, setLoaded] = useState<LoadState<T>>(() => shown(kept));
-  // Only the latest request may set the result, so a slow earlier one cannot overwrite it.
-  const latest = useRef(0);
+  const latest = useLatest();
   // While the screen waits for its first value, a move holds the old screen for it (lib/moves.ts).
   const onScreen = useRef(loaded.state);
   onScreen.current = loaded.state;
   useLayoutEffect(() => (loaded.state === 'loading' ? startLoading() : undefined), [loaded.state]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: reloads when the key changes, not when the caller passes a new closure.
   const reload = useCallback(async () => {
-    const request = ++latest.current;
+    const isLatest = latest.start();
     const result = await load();
-    if (request !== latest.current) return;
+    if (!isLatest()) return;
     if (result.ok) kept?.set(result.value);
     const next = settled(result, kept?.get());
     // Data arriving after the skeleton fades in over it (Stage 9, #266).
@@ -56,15 +56,21 @@ export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string, kept?
     void reload();
   }, [reload]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: `kept` belongs to `key`.
-  const set = useCallback((value: T) => {
-    latest.current++;
-    kept?.set(value);
-    setLoaded({ state: 'ready', value });
-  }, []);
+  const set = useCallback(
+    (value: T) => {
+      latest.supersede();
+      kept?.set(value);
+      setLoaded({ state: 'ready', value });
+    },
+    [latest],
+  );
   /** Changes the value on screen from the latest one, such as for a change still being sent. */
-  const update = useCallback((change: (value: T) => T) => {
-    latest.current++;
-    setLoaded((s) => (s.state === 'ready' ? { state: 'ready', value: change(s.value) } : s));
-  }, []);
+  const update = useCallback(
+    (change: (value: T) => T) => {
+      latest.supersede();
+      setLoaded((s) => (s.state === 'ready' ? { state: 'ready', value: change(s.value) } : s));
+    },
+    [latest],
+  );
   return { loaded, reload, set, update };
 }
