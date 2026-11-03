@@ -2,6 +2,7 @@ import {
   type CutListRow,
   createSnapshot,
   type Inventory,
+  methodRepeats,
   OPERATION_TYPE_LABELS,
   TEMPLATES,
 } from '@kerf/core';
@@ -13,7 +14,7 @@ import { loadedDrawings, projectFrom, stepsFor } from '../../test/projects.ts';
 import { render, renderText, sectionOf, textOf } from '../../test/render.tsx';
 import { TermScope } from '../../ui/index.ts';
 import { ProjectView } from '../project/ProjectScreen.tsx';
-import { groupOperations } from './BuildSteps.tsx';
+import { groupOperations, StepBody } from './BuildSteps.tsx';
 
 // #52: the shop view needs nothing beyond the project response, so a dropped connection after
 // the page loads loses no step. ProjectView renders from that one response and fetches nothing.
@@ -330,5 +331,65 @@ describe('a step taken in at a glance (#362)', () => {
     );
     expect(text).toMatch(/D Crossbar 59", piece 1 of 2 End 1 20\.0° End 2 20\.0° Ends mirror/);
     expect(text).toMatch(/A Beam 120" (?!\d)/);
+  });
+});
+
+describe('repeated methods in the printed shop set (#534)', () => {
+  const p = project(shop);
+  const steps = readSteps(p)?.steps ?? [];
+  const repeats = methodRepeats(steps);
+  const html = sectionOf(
+    render(<ProjectView project={p} drawings={loadedDrawings(p)} />),
+    'build-steps',
+  );
+  const stepHtml = (n: number) => {
+    const next = html.indexOf(`<h3>${n + 1}. `);
+    return html.slice(html.indexOf(`<h3>${n}. `), next < 0 ? undefined : next);
+  };
+  // The first step whose method was printed in full at an earlier step.
+  const later = repeats.findIndex((ops, i) => ops.some((r) => (r?.firstStep ?? i + 1) < i + 1));
+  const first = repeats[later]?.find((r) => r?.firstStep !== undefined)?.firstStep ?? 0;
+  const method = steps[later]?.operations.find((op) => op.method)?.method;
+  const firstMethod = steps[first - 1]?.operations.find(
+    (op) => op.method?.id === method?.id,
+  )?.method;
+
+  it('prints the method in full at its first use', () => {
+    expect(later).toBeGreaterThan(0);
+    expect(stepHtml(first)).not.toContain('data-shop-set-out');
+    expect(stepHtml(first)).not.toContain('k-shop-set-out');
+  });
+
+  it('points a later use back to it, leaving out only lines printed there word for word', () => {
+    const at = stepHtml(later + 1);
+    expect(textOf(at)).toContain(`technique, and common mistakes as in step ${first}`);
+    const out = [...at.matchAll(/<li data-shop-set-out="true">(.*?)<\/li>/g)].map((m) =>
+      textOf(m[1] ?? ''),
+    );
+    expect(out.length).toBeGreaterThan(0);
+    const printed = [
+      ...(firstMethod?.setup ?? []),
+      ...(firstMethod?.technique ?? []),
+      ...(firstMethod?.mistakes ?? []),
+    ];
+    for (const line of out) expect(printed).toContain(line);
+    expect(at).toContain('data-shop-set-split="true"');
+  });
+
+  it('keeps every safety line on the later step', () => {
+    const at = stepHtml(later + 1);
+    expect(method?.safety.length).toBeGreaterThan(0);
+    for (const { text } of method?.safety ?? []) {
+      const item = at.lastIndexOf('<li', at.indexOf(text.slice(0, 30)));
+      expect(at.slice(item, item + 4)).toBe('<li>');
+    }
+  });
+
+  it('shows every method in full in Building', () => {
+    const step = steps[later];
+    if (!step) throw new Error('no later step');
+    const building = render(<StepBody step={step} rows={[]} cutEnds={[]} withoutBoard />);
+    expect(building).not.toContain('data-shop-set-out');
+    expect(building).not.toContain('data-shop-set-only');
   });
 });

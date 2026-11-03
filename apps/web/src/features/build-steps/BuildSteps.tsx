@@ -1,10 +1,13 @@
 import {
   type BuildStep,
   endName,
+  type FilledMethod,
   findSkill,
   findToolType,
   formatLength,
   type MethodGaps,
+  type MethodRepeat,
+  methodRepeats,
   OPERATION_TYPE_LABELS,
   type Plan,
   type PlannedCutRow,
@@ -21,6 +24,7 @@ import {
   InputNeeded,
   Length,
   List,
+  ListItem,
   Measured,
   PlainList,
   ResultLine,
@@ -28,6 +32,7 @@ import {
   Rows,
   SettingBox,
   SettingBoxes,
+  ShopSetLeavesOut,
   Stack,
   Text,
   ToolLabel,
@@ -48,6 +53,7 @@ export function BuildSteps(props: {
   /** Where a piece opens its part's cut detail: in the plan, the drawings with it selected (#156). */
   pieceHref?: (partId: string) => string;
 }) {
+  const repeats = methodRepeats(props.steps);
   return (
     <PlainList ordered>
       {props.steps.map((step, i) => (
@@ -61,6 +67,7 @@ export function BuildSteps(props: {
               rows={props.rows}
               cutEnds={props.cutEnds}
               pieceHref={props.pieceHref}
+              repeats={{ step: i + 1, operations: repeats[i] ?? [] }}
             />
           </Stack>
         </li>
@@ -83,11 +90,20 @@ export function StepBody(props: {
   pieceHref?: (partId: string) => string;
   /** Leave the board's pieces out, for a screen that shows them its own way (#118). */
   withoutBoard?: boolean;
+  /**
+   * The step's number and how each operation's method repeats earlier text (`methodRepeats`),
+   * for the printed shop set. Building shows every method in full and leaves it out.
+   */
+  repeats?: { step: number; operations: readonly (MethodRepeat | undefined)[] };
 }) {
   const { step } = props;
   const parts = new Map(props.rows.map((r) => [r.partId, `${r.letter} ${r.name}`]));
   const partName = (id: string) => parts.get(id) ?? id;
   const quantity = new Map(props.rows.map((r) => [r.partId, r.quantity]));
+  const repeatOf = (op: StepOperation | undefined): Repeat | undefined => {
+    const repeat = op && props.repeats?.operations[step.operations.indexOf(op)];
+    return repeat && props.repeats && { ...repeat, step: props.repeats.step };
+  };
   return (
     <Stack gap="s">
       {step.board
@@ -107,10 +123,10 @@ export function StepBody(props: {
       <FlagList flags={step.flags} />
       {step.notes && <List items={step.notes} terms />}
       <MissingTools ops={step.operations} partName={partName} />
-      <Rows as="ul">
+      <Rows as="ul" splitInShopSet>
         {groupOperations(step.operations).map((group) => (
           <Row key={group.key} as="li">
-            <OperationGroup ops={group.ops} partName={partName} />
+            <OperationGroup ops={group.ops} partName={partName} repeat={repeatOf(group.ops[0])} />
           </Row>
         ))}
       </Rows>
@@ -207,6 +223,7 @@ function MissingTools(props: { ops: readonly StepOperation[]; partName: (id: str
 function OperationGroup(props: {
   ops: readonly StepOperation[];
   partName: (id: string) => string;
+  repeat?: Repeat;
 }) {
   const [first] = props.ops;
   if (!first) return null;
@@ -220,7 +237,7 @@ function OperationGroup(props: {
       // With no method the step's own line says what is missing, so this one does not repeat it.
       result={tools?.join(', ')}
     >
-      <Operation op={first} partName={props.partName} />
+      <Operation op={first} partName={props.partName} repeat={props.repeat} />
     </ResultLine>
   );
 }
@@ -313,10 +330,19 @@ function operationTitle(op: StepOperation, partName: (id: string) => string): st
   return on ? `${label}: ${on}${end}` : label;
 }
 
+/** How a method repeats earlier text, on the step with this number. */
+type Repeat = MethodRepeat & { step: number };
+
 /** What a line of operations opens to: the method, its tools, skills, and steps. */
-function Operation(props: { op: StepOperation; partName: (id: string) => string }) {
-  const { op } = props;
+function Operation(props: {
+  op: StepOperation;
+  partName: (id: string) => string;
+  repeat?: Repeat;
+}) {
+  const { op, repeat } = props;
   const method = op.method;
+  const safetyOut = method?.safety.map((_, i) => repeat?.safety?.[i] ?? false) ?? [];
+  const allSafetyOut = safetyOut.length > 0 && safetyOut.every(Boolean);
   return (
     <Stack gap="xs">
       {method ? (
@@ -336,34 +362,44 @@ function Operation(props: { op: StepOperation; partName: (id: string) => string 
             ))}
             .
           </Text>
+          {repeat?.firstStep !== undefined && (
+            <Text shopSetOnly>{repeatedFrom(method, repeat)}</Text>
+          )}
           {op.skills.length > 0 && (
             <Text tone="muted">
               Skills: {op.skills.map((s) => findSkill(s)?.name ?? s).join(', ')}.
             </Text>
           )}
-          {method.setup.length > 0 && (
-            <>
-              <b>Setup</b>
-              <List ordered items={method.setup} terms />
-            </>
-          )}
-          <b>Technique</b>
-          <List ordered items={method.technique} terms />
-          <b>Common mistakes</b>
-          <List items={method.mistakes} terms />
+          <MethodLines label="Setup" ordered lines={method.setup} printed={repeat?.setup} />
+          <MethodLines
+            label="Technique"
+            ordered
+            lines={method.technique}
+            printed={repeat?.technique}
+          />
+          <MethodLines label="Common mistakes" lines={method.mistakes} printed={repeat?.mistakes} />
           {method.safety.length > 0 && (
             <>
-              <b>Safety</b>
-              <List>
-                {method.safety.map((s) => (
-                  <li key={s.text}>
-                    <Stack gap="3xs">
-                      <Measured text={s.text} />
-                      <SourceToggle citations={s.sources} />
-                    </Stack>
-                  </li>
-                ))}
-              </List>
+              <ShopSetLeavesOut when={allSafetyOut}>
+                <b>Safety</b>
+                <List>
+                  {method.safety.map((s, i) => (
+                    <ListItem key={s.text} shopSetLeavesOut={safetyOut[i]}>
+                      <Stack gap="3xs">
+                        <Measured text={s.text} />
+                        <SourceToggle citations={s.sources} />
+                      </Stack>
+                    </ListItem>
+                  ))}
+                </List>
+              </ShopSetLeavesOut>
+              {safetyOut.some(Boolean) && (
+                <Text shopSetOnly>
+                  {allSafetyOut
+                    ? 'Safety: as above in this step.'
+                    : 'The other safety lines are above in this step.'}
+                </Text>
+              )}
             </>
           )}
         </>
@@ -384,6 +420,43 @@ function Operation(props: { op: StepOperation; partName: (id: string) => string 
       ))}
     </Stack>
   );
+}
+
+/**
+ * One part of a method's text under its label. In the printed shop set, the lines `printed` at the
+ * method's first use are left out, and the label with them when every line was.
+ */
+function MethodLines(props: {
+  label: string;
+  lines: readonly string[];
+  printed?: readonly boolean[];
+  ordered?: boolean;
+}) {
+  if (props.lines.length === 0) return null;
+  const printed = props.lines.map((_, i) => props.printed?.[i] ?? false);
+  return (
+    <ShopSetLeavesOut when={printed.every(Boolean)}>
+      <b>{props.label}</b>
+      <List ordered={props.ordered} items={props.lines} terms shopSetLeavesOut={printed} />
+    </ShopSetLeavesOut>
+  );
+}
+
+/** Where a repeated method was printed in full, and whether any of its lines differ here. */
+function repeatedFrom(method: FilledMethod, repeat: Repeat): string {
+  const parts = [
+    method.setup.length > 0 && 'setup',
+    method.technique.length > 0 && 'technique',
+    method.mistakes.length > 0 && 'common mistakes',
+  ].filter((p): p is string => typeof p === 'string');
+  const named =
+    parts.length > 2
+      ? `${parts.slice(0, -1).join(', ')}, and ${parts.at(-1)}`
+      : parts.join(' and ');
+  const where =
+    repeat.firstStep === repeat.step ? 'above in this step' : `in step ${repeat.firstStep}`;
+  const differs = [...repeat.setup, ...repeat.technique, ...repeat.mistakes].some((p) => !p);
+  return `${named.charAt(0).toUpperCase()}${named.slice(1)} as ${where}${differs ? ', except the lines below' : ''}.`;
 }
 
 /** What a method lacks: each requirement, with the tools that would meet it. */

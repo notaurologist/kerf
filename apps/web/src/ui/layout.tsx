@@ -128,9 +128,18 @@ export function Page(props: { children: ReactNode }) {
  * Like things as ruled rows (Stage 10): a rule in the text color above the group and a hairline
  * under each row, with no boxes, so the rows read as one list.
  */
-export function Rows(props: { as?: 'div' | 'ul'; children: ReactNode }) {
+export function Rows(props: {
+  as?: 'div' | 'ul';
+  /** In the printed shop set a row may run onto the next page, its list items each kept whole. */
+  splitInShopSet?: boolean;
+  children: ReactNode;
+}) {
   const Tag = props.as ?? 'div';
-  return <Tag className="k-rows">{props.children}</Tag>;
+  return (
+    <Tag className="k-rows" data-shop-set-split={props.splitInShopSet || undefined}>
+      {props.children}
+    </Tag>
+  );
 }
 
 /** One of `Rows`. A way into a shop mode passes `mode` for a bar in that mode's color. */

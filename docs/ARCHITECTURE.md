@@ -288,6 +288,7 @@ A manual check; nothing runs it for you. `ui/views.test.ts` checks that `print.c
 4. **Site layout** (swing set): on a landscape page with its heading.
 5. **Structural working:** every formula wraps inside the margin; none ends mid-word at the edge.
 6. **Shop set:** the cut list starts on the first page, under the header and the line saying what the set holds; then boards, build steps, and the terms used. No diagrams, structural review, shopping list, values used, or sources.
+7. **Repeated methods in the shop set:** a method prints in full at its first use. A later use says which step that was and prints only the lines that differ, and every step that uses the method prints its safety lines, once within the step. An operation may run onto the next page, but no instruction splits.
 
 | Date | Browser | Swing set | Record cabinet | Notes |
 |---|---|---|---|---|
@@ -295,6 +296,8 @@ A manual check; nothing runs it for you. `ui/views.test.ts` checks that `print.c
 | 3 November 2026 (#452) | Safari | Not checked | Not checked | The owner's to run. |
 | 3 November 2026 (#469) | Chrome 156, headless, print to PDF | 6 as described. Whole plan 91 pages, shop set 37 | 6 as described. Whole plan 149 pages, shop set 81 | Run in a local copy of the app, with a toolbox of a circular saw, drill/driver, clamps, and hand tools. Items 1 to 5 not looked at again; the whole plan's page count did not change. |
 | 3 November 2026 (#469) | Safari | Not checked | Not checked | The owner's to run. |
+| 3 November 2026 (#534) | Chrome, headless, print to PDF | 7 as described. Shop set 47 pages before, 38 after | 7 as described. Shop set 76 pages before, 48 after | Run in a local copy of the app from a fresh database, with a toolbox of a circular saw, hand saw, drill/driver, clamps, chisel, block plane, and hand tools. Whole plans unchanged. Items 1 to 6 not looked at again. |
+| 3 November 2026 (#534) | Safari | Not checked | Not checked | The owner's to run. |
 
 ## apps/web
 
