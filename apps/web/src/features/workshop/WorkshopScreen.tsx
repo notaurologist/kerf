@@ -60,7 +60,8 @@ export function WorkshopScreen(props: {
             </a>
             <Text tone="muted">
               Every project, including deleted ones still in the trash, and your tools, as one file
-              to keep.
+              to keep. Kerf cannot load this file back in; a full restore comes from a database dump
+              (ARCHITECTURE.md, Backups).
             </Text>
             <LiveRegion>
               {backup.state === 'preparing' && <Text tone="muted">Preparing the backup…</Text>}

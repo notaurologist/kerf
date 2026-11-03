@@ -63,7 +63,9 @@ describe('Loaded', () => {
         {show}
       </Loaded>
     );
-    expect(renderText(ended)).toBe('Projects Your session ended. Log in again. Try again');
+    expect(renderText(ended)).toBe(
+      'Projects Kerf could not do this while you were logged out. Try again',
+    );
     expect(render(ended)).not.toContain('href=');
   });
 
