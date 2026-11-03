@@ -116,7 +116,10 @@ export const FrameGeometry = z.object({
     height: z.number(),
     pastLeg: z.number().optional(),
   }),
-  /** Frame centerlines along the beam: the supports for the structural checks. */
+  /**
+   * Frame centerlines along the beam, where the leg-to-beam bolts go. The beam checks support the
+   * beam on the gussets instead (`beamSupports` in structural.ts).
+   */
   supportsX: z.tuple([z.number(), z.number()]),
 });
 export type FrameGeometry = z.infer<typeof FrameGeometry>;

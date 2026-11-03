@@ -314,19 +314,7 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ],
-          "bolt": {
-            "diameter": 0.5,
-            "grip": 8.947408118867273,
-            "length": 10,
-            "fits": {
-              "min": 9.820408118867272,
-              "max": 10.320408118867272
-            },
-            "items": [
-              "leg-beam-bolts"
-            ]
-          }
+          ]
         },
         {
           "description": "1/2\" × 6\" through-bolt",
@@ -334,20 +322,7 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ],
-          "bolt": {
-            "diameter": 0.5,
-            "grip": 5,
-            "length": 6,
-            "fits": {
-              "min": 5.873,
-              "max": 6.373
-            },
-            "items": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ]
-          }
+          ]
         },
         {
           "description": "1/2\" flat washers",
@@ -473,7 +448,7 @@
             {
               "symbol": "L",
               "label": "Span between support centerlines",
-              "value": 92.5,
+              "value": 97.5,
               "unit": "in",
               "basis": "From the template geometry",
               "sources": [
@@ -770,19 +745,19 @@
             {
               "symbol": "R1",
               "label": "Left reaction",
-              "value": 620.0631674727858,
+              "value": 621.1476630118553,
               "unit": "lb"
             },
             {
               "symbol": "R2",
               "label": "Right reaction",
-              "value": 620.0631674727858,
+              "value": 621.1476630118553,
               "unit": "lb"
             },
             {
               "symbol": "M",
               "label": "Largest moment",
-              "value": 16213.960747808173,
+              "value": 17765.474285913977,
               "unit": "lb·in"
             },
             {
@@ -794,13 +769,13 @@
             {
               "symbol": "ℓu",
               "label": "Unbraced length",
-              "value": 92.5,
+              "value": 97.5,
               "unit": "in"
             },
             {
               "symbol": "ℓe",
               "label": "Effective length, ℓe = 1.84·ℓu (ℓu/d > 14.3)",
-              "value": 170.20000000000002,
+              "value": 179.4,
               "unit": "in",
               "sources": [
                 {
@@ -813,7 +788,7 @@
             {
               "symbol": "R_B",
               "label": "Slenderness ratio, √(ℓe·d / b²)",
-              "value": 8.741643239723997,
+              "value": 8.974794636954664,
               "unit": "",
               "sources": [
                 {
@@ -838,7 +813,7 @@
             {
               "symbol": "F_bE",
               "label": "1.20·Emin' / R_B²",
-              "value": 7207.883773101164,
+              "value": 6838.248707813926,
               "unit": "psi",
               "sources": [
                 {
@@ -913,7 +888,7 @@
             {
               "symbol": "C_L",
               "name": "Beam stability",
-              "value": 0.9920828514574147,
+              "value": 0.9915913206296021,
               "appliesTo": [
                 "Fb"
               ],
@@ -993,7 +968,8 @@
             }
           ],
           "assumptions": [
-            "Supported at the two frame centerlines, 13-3/4\" and 106-1/4\" from the left end; the span runs center to center of the legs.",
+            "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
+            "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -1024,21 +1000,21 @@
           "computed": {
             "symbol": "f_b",
             "label": "Bending stress",
-            "value": 918.8549184117974,
+            "value": 1006.7801248215713,
             "unit": "psi"
           },
           "allowable": {
             "symbol": "Fb'",
             "label": "Adjusted bending design value",
-            "value": 992.0828514574147,
+            "value": 991.5913206296021,
             "unit": "psi"
           },
-          "margin": 1.0796947718059655,
+          "margin": 0.9849134842678176,
           "breakEven": {
             "key": "dynamicFactor",
             "symbol": "C_dyn",
             "label": "Dynamic factor",
-            "value": 2.16408481293555
+            "value": 1.9689253208922757
           }
         },
         {
@@ -1051,7 +1027,7 @@
             {
               "symbol": "L",
               "label": "Span between support centerlines",
-              "value": 92.5,
+              "value": 97.5,
               "unit": "in",
               "basis": "From the template geometry",
               "sources": [
@@ -1347,19 +1323,19 @@
             {
               "symbol": "R1",
               "label": "Left reaction",
-              "value": 620.0631674727858,
+              "value": 621.1476630118553,
               "unit": "lb"
             },
             {
               "symbol": "R2",
               "label": "Right reaction",
-              "value": 620.0631674727858,
+              "value": 621.1476630118553,
               "unit": "lb"
             },
             {
               "symbol": "V",
               "label": "Largest shear",
-              "value": 620.0631674727858,
+              "value": 621.1476630118553,
               "unit": "lb"
             }
           ],
@@ -1437,7 +1413,8 @@
             }
           ],
           "assumptions": [
-            "Supported at the two frame centerlines, 13-3/4\" and 106-1/4\" from the left end; the span runs center to center of the legs.",
+            "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
+            "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -1469,7 +1446,7 @@
           "computed": {
             "symbol": "f_v",
             "label": "Shear stress",
-            "value": 48.31661045242487,
+            "value": 48.40111659832639,
             "unit": "psi"
           },
           "allowable": {
@@ -1478,12 +1455,12 @@
             "value": 169.75,
             "unit": "psi"
           },
-          "margin": 3.5132845290781516,
+          "margin": 3.5071504942485068,
           "breakEven": {
             "key": "dynamicFactor",
             "symbol": "C_dyn",
             "label": "Dynamic factor",
-            "value": 7.1946505528684925
+            "value": 7.191035567738261
           }
         },
         {
@@ -1496,7 +1473,7 @@
             {
               "symbol": "L",
               "label": "Span between support centerlines",
-              "value": 92.5,
+              "value": 97.5,
               "unit": "in",
               "basis": "From the template geometry",
               "sources": [
@@ -1805,7 +1782,7 @@
             {
               "symbol": "x_max",
               "label": "Position of largest deflection",
-              "value": 59.999999999957936,
+              "value": 59.99999999995566,
               "unit": "in"
             }
           ],
@@ -1867,7 +1844,8 @@
             }
           ],
           "assumptions": [
-            "Supported at the two frame centerlines, 13-3/4\" and 106-1/4\" from the left end; the span runs center to center of the legs.",
+            "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
+            "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -1905,16 +1883,16 @@
           "computed": {
             "symbol": "δ",
             "label": "Largest deflection",
-            "value": 0.12328401087691498,
+            "value": 0.14948498721481931,
             "unit": "in"
           },
           "allowable": {
             "symbol": "L/N",
             "label": "Allowed deflection",
-            "value": 0.3854166666666667,
+            "value": 0.40625,
             "unit": "in"
           },
-          "margin": 3.126250224381986
+          "margin": 2.7176642121003978
         },
         {
           "kind": "hardware",
@@ -9975,19 +9953,7 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ],
-          "bolt": {
-            "diameter": 0.5,
-            "grip": 8.947408118867273,
-            "length": 10,
-            "fits": {
-              "min": 9.820408118867272,
-              "max": 10.320408118867272
-            },
-            "items": [
-              "leg-beam-bolts"
-            ]
-          }
+          ]
         },
         {
           "description": "1/2\" × 6\" through-bolt",
@@ -9995,20 +9961,7 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ],
-          "bolt": {
-            "diameter": 0.5,
-            "grip": 5,
-            "length": 6,
-            "fits": {
-              "min": 5.873,
-              "max": 6.373
-            },
-            "items": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ]
-          }
+          ]
         },
         {
           "description": "1/2\" flat washers",
@@ -18189,19 +18142,7 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 8-7/16\". Any length from 9-3/8\" to 9-13/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ],
-          "bolt": {
-            "diameter": 0.5,
-            "grip": 8.452713591586766,
-            "length": 9.5,
-            "fits": {
-              "min": 9.325713591586766,
-              "max": 9.825713591586766
-            },
-            "items": [
-              "leg-beam-bolts"
-            ]
-          }
+          ]
         },
         {
           "description": "1/2\" × 6\" through-bolt",
@@ -18209,20 +18150,7 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ],
-          "bolt": {
-            "diameter": 0.5,
-            "grip": 5,
-            "length": 6,
-            "fits": {
-              "min": 5.873,
-              "max": 6.373
-            },
-            "items": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ]
-          }
+          ]
         },
         {
           "description": "1/2\" × 4\" through-bolt",
@@ -18230,19 +18158,7 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 3\". Any length from 3-7/8\" to 4-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ],
-          "bolt": {
-            "diameter": 0.5,
-            "grip": 3,
-            "length": 4,
-            "fits": {
-              "min": 3.873,
-              "max": 4.373
-            },
-            "items": [
-              "ply-bolts"
-            ]
-          }
+          ]
         },
         {
           "description": "1/2\" flat washers",
@@ -18379,7 +18295,7 @@
             {
               "symbol": "L",
               "label": "Span between support centerlines",
-              "value": 92.5,
+              "value": 97.5,
               "unit": "in",
               "basis": "From the template geometry",
               "sources": [
@@ -18689,19 +18605,19 @@
             {
               "symbol": "R1",
               "label": "Left reaction per ply",
-              "value": 308.59850034547964,
+              "value": 309.06328414793796,
               "unit": "lb"
             },
             {
               "symbol": "R2",
               "label": "Right reaction per ply",
-              "value": 308.59850034547964,
+              "value": 309.06328414793796,
               "unit": "lb"
             },
             {
               "symbol": "M",
               "label": "Largest moment per ply",
-              "value": 8073.840320489216,
+              "value": 8845.917551105988,
               "unit": "lb·in"
             },
             {
@@ -18713,13 +18629,13 @@
             {
               "symbol": "ℓu",
               "label": "Unbraced length",
-              "value": 92.5,
+              "value": 97.5,
               "unit": "in"
             },
             {
               "symbol": "ℓe",
               "label": "Effective length, ℓe = 1.84·ℓu (ℓu/d > 14.3)",
-              "value": 170.20000000000002,
+              "value": 179.4,
               "unit": "in",
               "sources": [
                 {
@@ -18732,7 +18648,7 @@
             {
               "symbol": "R_B",
               "label": "Slenderness ratio, √(ℓe·d / b²)",
-              "value": 20.397167559355992,
+              "value": 20.94118748622755,
               "unit": "",
               "sources": [
                 {
@@ -18757,7 +18673,7 @@
             {
               "symbol": "F_bE",
               "label": "1.20·Emin' / R_B²",
-              "value": 1323.8970195491934,
+              "value": 1256.0048647005167,
               "unit": "psi",
               "sources": [
                 {
@@ -18770,7 +18686,7 @@
             {
               "symbol": "x_M",
               "label": "Position of largest moment per ply",
-              "value": 60.00000000000011,
+              "value": 59.99999999999993,
               "unit": "in"
             }
           ],
@@ -18832,7 +18748,7 @@
             {
               "symbol": "C_L",
               "name": "Beam stability",
-              "value": 0.9030930111673959,
+              "value": 0.89116250141753,
               "appliesTo": [
                 "Fb"
               ],
@@ -18913,7 +18829,8 @@
           ],
           "assumptions": [
             "Each ply carries an equal share of every load (decision 0013).",
-            "Supported at the two frame centerlines, 13-3/4\" and 106-1/4\" from the left end; the span runs center to center of the legs.",
+            "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
+            "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -18944,21 +18861,21 @@
           "computed": {
             "symbol": "f_b",
             "label": "Bending stress",
-            "value": 1067.6152489903095,
+            "value": 1169.7081059313703,
             "unit": "psi"
           },
           "allowable": {
             "symbol": "Fb'",
             "label": "Adjusted bending design value",
-            "value": 903.093011167396,
+            "value": 891.1625014175299,
             "unit": "psi"
           },
-          "margin": 0.8458974448159021,
+          "margin": 0.7618674239313313,
           "breakEven": {
             "key": "dynamicFactor",
             "symbol": "C_dyn",
             "label": "Dynamic factor",
-            "value": 1.6840128448163088
+            "value": 1.5115359688960188
           }
         },
         {
@@ -18971,7 +18888,7 @@
             {
               "symbol": "L",
               "label": "Span between support centerlines",
-              "value": 92.5,
+              "value": 97.5,
               "unit": "in",
               "basis": "From the template geometry",
               "sources": [
@@ -19280,19 +19197,19 @@
             {
               "symbol": "R1",
               "label": "Left reaction per ply",
-              "value": 308.59850034547964,
+              "value": 309.06328414793796,
               "unit": "lb"
             },
             {
               "symbol": "R2",
               "label": "Right reaction per ply",
-              "value": 308.59850034547964,
+              "value": 309.06328414793796,
               "unit": "lb"
             },
             {
               "symbol": "V",
               "label": "Largest shear per ply",
-              "value": 308.59850034547964,
+              "value": 309.06328414793796,
               "unit": "lb"
             }
           ],
@@ -19371,7 +19288,8 @@
           ],
           "assumptions": [
             "Each ply carries an equal share of every load (decision 0013).",
-            "Supported at the two frame centerlines, 13-3/4\" and 106-1/4\" from the left end; the span runs center to center of the legs.",
+            "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
+            "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -19403,7 +19321,7 @@
           "computed": {
             "symbol": "f_v",
             "label": "Shear stress",
-            "value": 56.108818244632666,
+            "value": 56.19332439053417,
             "unit": "psi"
           },
           "allowable": {
@@ -19412,12 +19330,12 @@
             "value": 169.75,
             "unit": "psi"
           },
-          "margin": 3.025371150393783,
+          "margin": 3.0208214559485036,
           "breakEven": {
             "key": "dynamicFactor",
             "symbol": "C_dyn",
             "label": "Dynamic factor",
-            "value": 6.166843331030138
+            "value": 6.16374477234708
           }
         },
         {
@@ -19430,7 +19348,7 @@
             {
               "symbol": "L",
               "label": "Span between support centerlines",
-              "value": 92.5,
+              "value": 97.5,
               "unit": "in",
               "basis": "From the template geometry",
               "sources": [
@@ -19752,7 +19670,7 @@
             {
               "symbol": "x_max",
               "label": "Position of largest deflection per ply",
-              "value": 59.999999999957936,
+              "value": 60.00000000004434,
               "unit": "in"
             }
           ],
@@ -19815,7 +19733,8 @@
           ],
           "assumptions": [
             "Each ply carries an equal share of every load (decision 0013).",
-            "Supported at the two frame centerlines, 13-3/4\" and 106-1/4\" from the left end; the span runs center to center of the legs.",
+            "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
+            "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -19853,16 +19772,16 @@
           "computed": {
             "symbol": "δ",
             "label": "Largest deflection",
-            "value": 0.14270415684664772,
+            "value": 0.17300776346781993,
             "unit": "in"
           },
           "allowable": {
             "symbol": "L/N",
             "label": "Allowed deflection",
-            "value": 0.3854166666666667,
+            "value": 0.40625,
             "unit": "in"
           },
-          "margin": 2.7008089685911667
+          "margin": 2.348160520990516
         },
         {
           "kind": "hardware",

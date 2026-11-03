@@ -24,6 +24,7 @@ import v19 from './snapshots/v19.json' with { type: 'json' };
 import v20 from './snapshots/v20.json' with { type: 'json' };
 import v21 from './snapshots/v21.json' with { type: 'json' };
 import v22 from './snapshots/v22.json' with { type: 'json' };
+import v23 from './snapshots/v23.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -57,10 +58,19 @@ const isVersion22 = (c: { path: string }) =>
   /^design\.hardwareNotes\[\d+\]$/.test(c.path) ||
   /^hardware\[\d+\]\.(description|notes(\[\d+\])?)$/.test(c.path);
 /**
- * Version 23's changes (#514): the lengths that fit each bolt, and each bolt line's bolt. Set aside
- * like version 18's.
+ * Version 23's change (#445): the beam supported at the middle of each gusset's top edge instead
+ * of at the frame centerlines, which moves every beam check's numbers and its support assumptions.
+ * Set aside like version 18's.
  */
 const isVersion23 = (c: { path: string }) =>
+  /^structuralReview\.beam\.(bending|shear|deflection)\.((inputs|steps|factors)\[\d+\]\.value|assumptions\[\d+\]|(computed|allowable|breakEven)\.value|margin)$/.test(
+    c.path,
+  );
+/**
+ * Version 24's changes (#514): the lengths that fit each bolt, and each bolt line's bolt. Set aside
+ * like version 18's.
+ */
+const isVersion24 = (c: { path: string }) =>
   /^design\.hardware\[\d+\]\.bolt\.fits$/.test(c.path) || /^hardware\[\d+\]\.bolt$/.test(c.path);
 
 /** What regenerating with the current version changes in the stored outputs, field by field. */
@@ -69,6 +79,7 @@ function regenerated(
   keepVersion18 = false,
   keepVersion22 = false,
   keepVersion23 = false,
+  keepVersion24 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -79,7 +90,10 @@ function regenerated(
     ...found,
     changes: found.changes.filter(
       (c) =>
-        !isVersion20(c) && (keepVersion22 || !isVersion22(c)) && (keepVersion23 || !isVersion23(c)),
+        !isVersion20(c) &&
+        (keepVersion22 || !isVersion22(c)) &&
+        (keepVersion23 || !isVersion23(c)) &&
+        (keepVersion24 || !isVersion24(c)),
     ),
   };
   return keepVersion18
@@ -469,17 +483,19 @@ describe('swing-set template versions', () => {
     };
     type Review = { beam: { bending: Check; shear: Check }; hanger: Check };
     let withBreakEven = 0;
-    for (const stored of v14) {
+    for (const [i, stored] of v14.entries()) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(14);
       const { changes } = regenerated(read.snapshot);
       expect(changes.filter(notVersion15)).toEqual([]);
 
-      const now = createSnapshot(template, read.snapshot.params, read.snapshot.structuralInputs);
-      if (!now.ok) throw new Error('worked example no longer generates');
+      // Against version 22's plan of the same example, the last before version 23 moved the
+      // beam's supports (#445).
+      const later = readSnapshot([template], v22[i]);
+      if (!later.ok) throw new Error(JSON.stringify(later));
       const before = (read.snapshot.outputs as { structuralReview: Review }).structuralReview;
-      const after = (now.output.outputs as { structuralReview: Review }).structuralReview;
+      const after = (later.snapshot.outputs as { structuralReview: Review }).structuralReview;
       const pairs: [Check, Check][] = [
         [before.beam.bending, after.beam.bending],
         [before.beam.shear, after.beam.shear],
@@ -559,7 +575,7 @@ describe('swing-set template versions', () => {
       const json = (value: unknown) => JSON.parse(JSON.stringify(value));
       const outputs = template.storedOutputs.parse(current.output.outputs);
       const changes = diff(json(read.snapshot.outputs), json(outputs), 1000).changes.filter(
-        (c) => !isVersion22(c) && !isVersion23(c),
+        (c) => !isVersion22(c) && !isVersion23(c) && !isVersion24(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -597,20 +613,41 @@ describe('swing-set template versions', () => {
       ['1/2" through-bolt, grip 5"', '1/2" × 6" through-bolt'],
     ]);
   });
-
-  // Hand check in resets.test.ts: the worked example's leg-to-beam bolts fit from 9.820 to 10.320.
-  it("version 23 keeps the lengths that fit each bolt and each line's bolt, and changes nothing else (#514)", () => {
+  // Hand check in structural.test.ts: the worked example's span grows from 92.5 (frame
+  // centerlines at 13.75 and 106.25) to 97.5 (gusset middles at 11.25 and 108.75), and example 1's
+  // bending margin falls from 1.08 to 0.98.
+  it('version 23 supports the beam on the gussets, and changes only the beam checks (#445)', () => {
     for (const stored of v22) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(22);
       const { changes } = regenerated(read.snapshot, false, false, true);
-      expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion23(c))).toEqual([]);
     }
     const first = readSnapshot([template], v22[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const legBolts = regenerated(first.snapshot, false, false, true).changes.find(
+    const { changes } = regenerated(first.snapshot, false, false, true);
+    expect(changes.length).toBeGreaterThan(0);
+    const span = changes.find((c) => c.path === 'structuralReview.beam.bending.inputs[0].value');
+    expect(span).toMatchObject({ before: 92.5, after: 97.5 });
+    expect(String(changes.find((c) => c.path.endsWith('assumptions[0]'))?.after)).toMatch(
+      /^Supported at the middle of each gusset's top edge under the beam, 11-1\/4" and 108-3\/4"/,
+    );
+  });
+
+  // Hand check in resets.test.ts: the worked example's leg-to-beam bolts fit from 9.820 to 10.320.
+  it("version 24 keeps the lengths that fit each bolt and each line's bolt, and changes nothing else (#514)", () => {
+    for (const stored of v23) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(23);
+      const { changes } = regenerated(read.snapshot, false, false, false, true);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion24(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v23[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const legBolts = regenerated(first.snapshot, false, false, false, true).changes.find(
       (c) => c.path === 'hardware[0].bolt',
     );
     expect(legBolts?.after).toEqual({

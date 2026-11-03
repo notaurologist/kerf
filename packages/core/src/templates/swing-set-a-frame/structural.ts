@@ -218,6 +218,36 @@ export type ReviewResult =
   | { ok: true; review: SwingSetStructuralReview }
   | { ok: false; issues: Issue[] };
 
+/**
+ * Where the beam bears on each frame (spec, Structural model): the middle of the part of the
+ * gusset's top edge under the beam, which is the whole thickness gt unless the frame inset e is
+ * less. With no gusset under the beam (e = 0), the beam hangs on the leg-to-beam bolts.
+ */
+export function beamSupports(output: SwingSetOutput): {
+  x: [number, number];
+  on: 'gusset' | 'bolt';
+} {
+  const p = output.params;
+  const e = p.frameInset;
+  const bearing = Math.min(stock(p.gussetStock).thickness, e);
+  if (bearing <= 0) return { x: output.geometry.supportsX, on: 'bolt' };
+  return { x: [e - bearing / 2, p.beamLength - e + bearing / 2], on: 'gusset' };
+}
+
+function supportAssumptions(supports: ReturnType<typeof beamSupports>): string[] {
+  const [x0, x1] = supports.x;
+  const at = `${formatLength(x0)} and ${formatLength(x1)} from the left end`;
+  if (supports.on === 'bolt') {
+    return [
+      `Supported at the leg-to-beam bolts, ${at}. The frames sit at the beam's ends, so no gusset is under the beam.`,
+    ];
+  }
+  return [
+    `Supported at the middle of each gusset's top edge under the beam, ${at}. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16" larger than the bolt, so the gussets take the beam's weight and the swing loads first.`,
+    "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+  ];
+}
+
 /** Structural review for a generated swing set and the owner's structural inputs. */
 export function structuralReview(output: SwingSetOutput, input: unknown): ReviewResult {
   const parsed = SwingSetStructuralInputs.safeParse(input);
@@ -234,7 +264,8 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
   const inputs = parsed.data;
   const p = output.params;
   const beam = stock(p.beamStock);
-  const [x0, x1] = output.geometry.supportsX;
+  const supports = beamSupports(output);
+  const [x0, x1] = supports.x;
   const hangersX = output.swings.hangersX;
 
   const swing = mapNeeded(
@@ -352,7 +383,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
     strength,
     deflection,
     assumptions: [
-      `Supported at the two frame centerlines, ${formatLength(x0)} and ${formatLength(x1)} from the left end; the span runs center to center of the legs.`,
+      ...supportAssumptions(supports),
       'Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.',
       "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
     ],
@@ -390,14 +421,14 @@ const inputs = (...paths: (keyof typeof STRUCTURAL_INPUT_LABELS | `riderWeights.
 
 /**
  * The fields each check changes with (`TemplateDefinition.checkFields`): for the top beam, its
- * size, its span between the frame centerlines, and where the hangers hang on it, then the inputs
+ * size, its span between the gussets (or the bolts, with no gusset under it), and where the hangers hang on it, then the inputs
  * its material and loads come from; for a hanger, its loads and its rating.
  */
 export function checkFields(check: { kind: CheckKind }): FieldRef[] {
   const riders = inputs('riderWeights.0', 'riderWeights.1', 'maxSwingAngle');
   if (check.kind === 'hardware') return [...riders, ...inputs('dynamicFactor', 'hangerRating')];
   return [
-    ...params('beamStock', 'beamPlies', 'beamLength', 'frameInset', 'legStock'),
+    ...params('beamStock', 'beamPlies', 'beamLength', 'frameInset', 'gussetStock', 'legStock'),
     ...params('swings.centers.0', 'swings.centers.1', 'swings.hangerSpacing'),
     ...inputs('beamSpeciesGrade', 'beamIncised', 'beamMoistureContent'),
     ...riders,
