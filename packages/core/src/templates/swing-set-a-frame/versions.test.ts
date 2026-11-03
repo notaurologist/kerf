@@ -862,7 +862,7 @@ describe('swing-set template versions', () => {
   });
   // A flag's progress key is its category and its ask (ARCHITECTURE.md, project_progress), so
   // regenerating a version 28 plan clears a tick on either bolt flag in the structural review.
-  it('version 29 writes the bolt count and size as "2 × 1/2\"", and changes nothing else (#493)', () => {
+  it('version 29 writes the bolt count and size as 2 × 1/2", and changes nothing else (#493)', () => {
     const keep29 = [false, false, false, false, false, false, false, false, true] as const;
     for (const stored of v28) {
       const read = readSnapshot([template], stored);
@@ -870,17 +870,16 @@ describe('swing-set template versions', () => {
       expect(read.snapshot.templateVersion).toBe(28);
       const { changes } = regenerated(read.snapshot, ...keep29);
       // Each bolt flag the example has: a joint's title, then its count and size.
-      const boltFlags = read.snapshot.outputs.design.flags.filter((f) =>
-        /^[^,:]+, \d+ \d/.test(f.ask),
-      );
+      const flags = at(read.snapshot.outputs, 'design.flags') as { ask: string }[];
+      const boltFlags = flags.filter((f) => /^[^,:]+, \d+ \d/.test(f.ask));
       expect(boltFlags.length).toBeGreaterThan(0);
       expect(changes).toHaveLength(boltFlags.length);
       expect(changes.filter((c) => !isVersion29(c))).toEqual([]);
     }
     const first = readSnapshot([template], v28[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const asks = regenerated(first.snapshot, ...keep29).changes.map((c) =>
-      String(c.after).split(':')[0],
+    const asks = regenerated(first.snapshot, ...keep29).changes.map(
+      (c) => String(c.after).split(':')[0],
     );
     expect(asks).toEqual(['Crossbar to leg, 2 × 1/2" bolts', 'Gusset to leg, 2 × 1/2" bolts']);
   });
