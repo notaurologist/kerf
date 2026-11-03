@@ -47,8 +47,8 @@ describe('ShoppingList', () => {
       <ShoppingList
         lumber={plan([])}
         hardware={[
-          { description: '1/2" through-bolt, grip 8-15/16"', quantity: 2, group: 'Bolts' },
-          { description: 'Swing hangers', quantity: 4, group: 'Swing hardware' },
+          { description: '1/2" through-bolt, grip 8-15/16"', quantity: 2, group: 'Bolts', notes: [] },
+          { description: 'Swing hangers', quantity: 4, group: 'Swing hardware', notes: [] },
         ]}
         hardwareNotes={[]}
       />,
