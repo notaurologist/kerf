@@ -1,7 +1,9 @@
 import { geometry } from '@kerf/core';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
+import { stream } from 'hono/streaming';
 import { z } from 'zod';
+import { exportJson } from '../services/exportFile.ts';
 import { ProgressChanges } from '../services/progress.ts';
 import {
   NewProject,
@@ -107,6 +109,13 @@ export function projectRoutes(projects: ProjectService) {
       const exported = await projects.exportAll();
       const day = exported.exportedAt.slice(0, 10);
       c.header('Content-Disposition', `attachment; filename="kerf-${day}.json"`);
-      return c.json(exported);
+      c.header('Content-Type', 'application/json; charset=UTF-8');
+      // Read in full before the first byte, so a database error is still a 500, not a cut file.
+      return stream(c, async (out) => {
+        for (const piece of exportJson(exported)) {
+          if (out.aborted) return;
+          await out.write(piece);
+        }
+      });
     });
 }

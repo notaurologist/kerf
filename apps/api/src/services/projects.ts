@@ -75,8 +75,12 @@ export interface TrashedProject extends ProjectSummary {
   purgeAt: string;
 }
 
+/** Raised when the backup file's shape changes, so a reader can tell which shape it holds. */
+export const EXPORT_FORMAT_VERSION = 1;
+
 export interface ProjectsExport {
   kind: 'kerf-export';
+  formatVersion: typeof EXPORT_FORMAT_VERSION;
   exportedAt: string;
   projects: (Omit<ProjectSummary, 'templateBehind' | 'progress'> & {
     snapshot: unknown;
@@ -584,6 +588,7 @@ export function createProjectService(deps: {
       const ticks = await readAllProgress(db);
       return {
         kind: 'kerf-export',
+        formatVersion: EXPORT_FORMAT_VERSION,
         exportedAt: now().toISOString(),
         projects: rows.map((row) => ({
           id: row.id,
