@@ -175,11 +175,12 @@ export function spacingBetweenRows(
   diameter: number,
   loading: Loading,
   lOverD: number,
+  label = 'Spacing between rows',
 ): BoltDistance {
   if (loading === 'parallel') {
     return {
       member,
-      label: 'Spacing between rows',
+      label,
       value,
       requirements: [row('load parallel to grain', 1.5, diameter, 'minimum', TABLE_D)],
     };
@@ -197,7 +198,7 @@ export function spacingBetweenRows(
             gives: 'minimum',
             citation: TABLE_D,
           };
-  return { member, label: 'Spacing between rows', value, requirements: [requirement] };
+  return { member, label, value, requirements: [requirement] };
 }
 
 /** 12.5.1.3: outermost bolts across the grain, unless detailing allows for shrinkage. */

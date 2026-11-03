@@ -3,6 +3,7 @@ import type { TemplateDefinition } from '../../model/definition.ts';
 import type { Operation } from '../../model/operations.ts';
 import { diff } from '../../snapshot/diff.ts';
 import { createSnapshot, type ProjectSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
+import type { BoltJoint } from '../../structural/boltDistances.ts';
 import { swingSetAFrame } from './definition.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
 import v2 from './snapshots/v2.json' with { type: 'json' };
@@ -34,6 +35,7 @@ import v28 from './snapshots/v28.json' with { type: 'json' };
 import v29 from './snapshots/v29.json' with { type: 'json' };
 import v30 from './snapshots/v30.json' with { type: 'json' };
 import v31 from './snapshots/v31.json' with { type: 'json' };
+import v32 from './snapshots/v32.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -170,6 +172,36 @@ const isVersion32 = (c: { path: string }) =>
   /^structuralReview\.beam\.bending\.deeperStock(\.|\[|$)/.test(c.path);
 
 /**
+ * Version 33's changes (#524): the bolts' spacing along the leg measured between rows (Table
+ * 12.5.1D) instead of in a row (Table 12.5.1B), and the assumed note saying each bolt is its own
+ * row across the leg's grain. The distance itself does not move. Set aside like version 18's.
+ */
+const SPACING_ALONG_LEG = /^design\.boltLayout\[\d+\]\.distances\[\d+\]\./;
+const isVersion33 = (c: { path: string; before?: unknown; after?: unknown }) => {
+  if (SPACING_ALONG_LEG.test(c.path)) {
+    const field = c.path.replace(SPACING_ALONG_LEG, '');
+    if (field === 'label') {
+      return (
+        c.before === 'Spacing between bolts in a row' &&
+        c.after === 'Spacing between rows, along the leg'
+      );
+    }
+    if (field === 'requirements[0].citation.locator') {
+      return String(c.after).startsWith('Table 12.5.1D');
+    }
+    if (field === 'requirements[0].condition') {
+      return String(c.after).startsWith('load perpendicular to grain, ');
+    }
+    return field === 'requirements[0].multiple' || field === 'requirements[0].value';
+  }
+  return (
+    /^design\.boltLayout\[\d+\]\.notes\[\d+\]$/.test(c.path) &&
+    String(c.after).replace(" Across the leg's grain, each bolt is a row of its own.", '') ===
+      c.before
+  );
+};
+
+/**
  * What regenerating with the current version changes in the stored outputs, field by field; or,
  * given `later`, a later version's fixture of the same example, what that version changed.
  */
@@ -188,6 +220,7 @@ function regenerated(
   later?: unknown,
   keepVersion31 = false,
   keepVersion32 = false,
+  keepVersion33 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -207,7 +240,8 @@ function regenerated(
         (keepVersion29 || later !== undefined || !isVersion29(c)) &&
         (keepVersion30 || !isVersion30(c)) &&
         (keepVersion31 || !isVersion31(c)) &&
-        (keepVersion32 || !isVersion32(c)),
+        (keepVersion32 || !isVersion32(c)) &&
+        (keepVersion33 || !isVersion33(c)),
     ),
   };
   return keepVersion18
@@ -726,7 +760,8 @@ describe('swing-set template versions', () => {
           !isVersion29(c) &&
           !isVersion30(c) &&
           !isVersion31(c) &&
-          !isVersion32(c),
+          !isVersion32(c) &&
+          !isVersion33(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1095,6 +1130,41 @@ describe('swing-set template versions', () => {
     expect(deeper.map((d) => [d.subject, Number(d.breakEven.value.toFixed(3))])).toEqual([
       ['Top beam, 4x8', 2.655],
       ['Top beam, 3 plies of 2x8', 2.086],
+    ]);
+  });
+
+  // Hand check in the spec, Bolt layout: ℓ is the lesser of the leg's 3.5 and the board's 1.5, so
+  // ℓ/D = 3 for 1/2" bolts and Table 12.5.1D gives (5·1.5 + 10·0.5) / 8 = 1.5625. The bolts stay
+  // 2.75 / cos 20° = 2.9265 (crossbar) and 3.625 / cos 20° = 3.8576 (gusset) apart along the leg.
+  it("version 33 measures the bolts' spacing along the leg between rows, and changes nothing else (#524)", () => {
+    const keep33 = [...Array(10).fill(false), undefined, false, false, true] as const;
+    for (const stored of v32) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(32);
+      const { changes } = regenerated(snapshot, ...keep33);
+      expect(changes.filter((c) => !isVersion33(c))).toEqual([]);
+    }
+    const layout = at(fresh(read(v32[0])), 'design.boltLayout') as BoltJoint[];
+    const alongLeg = layout.flatMap((j) =>
+      j.distances
+        .filter((d) => d.label === 'Spacing between rows, along the leg')
+        .map((d) => [
+          j.title,
+          Number(d.value.toFixed(4)),
+          d.requirements.map((r) => [r.multiple, r.value, r.citation.locator]),
+        ]),
+    );
+    expect(alongLeg).toEqual([
+      [
+        'Crossbar to leg',
+        2.9265,
+        [['(5ℓ + 10D) / 8', 1.5625, 'Table 12.5.1D, Spacing Requirements Between Rows, p. 99']],
+      ],
+      [
+        'Gusset to leg',
+        3.8576,
+        [['(5ℓ + 10D) / 8', 1.5625, 'Table 12.5.1D, Spacing Requirements Between Rows, p. 99']],
+      ],
     ]);
   });
 });
