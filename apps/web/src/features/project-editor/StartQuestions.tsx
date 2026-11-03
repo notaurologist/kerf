@@ -12,6 +12,7 @@ import {
 import { type FormEvent, type ReactNode, useState } from 'react';
 import type { FieldIssue } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
+import { leaveGate } from '../../lib/leave.ts';
 import { href } from '../../lib/route.ts';
 import {
   Button,
@@ -93,7 +94,8 @@ export function StartQuestions(props: {
             structural inputs are yours to enter.
           </Text>
           <Cluster>
-            <Button variant="link" onClick={() => setSuggested(null)}>
+            {/* The editor's draft holds the gate while it has changes, so this asks first. */}
+            <Button variant="link" onClick={() => leaveGate.confirm(() => setSuggested(null))}>
               Change your answers
             </Button>
           </Cluster>
