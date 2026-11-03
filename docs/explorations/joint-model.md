@@ -100,6 +100,8 @@ For every worked example in both template specs, and every parameter set in the 
 
 A joint type counts as done when both templates reach parity with it in place.
 
+The harness is `packages/model/src/parity.ts` (#551). Its cases are each template's worked examples, then the distinct parameter sets in its snapshot fixtures that the current version accepts once upgraded: 10 for the swing set and 6 for the record cabinet as of November 3, 2026. Older record cabinet fixtures lack parameters added since and are left out. A template's `generate` returns its plan with the cut list and lumber already made from the parts, so a joint-based version has to make them the same way for the comparison to mean anything.
+
 ## Order of work
 
 1. Package skeleton and the parity harness, comparing each template with itself so the harness is proven before anything changes (#551).
