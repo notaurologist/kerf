@@ -322,6 +322,32 @@ describe('sliding doors (spec, Sliding doors on the end bays)', () => {
     expect(door.partitionDepth - part(worked, 'rail').stock.thickness).toBe(13.6875);
   });
 
+  it('rabbets a one-board panel from its own thickness, to a tongue as thick as the groove', () => {
+    // A 42" case of 1" x 11-1/4" boards: bays (42 − 4 × 3/4 − 2 × 3/4) / 3 = 12-1/2, doors
+    // 12-1/2 + 3/4 + 1/2 = 13-3/4 wide, the panel span 13-3/4 − 2 × 2 + 2 × 3/8 = 10-1/2, and the
+    // panel 10.5 − 2 × (10.5 × 0.00248 × 4 / 2 + 1/32) = 10-1/3 wide, under the board's 11-1/8
+    // after jointing: one board, not flattened, so 1" thick against t = 3/4.
+    const board = { source: 'store' as const, thickness: 1, width: 11.25, lengths: [4, 6, 8] };
+    const result = recordCabinet.generate(
+      { ...p, width: 42, board },
+      EXAMPLES[0]?.structuralInputs ?? {},
+    );
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    const one = result.output;
+    const panel = part(one, 'door-panel');
+    expect(panel.stock.width).toBeCloseTo(10.5 - 2 * ((10.5 * 0.00248 * 4) / 2 + 1 / 32), 12);
+    expect(panel.stock.thickness).toBe(1);
+    // (1 − 1/4) / 2 = 3/8 on each face, not (3/4 − 1/4) / 2 = 1/4, which left a 1/2 tongue.
+    expect(new Set(panel.rabbets?.map((r) => `${r.width} ${r.depth}`))).toEqual(
+      new Set(['0.375 0.375']),
+    );
+    expect(1 - 2 * 0.375).toBe(p.tenonThickness);
+    // The frame is the same 1" board, so the panel is flush with the door's front face, at
+    // 1/4 + 1/32, not 1/8 behind it.
+    expect(world(placed(one, 'door-stile-outer', 0), 0, 0, 1).y).toBe(0.28125);
+    expect(world(placed(one, 'door-panel', 0), 0, 0, 0).y).toBe(0.28125);
+  });
+
   it('has no doors and full-depth partitions in the edge of range', () => {
     expect(edge.design.geometry.door).toBeUndefined();
     expect(edge.design.parts.filter((x) => x.id.startsWith('door'))).toEqual([]);

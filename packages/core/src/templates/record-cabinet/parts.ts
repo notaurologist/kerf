@@ -322,7 +322,8 @@ export function cabinetParts(
       referenceEdge: 'edge away from the panel',
       grooves: [groove(door.height)],
     };
-    const tongue = (p.panelThickness - p.tenonThickness) / 2;
+    // A one-board panel keeps its board's thickness, so the tongue is sized from the panel's stock.
+    const tongue = (doorStock.panel.thickness - p.tenonThickness) / 2;
     return [
       {
         ...stile,
@@ -546,12 +547,13 @@ export function cabinetParts(
   // A cleat inside each side apron, lying flat and flush with its top.
   place('cleat', 0, at(xl + r0 + ta, s, zb), Y, X, minusZ);
   place('cleat', 1, at(xr - r0 - ta, s, zb - tc), Y, minusX, Z);
-  if (door && sizes) {
+  if (door && sizes && doorStock?.panel) {
     const ws = sizes.frameWidth;
     const gs = sizes.grooveDepth;
     // The left door runs in the front track and the right door in the back one, each against its
     // side when closed, centered in its track, and seated d_b in the bottom track.
     const td = door.thickness;
+    const tp = doorStock.panel.thickness;
     const x1 = (g.panelX[0] as number) + t;
     const x2 = g.panelX[p.bays] as number;
     const z = zb + t - sizes.bottomDepth;
@@ -577,7 +579,7 @@ export function cabinetParts(
       place(
         'door-panel',
         k,
-        at(xr0 + panelGap.length, y + (td - t) / 2, z + ws - gs + end),
+        at(xr0 + panelGap.length, y + (td - tp) / 2, z + ws - gs + end),
         Z,
         X,
         Y,
