@@ -170,7 +170,9 @@ describe('column check', () => {
   });
 
   it('is not computed when the template gives no end conditions in some direction', () => {
-    const r = columnCheck(post({ member: { ...post().member, axes: { reason: 'Nothing holds it.' } } }));
+    const r = columnCheck(
+      post({ member: { ...post().member, axes: { reason: 'Nothing holds it.' } } }),
+    );
     expect(r).toMatchObject({ status: 'not-computed', reason: 'Nothing holds it.' });
   });
 
@@ -204,7 +206,7 @@ describe('column check', () => {
 
   it('gives the break-even factor while only the factor is missing', () => {
     const r = columnCheck(post({ factor: factor() }));
-    expect(r.status).toBe('input-needed');
+    if (r.status !== 'input-needed') throw new Error(`Expected input needed: ${r.status}`);
     expect(r.breakEven?.value).toBeCloseTo(7.5262, 3);
   });
 

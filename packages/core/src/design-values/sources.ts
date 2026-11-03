@@ -117,6 +117,27 @@ export const SOURCES = {
     url: 'https://811beforeyoudig.com/',
     note: 'For having buried utility lines marked before digging.',
   },
+  'osha-1926-1053': {
+    title: 'Safety and Health Regulations for Construction, 29 CFR 1926.1053: Ladders',
+    publisher: 'U.S. Department of Labor, Occupational Safety and Health Administration',
+    edition: 'Regulation text on osha.gov, read November 2026',
+    url: 'https://www.osha.gov/laws-regs/regulations/standardnumber/1926/1926.1053',
+    note: 'A rule for construction work, read here for using a stepladder: locked open, on stable and level ground, never standing on its top step, and carrying nothing that could throw your balance.',
+  },
+  'osha-etool-heavy-lifting': {
+    title: 'Electrical Contractors eTool: Materials Handling, Heavy Lifting',
+    publisher: 'U.S. Department of Labor, Occupational Safety and Health Administration',
+    edition: 'Web page, read November 2026 (undated)',
+    url: 'https://www.osha.gov/etools/electrical-contractors/materials-handling/heavy',
+    note: 'For lifting a load heavier than 50 pounds with two or more people.',
+  },
+  'nrcs-co-382': {
+    title: 'Conservation Practice Standard 382, Fence: Specification Guide, Suspension',
+    publisher: 'USDA Natural Resources Conservation Service, Colorado',
+    edition: 'December 2014 (file of 2021)',
+    url: 'https://efotg.sc.egov.usda.gov/api/CPSFile/3378/382_CO_IR_Fence_Suspension_2021',
+    note: 'For setting posts: backfilled in shallow layers, each tamped firm, the posts plumb, and the fill mounded so water does not pond at the post.',
+  },
   'nist-ps-20-25': {
     title: 'Voluntary Product Standard PS 20-25, American Softwood Lumber Standard',
     publisher: 'National Institute of Standards and Technology, U.S. Department of Commerce',

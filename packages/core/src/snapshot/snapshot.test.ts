@@ -35,6 +35,7 @@ const params: SwingSetParams = {
     legBoltDiameter: 0.5,
     crossbarBolts: { diameter: 0.5, perJoint: 2 },
     gussetBolts: { diameter: 0.5, perJoint: 2 },
+    hangerMounting: { kind: 'vertical-bolt', diameter: 0.5 },
   },
 };
 
@@ -272,6 +273,11 @@ describe('compareSnapshots', () => {
       changes.filter((c) => !c.path.startsWith('checks') && !alternatives.test(c.path)),
     ).toEqual([
       { path: 'cutList[0].length', before: '120"', after: '132"' },
+      {
+        path: 'cutList[0].notes[0]',
+        before: expect.stringContaining('30", 50", 70", 90" from the left end'),
+        after: expect.stringContaining('36", 56", 76", 96" from the left end'),
+      },
       { path: 'lumber.boards[0].pieces[0].length', before: 120, after: 132 },
       { path: 'lumber.boards[0].offcut', before: 22.875, after: 10.875 },
       { path: 'lumber.lines[0].notes[0]', before: expect.stringContaining("Beam: listed as 12'") },

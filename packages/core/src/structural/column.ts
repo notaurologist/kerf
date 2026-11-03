@@ -1,11 +1,6 @@
 import { referenceRow, speciesGrade } from '../design-values/sawnLumber.ts';
 import { type Citation, SOURCE_LINKS } from '../design-values/sources.ts';
-import {
-  factorQuantity,
-  type LoadFactor,
-  type MaterialInput,
-  missingFrom,
-} from './checks.ts';
+import { factorQuantity, type LoadFactor, type MaterialInput, missingFrom } from './checks.ts';
 import { adjustedCompression, type ServiceConditions } from './factors.ts';
 import { formatNumber } from './format.ts';
 import { type CheckResult, isMissing, type Needed, type Quantity } from './types.ts';

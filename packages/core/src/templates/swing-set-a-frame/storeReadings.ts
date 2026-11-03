@@ -27,7 +27,7 @@ export const STORE_READINGS: readonly StoreReading[] = [
     path: 'legSpeciesGrade',
     beside: { parts: LEG_IDS },
     prompt: 'Read the grade stamp on the leg boards.',
-    how: 'The grade stamp is inked on a face of each board. Choose the species and the grade it shows, such as No.\u00a02. If the list does not have them, the legs\' check has no design values for these boards: choose boards whose stamp the list has, or ask an experienced builder whether these will do.',
+    how: "The grade stamp is inked on a face of each board. Choose the species and the grade it shows, such as No.\u00a02. If the list does not have them, the legs' check has no design values for these boards: choose boards whose stamp the list has, or ask an experienced builder whether these will do.",
     illustration: 'grade-stamp',
   },
   {
@@ -43,6 +43,34 @@ export const STORE_READINGS: readonly StoreReading[] = [
     beside: { hardware: HANGERS },
     prompt: 'Read the rated load on the swing hanger package.',
     how: "The package or the maker's instructions give the load in pounds. Enter the rating for one hanger; if it is given for a pair, ask the maker for one hanger's.",
+  },
+  {
+    from: 'params',
+    path: 'hardware.hangerMounting.kind',
+    beside: { hardware: HANGERS },
+    prompt: 'Read how the swing hangers fasten to the beam.',
+    how: "The package or the maker's instructions show it: one bolt down through the beam, bolts sideways through a bracket around it, or screws.",
+  },
+  {
+    from: 'params',
+    path: 'hardware.hangerMounting.diameter',
+    beside: { hardware: HANGERS },
+    prompt: "Read the hanger bolts' diameter.",
+    how: 'The package or instructions give the bolt size, such as 1/2"; or read it on the bolts that come with the hangers.',
+  },
+  {
+    from: 'params',
+    path: 'hardware.hangerMounting.perHanger',
+    beside: { hardware: HANGERS },
+    prompt: "Count the bolt holes in one side of a hanger's bracket.",
+    how: 'Each hole takes one bolt across the beam.',
+  },
+  {
+    from: 'params',
+    path: 'hardware.hangerMounting.holeHeight',
+    beside: { hardware: HANGERS },
+    prompt: "Measure how high the bracket's bolt holes are.",
+    how: "From the bracket's bottom, which sits against the beam's underside, to the center of its holes.",
   },
   {
     from: 'params',

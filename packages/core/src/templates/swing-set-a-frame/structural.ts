@@ -3,20 +3,22 @@ import { DENSITY_SOURCES, woodDensity } from '../../design-values/density.ts';
 import { referenceRow, SPECIES_GRADE_IDS, speciesGrade } from '../../design-values/sawnLumber.ts';
 import type { Citation } from '../../design-values/sources.ts';
 import { STOCK_SIZE_SOURCES, stock } from '../../lumber/stock.ts';
-import { reactions } from '../../structural/beam.ts';
-import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import type { FieldRef } from '../../model/form.ts';
 import { ChecklistItem, type Issue } from '../../model/types.ts';
+import { reactions } from '../../structural/beam.ts';
+import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import {
   BeamChecks,
   beamChecks,
   hardwareCheck,
   type LoadCase,
   type LoadFactor,
+  type MemberHoles,
   type PointLoad,
 } from '../../structural/checks.ts';
 import { type AxialLoad, type ColumnAxis, columnCheck } from '../../structural/column.ts';
 import type { ServiceConditions } from '../../structural/factors.ts';
+import type { SectionHole } from '../../structural/netSection.ts';
 import {
   type CheckKind,
   CheckResult,
@@ -26,6 +28,7 @@ import {
   type Quantity,
 } from '../../structural/types.ts';
 import { formatLength } from '../../units/length.ts';
+import { HANGER_BOLTS } from './hardware.ts';
 import type { SwingSetOutput } from './template.ts';
 import { LEG_IDS } from './validate.ts';
 
@@ -268,6 +271,60 @@ function supportAssumptions(supports: ReturnType<typeof beamSupports>): string[]
   ];
 }
 
+/** The hanger mounting's field label, which bending names while it is needed. */
+export const HANGER_MOUNTING_LABEL = 'Swing hanger mounting';
+const HANGER_MOUNTING = { key: 'hardware.hangerMounting', label: HANGER_MOUNTING_LABEL };
+
+/**
+ * The holes the hangers' bolts bore through the beam, one at each hanger (spec, Structural model,
+ * Beam). Missing until the mounting is entered; a mounting other than bolts has no net section
+ * Kerf can work out.
+ */
+function hangerHoles(output: SwingSetOutput): MemberHoles {
+  const p = output.params;
+  const m = p.hardware.hangerMounting;
+  if (m === undefined) return { missing: [HANGER_MOUNTING] };
+  if (m.kind === 'other') {
+    return {
+      reason:
+        'The swing hangers are fastened some other way than with bolts, so Kerf cannot work out how much of the beam their holes remove at each hanger, where the moment is largest. NDS 2024 3.1.2.1 takes bending on that net section. Ask an experienced builder to check the beam at the hangers.',
+    };
+  }
+  const D = boltHoleDiameter(m.diameter);
+  const bw = p.beamPlies * stock(p.beamStock).thickness;
+  const hole: SectionHole =
+    m.kind === 'vertical-bolt'
+      ? { kind: 'through-depth', diameter: D, center: bw / 2 }
+      : { kind: 'through-breadth', diameter: D, height: m.holeHeight };
+  return {
+    value: output.swings.hangersX.map((x, i) => ({
+      x,
+      label: `${HANGER_LABELS[i] ?? `Hanger ${i + 1}`} hole`,
+      hole,
+    })),
+  };
+}
+
+function hangerHoleAssumptions(output: SwingSetOutput): string[] {
+  const p = output.params;
+  const m = p.hardware.hangerMounting;
+  if (m === undefined || m.kind === 'other') return [];
+  const hole = formatLength(boltHoleDiameter(m.diameter));
+  const where =
+    m.kind === 'vertical-bolt'
+      ? `Each hanger's bolt goes down through the beam on its centerline, in a ${hole} hole (the bolt plus 1/16", NDS 2024 12.1.3.2).`
+      : `Each hanger's bolts cross the beam in one row, ${formatLength(m.holeHeight)} above its bottom, in ${hole} holes (the bolt plus 1/16", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.`;
+  return [
+    where,
+    ...(p.beamPlies > 1 && m.kind === 'vertical-bolt'
+      ? [
+          'The hole is taken from the ply it cuts most, which still carries an equal share of the load.',
+        ]
+      : []),
+    "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
+  ];
+}
+
 /** Structural review for a generated swing set and the owner's structural inputs. */
 export function structuralReview(output: SwingSetOutput, input: unknown): ReviewResult {
   const parsed = SwingSetStructuralInputs.safeParse(input);
@@ -402,8 +459,10 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
     conditions: BEAM_CONDITIONS,
     strength,
     deflection,
+    holes: hangerHoles(output),
     assumptions: [
       ...supportAssumptions(supports),
+      ...hangerHoleAssumptions(output),
       'Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.',
       "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
     ],
@@ -570,7 +629,7 @@ function legColumn(
             },
       netArea: {
         value: (leg.width - hole) * leg.thickness,
-        basis: `The crossbar and gusset bolts pass through each leg along the beam, in holes up to ${formatLength(hole)} across, which leave (w − hole) · t.`,
+        basis: `The crossbar and gusset bolts pass through each leg along the beam, in holes up to ${formatLength(hole)} across, which leave (w − hole) · t (NDS 2024 3.1.2.1).`,
       },
     },
     material: mapNeeded(
@@ -598,9 +657,10 @@ const inputs = (...paths: (keyof typeof STRUCTURAL_INPUT_LABELS | `riderWeights.
 
 /**
  * The fields each check changes with (`TemplateDefinition.checkFields`): for the top beam, its
- * size, its span between the gussets (or the bolts, with no gusset under it), and where the hangers
- * hang on it, then the inputs its material and loads come from; for the legs, their size, the
- * frame's shape, and the loads the beam brings them; for a hanger, its loads and its rating.
+ * size, its span between the gussets (or the bolts, with no gusset under it), where the hangers
+ * hang on it and, for bending, how they are fastened, then the inputs its material and loads come
+ * from; for the legs, their size, the frame's shape, and the loads the beam brings them; for a
+ * hanger, its loads and its rating.
  */
 export function checkFields(check: { kind: CheckKind }): FieldRef[] {
   const riders = inputs('riderWeights.0', 'riderWeights.1', 'maxSwingAngle');
@@ -619,6 +679,14 @@ export function checkFields(check: { kind: CheckKind }): FieldRef[] {
   return [
     ...params('beamStock', 'beamPlies', 'beamLength', 'frameInset', 'gussetStock', 'legStock'),
     ...params('swings.centers.0', 'swings.centers.1', 'swings.hangerSpacing'),
+    ...(check.kind === 'beam-bending'
+      ? params(
+          'hardware.hangerMounting.kind',
+          'hardware.hangerMounting.diameter',
+          'hardware.hangerMounting.perHanger',
+          'hardware.hangerMounting.holeHeight',
+        )
+      : []),
     ...inputs('beamSpeciesGrade', 'beamIncised', 'beamMoistureContent'),
     ...riders,
     ...inputs(check.kind === 'beam-deflection' ? 'deflectionLimit' : 'dynamicFactor'),
@@ -677,9 +745,14 @@ function checklist(output: SwingSetOutput): ChecklistItem[] {
       category: 'bolted-connections',
       element: 'Swing hangers',
       partIds: ['beam'],
-      hardwareIds: ['swing-hangers'],
+      hardwareIds: [
+        'swing-hangers',
+        ...(p.hardware.hangerMounting && p.hardware.hangerMounting.kind !== 'other'
+          ? [HANGER_BOLTS]
+          : []),
+      ],
       confirm:
-        'Hangers rated for swing use, installed through the beam as the manufacturer specifies.',
+        'Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.',
       why: "The hanger margin uses the manufacturer's rating, which holds only for its specified installation.",
     },
     {
@@ -708,7 +781,7 @@ function checklist(output: SwingSetOutput): ChecklistItem[] {
       element: `Beam plies (${p.beamPlies} x ${p.beamStock})`,
       partIds: ['beam'],
       hardwareIds: ['ply-bolts', 'swing-hangers'],
-      confirm: `Ply bolt pattern and spacing (${h.plyBolts?.count ?? 'no'} bolts entered), and that every hanger bolts through all ${p.beamPlies} plies.`,
+      confirm: `Ply bolt pattern and spacing (${h.plyBolts?.count ?? 'no'} bolts entered), and that every hanger's load reaches all ${p.beamPlies} plies.`,
       why: 'The checks assume each ply carries an equal share of every load (decision 0013); that holds only if the plies are fastened together and every load reaches every ply.',
     });
   }

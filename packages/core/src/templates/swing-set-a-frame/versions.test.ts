@@ -31,6 +31,9 @@ import v25 from './snapshots/v25.json' with { type: 'json' };
 import v26 from './snapshots/v26.json' with { type: 'json' };
 import v27 from './snapshots/v27.json' with { type: 'json' };
 import v28 from './snapshots/v28.json' with { type: 'json' };
+import v29 from './snapshots/v29.json' with { type: 'json' };
+import v30 from './snapshots/v30.json' with { type: 'json' };
+import v31 from './snapshots/v31.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -129,16 +132,50 @@ const isVersion28 = (c: { path: string; before?: unknown; after?: unknown }) =>
     String(c.after).startsWith("The gusset also carries the beam's weight")) ||
   (/^design\.flags\[\d+\]\.ask$/.test(c.path) &&
     String(c.before).startsWith('Gusset to leg') &&
+    !String(c.before).includes("under the beam's weight") &&
     String(c.after).includes("gusset edge distance under the beam's weight, to the top edge"));
 
 /**
- * Version 29's change (#468): the legs' column check, new in the review with nothing before it.
+ * Version 29's changes (#446): bending at the hangers' holes, which a plan made before it has not
+ * entered, so its bending says the mounting is needed; the hanger checklist item's wording; and
+ * the beam's other sizes, which wait for bending's margin. Set aside like 18's.
+ */
+const isVersion29 = (c: { path: string }) =>
+  /^structuralReview\.beam\.bending(\.|\[|$)/.test(c.path) ||
+  /^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) ||
+  /^lumber\.lines\[\d+\]\.alternatives(\[|$)/.test(c.path);
+
+/**
+ * Version 30's change (#493): each bolt flag writes its count and size as the bolt layout does,
+ * "2 × 1/2\" bolts" for "2 1/2\" bolts", and nothing else in it. Set aside like version 18's.
+ */
+const isVersion30 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  /^design\.flags\[\d+\]\.ask$/.test(c.path) &&
+  String(c.after).replace(/^([^,:]+, \d+) × /, '$1 ') === c.before;
+
+/**
+ * Version 31's changes (#451): the operations that put the frame up after the beam is bolted, and
+ * the flag asking which order it goes up in, each new with nothing before it. Set aside like
+ * version 18's.
+ */
+const ASSEMBLY = ['raise', 'backfill', 'anchor', 'tighten-bolts', 'hang'];
+const isVersion31 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  c.before === undefined &&
+  ((/^design\.operations\[\d+\]$/.test(c.path) &&
+    ASSEMBLY.includes(String((c.after as { type?: string }).type))) ||
+    (/^design\.flags\[\d+\]$/.test(c.path) && (c.after as { step?: string }).step === 'raise'));
+
+/**
+ * Version 32's change (#468): the legs' column check, new in the review with nothing before it.
  * Set aside like version 18's.
  */
-const isVersion29 = (c: { path: string; before?: unknown }) =>
+const isVersion32 = (c: { path: string; before?: unknown }) =>
   c.path === 'structuralReview.legs' && c.before === undefined;
 
-/** What regenerating with the current version changes in the stored outputs, field by field. */
+/**
+ * What regenerating with the current version changes in the stored outputs, field by field; or,
+ * given `later`, a later version's fixture of the same example, what that version changed.
+ */
 function regenerated(
   snapshot: ProjectSnapshot,
   keepVersion18 = false,
@@ -150,11 +187,13 @@ function regenerated(
   keepVersion27 = false,
   keepVersion28 = false,
   keepVersion29 = false,
+  keepVersion30 = false,
+  later?: unknown,
+  keepVersion31 = false,
+  keepVersion32 = false,
 ) {
-  const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
-  if (!current.ok) throw new Error('worked example no longer generates');
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
-  const outputs = template.storedOutputs.parse(current.output.outputs);
+  const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
   const found = diff(json(snapshot.outputs), json(outputs), 1000);
   const result = {
     ...found,
@@ -168,12 +207,27 @@ function regenerated(
         (keepVersion26 || !isVersion26(c)) &&
         (keepVersion27 || !isVersion27(c)) &&
         (keepVersion28 || !isVersion28(c)) &&
-        (keepVersion29 || !isVersion29(c)),
+        (keepVersion29 || later !== undefined || !isVersion29(c)) &&
+        (keepVersion30 || !isVersion30(c)) &&
+        (keepVersion31 || !isVersion31(c)) &&
+        (keepVersion32 || !isVersion32(c)),
     ),
   };
   return keepVersion18
     ? result
     : { ...result, changes: result.changes.filter((c) => !isVersion18(c)) };
+}
+
+function fresh(snapshot: ProjectSnapshot) {
+  const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
+  if (!current.ok) throw new Error('worked example no longer generates');
+  return template.storedOutputs.parse(current.output.outputs);
+}
+
+function read(stored: unknown): ProjectSnapshot {
+  const result = readSnapshot([template], stored);
+  if (!result.ok) throw new Error(JSON.stringify(result));
+  return result.snapshot;
 }
 
 /** The value at an outputs path such as 'structuralReview.beam.bending.inputs[1]'. */
@@ -506,11 +560,25 @@ describe('swing-set template versions', () => {
 
   it("version 13 gives the largest moment's position its own step, in inches", () => {
     let checked = 0;
-    for (const stored of v12) {
+    for (const [i, stored] of v12.entries()) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(12);
-      const changes = regenerated(read.snapshot).changes.filter(notVersion14);
+      // Against version 25's plan, from before version 29 took bending at the hanger holes.
+      const changes = regenerated(
+        read.snapshot,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        v25[i],
+      ).changes.filter(notVersion14);
       expect(changes.filter(notVersion13)).toEqual([]);
       for (const label of changes.filter((c) => c.path.endsWith('.label'))) {
         // The label loses its three-decimal position and nothing else.
@@ -658,7 +726,10 @@ describe('swing-set template versions', () => {
           !isVersion26(c) &&
           !isVersion27(c) &&
           !isVersion28(c) &&
-          !isVersion29(c),
+          !isVersion29(c) &&
+          !isVersion30(c) &&
+          !isVersion31(c) &&
+          !isVersion32(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -709,7 +780,20 @@ describe('swing-set template versions', () => {
     }
     const first = readSnapshot([template], v22[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const { changes } = regenerated(first.snapshot, false, false, true);
+    const { changes } = regenerated(
+      first.snapshot,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      v25[0],
+    );
     expect(changes.length).toBeGreaterThan(0);
     const span = changes.find((c) => c.path === 'structuralReview.beam.bending.inputs[0].value');
     expect(span).toMatchObject({ before: 92.5, after: 97.5 });
@@ -746,11 +830,24 @@ describe('swing-set template versions', () => {
   // 121-1/8", or a 14', or a 4x8 beam; its legs a 14'; its crossbars two 8's or a 12'; its
   // gussets a 10'.
   it('version 25 moves the shorter-board note to its line and adds what else to buy (#450)', () => {
-    for (const stored of v24) {
+    for (const [i, stored] of v24.entries()) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(24);
-      const { changes } = regenerated(read.snapshot, false, false, false, false, true);
+      const { changes } = regenerated(
+        read.snapshot,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        v25[i],
+      );
       expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion25(c))).toEqual([]);
       // The note moves whole: the same text, now on its line.
@@ -760,9 +857,20 @@ describe('swing-set template versions', () => {
     }
     const first = readSnapshot([template], v24[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const beam = regenerated(first.snapshot, false, false, false, false, true).changes.filter((c) =>
-      c.path.startsWith('lumber.lines[0].alternatives'),
-    );
+    const beam = regenerated(
+      first.snapshot,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      v25[0],
+    ).changes.filter((c) => c.path.startsWith('lumber.lines[0].alternatives'));
     expect(beam.map((c) => c.after)).toEqual([
       { kind: 'measured', feet: 10, count: 1, atLeast: 121.125 },
       { kind: 'lengths', boards: [{ feet: 14, count: 1 }] },
@@ -771,17 +879,43 @@ describe('swing-set template versions', () => {
   });
 
   it('version 26 asks about UC4B and what each buried leg stands on, and changes no number (#464)', () => {
-    for (const stored of v25) {
+    for (const [i, stored] of v25.entries()) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(25);
-      const { changes } = regenerated(read.snapshot, false, false, false, false, false, true);
+      const { changes } = regenerated(
+        read.snapshot,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        v26[i],
+      );
       expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion26(c))).toEqual([]);
     }
     const first = readSnapshot([template], v25[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const { changes } = regenerated(first.snapshot, false, false, false, false, false, true);
+    const { changes } = regenerated(
+      first.snapshot,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      v26[0],
+    );
     expect(changes.map((c) => c.path).sort()).toEqual([
       'design.flags[2].ask',
       'design.flags[2].why',
@@ -858,18 +992,104 @@ describe('swing-set template versions', () => {
       ["Spacing between bolts in a row under the beam's weight", 3.8576],
     ]);
   });
+
+  // Hand check in the spec, Structural model, example 1: a 1/2" hanger bolt down through the 4x6
+  // in a 9/16" hole leaves S_net = 2.9375·5.5²/6 = 14.8099, and M at the inner hangers 17,743.78
+  // gives f_b = 1198.10, margin 991.59 / 1198.10 = 0.8276, against 0.9849 on the gross section.
+  it('version 29 takes bending at the hanger holes, which a plan without a mounting waits for (#446)', () => {
+    for (const stored of v28) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(28);
+      const { changes } = regenerated(
+        snapshot,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+      );
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion29(c))).toEqual([]);
+      const bending = (fresh(snapshot) as { structuralReview: { beam: { bending: unknown } } })
+        .structuralReview.beam.bending;
+      expect(bending).toMatchObject({
+        status: 'input-needed',
+        missing: expect.arrayContaining([
+          { key: 'hardware.hangerMounting', label: 'Swing hanger mounting' },
+        ]),
+      });
+    }
+    type Bending = { status: string; margin: number; computed: { label: string } };
+    const margin = (stored: unknown) =>
+      (read(stored).outputs as { structuralReview: { beam: { bending: Bending } } })
+        .structuralReview.beam.bending;
+    expect(margin(v28[0]).margin).toBeCloseTo(0.98491, 4);
+    expect(margin(v29[0]).margin).toBeCloseTo(0.82763, 4);
+    expect(margin(v29[0]).computed.label).toBe(
+      'Bending stress at left swing, right hanger hole, net section',
+    );
+  });
+
+  // A flag's progress key is its category and its ask (ARCHITECTURE.md, project_progress), so
+  // regenerating a version 29 plan clears a tick on either bolt flag in the structural review.
+  it('version 30 writes the bolt count and size as 2 × 1/2", and changes nothing else (#493)', () => {
+    const keep30 = [false, false, false, false, false, false, false, false, false, true] as const;
+    for (const stored of v29) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(29);
+      const { changes } = regenerated(snapshot, ...keep30);
+      // Each bolt flag the example has: a joint's title, then its count and size.
+      const flags = at(snapshot.outputs, 'design.flags') as { ask: string }[];
+      const boltFlags = flags.filter((f) => /^[^,:]+, \d+ \d/.test(f.ask));
+      expect(boltFlags.length).toBeGreaterThan(0);
+      expect(changes).toHaveLength(boltFlags.length);
+      expect(changes.filter((c) => !isVersion30(c))).toEqual([]);
+    }
+    const asks = regenerated(read(v29[0]), ...keep30).changes.map(
+      (c) => String(c.after).split(':')[0],
+    );
+    expect(asks).toEqual(['Crossbar to leg, 2 × 1/2" bolts', 'Gusset to leg, 2 × 1/2" bolts']);
+  });
+  // Hand check in operations.test.ts: two A-frames raised, four legs backfilled 24 deep or four
+  // feet anchored, one tightening for each bolt item, two seats hung at their seat height.
+  it('version 31 adds the steps that put the frame up, and asks which order (#451)', () => {
+    const keep31 = [...Array(10).fill(false), undefined, true] as const;
+    for (const stored of v30) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(30);
+      const { changes } = regenerated(snapshot, ...keep31);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion31(c))).toEqual([]);
+    }
+    const added = regenerated(read(v30[0]), ...keep31)
+      .changes.filter((c) => c.path.startsWith('design.operations'))
+      .map((c) => (c.after as Operation).id);
+    expect(added).toEqual([
+      'frames/raise',
+      'site/backfill',
+      'leg-beam-bolts/tighten',
+      'crossbar-bolts/tighten',
+      'gusset-bolts/tighten',
+      'hanger-bolts/tighten',
+      'swings/hang',
+    ]);
+  });
+
   // Hand check in structural.test.ts: the worked example's front leg runs (96 + 3.313) / cos 20° =
   // 105.687 from grade to the beam, so ℓe/d = 2.10 · 105.687 / 3.5 = 63.4 along the beam, over 50.
-  it("version 29 adds the legs' column check, and changes nothing else (#468)", () => {
-    const keep29 = [false, false, false, false, false, false, false, false, true] as const;
-    for (const stored of v28) {
-      const read = readSnapshot([template], stored);
-      if (!read.ok) throw new Error(JSON.stringify(read));
-      expect(read.snapshot.templateVersion).toBe(28);
-      expect(read.snapshot.outputs).not.toHaveProperty('structuralReview.legs');
-      const { changes } = regenerated(read.snapshot, ...keep29);
+  it("version 32 adds the legs' column check, and changes nothing else (#468)", () => {
+    const keep32 = [...Array(10).fill(false), undefined, false, true] as const;
+    for (const stored of v31) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(31);
+      expect(snapshot.outputs).not.toHaveProperty('structuralReview.legs');
+      const { changes } = regenerated(snapshot, ...keep32);
       expect(changes).toHaveLength(1);
-      expect(changes.filter((c) => !isVersion29(c))).toEqual([]);
+      expect(changes.filter((c) => !isVersion32(c))).toEqual([]);
       expect((changes[0]?.after as { kind: string }).kind).toBe('column');
     }
   });

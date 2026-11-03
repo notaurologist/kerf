@@ -70,7 +70,47 @@ describe('swing-set operations (#103)', () => {
       'leg-beam-bolts/treat-holes',
       'crossbar-bolts/treat-holes',
       'gusset-bolts/treat-holes',
+      'frames/raise',
+      'site/backfill',
+      'leg-beam-bolts/tighten',
+      'crossbar-bolts/tighten',
+      'gusset-bolts/tighten',
+      'swings/hang',
     ]);
+  });
+
+  // Hand check: two A-frames of the legs, crossbar, and gusset, reaching the top of the beam,
+  // 96 + 5.5 = 101.5 above the ground; four legs backfilled 24 deep; each bolt item tightened as
+  // drilled (2 leg-to-beam, 8 crossbar, 8 gusset, all 1/2"); two seats hung 16 above the ground.
+  it('raises the A-frames, backfills the legs, tightens every bolt, and hangs the swings', () => {
+    expect(byId('frames/raise')).toEqual({
+      id: 'frames/raise',
+      type: 'raise',
+      count: 2,
+      partIds: ['leg-back', 'leg-front', 'crossbar', 'gusset'],
+      height: 101.5,
+    });
+    expect(byId('site/backfill')).toEqual({
+      id: 'site/backfill',
+      type: 'backfill',
+      count: 4,
+      depth: 24,
+    });
+    expect(
+      ops
+        .filter((o) => o.type === 'tighten-bolts')
+        .map((o) => [o.hardwareId, o.count, o.boltDiameter]),
+    ).toEqual([
+      ['leg-beam-bolts', 2, 0.5],
+      ['crossbar-bolts', 8, 0.5],
+      ['gusset-bolts', 8, 0.5],
+    ]);
+    expect(byId('swings/hang')).toEqual({
+      id: 'swings/hang',
+      type: 'hang',
+      count: 2,
+      height: 16,
+    });
   });
 
   it('cuts the beam square, across its 5-1/2" width and through its 3-1/2" thickness', () => {

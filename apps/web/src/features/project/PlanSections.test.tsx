@@ -164,7 +164,7 @@ describe('links between sections', () => {
   it('open the structural review at the expert checks from the header’s count', () => {
     const page = at('cut-list');
     const head = page.slice(0, page.indexOf('<div class="k-with-contents"'));
-    expect(head).toContain(`<a href="${base}/structural-review">6 expert checks</a>`);
+    expect(head).toContain(`<a href="${base}/structural-review">7 expert checks</a>`);
     expect(sectionOf(at('structural-review'), 'structural-review')).toContain(
       '<h4 id="expert-checks" tabindex="-1">Expert checks</h4>',
     );

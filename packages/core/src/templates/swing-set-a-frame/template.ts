@@ -3,7 +3,12 @@ import type { BoardGuideId } from '../../knowledge/boardSelection.ts';
 import { stock } from '../../lumber/stock.ts';
 import { preservativeFor } from '../../lumber/treatment.ts';
 import { withLetters } from '../../model/letters.ts';
-import { cutAndDrillOperations, Operation, treatmentOperations } from '../../model/operations.ts';
+import {
+  cutAndDrillOperations,
+  Operation,
+  tighteningOperations,
+  treatmentOperations,
+} from '../../model/operations.ts';
 import {
   Flag,
   type GenerateResult,
@@ -13,6 +18,7 @@ import {
   Placement,
 } from '../../model/types.ts';
 import { BoltJoint } from '../../structural/boltDistances.ts';
+import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
 import {
@@ -32,11 +38,17 @@ import {
   legsReachGround,
   splayForFootprint,
 } from './geometry.ts';
-import { HARDWARE_NOTES, hardware, PRESERVATIVE_GROUP, validateHardware } from './hardware.ts';
+import {
+  HANGER_BOLTS,
+  HARDWARE_NOTES,
+  hardware,
+  PRESERVATIVE_GROUP,
+  validateHardware,
+} from './hardware.ts';
 import { SiteLayout, SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
 import { placements } from './placements.ts';
-import { flags, validate, validateSwings } from './validate.ts';
+import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.ts';
 
 /**
  * Bump whenever output for the same parameters would change (decision 0008).
@@ -87,15 +99,27 @@ import { flags, validate, validateSwings } from './validate.ts';
  * goes in, and the shopping list adds the preservative (#447). No number changes.
  * Version 28 also measures the gusset's bolts against the beam's weight, which crosses its grain:
  * end distance, the loaded top edge and the bottom edge, and spacing in a row (#456).
- * Version 29 checks the longer leg as a column in compression (NDS 2024 3.6.3 and 3.7.1), with
+ * Version 29 takes the beam's bending at each swing hanger on the net section its mounting holes
+ * leave (NDS 2024 3.1.2.1), lists the bolts that mount the hangers, and drills their holes (#446).
+ * Version 30 writes each bolt flag's count and size as the bolt layout does, "2 × 1/2\" bolts",
+ * which read as 2-1/2" before (#493). No number changes.
+ * Version 31 adds the steps that put the frame up after the beam is bolted: stand the A-frames up
+ * and brace them, plumb them and backfill the leg holes or anchor the feet, tighten every bolt and
+ * cap its end, and hang the swings, each with the CPSC rules for it. It also asks which order the
+ * frame goes up in (#451). No number changes.
+ * Version 32 checks the longer leg as a column in compression (NDS 2024 3.6.3 and 3.7.1), with
  * the legs' species, grade, and incising as structural inputs (#468). No other output changes.
  */
-export const TEMPLATE_VERSION = 29;
+export const TEMPLATE_VERSION = 32;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
  * legs stand in or on the ground whether buried or on pads, so they always get ground contact.
  */
+/** Two A-frames hold the beam, and two swings hang from it. */
+const FRAMES = 2;
+const SWINGS = 2;
+
 const SELECTION = {
   beam: ['structural', 'span', 'bolted'],
   leg: ['structural', 'along-length', 'bolted', 'ground-contact'],
@@ -197,12 +221,14 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       markLengths: [],
       ends: [square, square],
       endsParallel: true,
-      notes:
-        p.beamPlies > 1
+      notes: [
+        ...(p.beamPlies > 1
           ? [
               `${p.beamPlies} plies fastened face to face make one ${formatLength(dims.bw)} wide beam.`,
             ]
-          : [],
+          : []),
+        ...hangerHoleNotes(p),
+      ],
       ...f.beam,
     },
     leg('back'),
@@ -246,6 +272,22 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       ],
       ...f.gusset,
     },
+  ];
+}
+
+/** Where the hanger bolts' holes go in the beam (spec, Hardware), once the mounting is entered. */
+function hangerHoleNotes(p: SwingSetParams): string[] {
+  const m = p.hardware.hangerMounting;
+  if (m === undefined || m.kind === 'other') return [];
+  const hole = formatLength(boltHoleDiameter(m.diameter));
+  if (m.kind === 'vertical-bolt') {
+    const xs = swingGeometry(p).hangersX.map((x) => formatLength(x));
+    return [
+      `Swing hanger holes: ${hole}, down through the beam on its centerline, ${xs.join(', ')} from the left end.`,
+    ];
+  }
+  return [
+    `Swing hanger holes: ${hole}, across the beam ${formatLength(m.holeHeight)} up from its bottom edge. Hold each hanger's bracket at its mark and drill through the bracket's holes.`,
   ];
 }
 
@@ -298,7 +340,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
   const issues = [
     ...frameIssues,
     ...(fits ? validateSwings(dims, swings) : []),
-    ...validateHardware(p),
+    ...validateHardware(p, dims),
   ];
   if (issues.length > 0) return { ok: false, issues };
 
@@ -318,9 +360,14 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       placements: placements(dims, g),
       hardware: madeHardware,
       hardwareNotes: HARDWARE_NOTES,
-      flags: [...flags(dims, g), ...boltFlags(joints), ...projectionFlags(boardBolts(p, dims, g))],
+      flags: [
+        ...flags(dims, g),
+        ...boltFlags(joints),
+        ...projectionFlags(boardBolts(p, dims, g)),
+        assemblyOrderFlag(dims),
+      ],
       boltLayout: joints.map((j) => j.joint),
-      operations: operations(madeParts, madeHardware, dims.d),
+      operations: operations(p, dims, madeParts, madeHardware),
     },
   };
 }
@@ -329,9 +376,17 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
  * The spec's operations (Operations): every cut and bolt hole, from the parts and hardware; easing
  * the edges of every part, since children touch every surface (DOMAIN.md, Lumber and finish); and
  * the legs' holes (buried) or pads (d = 0); then a coat of preservative on every cut and in every
- * bolt hole, since every part is treated lumber.
+ * bolt hole, since every part is treated lumber. Last, the work of putting the frame up: raising
+ * and bracing each A-frame, backfilling the leg holes or anchoring the feet, tightening every bolt,
+ * and hanging the swings.
  */
-function operations(madeParts: readonly Part[], items: readonly HardwareItem[], d: number) {
+function operations(
+  p: SwingSetParams,
+  dims: Dimensions,
+  madeParts: readonly Part[],
+  items: readonly HardwareItem[],
+) {
+  const d = dims.d;
   const legs = madeParts
     .filter((part) => part.role === 'leg')
     .reduce((n, part) => n + part.quantity, 0);
@@ -339,8 +394,26 @@ function operations(madeParts: readonly Part[], items: readonly HardwareItem[], 
     d > 0
       ? { id: 'site/dig-holes', type: 'dig-holes', count: legs, depth: d }
       : { id: 'site/level-pads', type: 'level-pads', count: legs };
+  // Horizontal hanger bolts have no placed holes (features.ts), so their operation is made here.
+  const hangerBolts = items.find((item) => item.id === HANGER_BOLTS);
+  const horizontal: Operation[] =
+    p.hardware.hangerMounting?.kind === 'horizontal-bolts' && hangerBolts?.bolt
+      ? [
+          {
+            id: `${HANGER_BOLTS}/holes`,
+            type: 'bolt-holes',
+            hardwareId: HANGER_BOLTS,
+            partIds: ['beam'],
+            count: hangerBolts.quantity ?? 0,
+            boltDiameter: hangerBolts.bolt.diameter,
+            holeDiameter: boltHoleDiameter(hangerBolts.bolt.diameter),
+            depth: dims.bw,
+          },
+        ]
+      : [];
   const ops = [
     ...cutAndDrillOperations(madeParts, items),
+    ...horizontal,
     ...madeParts.map(
       (part): Operation => ({
         id: `${part.id}/ease-edges`,
@@ -351,5 +424,22 @@ function operations(madeParts: readonly Part[], items: readonly HardwareItem[], 
     ),
     site,
   ];
-  return [...ops, ...treatmentOperations(madeParts, ops)];
+  const set: Operation =
+    d > 0
+      ? { id: 'site/backfill', type: 'backfill', count: legs, depth: d }
+      : { id: 'site/anchor', type: 'anchor', count: legs };
+  const assembly: Operation[] = [
+    {
+      id: 'frames/raise',
+      type: 'raise',
+      count: FRAMES,
+      partIds: madeParts.filter((part) => part.role !== 'beam').map((part) => part.id),
+      // The legs' tops, level with the top of the beam.
+      height: dims.H + dims.bd,
+    },
+    set,
+    ...tighteningOperations(ops),
+    { id: 'swings/hang', type: 'hang', count: SWINGS, height: p.swings.seatHeight },
+  ];
+  return [...ops, ...treatmentOperations(madeParts, ops), ...assembly];
 }

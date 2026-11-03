@@ -94,6 +94,11 @@ export const Method = z.object({
     'finish',
     'dig-holes',
     'level-pads',
+    'raise',
+    'backfill',
+    'anchor',
+    'tighten-bolts',
+    'hang',
   ] satisfies OperationType[]),
   /** A short name, in sentence case: "With a miter saw". */
   name: z.string().min(1),
@@ -261,6 +266,11 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
   finish: { count },
   'dig-holes': { count, depth: { kind: 'length', of: (op) => op.depth } },
   'level-pads': { count },
+  raise: { count, height: { kind: 'length', of: (op) => op.height } },
+  backfill: { count, depth: { kind: 'length', of: (op) => op.depth } },
+  anchor: { count },
+  'tighten-bolts': { count, boltDiameter: { kind: 'length', of: (op) => op.boltDiameter } },
+  hang: { count, height: { kind: 'length', of: (op) => op.height } },
 };
 
 const PLACEHOLDER = /\{([a-zA-Z]+)\}/g;
@@ -382,6 +392,36 @@ const PRESERVATIVE_LABEL = {
 /** How every field treatment starts: the preservative the shopping list names, and its label. */
 const PRESERVATIVE_SETUP =
   'Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry.';
+
+const TEAM_LIFT = {
+  text: 'Lift with two or more people, and agree before each lift who calls it, so everyone lifts and sets down together. OSHA asks for two or more people on a heavy load.',
+  sources: [
+    {
+      source: 'osha-etool-heavy-lifting',
+      locator: 'Heavy Lifting: possible solutions',
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const SET_FIRM = {
+  text: 'A part backfilled loosely can lean or work loose under load. Fill in shallow layers, tamp each one firm, keep the part plumb, and mound the top so water does not pond at it.',
+  sources: [{ source: 'nrcs-co-382', locator: 'IV. Anchor and brace assemblies: posts' }],
+} satisfies z.input<typeof SafetyNote>;
+
+const WOOD_SHRINKS = {
+  text: 'Wood shrinks across the grain as it dries, so a bolt through it loosens. Check the bolts again as the wood dries, and tighten any that have loosened.',
+  sources: [{ source: 'fpl-gtr-282', locator: 'Chapter 4, Dimensional Stability, p. 4-7' }],
+} satisfies z.input<typeof SafetyNote>;
+
+const STEPLADDER = {
+  text: 'Open the stepladder fully with its spreaders locked, on stable, level ground. Never stand on its top step, and carry nothing up that could throw your balance.',
+  sources: [
+    {
+      source: 'osha-1926-1053',
+      locator: 'Paragraphs (a)(8), (b)(6), (b)(13), and (b)(22)',
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
 
 const DUST_FLAG = {
   category: 'dust-and-species',
@@ -2744,6 +2784,288 @@ export const METHODS = [
     safety: [BURIED_LINES],
     flags: [],
     easierThan: ['level-pads-string-line'],
+    moreAccurateThan: [],
+  },
+
+  // Raise and brace
+  {
+    id: 'raise-screwed-braces',
+    operation: 'raise',
+    name: 'Braced with boards screwed on',
+    tools: [
+      {
+        use: 'screwing the braces on',
+        anyOf: [{ tool: 'drill-driver' }, { tool: 'impact-driver' }],
+      },
+      { use: 'checking plumb', anyOf: [{ tool: 'level' }] },
+    ],
+    skills: ['raise-and-brace'],
+    setup: [
+      'Have two long, straight boards ready as temporary braces for each assembly, and drive a stake for each where its brace will reach the ground.',
+      'Line up enough helpers to hold the assembly at every point, and agree who calls each lift.',
+      'Keep everyone else clear of where the assembly would land if it fell: once up, it reaches {height} above the ground.',
+    ],
+    technique: [
+      'Lift the assembly together and walk it up until its feet sit where the plan places them.',
+      'Hold it upright while one person checks it plumb with the level on two faces.',
+      'Screw a brace from the assembly to each stake, checking plumb again before the last screw in each.',
+      'Raise {count} this way.',
+    ],
+    mistakes: [
+      'Letting go before the braces are on lets the assembly fall. Keep hands on it until both braces are screwed tight.',
+      'A brace fixed while the assembly leans holds it leaning. Check plumb before the last screw in each brace.',
+    ],
+    safety: [TEAM_LIFT, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['raise-clamped-braces'],
+  },
+  {
+    id: 'raise-clamped-braces',
+    operation: 'raise',
+    name: 'Braced with boards clamped on',
+    tools: [
+      { use: 'holding the braces to the assembly', anyOf: [{ tool: 'clamps' }] },
+      { use: 'checking plumb', anyOf: [{ tool: 'level' }] },
+    ],
+    skills: ['raise-and-brace'],
+    setup: [
+      'Have two long, straight boards ready as temporary braces for each assembly, and drive a stake for each where its brace will reach the ground.',
+      'Line up enough helpers to hold the assembly at every point, and agree who calls each lift.',
+      'Keep everyone else clear of where the assembly would land if it fell: once up, it reaches {height} above the ground.',
+    ],
+    technique: [
+      'Lift the assembly together and walk it up until its feet sit where the plan places them.',
+      'Hold it upright while one person checks it plumb with the level on two faces.',
+      'Clamp a brace from the assembly to each stake, checking plumb again before you tighten the last clamp.',
+      'Raise {count} this way.',
+    ],
+    mistakes: [
+      'A clamp knocked while you work can let a brace slip. Tighten every clamp fully, and check them before each lift.',
+      'A brace fixed while the assembly leans holds it leaning. Check plumb before you tighten the last clamp.',
+    ],
+    safety: [TEAM_LIFT],
+    flags: [],
+    easierThan: ['raise-screwed-braces'],
+    moreAccurateThan: [],
+  },
+
+  // Backfill
+  {
+    id: 'backfill-tamper',
+    operation: 'backfill',
+    name: 'Tamped with a tamper',
+    tools: [
+      { use: 'filling the hole', anyOf: [{ tool: 'shovel' }] },
+      { use: 'tamping each layer', anyOf: [{ tool: 'tamper' }] },
+      { use: 'checking plumb', anyOf: [{ tool: 'level' }] },
+    ],
+    skills: ['backfill-a-hole'],
+    setup: [
+      'Check each part plumb on two faces, and leave its temporary braces on while you fill.',
+    ],
+    technique: [
+      'Shovel soil back around the part in shallow layers, tamping each layer firm before the next, all the way up the {depth} to the surface.',
+      'Check the part plumb again every few layers.',
+      'Mound the last of the soil around the part so water runs away from it.',
+      'Backfill {count} holes this way.',
+    ],
+    mistakes: [
+      'Filling the hole at once and tamping only the top leaves loose soil below, and the part works loose. Tamp every layer.',
+      'Tamping hard on one side pushes the part out of plumb. Tamp evenly around it and check it as you go.',
+    ],
+    safety: [SET_FIRM],
+    flags: [],
+    easierThan: ['backfill-shovel-handle'],
+    moreAccurateThan: ['backfill-shovel-handle'],
+  },
+  {
+    id: 'backfill-shovel-handle',
+    operation: 'backfill',
+    name: 'Tamped with a shovel handle',
+    tools: [
+      {
+        use: 'filling the hole, and tamping with the end of its handle',
+        anyOf: [{ tool: 'shovel' }],
+      },
+      { use: 'checking plumb', anyOf: [{ tool: 'level' }] },
+    ],
+    skills: ['backfill-a-hole'],
+    setup: [
+      'Check each part plumb on two faces, and leave its temporary braces on while you fill.',
+    ],
+    technique: [
+      'Shovel soil back around the part in shallow layers, all the way up the {depth} to the surface.',
+      'Tamp each layer firm with the end of the shovel handle, all the way around the part, before the next.',
+      'Check the part plumb again every few layers.',
+      'Mound the last of the soil around the part so water runs away from it.',
+      'Backfill {count} holes this way.',
+    ],
+    mistakes: [
+      'A handle tamps a small spot at a time, so layers left thick stay loose underneath. Keep each layer shallow.',
+      'Tamping hard on one side pushes the part out of plumb. Tamp evenly around it and check it as you go.',
+    ],
+    safety: [SET_FIRM],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Anchor
+  {
+    id: 'anchor-screw-in',
+    operation: 'anchor',
+    name: 'Screw-in anchors',
+    tools: [{ use: 'covering the anchors', anyOf: [{ tool: 'shovel' }] }],
+    skills: ['set-an-anchor'],
+    setup: [
+      'Read the anchor maker’s instructions first: how deep each anchor goes, at what angle, and how it fastens to the part.',
+      'Have a steel bar ready to put through each anchor’s eye for leverage.',
+    ],
+    technique: [
+      'Turn each anchor into the ground beside its foot, with the bar through its eye, until it is as deep as the instructions say.',
+      'Fasten each anchor to its foot as the instructions say.',
+      'Cover the anchors so no one trips on them.',
+      'Anchor {count} feet this way.',
+    ],
+    mistakes: [
+      'Turning an anchor past a rock bends it or leaves it shallow. Back it out and move it as far as the instructions allow.',
+    ],
+    safety: [BURIED_LINES],
+    flags: [],
+    easierThan: ['anchor-driven'],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'anchor-driven',
+    operation: 'anchor',
+    name: 'Driven anchors',
+    tools: [
+      { use: 'driving the anchors', anyOf: [{ tool: 'sledgehammer' }] },
+      { use: 'covering the anchors', anyOf: [{ tool: 'shovel' }] },
+    ],
+    skills: ['set-an-anchor'],
+    setup: [
+      'Read the anchor maker’s instructions first: how deep each anchor goes, at what angle, and how it fastens to the part.',
+    ],
+    technique: [
+      'Drive each anchor into the ground beside its foot, at the angle the instructions give, until it is as deep as they say.',
+      'Set each anchor as the instructions say, and fasten it to its foot.',
+      'Cover the anchors so no one trips on them.',
+      'Anchor {count} feet this way.',
+    ],
+    mistakes: [
+      'Striking an anchor held by hand risks the hand. Start it with light taps, then let go before you drive it hard.',
+    ],
+    safety: [BURIED_LINES],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Tighten bolts
+  {
+    id: 'tighten-bolts-socket-wrench',
+    operation: 'tighten-bolts',
+    name: 'With a socket wrench',
+    tools: [{ use: 'turning the nuts', anyOf: [{ tool: 'socket-wrench' }] }],
+    skills: ['tighten-a-bolt'],
+    setup: [
+      'Check that every part is where the plan places it, plumb, and set before you tighten anything.',
+    ],
+    technique: [
+      'Hold each bolt head and turn its nut until the washers bear firmly on the wood, without sinking into it.',
+      'Tighten {count} bolts of {boltDiameter} this way, then cap the end of each.',
+    ],
+    mistakes: [
+      'Tightening until a washer sinks into the wood crushes the fibers under it. Stop once the washer bears firmly.',
+      'Tightening before the parts are set holds them as they stand, leaning or not. Set and plumb them first.',
+    ],
+    safety: [WOOD_SHRINKS],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['tighten-bolts-impact-driver'],
+  },
+  {
+    id: 'tighten-bolts-impact-driver',
+    operation: 'tighten-bolts',
+    name: 'Run down with an impact driver, finished by hand',
+    tools: [
+      { use: 'running the nuts down', anyOf: [{ tool: 'impact-driver' }] },
+      { use: 'the last turn on each nut', anyOf: [{ tool: 'socket-wrench' }] },
+    ],
+    skills: ['tighten-a-bolt'],
+    setup: [
+      'Check that every part is where the plan places it, plumb, and set before you tighten anything.',
+    ],
+    technique: [
+      'Run each nut down with the impact driver until it touches its washer.',
+      'Hold the bolt head and finish each nut with the socket wrench until the washers bear firmly on the wood, without sinking into it.',
+      'Tighten {count} bolts of {boltDiameter} this way, then cap the end of each.',
+    ],
+    mistakes: [
+      'An impact driver sinks a washer into the wood before you can stop it. Stop as the nut touches, and finish by hand.',
+      'Tightening before the parts are set holds them as they stand, leaning or not. Set and plumb them first.',
+    ],
+    safety: [WOOD_SHRINKS, EYE_PROTECTION],
+    flags: [],
+    easierThan: ['tighten-bolts-socket-wrench'],
+    moreAccurateThan: [],
+  },
+
+  // Hang
+  {
+    id: 'hang-quick-links',
+    operation: 'hang',
+    name: 'On quick links',
+    tools: [
+      { use: 'reaching the fittings', anyOf: [{ tool: 'stepladder' }] },
+      { use: 'snugging each link shut', anyOf: [{ tool: 'pliers' }] },
+      TAPE,
+    ],
+    skills: ['hang-a-seat'],
+    setup: [
+      'Open the stepladder beside the first fitting, with its spreaders locked, on firm, level ground.',
+    ],
+    technique: [
+      'Have a helper hand up each chain once you are on the ladder, so both hands are free as you climb.',
+      'Join the top of each chain to its fitting with a quick link, screw the sleeve shut by hand, and snug it with the pliers.',
+      'Measure from the ground to the seat, and shorten or lengthen the chain until the seat hangs {height} above the ground and level from side to side.',
+      'Hang {count} seats this way.',
+    ],
+    mistakes: [
+      'A quick link with its sleeve partly open can spread under load. Screw every sleeve fully shut.',
+    ],
+    safety: [STEPLADDER],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'hang-closed-hooks',
+    operation: 'hang',
+    name: 'On hooks closed with pliers',
+    tools: [
+      { use: 'reaching the fittings', anyOf: [{ tool: 'stepladder' }] },
+      { use: 'closing each hook', anyOf: [{ tool: 'pliers' }] },
+      TAPE,
+    ],
+    skills: ['hang-a-seat'],
+    setup: [
+      'Open the stepladder beside the first fitting, with its spreaders locked, on firm, level ground.',
+    ],
+    technique: [
+      'Have a helper hand up each chain once you are on the ladder, so both hands are free as you climb.',
+      'Hook the top of each chain into its fitting, and squeeze each hook closed with the pliers until its end meets the hook.',
+      'Measure from the ground to the seat, and move the hooks along the chain until the seat hangs {height} above the ground and level from side to side.',
+      'Hang {count} seats this way.',
+    ],
+    mistakes: [
+      'A hook left partly open can catch clothing or slip off its link. Close every hook fully, at the seat as well as the top.',
+    ],
+    safety: [STEPLADDER],
+    flags: [],
+    easierThan: [],
     moreAccurateThan: [],
   },
 ] as const satisfies readonly z.input<typeof Method>[];
