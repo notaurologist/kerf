@@ -45,6 +45,8 @@ Template version 18 (#417) names, in the structural working, the input behind ea
 
 Template version 19 (#459) changes only how the build steps read, a change in generic code: when no method fits the owner's tools, a step lists every method for each operation, closest to the tools owned first, and the plan says when the toolbox is empty. Stored output is the same.
 
+Template version 20 (#457) changes only how the build steps read, a change in generic code: every method that uses a power tool says to wear eye protection, and hearing protection too for saws, routers, jointers and planers, and the leg taper cut with a circular saw marks where the blade stops and says to let the blade stop before lifting the saw. Stored output is the same.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates

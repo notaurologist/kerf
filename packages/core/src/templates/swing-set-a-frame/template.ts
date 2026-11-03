@@ -63,8 +63,11 @@ import { flags, validate, validateSwings } from './validate.ts';
  * leg-to-beam checklist item no longer calls its bolt size entered. No number changes. Version 19
  * changes only how its build steps read: with no method fitting, a step lists every method closest
  * to the owner's tools first, and says when the toolbox is empty (#459). Stored output is the same.
+ * Version 20 changes only how its build steps read: every power-tool method says to wear eye
+ * protection, and hearing protection for saws, routers, jointers and planers, and the leg taper
+ * cut with a circular saw says to let the blade stop before lifting the saw (#457).
  */
-export const TEMPLATE_VERSION = 19;
+export const TEMPLATE_VERSION = 20;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
