@@ -51,6 +51,8 @@ Template version 21 (#457) changes only how the build steps read, a change in ge
 
 Template version 22 (#449) gives each bolt the length to buy (Hardware, below) and names its shopping line by it ("1/2" × 10" through-bolt"), with the grip and the lengths that fit as the line's note. Each hardware line now carries its item's notes, which both shopping lists show, and the hardware notes name the fastener materials IRC 2021 R317.3.1 allows in treated lumber. No part, cut, or check changes.
 
+Template version 23 (#450) moves the note about a shorter board onto its lumber line, and gives each lumber line what else to buy when the store has none of its boards (Not in stock, below). No part, cut, or check changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -298,6 +300,12 @@ Each part lists the board selection guides that apply to it, from the knowledge 
 | Beam | every board that carries load; across a span; joined with bolts | It spans between the frames and is bolted to the legs. |
 | Legs | every board that carries load; along its length; joined with bolts; in or on the ground | They carry the beam down to the ground and are bolted at the top. A leg stands in or on the ground whether it is buried or on a pad, so it always gets the ground-contact guide. |
 | Crossbars, gussets | every board that carries load; joined with bolts | They are bolted across the legs. |
+
+### Not in stock
+
+Each lumber line lists what else to buy when the store has none of its boards (version 23, #450). Generic code gives the other lengths (`DOMAIN.md`, Buyable lengths). The template gives its stock parameters, beam, legs, crossbars, and gussets, and generic code tries every other size of each one that a check reads: the beam's checks read the beam's size and the legs' (the legs set the span between the frame centerlines; `checkFields`), so the crossbars and gussets get no other size. A size is offered when the whole plan generates with it and the lowest margin among the beam checks is no lower than the plan's now, with that margin; while those checks need structural inputs, the line says another size changes the plan and its margin follows once they are entered. Changing a size changes the plan, so it opens the field in Edit.
+
+Worked example (`lists.test.ts`, every input entered): the beam's 12' line also takes a 10' board that measures at least 121-1/8", a 14', or a 4x8 beam (margin 1.7x, bending); the legs' line takes 14' boards, or 6x6, 4x6, or 4x8 legs (each margin 1.1x, bending, the same as with 4x4 legs to the first decimal); the crossbars' 10' line takes two 8's or a 12'; the gussets' 8' line a 10'. A 4x4 or 6x6 beam lowers the margin and is not offered.
 
 ### Drawings
 

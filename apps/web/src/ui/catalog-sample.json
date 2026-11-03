@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 22,
+    "templateVersion": 23,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -1869,28 +1869,131 @@
           {
             "nominal": "4x6",
             "feet": 12,
-            "count": 1
+            "count": 1,
+            "notes": [
+              "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
+            ],
+            "alternatives": [
+              {
+                "kind": "measured",
+                "feet": 10,
+                "count": 1,
+                "atLeast": 121.125
+              },
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 14,
+                    "count": 1
+                  }
+                ]
+              },
+              {
+                "kind": "stock",
+                "name": "Beam",
+                "field": "beamStock",
+                "nominal": "4x8",
+                "margin": 1.7159013027366798,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 4x8"
+                }
+              }
+            ]
           },
           {
             "nominal": "4x4",
             "feet": 12,
-            "count": 4
+            "count": 4,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 14,
+                    "count": 4
+                  }
+                ]
+              },
+              {
+                "kind": "stock",
+                "name": "Legs",
+                "field": "legStock",
+                "nominal": "6x6",
+                "margin": 1.1228314241826187,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 4x6"
+                }
+              },
+              {
+                "kind": "stock",
+                "name": "Legs",
+                "field": "legStock",
+                "nominal": "4x6",
+                "margin": 1.0796947718059655,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 4x6"
+                }
+              },
+              {
+                "kind": "stock",
+                "name": "Legs",
+                "field": "legStock",
+                "nominal": "4x8",
+                "margin": 1.0796947718059655,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 4x6"
+                }
+              }
+            ]
           },
           {
             "nominal": "2x6",
             "feet": 10,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 8,
+                    "count": 2
+                  }
+                ]
+              },
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 12,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           },
           {
             "nominal": "2x8",
             "feet": 8,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 10,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           }
         ],
-        "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end.",
-          "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
-        ],
+        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
         "issues": [],
         "selection": [
           {
@@ -3569,7 +3672,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 22,
+    "templateVersion": 23,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -5534,17 +5637,98 @@
           {
             "nominal": "2x6",
             "feet": 16,
-            "count": 2
+            "count": 2,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 12,
+                    "count": 2
+                  },
+                  {
+                    "feet": 10,
+                    "count": 1
+                  }
+                ]
+              },
+              {
+                "kind": "stock",
+                "name": "Beam plies",
+                "field": "beamStock",
+                "nominal": "2x8",
+                "margin": 1.2601673545329064,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 2 plies of 2x8"
+                }
+              }
+            ]
           },
           {
             "nominal": "4x4",
             "feet": 10,
-            "count": 4
+            "count": 4,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 12,
+                    "count": 4
+                  }
+                ]
+              },
+              {
+                "kind": "stock",
+                "name": "Legs",
+                "field": "legStock",
+                "nominal": "6x6",
+                "margin": 0.8838656386283437,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 2 plies of 2x6"
+                }
+              },
+              {
+                "kind": "stock",
+                "name": "Legs",
+                "field": "legStock",
+                "nominal": "4x6",
+                "margin": 0.8458974448159021,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 2 plies of 2x6"
+                }
+              },
+              {
+                "kind": "stock",
+                "name": "Legs",
+                "field": "legStock",
+                "nominal": "4x8",
+                "margin": 0.8458974448159021,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 2 plies of 2x6"
+                }
+              }
+            ]
           },
           {
             "nominal": "2x8",
             "feet": 8,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 10,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           }
         ],
         "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
@@ -7290,7 +7474,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 22,
+    "templateVersion": 23,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -9149,28 +9333,97 @@
           {
             "nominal": "4x6",
             "feet": 12,
-            "count": 1
+            "count": 1,
+            "notes": [
+              "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
+            ],
+            "alternatives": [
+              {
+                "kind": "measured",
+                "feet": 10,
+                "count": 1,
+                "atLeast": 121.125
+              },
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 14,
+                    "count": 1
+                  }
+                ]
+              },
+              {
+                "kind": "stock-needs-inputs",
+                "name": "Beam",
+                "field": "beamStock"
+              }
+            ]
           },
           {
             "nominal": "4x4",
             "feet": 12,
-            "count": 4
+            "count": 4,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 14,
+                    "count": 4
+                  }
+                ]
+              },
+              {
+                "kind": "stock-needs-inputs",
+                "name": "Legs",
+                "field": "legStock"
+              }
+            ]
           },
           {
             "nominal": "2x6",
             "feet": 10,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 8,
+                    "count": 2
+                  }
+                ]
+              },
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 12,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           },
           {
             "nominal": "2x8",
             "feet": 8,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 10,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           }
         ],
-        "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end.",
-          "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
-        ],
+        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
         "issues": [],
         "selection": [
           {

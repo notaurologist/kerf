@@ -18,7 +18,7 @@ describe('board selection guides', () => {
       g.checks.filter((c) => c.sources.length === 0).map((c) => `${g.id}: ${c.look}`),
     );
     expect(unsourced).toEqual([
-      'structural: Read the grade stamp. Confirm the species and grade match what you entered for the structural checks.',
+      'structural: Read the grade stamp. Confirm the species and grade match what you entered for the structural checks. If the stamp names a species or grade the structural inputs do not list, choose another board, or ask an experienced builder whether this one will do.',
       'span: Sight along the narrow edge to find the crown, the edge that bows outward. Mark it so it goes on top.',
     ]);
   });

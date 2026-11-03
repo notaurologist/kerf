@@ -3,6 +3,8 @@ import type { Part } from '../../model/types.ts';
 import { cutList } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { planLumber } from '../../outputs/shoppingList.ts';
+import type { CheckResult } from '../../structural/types.ts';
+import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 import type { SwingSetParams } from './params.ts';
 import { generate } from './template.ts';
@@ -107,7 +109,7 @@ describe('planLumber, worked example', () => {
   const plan = planLumber(parts(example));
 
   it('lists boards to buy', () => {
-    expect(plan.lines).toEqual([
+    expect(plan.lines.map(({ nominal, feet, count }) => ({ nominal, feet, count }))).toEqual([
       { nominal: '4x6', feet: 12, count: 1 },
       { nominal: '4x4', feet: 12, count: 4 },
       { nominal: '2x6', feet: 10, count: 1 },
@@ -145,10 +147,36 @@ describe('planLumber, worked example', () => {
     ]);
   });
 
-  it('notes when a board one size down works if the store boards run long', () => {
-    expect(plan.notes).toContain(
+  it("notes on the beam's line when a board one size down works if the store boards run long", () => {
+    expect(plan.lines[0]?.notes).toEqual([
       `Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8".`,
-    );
+    ]);
+    expect(plan.lines.slice(1).flatMap((l) => l.notes)).toEqual([]);
+    expect(plan.notes).toEqual([
+      'Allows 1/8" for each saw cut and trims 1/2" off each factory end.',
+    ]);
+  });
+
+  // Hand-checked against the needs above, with lengths of 8, 10, 12, 14 and 16 feet (#450):
+  // - Beam, 121.125 on a 12': a 10' (120) misses by 1.125, no more than 1" trim and a 1/8" kerf,
+  //   so a 10' that measures 121.125; the beam is longer than 10' less trim, so no shorter boards.
+  // - Legs, 139.479 and 132.635 on 12's: more than 10' even uncut, so only longer boards.
+  // - Crossbars, 119.236 on a 10': each alone needs 1 + 59.118 = 60.118, under 96, and both
+  //   together are over 96, so two 8's.
+  // - Gussets, 40.254 on an 8': no shorter length is sold, so only a 10'.
+  it("lists what else holds each line's pieces when the store has none", () => {
+    expect(plan.lines.map((l) => l.alternatives)).toEqual([
+      [
+        { kind: 'measured', feet: 10, count: 1, atLeast: expect.closeTo(121.125, 3) },
+        { kind: 'lengths', boards: [{ feet: 14, count: 1 }] },
+      ],
+      [{ kind: 'lengths', boards: [{ feet: 14, count: 4 }] }],
+      [
+        { kind: 'lengths', boards: [{ feet: 8, count: 2 }] },
+        { kind: 'lengths', boards: [{ feet: 12, count: 1 }] },
+      ],
+      [{ kind: 'lengths', boards: [{ feet: 10, count: 1 }] }],
+    ]);
   });
 });
 
@@ -322,5 +350,62 @@ describe('planLumber, edge of range', () => {
       'Front leg (uphill)',
       'Front leg (uphill)',
     ]);
+  });
+});
+
+describe('other stock sizes when the store has none (#450)', () => {
+  const [entered, noInputs] = EXAMPLES;
+  if (!entered || !noInputs) throw new Error('worked examples missing');
+  const made = (params: SwingSetParams, inputs: typeof entered.structuralInputs) => {
+    const result = swingSetAFrame.generate(params, inputs);
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    return swingSetAFrame.plan(result.output);
+  };
+  const plan = made(entered.params, entered.structuralInputs);
+  const lowestOfBeamChecks = (checks: readonly CheckResult[]) =>
+    Math.min(...checks.slice(0, 3).map((c) => (c.status === 'computed' ? c.margin : 0)));
+
+  // The beam's three checks read the beam's and the legs' sizes (the legs set the span); the
+  // crossbar and gusset sizes are read by no check, so they get no other size.
+  it('offers each beam and leg size that keeps the beam checks at their margin, as regenerating gives it', () => {
+    const now = lowestOfBeamChecks(plan.checks);
+    for (const [line, path] of [
+      [plan.lumber.lines[0], 'beamStock'],
+      [plan.lumber.lines[1], 'legStock'],
+    ] as const) {
+      const stock = (line?.alternatives ?? []).filter((a) => a.kind === 'stock');
+      for (const alternative of stock) {
+        const other = made(
+          { ...entered.params, [path]: alternative.nominal },
+          entered.structuralInputs,
+        );
+        expect(alternative.margin).toBe(lowestOfBeamChecks(other.checks));
+        expect(alternative.margin).toBeGreaterThanOrEqual(now);
+      }
+      expect(stock.map((a) => a.margin)).toEqual(stock.map((a) => a.margin).sort((a, b) => b - a));
+    }
+    // A deeper beam has more margin than the 4x6; a 4x4 has less.
+    const beamSizes = plan.lumber.lines[0]?.alternatives.flatMap((a) =>
+      a.kind === 'stock' ? [a.nominal] : [],
+    );
+    expect(beamSizes).toContain('4x8');
+    expect(beamSizes).not.toContain('4x4');
+    for (const line of plan.lumber.lines.slice(2)) {
+      expect(line.alternatives.some((a) => a.kind === 'stock')).toBe(false);
+    }
+  });
+
+  it('says the margins need the structural inputs while they are missing', () => {
+    const missing = made(noInputs.params, noInputs.structuralInputs);
+    expect(missing.lumber.lines[0]?.alternatives.at(-1)).toEqual({
+      kind: 'stock-needs-inputs',
+      name: 'Beam',
+      field: 'beamStock',
+    });
+    expect(missing.lumber.lines[1]?.alternatives.at(-1)).toEqual({
+      kind: 'stock-needs-inputs',
+      name: 'Legs',
+      field: 'legStock',
+    });
   });
 });
