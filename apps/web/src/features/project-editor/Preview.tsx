@@ -7,9 +7,10 @@ import {
   structural,
   type TemplateDefinition,
 } from '@kerf/core';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { type ApiResult, api, failureOf, send } from '../../lib/api.ts';
 import { type Changes, indexChanges } from '../../lib/changes.tsx';
+import { useLatest } from '../../lib/latest.ts';
 import { planOf } from '../../lib/plan.ts';
 import { sameJson } from '../../lib/sameJson.ts';
 import type { Project } from '../../lib/types.ts';
@@ -116,10 +117,10 @@ export function usePreview(
     : previewRequest(template, project, params, inputs);
   const key = JSON.stringify(request);
   const [state, setState] = useState<PreviewState>({ kind: project ? 'saved' : 'incomplete' });
-  const latest = useRef(0);
+  const latest = useLatest();
   // biome-ignore lint/correctness/useExhaustiveDependencies: `key` is the request, serialized.
   useEffect(() => {
-    const id = ++latest.current;
+    const isLatest = latest.start();
     setState((s) => pendingState(s, request));
     if (request.kind !== 'ask') return;
     const timer = setTimeout(async () => {
@@ -128,7 +129,7 @@ export function usePreview(
           ? api.api.projects[':id'].preview.$post({ param: { id: project.id }, json: request.body })
           : api.api.projects.preview.$post({ json: { templateId: template.id, ...request.body } }),
       );
-      if (id !== latest.current) return;
+      if (!isLatest()) return;
       setState(previewState(template.id, result));
     }, PREVIEW_DELAY_MS);
     return () => clearTimeout(timer);
