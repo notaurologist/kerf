@@ -136,14 +136,14 @@ describe('focus', () => {
   });
 });
 
-describe('screen header', () => {
-  /** The declarations of the first rule whose selector is exactly `selector`. */
-  const rule = (selector: string) => {
-    const css = withoutComments(stylesheets['components.css'] ?? '');
-    const at = css.indexOf(`${selector} {`);
-    return at < 0 ? '' : css.slice(at, css.indexOf('}', at));
-  };
+/** The declarations of the first rule in components.css whose selector is exactly `selector`. */
+const rule = (selector: string) => {
+  const css = withoutComments(stylesheets['components.css'] ?? '');
+  const at = css.indexOf(`${selector} {`);
+  return at < 0 ? '' : css.slice(at, css.indexOf('}', at));
+};
 
+describe('screen header', () => {
   it('wraps actions under the title rather than shrinking the title under them', () => {
     // On a phone, two long New buttons covered "Projects" when the row could not wrap.
     expect(rule('.k-screen-header__top')).toMatch(/flex-wrap:\s*wrap/);
@@ -153,5 +153,15 @@ describe('screen header', () => {
   it('keeps the actions on the first line of a wrapping title, with its tags wrapping under it', () => {
     // A long project name on a phone put Edit alone on a third line, under the status (#353).
     expect(rule('.k-screen-header__top > :first-child')).toMatch(/flex:\s*1 1 12rem/);
+  });
+});
+
+describe('the bars at the top of the screen', () => {
+  // Safari 26 on a phone colors its status bar from a full-width sticky or fixed bar at the top
+  // of the page, and ignores theme-color. Both bars stay at the top so it takes theirs.
+  it('stay at the top while the page scrolls', () => {
+    for (const bar of ['.k-titlebar', '.k-modebar']) {
+      expect(rule(bar)).toMatch(/position:\s*sticky;\s*inset-block-start:\s*0;/);
+    }
   });
 });
