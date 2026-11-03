@@ -61,7 +61,7 @@ export const EXPERT_CHECK_CATEGORIES = [
     sources: [
       {
         source: 'osha-woodworking-etool',
-        locator: 'Routers: hazards and safe work practices',
+        locator: 'Routers: point of operation, flying chips, and kickbacks',
         url: `${ETOOL}/routers`,
       },
     ],

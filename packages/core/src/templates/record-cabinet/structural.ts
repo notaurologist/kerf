@@ -211,7 +211,7 @@ export function structuralReview(
         },
       ],
       assumptions: [
-        'Records fill every bay, and the case bottom passes their weight and everything on the top to the front and back aprons equally.',
+        'Records fill every bay, and the case bottom carries their weight and everything on the top to the front and back aprons equally.',
         'Taking the apron alone ignores the case bottom and sides above it, which stiffen it, so this overstates the sag.',
       ],
       limitRatio,

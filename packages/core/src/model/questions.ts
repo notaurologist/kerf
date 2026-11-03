@@ -45,6 +45,11 @@ export interface StartingQuestions {
    * rejects; parse them with `answers` first.
    */
   suggest(answers: unknown): Suggestion[];
+  /**
+   * Answer sets that between them reach every note the suggestions can give, so a test can read
+   * every suggestion's words (hard rules 2 and 11).
+   */
+  examples: readonly unknown[];
 }
 
 /** Ties a template's answers schema to its suggestion function. */
@@ -52,10 +57,12 @@ export function startingQuestions<Answers>(questions: {
   form: readonly FormSection[];
   answers: z.ZodType<Answers>;
   suggest(answers: Answers): Suggestion[];
+  examples: readonly Answers[];
 }): StartingQuestions {
   return {
     form: questions.form,
     answers: questions.answers,
+    examples: questions.examples,
     suggest: (answers) => questions.suggest(questions.answers.parse(answers)),
   };
 }

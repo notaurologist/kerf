@@ -12,6 +12,7 @@ import v6 from './snapshots/v6.json' with { type: 'json' };
 import v7 from './snapshots/v7.json' with { type: 'json' };
 import v8 from './snapshots/v8.json' with { type: 'json' };
 import v9 from './snapshots/v9.json' with { type: 'json' };
+import v10 from './snapshots/v10.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -201,5 +202,16 @@ describe('record-cabinet template versions', () => {
     // doors' parameters differ.
     const edge = changes([v8[2]], [v9[2]]);
     expect(kinds(edge).filter((path) => !path.includes('.door'))).toEqual([]);
+  });
+
+  it('version 10 rewords a screw note and an assumption, and changes nothing else (#418)', () => {
+    const list = changes(v9, v10);
+    expect(kinds(list)).toEqual([
+      'outputs.design.hardware[].notes[]',
+      'outputs.review.apron.deflection.assumptions[]',
+    ]);
+    expect(list.map((c) => c.after).every((text) => !/\bpass(es)?\b/.test(String(text)))).toBe(
+      true,
+    );
   });
 });
