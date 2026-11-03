@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 // Generic code stays generic (AGENTS.md, hard rule 7; ARCHITECTURE.md, principle 6): only a
 // template's own folder knows what it builds. This reads every source file outside those folders
-// (core, the API and its scripts, and the web app) and fails on a template's ID or its own words
+// (core, the joint model, the API and its scripts, and the web app) and fails on a template's ID or its own words
 // (`TemplateDefinition.ownWords`). Tests and test helpers are exempt: they exercise the worked
 // examples. So is the template registry, which lists the templates. "Beam", "ply", "leg", and
 // "gusset" are generic structural members, and "frame" names DiagramFrame, so no template claims
@@ -57,7 +57,13 @@ function files(dir: string, { skipTemplates }: { skipTemplates: boolean }): stri
 const forbidden = TEMPLATES.flatMap((t) => [t.id, ...t.ownWords]);
 
 const registry = join('packages', 'core', 'src', 'templates', 'index.ts');
-const sources = ['packages/core/src', 'apps/api/src', 'apps/api/scripts', 'apps/web/src']
+const sources = [
+  'packages/core/src',
+  'packages/model/src',
+  'apps/api/src',
+  'apps/api/scripts',
+  'apps/web/src',
+]
   .flatMap((d) => files(join(root, d), { skipTemplates: true }))
   .map((f) => relative(root, f))
   .filter((f) => f !== registry);
