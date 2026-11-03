@@ -8,7 +8,7 @@ import type { Failure } from '../ui/index.ts';
 
 /**
  * State-changing requests must send JSON (decision 0007), including the ones with no body, such
- * as logout and regenerate. The client sets the header only when it sends a JSON body itself.
+ * as logout and delete. The client sets the header only when it sends a JSON body itself.
  */
 export function withJsonBodies(base: typeof fetch): typeof fetch {
   return (input, init) => {

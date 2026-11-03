@@ -79,8 +79,13 @@ describe('the web client against the API', () => {
     const notice = renderText(<VersionNotice project={read.value} onRegenerated={() => {}} />);
     expect(notice).toContain('121" was 120"');
 
-    // Regenerate sends no body; the client still sends JSON, so the API accepts it.
-    const regenerated = await send(v2.api.projects[':id'].regenerate.$post({ param: { id } }));
+    // Regenerate sends the revision the notice was computed at.
+    const regenerated = await send(
+      v2.api.projects[':id'].regenerate.$post({
+        param: { id },
+        json: { revision: read.value.revision },
+      }),
+    );
     if (!regenerated.ok) throw new Error(JSON.stringify(regenerated.error));
     expect(regenerated.value.version).toEqual({ status: 'current', version: base.version + 1 });
 
