@@ -253,9 +253,19 @@ describe('a structural input with a break-even value (#401)', () => {
   it('shows under the dynamic factor where each strength check reaches margin 1.0', () => {
     const id = fieldId('structuralInputs', 'dynamicFactor');
     expect(html).toMatch(new RegExp(`id="${id}"[^>]*aria-describedby="[^"]*${id}-compare`));
-    expect(textOf(html)).toContain(
-      'With the other inputs as entered: Top beam, 4x6, bending: margin 1.0 or more while the dynamic factor is 2.1 or less; Top beam, 4x6, shear: margin 1.0 or more while the dynamic factor is 7.1 or less; Swing hanger, rated load: margin 1.0 or more while the dynamic factor is 8.0 or less.',
+    const start = html.indexOf(`id="${id}-compare"`);
+    const table = html.slice(start, html.indexOf('</table>', start));
+    expect(textOf(table)).toContain(
+      'With the other inputs as entered, each check has margin 1.0 or more while the dynamic factor is:',
     );
+    // One check per row, the factor in its own column.
+    const rows = [...table.matchAll(/<tr[^>]*>(.*?)<\/tr>/g)].map((m) => textOf(m[1] ?? ''));
+    expect(rows).toEqual([
+      'Check Dynamic factor',
+      'Top beam, 4x6, bending 2.1 or less',
+      'Top beam, 4x6, shear 7.1 or less',
+      'Swing hanger, rated load 8.0 or less',
+    ]);
   });
 
   it('shows it under no other field', () => {

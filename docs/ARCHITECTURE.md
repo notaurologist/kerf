@@ -237,7 +237,7 @@ Snapshots are stored, not regenerated on every read. A project's plan therefore 
 
 #### Backups (manual, for now)
 
-The likeliest mistake, deleting the wrong project, is covered by the trash: a deleted project can be restored for 30 days (#21). The workshop screen also offers "Download a backup", the JSON from `GET /api/export`, a copy the owner keeps anywhere. The file starts with `kind: "kerf-export"` and `formatVersion` (now 2), raised whenever its shape changes. Neither covers a bad migration or losing the Neon project; for those, take a dump.
+The likeliest mistake, deleting the wrong project, is covered by the trash: a deleted project can be restored for 30 days (#21). The workshop screen also offers "Download a backup", the JSON from `GET /api/export`, a copy the owner keeps anywhere. Kerf cannot load it back in, and the screen says so and points to a dump for a full restore. The file starts with `kind: "kerf-export"` and `formatVersion` (now 2), raised whenever its shape changes. Neither covers a bad migration or losing the Neon project; for those, take a dump.
 
 The file holds `projects`, `deletedProjects` (the trash, same shape plus `deletedAt`; purged projects are gone), and `tools`. The owner chose this in October 2026: a backup must not silently drop data. A project in the trash can still be restored, so it belongs in the copy. The tools are the stored rows (`toolTypeId`, `name`, `position`, `capabilities`) read without the filter that `getInventory` applies, so a row whose type the library no longer has is kept. Such a row is deleted from the database on the next `PUT /tools`, which replaces the whole inventory.
 

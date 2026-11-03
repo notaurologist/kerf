@@ -153,7 +153,17 @@ export function formatBreakEven(b: BreakEven): string {
   if (b.value === 0) {
     return `below margin 1.0 at any ${name}: the loads it does not multiply reach margin 1.0 on their own`;
   }
+  return `margin 1.0 or more while the ${name} is ${formatBreakEvenLimit(b)}`;
+}
+
+/**
+ * The factor alone, for a table of checks under a heading that names it: "2.1 or less", or
+ * "no value" with the reason when the margin is below 1.0 at any factor.
+ */
+export function formatBreakEvenLimit(b: BreakEven): string {
+  if (b.value === 0)
+    return 'no value: the loads it does not multiply reach margin 1.0 on their own';
   // The small allowance keeps a value such as 2.0 from showing as 1.9 after floating-point error.
   const shown = Math.floor(b.value * 10 + 1e-9) / 10;
-  return `margin 1.0 or more while the ${name} is ${shown.toFixed(1)} or less`;
+  return `${shown.toFixed(1)} or less`;
 }

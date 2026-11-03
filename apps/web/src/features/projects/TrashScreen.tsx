@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { href } from '../../lib/route.ts';
@@ -16,6 +16,7 @@ import {
   StatusLine,
   Text,
 } from '../../ui/index.ts';
+import { Restored } from './Restored.tsx';
 
 // Deleted projects wait here for 30 days before they are deleted for good (#21). Each can be
 // restored as it was, or deleted now.
@@ -24,7 +25,7 @@ const day = (iso: string) => new Date(iso).toLocaleDateString();
 
 export function TrashScreen() {
   const { loaded, update, reload } = useLoad(() => send(api.api.trash.$get()), 'trash');
-  const [said, setSaid] = useState<string | null>(null);
+  const [said, setSaid] = useState<ReactNode>(null);
   const drop = (id: string) =>
     update((value: { projects: TrashedProject[] }) => ({
       projects: value.projects.filter((p) => p.id !== id),
@@ -44,9 +45,11 @@ export function TrashScreen() {
           onGone={(project, how) => {
             drop(project.id);
             setSaid(
-              how === 'restored'
-                ? `Restored “${project.name}”.`
-                : `Deleted “${project.name}” for good.`,
+              how === 'restored' ? (
+                <Restored project={project} />
+              ) : (
+                `Deleted “${project.name}” for good.`
+              ),
             );
           }}
         />
@@ -57,7 +60,7 @@ export function TrashScreen() {
 
 export function TrashList(props: {
   projects: readonly TrashedProject[];
-  said?: string | null;
+  said?: ReactNode;
   onGone: (project: TrashedProject, how: 'restored' | 'deleted') => void;
 }) {
   return (
@@ -116,7 +119,7 @@ function TrashedRow(props: {
       </Text>
       {confirming ? (
         <InlineConfirm
-          confirm="Delete for good"
+          confirm="Delete project for good"
           busyLabel="Deleting…"
           variant="destructive"
           keep="Keep it here"
@@ -145,7 +148,7 @@ function TrashedRow(props: {
               Restore
             </Button>
             <Button variant="destructive" onClick={() => setConfirming(true)}>
-              Delete for good
+              Delete project for good
             </Button>
           </Cluster>
           {error && <ErrorText alert>{error}</ErrorText>}

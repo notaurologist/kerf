@@ -46,7 +46,7 @@ describe('ProjectList', () => {
       <ProjectList
         projects={[]}
         templates={templates}
-        flash="Moved “Shed” to Deleted projects in Workshop."
+        flash={{ text: 'Moved “Shed” to Deleted projects in Workshop.' }}
       />,
     );
     expect(textOf(flashed)).toContain('Moved “Shed” to Deleted projects in Workshop.');

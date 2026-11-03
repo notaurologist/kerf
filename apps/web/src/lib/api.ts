@@ -185,7 +185,7 @@ export type SaveState =
 export function describeError(error: ApiError): string {
   switch (error.kind) {
     case 'login-required':
-      return 'Your session ended. Log in again.';
+      return 'Kerf could not do this while you were logged out.';
     case 'wrong-password':
       return 'That password is not right.';
     case 'rate-limited':
