@@ -88,12 +88,86 @@ describe('summarizeProgress', () => {
       pieces: { done: 1, total: 3 },
       steps: { done: 2, total: 3 },
       nextStep: { id: 'b', number: 2, title: 'Drill' },
+      // The ticks carry no times, so nothing says where the owner was.
+      resumeStep: null,
     });
   });
 
   it('has no next step when every step is done', () => {
     const ticked = steps.map((s) => ({ kind: 'step' as const, key: s.id }));
     expect(summarizeProgress(plan, steps, ticked).nextStep).toBeNull();
+  });
+
+  describe('resumeStep (#460)', () => {
+    const pieces = (...ids: string[]) =>
+      ids.map((key) => {
+        const [partId = '', instance = '0'] = key.split('/');
+        return { partId, instance: Number(instance) };
+      });
+    const cutting = [
+      { id: 'board-1', title: 'Cut board 1', board: { id: '2x6/10/1', pieces: pieces('rail/0') } },
+      {
+        id: 'board-2',
+        title: 'Cut board 2',
+        board: { id: '4x4/12/1', pieces: pieces('post/0', 'post/1') },
+      },
+      { id: 'bolt', title: 'Bolt' },
+      { id: 'paint', title: 'Paint' },
+    ];
+    const at = (minute: number) => `2026-11-02T10:${String(minute).padStart(2, '0')}:00.000Z`;
+    const resume = (ticked: Parameters<typeof summarizeProgress>[2]) =>
+      summarizeProgress(plan, cutting, ticked).resumeStep;
+
+    it('is the step of the most recent tick, even when an earlier step is not done', () => {
+      const ticked = [
+        { kind: 'shopping-line' as const, key: 'hardware/Bolts', doneAt: at(9) },
+        { kind: 'part' as const, key: 'post/1', doneAt: at(5) },
+      ];
+      expect(resume(ticked)).toEqual({ id: 'board-2', number: 2, title: 'Cut board 2' });
+      expect(summarizeProgress(plan, cutting, ticked).nextStep?.id).toBe('board-1');
+    });
+
+    it('takes the latest tick by time, not by the order the ticks come in', () => {
+      expect(
+        resume([
+          { kind: 'part', key: 'rail/0', doneAt: at(7) },
+          { kind: 'part', key: 'post/0', doneAt: at(3) },
+        ])?.id,
+      ).toBe('board-1');
+    });
+
+    it('finds a board tick by its board', () => {
+      expect(resume([{ kind: 'board', key: '4x4/12/1', doneAt: at(1) }])?.id).toBe('board-2');
+    });
+
+    it('goes on to the step after one marked done, as Done, next does', () => {
+      expect(resume([{ kind: 'step', key: 'board-2', doneAt: at(1) }])?.id).toBe('bolt');
+      // The last step done goes back to the first step not done.
+      expect(resume([{ kind: 'step', key: 'paint', doneAt: at(1) }])?.id).toBe('board-1');
+    });
+
+    it('breaks a tie between ticks saved together with the later step', () => {
+      expect(
+        resume([
+          { kind: 'part', key: 'post/0', doneAt: at(4) },
+          { kind: 'part', key: 'rail/0', doneAt: at(4) },
+        ])?.id,
+      ).toBe('board-2');
+      // On one step, the step marked done is further along than a piece cut on it.
+      expect(
+        resume([
+          { kind: 'step', key: 'board-2', doneAt: at(4) },
+          { kind: 'part', key: 'post/1', doneAt: at(4) },
+        ])?.id,
+      ).toBe('bolt');
+    });
+
+    it('is null with no Building tick that has a time', () => {
+      expect(resume([{ kind: 'part', key: 'post/0' }])).toBeNull();
+      expect(resume([{ kind: 'flag', key: 'load-bearing/Bolt size?', doneAt: at(1) }])).toBeNull();
+      // A tick on a step the plan no longer has.
+      expect(resume([{ kind: 'step', key: 'gone', doneAt: at(1) }])).toBeNull();
+    });
   });
 });
 

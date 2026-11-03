@@ -77,6 +77,7 @@ describe('ProjectList', () => {
         pieces: { done: 0, total: 2 },
         steps: { done: 0, total: 2 },
         nextStep: { id: 's1', number: 1, title: 'Cut' },
+        resumeStep: null,
       },
     });
     expect(render([resuming])).toContain('data-variant="secondary" href="#/projects/new"');
