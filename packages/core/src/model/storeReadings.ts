@@ -19,10 +19,10 @@ export interface StoreReading {
   from: FormSource;
   path: string;
   /**
-   * The shopping lines it is read from: the lumber lines whose boards hold a part's pieces, or
-   * the hardware line with this description.
+   * The shopping lines it is read from: the lumber lines whose boards hold these parts' pieces,
+   * or the hardware line with this description.
    */
-  beside: { part: string } | { hardware: string };
+  beside: { parts: readonly string[] } | { hardware: string };
   /** What to do, as the line says it while the value is still needed. */
   prompt: string;
   /** How to find it: where to look on the board or package, and what it looks like. */
@@ -77,11 +77,11 @@ export function placeStoreReadings(
       .find((v) => v.path === reading.path);
     if (!value) continue;
     const placed = { reading, label: value.label, entered: value.text };
-    if ('part' in reading.beside) {
-      const { part } = reading.beside;
+    if ('parts' in reading.beside) {
+      const { parts } = reading.beside;
       const keys = new Set(
         plan.lumber.boards
-          .filter((board) => board.pieces.some((piece) => piece.partId === part))
+          .filter((board) => board.pieces.some((piece) => parts.includes(piece.partId)))
           .map(lumberLineKey),
       );
       for (const line of plan.lumber.lines) {

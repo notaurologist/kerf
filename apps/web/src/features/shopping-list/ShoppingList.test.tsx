@@ -159,7 +159,7 @@ describe('values read at the store in the plan (#390)', () => {
   const stamp = {
     from: 'structuralInputs' as const,
     path: 'grade',
-    beside: { part: 'top' },
+    beside: { parts: ['top'] },
     prompt: 'Read the grade stamp on the top boards.',
     how: 'Inked on a face of each board.',
     illustration: 'grade-stamp' as const,

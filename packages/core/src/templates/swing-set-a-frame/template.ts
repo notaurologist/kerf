@@ -111,11 +111,16 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * factor, so the stock can be chosen against them (#466). The plan's own numbers do not change.
  * Version 33 computes the uplift at each foot on pads and checks one ground anchor against its
  * rated pull-out, a new hardware input (#467). No part, cut, or bolt moves.
- * Version 34 takes the beam's shear beside each swing hanger as well: on the net section a bolt
+ * Version 34 checks the longer leg as a column in compression (NDS 2024 3.6.3 and 3.7.1), with
+ * the legs' species, grade, and incising as structural inputs (#468). The ground anchor check's
+ * note on the legs' weight now names what is missing for it. No other output changes.
+ * Version 35 measures the spacing of the crossbar and gusset bolts along the leg as spacing between
+ * rows (Table 12.5.1D), since across the leg's grain each bolt is its own row (#524).
+ * Version 36 takes the beam's shear beside each swing hanger as well: on the net section a bolt
  * down through the beam leaves (NDS 2024 3.1.2.1), or on the depth below bolts across it that the
  * seat hangs from (3.4.4.1), and a plan with another mounting gives no shear (#526).
  */
-export const TEMPLATE_VERSION = 34;
+export const TEMPLATE_VERSION = 36;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

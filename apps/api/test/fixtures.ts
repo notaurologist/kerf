@@ -34,6 +34,8 @@ export const swingSetInputs = {
   dynamicFactor: 2,
   deflectionLimit: 240,
   hangerRating: 1200,
+  legSpeciesGrade: 'southern-pine-no2',
+  legIncised: false,
 };
 
 const swingSet = swingSetAFrame.definition as TemplateDefinition;

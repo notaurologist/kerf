@@ -8,7 +8,9 @@ import type { SwingSetParams } from './params.ts';
 import { suggest } from './questions.ts';
 import {
   beamSupports,
+  legLengths,
   pendulumFactor,
+  type SwingSetStructuralInputs,
   type SwingSetStructuralReview,
   structuralReview,
 } from './structural.ts';
@@ -691,5 +693,100 @@ describe('example 1 with suggested inputs (#417)', () => {
       /^Suggested by Kerf, not confirmed yet\. Source: International Building Code \(2021\), Table 1604\.3/,
     );
     expect(limit(plan(as(true)))).toMatch(/^Suggested by Kerf, confirmed by you\. Source: /);
+  });
+});
+
+// Spec, Structural model, Legs. Worked example: the front (downhill) leg's centerline meets the
+// ground at z = −3.3133 and the back leg's at 3.1182, so the front leg is longer above grade and
+// governs. Along the beam a buried leg is fixed at grade and free at the top (NDS Table G1, case e,
+// Ke = 2.10): (96 + 3.3133) / cos 20° = 105.687, and ℓe/d = 2.10 · 105.687 / 3.5 = 63.41, over 50.
+//
+// A lower frame on level ground (H = 72, crossbar top at 30, both legs meeting the ground at z = 0)
+// is computed. In the frame's plane the crossbar middle is at 30 − 2.75 = 27.25 and the gusset middle
+// at 72 − 3.625 = 68.375: ℓ = max(27.25, 41.125) / 0.939693 = 43.764, Ke = 1.0, ℓe/d = 12.50. Along
+// the beam ℓ = 72 / 0.939693 = 76.621, ℓe/d = 2.10 · 76.621 / 3.5 = 45.97, which governs.
+// Fc* = 1450 · 0.8 = 1160, Emin' = 510,000 · 0.9 = 459,000; F_cE = 0.822 · 459,000 / 45.972² =
+// 178.52; C_P = 0.14870; Fc' = 172.49 psi. The swing loads put 300 lb on each frame (example 1's
+// 150 lb per hanger at factor 1), and the beam's weight 0.433798 · 120 / 2 = 26.028 lb. With the
+// dynamic factor 2: P = (2 · 300 + 26.028) / (2 · 0.939693) = 333.10 lb on the net area
+// (3.5 − 0.5625) · 3.5 = 10.28125 in², f_c = 32.399 psi, margin 172.49 / 32.399 = 5.32.
+// Break-even: (172.49 · 10.28125 · 2 · 0.939693 − 26.028) / 300 = 11.02.
+describe('legs as columns', () => {
+  const legInputs = { ...inputs, legSpeciesGrade: 'southern-pine-no2', legIncised: false };
+  const low: SwingSetParams = { ...params, beamHeight: 72, groundSlope: 0, crossbarHeight: 30 };
+  const legs = (p: SwingSetParams, i: unknown): CheckResult => {
+    const r = review(p, i).legs;
+    if (!r) throw new Error('no leg check');
+    return r;
+  };
+
+  it("measures the worked example's back leg between the brace points", () => {
+    const l = legLengths(output(params), 'back');
+    expect(l.toCrossbar).toBeCloseTo((37.25 - 3.11821) / Math.cos((20 * Math.PI) / 180), 4);
+    expect(l.toCrossbar).toBeCloseTo(36.3223, 3);
+    expect(l.crossbarToGusset).toBeCloseTo(58.6628, 3);
+    expect(l.toBeam).toBeCloseTo(98.8427, 3);
+  });
+
+  it('is not computed for the worked example: ℓe/d 63.4 along the beam, over 50', () => {
+    const r = legs(params, legInputs);
+    expect(r.subject).toBe('Front legs, 4x4');
+    expect(r.status).toBe('not-computed');
+    if (r.status !== 'not-computed') return;
+    expect(r.reason).toMatch(
+      /^ℓe\/d is 63\.4 along the beam, over 50, the NDS limit for a solid column\./,
+    );
+    expect(r.reason).toContain('case e, Ke = 2.10');
+  });
+
+  it('is not computed on pads, which no Table G1 case covers along the beam', () => {
+    const r = legs({ ...params, burialDepth: 0 }, legInputs);
+    expect(r.status).toBe('not-computed');
+    if (r.status !== 'not-computed') return;
+    expect(r.reason).toMatch(
+      /^On pads, no end condition Kerf can count holds a leg along the beam/,
+    );
+  });
+
+  it('matches the hand-checked lower frame on level ground', () => {
+    const r = computed(legs(low, legInputs));
+    expect(r.subject).toBe('Legs, 4x4');
+    const input = (symbol: string) => r.inputs.find((q) => q.symbol === symbol)?.value;
+    expect(input('ℓ1')).toBeCloseTo(43.7643, 3);
+    expect(input('Ke1')).toBe(1);
+    expect(input('ℓ2')).toBeCloseTo(76.6208, 3);
+    expect(input('Ke2')).toBe(2.1);
+    expect(input('R_s')).toBeCloseTo(300, 9);
+    expect(input('R_w')).toBeCloseTo(26.0279, 3);
+    expect(step(r, 'ℓe1/d1')).toBeCloseTo(12.5041, 3);
+    expect(step(r, 'ℓe/d')).toBeCloseTo(45.9725, 3);
+    expect(step(r, 'Fc*')).toBeCloseTo(1160, 9);
+    expect(step(r, "Emin'")).toBeCloseTo(459_000, 6);
+    expect(step(r, 'F_cE')).toBeCloseTo(178.521, 2);
+    expect(step(r, 'C_P')).toBeCloseTo(0.1487, 4);
+    expect(step(r, 'P')).toBeCloseTo(333.102, 2);
+    expect(step(r, 'A_n')).toBeCloseTo(10.28125, 9);
+    expect(r.computed.value).toBeCloseTo(32.399, 2);
+    expect(r.allowable.value).toBeCloseTo(172.49, 1);
+    expect(r.margin).toBeCloseTo(5.324, 2);
+    expect(r.breakEven?.value).toBeCloseTo(11.023, 2);
+  });
+
+  it("needs the legs' species, grade, and incising", () => {
+    const r = legs(low, inputs);
+    expect(r).toMatchObject({
+      status: 'input-needed',
+      missing: [
+        { key: 'legSpeciesGrade', label: 'Leg species and grade' },
+        { key: 'legIncised', label: 'Whether the leg lumber is incised' },
+      ],
+    });
+  });
+
+  it('lists the leg check after the beam and hanger checks in the plan', () => {
+    const generated = swingSetAFrame.generate(low, legInputs as SwingSetStructuralInputs);
+    if (!generated.ok) throw new Error('did not generate');
+    const kinds = swingSetAFrame.plan(generated.output).checks.map((c) => c.kind);
+    expect(kinds).toEqual(['beam-bending', 'beam-shear', 'beam-deflection', 'hardware', 'column']);
   });
 });

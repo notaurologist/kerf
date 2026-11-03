@@ -37,6 +37,8 @@ const allInputs: SwingSetStructuralInputs = {
   dynamicFactor: 2,
   deflectionLimit: 240,
   hangerRating: 1200,
+  legSpeciesGrade: 'southern-pine-no2',
+  legIncised: false,
 };
 
 export const EXAMPLES: readonly {

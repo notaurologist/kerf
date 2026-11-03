@@ -60,11 +60,19 @@ describe('the plan’s header (#356)', () => {
     // The worked example with heavier riders: the beam's computed bending stress is larger than
     // its allowable one. At the inner hangers' holes the hangers give 17,250 · (3/2) · (250/150) =
     // 43,125 and the beam's weight 493.78, so f_b = 43,618.78 / 14.8099 = 2945.2 against 991.59:
-    // margin 0.34.
+    // margin 0.34. The frame is lowered to 72" on level ground so the legs' column check has a
+    // margin too (the spec's example 5, margin 5.3 at these riders' lighter loads); the worked
+    // example's legs are over the NDS slenderness limit, which leaves the plan no lowest margin.
     const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
     const example = template.examples[0];
     if (!example) throw new Error('no worked example');
-    const made = createSnapshot(template, example.params, {
+    const params = {
+      ...(example.params as object),
+      beamHeight: 72,
+      groundSlope: 0,
+      crossbarHeight: 30,
+    };
+    const made = createSnapshot(template, params, {
       ...(example.structuralInputs as object),
       riderWeights: [250, 250],
       dynamicFactor: 3,

@@ -150,8 +150,15 @@ describe('the worked example (spec, Holes and joints)', () => {
       ['Crossbar', 'Spacing between rows', 2.75],
       ['Crossbar', 'Between the outermost bolts', 2.75],
       ['Leg', 'Edge distance', 1.75],
-      // 2.75 / cos α along the leg.
-      ['Leg', 'Spacing between bolts in a row', 2.9265],
+      // 2.75 / cos α along the leg: across the leg's grain each bolt is its own row.
+      ['Leg', 'Spacing between rows', 2.9265],
+    ]);
+    // Table 12.5.1D, perpendicular: ℓ is the lesser of the leg's 3.5 and the crossbar's 1.5, so
+    // ℓ/D = 3 and the spacing is (5·1.5 + 10·0.5) / 8 = 1.5625.
+    const alongLeg = crossbar?.distances[5];
+    expect(alongLeg?.label).toBe('Spacing between rows, along the leg');
+    expect(alongLeg?.requirements.map((r) => [r.condition, r.multiple, r.value])).toEqual([
+      ['load perpendicular to grain, 2 < ℓ/D < 6', '(5ℓ + 10D) / 8', 1.5625],
     ]);
     // The gusset's rows for racking, as the crossbar's; then under the beam's weight, across its
     // grain: end distance 3.5 (7D), the top (loaded) edge 7.25 − 5.4375 = 1.8125 and the bottom
@@ -162,7 +169,7 @@ describe('the worked example (spec, Holes and joints)', () => {
       ['Gusset', 'Spacing between rows', 3.625],
       ['Gusset', 'Between the outermost bolts', 3.625],
       ['Leg', 'Edge distance', 1.75],
-      ['Leg', 'Spacing between bolts in a row', 3.8576],
+      ['Leg', 'Spacing between rows', 3.8576],
       ['Gusset', "End distance under the beam's weight", 3.5],
       ['Gusset', "Edge distance under the beam's weight", 1.8125],
       ['Gusset', "Edge distance under the beam's weight", 1.8125],
