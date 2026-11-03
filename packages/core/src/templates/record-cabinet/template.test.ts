@@ -356,6 +356,35 @@ describe('refusals (spec, Validation)', () => {
     expect(refused({ apronSetback: 1.25 })).toEqual(['apron-off-leg']);
   });
 
+  it('refuses aprons that put the mortises outside the leg', () => {
+    const board = (thickness: number) => ({ ...WORKED_EXAMPLE.board, thickness });
+    // #561, draw 31: the mortise starts 1.0625 − 0.8125 − (1.1873 + 0.1875)/2 = −0.437 from the
+    // leg's inside face and ends at −0.250, entirely outside the leg.
+    const outside = {
+      legStock: { size: 1.0625, lengths: [3] },
+      footSize: 0.6875,
+      apronSetback: 0.8125,
+      board: board(1.1873),
+      tenonThickness: 0.1875,
+    };
+    expect(refused(outside)).toEqual(['mortise-off-leg']);
+    const result = recordCabinet.generate({ ...WORKED_EXAMPLE, ...outside }, {});
+    expect(result.ok ? [] : result.issues[0]?.message).toBe(
+      `Aprons 1-3/16" thick, set back 13/16" on 1-1/16" legs, would put each mortise past the leg's inside face. To fix it, use legs larger than 1-1/2", or set the aprons back less than 3/8", or use thinner boards.`,
+    );
+    // #561, draw 25: 1.1875 − 0.5625 − (1.25 + 0.25)/2 = −0.125 to 0.125, half outside.
+    const half = {
+      legStock: { size: 1.1875, lengths: [3] },
+      footSize: 0.75,
+      apronSetback: 0.5625,
+      board: board(1.25),
+    };
+    expect(refused(half)).toEqual(['mortise-off-leg']);
+    // A mortise whose wall is flush with the inside face is open there: 1.1875 − 0.4375 − 0.75 = 0.
+    expect(refused({ ...half, apronSetback: 0.4375 })).toEqual(['mortise-off-leg']);
+    expect(refused({ ...half, apronSetback: 0.375 })).toEqual([]);
+  });
+
   it('refuses a largest item wider than the 54" top or deeper than its 17-3/4"', () => {
     const item = WORKED_EXAMPLE.topItem;
     expect(refused({ topItem: { ...item, width: 54.0625 } })).toEqual(['top-item-too-wide']);

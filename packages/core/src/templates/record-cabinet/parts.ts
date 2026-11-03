@@ -10,7 +10,7 @@ import type {
   Tenon,
   Vec3,
 } from '../../model/types.ts';
-import { formatLength } from '../../units/length.ts';
+import { formatLength, formatLimit } from '../../units/length.ts';
 import { type CabinetGeometry, RECESS } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
 import type { Allowances } from './structural.ts';
@@ -180,6 +180,22 @@ export function cabinetParts(
   // Each side and partition runs from the bottom of the case bottom's dado to the top of the top's.
   const z0 = zb + t - j;
 
+  // The mortise's inside wall is s − r_a − (t_a + t_t)/2 from the leg's other inside face.
+  const centered = (ta + p.tenonThickness) / 2;
+  if (p.apronSetback + centered >= s) {
+    const setback = s - centered;
+    const fixes = [
+      `use legs larger than ${formatLimit(p.apronSetback + centered, 'min')}`,
+      ...(setback > 0 ? [`set the aprons back less than ${formatLimit(setback, 'max')}`] : []),
+      'use thinner boards',
+    ];
+    issues.push({
+      code: 'mortise-off-leg',
+      message: `Aprons ${formatLength(ta)} thick, set back ${formatLength(p.apronSetback)} on ${formatLength(s)} legs, would put each mortise past the leg's inside face. To fix it, ${fixes.join(', or ')}.`,
+      params: ['legStock.size', 'apronSetback', 'board', 'tenonThickness'],
+    });
+    return { ok: false, issues };
+  }
   if (door && partitionDepth - r < p.jacket) {
     issues.push({
       code: 'records-behind-tracks',
