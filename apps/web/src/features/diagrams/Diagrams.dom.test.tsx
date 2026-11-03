@@ -343,6 +343,81 @@ describe('the corner the views are seen from (#364)', () => {
     expect(asked).toEqual(['back-right']);
   });
 
+  /** A load that waits until the test answers it. */
+  const held = () => {
+    const asked: geometry.Corner[] = [];
+    const answers = new Map<geometry.Corner, (result: unknown) => void>();
+    const load = (c: geometry.Corner) => {
+      asked.push(c);
+      return new Promise((resolve) => answers.set(c, resolve));
+    };
+    const answer = (c: geometry.Corner, result: unknown) =>
+      act(async () => {
+        answers.get(c)?.(result);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+    return { asked, load, answer };
+  };
+  /** The status lines about the corner, leaving out the selected part's. */
+  const cornerStatus = (container: HTMLElement) =>
+    [...container.querySelectorAll('[role="status"]')]
+      .map((s) => s.textContent ?? '')
+      .filter((t) => !t.includes(' selected.'));
+
+  it('shows the corner chosen last when an earlier one arrives after it, and keeps the earlier one', async () => {
+    const { asked, load, answer } = held();
+    const { container } = mount(withCorners(load));
+    await choose(container, 'back-right');
+    expect(cornerStatus(container)).toEqual(['Drawing the view from the back right…']);
+    await choose(container, 'front-left');
+    await answer('back-right', { ok: true, value: backRight });
+    expect(menu(container).value).toBe('front-left');
+    expect(onScreen(container).label).not.toMatch(/Seen from/);
+    expect(cornerStatus(container)).toEqual([]);
+    await choose(container, 'back-right');
+    expect(onScreen(container).label).toMatch(/Seen from the back right/);
+    expect(asked).toEqual(['back-right']);
+  });
+
+  it('asks once for a corner chosen again while it is being drawn', async () => {
+    const { asked, load, answer } = held();
+    const { container } = mount(withCorners(load));
+    await choose(container, 'back-right');
+    await choose(container, 'front-left');
+    await choose(container, 'back-right');
+    expect(asked).toEqual(['back-right']);
+    await answer('back-right', { ok: true, value: backRight });
+    expect(menu(container).value).toBe('back-right');
+    expect(onScreen(container).label).toMatch(/Seen from the back right/);
+    expect(cornerStatus(container)).toEqual([]);
+  });
+
+  it('says nothing of a corner that failed after another was chosen', async () => {
+    const { load, answer } = held();
+    const { container } = mount(withCorners(load));
+    await choose(container, 'back-left');
+    await choose(container, 'back-right');
+    await answer('back-right', { ok: true, value: backRight });
+    await answer('back-left', {
+      ok: false,
+      error: { kind: 'failed', status: 0, message: 'Offline.' },
+    });
+    expect(menu(container).value).toBe('back-right');
+    expect(onScreen(container).label).toMatch(/Seen from the back right/);
+    expect(cornerStatus(container)).toEqual([]);
+  });
+
+  it('shows nothing from a corner that arrives after the plan changed', async () => {
+    const { load, answer } = held();
+    const { container, rerender } = mount(withCorners(load, 'abc/1'));
+    await choose(container, 'back-right');
+    rerender(withCorners(load, 'abc/2'));
+    await answer('back-right', { ok: true, value: backRight });
+    expect(menu(container).value).toBe('front-left');
+    expect(onScreen(container).label).not.toMatch(/Seen from/);
+    expect(cornerStatus(container)).toEqual([]);
+  });
+
   it('keeps the views it shows, and says so, when a corner cannot be fetched', async () => {
     const { container } = mount(
       withCorners(async () => ({

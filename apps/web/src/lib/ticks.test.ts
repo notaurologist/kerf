@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { ApiResult } from './api.ts';
-import { describeWaiting, type SavedTick, type TickChange, TickQueue } from './ticks.ts';
+import {
+  describeWaiting,
+  flushWhenBack,
+  type SavedTick,
+  type TickChange,
+  TickQueue,
+} from './ticks.ts';
 import type { ProjectStatus } from './types.ts';
 
 // The write queue (#57): ticks go to the server at once, wait in memory through a dropped
@@ -169,5 +175,55 @@ describe('describeWaiting', () => {
     expect(state.dropped).toBe(
       '1 change was not saved: the plan changed on another device. Reload to see it.',
     );
+  });
+});
+
+describe('flushWhenBack', () => {
+  /** A queue holding one change that failed to send, a page, and a server that now answers. */
+  async function waitingQueue() {
+    const server = fakeServer(OFFLINE);
+    const queue = new TickQueue(server.sender, manualTimers().timers);
+    queue.set(beam, true);
+    await queue.flush();
+    await Promise.resolve();
+    expect(server.sent).toHaveLength(1);
+    const win = new EventTarget();
+    const doc = Object.assign(new EventTarget(), { visibilityState: 'hidden' });
+    const stop = flushWhenBack(queue, win, doc);
+    return { server, queue, win, doc, stop };
+  }
+
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it('sends waiting changes when the page becomes visible', async () => {
+    const { server, queue, doc } = await waitingQueue();
+    doc.visibilityState = 'hidden';
+    doc.dispatchEvent(new Event('visibilitychange'));
+    await settle();
+    expect(server.sent).toHaveLength(1);
+    doc.visibilityState = 'visible';
+    doc.dispatchEvent(new Event('visibilitychange'));
+    await settle();
+    expect(server.sent).toHaveLength(2);
+    expect(queue.hasWaiting).toBe(false);
+  });
+
+  it('sends waiting changes when the page is shown again', async () => {
+    const { server, queue, win } = await waitingQueue();
+    win.dispatchEvent(new Event('pageshow'));
+    await settle();
+    expect(server.sent).toHaveLength(2);
+    expect(queue.hasWaiting).toBe(false);
+  });
+
+  it('still sends when the browser comes back online, and stops after cleanup', async () => {
+    const { server, win, stop } = await waitingQueue();
+    win.dispatchEvent(new Event('online'));
+    await settle();
+    expect(server.sent).toHaveLength(2);
+    stop();
+    win.dispatchEvent(new Event('pageshow'));
+    await settle();
+    expect(server.sent).toHaveLength(2);
   });
 });

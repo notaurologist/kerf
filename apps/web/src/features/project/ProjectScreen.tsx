@@ -220,6 +220,7 @@ export function ProjectView(props: {
             setFlashLine(describeReset(p.progressReset));
             props.onChange?.(p);
           }}
+          onNewer={props.onChange}
         />
       </PlanHead>
       {!plan.ok ? (

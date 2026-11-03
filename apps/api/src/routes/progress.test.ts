@@ -184,13 +184,13 @@ describe('project progress', () => {
   });
 
   it('keeps every tick through a rename and a regenerate that changes nothing', async () => {
-    const { tick, progress, authed, id, save } = await setup();
+    const { tick, progress, authed, id, save, revision } = await setup();
     await tick([done('step', 'frames')]);
     const renamed = await save({ name: 'Swing set' });
     expect((await renamed.json()) as Json).not.toHaveProperty('progressReset');
     const regenerated = await authed(`/api/projects/${id}/regenerate`, {
       method: 'POST',
-      body: {},
+      body: { revision: await revision() },
     });
     expect(((await regenerated.json()) as Json).progressReset).toEqual([]);
     expect(keys(await progress())).toEqual(['step frames']);

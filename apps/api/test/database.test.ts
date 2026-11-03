@@ -54,6 +54,22 @@ describe('createTestDatabase', () => {
     await close();
   });
 
+  it("keeps a project's template ID equal to its snapshot's", async () => {
+    const { client, close } = await createTestDatabase();
+    const insert = (templateId: string, snapshotTemplateId: string) =>
+      client.query<{ id: string }>(
+        `insert into projects (name, status, template_id, template_version, snapshot)
+         values ('Swing set', 'planned', $1, 1, $2) returning id`,
+        [templateId, JSON.stringify({ templateId: snapshotTemplateId, templateVersion: 1 })],
+      );
+    await expect(insert('a', 'b')).rejects.toThrow(/projects_template_id_matches_snapshot/);
+    const { rows } = await insert('a', 'a');
+    await expect(
+      client.query(`update projects set template_id = 'b' where id = $1`, [rows[0]?.id]),
+    ).rejects.toThrow(/projects_template_id_matches_snapshot/);
+    await close();
+  });
+
   it("deletes a project's history with the project", async () => {
     const { client, close } = await createTestDatabase();
     const { rows } = await client.query<{ id: string }>(

@@ -32,8 +32,12 @@ export interface TemplateDefinition<
   /** What the project is, in a sentence, for choosing a template (#357). */
   description: string;
   /**
-   * Words only this template's folder uses, such as the names of its parts, so a test can check
-   * that generic code never mentions them (ARCHITECTURE.md, principle 6). Its ID is checked too.
+   * Words that name what this template builds and no other template uses, such as its parts and
+   * the things it holds, lowercase, with each plural listed. No source outside this template's
+   * folder may use one as a word, in prose or inside an identifier of any case style, and no
+   * other template's folder may either (`generic.test.ts`, ARCHITECTURE.md principle 6). Its ID
+   * is checked the same way. Generic members that any template may have, such as a leg or a beam,
+   * do not belong here.
    */
   ownWords: readonly string[];
   params: z.ZodType<Params>;

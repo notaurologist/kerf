@@ -1,17 +1,22 @@
 name: CI
 
-# Changes that touch only these paths can't affect lint, typecheck, tests, or the build, so they
-# skip CI. Biome does not check them either.
+# Changes that touch only Markdown or docs/ skip CI, and Biome does not check them. A doc a test
+# reads is listed again after the exclusions so that CI runs when it changes. A test fails when a
+# test reads a path these filters skip (apps/api/test/ciPaths.ts). The two lists must match.
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
+    paths:
+      - "**"
+      - "!**.md"
+      - "!docs/**"
+      - "docs/design/system.md"
   pull_request:
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
+    paths:
+      - "**"
+      - "!**.md"
+      - "!docs/**"
+      - "docs/design/system.md"
 
 permissions:
   contents: read

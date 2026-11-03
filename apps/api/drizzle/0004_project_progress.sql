@@ -7,4 +7,5 @@ CREATE TABLE "project_progress" (
 	CONSTRAINT "project_progress_kind" CHECK ("project_progress"."kind" in ('shopping-line', 'board', 'part', 'step'))
 );
 --> statement-breakpoint
+-- Applied with its table, which held no rows and had no deploy writing it.
 ALTER TABLE "project_progress" ADD CONSTRAINT "project_progress_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;

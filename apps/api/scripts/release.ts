@@ -38,10 +38,17 @@ async function unreadableProjects(db: Database, templates: readonly TemplateDefi
     .where(sql`table_schema = current_schema() and table_name = 'projects'`);
   if (!table?.count) return [];
   // Runs before migrating, so it names only columns every migration has had.
-  const rows = await db.select({ id: projects.id, snapshot: projects.snapshot }).from(projects);
+  const rows = await db
+    .select({ id: projects.id, templateId: projects.templateId, snapshot: projects.snapshot })
+    .from(projects);
   return rows.flatMap((row) => {
     const result = readSnapshot(templates, row.snapshot);
-    return result.ok ? [] : [{ id: row.id, reason: result.reason }];
+    if (!result.ok) return [{ id: row.id, reason: result.reason }];
+    // A row that breaks projects_template_id_matches_snapshot would fail that migration.
+    if (result.snapshot.templateId !== row.templateId) {
+      return [{ id: row.id, reason: 'template-id-mismatch' }];
+    }
+    return [];
   });
 }
 
