@@ -1,8 +1,8 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 30,
-    "snapshotVersion": 17,
+    "templateVersion": 32,
+    "snapshotVersion": 18,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -1248,6 +1248,20 @@
             ],
             "ask": "For the bolts' end distance, the crossbar ends 1-5/8\", 2' 10-1/2\" to 3' 4\" above the ground, and the gusset ends 1-5/8\", 7' 4-3/4\" to 8' 0\" above the ground project past the legs. Confirm the projecting ends are acceptable where children play, with their edges and corners eased.",
             "why": "The projecting ends are new to this design, and children reach the crossbar."
+          },
+          {
+            "category": "load-bearing",
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "beam"
+            ],
+            "hardwareIds": [
+              "leg-beam-bolts"
+            ],
+            "step": "raise",
+            "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+            "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting)."
           }
         ],
         "boltLayout": [
@@ -2040,6 +2054,76 @@
             "count": 4,
             "holeDiameter": 0.5625,
             "depth": 5.5
+          },
+          {
+            "id": "frames/raise",
+            "type": "raise",
+            "count": 2,
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "height": 101.5
+          },
+          {
+            "id": "site/backfill",
+            "type": "backfill",
+            "count": 4,
+            "depth": 24
+          },
+          {
+            "id": "leg-beam-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "leg-beam-bolts",
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front"
+            ],
+            "count": 2,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "crossbar-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "crossbar-bolts",
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar"
+            ],
+            "count": 8,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "gusset-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "gusset-bolts",
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "gusset"
+            ],
+            "count": 8,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "hanger-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "hanger-bolts",
+            "partIds": [
+              "beam"
+            ],
+            "count": 4,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "swings/hang",
+            "type": "hang",
+            "count": 2,
+            "height": 16
           }
         ]
       },
@@ -3259,7 +3343,29 @@
               "value": 991.5913206296021,
               "unit": "psi"
             },
-            "margin": 0.8276342778569249
+            "margin": 0.8276342778569249,
+            "deeperStock": [
+              {
+                "subject": "Top beam, 4x8",
+                "margin": 1.3155384003110364,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 2.654889343562836
+                }
+              },
+              {
+                "subject": "Top beam, 3 plies of 2x8",
+                "margin": 1.0411890268770343,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 2.0863745513648992
+                }
+              }
+            ]
           },
           "shear": {
             "kind": "beam-shear",
@@ -4355,8 +4461,8 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 30,
-    "snapshotVersion": 17,
+    "templateVersion": 32,
+    "snapshotVersion": 18,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -5636,6 +5742,20 @@
             ],
             "ask": "For the bolts' end distance, the crossbar ends 1-5/8\", 2' 10-1/2\" to 3' 4\" above the ground, and the gusset ends 1-5/8\", 7' 4-3/4\" to 8' 0\" above the ground project past the legs. Confirm the projecting ends are acceptable where children play, with their edges and corners eased.",
             "why": "The projecting ends are new to this design, and children reach the crossbar."
+          },
+          {
+            "category": "load-bearing",
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "beam"
+            ],
+            "hardwareIds": [
+              "leg-beam-bolts"
+            ],
+            "step": "raise",
+            "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+            "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting)."
           }
         ],
         "boltLayout": [
@@ -6450,6 +6570,85 @@
             "count": 8,
             "holeDiameter": 0.4375,
             "depth": 3
+          },
+          {
+            "id": "frames/raise",
+            "type": "raise",
+            "count": 2,
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "height": 101.5
+          },
+          {
+            "id": "site/anchor",
+            "type": "anchor",
+            "count": 4
+          },
+          {
+            "id": "leg-beam-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "leg-beam-bolts",
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front"
+            ],
+            "count": 2,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "crossbar-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "crossbar-bolts",
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar"
+            ],
+            "count": 8,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "gusset-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "gusset-bolts",
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "gusset"
+            ],
+            "count": 8,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "ply-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "ply-bolts",
+            "partIds": [
+              "beam"
+            ],
+            "count": 6,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "hanger-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "hanger-bolts",
+            "partIds": [
+              "beam"
+            ],
+            "count": 8,
+            "boltDiameter": 0.375
+          },
+          {
+            "id": "swings/hang",
+            "type": "hang",
+            "count": 2,
+            "height": 16
           }
         ]
       },
@@ -7772,7 +7971,39 @@
               "value": 891.1625014175299,
               "unit": "psi"
             },
-            "margin": 0.6941639645348296
+            "margin": 0.6941639645348296,
+            "deeperStock": [
+              {
+                "subject": "Top beam, 2 plies of 2x8",
+                "margin": 1.0148652620007972,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 2.0306920905250916
+                }
+              },
+              {
+                "subject": "Top beam, 4x8",
+                "margin": 1.4102412349685771,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 2.8514418936210264
+                }
+              },
+              {
+                "subject": "Top beam, 3 plies of 2x8",
+                "margin": 1.4988192958287112,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 3.046038135787637
+                }
+              }
+            ]
           },
           "shear": {
             "kind": "beam-shear",
@@ -8911,8 +9142,8 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 30,
-    "snapshotVersion": 17,
+    "templateVersion": 32,
+    "snapshotVersion": 18,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -10146,6 +10377,20 @@
             ],
             "ask": "For the bolts' end distance, the crossbar ends 1-5/8\", 2' 10-1/2\" to 3' 4\" above the ground, and the gusset ends 1-5/8\", 7' 4-3/4\" to 8' 0\" above the ground project past the legs. Confirm the projecting ends are acceptable where children play, with their edges and corners eased.",
             "why": "The projecting ends are new to this design, and children reach the crossbar."
+          },
+          {
+            "category": "load-bearing",
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "beam"
+            ],
+            "hardwareIds": [
+              "leg-beam-bolts"
+            ],
+            "step": "raise",
+            "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+            "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting)."
           }
         ],
         "boltLayout": [
@@ -10938,6 +11183,76 @@
             "count": 4,
             "holeDiameter": 0.5625,
             "depth": 5.5
+          },
+          {
+            "id": "frames/raise",
+            "type": "raise",
+            "count": 2,
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "height": 101.5
+          },
+          {
+            "id": "site/backfill",
+            "type": "backfill",
+            "count": 4,
+            "depth": 24
+          },
+          {
+            "id": "leg-beam-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "leg-beam-bolts",
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front"
+            ],
+            "count": 2,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "crossbar-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "crossbar-bolts",
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar"
+            ],
+            "count": 8,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "gusset-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "gusset-bolts",
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "gusset"
+            ],
+            "count": 8,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "hanger-bolts/tighten",
+            "type": "tighten-bolts",
+            "hardwareId": "hanger-bolts",
+            "partIds": [
+              "beam"
+            ],
+            "count": 4,
+            "boltDiameter": 0.5
+          },
+          {
+            "id": "swings/hang",
+            "type": "hang",
+            "count": 2,
+            "height": 16
           }
         ]
       },

@@ -165,6 +165,12 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <path d="M11.5 9.5 V13 M11.5 15.5 V20.5 M9.5 9.5 H13.5 M9 20.5 H14" />
     </>
   ),
+  pliers: (
+    <>
+      <path d="M4 21.5 L11 12 L9 3 M20 21.5 L13 12 L15 3" />
+      <circle cx="12" cy="12" r="1.3" />
+    </>
+  ),
   router: (
     <>
       <rect x="4" y="15" width="16" height="2.5" rx="0.6" />
@@ -224,6 +230,17 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
     <>
       <path d="M9 2 H15 M12 2 V16" />
       <rect x="5" y="16" width="14" height="5" rx="0.6" />
+    </>
+  ),
+  sledgehammer: (
+    <>
+      <rect x="5" y="2.5" width="14" height="5.5" rx="0.6" />
+      <path d="M12 8 V21.5" />
+    </>
+  ),
+  stepladder: (
+    <>
+      <path d="M10 2.5 H14 M10 2.5 L5 21.5 M14 2.5 L19 21.5 M8.4 8.5 H11.5 M6.8 14.5 H10 M7.4 12.5 H16.6" />
     </>
   ),
 };

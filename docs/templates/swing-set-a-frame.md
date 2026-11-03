@@ -67,7 +67,9 @@ Template version 29 (#446) takes the beam's bending at each swing hanger on the 
 
 Template version 30 (#493) writes each bolt flag's count and size as the bolt layout row does: "Crossbar to leg, 2 × 1/2\" bolts", which read as 2-1/2" bolts before. A flag's progress key is its ask, so regenerating clears a tick on these flags in the structural review. No number changes.
 
-Template version 31 (#466) gives the beam's bending in the next deeper stock, with each one's margin and break-even dynamic factor, beside the plan's own (Structural model, Deeper stock, below). The owner chose this on #466 so the stock can be chosen against the factor; Kerf still does not choose the stock. In the worked example the 4x6 reaches margin 1.0 at a factor of 1.645, a 4x8 at 2.655, and three plies of 2x8 at 2.086. The plan's own numbers do not change.
+Template version 31 (#451) adds the work after the beam is bolted, which the steps used to leave out: standing the A-frames up and bracing them, plumbing them and backfilling the leg holes or anchoring the feet, tightening every bolt and capping its end, and hanging the swings (Operations and Build steps, below). The steps that tighten the bolts, anchor the feet, and hang the swings carry the CPSC home handbook's rules for that work as notes. A new expert check states both orders the frame can go up in, for the owner to choose with an experienced builder (Flags, below). No part, cut, or check changes.
+
+Template version 32 (#466) gives the beam's bending in the next deeper stock, with each one's margin and break-even dynamic factor, beside the plan's own (Structural model, Deeper stock, below). The owner chose this on #466 so the stock can be chosen against the factor; Kerf still does not choose the stock. In the worked example the 4x6 reaches margin 1.0 at a factor of 1.645, a 4x8 at 2.655, and three plies of 2x8 at 2.086. The plan's own numbers do not change.
 
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
@@ -279,11 +281,15 @@ The tool-type library (`packages/core/src/knowledge/tools.ts`, #85) is checked a
 | Angled crosscuts at the splay angle | legs (top and foot), crossbars, gussets | miter saw, circular saw, hand saw; laid out with a rafter square or sliding bevel |
 | The flush cut along the inside of each leg's top | legs | circular saw, jigsaw, or hand saw to cut; chisel or block plane to clean up |
 | Bolt holes through thick stock (leg, beam, leg; boards and legs) | all bolted parts | drill/driver with auger or spade bits, drilled from one side or both depending on reach; clamps hold the parts while drilling |
-| Tighten bolts and locking nuts | all bolted parts | socket wrench, impact driver |
+| Tighten bolts and locking nuts, once the frame is set | all bolted parts | socket wrench, impact driver (run down, finished by hand) |
 | Ease edges and splinters | all | sander, block plane |
 | Treat cuts and bolt holes with preservative | all | none from the library: a brush, a tray to stand ends in, or a small bottle to pour into holes |
 | Lay out the footprint and set the frames level and plumb | site | tape measure, string line, line level, level |
 | Dig for buried legs, or level pads | site | post-hole digger, shovel, tamper |
+| Stand the A-frames up and hold them plumb with temporary braces | legs, crossbars, gussets | level; drill/driver or impact driver to screw the braces on, or clamps |
+| Backfill buried legs in layers | site | shovel, tamper (or the shovel's handle), level |
+| Anchor feet on pads | site | shovel to cover the anchors; a sledgehammer for driven anchors (screw-in anchors are turned with a bar, not a library tool) |
+| Hang the swings | beam | stepladder, pliers, tape measure |
 
 ### Operations
 
@@ -300,8 +306,12 @@ What needs doing, before any choice of how (`DOMAIN.md`, Operations; methods are
 | Treat cuts | every part | each part's ends and flush cut, since every part is treated lumber (IRC 2021 R317.1.1; `DOMAIN.md`, Field treatment) |
 | Treat bolt holes | each through-bolt item's holes | after its bolt holes, through the treated parts it joins (all of them) |
 | Dig holes (d > 0), or level pads (d = 0) | one per leg | burial depth d |
+| Raise (version 31) | 2, each A-frame: legs, crossbar, gusset | `height` H + bd, how far up the legs reach |
+| Backfill (d > 0), or anchor (d = 0) (version 31) | one per leg | burial depth d |
+| Tighten bolts (version 31) | one per through-bolt item, as drilled | each bolt-holes operation's count and diameter (`tighteningOperations`) |
+| Hang (version 31) | 2 seats | `height` h_s, the seat's underside above the ground |
 
-Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep, and 4 hanger holes 9/16" across and 5.5 deep, down through the beam at 30, 50, 70, and 90. Four holes 24 deep. Field treatment: 3 cuts on each leg (top, foot, flush cut) and 2 on the beam, each crossbar, and each gusset; the same 2 + 8 + 8 + 4 bolt holes, 9/16" across.
+Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep, and 4 hanger holes 9/16" across and 5.5 deep, down through the beam at 30, 50, 70, and 90. Four holes 24 deep. Field treatment: 3 cuts on each leg (top, foot, flush cut) and 2 on the beam, each crossbar, and each gusset; the same 2 + 8 + 8 + 4 bolt holes, 9/16" across. Putting it up: 2 A-frames raised, reaching 96 + 5.5 = 101.5; 4 holes backfilled 24 deep; 2 leg-to-beam, 8 crossbar, 8 gusset, and 4 hanger bolts tightened, all 1/2"; 2 seats hung 16 above the ground.
 
 Every part is treated: the beam checks take a waterborne preservative treatment (NDS 4.3.13, Structural model), and the legs stand in or on the ground. The generic operations follow from each part's `treated` flag and are added after the template's own (`treatmentOperations`).
 
@@ -317,13 +327,27 @@ Cutting goes board by board in the board plan's order (#58): generic code makes 
 | Dig the leg holes, or Level the pads | dig holes or level pads | load-bearing design |
 | Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes, each followed by treating them | load-bearing design |
 | Drill the swing hanger holes in the beam (once the mounting is bolted, version 29) | hanger bolt holes, then treating them | load-bearing design, dynamic loads |
+| Stand the frames up and brace them (version 31) | raise, both A-frames | load-bearing design |
 | Bolt the beam between the leg tops | leg-to-beam bolt holes, then treating them | load-bearing design, dynamic loads |
+| Plumb the frames and backfill the leg holes, or Plumb the frames and anchor the feet (version 31) | backfill or anchor | load-bearing design |
+| Tighten every bolt and cap its end (version 31) | tighten bolts, every through-bolt item | load-bearing design |
+| Hang the swings (version 31) | hang | dynamic loads |
 
 Each step also shows the plan's own flags for its work (Flags, below).
 
 The cuts are treated after the edges are eased, since rounding a corner also opens wood the treatment may not have reached, and before the site work, so a leg's foot is coated before it goes in the ground. AWPA M4-06 5.2 asks for the end of a column in ground contact to be an original untrimmed end or field-treated; the leg's foot is cut at the splay angle, so it is treated.
 
-The assembly order (frames braced first, then the beam) is Kerf's proposal and goes to the review with an experienced builder (M7). Raising the frames, backfilling, tightening, and hanging the swings have no operation type yet, so they are not steps.
+The assembly order is the owner's to choose with an experienced builder, and a flag on the step that stands the frames up states both (Flags, below). Until then the steps follow the first: bolt the crossbars and gussets across each pair of legs on the ground, stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up.
+
+The frame is plumbed and its legs backfilled or its feet anchored before the bolts are tightened, since a tightened bolt holds the frame as it stands. The braces stay on until the legs are set.
+
+Each step that puts the frame up carries the rules the CPSC home handbook (Pub. 324, 2005, read November 2026) gives for its work, as notes (`StepOutline.notes`):
+
+- **Anchor the feet:** follow the anchor maker's instructions, and bury or cover the anchors (p. 4).
+- **Tighten every bolt:** tighten all connections, with a locking nut on every bolt (pp. 3 and 4); cap every exposed bolt end, which stands no more than one diameter past the nut (p. 3); check the nuts and bolts twice a month and tighten them as needed, with the caps in place (p. 5).
+- **Hang the swings:** close S-hooks and all other hooks to a gap less than the thickness of a dime, with an open hook only at the uppermost attachment (p. 3); lightweight seats (p. 4); at least 8 inches between the surfacing and a seat's underside (p. 5); no rope that can untwist or separate (p. 8); seats and chains checked monthly (p. 5).
+
+The generic methods carry their own sourced safety notes: two or more people for the lift (OSHA Electrical Contractors eTool, Heavy Lifting), backfill in shallow layers tamped firm with the post plumb and the top mounded (NRCS Colorado, Conservation Practice Standard 382, December 2014), bolts checked again as the wood dries, since it shrinks across the grain (Wood Handbook, ch. 4, p. 4-7), and a stepladder locked open on level ground, never stood on at its top step (OSHA 29 CFR 1926.1053). No published interval for tightening again as treated lumber dries was found; the CPSC's twice a month covers it.
 
 Worked example, the boards (`steps.test.ts`; 1/2" trim per end and 1/8" kerf per piece): the beam alone on a 12' 4x6, leaving 144 − (1 + 120.125) = 22.875; each leg on its own 12' 4x4, since two do not fit; both crossbars on a 10' 2x6 (1 + 2 · 59.118 = 119.236); both gussets on an 8' 2x8, leaving 96 − (1 + 2 · 19.627) = 55.746. A leg's cuts are done once on its board, a crossbar's twice on the board that holds both.
 
@@ -436,6 +460,7 @@ Rejected combinations, each with a message saying which values conflict:
 - Built-up beam (n > 1): **expert check** on how the plies are fastened together.
 - Sloped ground (g ≠ 0): **expert check**, since the CPSC handbook recommends a level site.
 - Bolt layout and projecting board ends: **expert checks** from the bolt layout (Bolt layout, above).
+- The order the frame goes up in (version 31): **expert check** stating both orders (Build steps, above), why each is hard (the beam lifted H onto braced frames and drilled from a ladder, or the whole frame lifted at once), and OSHA's two or more people for a load over 50 pounds.
 
 Each flag and checklist item names the parts and hardware it concerns (#51). A build step shows a plan flag on the first step that drills for its hardware, or else the first that works on one of its parts (`ARCHITECTURE.md`, Method selection):
 
@@ -449,6 +474,7 @@ Each flag and checklist item names the parts and hardware it concerns (#51). A b
 | Pads | legs | ground anchors | First board with a leg |
 | Crossbar or gusset bolt distances | that board, legs | its bolts | Bolt the crossbars and gussets across the legs |
 | Projecting board ends | the boards that project | their bolts | Bolt the crossbars and gussets across the legs |
+| The order the frame goes up in | legs, beam | leg-to-beam bolts | Stand the frames up and brace them, where the template places it (`Flag.step`) |
 
 Leg length depends on the slope and the burial depth, so those are asked before the legs are cut. Ground anchors have no drilling operation, so the pads flag goes with the legs.
 
@@ -620,7 +646,7 @@ None has a default (decision 0001). A missing input makes every check that needs
   - **Another mounting:** bending is not computed, with the reason, since Kerf cannot say what the screws or clamp remove. Shear and deflection are computed as before.
   - Deflection uses the gross section. Shear also uses the gross section at the supports, where there are no holes; 3.1.2.1 applies to shear at the hangers too, which is #526.
   - C_L stays the gross member's, since beam stability is a property of the whole member between its braces.
-- **Deeper stock** (version 31, #466; owner's decision on #466, 3 November 2026): bending also reports its margin and break-even dynamic factor with the beam in the next deeper stock, every other input as entered, so the owner can choose the stock against the factor. Kerf lists; it does not choose (Starting questions above). The next deeper stock is every beam the template can build, a solid beam of any size or two or three plies of a 2x size, whose depth is the smallest Kerf has above the beam's and whose breadth is no less than its breadth, narrowest first (`deeperBeams` in `deeperStock.ts`). For a 4x6 (5.5 deep, 3.5 wide) that is a 4x8 and three plies of 2x8; two plies of 2x8 (3.0 wide) and one 2x8 are narrower. Nothing Kerf has is deeper than 7-1/4, so a 4x8 or a beam of 2x8 plies has none, and the review says so. Each size is generated in full, so a size whose flush cut would go through the legs is left out, and so is a size with no design values (a 6x6, a timber size, Table 4D) or no break-even factor. A built-up size is generated without ply bolts when the plan has none, since bending does not read them. The list is given while bending has a break-even factor, including while only the factor is missing; then each size has its factor and no margin. The shopping list's other beam sizes when the store has none (Not in stock, above) are separate and unchanged.
+- **Deeper stock** (version 32, #466; owner's decision on #466, 3 November 2026): bending also reports its margin and break-even dynamic factor with the beam in the next deeper stock, every other input as entered, so the owner can choose the stock against the factor. Kerf lists; it does not choose (Starting questions above). The next deeper stock is every beam the template can build, a solid beam of any size or two or three plies of a 2x size, whose depth is the smallest Kerf has above the beam's and whose breadth is no less than its breadth, narrowest first (`deeperBeams` in `deeperStock.ts`). For a 4x6 (5.5 deep, 3.5 wide) that is a 4x8 and three plies of 2x8; two plies of 2x8 (3.0 wide) and one 2x8 are narrower. Nothing Kerf has is deeper than 7-1/4, so a 4x8 or a beam of 2x8 plies has none, and the review says so. Each size is generated in full, so a size whose flush cut would go through the legs is left out, and so is a size with no design values (a 6x6, a timber size, Table 4D) or no break-even factor. A built-up size is generated without ply bolts when the plan has none, since bending does not read them. The list is given while bending has a break-even factor, including while only the factor is missing; then each size has its factor and no margin. The shopping list's other beam sizes when the store has none (Not in stock, above) are separate and unchanged.
 - **Service conditions:** wet service (outdoors, uncovered), C_t = 1.0 (no sustained heat above 100°F), C_D = 1.0 (the impact increase is not used, and the NDS bars factors above 1.6 for lumber treated with water-borne preservatives, 4.3.13 and Table 2.3.2, footnote 2), no repetitive member factor (one beam).
 - **Beam weight:** w = ρ·A / 1728 lb/in, with A the cross-section of all plies and ρ the density at the entered moisture content M from Simpson, FPL-GTR-76: G_b = G / (1 + 0.265·G) with G = 0.55 from Table 4B, then ρ = 62.4·G_b·(1 + M/100) at or above 30%, divided by (1 − 0.265·a·G_b) with a = (30 − M)/30 below 30%. The NDS Supplement 3.1.3 formula agrees within 0.3% up to 30%; above 30% it reads low, because it keeps shrinking the volume of wood that no longer swells.
 - **Built-up beam:** each ply carries an equal share of every load, including the beam's weight (decision 0013).
@@ -704,7 +730,7 @@ Beam stability: ℓu/d = 97.5/5.5 = 17.7 > 14.3, so ℓe = 1.84·97.5 = 179.4.
 
 A horizontal hole at mid-depth costs far less: in the 4x6, a 9/16" hole there gives S_net = 3.5·(5.5³ − 0.5625³)/12 / 2.75 = 17.627 against 17.646, 0.1%.
 
-The two-ply 2x6 has less margin in bending than the 4x6 under the same inputs, for two reasons: two 2x6 plies (3.0 in) are narrower than a 4x6 (3.5 in), and one ply is far more slender for beam stability. The beam's weight lowers each bending margin by about 3%. Maximum moments and deflections were also found by sampling the summed DA6 curves at 200,000 points; the code finds them exactly, and both agree to the precision shown. Version 23's numbers were recomputed by a separate script that first reproduced every version 22 number above from the old supports. Version 29's net sections, moments at the hangers, and break-even factors were checked by a separate script that searched the moment curve at 1,000,000 points and solved each break-even factor by bisection. Version 31's deeper stock was checked by a separate script from the NDS formulas above, not from Kerf's code; the gross section at midspan gives larger factors (3.17 for the 4x8, 3.39 for the plies), so the hangers govern.
+The two-ply 2x6 has less margin in bending than the 4x6 under the same inputs, for two reasons: two 2x6 plies (3.0 in) are narrower than a 4x6 (3.5 in), and one ply is far more slender for beam stability. The beam's weight lowers each bending margin by about 3%. Maximum moments and deflections were also found by sampling the summed DA6 curves at 200,000 points; the code finds them exactly, and both agree to the precision shown. Version 23's numbers were recomputed by a separate script that first reproduced every version 22 number above from the old supports. Version 29's net sections, moments at the hangers, and break-even factors were checked by a separate script that searched the moment curve at 1,000,000 points and solved each break-even factor by bisection. Version 32's deeper stock was checked by a separate script from the NDS formulas above, not from Kerf's code; the gross section at midspan gives larger factors (3.17 for the 4x8, 3.39 for the plies), so the hangers govern.
 
 The supports at the frame centerlines give a shorter span and so a larger margin in bending and deflection, but in example 2 a slightly smaller one in shear (3.19 against 3.21), since the left reaction is then larger (683.85 against 679.61). The difference is under 1%, and the bolt carries load only after the gusset bears, so Kerf reports the gusset position alone.
 

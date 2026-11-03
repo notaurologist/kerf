@@ -33,6 +33,7 @@ import v27 from './snapshots/v27.json' with { type: 'json' };
 import v28 from './snapshots/v28.json' with { type: 'json' };
 import v29 from './snapshots/v29.json' with { type: 'json' };
 import v30 from './snapshots/v30.json' with { type: 'json' };
+import v31 from './snapshots/v31.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -152,8 +153,20 @@ const isVersion30 = (c: { path: string; before?: unknown; after?: unknown }) =>
   /^design\.flags\[\d+\]\.ask$/.test(c.path) &&
   String(c.after).replace(/^([^,:]+, \d+) × /, '$1 ') === c.before;
 
-/** Version 31's change (#466): bending in the next deeper beam stock, added beside the plan's. */
-const isVersion31 = (c: { path: string }) =>
+/**
+ * Version 31's changes (#451): the operations that put the frame up after the beam is bolted, and
+ * the flag asking which order it goes up in, each new with nothing before it. Set aside like
+ * version 18's.
+ */
+const ASSEMBLY = ['raise', 'backfill', 'anchor', 'tighten-bolts', 'hang'];
+const isVersion31 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  c.before === undefined &&
+  ((/^design\.operations\[\d+\]$/.test(c.path) &&
+    ASSEMBLY.includes(String((c.after as { type?: string }).type))) ||
+    (/^design\.flags\[\d+\]$/.test(c.path) && (c.after as { step?: string }).step === 'raise'));
+
+/** Version 32's change (#466): bending in the next deeper beam stock, added beside the plan's. */
+const isVersion32 = (c: { path: string }) =>
   /^structuralReview\.beam\.bending\.deeperStock(\.|\[|$)/.test(c.path);
 
 /**
@@ -172,8 +185,9 @@ function regenerated(
   keepVersion28 = false,
   keepVersion29 = false,
   keepVersion30 = false,
-  keepVersion31 = false,
   later?: unknown,
+  keepVersion31 = false,
+  keepVersion32 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -192,7 +206,8 @@ function regenerated(
         (keepVersion28 || !isVersion28(c)) &&
         (keepVersion29 || later !== undefined || !isVersion29(c)) &&
         (keepVersion30 || !isVersion30(c)) &&
-        (keepVersion31 || !isVersion31(c)),
+        (keepVersion31 || !isVersion31(c)) &&
+        (keepVersion32 || !isVersion32(c)),
     ),
   };
   return keepVersion18
@@ -559,7 +574,6 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
-        false,
         v25[i],
       ).changes.filter(notVersion14);
       expect(changes.filter(notVersion13)).toEqual([]);
@@ -711,7 +725,8 @@ describe('swing-set template versions', () => {
           !isVersion28(c) &&
           !isVersion29(c) &&
           !isVersion30(c) &&
-          !isVersion31(c),
+          !isVersion31(c) &&
+          !isVersion32(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -774,7 +789,6 @@ describe('swing-set template versions', () => {
       false,
       false,
       false,
-      false,
       v25[0],
     );
     expect(changes.length).toBeGreaterThan(0);
@@ -829,7 +843,6 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
-        false,
         v25[i],
       );
       expect(changes.length).toBeGreaterThan(0);
@@ -848,7 +861,6 @@ describe('swing-set template versions', () => {
       false,
       false,
       true,
-      false,
       false,
       false,
       false,
@@ -880,7 +892,6 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
-        false,
         v26[i],
       );
       expect(changes.length).toBeGreaterThan(0);
@@ -896,7 +907,6 @@ describe('swing-set template versions', () => {
       false,
       false,
       true,
-      false,
       false,
       false,
       false,
@@ -1041,19 +1051,44 @@ describe('swing-set template versions', () => {
     );
     expect(asks).toEqual(['Crossbar to leg, 2 × 1/2" bolts', 'Gusset to leg, 2 × 1/2" bolts']);
   });
-
-  // Hand check in the spec, Structural model, example 1: the 4x8's break-even factor 2.655 and
-  // three plies of 2x8's 2.086, against the 4x6's own 1.645, which does not change.
-  it('version 31 adds bending in the next deeper stock, and changes nothing else (#466)', () => {
-    const keep31 = [false, false, false, false, false, false, false, false, false, false, true];
+  // Hand check in operations.test.ts: two A-frames raised, four legs backfilled 24 deep or four
+  // feet anchored, one tightening for each bolt item, two seats hung at their seat height.
+  it('version 31 adds the steps that put the frame up, and asks which order (#451)', () => {
+    const keep31 = [...Array(10).fill(false), undefined, true] as const;
     for (const stored of v30) {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(30);
-      const { changes } = regenerated(snapshot, ...(keep31 as Parameters<typeof regenerated>[1][]));
+      const { changes } = regenerated(snapshot, ...keep31);
+      expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion31(c))).toEqual([]);
+    }
+    const added = regenerated(read(v30[0]), ...keep31)
+      .changes.filter((c) => c.path.startsWith('design.operations'))
+      .map((c) => (c.after as Operation).id);
+    expect(added).toEqual([
+      'frames/raise',
+      'site/backfill',
+      'leg-beam-bolts/tighten',
+      'crossbar-bolts/tighten',
+      'gusset-bolts/tighten',
+      'hanger-bolts/tighten',
+      'swings/hang',
+    ]);
+  });
+
+  // Hand check in the spec, Structural model, example 1: the 4x8's break-even factor 2.655 and
+  // three plies of 2x8's 2.086, against the 4x6's own 1.645, which does not change.
+  it('version 32 adds bending in the next deeper stock, and changes nothing else (#466)', () => {
+    const keep32 = [...Array(10).fill(false), undefined, false, true] as const;
+    for (const stored of v31) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(31);
+      const { changes } = regenerated(snapshot, ...keep32);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion32(c))).toEqual([]);
       expect(changes.every((c) => c.before === undefined)).toBe(true);
     }
-    const deeper = at(fresh(read(v30[0])), 'structuralReview.beam.bending.deeperStock') as {
+    const deeper = at(fresh(read(v31[0])), 'structuralReview.beam.bending.deeperStock') as {
       subject: string;
       breakEven: { value: number };
     }[];

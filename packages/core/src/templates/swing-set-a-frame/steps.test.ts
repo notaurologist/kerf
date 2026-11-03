@@ -68,6 +68,20 @@ const circularSawKit = inventory(
   ['string-line'],
 );
 
+/**
+ * Neither kit has a level, a socket wrench, or a stepladder, so no method for putting the frame up
+ * is chosen.
+ */
+const ASSEMBLY_WITHOUT_TOOLS: Record<string, string> = {
+  'frames/raise': 'none',
+  'site/backfill': 'none',
+  'leg-beam-bolts/tighten': 'none',
+  'crossbar-bolts/tighten': 'none',
+  'gusset-bolts/tighten': 'none',
+  'hanger-bolts/tighten': 'none',
+  'swings/hang': 'none',
+};
+
 /** Field treatment uses no tool from the library, so every inventory brushes it on. */
 const TREATMENT: Record<string, string> = {
   'beam/treat-cuts': 'treat-cuts-brush',
@@ -107,7 +121,11 @@ describe('swing-set build steps (#105)', () => {
       ['site', 'Dig the leg holes', []],
       ['frames', 'Bolt the crossbars and gussets across the legs', []],
       ['hanger-holes', 'Drill the swing hanger holes in the beam', []],
+      ['raise', 'Stand the frames up and brace them', []],
       ['beam', 'Bolt the beam between the leg tops', []],
+      ['set', 'Plumb the frames and backfill the leg holes', []],
+      ['tighten', 'Tighten every bolt and cap its end', []],
+      ['hang', 'Hang the swings', []],
     ]);
     const board = (n: number) => built[n - 1]?.board;
     expect(board(1)?.offcut).toBeCloseTo(22.875, 9);
@@ -168,6 +186,7 @@ describe('swing-set build steps (#105)', () => {
       'gusset-bolts/holes': 'bolt-holes-auger-one-side',
       'leg-beam-bolts/holes': 'bolt-holes-auger-one-side',
       'hanger-bolts/holes': 'bolt-holes-auger-one-side',
+      ...ASSEMBLY_WITHOUT_TOOLS,
     });
   });
 
@@ -197,6 +216,7 @@ describe('swing-set build steps (#105)', () => {
       'leg-beam-bolts/holes': 'bolt-holes-spade-both-sides',
       // 5-1/2" down through the beam, within the 6" spade bits' reach.
       'hanger-bolts/holes': 'bolt-holes-spade-one-side',
+      ...ASSEMBLY_WITHOUT_TOOLS,
     });
   });
 
@@ -273,8 +293,9 @@ describe('swing-set build steps (#105)', () => {
       const flags = Object.fromEntries(
         steps(inv).map((s) => [s.id, s.flags.map((f) => f.category)]),
       );
-      // The plan's own flags are load-bearing: two on the legs, three on the boards' bolts, and
-      // one on the leg-to-beam bolt (#51), each before the generic check for its step.
+      // The plan's own flags are load-bearing: two on the legs, three on the boards' bolts, one on
+      // the leg-to-beam bolt (#51), and the order the frame goes up in, on the step that raises it,
+      // each before the generic check for its step.
       expect(flags).toEqual({
         'board-1': [],
         'board-2': ['load-bearing', 'load-bearing'],
@@ -288,7 +309,11 @@ describe('swing-set build steps (#105)', () => {
         site: ['load-bearing'],
         frames: ['load-bearing', 'load-bearing', 'load-bearing', 'load-bearing'],
         'hanger-holes': ['load-bearing', 'dynamic-loads'],
+        raise: ['load-bearing', 'load-bearing'],
         beam: ['load-bearing', 'load-bearing', 'dynamic-loads'],
+        set: ['load-bearing'],
+        tighten: ['load-bearing'],
+        hang: ['dynamic-loads'],
       });
     }
   });
@@ -308,6 +333,9 @@ describe('swing-set build steps (#105)', () => {
     expect(stepOf('Gusset to leg, 2 × 1/2" bolts')).toEqual(['frames']);
     expect(stepOf("For the bolts' end distance")).toEqual(['frames']);
     expect(stepOf('Confirm the bolt size for the leg-to-beam bolt')).toEqual(['beam']);
+    // The template places the order the frame goes up in on the step that stands it up, though
+    // its hardware is drilled later.
+    expect(stepOf('Choose the order the frame goes up in')).toEqual(['raise']);
     // Every plan flag is on exactly one step.
     for (const flag of plan.flags) expect(stepOf(flag.ask), flag.ask).toHaveLength(1);
   });
@@ -330,6 +358,58 @@ describe('swing-set build steps (#105)', () => {
         ).toBe(true);
       }
     }
+  });
+
+  // Hand check: the A-frames reach the top of the beam, 96 + 5.5 = 101.5; the legs are buried 24;
+  // the seats hang 16 above the ground.
+  it('stands the frames up, backfills, tightens, and hangs the swings with the CPSC rules', () => {
+    const built = steps(
+      inventory(
+        ['level'],
+        ['drill-driver'],
+        ['shovel'],
+        ['tamper'],
+        ['socket-wrench'],
+        ['stepladder'],
+        ['pliers'],
+        ['tape-measure'],
+      ),
+    );
+    const step = (id: string) => built.find((s) => s.id === id);
+    const methods = Object.fromEntries(
+      ['raise', 'set', 'tighten', 'hang'].map((id) => [
+        id,
+        step(id)?.operations.map((o) => o.method?.id),
+      ]),
+    );
+    expect(methods).toEqual({
+      raise: ['raise-screwed-braces'],
+      set: ['backfill-tamper'],
+      tighten: Array(4).fill('tighten-bolts-socket-wrench'),
+      hang: ['hang-quick-links'],
+    });
+    const text = (id: string) =>
+      step(id)?.operations.flatMap((o) => [
+        ...(o.method?.setup ?? []),
+        ...(o.method?.technique ?? []),
+      ]);
+    expect(text('raise')).toContain(
+      'Keep everyone else clear of where the assembly would land if it fell: once up, it reaches 101-1/2" above the ground.',
+    );
+    expect(text('set')).toContain(
+      'Shovel soil back around the part in shallow layers, tamping each layer firm before the next, all the way up the 24" to the surface.',
+    );
+    expect(text('tighten')).toContain(
+      'Tighten 8 bolts of 1/2" this way, then cap the end of each.',
+    );
+    expect(text('hang')).toContain(
+      'Measure from the ground to the seat, and shorten or lengthen the chain until the seat hangs 16" above the ground and level from side to side.',
+    );
+    // The CPSC rules for each step, from the template; none on the steps before.
+    expect(step('tighten')?.notes?.[0]).toContain('locking nut on every bolt');
+    expect(step('hang')?.notes?.[0]).toContain('less than the thickness of a dime');
+    expect(step('set')?.notes).toBeUndefined();
+    expect(step('beam')?.notes).toBeUndefined();
   });
 
   it('levels pads instead of digging when the legs are not buried', () => {
@@ -355,6 +435,16 @@ describe('swing-set build steps (#105)', () => {
     expect(site?.operations[0]?.alternatives.map((a) => a.methodId)).toEqual([
       'level-pads-string-line',
       'level-pads-straight-board',
+    ]);
+    // The feet are anchored, all four, as the anchors' maker says, with CPSC's rule for anchors.
+    const set = built.find((s) => s.id === 'set');
+    expect(set?.title).toBe('Plumb the frames and anchor the feet');
+    expect(set?.operations.map((o) => [o.operation.type, o.operation.count])).toEqual([
+      ['anchor', 4],
+    ]);
+    expect(set?.operations[0]?.method?.id).toBe('anchor-screw-in');
+    expect(set?.notes).toEqual([
+      'Follow the anchor maker’s instructions, and bury the anchors or cover them with the surfacing, so no one trips on them (CPSC Pub. 324, p. 4).',
     ]);
   });
 });

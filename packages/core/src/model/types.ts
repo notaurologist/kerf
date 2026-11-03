@@ -33,6 +33,13 @@ export const Flag = z.object({
   ask: z.string(),
   why: z.string(),
   ...concerns,
+  /**
+   * The build step it is shown on, by the ID in the template's step outline, when the template
+   * places it: a question to settle before work that neither drills for its hardware nor first
+   * touches its parts, such as the order an assembly goes up in. Otherwise it is placed from its
+   * parts and hardware (`steps/build.ts`).
+   */
+  step: z.string().optional(),
 });
 export type Flag = z.infer<typeof Flag>;
 
