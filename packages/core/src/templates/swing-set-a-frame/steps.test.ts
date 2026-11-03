@@ -304,8 +304,8 @@ describe('swing-set build steps (#105)', () => {
     expect(stepOf('Confirm the frame on sloped ground')).toEqual(['board-2']);
     expect(stepOf('Confirm the burial depth (24")')).toEqual(['board-2']);
     // Bolt flags go where their bolts are drilled.
-    expect(stepOf('Crossbar to leg, 2 1/2" bolts')).toEqual(['frames']);
-    expect(stepOf('Gusset to leg, 2 1/2" bolts')).toEqual(['frames']);
+    expect(stepOf('Crossbar to leg, 2 × 1/2" bolts')).toEqual(['frames']);
+    expect(stepOf('Gusset to leg, 2 × 1/2" bolts')).toEqual(['frames']);
     expect(stepOf("For the bolts' end distance")).toEqual(['frames']);
     expect(stepOf('Confirm the bolt size for the leg-to-beam bolt')).toEqual(['beam']);
     // Every plan flag is on exactly one step.

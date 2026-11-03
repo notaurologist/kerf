@@ -65,6 +65,8 @@ Template version 28 (#456) also measures the gusset's bolts against the beam's w
 
 Template version 29 (#446) takes the beam's bending at each swing hanger on the net section the hanger's bolt holes leave (NDS 2024 3.1.2.1; Structural model, below). The hangers are the beam's point loads, so their holes fall where the moment is largest. How the hangers mount is a new hardware input, read at the store and with no default: one bolt down through the beam, bolts sideways through a bracket, or another way. Its bolts are listed with the other bolts, and their holes are drilled in the beam in a step of their own. In the worked example, a 1/2" bolt in a 9/16" hole at each hanger takes the bending margin from 0.98 to 0.83. A plan made before version 29 has no mounting, so on regenerating its bending says the mounting is needed.
 
+Template version 30 (#493) writes each bolt flag's count and size as the bolt layout row does: "Crossbar to leg, 2 × 1/2\" bolts", which read as 2-1/2" bolts before. A flag's progress key is its ask, so regenerating clears a tick on these flags in the structural review. No number changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
