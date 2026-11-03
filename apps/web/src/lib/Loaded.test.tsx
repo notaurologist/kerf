@@ -51,6 +51,22 @@ describe('Loaded', () => {
     expect(render(missing)).not.toContain('M2 2l12 12');
   });
 
+  it('offers Try again in place of a link to Projects on Projects itself', () => {
+    const ended = (
+      <Loaded
+        state={{ state: 'error', error: { kind: 'login-required' } }}
+        loading="Loading projects…"
+        onRetry={() => {}}
+        title="Projects"
+        noBack
+      >
+        {show}
+      </Loaded>
+    );
+    expect(renderText(ended)).toBe('Projects Your session ended. Log in again. Try again');
+    expect(render(ended)).not.toContain('href=');
+  });
+
   it('shows the value once loaded', () => {
     expect(
       render(

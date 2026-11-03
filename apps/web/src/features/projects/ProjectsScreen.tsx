@@ -44,6 +44,7 @@ export function ProjectsScreen() {
       loading="Loading projects…"
       onRetry={reload}
       title="Projects"
+      noBack
     >
       {(value) => (
         <ProjectList projects={value.projects} templates={value.templates} flash={flash} />
