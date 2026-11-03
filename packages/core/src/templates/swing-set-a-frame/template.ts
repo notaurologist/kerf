@@ -79,8 +79,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 25 moves the note about a shorter board onto its lumber line, and gives each line what
  * else to buy when the store has none of its boards: other lengths, and other beam sizes that keep
  * the beam checks' margin, each with its margin (#450). No number changes.
+ * Version 26 also measures the gusset's bolts against the beam's weight, which crosses its grain:
+ * end distance, the loaded top edge and the bottom edge, and spacing in a row (#456).
  */
-export const TEMPLATE_VERSION = 25;
+export const TEMPLATE_VERSION = 26;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

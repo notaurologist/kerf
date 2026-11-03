@@ -44,13 +44,26 @@ describe('bolt distances against NDS 2024', () => {
       ['1.5D', 0.75, 'minimum'],
     ]);
     // ℓ/D = 7, rows 2.75 apart: 1.5D = 0.75 or 2.75 / 2 = 1.375, whichever is greater.
-    expect(edgeDistance('Crossbar', 1.375, D, 'parallel', 7, 2.75).requirements[0]?.value).toBe(
-      1.375,
-    );
+    expect(
+      edgeDistance('Crossbar', 1.375, D, 'parallel', 7, { rowSpacing: 2.75 }).requirements[0]
+        ?.value,
+    ).toBe(1.375);
     expect(rows(edgeDistance('Leg', 1.75, D, 'perpendicular', 3))).toEqual([
       ['4D', 2, 'minimum'],
       ['1.5D', 0.75, 'minimum'],
     ]);
+    // One edge named: only its row, under the label given.
+    const top = edgeDistance('Gusset', 1.8125, D, 'perpendicular', 3, {
+      edge: 'loaded',
+      label: 'Edge distance, to the top edge',
+    });
+    expect([top.label, rows(top)]).toEqual([
+      'Edge distance, to the top edge',
+      [['4D', 2, 'minimum']],
+    ]);
+    expect(
+      rows(edgeDistance('Gusset', 1.8125, D, 'perpendicular', 3, { edge: 'unloaded' })),
+    ).toEqual([['1.5D', 0.75, 'minimum']]);
   });
 
   it('spacing in a row and between rows', () => {
