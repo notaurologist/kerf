@@ -1,4 +1,4 @@
-import type { geometry } from '@kerf/core';
+import { geometry } from '@kerf/core';
 import { type CSSProperties, memo, useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { Motion } from './assemblyMotion.ts';
 import { DiagramFrame } from './DiagramFrame.tsx';
@@ -53,15 +53,58 @@ function useWidth(assumed: number) {
 
 const pts = (points: readonly Point2[]) => points.map((p) => `${p.x},${p.y}`).join(' ');
 
-/** Part letters in one column on the left, sorted by height (diagrams.html, phone). */
-function oneColumn(letters: Extract<Primitive, { kind: 'letter' }>[], x: number, gap: number) {
-  let y = -Infinity;
-  return [...letters]
-    .sort((a, b) => a.target.y - b.target.y)
-    .map((l) => {
-      y = Math.max(l.target.y, y + gap);
-      return { ...l, at: { x, y } };
-    });
+/**
+ * How a drawing is laid out at the width it is shown at: the width it is drawn at, drawing units
+ * per CSS pixel, where its letters and labels go, and the view that holds them. Exported for tests.
+ */
+export function drawingLayout(
+  drawing: Drawing,
+  width: number,
+  options: { minWidth?: number; frame?: Drawing['bounds'] } = {},
+) {
+  const b = options.frame ?? drawing.bounds;
+  const narrow = width < PX.narrow;
+  // Model units per CSS pixel at the shown width. Letters in one column widen the view a little,
+  // so the scale is taken from the bounds; the difference is a few pixels.
+  // A tall drawing is shown no taller than most of the window, so it is narrower than its
+  // container; text is sized for the width it is drawn at.
+  const shown = Math.max(
+    Math.min(width, (maxHeight() * b.width) / b.height),
+    Math.min(options.minWidth ?? 0, (maxHeight() * b.width) / b.height),
+  );
+  const u = b.width / shown;
+  const letters = drawing.primitives.filter(
+    (p): p is Extract<Primitive, { kind: 'letter' }> => p.kind === 'letter',
+  );
+  // On a phone, part letters stack in one column (diagrams.html), on the first side core's
+  // letters may take, between any dimensions above and below the drawing.
+  const room = geometry.letterRoom(drawing.primitives);
+  const x = room.sides[0] === 'right' ? b.x + b.width + PX.letter * u : b.x - PX.letter * u;
+  const placed = narrow ? geometry.letterColumn(letters, x, PX.letter * 1.4 * u, room) : letters;
+  const pad = PX.letter * u;
+  // Core bounds text by its anchor point; the text's size is known only here, so the view grows
+  // to hold each label's estimated extent, and each part letter's square.
+  const placedText = placeText(drawing.primitives, u);
+  const boxes = [
+    ...[...placedText.values()].map((t) => t.box),
+    ...placed.map((l) => ({
+      x0: l.at.x - pad,
+      x1: l.at.x + pad,
+      y0: l.at.y - pad,
+      y1: l.at.y + pad,
+    })),
+  ];
+  // A shared frame leaves the same room on every side, two letters wide at the sides for a
+  // column of letters, so drawings that share it share a view unless their own labels need more.
+  const [x0, x1, y0, y1] = options.frame
+    ? [b.x - 2 * pad, b.x + b.width + 2 * pad, b.y - pad, b.y + b.height + pad]
+    : [b.x, b.x + b.width, b.y, b.y + b.height];
+  const minX = Math.min(x0, ...boxes.map((r) => r.x0));
+  const maxX = Math.max(x1, ...boxes.map((r) => r.x1));
+  const minY = Math.min(y0, ...boxes.map((r) => r.y0));
+  const maxY = Math.max(y1, ...boxes.map((r) => r.y1));
+  const viewBox = `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
+  return { shown, u, placed, placedText, viewBox };
 }
 
 /** A drawing from core as SVG. Shown through `Diagram`; exported for tests that read its tree. */
@@ -101,44 +144,7 @@ export function DiagramDrawing(props: {
     [ref, track],
   );
   const hatch = `${useId().replace(/:/g, '')}-hatch`;
-  const b = props.frame ?? drawing.bounds;
-  const narrow = width < PX.narrow;
-  // Model units per CSS pixel at the shown width. Letters in one column widen the view a little,
-  // so the scale is taken from the bounds; the difference is a few pixels.
-  // A tall drawing is shown no taller than most of the window, so it is narrower than its
-  // container; text is sized for the width it is drawn at.
-  const shown = Math.max(
-    Math.min(width, (maxHeight() * b.width) / b.height),
-    Math.min(props.minWidth ?? 0, (maxHeight() * b.width) / b.height),
-  );
-  const u = b.width / shown;
-  const letters = drawing.primitives.filter(
-    (p): p is Extract<Primitive, { kind: 'letter' }> => p.kind === 'letter',
-  );
-  const placed = narrow ? oneColumn(letters, b.x - PX.letter * u, PX.letter * 1.4 * u) : letters;
-  const pad = PX.letter * u;
-  // Core bounds text by its anchor point; the text's size is known only here, so the view grows
-  // to hold each label's estimated extent, and each part letter's square.
-  const placedText = placeText(drawing.primitives, u);
-  const boxes = [
-    ...[...placedText.values()].map((t) => t.box),
-    ...placed.map((l) => ({
-      x0: l.at.x - pad,
-      x1: l.at.x + pad,
-      y0: l.at.y - pad,
-      y1: l.at.y + pad,
-    })),
-  ];
-  // A shared frame leaves the same room on every side, two letters wide at the sides for a
-  // column of letters, so drawings that share it share a view unless their own labels need more.
-  const [x0, x1, y0, y1] = props.frame
-    ? [b.x - 2 * pad, b.x + b.width + 2 * pad, b.y - pad, b.y + b.height + pad]
-    : [b.x, b.x + b.width, b.y, b.y + b.height];
-  const minX = Math.min(x0, ...boxes.map((r) => r.x0));
-  const maxX = Math.max(x1, ...boxes.map((r) => r.x1));
-  const minY = Math.min(y0, ...boxes.map((r) => r.y0));
-  const maxY = Math.max(y1, ...boxes.map((r) => r.y1));
-  const viewBox = `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
+  const { shown, u, placed, placedText, viewBox } = drawingLayout(drawing, width, props);
   // A moving part's shapes carry how far it goes in its stage of a move, for the move to slide.
   const moves = new Map(props.motion?.moves?.map((m) => [`${m.partId}/${m.instance}`, m.by]));
   const movesBack = (p: {
@@ -196,6 +202,11 @@ export function DiagramDrawing(props: {
           [p.points[0], p.points[1]],
           [p.points[p.points.length - 1], p.points[p.points.length - 2]],
         ];
+        // A dimension too short for both arrowheads takes them outside, pointing in (ASME Y14.5).
+        const short =
+          p.arrows === true &&
+          p.points.length === 2 &&
+          lengthOf(p.points) < (2 * PX.arrowLength + TEXT_GAP) * u;
         const arrows =
           p.arrows && p.points.length >= 2
             ? (p.arrows === 'end' ? ends.slice(1) : ends).map(([tip, from], k) => (
@@ -203,7 +214,13 @@ export function DiagramDrawing(props: {
                   // biome-ignore lint/suspicious/noArrayIndexKey: the two ends of one line.
                   key={k}
                   className="k-arrow"
-                  points={pts(arrowhead(tip as Point2, from as Point2, u))}
+                  points={pts(
+                    arrowhead(
+                      tip as Point2,
+                      short ? beyond(tip as Point2, from as Point2) : (from as Point2),
+                      u,
+                    ),
+                  )}
                 />
               ))
             : null;
@@ -211,7 +228,7 @@ export function DiagramDrawing(props: {
           <g key={key} {...movesBack(p)}>
             <polyline
               className="k-shape"
-              points={pts(p.points)}
+              points={pts(short ? outsideShafts(p.points, u) : p.points)}
               data-role={p.role}
               data-selected={selected(p)}
               data-part={p.part?.partId}
@@ -281,10 +298,11 @@ export function DiagramDrawing(props: {
       data-selected={selected(l)}
       data-part={l.part.partId}
     >
+      {/* From the letter's middle, under its square: the line core keeps from crossing others. */}
       <line
         className="k-shape"
         data-role="leader"
-        x1={l.at.x + (l.at.x < l.target.x ? s / 2 : -s / 2)}
+        x1={l.at.x}
         y1={l.at.y}
         x2={l.target.x}
         y2={l.target.y}
@@ -381,17 +399,49 @@ const overlaps = (a: Box, b: Box, gap: number) =>
 /**
  * Where each label is drawn, by its index in the drawing, and the area it takes. A label with a
  * `side` sits clear of its point on that side, and moves further that way (down when it has no
- * side) past any label drawn before it that it would land on. Turned labels stay where core put
+ * side) past any label drawn before it that it would land on. A dimension's figure too long for
+ * its `span` goes outside it, just past one end, an end no other dimension shares if it can, and
+ * is placed after the labels that fit, so it gives way to them. Turned labels stay where core put
  * them. `u` is drawing units per CSS pixel.
  */
 export function placeText(primitives: readonly Primitive[], u: number) {
+  type Text = Extract<Primitive, { kind: 'text' }>;
   const placed = new Map<number, { at: Point2; box: Box }>();
   const gap = TEXT_GAP * u;
-  primitives.forEach((p, i) => {
-    if (p.kind !== 'text') return;
-    const size = PX[p.role] * u;
+  const texts = primitives.flatMap((p, i) =>
+    p.kind === 'text' ? [{ p, i, size: PX[p.role] * u }] : [],
+  );
+  const ends = texts.flatMap(({ p }) => p.span ?? []);
+  const shared = (end: Point2) =>
+    ends.filter((e) => Math.hypot(e.x - end.x, e.y - end.y) < 1e-6).length > 1;
+  const clear = (box: Box) => [...placed.values()].every((o) => !overlaps(box, o.box, gap * 0.99));
+  const start = (p: Text, size: number) =>
+    p.side ? { x: p.at.x, y: p.at.y + (p.side === 'above' ? -1 : 1) * (size / 2 + gap) } : p.at;
+  // Where a figure that does not fit its span goes, best first; none when it fits.
+  const outside = (p: Text, size: number): Point2[] => {
+    if (!p.span || p.rotate) return [];
+    const at = start(p, size);
+    const box = textBox({ ...p, at }, size);
+    const across = Math.abs(p.span[1].x - p.span[0].x) >= Math.abs(p.span[1].y - p.span[0].y);
+    const [lo, hi] = [...p.span].sort((a, b) => (across ? a.x - b.x : a.y - b.y)) as [
+      Point2,
+      Point2,
+    ];
+    const [b0, b1] = across ? [box.x0, box.x1] : [box.y0, box.y1];
+    const [s0, s1] = across ? [lo.x, hi.x] : [lo.y, hi.y];
+    if (b1 - b0 + 2 * gap <= s1 - s0) return [];
+    const past = (by: number) => (across ? { x: at.x + by, y: at.y } : { x: at.x, y: at.y + by });
+    const options = [
+      { end: hi, at: past(s1 + gap - b0) },
+      { end: lo, at: past(s0 - gap - b1) },
+    ];
+    return [...options.filter((o) => !shared(o.end)), ...options.filter((o) => shared(o.end))].map(
+      (o) => o.at,
+    );
+  };
+  const settle = (p: Text, from: Point2, size: number) => {
     const away = p.side === 'above' ? -1 : 1;
-    let at = p.side ? { x: p.at.x, y: p.at.y + away * (size / 2 + gap) } : p.at;
+    let at = from;
     let box = textBox({ ...p, at }, size);
     if (!p.rotate) {
       for (let moved = true; moved; ) {
@@ -405,7 +455,17 @@ export function placeText(primitives: readonly Primitive[], u: number) {
         }
       }
     }
-    placed.set(i, { at, box });
+    return { at, box };
+  };
+  const moving = texts.map((t) => outside(t.p, t.size));
+  texts.forEach((t, k) => {
+    if (moving[k]?.length === 0) placed.set(t.i, settle(t.p, start(t.p, t.size), t.size));
+  });
+  texts.forEach((t, k) => {
+    const options = moving[k] ?? [];
+    if (options.length === 0) return;
+    const free = options.find((at) => clear(textBox({ ...t.p, at }, t.size)));
+    placed.set(t.i, settle(t.p, free ?? (options[0] as Point2), t.size));
   });
   return placed;
 }
@@ -421,6 +481,27 @@ function textBox(t: Extract<Primitive, { kind: 'text' }>, size: number): Box {
     return { x0: t.at.x - size / 2, x1: t.at.x + size / 2, y0: t.at.y - hi, y1: t.at.y - lo };
   }
   return { x0: t.at.x + lo, x1: t.at.x + hi, y0: t.at.y - size / 2, y1: t.at.y + size / 2 };
+}
+
+const lengthOf = (points: readonly Point2[]) => {
+  const [a, b] = points as [Point2, Point2];
+  return Math.hypot(b.x - a.x, b.y - a.y);
+};
+
+/** The point as far past `tip` as `from` is before it, for an arrowhead pointing back in. */
+const beyond = (tip: Point2, from: Point2) => ({ x: 2 * tip.x - from.x, y: 2 * tip.y - from.y });
+
+/** A short dimension line run on past both ends, two arrowheads long, for outside arrowheads. */
+function outsideShafts(points: readonly Point2[], u: number): Point2[] {
+  const [a, b] = points as [Point2, Point2];
+  const len = lengthOf(points) || 1;
+  const run = (2 * PX.arrowLength * u) / len;
+  const dx = (b.x - a.x) * run;
+  const dy = (b.y - a.y) * run;
+  return [
+    { x: a.x - dx, y: a.y - dy },
+    { x: b.x + dx, y: b.y + dy },
+  ];
 }
 
 /** An arrowhead with its tip at `tip`, pointing away from `from`, 9 by 3 px. */

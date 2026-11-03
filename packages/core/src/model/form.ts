@@ -159,7 +159,8 @@ export function visibleFields(sections: readonly FormSection[], values: FormValu
   return sections.flatMap((s) => s.fields.filter((f) => !f.when || f.when(value)));
 }
 
-function readPath(object: unknown, path: string): unknown {
+/** The value at a form path, such as `legStock.lengths.0`, or undefined. */
+export function readPath(object: unknown, path: string): unknown {
   let at: unknown = object;
   for (const key of path.split('.')) {
     if (typeof at !== 'object' || at === null) return undefined;

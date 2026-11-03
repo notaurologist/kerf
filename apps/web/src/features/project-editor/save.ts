@@ -1,3 +1,4 @@
+import { fillMissing, findTemplate } from '@kerf/core';
 import { api, send } from '../../lib/api.ts';
 import type { Project, ProjectStatus } from '../../lib/types.ts';
 import { sameJson } from '../../ui/sameJson.ts';
@@ -10,13 +11,22 @@ export interface Edited {
   inputs: Record<string, unknown>;
 }
 
+/** The values the editor starts from: the stored ones, with what an older plan lacks filled. */
+export function editorValues(project: Project) {
+  const stored = project.snapshot;
+  if (!stored) return undefined;
+  const template = findTemplate(project.templateId);
+  return template ? fillMissing(template, stored) : { ...stored, filled: [] };
+}
+
 /**
- * What to send for an edit: only what changed, so renaming a project never regenerates it (and
- * never moves it to a newer template version without the owner changing a value).
+ * What to send for an edit: only what changed from what the editor started with, so renaming a
+ * project never regenerates it (and never moves it to a newer template version without the owner
+ * changing a value).
  */
 export function changesFor(project: Project, edited: Edited) {
   const { name, status, params, inputs } = edited;
-  const stored = project.snapshot;
+  const stored = editorValues(project);
   return {
     ...(name !== project.name ? { name } : {}),
     ...(status !== project.status ? { status } : {}),

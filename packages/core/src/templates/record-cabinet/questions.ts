@@ -3,7 +3,7 @@ import type { FormSection } from '../../model/form.ts';
 import { type Suggestion, type SuggestionBasis, startingQuestions } from '../../model/questions.ts';
 import { formatLength } from '../../units/length.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
-import { RecordCabinetParams } from './params.ts';
+import { RecordCabinetParams, StoredRecordCabinetParams } from './params.ts';
 
 // Starting questions (#314; docs/templates/record-cabinet.md, Starting questions): the window
 // the cabinet stands under, and the largest item on the top (#331). The height and width follow the
@@ -115,7 +115,7 @@ const BASE = {
   apronSetback: 0.125,
 } as const;
 /** The doors' tracks and frames: rules of thumb (spec, Sliding doors on the end bays). */
-export const SUGGESTED_DOOR = {
+const SUGGESTED_DOOR = {
   clearance: 0.0625,
   land: 0.25,
   bottomDepth: 0.25,
@@ -210,32 +210,19 @@ function within(path: 'width', value: number, basis: SuggestionBasis, note?: str
   };
 }
 
-function suggest(a: CabinetAnswers): Suggestion[] {
-  const w = a.window;
-  const dealer = a.lumber.source === 'dealer';
-  const { panel, dado } = panelAndDado(dealer ? DEALER.surfaced : BOARD.thickness);
-  // The top's height follows from the base and the bays (owner, November 1, 2026: "taller cabinet").
-  const boardThickness = dealer ? DEALER.surfaced : BOARD.thickness;
-  const height = BASE.legShowing + BASE.apronHeight + 2 * panel + WORKED_EXAMPLE.bayHeight;
-  const aboveStool = height - w.stoolHeight;
-  const standsOff =
-    height > w.apronBottom
-      ? ` The top is above the bottom of the stool's apron, so the cabinet stands at least ${formatLength(w.stoolDepth)} from the wall, clear of the stool.`
-      : '';
-  const rule = (text: string): SuggestionBasis => ({ kind: 'rule-of-thumb', rule: text });
-  const example = (path: keyof typeof WORKED_EXAMPLE): Suggestion => ({
-    from: 'params',
-    path,
-    value: WORKED_EXAMPLE[path] as number,
-    basis: EXAMPLE,
-  });
+const rule = (text: string): SuggestionBasis => ({ kind: 'rule-of-thumb', rule: text });
+
+/**
+ * The leg base's sizes (spec, The Shaker-modern base), its tenons a third of boards this thick.
+ * The leg below the aprons comes first.
+ */
+function baseSizes(boardThickness: number): Suggestion[] {
   return [
     {
       from: 'params',
       path: 'legShowing',
       value: BASE.legShowing,
       basis: rule('about 5" of leg below the aprons, the owner\'s choice for this cabinet'),
-      note: `With these sizes the top is ${formatLength(height)} high${aboveStool > 0 ? `, ${formatLength(aboveStool)} above the window stool` : ''}.${standsOff}`,
     },
     {
       from: 'params',
@@ -283,6 +270,45 @@ function suggest(a: CabinetAnswers): Suggestion[] {
       value: BASE.legSize / 2 + 0.25,
       basis: rule('half the leg plus 1/4", mitered where two tenons meet'),
     },
+  ];
+}
+
+const DOOR_SIZES = Object.entries(DOOR_RULES).map(
+  ([key, text]): Suggestion => ({
+    from: 'params',
+    path: `door.${key}`,
+    value: SUGGESTED_DOOR[key as keyof typeof SUGGESTED_DOOR],
+    basis: rule(text),
+  }),
+);
+
+function suggest(a: CabinetAnswers): Suggestion[] {
+  const w = a.window;
+  const dealer = a.lumber.source === 'dealer';
+  const { panel, dado } = panelAndDado(dealer ? DEALER.surfaced : BOARD.thickness);
+  // The top's height follows from the base and the bays (owner, November 1, 2026: "taller cabinet").
+  const boardThickness = dealer ? DEALER.surfaced : BOARD.thickness;
+  const height = BASE.legShowing + BASE.apronHeight + 2 * panel + WORKED_EXAMPLE.bayHeight;
+  const aboveStool = height - w.stoolHeight;
+  const standsOff =
+    height > w.apronBottom
+      ? ` The top is above the bottom of the stool's apron, so the cabinet stands at least ${formatLength(w.stoolDepth)} from the wall, clear of the stool.`
+      : '';
+  const example = (path: keyof typeof WORKED_EXAMPLE): Suggestion => ({
+    from: 'params',
+    path,
+    value: WORKED_EXAMPLE[path] as number,
+    basis: EXAMPLE,
+  });
+  return [
+    ...baseSizes(boardThickness).map((s) =>
+      s.path === 'legShowing'
+        ? {
+            ...s,
+            note: `With these sizes the top is ${formatLength(height)} high${aboveStool > 0 ? `, ${formatLength(aboveStool)} above the window stool` : ''}.${standsOff}`,
+          }
+        : s,
+    ),
     example('bayHeight'),
     {
       from: 'params',
@@ -290,14 +316,7 @@ function suggest(a: CabinetAnswers): Suggestion[] {
       value: 'sliding',
       basis: rule('two sliding doors over the end bays, the owner’s choice for this cabinet'),
     },
-    ...Object.entries(DOOR_RULES).map(
-      ([key, text]): Suggestion => ({
-        from: 'params',
-        path: `door.${key}`,
-        value: SUGGESTED_DOOR[key as keyof typeof SUGGESTED_DOOR],
-        basis: rule(text),
-      }),
-    ),
+    ...DOOR_SIZES,
     within(
       'width',
       w.casingWidth,
@@ -430,3 +449,12 @@ export const CABINET_QUESTIONS = startingQuestions({
     },
   ],
 });
+
+/**
+ * The leg base's and the doors' sizes, by the starting questions' rules, the tenons from the plan's
+ * own boards. A plan from before the doors has none, so it needs only their sizes.
+ */
+export function suggestMissing(params: unknown): Suggestion[] {
+  const { board } = StoredRecordCabinetParams.parse(params);
+  return [...baseSizes(board.source === 'store' ? board.thickness : board.surfaced), ...DOOR_SIZES];
+}

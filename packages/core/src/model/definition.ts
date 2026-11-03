@@ -4,7 +4,7 @@ import type { Plan } from '../outputs/plan.ts';
 import type { StepOutline } from '../steps/build.ts';
 import type { CheckResult } from '../structural/types.ts';
 import type { FieldRef, TemplateForm } from './form.ts';
-import type { StartingQuestions } from './questions.ts';
+import type { StartingQuestions, Suggestion } from './questions.ts';
 import type { StoreReading } from './storeReadings.ts';
 import type { GenerateResult } from './types.ts';
 
@@ -42,6 +42,17 @@ export interface TemplateDefinition<
    */
   ownWords: readonly string[];
   params: z.ZodType<Params>;
+  /**
+   * Reads the parameters of a stored snapshot, after its upgrades. Relaxes only the parameters
+   * that older shapes lack, so no upgrade has to make one up; a template with one shape of
+   * parameters uses `params`.
+   */
+  storedParams: z.ZodType;
+  /**
+   * Suggestions, each with its basis, for the values a plan stored in an older shape lacks, made
+   * from the values it holds. Only the fields the plan lacks are filled.
+   */
+  suggestMissing?(params: unknown, structuralInputs: unknown): Suggestion[];
   /** Structural inputs. Every one is optional: a missing input makes its checks "input needed". */
   structuralInputs: z.ZodType<Inputs>;
   /** How the parameters and structural inputs are entered, for the web app's editor. */
@@ -94,7 +105,9 @@ export interface TemplateDefinition<
   snapshotVersion: number;
   /**
    * `snapshotUpgrades[n]` turns a shape-n snapshot into shape n + 1. Upgrades only restructure
-   * what is stored; they never recompute, so an old plan keeps its numbers.
+   * what is stored; they never recompute, so an old plan keeps its numbers. A parameter or
+   * structural input an upgrade writes is one the plan already held, or a fact true of every plan
+   * of the older shape, such as a feature it never had being off.
    */
   snapshotUpgrades: Readonly<Record<number, SnapshotUpgrade>>;
   /**

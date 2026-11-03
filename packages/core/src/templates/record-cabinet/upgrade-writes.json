@@ -1,0 +1,30 @@
+{
+  "1": [
+    {
+      "path": "params.allowances.flatten",
+      "value": 0,
+      "because": "Plans before template version 2 took nothing off a glued-up panel for flattening."
+    }
+  ],
+  "4": [
+    {
+      "path": "params.board.source",
+      "value": "store",
+      "because": "Every board before template version 5 came from a store, in fixed widths."
+    }
+  ],
+  "6": [
+    { "path": "params.topItem.width", "from": "params.turntable.width" },
+    { "path": "params.topItem.depth", "from": "params.turntable.depth" },
+    { "path": "params.topItem.height", "from": "params.turntable.lidHeight" },
+    { "path": "structuralInputs.topLoad", "from": "structuralInputs.turntableWeight" }
+  ],
+  "7": [{ "path": "params.bayHeight", "from": "outputs.design.geometry.bayHeight" }],
+  "8": [
+    {
+      "path": "params.doors",
+      "value": "none",
+      "because": "No plan before shape 9 has doors."
+    }
+  ]
+}

@@ -101,6 +101,7 @@ export const swingSetAFrame: TemplateDefinition<
     'A backyard swing set for two swings: a beam on two A-frames of splayed legs, buried or on pads.',
   ownWords: ['swing', 'swings', 'crossbar', 'crossbars', 'hanger', 'hangers', 'a-frame', 'cpsc'],
   params: SwingSetParams,
+  storedParams: SwingSetParams,
   structuralInputs: SwingSetStructuralInputs,
   outputs: SwingSetOutputs,
   storedOutputs: StoredSwingSetOutputs,

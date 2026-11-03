@@ -81,7 +81,7 @@ Then the code, README section 3:
 - Version 1 and snapshot shape 1, with `snapshots/v1.json` (README section 5).
 - Board selection (`SELECTION` in the template's parts) lists `'structural'` first for every part that carries load, door frames included; a generic test fails otherwise.
 - Read the face and edge conventions in `packages/core/src/model/types.ts` before placing an operation: `near` is the face at n = 0, `far` at the stock's thickness, and a placement's origin is the part's corner at v = 0, n = 0 with along × across = through. A cut detail shows the far face. For a feature meant to show on the front, such as a finger recess, put it on the far face and orient the placement so the far face points out. #339 shipped tests that passed with the recess on the back face and turned 90°; only looking at the drawing caught it.
-- A new optional feature on an existing template is off in stored plans: its snapshot upgrade sets the switch off and fills the new sizes with their suggested values, so turning it on later starts from suggestions (the doors' upgrade on #339).
+- A new optional feature on an existing template is off in stored plans: its snapshot upgrade sets the switch off, a fact about every older plan, listed in `upgrade-writes.json`. Its new sizes stay missing from stored plans: make them optional in `storedParams` and suggest them in `suggestMissing`, so the editor shows them with their basis if the owner turns the feature on (#429). An upgrade that wrote suggested sizes into stored parameters (the doors' upgrade on #339) left values no one entered with nothing to say Kerf supplied them.
 
 ### Look at the drawings
 

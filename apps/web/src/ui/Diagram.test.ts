@@ -1,7 +1,7 @@
-import { createSnapshot, findTemplate, type geometry, type TemplateDefinition } from '@kerf/core';
+import { createSnapshot, findTemplate, geometry, type TemplateDefinition } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { drawingsFor } from '../test/projects.ts';
-import { placeText } from './Diagram.tsx';
+import { drawingLayout, placeText } from './Diagram.tsx';
 
 // Labels on the cut details, as a phone shows them: a cut detail is drawn no narrower than 560 px
 // and scrolls sideways (Diagrams.tsx), so that is where its text is largest against the part.
@@ -67,4 +67,125 @@ describe('labels on a cut detail at phone width', () => {
       expect(clashes).toEqual([]);
     },
   );
+});
+
+// The record cabinet's elevations and section, laid out as the plan shows them (drawn no narrower
+// than 560 px, Diagrams.tsx): on a phone (375 px, a 343 px column), on paper and at the assumed
+// width (720 px), and on a wide screen (1440 px, the 1200 px content column).
+
+const LETTER = 22;
+const cabinet = findTemplate('record-cabinet') as TemplateDefinition;
+const elevations = cabinet.examples.flatMap((example) => {
+  const made = createSnapshot(cabinet, example.params, example.structuralInputs);
+  if (!made.ok) throw new Error('worked example should generate');
+  const drawings = drawingsFor(JSON.parse(JSON.stringify(made.output)));
+  return (drawings?.elevations ?? []).flatMap((d) =>
+    [343, 720, 1200].map(
+      (width) => [`${example.name}, ${d.title}, ${width} px`, d, width] as const,
+    ),
+  );
+});
+
+function laidOut(d: geometry.Drawing, width: number) {
+  const { u, placed, placedText } = drawingLayout(d, width, { minWidth: 560 });
+  const s = (LETTER * u) / 2;
+  const letters = placed.map((l) => ({
+    letter: l.letter,
+    box: { x0: l.at.x - s, x1: l.at.x + s, y0: l.at.y - s, y1: l.at.y + s },
+    leader: [l.at, l.target] as const,
+  }));
+  const figures = [...placedText.entries()].flatMap(([i, t]) => {
+    const p = d.primitives[i] as Extract<geometry.Primitive, { kind: 'text' }>;
+    return p.role === 'dimension' ? [{ text: p.text, span: p.span, box: t.box }] : [];
+  });
+  const lines = d.primitives.flatMap((p) =>
+    p.kind === 'line' && p.role === 'dimension'
+      ? [p.points as [geometry.Point2, geometry.Point2]]
+      : [],
+  );
+  return { letters, figures, lines };
+}
+
+const edges = (b: Box): [geometry.Point2, geometry.Point2][] => [
+  [
+    { x: b.x0, y: b.y0 },
+    { x: b.x1, y: b.y0 },
+  ],
+  [
+    { x: b.x1, y: b.y0 },
+    { x: b.x1, y: b.y1 },
+  ],
+  [
+    { x: b.x1, y: b.y1 },
+    { x: b.x0, y: b.y1 },
+  ],
+  [
+    { x: b.x0, y: b.y1 },
+    { x: b.x0, y: b.y0 },
+  ],
+];
+
+describe('letters and dimensions on the record cabinet’s elevations', () => {
+  it('has the three drawings of each worked example at three widths to check', () => {
+    expect(elevations).toHaveLength(cabinet.examples.length * 3 * 3);
+  });
+
+  it.each(elevations)('%s: no letter covers a dimension figure', (_, d, width) => {
+    const { letters, figures } = laidOut(d, width);
+    const clashes = letters.flatMap((l) =>
+      figures.flatMap((f) => (crosses(l.box, f.box) ? [`${l.letter} / ${f.text}`] : [])),
+    );
+    expect(clashes).toEqual([]);
+  });
+
+  it.each(elevations)(
+    '%s: no leader crosses another, a dimension line, or a figure',
+    (_, d, width) => {
+      const { letters, figures, lines } = laidOut(d, width);
+      const clashes = letters.flatMap((l, i) => [
+        ...letters
+          .slice(i + 1)
+          .flatMap((m) =>
+            geometry.crosses(...l.leader, ...m.leader) ? [`${l.letter} / ${m.letter}`] : [],
+          ),
+        ...lines.flatMap((line) =>
+          geometry.crosses(...l.leader, ...line) ? [`${l.letter} / line`] : [],
+        ),
+        ...figures.flatMap((f) =>
+          edges(f.box).some((e) => geometry.crosses(...l.leader, ...e))
+            ? [`${l.letter} / ${f.text}`]
+            : [],
+        ),
+      ]);
+      expect(clashes).toEqual([]);
+    },
+  );
+
+  it.each(elevations)(
+    '%s: each figure fits between its extension lines or sits outside them',
+    (_, d, width) => {
+      const { figures } = laidOut(d, width);
+      const between = figures.flatMap((f) => {
+        if (!f.span) return [`${f.text} has no span`];
+        const [a, b] = f.span;
+        const across = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y);
+        const [s0, s1] = across
+          ? [Math.min(a.x, b.x), Math.max(a.x, b.x)]
+          : [Math.min(a.y, b.y), Math.max(a.y, b.y)];
+        const [t0, t1] = across ? [f.box.x0, f.box.x1] : [f.box.y0, f.box.y1];
+        const inside = t0 >= s0 && t1 <= s1;
+        const outside = t1 <= s0 || t0 >= s1;
+        return inside || outside ? [] : [f.text];
+      });
+      expect(between).toEqual([]);
+    },
+  );
+
+  it.each(elevations)('%s: no figure lands on another', (_, d, width) => {
+    const { figures } = laidOut(d, width);
+    const clashes = figures.flatMap((a, i) =>
+      figures.slice(i + 1).flatMap((b) => (crosses(a.box, b.box) ? [`${a.text} / ${b.text}`] : [])),
+    );
+    expect(clashes).toEqual([]);
+  });
 });
