@@ -53,7 +53,7 @@ Register the template in `templates/index.ts`: add its definition to `TEMPLATES`
 | Structural | the template's folder, like `structural.test.ts` | Each computed check against the hand-checked working, and "input needed" when an input is missing |
 | Contract | `templates/contract.test.ts` (runs for every registered template) | Each example's outputs parse with `outputs` and read back unchanged through `storedOutputs` and `readSnapshot`; `ownWords` is set; no verdict words or brands in the outputs, plan, build steps, form, starting questions and what they suggest for `questions.examples`, or store readings (hard rules 2 and 11) |
 | Random parameters | `templates/properties.test.ts` (runs for every registered template) | Every number in `params` has a range; random values inside the schemas either generate or return issues, within a time budget, and never throw (#421) |
-| Snapshot fixtures | the template's `snapshots.test.ts`, and `apps/api/scripts/snapshot-fixtures.test.ts` | Step 5 |
+| Snapshot fixtures | `templates/contract.test.ts` (finds every template's `snapshots/v*.json`), `apps/api/scripts/snapshot-fixtures.test.ts`, and the template's `snapshots.test.ts` for what its own upgrades keep | Step 5 |
 | Generic code | `apps/web/src/generic.test.ts`, `templateFolders.test.ts`, `generation.test.ts` | Step 6 |
 
 Copy each from the swing set and change what is specific. The contract and generic-code tests pick a new template up from `TEMPLATES` without changes.
@@ -65,7 +65,7 @@ Two numbers move independently (decisions 0008 and 0014):
 - **`version`** goes up whenever output for the same parameters changes, a number or anything else stored with it, such as a label or a source. Stored projects keep the version they were made with; the plan screen offers to regenerate.
 - **`snapshotVersion`** goes up whenever the shape of the stored snapshot changes: a field added, removed, renamed, or restructured. Add an upgrade from the previous shape to `snapshotUpgrades`; it restructures only and never recomputes, so an old plan keeps its numbers.
 
-Every template version has a fixture: `snapshots/v<version>.json`, its worked examples as stored. After setting or bumping the version, write it with `pnpm --filter @kerf/api write-snapshot-fixture <template-id>`, import it in the template's `snapshots.test.ts`, and pin the previous version's fixture by its hash in `apps/api/scripts/snapshot-fixtures.test.ts`. A fixture is never rewritten. A new template starts at version 1 and shape 1 with one fixture, `v1.json`. Each later version also gets a test in the template's `versions.test.ts` saying what it changed.
+Every template version has a fixture: `snapshots/v<version>.json`, its worked examples as stored. After setting or bumping the version, write it with `pnpm --filter @kerf/api write-snapshot-fixture <template-id>` and pin the previous version's fixture by its hash in `apps/api/scripts/snapshot-fixtures.test.ts`. `contract.test.ts` reads every fixture it finds: one per version and per shape, an upgrade between shapes, every fixture readable with its template version kept, the current one read back exactly and regenerated exactly. A fixture is never rewritten. A new template starts at version 1 and shape 1 with one fixture, `v1.json`. Each later version also gets a test in the template's `versions.test.ts` saying what it changed.
 
 ## 6. Keep generic code generic
 

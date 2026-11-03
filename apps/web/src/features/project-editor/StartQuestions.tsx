@@ -12,7 +12,6 @@ import {
 import { type FormEvent, type ReactNode, useState } from 'react';
 import type { FieldIssue } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
-import { leaveGate } from '../../lib/leave.ts';
 import { href } from '../../lib/route.ts';
 import {
   Button,
@@ -27,6 +26,7 @@ import {
   useDraft,
   useFormIssues,
 } from '../../ui/index.ts';
+import { leaveGate } from '../../ui/leave.ts';
 import { type FormIssues, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 
 // A new project started from a few plain questions (#163). The template asks them as form data

@@ -29,8 +29,8 @@ Read `PRODUCT.md` and `DOMAIN.md` first. Decisions behind the choices here are r
  └────────┬─────────┘
           │
  ┌────────▼─────────┐
- │     Postgres     │  projects, tools, sessions, login failures
- └──────────────────┘
+ │     Postgres     │  projects, project history, project progress,
+ └──────────────────┘  tools, sessions, login failures
 ```
 
 The web app also imports `packages/core` for types, parameter schemas (to validate forms before submitting), a plan's tables from stored outputs, and display formatting. It shows the snapshot and drawings the API returns and never generates them: no call to `createSnapshot`, to a template's `generate`, `drawings`, `assembly` or `steps`, or to a core function that reaches them (`generation.test.ts`). The design system catalog reads its sample from a committed file, `ui/catalog-sample.json`, written by the API's `write-catalog-sample` script and checked against core by a test. The template definitions still carry the generation code into the web bundle; it is a small share of the main chunk, so core's exports are not split for it.
@@ -62,8 +62,10 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │           │                 # diagrams/, build-steps/, structural/, glossary/, inventory/,
 │           │                 # login/
 │           ├── ui/           # The design system: tokens, layout primitives, components,
-│           │                 # icons, fonts, and the catalog page (docs/design/system.md)
-│           ├── lib/          # API client, routes, display helpers
+│           │                 # icons, fonts, and the catalog page (docs/design/system.md);
+│           │                 # imports nothing from lib/ or features/ (ui/layers.test.ts)
+│           ├── lib/          # API client, routes, display helpers, and the components that
+│           │                 # join ui/ to them (Loaded, ErrorBoundary, FieldInput)
 │           └── main.tsx
 ├── packages/
 │   └── core/
@@ -92,36 +94,38 @@ Pure TypeScript. No I/O, no framework dependencies, no clock or randomness. The 
 
 ### Template contract (sketch)
 
-```ts
-interface Template<P> {
-  id: string;                   // 'swing-set-a-frame'
-  version: number;              // bumped when output for the same parameters changes (0008)
-  ownWords: string[];           // words only its folder may use, such as its parts' names, even in identifiers
-  params: z.ZodType<P>;         // types, ranges, defaults
-  outputs: z.ZodType<O>;        // what generate makes now: every field generic code reads, required;
-                                // a part's lists default to empty and are stored only when not
-  storedOutputs: z.ZodType<S>;  // reads a stored snapshot after its upgrades (0014); relaxes only
-                                // the fields older shapes lack
-  validate(p: P): Issue[];      // combinations: contradictory or out-of-range values
-  form: TemplateForm;           // how parameters and structural inputs are entered (data)
-  plan(o: Stored): Plan;        // outputs in the shape every display shares; picks and fills in
-                                // what an older snapshot lacks, never computes
-  drawings(o: Stored): Drawings; // 2D primitives drawn from stored outputs; not stored (#90)
-  assembly(o: Stored): { scene; view; explode } | null; // what the 3D views draw from, as data (#118)
-  generate(p: P): TemplateOutput;
-  questions?: StartingQuestions; // a few plain questions and a pure answers-to-parameters function (#163)
-  storeReadings?: StoreReading[]; // fields read at the store, and the shopping lines they sit beside (#390)
-}
+`model/definition.ts` is the source of truth; this leaves out the comments.
 
-interface TemplateOutput {
-  parts: Part[];                // DOMAIN.md data model
-  hardware: HardwareItem[];
-  operations: Operation[];      // cuts and bolt holes made generically from parts and hardware (model/operations.ts); easing, site work
-  placements: Placement[];      // each part instance's local frame in 3D: origin and axes (DOMAIN.md, Geometry)
-  structuralModel: StructuralModel; // members, supports, loads, load cases, checklist items
-  layout: SiteLayout;           // footprint and clearance zones
+```ts
+interface TemplateDefinition<Params, Inputs, StoredOutputs, Outputs extends StoredOutputs> {
+  id: string;                     // 'swing-set-a-frame'
+  version: number;                // bumped when output for the same parameters changes (0008)
+  name: string;
+  description: string;            // one sentence, for choosing a template (#357)
+  ownWords: readonly string[];    // words only its folder may use, even in identifiers
+  params: z.ZodType<Params>;      // types and ranges
+  structuralInputs: z.ZodType<Inputs>; // every one optional: missing means "input needed"
+  form: TemplateForm;             // how parameters and structural inputs are entered (data)
+  outputs: z.ZodType<Outputs>;    // what generate makes now: every field generic code reads,
+                                  // required; a part's lists default to empty
+  storedOutputs: z.ZodType<StoredOutputs>; // reads a stored snapshot after its upgrades (0014);
+                                  // relaxes only the fields older shapes lack
+  plan(o: StoredOutputs): Plan;   // outputs in the shape every display shares; picks and fills
+                                  // in what an older snapshot lacks, never computes
+  drawings(o: StoredOutputs): Drawings; // 2D primitives drawn from stored outputs; not stored (#90)
+  assembly(o: StoredOutputs): { scene; view; explode } | null; // what the 3D views draw from (#118)
+  steps(o: StoredOutputs): StepOutline[]; // the build steps' order, as operation IDs (#105)
+  generate(p: Params, i: Inputs): GenerateResult<Outputs>; // pure; issues for contradictory
+                                  // or out-of-range combinations
+  snapshotVersion: number;        // the stored shape (0014)
+  snapshotUpgrades: Record<number, SnapshotUpgrade>; // shape n to n + 1, restructuring only
+  examples: { name; start?; params; structuralInputs }[]; // worked examples, and the fixtures'
+  questions?: StartingQuestions;  // a few plain questions and a pure answers-to-values function (#163)
+  storeReadings?: StoreReading[]; // fields read at the store, beside their shopping lines (#390)
 }
 ```
+
+Each template's outputs are its own shape. Generic code reads them only through `plan`, `drawings`, `assembly`, and `steps`, and the shared output types in `model/types.ts` (parts, end cuts, holes, hardware, operations, placements, flags, checklist items) that a template's outputs are built from.
 
 ### Generation pipeline
 
@@ -187,7 +191,7 @@ The preference order is the order of `METHODS` in `knowledge/methods.ts`, where 
 | `GET /api/projects/:id/progress` | What has been ticked off (#57): `ticks`, each with its kind, key, and the time the server saved it |
 | `PATCH /api/projects/:id/progress` | Set and clear ticks: `{ revision, changes: [{ kind, key, done }] }`. Ticks made on an older revision of the plan are refused with 409 `stale-project`, and nothing saved (0018). Safe to send again: ticking a done item keeps its first time, and clearing one that is not done does nothing, so a client can retry writes queued through a dropped connection. A tick on an item the stored plan lacks is refused with 422 `unknown-progress`, naming the items, and nothing in the request is saved. Answers `ticks` and `status`: status follows progress (#61), moving a Planned project to In progress at its first tick in Shopping or Building and to Built when a write finishes the last step (a tick in the structural review moves nothing, #393); it never moves back, and can still be set by hand (from the project's Edit screen, #355) |
 | `DELETE /api/projects/:id` | Move a project to the trash, with its history and progress (204). Every other project route then answers 404 for it |
-| `GET /api/trash` | Projects in the trash, most recently deleted first, each with `deletedAt` and `purgeAt` (30 days later). Reading it or the project list first purges anything past that |
+| `GET /api/trash` | Projects in the trash, most recently deleted first, each with `deletedAt` and `purgeAt` (30 days later). Reading it or the project list first purges anything past that: a delete inside a GET, on purpose, so no scheduled job is needed (#21). It deletes only what no route shows any more, so a repeated read changes nothing the owner can see |
 | `POST /api/trash/:id/restore` | Take a project out of the trash, as it was (204) |
 | `DELETE /api/trash/:id` | Delete a project in the trash for good, with its history and progress rows (204) |
 | `GET /api/export` | Every project not in the trash, as stored, with its ticks, and the tool list, as a streamed JSON download (`kerf-YYYY-MM-DD.json`) with `formatVersion` |
@@ -248,7 +252,7 @@ There are no scheduled backups. Neon's free plan restores only the last 6 hours,
 4. Check a dump by restoring it into the local Docker database. This replaces the local development data: `pg_restore -d postgres://kerf:kerf@localhost:5432/kerf --clean --if-exists --no-owner ~/Backups/kerf-<date>.dump`
 5. To restore production, run the same `pg_restore` against `"$NEON_URL"`. Every session is gone afterwards, so log in again. If the mistake happened within the last 6 hours, Neon's own restore in the console is simpler.
 
-Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty database brought back every row of the other tables, plus the Drizzle migration history, and left `sessions` and `login_attempts` empty.
+Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty database brought back every row of the other tables, plus the Drizzle migration history, and left `sessions` and `login_failures` empty.
 
 #### First deploy (the owner's steps; they need accounts)
 
@@ -287,7 +291,7 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 | Area | What tests must cover |
 |---|---|
 | `units/` | Fraction rounding at every 1/32 boundary, feet-inches display, angle convention conversions |
-| `templates/` | Hand-checked worked examples; fit tests (`DOMAIN.md`, Verification); validation of contradictory parameters; a version-bump test listing changed outputs; every template's examples parse with its strict `outputs` and read back unchanged, and no text a template gives the reader has verdict words or brands (`contract.test.ts`); every stored fixture's plan fills in what generic code reads |
+| `templates/` | Hand-checked worked examples; fit tests (`DOMAIN.md`, Verification); validation of contradictory parameters; a version-bump test listing changed outputs; every template's examples parse with its strict `outputs` and read back unchanged, and no text a template gives the reader has verdict words or brands (`contract.test.ts`); every template's snapshot fixtures, found by glob, cover each version and shape, read through the upgrades, regenerate exactly at the current version, and give plans that fill in what generic code reads (`contract.test.ts`, 0014) |
 | `structural/` | Hand-checked worked examples for each check, including the symmetric hand-check cases and an asymmetric case; missing inputs produce "input needed" |
 | `outputs/` | Board grouping including kerf and trim; nothing silently dropped when a part is longer than any buyable length |
 | `knowledge/`, `design-values/` | Every entry parses; every reference resolves; every design value has a source |

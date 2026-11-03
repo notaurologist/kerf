@@ -15,8 +15,9 @@ import {
 import type { ServiceConditions } from '../../structural/factors.ts';
 import {
   CheckResult,
-  type MissingInput,
+  mapNeeded,
   type Needed,
+  need,
   type Quantity,
 } from '../../structural/types.ts';
 import { formatLength } from '../../units/length.ts';
@@ -75,23 +76,6 @@ export const STRUCTURAL_INPUT_LABELS = {
   deflectionLimit: 'Deflection limit (span divided by)',
   hangerRating: 'Swing hanger rated working load',
 } as const satisfies Record<keyof SwingSetStructuralInputs, string>;
-
-type Key = keyof SwingSetStructuralInputs;
-
-function need<K extends Key>(
-  inputs: SwingSetStructuralInputs,
-  ...keys: K[]
-): Needed<{ [P in K]: NonNullable<SwingSetStructuralInputs[P]> }> {
-  const missing: MissingInput[] = keys
-    .filter((k) => inputs[k] === undefined)
-    .map((k) => ({ key: k, label: STRUCTURAL_INPUT_LABELS[k] }));
-  if (missing.length > 0) return { missing };
-  return { value: inputs as { [P in K]: NonNullable<SwingSetStructuralInputs[P]> } };
-}
-
-function mapNeeded<T, U>(n: Needed<T>, f: (value: T) => U): Needed<U> {
-  return 'value' in n ? { value: f(n.value) } : n;
-}
 
 function combine<A, B, U>(a: Needed<A>, b: Needed<B>, f: (a: A, b: B) => U): Needed<U> {
   if ('value' in a && 'value' in b) return { value: f(a.value, b.value) };
@@ -248,8 +232,9 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
   const [x0, x1] = output.geometry.supportsX;
   const hangersX = output.swings.hangersX;
 
-  const swing = mapNeeded(need(inputs, 'riderWeights', 'maxSwingAngle'), (v) =>
-    swingLoads(v.riderWeights, v.maxSwingAngle),
+  const swing = mapNeeded(
+    need(inputs, STRUCTURAL_INPUT_LABELS, 'riderWeights', 'maxSwingAngle'),
+    (v) => swingLoads(v.riderWeights, v.maxSwingAngle),
   );
   // Applied by the strength checks to the swing loads only, which also report the factor at which
   // their margin reaches 1.0 (#401).
@@ -258,45 +243,51 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
     symbol: 'C_dyn',
     label: STRUCTURAL_INPUT_LABELS.dynamicFactor,
     basis: 'Entered',
-    value: mapNeeded(need(inputs, 'dynamicFactor'), (v) => v.dynamicFactor),
+    value: mapNeeded(
+      need(inputs, STRUCTURAL_INPUT_LABELS, 'dynamicFactor'),
+      (v) => v.dynamicFactor,
+    ),
   };
 
   // The beam's own weight, from its density at the entered moisture content. With no design values
   // for the size there is no G either; the beam checks then report that.
-  const beamWeight = mapNeeded(need(inputs, 'beamSpeciesGrade', 'beamMoistureContent'), (v) => {
-    const row = referenceRow(v.beamSpeciesGrade, p.beamStock);
-    if (!row) return null;
-    const density = woodDensity(row.values.G, v.beamMoistureContent);
-    const area = p.beamPlies * beam.thickness * beam.width;
-    const w = (density * area) / 1728;
-    const working: Quantity[] = [
-      {
-        symbol: 'MC',
-        label: 'Beam moisture content',
-        value: v.beamMoistureContent,
-        unit: '%',
-        basis: 'Entered',
-      },
-      {
-        symbol: 'G',
-        label: 'Specific gravity, oven-dry',
-        value: row.values.G,
-        unit: '',
-        basis: `Table 4B, ${row.label}`,
-        sources: speciesGrade(v.beamSpeciesGrade).sources,
-      },
-      {
-        symbol: 'ρ',
-        label: 'Beam density at that moisture content',
-        value: density,
-        unit: 'lb/ft³',
-        sources: DENSITY_SOURCES,
-      },
-      { symbol: 'A', label: 'Beam cross-section, all plies', value: area, unit: 'in²' },
-      { symbol: 'w', label: 'Beam weight, ρ·A / 1728', value: w, unit: 'lb/in' },
-    ];
-    return { w, working };
-  });
+  const beamWeight = mapNeeded(
+    need(inputs, STRUCTURAL_INPUT_LABELS, 'beamSpeciesGrade', 'beamMoistureContent'),
+    (v) => {
+      const row = referenceRow(v.beamSpeciesGrade, p.beamStock);
+      if (!row) return null;
+      const density = woodDensity(row.values.G, v.beamMoistureContent);
+      const area = p.beamPlies * beam.thickness * beam.width;
+      const w = (density * area) / 1728;
+      const working: Quantity[] = [
+        {
+          symbol: 'MC',
+          label: 'Beam moisture content',
+          value: v.beamMoistureContent,
+          unit: '%',
+          basis: 'Entered',
+        },
+        {
+          symbol: 'G',
+          label: 'Specific gravity, oven-dry',
+          value: row.values.G,
+          unit: '',
+          basis: `Table 4B, ${row.label}`,
+          sources: speciesGrade(v.beamSpeciesGrade).sources,
+        },
+        {
+          symbol: 'ρ',
+          label: 'Beam density at that moisture content',
+          value: density,
+          unit: 'lb/ft³',
+          sources: DENSITY_SOURCES,
+        },
+        { symbol: 'A', label: 'Beam cross-section, all plies', value: area, unit: 'in²' },
+        { symbol: 'w', label: 'Beam weight, ρ·A / 1728', value: w, unit: 'lb/in' },
+      ];
+      return { w, working };
+    },
+  );
   const withWeight = <T extends { perHanger: number[]; working: Quantity[] }>(l: Needed<T>) =>
     combine(l, beamWeight, (loads, weight) => ({
       points: pointLoads(hangersX, loads.perHanger),
@@ -323,7 +314,10 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
       ...SWING_ASSUMPTIONS,
       'Deflection describes normal use, so the dynamic factor is not applied.',
     ],
-    limitRatio: mapNeeded(need(inputs, 'deflectionLimit'), (v) => v.deflectionLimit),
+    limitRatio: mapNeeded(
+      need(inputs, STRUCTURAL_INPUT_LABELS, 'deflectionLimit'),
+      (v) => v.deflectionLimit,
+    ),
   };
 
   const beamResult = beamChecks({
@@ -340,10 +334,13 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
       supportsX: [x0, x1],
       unbracedLength: x1 - x0,
     },
-    material: mapNeeded(need(inputs, 'beamSpeciesGrade', 'beamIncised'), (v) => ({
-      speciesGrade: v.beamSpeciesGrade,
-      incised: v.beamIncised,
-    })),
+    material: mapNeeded(
+      need(inputs, STRUCTURAL_INPUT_LABELS, 'beamSpeciesGrade', 'beamIncised'),
+      (v) => ({
+        speciesGrade: v.beamSpeciesGrade,
+        incised: v.beamIncised,
+      }),
+    ),
     conditions: BEAM_CONDITIONS,
     strength,
     deflection,
@@ -374,7 +371,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
       };
     }),
     factor: dynamicFactor,
-    rating: mapNeeded(need(inputs, 'hangerRating'), (v) => v.hangerRating),
+    rating: mapNeeded(need(inputs, STRUCTURAL_INPUT_LABELS, 'hangerRating'), (v) => v.hangerRating),
   });
 
   return { ok: true, review: { inputs, beam: beamResult, hanger, checklist: checklist(output) } };

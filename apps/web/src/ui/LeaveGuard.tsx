@@ -1,7 +1,7 @@
 import { type SetStateAction, useEffect, useState } from 'react';
-import { leaveGate } from '../lib/leave.ts';
-import { sameJson } from '../lib/sameJson.ts';
 import { ConfirmDialog } from './Dialog.tsx';
+import { leaveGate } from './leave.ts';
+import { sameJson } from './sameJson.ts';
 
 /**
  * Every form holds its values here, so it cannot have unsaved changes without the guard. Render

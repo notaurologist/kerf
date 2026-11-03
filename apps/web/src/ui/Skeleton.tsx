@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useState } from 'react';
-import { HOLD_MS, moving } from '../lib/moves.ts';
+import { HOLD_MS, moving } from './motion.ts';
 
 // A screen waiting for its data (Stage 9, #266): blocks in the shape of what is coming, as NN/g
 // advises for a full screen's wait, never the frame alone. A move holds the old screen for the
