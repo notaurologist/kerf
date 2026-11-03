@@ -70,9 +70,10 @@ export function BuildSteps(props: {
 }
 
 /**
- * One step's board or parts, flags, and operations with their methods: in the plan's list, and
- * one at a time in Building (#61). Each piece links to its cut card in Building, or to its cut
- * detail in the plan's drawings (`pieceHref`); with nowhere to go, it is its name.
+ * One step's board or parts, flags, the template's notes, and operations with their methods: in
+ * the plan's list, and one at a time in Building (#61). Each piece links to its cut card in
+ * Building, or to its cut detail in the plan's drawings (`pieceHref`); with nowhere to go, it is
+ * its name.
  */
 export function StepBody(props: {
   step: BuildStep;
@@ -104,6 +105,7 @@ export function StepBody(props: {
             <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
           )}
       <FlagList flags={step.flags} />
+      {step.notes && <List items={step.notes} terms />}
       <MissingTools ops={step.operations} partName={partName} />
       <Rows as="ul">
         {groupOperations(step.operations).map((group) => (

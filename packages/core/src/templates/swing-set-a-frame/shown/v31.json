@@ -562,6 +562,20 @@
             "crossbar-bolts",
             "gusset-bolts"
           ]
+        },
+        {
+          "category": "load-bearing",
+          "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+          "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "beam"
+          ],
+          "hardwareIds": [
+            "leg-beam-bolts"
+          ],
+          "step": "raise"
         }
       ],
       "checks": [
@@ -3189,6 +3203,76 @@
           ],
           "holeDiameter": 0.5625,
           "depth": 5.5
+        },
+        {
+          "id": "frames/raise",
+          "count": 2,
+          "type": "raise",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "crossbar",
+            "gusset"
+          ],
+          "height": 101.5
+        },
+        {
+          "id": "site/backfill",
+          "count": 4,
+          "type": "backfill",
+          "depth": 24
+        },
+        {
+          "id": "leg-beam-bolts/tighten",
+          "count": 2,
+          "type": "tighten-bolts",
+          "hardwareId": "leg-beam-bolts",
+          "partIds": [
+            "beam",
+            "leg-back",
+            "leg-front"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "crossbar-bolts/tighten",
+          "count": 8,
+          "type": "tighten-bolts",
+          "hardwareId": "crossbar-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "crossbar"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "gusset-bolts/tighten",
+          "count": 8,
+          "type": "tighten-bolts",
+          "hardwareId": "gusset-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "gusset"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "hanger-bolts/tighten",
+          "count": 4,
+          "type": "tighten-bolts",
+          "hardwareId": "hanger-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "swings/hang",
+          "count": 2,
+          "type": "hang",
+          "height": 16
         }
       ],
       "cutEnds": [
@@ -3325,6 +3409,16 @@
         ]
       },
       {
+        "id": "raise",
+        "title": "Stand the frames up and brace them",
+        "operationIds": [
+          "frames/raise"
+        ],
+        "categories": [
+          "load-bearing"
+        ]
+      },
+      {
         "id": "beam",
         "title": "Bolt the beam between the leg tops",
         "operationIds": [
@@ -3334,6 +3428,51 @@
         "categories": [
           "load-bearing",
           "dynamic-loads"
+        ]
+      },
+      {
+        "id": "set",
+        "title": "Plumb the frames and backfill the leg holes",
+        "operationIds": [
+          "site/backfill"
+        ],
+        "categories": [
+          "load-bearing"
+        ]
+      },
+      {
+        "id": "tighten",
+        "title": "Tighten every bolt and cap its end",
+        "operationIds": [
+          "leg-beam-bolts/tighten",
+          "crossbar-bolts/tighten",
+          "gusset-bolts/tighten",
+          "hanger-bolts/tighten"
+        ],
+        "categories": [
+          "load-bearing"
+        ],
+        "notes": [
+          "Tighten all connections, with a locking nut on every bolt (CPSC Pub. 324, pp. 3 and 4).",
+          "Cap every exposed bolt end. A bolt should stand no more than its own diameter past the nut (CPSC Pub. 324, p. 3).",
+          "Check the nuts and bolts twice a month, tighten them as needed, and check that the caps are in place (CPSC Pub. 324, p. 5)."
+        ]
+      },
+      {
+        "id": "hang",
+        "title": "Hang the swings",
+        "operationIds": [
+          "swings/hang"
+        ],
+        "categories": [
+          "dynamic-loads"
+        ],
+        "notes": [
+          "Close S-hooks and all other hooks to a gap less than the thickness of a dime. An open hook is acceptable only at the uppermost attachment (CPSC Pub. 324, p. 3).",
+          "Use lightweight seats, not heavy metal or wood ones (CPSC Pub. 324, p. 4).",
+          "Leave at least 8 inches between the surfacing and the underside of each seat (CPSC Pub. 324, p. 5).",
+          "Do not hang a seat on rope that can untwist or separate (CPSC Pub. 324, p. 8).",
+          "Check the seats and chains monthly, and replace them as they wear (CPSC Pub. 324, p. 5)."
         ]
       }
     ],
@@ -7717,6 +7856,94 @@
             ]
           },
           {
+            "id": "raise",
+            "title": "Stand the frames up and brace them",
+            "operations": [
+              {
+                "operation": {
+                  "id": "frames/raise",
+                  "count": 2,
+                  "type": "raise",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar",
+                    "gusset"
+                  ],
+                  "height": 101.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar",
+                  "gusset"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "raise-screwed-braces",
+                    "methodName": "Braced with boards screwed on",
+                    "gaps": [
+                      {
+                        "use": "screwing the braces on",
+                        "anyOf": [
+                          "Drill/driver",
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "raise-clamped-braces",
+                    "methodName": "Braced with boards clamped on",
+                    "gaps": [
+                      {
+                        "use": "holding the braces to the assembly",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+                "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).",
+                "sources": []
+              },
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -7978,6 +8205,404 @@
                   }
                 ]
               }
+            ]
+          },
+          {
+            "id": "set",
+            "title": "Plumb the frames and backfill the leg holes",
+            "operations": [
+              {
+                "operation": {
+                  "id": "site/backfill",
+                  "count": 4,
+                  "type": "backfill",
+                  "depth": 24
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "backfill-shovel-handle",
+                    "methodName": "Tamped with a shovel handle",
+                    "gaps": [
+                      {
+                        "use": "filling the hole, and tamping with the end of its handle",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "backfill-tamper",
+                    "methodName": "Tamped with a tamper",
+                    "gaps": [
+                      {
+                        "use": "filling the hole",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      },
+                      {
+                        "use": "tamping each layer",
+                        "anyOf": [
+                          "Tamper"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
+            "id": "tighten",
+            "title": "Tighten every bolt and cap its end",
+            "operations": [
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/tighten",
+                  "count": 2,
+                  "type": "tighten-bolts",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/tighten",
+                  "count": 4,
+                  "type": "tighten-bolts",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ],
+            "notes": [
+              "Tighten all connections, with a locking nut on every bolt (CPSC Pub. 324, pp. 3 and 4).",
+              "Cap every exposed bolt end. A bolt should stand no more than its own diameter past the nut (CPSC Pub. 324, p. 3).",
+              "Check the nuts and bolts twice a month, tighten them as needed, and check that the caps are in place (CPSC Pub. 324, p. 5)."
+            ]
+          },
+          {
+            "id": "hang",
+            "title": "Hang the swings",
+            "operations": [
+              {
+                "operation": {
+                  "id": "swings/hang",
+                  "count": 2,
+                  "type": "hang",
+                  "height": 16
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "hang-quick-links",
+                    "methodName": "On quick links",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "snugging each link shut",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "hang-closed-hooks",
+                    "methodName": "On hooks closed with pliers",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "closing each hook",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Close S-hooks and all other hooks to a gap less than the thickness of a dime. An open hook is acceptable only at the uppermost attachment (CPSC Pub. 324, p. 3).",
+              "Use lightweight seats, not heavy metal or wood ones (CPSC Pub. 324, p. 4).",
+              "Leave at least 8 inches between the surfacing and the underside of each seat (CPSC Pub. 324, p. 5).",
+              "Do not hang a seat on rope that can untwist or separate (CPSC Pub. 324, p. 8).",
+              "Check the seats and chains monthly, and replace them as they wear (CPSC Pub. 324, p. 5)."
             ]
           }
         ]
@@ -11051,6 +11676,107 @@
             ]
           },
           {
+            "id": "raise",
+            "title": "Stand the frames up and brace them",
+            "operations": [
+              {
+                "operation": {
+                  "id": "frames/raise",
+                  "count": 2,
+                  "type": "raise",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar",
+                    "gusset"
+                  ],
+                  "height": 101.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar",
+                  "gusset"
+                ],
+                "method": {
+                  "id": "raise-screwed-braces",
+                  "name": "Braced with boards screwed on",
+                  "tools": [
+                    {
+                      "use": "screwing the braces on",
+                      "toolTypeId": "drill-driver"
+                    },
+                    {
+                      "use": "checking plumb",
+                      "toolTypeId": "level"
+                    }
+                  ],
+                  "setup": [
+                    "Have two long, straight boards ready as temporary braces for each assembly, and drive a stake for each where its brace will reach the ground.",
+                    "Line up enough helpers to hold the assembly at every point, and agree who calls each lift.",
+                    "Keep everyone else clear of where the assembly would land if it fell: once up, it reaches 101-1/2\" above the ground."
+                  ],
+                  "technique": [
+                    "Lift the assembly together and walk it up until its feet sit where the plan places them.",
+                    "Hold it upright while one person checks it plumb with the level on two faces.",
+                    "Screw a brace from the assembly to each stake, checking plumb again before the last screw in each.",
+                    "Raise 2 this way."
+                  ],
+                  "mistakes": [
+                    "Letting go before the braces are on lets the assembly fall. Keep hands on it until both braces are screwed tight.",
+                    "A brace fixed while the assembly leans holds it leaning. Check plumb before the last screw in each brace."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Lift with two or more people, and agree before each lift who calls it, so everyone lifts and sets down together. OSHA asks for two or more people on a heavy load.",
+                      "sources": [
+                        {
+                          "source": "osha-etool-heavy-lifting",
+                          "locator": "Heavy Lifting: possible solutions"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Wear safety glasses or goggles while the tool runs. It can throw chips, splinters, and dust toward your face.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Purpose, p. 1, and Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "raise-and-brace"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+                "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).",
+                "sources": []
+              },
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -11295,6 +12021,380 @@
                   }
                 ]
               }
+            ]
+          },
+          {
+            "id": "set",
+            "title": "Plumb the frames and backfill the leg holes",
+            "operations": [
+              {
+                "operation": {
+                  "id": "site/backfill",
+                  "count": 4,
+                  "type": "backfill",
+                  "depth": 24
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "backfill-shovel-handle",
+                    "methodName": "Tamped with a shovel handle",
+                    "gaps": [
+                      {
+                        "use": "filling the hole, and tamping with the end of its handle",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "backfill-tamper",
+                    "methodName": "Tamped with a tamper",
+                    "gaps": [
+                      {
+                        "use": "filling the hole",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      },
+                      {
+                        "use": "tamping each layer",
+                        "anyOf": [
+                          "Tamper"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
+            "id": "tighten",
+            "title": "Tighten every bolt and cap its end",
+            "operations": [
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/tighten",
+                  "count": 2,
+                  "type": "tighten-bolts",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/tighten",
+                  "count": 4,
+                  "type": "tighten-bolts",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ],
+            "notes": [
+              "Tighten all connections, with a locking nut on every bolt (CPSC Pub. 324, pp. 3 and 4).",
+              "Cap every exposed bolt end. A bolt should stand no more than its own diameter past the nut (CPSC Pub. 324, p. 3).",
+              "Check the nuts and bolts twice a month, tighten them as needed, and check that the caps are in place (CPSC Pub. 324, p. 5)."
+            ]
+          },
+          {
+            "id": "hang",
+            "title": "Hang the swings",
+            "operations": [
+              {
+                "operation": {
+                  "id": "swings/hang",
+                  "count": 2,
+                  "type": "hang",
+                  "height": 16
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "hang-quick-links",
+                    "methodName": "On quick links",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "snugging each link shut",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "hang-closed-hooks",
+                    "methodName": "On hooks closed with pliers",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "closing each hook",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Close S-hooks and all other hooks to a gap less than the thickness of a dime. An open hook is acceptable only at the uppermost attachment (CPSC Pub. 324, p. 3).",
+              "Use lightweight seats, not heavy metal or wood ones (CPSC Pub. 324, p. 4).",
+              "Leave at least 8 inches between the surfacing and the underside of each seat (CPSC Pub. 324, p. 5).",
+              "Do not hang a seat on rope that can untwist or separate (CPSC Pub. 324, p. 8).",
+              "Check the seats and chains monthly, and replace them as they wear (CPSC Pub. 324, p. 5)."
             ]
           }
         ]
@@ -11982,6 +13082,20 @@
             "crossbar-bolts",
             "gusset-bolts"
           ]
+        },
+        {
+          "category": "load-bearing",
+          "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+          "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "beam"
+          ],
+          "hardwareIds": [
+            "leg-beam-bolts"
+          ],
+          "step": "raise"
         }
       ],
       "checks": [
@@ -12991,6 +14105,76 @@
           ],
           "holeDiameter": 0.5625,
           "depth": 5.5
+        },
+        {
+          "id": "frames/raise",
+          "count": 2,
+          "type": "raise",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "crossbar",
+            "gusset"
+          ],
+          "height": 101.5
+        },
+        {
+          "id": "site/backfill",
+          "count": 4,
+          "type": "backfill",
+          "depth": 24
+        },
+        {
+          "id": "leg-beam-bolts/tighten",
+          "count": 2,
+          "type": "tighten-bolts",
+          "hardwareId": "leg-beam-bolts",
+          "partIds": [
+            "beam",
+            "leg-back",
+            "leg-front"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "crossbar-bolts/tighten",
+          "count": 8,
+          "type": "tighten-bolts",
+          "hardwareId": "crossbar-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "crossbar"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "gusset-bolts/tighten",
+          "count": 8,
+          "type": "tighten-bolts",
+          "hardwareId": "gusset-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "gusset"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "hanger-bolts/tighten",
+          "count": 4,
+          "type": "tighten-bolts",
+          "hardwareId": "hanger-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "swings/hang",
+          "count": 2,
+          "type": "hang",
+          "height": 16
         }
       ],
       "cutEnds": [
@@ -13127,6 +14311,16 @@
         ]
       },
       {
+        "id": "raise",
+        "title": "Stand the frames up and brace them",
+        "operationIds": [
+          "frames/raise"
+        ],
+        "categories": [
+          "load-bearing"
+        ]
+      },
+      {
         "id": "beam",
         "title": "Bolt the beam between the leg tops",
         "operationIds": [
@@ -13136,6 +14330,51 @@
         "categories": [
           "load-bearing",
           "dynamic-loads"
+        ]
+      },
+      {
+        "id": "set",
+        "title": "Plumb the frames and backfill the leg holes",
+        "operationIds": [
+          "site/backfill"
+        ],
+        "categories": [
+          "load-bearing"
+        ]
+      },
+      {
+        "id": "tighten",
+        "title": "Tighten every bolt and cap its end",
+        "operationIds": [
+          "leg-beam-bolts/tighten",
+          "crossbar-bolts/tighten",
+          "gusset-bolts/tighten",
+          "hanger-bolts/tighten"
+        ],
+        "categories": [
+          "load-bearing"
+        ],
+        "notes": [
+          "Tighten all connections, with a locking nut on every bolt (CPSC Pub. 324, pp. 3 and 4).",
+          "Cap every exposed bolt end. A bolt should stand no more than its own diameter past the nut (CPSC Pub. 324, p. 3).",
+          "Check the nuts and bolts twice a month, tighten them as needed, and check that the caps are in place (CPSC Pub. 324, p. 5)."
+        ]
+      },
+      {
+        "id": "hang",
+        "title": "Hang the swings",
+        "operationIds": [
+          "swings/hang"
+        ],
+        "categories": [
+          "dynamic-loads"
+        ],
+        "notes": [
+          "Close S-hooks and all other hooks to a gap less than the thickness of a dime. An open hook is acceptable only at the uppermost attachment (CPSC Pub. 324, p. 3).",
+          "Use lightweight seats, not heavy metal or wood ones (CPSC Pub. 324, p. 4).",
+          "Leave at least 8 inches between the surfacing and the underside of each seat (CPSC Pub. 324, p. 5).",
+          "Do not hang a seat on rope that can untwist or separate (CPSC Pub. 324, p. 8).",
+          "Check the seats and chains monthly, and replace them as they wear (CPSC Pub. 324, p. 5)."
         ]
       }
     ],
@@ -17519,6 +18758,94 @@
             ]
           },
           {
+            "id": "raise",
+            "title": "Stand the frames up and brace them",
+            "operations": [
+              {
+                "operation": {
+                  "id": "frames/raise",
+                  "count": 2,
+                  "type": "raise",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar",
+                    "gusset"
+                  ],
+                  "height": 101.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar",
+                  "gusset"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "raise-screwed-braces",
+                    "methodName": "Braced with boards screwed on",
+                    "gaps": [
+                      {
+                        "use": "screwing the braces on",
+                        "anyOf": [
+                          "Drill/driver",
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "raise-clamped-braces",
+                    "methodName": "Braced with boards clamped on",
+                    "gaps": [
+                      {
+                        "use": "holding the braces to the assembly",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+                "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).",
+                "sources": []
+              },
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -17780,6 +19107,404 @@
                   }
                 ]
               }
+            ]
+          },
+          {
+            "id": "set",
+            "title": "Plumb the frames and backfill the leg holes",
+            "operations": [
+              {
+                "operation": {
+                  "id": "site/backfill",
+                  "count": 4,
+                  "type": "backfill",
+                  "depth": 24
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "backfill-shovel-handle",
+                    "methodName": "Tamped with a shovel handle",
+                    "gaps": [
+                      {
+                        "use": "filling the hole, and tamping with the end of its handle",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "backfill-tamper",
+                    "methodName": "Tamped with a tamper",
+                    "gaps": [
+                      {
+                        "use": "filling the hole",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      },
+                      {
+                        "use": "tamping each layer",
+                        "anyOf": [
+                          "Tamper"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
+            "id": "tighten",
+            "title": "Tighten every bolt and cap its end",
+            "operations": [
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/tighten",
+                  "count": 2,
+                  "type": "tighten-bolts",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/tighten",
+                  "count": 4,
+                  "type": "tighten-bolts",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ],
+            "notes": [
+              "Tighten all connections, with a locking nut on every bolt (CPSC Pub. 324, pp. 3 and 4).",
+              "Cap every exposed bolt end. A bolt should stand no more than its own diameter past the nut (CPSC Pub. 324, p. 3).",
+              "Check the nuts and bolts twice a month, tighten them as needed, and check that the caps are in place (CPSC Pub. 324, p. 5)."
+            ]
+          },
+          {
+            "id": "hang",
+            "title": "Hang the swings",
+            "operations": [
+              {
+                "operation": {
+                  "id": "swings/hang",
+                  "count": 2,
+                  "type": "hang",
+                  "height": 16
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "hang-quick-links",
+                    "methodName": "On quick links",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "snugging each link shut",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "hang-closed-hooks",
+                    "methodName": "On hooks closed with pliers",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "closing each hook",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Close S-hooks and all other hooks to a gap less than the thickness of a dime. An open hook is acceptable only at the uppermost attachment (CPSC Pub. 324, p. 3).",
+              "Use lightweight seats, not heavy metal or wood ones (CPSC Pub. 324, p. 4).",
+              "Leave at least 8 inches between the surfacing and the underside of each seat (CPSC Pub. 324, p. 5).",
+              "Do not hang a seat on rope that can untwist or separate (CPSC Pub. 324, p. 8).",
+              "Check the seats and chains monthly, and replace them as they wear (CPSC Pub. 324, p. 5)."
             ]
           }
         ]
@@ -20853,6 +22578,107 @@
             ]
           },
           {
+            "id": "raise",
+            "title": "Stand the frames up and brace them",
+            "operations": [
+              {
+                "operation": {
+                  "id": "frames/raise",
+                  "count": 2,
+                  "type": "raise",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar",
+                    "gusset"
+                  ],
+                  "height": 101.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar",
+                  "gusset"
+                ],
+                "method": {
+                  "id": "raise-screwed-braces",
+                  "name": "Braced with boards screwed on",
+                  "tools": [
+                    {
+                      "use": "screwing the braces on",
+                      "toolTypeId": "drill-driver"
+                    },
+                    {
+                      "use": "checking plumb",
+                      "toolTypeId": "level"
+                    }
+                  ],
+                  "setup": [
+                    "Have two long, straight boards ready as temporary braces for each assembly, and drive a stake for each where its brace will reach the ground.",
+                    "Line up enough helpers to hold the assembly at every point, and agree who calls each lift.",
+                    "Keep everyone else clear of where the assembly would land if it fell: once up, it reaches 101-1/2\" above the ground."
+                  ],
+                  "technique": [
+                    "Lift the assembly together and walk it up until its feet sit where the plan places them.",
+                    "Hold it upright while one person checks it plumb with the level on two faces.",
+                    "Screw a brace from the assembly to each stake, checking plumb again before the last screw in each.",
+                    "Raise 2 this way."
+                  ],
+                  "mistakes": [
+                    "Letting go before the braces are on lets the assembly fall. Keep hands on it until both braces are screwed tight.",
+                    "A brace fixed while the assembly leans holds it leaning. Check plumb before the last screw in each brace."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Lift with two or more people, and agree before each lift who calls it, so everyone lifts and sets down together. OSHA asks for two or more people on a heavy load.",
+                      "sources": [
+                        {
+                          "source": "osha-etool-heavy-lifting",
+                          "locator": "Heavy Lifting: possible solutions"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Wear safety glasses or goggles while the tool runs. It can throw chips, splinters, and dust toward your face.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Purpose, p. 1, and Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "raise-and-brace"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+                "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).",
+                "sources": []
+              },
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -21097,6 +22923,380 @@
                   }
                 ]
               }
+            ]
+          },
+          {
+            "id": "set",
+            "title": "Plumb the frames and backfill the leg holes",
+            "operations": [
+              {
+                "operation": {
+                  "id": "site/backfill",
+                  "count": 4,
+                  "type": "backfill",
+                  "depth": 24
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "backfill-shovel-handle",
+                    "methodName": "Tamped with a shovel handle",
+                    "gaps": [
+                      {
+                        "use": "filling the hole, and tamping with the end of its handle",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "backfill-tamper",
+                    "methodName": "Tamped with a tamper",
+                    "gaps": [
+                      {
+                        "use": "filling the hole",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      },
+                      {
+                        "use": "tamping each layer",
+                        "anyOf": [
+                          "Tamper"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
+            "id": "tighten",
+            "title": "Tighten every bolt and cap its end",
+            "operations": [
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/tighten",
+                  "count": 2,
+                  "type": "tighten-bolts",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/tighten",
+                  "count": 4,
+                  "type": "tighten-bolts",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ],
+            "notes": [
+              "Tighten all connections, with a locking nut on every bolt (CPSC Pub. 324, pp. 3 and 4).",
+              "Cap every exposed bolt end. A bolt should stand no more than its own diameter past the nut (CPSC Pub. 324, p. 3).",
+              "Check the nuts and bolts twice a month, tighten them as needed, and check that the caps are in place (CPSC Pub. 324, p. 5)."
+            ]
+          },
+          {
+            "id": "hang",
+            "title": "Hang the swings",
+            "operations": [
+              {
+                "operation": {
+                  "id": "swings/hang",
+                  "count": 2,
+                  "type": "hang",
+                  "height": 16
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "hang-quick-links",
+                    "methodName": "On quick links",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "snugging each link shut",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "hang-closed-hooks",
+                    "methodName": "On hooks closed with pliers",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "closing each hook",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Close S-hooks and all other hooks to a gap less than the thickness of a dime. An open hook is acceptable only at the uppermost attachment (CPSC Pub. 324, p. 3).",
+              "Use lightweight seats, not heavy metal or wood ones (CPSC Pub. 324, p. 4).",
+              "Leave at least 8 inches between the surfacing and the underside of each seat (CPSC Pub. 324, p. 5).",
+              "Do not hang a seat on rope that can untwist or separate (CPSC Pub. 324, p. 8).",
+              "Check the seats and chains monthly, and replace them as they wear (CPSC Pub. 324, p. 5)."
             ]
           }
         ]
@@ -21813,6 +24013,20 @@
             "crossbar-bolts",
             "gusset-bolts"
           ]
+        },
+        {
+          "category": "load-bearing",
+          "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+          "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "beam"
+          ],
+          "hardwareIds": [
+            "leg-beam-bolts"
+          ],
+          "step": "raise"
         }
       ],
       "checks": [
@@ -24870,6 +27084,85 @@
           ],
           "holeDiameter": 0.4375,
           "depth": 3
+        },
+        {
+          "id": "frames/raise",
+          "count": 2,
+          "type": "raise",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "crossbar",
+            "gusset"
+          ],
+          "height": 101.5
+        },
+        {
+          "id": "site/anchor",
+          "count": 4,
+          "type": "anchor"
+        },
+        {
+          "id": "leg-beam-bolts/tighten",
+          "count": 2,
+          "type": "tighten-bolts",
+          "hardwareId": "leg-beam-bolts",
+          "partIds": [
+            "beam",
+            "leg-back",
+            "leg-front"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "crossbar-bolts/tighten",
+          "count": 8,
+          "type": "tighten-bolts",
+          "hardwareId": "crossbar-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "crossbar"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "gusset-bolts/tighten",
+          "count": 8,
+          "type": "tighten-bolts",
+          "hardwareId": "gusset-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "gusset"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "ply-bolts/tighten",
+          "count": 6,
+          "type": "tighten-bolts",
+          "hardwareId": "ply-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "boltDiameter": 0.5
+        },
+        {
+          "id": "hanger-bolts/tighten",
+          "count": 8,
+          "type": "tighten-bolts",
+          "hardwareId": "hanger-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "boltDiameter": 0.375
+        },
+        {
+          "id": "swings/hang",
+          "count": 2,
+          "type": "hang",
+          "height": 16
         }
       ],
       "cutEnds": [
@@ -25006,6 +27299,16 @@
         ]
       },
       {
+        "id": "raise",
+        "title": "Stand the frames up and brace them",
+        "operationIds": [
+          "frames/raise"
+        ],
+        "categories": [
+          "load-bearing"
+        ]
+      },
+      {
         "id": "beam",
         "title": "Bolt the beam between the leg tops",
         "operationIds": [
@@ -25017,6 +27320,55 @@
         "categories": [
           "load-bearing",
           "dynamic-loads"
+        ]
+      },
+      {
+        "id": "set",
+        "title": "Plumb the frames and anchor the feet",
+        "operationIds": [
+          "site/anchor"
+        ],
+        "categories": [
+          "load-bearing"
+        ],
+        "notes": [
+          "Follow the anchor maker’s instructions, and bury the anchors or cover them with the surfacing, so no one trips on them (CPSC Pub. 324, p. 4)."
+        ]
+      },
+      {
+        "id": "tighten",
+        "title": "Tighten every bolt and cap its end",
+        "operationIds": [
+          "leg-beam-bolts/tighten",
+          "crossbar-bolts/tighten",
+          "gusset-bolts/tighten",
+          "ply-bolts/tighten",
+          "hanger-bolts/tighten"
+        ],
+        "categories": [
+          "load-bearing"
+        ],
+        "notes": [
+          "Tighten all connections, with a locking nut on every bolt (CPSC Pub. 324, pp. 3 and 4).",
+          "Cap every exposed bolt end. A bolt should stand no more than its own diameter past the nut (CPSC Pub. 324, p. 3).",
+          "Check the nuts and bolts twice a month, tighten them as needed, and check that the caps are in place (CPSC Pub. 324, p. 5)."
+        ]
+      },
+      {
+        "id": "hang",
+        "title": "Hang the swings",
+        "operationIds": [
+          "swings/hang"
+        ],
+        "categories": [
+          "dynamic-loads"
+        ],
+        "notes": [
+          "Close S-hooks and all other hooks to a gap less than the thickness of a dime. An open hook is acceptable only at the uppermost attachment (CPSC Pub. 324, p. 3).",
+          "Use lightweight seats, not heavy metal or wood ones (CPSC Pub. 324, p. 4).",
+          "Leave at least 8 inches between the surfacing and the underside of each seat (CPSC Pub. 324, p. 5).",
+          "Do not hang a seat on rope that can untwist or separate (CPSC Pub. 324, p. 8).",
+          "Check the seats and chains monthly, and replace them as they wear (CPSC Pub. 324, p. 5)."
         ]
       }
     ],
@@ -29978,6 +32330,94 @@
             ]
           },
           {
+            "id": "raise",
+            "title": "Stand the frames up and brace them",
+            "operations": [
+              {
+                "operation": {
+                  "id": "frames/raise",
+                  "count": 2,
+                  "type": "raise",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar",
+                    "gusset"
+                  ],
+                  "height": 101.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar",
+                  "gusset"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "raise-screwed-braces",
+                    "methodName": "Braced with boards screwed on",
+                    "gaps": [
+                      {
+                        "use": "screwing the braces on",
+                        "anyOf": [
+                          "Drill/driver",
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "raise-clamped-braces",
+                    "methodName": "Braced with boards clamped on",
+                    "gaps": [
+                      {
+                        "use": "holding the braces to the assembly",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      },
+                      {
+                        "use": "checking plumb",
+                        "anyOf": [
+                          "Level"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+                "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).",
+                "sources": []
+              },
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -30465,6 +32905,444 @@
                   }
                 ]
               }
+            ]
+          },
+          {
+            "id": "set",
+            "title": "Plumb the frames and anchor the feet",
+            "operations": [
+              {
+                "operation": {
+                  "id": "site/anchor",
+                  "count": 4,
+                  "type": "anchor"
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "anchor-screw-in",
+                    "methodName": "Screw-in anchors",
+                    "gaps": [
+                      {
+                        "use": "covering the anchors",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "anchor-driven",
+                    "methodName": "Driven anchors",
+                    "gaps": [
+                      {
+                        "use": "driving the anchors",
+                        "anyOf": [
+                          "Sledgehammer"
+                        ]
+                      },
+                      {
+                        "use": "covering the anchors",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ],
+            "notes": [
+              "Follow the anchor maker’s instructions, and bury the anchors or cover them with the surfacing, so no one trips on them (CPSC Pub. 324, p. 4)."
+            ]
+          },
+          {
+            "id": "tighten",
+            "title": "Tighten every bolt and cap its end",
+            "operations": [
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/tighten",
+                  "count": 2,
+                  "type": "tighten-bolts",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "ply-bolts/tighten",
+                  "count": 6,
+                  "type": "tighten-bolts",
+                  "hardwareId": "ply-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.375
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ],
+            "notes": [
+              "Tighten all connections, with a locking nut on every bolt (CPSC Pub. 324, pp. 3 and 4).",
+              "Cap every exposed bolt end. A bolt should stand no more than its own diameter past the nut (CPSC Pub. 324, p. 3).",
+              "Check the nuts and bolts twice a month, tighten them as needed, and check that the caps are in place (CPSC Pub. 324, p. 5)."
+            ]
+          },
+          {
+            "id": "hang",
+            "title": "Hang the swings",
+            "operations": [
+              {
+                "operation": {
+                  "id": "swings/hang",
+                  "count": 2,
+                  "type": "hang",
+                  "height": 16
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "hang-quick-links",
+                    "methodName": "On quick links",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "snugging each link shut",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "hang-closed-hooks",
+                    "methodName": "On hooks closed with pliers",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "closing each hook",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Close S-hooks and all other hooks to a gap less than the thickness of a dime. An open hook is acceptable only at the uppermost attachment (CPSC Pub. 324, p. 3).",
+              "Use lightweight seats, not heavy metal or wood ones (CPSC Pub. 324, p. 4).",
+              "Leave at least 8 inches between the surfacing and the underside of each seat (CPSC Pub. 324, p. 5).",
+              "Do not hang a seat on rope that can untwist or separate (CPSC Pub. 324, p. 8).",
+              "Check the seats and chains monthly, and replace them as they wear (CPSC Pub. 324, p. 5)."
             ]
           }
         ]
@@ -33896,6 +36774,107 @@
             ]
           },
           {
+            "id": "raise",
+            "title": "Stand the frames up and brace them",
+            "operations": [
+              {
+                "operation": {
+                  "id": "frames/raise",
+                  "count": 2,
+                  "type": "raise",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar",
+                    "gusset"
+                  ],
+                  "height": 101.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar",
+                  "gusset"
+                ],
+                "method": {
+                  "id": "raise-screwed-braces",
+                  "name": "Braced with boards screwed on",
+                  "tools": [
+                    {
+                      "use": "screwing the braces on",
+                      "toolTypeId": "drill-driver"
+                    },
+                    {
+                      "use": "checking plumb",
+                      "toolTypeId": "level"
+                    }
+                  ],
+                  "setup": [
+                    "Have two long, straight boards ready as temporary braces for each assembly, and drive a stake for each where its brace will reach the ground.",
+                    "Line up enough helpers to hold the assembly at every point, and agree who calls each lift.",
+                    "Keep everyone else clear of where the assembly would land if it fell: once up, it reaches 101-1/2\" above the ground."
+                  ],
+                  "technique": [
+                    "Lift the assembly together and walk it up until its feet sit where the plan places them.",
+                    "Hold it upright while one person checks it plumb with the level on two faces.",
+                    "Screw a brace from the assembly to each stake, checking plumb again before the last screw in each.",
+                    "Raise 2 this way."
+                  ],
+                  "mistakes": [
+                    "Letting go before the braces are on lets the assembly fall. Keep hands on it until both braces are screwed tight.",
+                    "A brace fixed while the assembly leans holds it leaning. Check plumb before the last screw in each brace."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Lift with two or more people, and agree before each lift who calls it, so everyone lifts and sets down together. OSHA asks for two or more people on a heavy load.",
+                      "sources": [
+                        {
+                          "source": "osha-etool-heavy-lifting",
+                          "locator": "Heavy Lifting: possible solutions"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Wear safety glasses or goggles while the tool runs. It can throw chips, splinters, and dust toward your face.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Purpose, p. 1, and Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "raise-and-brace"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.",
+                "why": "The first lifts the beam 96\" up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).",
+                "sources": []
+              },
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -34316,6 +37295,432 @@
                   }
                 ]
               }
+            ]
+          },
+          {
+            "id": "set",
+            "title": "Plumb the frames and anchor the feet",
+            "operations": [
+              {
+                "operation": {
+                  "id": "site/anchor",
+                  "count": 4,
+                  "type": "anchor"
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "anchor-screw-in",
+                    "methodName": "Screw-in anchors",
+                    "gaps": [
+                      {
+                        "use": "covering the anchors",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "anchor-driven",
+                    "methodName": "Driven anchors",
+                    "gaps": [
+                      {
+                        "use": "driving the anchors",
+                        "anyOf": [
+                          "Sledgehammer"
+                        ]
+                      },
+                      {
+                        "use": "covering the anchors",
+                        "anyOf": [
+                          "Shovel"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ],
+            "notes": [
+              "Follow the anchor maker’s instructions, and bury the anchors or cover them with the surfacing, so no one trips on them (CPSC Pub. 324, p. 4)."
+            ]
+          },
+          {
+            "id": "tighten",
+            "title": "Tighten every bolt and cap its end",
+            "operations": [
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/tighten",
+                  "count": 2,
+                  "type": "tighten-bolts",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "ply-bolts/tighten",
+                  "count": 6,
+                  "type": "tighten-bolts",
+                  "hardwareId": "ply-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/tighten",
+                  "count": 8,
+                  "type": "tighten-bolts",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.375
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tighten-bolts-socket-wrench",
+                    "methodName": "With a socket wrench",
+                    "gaps": [
+                      {
+                        "use": "turning the nuts",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tighten-bolts-impact-driver",
+                    "methodName": "Run down with an impact driver, finished by hand",
+                    "gaps": [
+                      {
+                        "use": "running the nuts down",
+                        "anyOf": [
+                          "Impact driver"
+                        ]
+                      },
+                      {
+                        "use": "the last turn on each nut",
+                        "anyOf": [
+                          "Socket wrench"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              }
+            ],
+            "notes": [
+              "Tighten all connections, with a locking nut on every bolt (CPSC Pub. 324, pp. 3 and 4).",
+              "Cap every exposed bolt end. A bolt should stand no more than its own diameter past the nut (CPSC Pub. 324, p. 3).",
+              "Check the nuts and bolts twice a month, tighten them as needed, and check that the caps are in place (CPSC Pub. 324, p. 5)."
+            ]
+          },
+          {
+            "id": "hang",
+            "title": "Hang the swings",
+            "operations": [
+              {
+                "operation": {
+                  "id": "swings/hang",
+                  "count": 2,
+                  "type": "hang",
+                  "height": 16
+                },
+                "partIds": [],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "hang-quick-links",
+                    "methodName": "On quick links",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "snugging each link shut",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "hang-closed-hooks",
+                    "methodName": "On hooks closed with pliers",
+                    "gaps": [
+                      {
+                        "use": "reaching the fittings",
+                        "anyOf": [
+                          "Stepladder"
+                        ]
+                      },
+                      {
+                        "use": "closing each hook",
+                        "anyOf": [
+                          "Pliers"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [],
+            "flags": [
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Close S-hooks and all other hooks to a gap less than the thickness of a dime. An open hook is acceptable only at the uppermost attachment (CPSC Pub. 324, p. 3).",
+              "Use lightweight seats, not heavy metal or wood ones (CPSC Pub. 324, p. 4).",
+              "Leave at least 8 inches between the surfacing and the underside of each seat (CPSC Pub. 324, p. 5).",
+              "Do not hang a seat on rope that can untwist or separate (CPSC Pub. 324, p. 8).",
+              "Check the seats and chains monthly, and replace them as they wear (CPSC Pub. 324, p. 5)."
             ]
           }
         ]

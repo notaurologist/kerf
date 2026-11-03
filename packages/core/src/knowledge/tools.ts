@@ -15,6 +15,7 @@ export const TOOL_GROUPS = [
   'clamping-and-holding',
   'shaping',
   'digging-and-setting',
+  'reaching',
 ] as const;
 export const ToolGroup = z.enum(TOOL_GROUPS);
 export type ToolGroup = z.infer<typeof ToolGroup>;
@@ -26,6 +27,7 @@ export const TOOL_GROUP_LABELS: Record<ToolGroup, string> = {
   'clamping-and-holding': 'Clamping and holding',
   shaping: 'Shaping',
   'digging-and-setting': 'Digging and setting',
+  reaching: 'Reaching',
 };
 
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -389,6 +391,16 @@ export const TOOL_TYPES = [
     ],
   },
 
+  {
+    id: 'pliers',
+    name: 'Pliers',
+    description:
+      "Hinged jaws on two handles, for gripping and bending. Kerf's methods use them to close links and hooks.",
+    group: 'clamping-and-holding',
+    protection: [],
+    capabilities: [],
+  },
+
   // Shaping
   {
     id: 'router',
@@ -475,6 +487,26 @@ export const TOOL_TYPES = [
     name: 'Tamper',
     description: 'A heavy flat plate on a handle, for tamping soil and gravel firm.',
     group: 'digging-and-setting',
+    protection: [],
+    capabilities: [],
+  },
+  {
+    id: 'sledgehammer',
+    name: 'Sledgehammer',
+    description:
+      "A heavy head on a long handle, swung with both hands. Kerf's methods use it to drive ground anchors.",
+    group: 'digging-and-setting',
+    protection: [],
+    capabilities: [],
+  },
+
+  // Reaching
+  {
+    id: 'stepladder',
+    name: 'Stepladder',
+    description:
+      "A ladder that stands on its own, opened and locked. Kerf's methods use it to work at the top of a tall frame.",
+    group: 'reaching',
     protection: [],
     capabilities: [],
   },

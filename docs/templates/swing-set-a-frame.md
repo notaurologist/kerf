@@ -67,7 +67,9 @@ Template version 29 (#446) takes the beam's bending at each swing hanger on the 
 
 Template version 30 (#493) writes each bolt flag's count and size as the bolt layout row does: "Crossbar to leg, 2 × 1/2\" bolts", which read as 2-1/2" bolts before. A flag's progress key is its ask, so regenerating clears a tick on these flags in the structural review. No number changes.
 
-Template version 31 (#467) computes, for legs on pads, the fore-and-aft force the swings put on each frame and the uplift it gives at each foot, and checks the pull on one ground anchor against the anchor's rated pull-out, a new hardware input with no default (Structural model, below). The owner chose this on #467 (November 3, 2026); `PRODUCT.md` narrows its non-goal to match. The ground-anchor checklist item now asks about the soil, the anchors' fastening to the legs, and sliding, which stay uncomputed. No part, cut, or bolt moves.
+Template version 31 (#451) adds the work after the beam is bolted, which the steps used to leave out: standing the A-frames up and bracing them, plumbing them and backfilling the leg holes or anchoring the feet, tightening every bolt and capping its end, and hanging the swings (Operations and Build steps, below). The steps that tighten the bolts, anchor the feet, and hang the swings carry the CPSC home handbook's rules for that work as notes. A new expert check states both orders the frame can go up in, for the owner to choose with an experienced builder (Flags, below). No part, cut, or check changes.
+
+Template version 32 (#467) computes, for legs on pads, the fore-and-aft force the swings put on each frame and the uplift it gives at each foot, and checks the pull on one ground anchor against the anchor's rated pull-out, a new hardware input with no default (Structural model, below). The owner chose this on #467 (November 3, 2026); `PRODUCT.md` narrows its non-goal to match. The ground-anchor checklist item now asks about the soil, the anchors' fastening to the legs, and sliding, which stay uncomputed. No part, cut, or bolt moves.
 
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
@@ -102,7 +104,7 @@ Not covered in version 1: metal A-frame brackets, legs with seat cuts under the 
 
 The ground is the line z_g(y) = k·y with k = g / 12, the same at every x.
 
-Every number has a range in the parameter schema (#421, November 2, 2026). Those that had none take one from the beam's: crossbar height and seat height at most 144 (the tallest beam), frame inset at most 120 (half the longest beam), swing centers 0 to 240, hanger spacing and seat width at most 240, and a footprint depth at most 360, past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). Each is wider than Validation already allows, so no plan changes and the template version stays the same. One ground anchor's rated pull-out, added in version 31, is at most 10,000 lb, past any swing set anchor that gives a rating (one kit claims 2,500).
+Every number has a range in the parameter schema (#421, November 2, 2026). Those that had none take one from the beam's: crossbar height and seat height at most 144 (the tallest beam), frame inset at most 120 (half the longest beam), swing centers 0 to 240, hanger spacing and seat width at most 240, and a footprint depth at most 360, past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). Each is wider than Validation already allows, so no plan changes and the template version stays the same. One ground anchor's rated pull-out, added in version 32, is at most 10,000 lb, past any swing set anchor that gives a rating (one kit claims 2,500).
 
 ## Derived geometry
 
@@ -260,7 +262,7 @@ Every structural connection is a through-bolt with a flat washer at each end and
 - **Hanger mounting** (version 29, #446): how each hanger fastens to the beam, read on its package or instructions, with no default (hard rule 3). It is one of: one bolt down through the beam, on its centerline; bolts sideways through the beam, through a bracket's two sides, in one row at a height read off the bracket (its holes' centers above the beam's underside); or another way, such as screws, lag screws, or a clamp. A bolted mounting asks the bolt's diameter, and sideways bolts also how many per hanger. Each hole is the bolt plus 1/16" (NDS 2024 12.1.3.2, as for every bolt since version 9). A sideways hole must lie within the beam's depth; a height that puts it past the top or bottom is refused. Until the mounting is entered, the plan lists no hanger bolts and the beam's bending check says the mounting is needed.
 - **Hanger bolts** (version 29): listed with the other bolts, with two washers, a locking nut, and a cap, like every bolt. The hanger's own plate or bracket is in the grip, and only the hanger says how thick it is, so the line gives the wood's grip (bd down through the beam, bw across it), says to add the hanger, and names no length to buy. Many hangers come with their bolts, and the note says to check those against this length.
 - **Swing seats:** 2, lightweight (CPSC p. 4), with chain set to the chain length.
-- **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none. Until the count is entered the anchors are listed with no quantity, marked as waiting for it (version 16, #406), so a plan on pads can be made before the store. One anchor's rated pull-out, in pounds, is entered beside the count (version 31, #467) for the anchor check (Structural model); it has no default and is never suggested (hard rule 3). Many anchor kits print no rating, and the help says to ask the maker.
+- **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none. Until the count is entered the anchors are listed with no quantity, marked as waiting for it (version 16, #406), so a plan on pads can be made before the store. One anchor's rated pull-out, in pounds, is entered beside the count (version 32, #467) for the anchor check (Structural model); it has no default and is never suggested (hard rule 3). Many anchor kits print no rating, and the help says to ask the maker.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
 - **Treated lumber** (version 22, #449): IRC 2021 R317.3.1 requires fasteners, including nuts and washers, in preservative-treated wood to be hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, and its exception 2 allows mechanically galvanized steel to ASTM B695 Class 55 or heavier for fasteners other than nails, staples, and timber rivets. The hardware notes name these. Its exception 1 exempts steel bolts 1/2" and larger; Kerf does not use it, since CPSC asks for corrosion-resistant hardware on a play set. The IRC is a code for houses, read here as the reference for which materials suit treated lumber.
 - **Preservative** (version 27, #447): one wood preservative for cut ends, in its own store group, "Paint and stain", for the field treatment below. Its notes say IRC 2021 R317.1.1 requires it, to choose one labeled for treating cuts in treated wood, and that copper naphthenate suits any treated lumber while boron is only for wood off the ground and out of the rain. They give AWPA M4-06's figures for copper naphthenate: at least 2.0% copper as metal, or 1.0% where that is not readily available (7.1.1). IRC 2021 refers to M4-15, which is sold and could not be read; the 2006 edition was read in full. Secondary summaries that give only 2% or only 1% each quote half of 7.1.1.
@@ -279,11 +281,15 @@ The tool-type library (`packages/core/src/knowledge/tools.ts`, #85) is checked a
 | Angled crosscuts at the splay angle | legs (top and foot), crossbars, gussets | miter saw, circular saw, hand saw; laid out with a rafter square or sliding bevel |
 | The flush cut along the inside of each leg's top | legs | circular saw, jigsaw, or hand saw to cut; chisel or block plane to clean up |
 | Bolt holes through thick stock (leg, beam, leg; boards and legs) | all bolted parts | drill/driver with auger or spade bits, drilled from one side or both depending on reach; clamps hold the parts while drilling |
-| Tighten bolts and locking nuts | all bolted parts | socket wrench, impact driver |
+| Tighten bolts and locking nuts, once the frame is set | all bolted parts | socket wrench, impact driver (run down, finished by hand) |
 | Ease edges and splinters | all | sander, block plane |
 | Treat cuts and bolt holes with preservative | all | none from the library: a brush, a tray to stand ends in, or a small bottle to pour into holes |
 | Lay out the footprint and set the frames level and plumb | site | tape measure, string line, line level, level |
 | Dig for buried legs, or level pads | site | post-hole digger, shovel, tamper |
+| Stand the A-frames up and hold them plumb with temporary braces | legs, crossbars, gussets | level; drill/driver or impact driver to screw the braces on, or clamps |
+| Backfill buried legs in layers | site | shovel, tamper (or the shovel's handle), level |
+| Anchor feet on pads | site | shovel to cover the anchors; a sledgehammer for driven anchors (screw-in anchors are turned with a bar, not a library tool) |
+| Hang the swings | beam | stepladder, pliers, tape measure |
 
 ### Operations
 
@@ -300,8 +306,12 @@ What needs doing, before any choice of how (`DOMAIN.md`, Operations; methods are
 | Treat cuts | every part | each part's ends and flush cut, since every part is treated lumber (IRC 2021 R317.1.1; `DOMAIN.md`, Field treatment) |
 | Treat bolt holes | each through-bolt item's holes | after its bolt holes, through the treated parts it joins (all of them) |
 | Dig holes (d > 0), or level pads (d = 0) | one per leg | burial depth d |
+| Raise (version 31) | 2, each A-frame: legs, crossbar, gusset | `height` H + bd, how far up the legs reach |
+| Backfill (d > 0), or anchor (d = 0) (version 31) | one per leg | burial depth d |
+| Tighten bolts (version 31) | one per through-bolt item, as drilled | each bolt-holes operation's count and diameter (`tighteningOperations`) |
+| Hang (version 31) | 2 seats | `height` h_s, the seat's underside above the ground |
 
-Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep, and 4 hanger holes 9/16" across and 5.5 deep, down through the beam at 30, 50, 70, and 90. Four holes 24 deep. Field treatment: 3 cuts on each leg (top, foot, flush cut) and 2 on the beam, each crossbar, and each gusset; the same 2 + 8 + 8 + 4 bolt holes, 9/16" across.
+Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep, and 4 hanger holes 9/16" across and 5.5 deep, down through the beam at 30, 50, 70, and 90. Four holes 24 deep. Field treatment: 3 cuts on each leg (top, foot, flush cut) and 2 on the beam, each crossbar, and each gusset; the same 2 + 8 + 8 + 4 bolt holes, 9/16" across. Putting it up: 2 A-frames raised, reaching 96 + 5.5 = 101.5; 4 holes backfilled 24 deep; 2 leg-to-beam, 8 crossbar, 8 gusset, and 4 hanger bolts tightened, all 1/2"; 2 seats hung 16 above the ground.
 
 Every part is treated: the beam checks take a waterborne preservative treatment (NDS 4.3.13, Structural model), and the legs stand in or on the ground. The generic operations follow from each part's `treated` flag and are added after the template's own (`treatmentOperations`).
 
@@ -317,13 +327,27 @@ Cutting goes board by board in the board plan's order (#58): generic code makes 
 | Dig the leg holes, or Level the pads | dig holes or level pads | load-bearing design |
 | Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes, each followed by treating them | load-bearing design |
 | Drill the swing hanger holes in the beam (once the mounting is bolted, version 29) | hanger bolt holes, then treating them | load-bearing design, dynamic loads |
+| Stand the frames up and brace them (version 31) | raise, both A-frames | load-bearing design |
 | Bolt the beam between the leg tops | leg-to-beam bolt holes, then treating them | load-bearing design, dynamic loads |
+| Plumb the frames and backfill the leg holes, or Plumb the frames and anchor the feet (version 31) | backfill or anchor | load-bearing design |
+| Tighten every bolt and cap its end (version 31) | tighten bolts, every through-bolt item | load-bearing design |
+| Hang the swings (version 31) | hang | dynamic loads |
 
 Each step also shows the plan's own flags for its work (Flags, below).
 
 The cuts are treated after the edges are eased, since rounding a corner also opens wood the treatment may not have reached, and before the site work, so a leg's foot is coated before it goes in the ground. AWPA M4-06 5.2 asks for the end of a column in ground contact to be an original untrimmed end or field-treated; the leg's foot is cut at the splay angle, so it is treated.
 
-The assembly order (frames braced first, then the beam) is Kerf's proposal and goes to the review with an experienced builder (M7). Raising the frames, backfilling, tightening, and hanging the swings have no operation type yet, so they are not steps.
+The assembly order is the owner's to choose with an experienced builder, and a flag on the step that stands the frames up states both (Flags, below). Until then the steps follow the first: bolt the crossbars and gussets across each pair of legs on the ground, stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up.
+
+The frame is plumbed and its legs backfilled or its feet anchored before the bolts are tightened, since a tightened bolt holds the frame as it stands. The braces stay on until the legs are set.
+
+Each step that puts the frame up carries the rules the CPSC home handbook (Pub. 324, 2005, read November 2026) gives for its work, as notes (`StepOutline.notes`):
+
+- **Anchor the feet:** follow the anchor maker's instructions, and bury or cover the anchors (p. 4).
+- **Tighten every bolt:** tighten all connections, with a locking nut on every bolt (pp. 3 and 4); cap every exposed bolt end, which stands no more than one diameter past the nut (p. 3); check the nuts and bolts twice a month and tighten them as needed, with the caps in place (p. 5).
+- **Hang the swings:** close S-hooks and all other hooks to a gap less than the thickness of a dime, with an open hook only at the uppermost attachment (p. 3); lightweight seats (p. 4); at least 8 inches between the surfacing and a seat's underside (p. 5); no rope that can untwist or separate (p. 8); seats and chains checked monthly (p. 5).
+
+The generic methods carry their own sourced safety notes: two or more people for the lift (OSHA Electrical Contractors eTool, Heavy Lifting), backfill in shallow layers tamped firm with the post plumb and the top mounded (NRCS Colorado, Conservation Practice Standard 382, December 2014), bolts checked again as the wood dries, since it shrinks across the grain (Wood Handbook, ch. 4, p. 4-7), and a stepladder locked open on level ground, never stood on at its top step (OSHA 29 CFR 1926.1053). No published interval for tightening again as treated lumber dries was found; the CPSC's twice a month covers it.
 
 Worked example, the boards (`steps.test.ts`; 1/2" trim per end and 1/8" kerf per piece): the beam alone on a 12' 4x6, leaving 144 − (1 + 120.125) = 22.875; each leg on its own 12' 4x4, since two do not fit; both crossbars on a 10' 2x6 (1 + 2 · 59.118 = 119.236); both gussets on an 8' 2x8, leaving 96 − (1 + 2 · 19.627) = 55.746. A leg's cuts are done once on its board, a crossbar's twice on the board that holds both.
 
@@ -436,6 +460,7 @@ Rejected combinations, each with a message saying which values conflict:
 - Built-up beam (n > 1): **expert check** on how the plies are fastened together.
 - Sloped ground (g ≠ 0): **expert check**, since the CPSC handbook recommends a level site.
 - Bolt layout and projecting board ends: **expert checks** from the bolt layout (Bolt layout, above).
+- The order the frame goes up in (version 31): **expert check** stating both orders (Build steps, above), why each is hard (the beam lifted H onto braced frames and drilled from a ladder, or the whole frame lifted at once), and OSHA's two or more people for a load over 50 pounds.
 
 Each flag and checklist item names the parts and hardware it concerns (#51). A build step shows a plan flag on the first step that drills for its hardware, or else the first that works on one of its parts (`ARCHITECTURE.md`, Method selection):
 
@@ -449,6 +474,7 @@ Each flag and checklist item names the parts and hardware it concerns (#51). A b
 | Pads | legs | ground anchors | First board with a leg |
 | Crossbar or gusset bolt distances | that board, legs | its bolts | Bolt the crossbars and gussets across the legs |
 | Projecting board ends | the boards that project | their bolts | Bolt the crossbars and gussets across the legs |
+| The order the frame goes up in | legs, beam | leg-to-beam bolts | Stand the frames up and brace them, where the template places it (`Flag.step`) |
 
 Leg length depends on the slope and the burial depth, so those are asked before the legs are cut. Ground anchors have no drilling operation, so the pads flag goes with the legs.
 
@@ -622,7 +648,7 @@ On pads, the anchor check also needs two hardware parameters (Hardware, above): 
   - **Another mounting:** bending is not computed, with the reason, since Kerf cannot say what the screws or clamp remove. Shear and deflection are computed as before.
   - Deflection uses the gross section. Shear also uses the gross section at the supports, where there are no holes; 3.1.2.1 applies to shear at the hangers too, which is #526.
   - C_L stays the gross member's, since beam stability is a property of the whole member between its braces.
-- **Uplift at the feet** (pads only, version 31, #467): on the way down from θ, at angle φ from vertical, the chain carries T = W·(3·cos φ − 2·cos θ): v² = 2·g·r·(cos φ − cos θ) from the energy, and T = W·cos φ + W·v²/(g·r) from the centripetal force (the same sources as the swing load, at φ instead of the bottom). Its fore-and-aft part F = T·sin φ pushes the beam toward the front or the back, in the plane of each A-frame, and its vertical part V = T·cos φ pushes down. Both act at the hangers, (y, z) = (0, H).
+- **Uplift at the feet** (pads only, version 32, #467): on the way down from θ, at angle φ from vertical, the chain carries T = W·(3·cos φ − 2·cos θ): v² = 2·g·r·(cos φ − cos θ) from the energy, and T = W·cos φ + W·v²/(g·r) from the centripetal force (the same sources as the swing load, at φ instead of the bottom). Its fore-and-aft part F = T·sin φ pushes the beam toward the front or the back, in the plane of each A-frame, and its vertical part V = T·cos φ pushes down. Both act at the hangers, (y, z) = (0, H).
   - **Each frame's share:** the share of each hanger's load the beam's span gives that frame, with the supports of the beam checks: W_f = Σ (W_i / 2)·(x_far − x_i) / (x1 − x0), and half the beam's whole weight, D = w·L / 2, at y = 0.
   - **Feet:** where each leg's centerline meets the ground (Where the leg meets the ground; on pads the foot is at grade): the back foot at y_b = Q_y + (H − z_b)·tan α, z_b its ground height, and the front foot at y_f = −(Q_y + (H − z_f)·tan α).
   - **Moments:** pushed toward the back, the frame pivots on its back foot and the front foot lifts. The lifting foot bears nothing, so it has no friction, and the whole fore-and-aft reaction is at the pivot. Moments about the pivot (OpenStax University Physics Vol. 1, 12.1 and 12.2) give the front foot's reaction R_f = [(V + D)·y_b − F·(H − z_b)] / (y_b − y_f). Pushed toward the front, R_b = [(V + D)·(−y_f) − F·(H − z_f)] / (y_b − y_f). Writing each as R = (V + D)·c_v − F·c_h, the uplift at a foot with the dynamic factor C is U = C·S − D·c_v, where S = −W_f · min over 0 ≤ φ ≤ θ of (3·cos φ − 2·cos θ)·(c_v·cos φ − c_h·sin φ).

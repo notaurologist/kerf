@@ -33,6 +33,7 @@ import v27 from './snapshots/v27.json' with { type: 'json' };
 import v28 from './snapshots/v28.json' with { type: 'json' };
 import v29 from './snapshots/v29.json' with { type: 'json' };
 import v30 from './snapshots/v30.json' with { type: 'json' };
+import v31 from './snapshots/v31.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -153,10 +154,22 @@ const isVersion30 = (c: { path: string; before?: unknown; after?: unknown }) =>
   String(c.after).replace(/^([^,:]+, \d+) × /, '$1 ') === c.before;
 
 /**
- * Version 31's changes (#467): the ground anchor check on pads, new, and the ground-anchor checklist
+ * Version 31's changes (#451): the operations that put the frame up after the beam is bolted, and
+ * the flag asking which order it goes up in, each new with nothing before it. Set aside like
+ * version 18's.
+ */
+const ASSEMBLY = ['raise', 'backfill', 'anchor', 'tighten-bolts', 'hang'];
+const isVersion31 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  c.before === undefined &&
+  ((/^design\.operations\[\d+\]$/.test(c.path) &&
+    ASSEMBLY.includes(String((c.after as { type?: string }).type))) ||
+    (/^design\.flags\[\d+\]$/.test(c.path) && (c.after as { step?: string }).step === 'raise'));
+
+/**
+ * Version 32's changes (#467): the ground anchor check on pads, new, and the ground-anchor checklist
  * item's reworded confirm and why. Set aside like version 18's.
  */
-const isVersion31 = (c: { path: string; before?: unknown; after?: unknown }) =>
+const isVersion32 = (c: { path: string; before?: unknown; after?: unknown }) =>
   (c.path === 'structuralReview.anchors' && c.before === undefined) ||
   (/^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) &&
     String(c.before).startsWith('Anchor type and count') &&
@@ -183,6 +196,7 @@ function regenerated(
   keepVersion30 = false,
   later?: unknown,
   keepVersion31 = false,
+  keepVersion32 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -201,7 +215,8 @@ function regenerated(
         (keepVersion28 || !isVersion28(c)) &&
         (keepVersion29 || later !== undefined || !isVersion29(c)) &&
         (keepVersion30 || !isVersion30(c)) &&
-        (keepVersion31 || later !== undefined || !isVersion31(c)),
+        (keepVersion31 || !isVersion31(c)) &&
+        (keepVersion32 || later !== undefined || !isVersion32(c)),
     ),
   };
   return keepVersion18
@@ -719,7 +734,8 @@ describe('swing-set template versions', () => {
           !isVersion28(c) &&
           !isVersion29(c) &&
           !isVersion30(c) &&
-          !isVersion31(c),
+          !isVersion31(c) &&
+          !isVersion32(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1044,18 +1060,42 @@ describe('swing-set template versions', () => {
     );
     expect(asks).toEqual(['Crossbar to leg, 2 × 1/2" bolts', 'Gusset to leg, 2 × 1/2" bolts']);
   });
-
-  // Hand check in structural.test.ts and the spec's example 4. The two-ply example on pads gets the
-  // anchor check; the buried worked example gets none, so it changes nothing.
-  it('version 31 checks the ground anchors on pads against uplift, and changes nothing else (#467)', () => {
-    // Version 29's filter would also hide the checklist item's confirm, so it is kept.
-    const keep31 = [false, false, false, false, false, false, false, false, true, false] as const;
-    const added: unknown[] = [];
+  // Hand check in operations.test.ts: two A-frames raised, four legs backfilled 24 deep or four
+  // feet anchored, one tightening for each bolt item, two seats hung at their seat height.
+  it('version 31 adds the steps that put the frame up, and asks which order (#451)', () => {
+    const keep31 = [...Array(10).fill(false), undefined, true] as const;
     for (const stored of v30) {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(30);
-      const { changes } = regenerated(snapshot, ...keep31, undefined, true);
+      const { changes } = regenerated(snapshot, ...keep31);
+      expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion31(c))).toEqual([]);
+    }
+    const added = regenerated(read(v30[0]), ...keep31)
+      .changes.filter((c) => c.path.startsWith('design.operations'))
+      .map((c) => (c.after as Operation).id);
+    expect(added).toEqual([
+      'frames/raise',
+      'site/backfill',
+      'leg-beam-bolts/tighten',
+      'crossbar-bolts/tighten',
+      'gusset-bolts/tighten',
+      'hanger-bolts/tighten',
+      'swings/hang',
+    ]);
+  });
+
+  // Hand check in structural.test.ts and the spec's example 4. The two-ply example on pads gets the
+  // anchor check; the buried worked example gets none, so it changes nothing.
+  it('version 32 checks the ground anchors on pads against uplift, and changes nothing else (#467)', () => {
+    // Version 29's filter would also hide the checklist item's confirm, so it is kept.
+    const keep32 = [...Array(8).fill(false), true, false, undefined, false, true] as const;
+    const added: unknown[] = [];
+    for (const stored of v31) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(31);
+      const { changes } = regenerated(snapshot, ...keep32);
+      expect(changes.filter((c) => !isVersion32(c))).toEqual([]);
       const onPads = (snapshot.params as { burialDepth: number }).burialDepth === 0;
       // On pads: the check, and the checklist item's confirm and why.
       expect(changes).toHaveLength(onPads ? 3 : 0);
