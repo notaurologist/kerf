@@ -53,7 +53,13 @@ function bolts(
     id,
     name,
     quantity,
-    bolt: { diameter, grip, ...(fits?.length ? { length: fits.length } : {}), ...fittings },
+    bolt: {
+      diameter,
+      grip,
+      ...(fits?.length ? { length: fits.length } : {}),
+      ...(fits ? { fits: { min: fits.min, max: fits.max } } : {}),
+      ...fittings,
+    },
     structural: true,
     notes: [
       fits

@@ -7,7 +7,9 @@ import { formatLength, toSixteenths } from '../units/length.ts';
 // length, and grip share a line, named by the length to buy, and the fittings each bolt calls for
 // (washers, nuts, caps) are totaled per diameter. Which fittings a bolt needs, which store group
 // each item is in, and each item's notes come from the template; a line shows the notes of every
-// item on it, once each. Lines in different groups never share.
+// item on it, once each. Lines in different groups never share. A bolt line also keeps its bolt's
+// size, the lengths that fit every bolt on it, and its items, so a bolt bought from it can be
+// compared with a later plan (#514).
 
 export const HardwareLine = z.object({
   description: z.string(),
@@ -18,6 +20,20 @@ export const HardwareLine = z.object({
   group: z.string().optional(),
   /** The notes of the items on the line (`HardwareItem.notes`). A fitting has none. */
   notes: z.array(z.string()).default([]),
+  /**
+   * A through-bolt line's bolt: its diameter, grip, and length to buy, the lengths that fit every
+   * bolt on the line (absent when any of them has none), and the IDs of the items on it. Absent on
+   * other lines and in plans made before it.
+   */
+  bolt: z
+    .object({
+      diameter: z.number(),
+      grip: z.number(),
+      length: z.number().optional(),
+      fits: z.object({ min: z.number(), max: z.number() }).optional(),
+      items: z.array(z.string()),
+    })
+    .optional(),
 });
 export type HardwareLine = z.infer<typeof HardwareLine>;
 
@@ -47,10 +63,11 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
       });
       continue;
     }
-    const { diameter, grip, length, washers, nut, cap } = item.bolt;
+    const { diameter, grip, length, fits, washers, nut, cap } = item.bolt;
     // Grip is grouped as displayed, so two bolts that print the same share one line.
     const key = `${item.group}/${diameter}/${length}/${toSixteenths(grip)}`;
-    const line = boltLines.get(key) ?? {
+    const existing = boltLines.get(key);
+    const line = existing ?? {
       description:
         length === undefined
           ? `${formatLength(diameter)} through-bolt, grip ${formatLength(grip)}`
@@ -61,6 +78,15 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
     };
     line.quantity = (line.quantity ?? 0) + quantity;
     line.notes = [...new Set([...line.notes, ...item.notes])];
+    const before = existing?.bolt;
+    const lineFits = !before ? fits : before.fits && fits ? both(before.fits, fits) : undefined;
+    line.bolt = {
+      diameter,
+      grip: before?.grip ?? grip,
+      ...(length === undefined ? {} : { length }),
+      ...(lineFits ? { fits: lineFits } : {}),
+      items: [...(before?.items ?? []), item.id],
+    };
     boltLines.set(key, line);
 
     const fittingKey = `${item.group}/${diameter}`;
@@ -99,4 +125,9 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
   }
 
   return [...boltLines.values(), ...fittingLines, ...others];
+}
+
+/** The lengths that fit both ranges. */
+function both(a: { min: number; max: number }, b: { min: number; max: number }) {
+  return { min: Math.max(a.min, b.min), max: Math.min(a.max, b.max) };
 }

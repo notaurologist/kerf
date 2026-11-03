@@ -25,6 +25,7 @@ import v20 from './snapshots/v20.json' with { type: 'json' };
 import v21 from './snapshots/v21.json' with { type: 'json' };
 import v22 from './snapshots/v22.json' with { type: 'json' };
 import v23 from './snapshots/v23.json' with { type: 'json' };
+import v24 from './snapshots/v24.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -57,7 +58,6 @@ const isVersion22 = (c: { path: string }) =>
   /^design\.hardware\[\d+\]\.(bolt\.length|notes\[0\])$/.test(c.path) ||
   /^design\.hardwareNotes\[\d+\]$/.test(c.path) ||
   /^hardware\[\d+\]\.(description|notes(\[\d+\])?)$/.test(c.path);
-
 /**
  * Version 23's change (#445): the beam supported at the middle of each gusset's top edge instead
  * of at the frame centerlines, which moves every beam check's numbers and its support assumptions.
@@ -67,12 +67,18 @@ const isVersion23 = (c: { path: string }) =>
   /^structuralReview\.beam\.(bending|shear|deflection)\.((inputs|steps|factors)\[\d+\]\.value|assumptions\[\d+\]|(computed|allowable|breakEven)\.value|margin)$/.test(
     c.path,
   );
+/**
+ * Version 24's changes (#514): the lengths that fit each bolt, and each bolt line's bolt. Set aside
+ * like version 18's.
+ */
+const isVersion24 = (c: { path: string }) =>
+  /^design\.hardware\[\d+\]\.bolt\.fits$/.test(c.path) || /^hardware\[\d+\]\.bolt$/.test(c.path);
 
 /**
- * Version 24's changes (#450): each lumber line's notes and what else to buy, and the note about a
+ * Version 25's changes (#450): each lumber line's notes and what else to buy, and the note about a
  * shorter board taken out of the list's notes, since it moved to its line. Set aside like 20's.
  */
-const isVersion24 = (c: { path: string; before?: unknown }) =>
+const isVersion25 = (c: { path: string; before?: unknown }) =>
   /^lumber\.lines\[\d+\]\.(notes|alternatives)\[\d+\]$/.test(c.path) ||
   (/^lumber\.notes\[\d+\]$/.test(c.path) &&
     String(c.before).includes(' to leave room for trimming'));
@@ -84,6 +90,7 @@ function regenerated(
   keepVersion22 = false,
   keepVersion23 = false,
   keepVersion24 = false,
+  keepVersion25 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -97,7 +104,8 @@ function regenerated(
         !isVersion20(c) &&
         (keepVersion22 || !isVersion22(c)) &&
         (keepVersion23 || !isVersion23(c)) &&
-        (keepVersion24 || !isVersion24(c)),
+        (keepVersion24 || !isVersion24(c)) &&
+        (keepVersion25 || !isVersion25(c)),
     ),
   };
   return keepVersion18
@@ -579,7 +587,7 @@ describe('swing-set template versions', () => {
       const json = (value: unknown) => JSON.parse(JSON.stringify(value));
       const outputs = template.storedOutputs.parse(current.output.outputs);
       const changes = diff(json(read.snapshot.outputs), json(outputs), 1000).changes.filter(
-        (c) => !isVersion22(c) && !isVersion23(c) && !isVersion24(c),
+        (c) => !isVersion22(c) && !isVersion23(c) && !isVersion24(c) && !isVersion25(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -639,9 +647,8 @@ describe('swing-set template versions', () => {
     );
   });
 
-  // Hand check in lists.test.ts: the worked example's beam fits a 10' board that measures
-  // 121-1/8", or a 14'; its legs a 14'; its crossbars two 8's or a 12'; its gussets a 10'.
-  it('version 24 moves the shorter-board note to its line and adds what else to buy (#450)', () => {
+  // Hand check in resets.test.ts: the worked example's leg-to-beam bolts fit from 9.820 to 10.320.
+  it("version 24 keeps the lengths that fit each bolt and each line's bolt, and changes nothing else (#514)", () => {
     for (const stored of v23) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
@@ -649,14 +656,40 @@ describe('swing-set template versions', () => {
       const { changes } = regenerated(read.snapshot, false, false, false, true);
       expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion24(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v23[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const legBolts = regenerated(first.snapshot, false, false, false, true).changes.find(
+      (c) => c.path === 'hardware[0].bolt',
+    );
+    expect(legBolts?.after).toEqual({
+      diameter: 0.5,
+      grip: expect.closeTo(8.947, 3),
+      length: 10,
+      fits: { min: expect.closeTo(9.82, 3), max: expect.closeTo(10.32, 3) },
+      items: ['leg-beam-bolts'],
+    });
+  });
+
+  // Hand check in lists.test.ts: the worked example's beam fits a 10' board that measures
+  // 121-1/8", or a 14', or a 4x8 beam; its legs a 14'; its crossbars two 8's or a 12'; its
+  // gussets a 10'.
+  it('version 25 moves the shorter-board note to its line and adds what else to buy (#450)', () => {
+    for (const stored of v24) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(24);
+      const { changes } = regenerated(read.snapshot, false, false, false, false, true);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion25(c))).toEqual([]);
       // The note moves whole: the same text, now on its line.
       const removed = changes.filter((c) => c.path.startsWith('lumber.notes'));
       const added = changes.filter((c) => /^lumber\.lines\[\d+\]\.notes/.test(c.path));
       expect(added.map((c) => c.after)).toEqual(removed.map((c) => c.before));
     }
-    const first = readSnapshot([template], v23[0]);
+    const first = readSnapshot([template], v24[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const beam = regenerated(first.snapshot, false, false, false, true).changes.filter((c) =>
+    const beam = regenerated(first.snapshot, false, false, false, false, true).changes.filter((c) =>
       c.path.startsWith('lumber.lines[0].alternatives'),
     );
     expect(beam.map((c) => c.after)).toEqual([

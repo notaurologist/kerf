@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 23,
+    "templateVersion": 25,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -947,6 +947,10 @@
               "diameter": 0.5,
               "grip": 8.947408118867273,
               "length": 10,
+              "fits": {
+                "min": 9.820408118867272,
+                "max": 10.320408118867272
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -965,6 +969,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -983,6 +991,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -1869,28 +1881,98 @@
           {
             "nominal": "4x6",
             "feet": 12,
-            "count": 1
+            "count": 1,
+            "notes": [
+              "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
+            ],
+            "alternatives": [
+              {
+                "kind": "measured",
+                "feet": 10,
+                "count": 1,
+                "atLeast": 121.125
+              },
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 14,
+                    "count": 1
+                  }
+                ]
+              },
+              {
+                "kind": "stock",
+                "name": "Beam",
+                "field": "beamStock",
+                "nominal": "4x8",
+                "margin": 1.564950475890361,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 4x8"
+                }
+              }
+            ]
           },
           {
             "nominal": "4x4",
             "feet": 12,
-            "count": 4
+            "count": 4,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 14,
+                    "count": 4
+                  }
+                ]
+              }
+            ]
           },
           {
             "nominal": "2x6",
             "feet": 10,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 8,
+                    "count": 2
+                  }
+                ]
+              },
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 12,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           },
           {
             "nominal": "2x8",
             "feet": 8,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 10,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           }
         ],
-        "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end.",
-          "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
-        ],
+        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
         "issues": [],
         "selection": [
           {
@@ -1922,7 +2004,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 8.947408118867273,
+            "length": 10,
+            "fits": {
+              "min": 9.820408118867272,
+              "max": 10.320408118867272
+            },
+            "items": ["leg-beam-bolts"]
+          }
         },
         {
           "description": "1/2\" × 6\" through-bolt",
@@ -1930,7 +2022,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5,
+            "length": 6,
+            "fits": {
+              "min": 5.873,
+              "max": 6.373
+            },
+            "items": ["crossbar-bolts", "gusset-bolts"]
+          }
         },
         {
           "description": "1/2\" flat washers",
@@ -3572,7 +3674,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 23,
+    "templateVersion": 25,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -4577,6 +4679,10 @@
               "diameter": 0.5,
               "grip": 8.452713591586766,
               "length": 9.5,
+              "fits": {
+                "min": 9.325713591586766,
+                "max": 9.825713591586766
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -4595,6 +4701,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -4613,6 +4723,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -4631,6 +4745,10 @@
               "diameter": 0.5,
               "grip": 3,
               "length": 4,
+              "fits": {
+                "min": 3.873,
+                "max": 4.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -5537,17 +5655,65 @@
           {
             "nominal": "2x6",
             "feet": 16,
-            "count": 2
+            "count": 2,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 12,
+                    "count": 2
+                  },
+                  {
+                    "feet": 10,
+                    "count": 1
+                  }
+                ]
+              },
+              {
+                "kind": "stock",
+                "name": "Beam plies",
+                "field": "beamStock",
+                "nominal": "2x8",
+                "margin": 1.1264487123192335,
+                "check": {
+                  "title": "Bending",
+                  "subject": "Top beam, 2 plies of 2x8"
+                }
+              }
+            ]
           },
           {
             "nominal": "4x4",
             "feet": 10,
-            "count": 4
+            "count": 4,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 12,
+                    "count": 4
+                  }
+                ]
+              }
+            ]
           },
           {
             "nominal": "2x8",
             "feet": 8,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 10,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           }
         ],
         "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
@@ -5582,7 +5748,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 8-7/16\". Any length from 9-3/8\" to 9-13/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 8.452713591586766,
+            "length": 9.5,
+            "fits": {
+              "min": 9.325713591586766,
+              "max": 9.825713591586766
+            },
+            "items": ["leg-beam-bolts"]
+          }
         },
         {
           "description": "1/2\" × 6\" through-bolt",
@@ -5590,7 +5766,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5,
+            "length": 6,
+            "fits": {
+              "min": 5.873,
+              "max": 6.373
+            },
+            "items": ["crossbar-bolts", "gusset-bolts"]
+          }
         },
         {
           "description": "1/2\" × 4\" through-bolt",
@@ -5598,7 +5784,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 3\". Any length from 3-7/8\" to 4-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 3,
+            "length": 4,
+            "fits": {
+              "min": 3.873,
+              "max": 4.373
+            },
+            "items": ["ply-bolts"]
+          }
         },
         {
           "description": "1/2\" flat washers",
@@ -7296,7 +7492,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 23,
+    "templateVersion": 25,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -8233,6 +8429,10 @@
               "diameter": 0.5,
               "grip": 8.947408118867273,
               "length": 10,
+              "fits": {
+                "min": 9.820408118867272,
+                "max": 10.320408118867272
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -8251,6 +8451,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -8269,6 +8473,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -9155,28 +9363,92 @@
           {
             "nominal": "4x6",
             "feet": 12,
-            "count": 1
+            "count": 1,
+            "notes": [
+              "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
+            ],
+            "alternatives": [
+              {
+                "kind": "measured",
+                "feet": 10,
+                "count": 1,
+                "atLeast": 121.125
+              },
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 14,
+                    "count": 1
+                  }
+                ]
+              },
+              {
+                "kind": "stock-needs-inputs",
+                "name": "Beam",
+                "field": "beamStock"
+              }
+            ]
           },
           {
             "nominal": "4x4",
             "feet": 12,
-            "count": 4
+            "count": 4,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 14,
+                    "count": 4
+                  }
+                ]
+              }
+            ]
           },
           {
             "nominal": "2x6",
             "feet": 10,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 8,
+                    "count": 2
+                  }
+                ]
+              },
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 12,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           },
           {
             "nominal": "2x8",
             "feet": 8,
-            "count": 1
+            "count": 1,
+            "alternatives": [
+              {
+                "kind": "lengths",
+                "boards": [
+                  {
+                    "feet": 10,
+                    "count": 1
+                  }
+                ]
+              }
+            ]
           }
         ],
-        "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end.",
-          "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
-        ],
+        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
         "issues": [],
         "selection": [
           {
@@ -9208,7 +9480,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 8.947408118867273,
+            "length": 10,
+            "fits": {
+              "min": 9.820408118867272,
+              "max": 10.320408118867272
+            },
+            "items": ["leg-beam-bolts"]
+          }
         },
         {
           "description": "1/2\" × 6\" through-bolt",
@@ -9216,7 +9498,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5,
+            "length": 6,
+            "fits": {
+              "min": 5.873,
+              "max": 6.373
+            },
+            "items": ["crossbar-bolts", "gusset-bolts"]
+          }
         },
         {
           "description": "1/2\" flat washers",

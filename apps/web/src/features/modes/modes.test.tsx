@@ -73,7 +73,7 @@ describe('Shopping mode', () => {
     );
     // The beam's line: its note, then what else holds the beam (lists.test.ts hand-checks these).
     expect(text).toContain(
-      `incised: No. Change Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8". Not in stock? Buy one of these instead: 1 × 4x6, 10' 0", if it measures at least 121-1/8". 1 × 4x6, 14' 0". Beam in 4x8, which changes the plan: margin 1.7x under these assumptions (bending, top beam, 4x8). Change it in Edit The board`,
+      `incised: No. Change Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8". Not in stock? Buy one of these instead: 1 × 4x6, 10' 0", if it measures at least 121-1/8". 1 × 4x6, 14' 0". Beam in 4x8, which changes the plan: margin 1.6x under these assumptions (bending, top beam, 4x8). Change it in Edit The board`,
     );
     expect(text).toContain(
       `1 × 2x6, 10' 0" Not in stock? Buy one of these instead: 2 × 2x6, 8' 0". 1 × 2x6, 12' 0". The board`,
@@ -114,8 +114,8 @@ describe('board cards (#59)', () => {
 
   it('open under each lumber line', () => {
     expect(text.match(/The boards?, and what to look for/g)).toHaveLength(4);
-    expect(text).toMatch(
-      /4 × 4x4, 12' 0" Not in stock\? .* Change it in Edit The boards, and what to look for/,
+    expect(text).toContain(
+      `4 × 4x4, 12' 0" Not in stock? Buy one of these instead: 4 × 4x4, 14' 0". The boards, and what to look for`,
     );
   });
 
