@@ -35,6 +35,12 @@ const part = {
   dadoes: [],
   notches: [],
   cutouts: [],
+  mortises: [],
+  tenons: [],
+  screwHoles: [],
+  grooves: [],
+  rabbets: [],
+  recesses: [],
 };
 const parts = [
   part,

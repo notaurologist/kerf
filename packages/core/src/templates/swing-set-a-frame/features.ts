@@ -36,6 +36,12 @@ export interface PartFeatures {
   dadoes: Dado[];
   notches: Notch[];
   cutouts: Cutout[];
+  mortises: [];
+  tenons: [];
+  screwHoles: [];
+  grooves: [];
+  rabbets: [];
+  recesses: [];
 }
 
 /** Where a board's bolts go, at each end, in the board's own frame. */
@@ -217,6 +223,12 @@ export function features(
       dadoes: [],
       notches: [],
       cutouts: [],
+      mortises: [],
+      tenons: [],
+      screwHoles: [],
+      grooves: [],
+      rabbets: [],
+      recesses: [],
     },
     leg: {
       referenceEdge: 'inner edge, against the beam',
@@ -226,6 +238,12 @@ export function features(
       dadoes: [],
       notches: [],
       cutouts: [],
+      mortises: [],
+      tenons: [],
+      screwHoles: [],
+      grooves: [],
+      rabbets: [],
+      recesses: [],
     },
     crossbar: {
       referenceEdge: 'bottom edge',
@@ -235,6 +253,12 @@ export function features(
       dadoes: [],
       notches: [],
       cutouts: [],
+      mortises: [],
+      tenons: [],
+      screwHoles: [],
+      grooves: [],
+      rabbets: [],
+      recesses: [],
     },
     gusset: {
       referenceEdge: 'bottom edge',
@@ -244,6 +268,12 @@ export function features(
       dadoes: [],
       notches: [],
       cutouts: [],
+      mortises: [],
+      tenons: [],
+      screwHoles: [],
+      grooves: [],
+      rabbets: [],
+      recesses: [],
     },
   };
 }

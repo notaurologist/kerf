@@ -36,7 +36,7 @@ export function solid(part: Part, pl: Placement, offset: Vec3 = { x: 0, y: 0, z:
   const T = part.stock.thickness;
   const L = part.length;
   // The body stops at the shoulder of each tenon thinner than the part; the tenon is its own box.
-  const cheeked = (part.tenons ?? []).filter((t) => t.thickness < T - 1e-9);
+  const cheeked = part.tenons.filter((t) => t.thickness < T - 1e-9);
   const lerp = (a: UV, b: UV, f: number): UV => ({
     u: a.u + (b.u - a.u) * f,
     v: a.v + (b.v - a.v) * f,
@@ -80,7 +80,7 @@ export function solid(part: Part, pl: Placement, offset: Vec3 = { x: 0, y: 0, z:
       decal: true,
     });
   }
-  for (const m of part.mortises ?? []) {
+  for (const m of part.mortises) {
     const onEdge = m.side === 'reference-edge' || m.side === 'far-edge';
     const corners: [number, number][] = [
       [m.u0, m.a0],

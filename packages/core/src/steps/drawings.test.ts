@@ -39,6 +39,12 @@ const side: Part = {
   dadoes: [],
   notches: [],
   cutouts: [],
+  mortises: [],
+  tenons: [],
+  screwHoles: [],
+  grooves: [],
+  rabbets: [],
+  recesses: [],
 };
 const operations = cutAndDrillOperations([side], []);
 const cuts = new Set(boardCuts(operations).map((op) => op.id));

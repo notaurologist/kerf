@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { TemplateDefinition } from '../model/definition.ts';
 import type { GenerateResult, Issue } from '../model/types.ts';
+import { leaveOutDefaults } from './defaults.ts';
 import { type Diff, diff } from './diff.ts';
 
 const asJson = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
@@ -57,7 +58,10 @@ function generateOrIssue(
   }
 }
 
-/** Generates a snapshot with the template's current version. */
+/**
+ * Generates a snapshot with the template's current version, as stored: its outputs leave out each
+ * field still at its schema default, which reading fills back in.
+ */
 export function createSnapshot(
   template: TemplateDefinition,
   params: unknown,
@@ -81,7 +85,7 @@ export function createSnapshot(
       snapshotVersion: template.snapshotVersion,
       params: p.data,
       structuralInputs: i.data,
-      outputs: generated.output,
+      outputs: leaveOutDefaults(template.outputs, generated.output),
     },
   };
 }

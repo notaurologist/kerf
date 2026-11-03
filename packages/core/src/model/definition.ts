@@ -45,7 +45,10 @@ export interface TemplateDefinition<
   structuralInputs: z.ZodType<Inputs>;
   /** How the parameters and structural inputs are entered, for the web app's editor. */
   form: TemplateForm;
-  /** Everything this version generates. Every field generic code reads is required. */
+  /**
+   * Everything this version generates. Every field generic code reads is required. A part's lists
+   * also default to empty, so a stored snapshot leaves out an empty one and reading fills it in.
+   */
   outputs: z.ZodType<Outputs>;
   /**
    * Reads the outputs of a stored snapshot, after its upgrades. Relaxes only the fields that

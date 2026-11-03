@@ -39,6 +39,8 @@ Template version 12 (#59) puts each hardware item in a store group (Hardware, be
 
 Template version 13 gives the bending check's position of the largest moment its own working step, in inches through the length formatter like every other length, instead of a three-decimal number in the moment's label. No number changes.
 
+Template version 17 (#430) stores a plan without the part lists it leaves empty, such as a beam's tapers. Reading a plan fills them back in, so nothing a plan shows changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates

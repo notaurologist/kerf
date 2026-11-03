@@ -198,7 +198,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
 
   // Mortises: on the face shown, solid; on the other face, dashed; in an edge, dashed from that
   // edge as deep as the mortise.
-  for (const m of part.mortises ?? []) {
+  for (const m of part.mortises) {
     const [v0, v1] =
       m.side === 'reference-edge'
         ? [0, m.depth]
@@ -219,7 +219,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     });
   }
   // A tenon's shoulder on the face shown: the face steps down to the cheek there.
-  for (const t of part.tenons ?? []) {
+  for (const t of part.tenons) {
     if (t.n0 + t.thickness >= part.stock.thickness - 1e-9) continue;
     const u = t.end === 0 ? t.length : part.length - t.length;
     prims.push({
@@ -231,7 +231,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   }
 
   // Screw holes: a cross at each round hole; a slot drawn as its length the way it runs.
-  for (const h of part.screwHoles ?? []) {
+  for (const h of part.screwHoles) {
     const c = page({ u: h.u, v: h.v });
     const r = 0.06 * W;
     prims.push({
@@ -263,7 +263,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   // A groove along an edge, dashed as deep as it goes; a rabbet's step, solid on the face shown
   // and dashed on the other; a finger recess's outline the same way.
   const L = part.length;
-  for (const g of part.grooves ?? []) {
+  for (const g of part.grooves) {
     const [v0, v1] = g.edge === 'reference' ? [0, g.depth] : [W - g.depth, W];
     prims.push({
       kind: 'polygon',
@@ -278,7 +278,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       part: ref,
     });
   }
-  for (const rb of part.rabbets ?? []) {
+  for (const rb of part.rabbets) {
     const line: UV[] =
       rb.edge === 'reference'
         ? [
@@ -306,7 +306,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       part: ref,
     });
   }
-  for (const rc of part.recesses ?? []) {
+  for (const rc of part.recesses) {
     prims.push({
       kind: 'polygon',
       role: rc.face === 'far' ? 'visible' : 'hidden',
@@ -467,8 +467,8 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     ...part.dadoes.flatMap((d) => [d.u0, d.u1]),
     ...part.notches.map((n) => fromEnd(n.end, n.along)),
     ...part.cutouts.map((c) => fromEnd(c.end, c.depth)),
-    ...(part.mortises ?? []).flatMap((m) => [m.u0, m.u1]),
-    ...(part.tenons ?? []).map((t) => fromEnd(t.end, t.length)),
+    ...part.mortises.flatMap((m) => [m.u0, m.u1]),
+    ...part.tenons.map((t) => fromEnd(t.end, t.length)),
   ];
   const candidates = ws.flatMap((w) => [0.5, 0.25, 0.75].map((f) => w.u0 + f * (w.u1 - w.u0)));
   const clear =
@@ -529,7 +529,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       (c) =>
         `Cutout at the ${endName(c.end)}: ${formatLength(c.v1 - c.v0)} wide, ${formatLength(c.depth)} deep, starting ${formatLength(c.v0)} from the ${part.referenceEdge}.`,
     ),
-    ...(part.mortises ?? []).map((m) => {
+    ...part.mortises.map((m) => {
       const onFace = m.side === 'near' || m.side === 'far';
       const where =
         m.side === 'far'
@@ -543,7 +543,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       return `Mortise ${formatLength(m.u0)} from the first end, in ${where}: ${formatLength(m.u1 - m.u0)} long, ${formatLength(m.a1 - m.a0)} wide, ${formatLength(m.depth)} deep, starting ${formatLength(m.a0)} from ${from}.`;
     }),
     ...screwNotes(part),
-    ...(part.grooves ?? []).map((g) => {
+    ...part.grooves.map((g) => {
       const edge = g.edge === 'reference' ? `the ${part.referenceEdge}` : 'the far edge';
       const through = g.u0 <= 1e-9 && g.u1 >= L - 1e-9;
       const where = through
@@ -551,7 +551,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
         : `from ${formatLength(g.u0)} to ${formatLength(g.u1)} from the first end`;
       return `Groove along ${edge}, ${where}: ${formatLength(g.width)} wide, ${formatLength(g.depth)} deep, ${formatLength(g.n0)} from the back face (dashed).`;
     }),
-    ...(part.rabbets ?? []).map((rb) => {
+    ...part.rabbets.map((rb) => {
       const along =
         rb.edge === 'reference'
           ? `the ${part.referenceEdge}`
@@ -563,7 +563,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       const face = rb.face === 'far' ? 'the face shown' : 'the back face (dashed)';
       return `Rabbet along ${along}, in ${face}: ${formatLength(rb.width)} wide, ${formatLength(rb.depth)} deep.`;
     }),
-    ...(part.recesses ?? []).map(
+    ...part.recesses.map(
       (rc) =>
         `Finger recess in ${rc.face === 'far' ? 'the face shown' : 'the back face (dashed)'}: ${formatLength(rc.width)} by ${formatLength(rc.height)}, ${formatLength(rc.depth)} deep, centered ${formatLength(rc.u)} from the first end and ${formatLength(rc.v)} from the ${part.referenceEdge}.`,
     ),
@@ -573,7 +573,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
         (t) =>
           `Taper the back face too: from full thickness ${formatLength(t.start.u)} from the first end to ${formatLength(t.end.v)} thinner at the first end.`,
       ),
-    ...(part.tenons ?? []).map(
+    ...part.tenons.map(
       (t) =>
         `Tenon at the ${endName(t.end)}: ${formatLength(t.length)} long, ${formatLength(t.thickness)} thick, ${formatLength(t.width)} wide, ${formatLength(t.n0)} from the back face and ${formatLength(t.v0)} from the ${part.referenceEdge}.`,
     ),
@@ -602,7 +602,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
 
 /** What the screw holes are, in words: how many are round, and how long and which way the slots run. */
 function screwNotes(part: Part): string[] {
-  const holes = part.screwHoles ?? [];
+  const holes = part.screwHoles;
   if (holes.length === 0) return [];
   const slots = holes.filter((h) => h.slot > 0);
   const round = holes.length - slots.length;

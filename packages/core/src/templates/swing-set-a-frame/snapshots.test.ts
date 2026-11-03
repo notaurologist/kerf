@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { TemplateDefinition } from '../../model/definition.ts';
 import { ChecklistItem, Flag, Part } from '../../model/types.ts';
 import { LumberPlan } from '../../outputs/shoppingList.ts';
+import { leaveOutDefaults } from '../../snapshot/defaults.ts';
 import { shapeOf } from '../../snapshot/shape.ts';
 import { createSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
 import { swingSetAFrame } from './definition.ts';
@@ -22,6 +23,7 @@ import v13 from './snapshots/v13.json' with { type: 'json' };
 import v14 from './snapshots/v14.json' with { type: 'json' };
 import v15 from './snapshots/v15.json' with { type: 'json' };
 import v16 from './snapshots/v16.json' with { type: 'json' };
+import v17 from './snapshots/v17.json' with { type: 'json' };
 
 // Stored swing-set projects stay readable (decision 0014). Each fixture holds the worked examples
 // as one template version stored them, keyed by that version. Fixtures are never rewritten.
@@ -42,6 +44,7 @@ const FIXTURES: Record<number, readonly unknown[]> = {
   14: v14,
   15: v15,
   16: v16,
+  17: v17,
 };
 
 const template = swingSetAFrame as TemplateDefinition;
@@ -118,8 +121,11 @@ describe('swing-set snapshot fixtures', () => {
     const current = FIXTURES[template.version] ?? [];
     expect(current).not.toHaveLength(0);
     for (const stored of current) {
+      // Reading fills in each list the snapshot left out as empty; storing leaves it out again.
       const read = readSnapshot(templates, stored);
-      expect(read.ok && JSON.parse(JSON.stringify(read.snapshot))).toEqual(stored);
+      if (!read.ok) throw new Error(read.message);
+      const outputs = leaveOutDefaults(template.outputs, read.snapshot.outputs);
+      expect(JSON.parse(JSON.stringify({ ...read.snapshot, outputs }))).toEqual(stored);
     }
   });
 

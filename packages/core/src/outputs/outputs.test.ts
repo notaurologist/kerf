@@ -33,6 +33,12 @@ describe('cutList', () => {
     dadoes: [],
     notches: [],
     cutouts: [],
+    mortises: [],
+    tenons: [],
+    screwHoles: [],
+    grooves: [],
+    rabbets: [],
+    recesses: [],
   };
 
   it('formats stock, length, ends, and marks', () => {
@@ -77,6 +83,12 @@ describe('planLumber, edge cases', () => {
     dadoes: [],
     notches: [],
     cutouts: [],
+    mortises: [],
+    tenons: [],
+    screwHoles: [],
+    grooves: [],
+    rabbets: [],
+    recesses: [],
   });
 
   it('reports a part longer than any board instead of dropping it', () => {
@@ -131,6 +143,12 @@ describe('panels', () => {
       dadoes: [],
       notches: [],
       cutouts: [],
+      mortises: [],
+      tenons: [],
+      screwHoles: [],
+      grooves: [],
+      rabbets: [],
+      recesses: [],
     };
   };
 
@@ -308,6 +326,12 @@ describe('parts cut straight from board stock', () => {
     dadoes: [],
     notches: [],
     cutouts: [],
+    mortises: [],
+    tenons: [],
+    screwHoles: [],
+    grooves: [],
+    rabbets: [],
+    recesses: [],
   };
 
   it('plans them on the stock’s own lengths', () => {

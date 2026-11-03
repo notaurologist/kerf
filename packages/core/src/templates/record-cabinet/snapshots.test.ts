@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { TemplateDefinition } from '../../model/definition.ts';
 import type { CutListRow } from '../../outputs/cutList.ts';
+import { leaveOutDefaults } from '../../snapshot/defaults.ts';
 import { shapeOf } from '../../snapshot/shape.ts';
 import { createSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
 import { recordCabinet } from './definition.ts';
@@ -16,6 +17,7 @@ import v8 from './snapshots/v8.json' with { type: 'json' };
 import v9 from './snapshots/v9.json' with { type: 'json' };
 import v10 from './snapshots/v10.json' with { type: 'json' };
 import v11 from './snapshots/v11.json' with { type: 'json' };
+import v12 from './snapshots/v12.json' with { type: 'json' };
 
 // Stored record-cabinet projects stay readable (decision 0014). Each fixture holds the worked
 // examples as that template version stores them. Fixtures are never rewritten.
@@ -32,6 +34,7 @@ const FIXTURES: Record<number, readonly unknown[]> = {
   9: v9,
   10: v10,
   11: v11,
+  12: v12,
 };
 const template = recordCabinet as TemplateDefinition;
 
@@ -163,8 +166,11 @@ describe('record-cabinet snapshot fixtures', () => {
 
   it('reads the current shape back exactly, dropping nothing', () => {
     for (const stored of FIXTURES[template.version] ?? []) {
+      // Reading fills in each list the snapshot left out as empty; storing leaves it out again.
       const read = readSnapshot(templates, stored);
-      expect(read.ok && JSON.parse(JSON.stringify(read.snapshot))).toEqual(stored);
+      if (!read.ok) throw new Error(read.message);
+      const outputs = leaveOutDefaults(template.outputs, read.snapshot.outputs);
+      expect(JSON.parse(JSON.stringify({ ...read.snapshot, outputs }))).toEqual(stored);
     }
   });
 });
