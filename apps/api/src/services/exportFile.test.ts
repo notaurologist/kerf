@@ -15,12 +15,16 @@ const project = {
   ticks: [],
 };
 
-function exported(projects: ProjectsExport['projects']): ProjectsExport {
+function exported(
+  projects: ProjectsExport['projects'],
+  deletedProjects: ProjectsExport['deletedProjects'] = [],
+): ProjectsExport {
   return {
     kind: 'kerf-export',
     formatVersion: EXPORT_FORMAT_VERSION,
     exportedAt: '2026-11-02T12:00:00.000Z',
     projects,
+    deletedProjects,
     tools: { tools: [] },
   };
 }
@@ -31,7 +35,15 @@ describe('exportJson', () => {
       const whole = exported(projects);
       const pieces = [...exportJson(whole)];
       expect(pieces.join('')).toBe(JSON.stringify(whole));
-      expect(pieces).toHaveLength(projects.length + 2);
+      expect(pieces).toHaveLength(projects.length + 3);
     }
+  });
+
+  it('streams the trashed projects too', () => {
+    const trashed = { ...project, id: 'trashed', deletedAt: '2026-11-01T00:00:00.000Z' };
+    const whole = exported([project], [trashed, { ...trashed, id: 'second' }]);
+    const pieces = [...exportJson(whole)];
+    expect(pieces.join('')).toBe(JSON.stringify(whole));
+    expect(pieces).toHaveLength(6);
   });
 });
