@@ -22,6 +22,9 @@ const PATHS = {
   chevron: <path d="M3.5 6l4.5 4.5L12.5 6" />,
   connection: <path d="M1.5 6.5a9.2 9.2 0 0 1 13 0M4 9.5a5.6 5.6 0 0 1 8 0M2 2l12 12" />,
   edit: <path d="M10.5 2.5l3 3-8 8h-3v-3zM8.5 4.5l3 3" />,
+  print: (
+    <path d="M4.5 6V1.5h7V6M4.5 12h-2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-2M4.5 9.5h7v5h-7z" />
+  ),
   'log-out': <path d="M6.5 2.5h-3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3M10.5 5l3 3-3 3M13.5 8h-7" />,
   // The theme menu shows the choice (#155): half a disc for the device's own, a sun, a moon.
   'theme-system': (

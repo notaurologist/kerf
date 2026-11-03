@@ -108,9 +108,11 @@ describe('the plan’s contents', () => {
       'boards',
       'shopping-list',
       'build-steps',
-      // Printed only, after the plan: the values used (#356) and the terms (#180).
+      // Printed only, after the plan: the values used (#356) and the terms (#180), the whole
+      // plan's and the shop set's (#469).
       'values-used',
       'terms-used',
+      'shop-terms-used',
     ]);
   });
 
@@ -132,10 +134,10 @@ describe('the plan’s contents', () => {
 });
 
 describe('the plan’s header', () => {
-  it('offers Edit and leaves printing to the browser', () => {
+  it('offers Edit, and Print with the shop set and the whole plan (#469)', () => {
     const top = textOf(html(complete).slice(0, html(complete).indexOf('</header>')));
     expect(top).toBe(
-      'Backyard swing set Planned About this plan Template Two-swing A-frame swing set, version 1. Edit',
+      'Backyard swing set Planned About this plan Template Two-swing A-frame swing set, version 1. Edit Print Print the shop set The cut list, boards, and build steps. Print the whole plan Every section, with the structural review and its working.',
     );
   });
 

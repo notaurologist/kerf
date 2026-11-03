@@ -6,7 +6,8 @@ import { Text } from './text.tsx';
 // A section of the plan (#40, section order A). On paper each starts a new page with a title
 // block naming the project and the section (#41), so a loose page still says what it is. On
 // screen each is its own screen (#156): the others stay in the page, hidden, so print still
-// gives the whole plan from any of them.
+// gives the whole plan from any of them. Print gives the whole plan, or the shorter shop set
+// when it is asked for (#469); `sets` says which of the two a section is in.
 
 export function PlanSection(props: {
   id: string;
@@ -19,6 +20,8 @@ export function PlanSection(props: {
   intro?: string;
   /** Not the section on screen: hidden on screen, printed with the rest. */
   hidden?: boolean;
+  /** The printed sets it is in: the whole plan (the default), both, or only the shop set. */
+  sets?: 'whole' | 'both' | 'shop';
   children: ReactNode;
 }) {
   const headingId = `${props.id}-heading`;
@@ -28,6 +31,7 @@ export function PlanSection(props: {
       className="k-section"
       aria-labelledby={headingId}
       data-page={props.newPage === false ? 'same' : undefined}
+      data-sets={props.sets ?? 'whole'}
       hidden={props.hidden}
     >
       <p className="k-section__title-block" aria-hidden="true">

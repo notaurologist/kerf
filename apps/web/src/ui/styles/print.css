@@ -27,6 +27,30 @@
       display: grid;
     }
 
+    /* The shop set (#469), when it is asked for: the cut list, boards, and build steps, with the
+       header and the terms they use. Its first section shares the first page with the header. */
+    .k-section[data-sets="shop"],
+    :root[data-print="shop"] .k-section[data-sets="whole"] {
+      display: none;
+    }
+
+    :root[data-print="shop"] .k-section[data-sets="shop"] {
+      display: grid;
+    }
+
+    :root[data-print="shop"] .k-section[data-sets="both"]:not([data-sets="both"] ~ .k-section) {
+      break-before: auto;
+    }
+
+    :root[data-print="shop"] .k-text[data-shop-set-only] {
+      display: block;
+    }
+
+    /* The shop set leaves out sources; the whole plan prints each one open. */
+    :root[data-print="shop"] .k-disclosure[data-size="small"] {
+      display: none;
+    }
+
     .k-section__title-block {
       display: block;
       padding-block-end: 4pt;
@@ -64,6 +88,7 @@
     /* What only a screen can use: buttons, popover triggers, and lines about tapping. */
     .k-button,
     .k-info,
+    .k-menu,
     [data-screen-only],
     .k-table__toggle,
     .k-titlebar,
