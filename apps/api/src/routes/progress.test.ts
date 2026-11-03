@@ -6,7 +6,7 @@ import { PROGRESS_KINDS as STORED_KINDS } from '../db/schema.ts';
 
 // Saved progress (#57) on the swing-set worked example. Keys are core's (progress/): the worked
 // example's boards are 4x6/12/1, 4x4/12/1 to /4, 2x6/10/1, and 2x8/8/1; its steps board-1 to
-// board-7, ease-edges, site, frames, and beam.
+// board-7, ease-edges, treat-cuts, site, frames, and beam.
 
 // biome-ignore lint/suspicious/noExplicitAny: test reads deep into JSON responses.
 type Json = any;
@@ -219,7 +219,7 @@ describe('project progress', () => {
     expect((await tick([done('shopping-line', 'lumber/2x6/10')])).body.status).toBe('in-progress');
 
     const steps = [1, 2, 3, 4, 5, 6, 7].map((n) => `board-${n}`);
-    steps.push('ease-edges', 'site', 'frames', 'hanger-holes');
+    steps.push('ease-edges', 'treat-cuts', 'site', 'frames', 'hanger-holes');
     expect((await tick(steps.map((key) => done('step', key)))).body.status).toBe('in-progress');
     expect((await tick([done('step', 'beam')])).body.status).toBe('built');
     expect(await status()).toBe('built');
@@ -282,12 +282,12 @@ describe('project progress', () => {
     const list = (await (await authed('/api/projects')).json()) as Json;
     const [project] = list.projects;
     expect(project).not.toHaveProperty('snapshot');
-    // The worked example: 4 lumber and 7 hardware lines; 9 pieces (a beam and two each of back
-    // legs, front legs, crossbars, and gussets); 7 board steps and 4 more.
+    // The worked example: 4 lumber and 8 hardware lines; 9 pieces (a beam and two each of back
+    // legs, front legs, crossbars, and gussets); 7 board steps and 5 more.
     expect(project.progress).toEqual({
-      shopping: { done: 2, total: 12 },
+      shopping: { done: 2, total: 13 },
       pieces: { done: 1, total: 9 },
-      steps: { done: 2, total: 12 },
+      steps: { done: 2, total: 13 },
       nextStep: {
         id: 'board-3',
         number: 3,
@@ -326,6 +326,6 @@ describe('project progress', () => {
     await tick([done('step', 'board-1')]);
     const project = (await (await authed(`/api/projects/${id}`)).json()) as Json;
     expect(project.ticks.map((t: Json) => t.key)).toEqual(['board-1']);
-    expect(project.progress.steps).toEqual({ done: 1, total: 12 });
+    expect(project.progress.steps).toEqual({ done: 1, total: 13 });
   });
 });

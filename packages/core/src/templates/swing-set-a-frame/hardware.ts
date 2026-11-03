@@ -15,6 +15,9 @@ const GROUPS = {
   anchors: 'Ground anchors',
 } as const;
 
+/** Where the preservative for field-treating cuts is found (`preservativeFor`). */
+export const PRESERVATIVE_GROUP = 'Paint and stain';
+
 /** Names of the hardware whose ratings and counts are read at the store (`storeReadings.ts`). */
 export const HANGERS = 'Swing hangers';
 export const ANCHORS = 'Ground anchors';

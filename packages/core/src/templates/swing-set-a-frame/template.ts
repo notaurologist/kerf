@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import type { BoardGuideId } from '../../knowledge/boardSelection.ts';
 import { stock } from '../../lumber/stock.ts';
+import { preservativeFor } from '../../lumber/treatment.ts';
 import { withLetters } from '../../model/letters.ts';
-import { cutAndDrillOperations, Operation } from '../../model/operations.ts';
+import { cutAndDrillOperations, Operation, treatmentOperations } from '../../model/operations.ts';
 import {
   Flag,
   type GenerateResult,
@@ -32,7 +33,13 @@ import {
   legsReachGround,
   splayForFootprint,
 } from './geometry.ts';
-import { HANGER_BOLTS, HARDWARE_NOTES, hardware, validateHardware } from './hardware.ts';
+import {
+  HANGER_BOLTS,
+  HARDWARE_NOTES,
+  hardware,
+  PRESERVATIVE_GROUP,
+  validateHardware,
+} from './hardware.ts';
 import { SiteLayout, SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
 import { placements } from './placements.ts';
@@ -80,12 +87,15 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 25 moves the note about a shorter board onto its lumber line, and gives each line what
  * else to buy when the store has none of its boards: other lengths, and other beam sizes that keep
  * the beam checks' margin, each with its margin (#450). No number changes.
- * Version 26 asks about UC4B for buried legs and what each leg stands on, and cites NDS Table
- * 2.3.2, footnote 2, for the beam's C_D (#464). No number changes.
- * Version 27 takes the beam's bending at each swing hanger on the net section its mounting holes
+ * Version 26 asks whether buried legs need use category UC4B rather than UC4A, asks what each leg's
+ * end stands on, and cites NDS Table 2.3.2 for the C_D cap (#464). No number changes.
+ * Version 27 marks every part as treated lumber, so each part's cuts and each bolt's holes get a
+ * coat of preservative (IRC 2021 R317.1.1), in a step after easing the edges and before each bolt
+ * goes in, and the shopping list adds the preservative (#447). No number changes.
+ * Version 28 takes the beam's bending at each swing hanger on the net section its mounting holes
  * leave (NDS 2024 3.1.2.1), lists the bolts that mount the hangers, and drills their holes (#446).
  */
-export const TEMPLATE_VERSION = 27;
+export const TEMPLATE_VERSION = 28;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
@@ -164,6 +174,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       name: legName(side, p.groundSlope),
       role: 'leg',
       selection: [...SELECTION.leg],
+      treated: true,
       stock: stock(p.legStock),
       quantity: 2,
       length: l.overallLength,
@@ -184,6 +195,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       name: p.beamPlies > 1 ? 'Beam ply' : 'Beam',
       role: 'beam',
       selection: [...SELECTION.beam],
+      treated: true,
       stock: stock(p.beamStock),
       quantity: p.beamPlies,
       length: dims.L,
@@ -207,6 +219,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       name: 'Crossbar',
       role: 'crossbar',
       selection: [...SELECTION.crossbar],
+      treated: true,
       stock: stock(p.crossbarStock),
       quantity: 2,
       length: g.crossbar.bottomEdge,
@@ -224,6 +237,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       name: 'Gusset',
       role: 'gusset',
       selection: [...SELECTION.gusset],
+      treated: true,
       stock: stock(p.gussetStock),
       quantity: 2,
       length: g.gusset.bottomWidth,
@@ -313,7 +327,9 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
 
   const joints = boltJoints(p, dims, g);
   const madeParts = withLetters(parts(p, dims, g));
-  const madeHardware = hardware(p, dims, g);
+  // Every part is pressure-treated lumber: the beam checks take a waterborne treatment
+  // (structural.ts), and the legs stand in or on the ground.
+  const madeHardware = [...hardware(p, dims, g), ...preservativeFor(madeParts, PRESERVATIVE_GROUP)];
   return {
     ok: true,
     output: {
@@ -335,7 +351,8 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
 /**
  * The spec's operations (Operations): every cut and bolt hole, from the parts and hardware; easing
  * the edges of every part, since children touch every surface (DOMAIN.md, Lumber and finish); and
- * the legs' holes (buried) or pads (d = 0).
+ * the legs' holes (buried) or pads (d = 0); then a coat of preservative on every cut and in every
+ * bolt hole, since every part is treated lumber.
  */
 function operations(
   p: SwingSetParams,
@@ -368,7 +385,7 @@ function operations(
           },
         ]
       : [];
-  return [
+  const ops = [
     ...cutAndDrillOperations(madeParts, items),
     ...horizontal,
     ...madeParts.map(
@@ -381,4 +398,5 @@ function operations(
     ),
     site,
   ];
+  return [...ops, ...treatmentOperations(madeParts, ops)];
 }
