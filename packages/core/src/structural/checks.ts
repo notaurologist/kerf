@@ -8,9 +8,10 @@ import {
   momentAt,
   reactions,
   type SpanLoads,
+  shearBeside,
 } from './beam.ts';
 import { type AdjustedValues, adjustedValues, type ServiceConditions } from './factors.ts';
-import { netSection, type SectionHole } from './netSection.ts';
+import { netSection, type SectionHole, shearSection } from './netSection.ts';
 import {
   type BreakEven,
   type CheckKind,
@@ -107,12 +108,17 @@ interface HoleSection {
   /** Named by the template, such as what the hole is for. */
   label: string;
   hole: SectionHole;
+  /**
+   * Set when the load at this section hangs from bolts in this hole, a connection NDS 2024 3.4.4.1
+   * covers: the hole's distance from the member's nearer end.
+   */
+  hung?: { fromEnd: number };
 }
 
 /**
- * The member's bored holes between its supports, which bending checks at their net section
- * (NDS 2024 3.1.2.1); or why their net section cannot be worked out, which leaves bending not
- * computed.
+ * The member's bored holes between its supports, which bending and shear check at their net
+ * section (NDS 2024 3.1.2.1); or why their net section cannot be worked out, which leaves bending
+ * and shear not computed.
  */
 export type MemberHoles = Needed<HoleSection[]> | { reason: string };
 
@@ -126,7 +132,7 @@ export interface BeamCheckInput {
   deflection: LoadCase & { limitRatio: Needed<number>; limitKey: string };
   /** The template's assumptions about the member and its supports. */
   assumptions: string[];
-  /** Holes bored through the member. With none, bending uses the gross section. */
+  /** Holes bored through the member. With none, bending and shear use the gross section. */
   holes?: MemberHoles;
 }
 
@@ -150,6 +156,7 @@ const SOURCES = {
   ],
   bending: nds('3.3.2, Eq. 3.3-2 and 3.3-4, p. 17', SOURCE_LINKS.ndsChapter3),
   shear: nds('3.4.1 and 3.4.2, Eq. 3.4-2, p. 19', SOURCE_LINKS.ndsChapter3),
+  connectionShear: nds('3.4.4.1, Eq. 3.4-8 and 3.4-9, Figure 3E, p. 21', SOURCE_LINKS.ndsChapter3),
   deflection: nds('3.5.1, p. 22', SOURCE_LINKS.ndsChapter3),
   apparentE: nds('Appendix F.3.1, p. 181', SOURCE_LINKS.ndsAppendix),
   span: nds('3.2.1, p. 17', SOURCE_LINKS.ndsChapter3),
@@ -279,25 +286,24 @@ function materialQuantities(m: MaterialInput, member: BeamMember): Quantity[] | 
 export function beamChecks(input: BeamCheckInput): BeamChecks {
   const result = checksOf(input);
   const holes = input.holes;
-  if (holes && 'reason' in holes && result.bending.status !== 'not-computed') {
-    const { kind, title, subject, loadCase } = result.bending;
+  if (!holes || !('reason' in holes)) return result;
+  const reasoned = (check: CheckResult): CheckResult => {
+    if (check.status === 'not-computed') return check;
+    const { kind, title, subject, loadCase } = check;
     return {
-      ...result,
-      bending: {
-        kind,
-        title,
-        subject,
-        loadCase,
-        status: 'not-computed',
-        reason: holes.reason,
-        sources: [SOURCES.netSection],
-      },
+      kind,
+      title,
+      subject,
+      loadCase,
+      status: 'not-computed',
+      reason: holes.reason,
+      sources: [SOURCES.netSection],
     };
-  }
-  return result;
+  };
+  return { ...result, bending: reasoned(result.bending), shear: reasoned(result.shear) };
 }
 
-/** What bending needs from the holes: their sections, when they are still to be entered. */
+/** What bending and shear need from the holes: their sections, when they are still to be entered. */
 function holeNeeds(input: BeamCheckInput): Needed<unknown>[] {
   return input.holes && 'missing' in input.holes ? [input.holes] : [];
 }
@@ -326,7 +332,11 @@ function checksOf(input: BeamCheckInput): BeamChecks {
         status: 'input-needed',
         missing: missingFrom(m, ...strengthNeeds(s), ...holeNeeds(input)),
       },
-      shear: { ...h.shear, status: 'input-needed', missing: missingFrom(m, ...strengthNeeds(s)) },
+      shear: {
+        ...h.shear,
+        status: 'input-needed',
+        missing: missingFrom(m, ...strengthNeeds(s), ...holeNeeds(input)),
+      },
       deflection: {
         ...h.deflection,
         status: 'input-needed',
@@ -438,25 +448,34 @@ function factorsFor(adjusted: AdjustedValues, value: 'Fb' | 'Fv' | 'E') {
 }
 
 /**
- * The net section at each hole between the supports, positioned from the left support, or why
- * one cannot be worked out.
+ * The section `of` gives at each hole between the supports, positioned from the left support, or
+ * why one cannot be worked out.
  */
-function netSections(
+function holeSections<T extends object>(
   input: BeamCheckInput,
-): { a: number; label: string; S: number; steps: Quantity[] }[] | string {
+  of: (b: number, d: number, plies: number, h: HoleSection) => T | string,
+): ({ a: number; label: string } & T)[] | string {
   const holes = input.holes;
   if (!holes || !('value' in holes)) return [];
   const { plyBreadth: b, depth: d, plies, supportsX } = input.member;
   const [x0, x1] = supportsX;
-  const found: { a: number; label: string; S: number; steps: Quantity[] }[] = [];
+  const found: ({ a: number; label: string } & T)[] = [];
   for (const h of holes.value) {
     if (h.x <= x0 || h.x >= x1) continue;
-    const net = netSection(b, d, plies, h.hole);
-    if (typeof net === 'string') return `${h.label}: ${net}`;
-    found.push({ a: h.x - x0, label: h.label, ...net });
+    const section = of(b, d, plies, h);
+    if (typeof section === 'string') return `${h.label}: ${section}`;
+    found.push({ a: h.x - x0, label: h.label, ...section });
   }
   return found;
 }
+
+/** The larger shear on either side of x. */
+function shearNextTo(L: number, loads: SpanLoads, x: number): number {
+  const V = shearBeside(L, loads, x);
+  return Math.max(Math.abs(V.left), Math.abs(V.right));
+}
+
+const lowerFirst = (label: string) => `${label.charAt(0).toLowerCase()}${label.slice(1)}`;
 
 function strengthCheck(
   which: 'bending' | 'shear',
@@ -467,18 +486,26 @@ function strengthCheck(
   assumptions: string[],
 ): CheckResult {
   const lc = input.strength;
-  const needs =
-    which === 'bending' ? [...strengthNeeds(lc), ...holeNeeds(input)] : strengthNeeds(lc);
-  if (isMissing(lc.loads) || (which === 'bending' && holeNeeds(input).length > 0)) {
+  const needs = [...strengthNeeds(lc), ...holeNeeds(input)];
+  if (isMissing(lc.loads) || holeNeeds(input).length > 0) {
     return { ...head, status: 'input-needed', missing: missingFrom(...needs) };
   }
   const unfactored = prepare(input.member, lc.loads.value);
   if (typeof unfactored === 'string')
     return { ...head, status: 'not-computed', reason: unfactored, sources: [] };
   const { plyBreadth: b, depth: dd } = input.member;
-  const sections = which === 'bending' ? netSections(input) : [];
+  const sections =
+    which === 'bending'
+      ? holeSections(input, (b, d, plies, h) => netSection(b, d, plies, h.hole))
+      : [];
   if (typeof sections === 'string')
     return { ...head, status: 'not-computed', reason: sections, sources: [SOURCES.netSection] };
+  const shearAreas =
+    which === 'shear'
+      ? holeSections(input, (b, d, plies, h) => shearSection(b, d, plies, h.hole, h.hung))
+      : [];
+  if (typeof shearAreas === 'string')
+    return { ...head, status: 'not-computed', reason: shearAreas, sources: [SOURCES.netSection] };
   const allowed = which === 'bending' ? adjusted.Fb : adjusted.Fv;
   const factor = lc.factor;
   const atMarginOne =
@@ -492,7 +519,12 @@ function strengthCheck(
               maxMoment(unfactored.L, loads).M / ((b * dd * dd) / 6),
               ...sections.map((sec) => momentAt(unfactored.L, loads, sec.a) / sec.S),
             )
-          : (3 * maxShear(unfactored.L, loads)) / (2 * b * dd);
+          : Math.max(
+              (3 * maxShear(unfactored.L, loads)) / (2 * b * dd),
+              ...shearAreas.map(
+                (sec) => (3 * shearNextTo(unfactored.L, loads, sec.a)) / (2 * sec.A),
+              ),
+            );
       }, allowed),
     );
   if (factor && isMissing(factor.value)) {
@@ -553,7 +585,7 @@ function strengthCheck(
           ...sec.steps.map((q) => ({
             ...q,
             symbol: `${q.symbol},${n}`,
-            label: `${sec.label}, ${q.label.charAt(0).toLowerCase()}${q.label.slice(1)}`,
+            label: `${sec.label}, ${lowerFirst(q.label)}`,
           })),
           { symbol: `f_b,${n}`, label: `${sec.label}, bending stress`, value: fb, unit: 'psi' },
         ],
@@ -565,7 +597,7 @@ function strengthCheck(
         h.fb > worst.fb
           ? {
               fb: h.fb,
-              label: `Bending stress at ${h.label.charAt(0).toLowerCase()}${h.label.slice(1)}, net section`,
+              label: `Bending stress at ${lowerFirst(h.label)}, net section`,
               x: h.a + x0,
             }
           : worst,
@@ -635,7 +667,46 @@ function strengthCheck(
   }
 
   const V = Math.max(R.left, R.right);
-  const fv = (3 * V) / (2 * b * dd);
+  const x0 = input.member.supportsX[0];
+  // Shear beside each hole, on its net section (NDS 2024 3.1.2.1) or, where the load hangs from
+  // bolts in it, on its effective depth (3.4.4.1).
+  const atHoles = shearAreas.map((sec, i) => {
+    const n = i + 1;
+    const Vh = shearNextTo(L, plyLoads, sec.a);
+    const fv = (3 * Vh) / (2 * sec.A);
+    return {
+      ...sec,
+      fv,
+      steps: [
+        { symbol: `x_h${n}`, label: `${sec.label}, position`, value: sec.a + x0, unit: 'in' },
+        {
+          symbol: `V_h${n}`,
+          label: `${sec.label}, larger shear on either side${per}`,
+          value: Vh,
+          unit: 'lb',
+        },
+        ...sec.steps.map((q) => ({
+          ...q,
+          symbol: `${q.symbol},${n}`,
+          label: `${sec.label}, ${lowerFirst(q.label)}`,
+        })),
+        { symbol: `f_v,${n}`, label: `${sec.label}, shear stress`, value: fv, unit: 'psi' },
+      ],
+    };
+  });
+  const gross = { fv: (3 * V) / (2 * b * dd), label: 'Shear stress' };
+  const governing = atHoles.reduce(
+    (worst, h) =>
+      h.fv > worst.fv
+        ? {
+            fv: h.fv,
+            label: `Shear stress at ${lowerFirst(h.label)}, ${h.connection ? 'effective depth' : 'net section'}`,
+          }
+        : worst,
+    gross,
+  );
+  const holed = atHoles.length > 0;
+  const areaFormulas = [...new Set(atHoles.map((h) => h.formula))];
   return {
     ...common,
     assumptions: [
@@ -648,24 +719,49 @@ function strengthCheck(
       'R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2',
       'V = larger of R1 and R2',
       'f_v = 3·V / (2·b·d)',
+      ...(holed
+        ? [
+            'At each hole, V_h = the larger shear just either side of it: R1 − w·x − Σ P over loads left of x, and less the load at the hole',
+            ...areaFormulas,
+            'f_v = 3·V_h / (2·A_v) there, and f_v = the largest of these',
+          ]
+        : []),
       "Fv' = Fv · C_D · C_M · C_t · C_i",
-      "margin = Fv' / f_v (equal to Vr' / V, with Vr' = 2/3 · Fv' · b · d)",
+      holed
+        ? "margin = Fv' / f_v (equal to Vr' / V, with Vr' = 2/3 · Fv' · b · d, or 2/3 · Fv' · A_v at a hole)"
+        : "margin = Fv' / f_v (equal to Vr' / V, with Vr' = 2/3 · Fv' · b · d)",
     ],
     steps: [
       ...prepared.steps,
       ...reactionSteps,
       { symbol: 'V', label: `Largest shear${per}`, value: V, unit: 'lb' },
+      ...(holed
+        ? [
+            {
+              symbol: 'f_v,V',
+              label: 'Shear stress at the largest shear, 3·V / (2·b·d)',
+              value: gross.fv,
+              unit: 'psi',
+            },
+            ...atHoles.flatMap((h) => h.steps),
+          ]
+        : []),
     ],
     factors: factorsFor(adjusted, 'Fv'),
-    sources: [...SOURCES.superposition, SOURCES.shear],
-    computed: { symbol: 'f_v', label: 'Shear stress', value: fv, unit: 'psi' },
+    sources: [
+      ...SOURCES.superposition,
+      SOURCES.shear,
+      ...(atHoles.some((h) => !h.connection) ? [SOURCES.netSection] : []),
+      ...(atHoles.some((h) => h.connection) ? [SOURCES.connectionShear] : []),
+    ],
+    computed: { symbol: 'f_v', label: governing.label, value: governing.fv, unit: 'psi' },
     allowable: {
       symbol: "Fv'",
       label: 'Adjusted shear design value',
       value: adjusted.Fv,
       unit: 'psi',
     },
-    margin: adjusted.Fv / fv,
+    margin: adjusted.Fv / governing.fv,
   };
 }
 

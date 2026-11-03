@@ -109,8 +109,11 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * frame goes up in (#451). No number changes.
  * Version 32 gives bending in the next deeper beam stock, with its margin and break-even dynamic
  * factor, so the stock can be chosen against them (#466). The plan's own numbers do not change.
+ * Version 33 takes the beam's shear beside each swing hanger as well: on the net section a bolt
+ * down through the beam leaves (NDS 2024 3.1.2.1), or on the depth below bolts across it that the
+ * seat hangs from (3.4.4.1), and a plan with another mounting gives no shear (#526).
  */
-export const TEMPLATE_VERSION = 32;
+export const TEMPLATE_VERSION = 33;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

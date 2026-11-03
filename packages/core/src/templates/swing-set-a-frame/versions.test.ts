@@ -34,6 +34,7 @@ import v28 from './snapshots/v28.json' with { type: 'json' };
 import v29 from './snapshots/v29.json' with { type: 'json' };
 import v30 from './snapshots/v30.json' with { type: 'json' };
 import v31 from './snapshots/v31.json' with { type: 'json' };
+import v32 from './snapshots/v32.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -170,6 +171,14 @@ const isVersion32 = (c: { path: string }) =>
   /^structuralReview\.beam\.bending\.deeperStock(\.|\[|$)/.test(c.path);
 
 /**
+ * Version 33's changes (#526): shear beside the hangers' holes, and the hanger checklist item's
+ * wording. Set aside like version 18's.
+ */
+const isVersion33 = (c: { path: string }) =>
+  /^structuralReview\.beam\.shear(\.|\[|$)/.test(c.path) ||
+  /^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path);
+
+/**
  * What regenerating with the current version changes in the stored outputs, field by field; or,
  * given `later`, a later version's fixture of the same example, what that version changed.
  */
@@ -188,6 +197,7 @@ function regenerated(
   later?: unknown,
   keepVersion31 = false,
   keepVersion32 = false,
+  keepVersion33 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -207,7 +217,8 @@ function regenerated(
         (keepVersion29 || later !== undefined || !isVersion29(c)) &&
         (keepVersion30 || !isVersion30(c)) &&
         (keepVersion31 || !isVersion31(c)) &&
-        (keepVersion32 || !isVersion32(c)),
+        (keepVersion32 || !isVersion32(c)) &&
+        (keepVersion33 || later !== undefined || !isVersion33(c)),
     ),
   };
   return keepVersion18
@@ -726,7 +737,8 @@ describe('swing-set template versions', () => {
           !isVersion29(c) &&
           !isVersion30(c) &&
           !isVersion31(c) &&
-          !isVersion32(c),
+          !isVersion32(c) &&
+          !isVersion33(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1096,5 +1108,25 @@ describe('swing-set template versions', () => {
       ['Top beam, 4x8', 2.655],
       ['Top beam, 3 plies of 2x8', 2.086],
     ]);
+  });
+
+  // Hand check in the spec, Structural model, example 1: just inside the left outer hanger the
+  // shear is 621.15 − 0.433798·18.75 = 613.01, and its 9/16" hole leaves A_v = 2.9375·5.5, so
+  // f_v = 3·613.01 / (2·16.15625) = 56.91 and the margin 169.75 / 56.91 = 2.98, against 3.51.
+  it('version 33 takes shear beside the hanger holes, and changes nothing else (#526)', () => {
+    const keep33 = [...Array(10).fill(false), undefined, false, false, true] as const;
+    for (const stored of v32) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(32);
+      const { changes } = regenerated(snapshot, ...keep33);
+      expect(changes.filter((c) => !isVersion33(c))).toEqual([]);
+    }
+    type Shear = { margin: number; computed: { label: string } };
+    const shear = (outputs: unknown) =>
+      (outputs as { structuralReview: { beam: { shear: Shear } } }).structuralReview.beam.shear;
+    expect(shear(read(v32[0]).outputs).margin).toBeCloseTo(3.5072, 4);
+    const now = shear(fresh(read(v32[0])));
+    expect(now.margin).toBeCloseTo(2.98256, 4);
+    expect(now.computed.label).toBe('Shear stress at left swing, left hanger hole, net section');
   });
 });
