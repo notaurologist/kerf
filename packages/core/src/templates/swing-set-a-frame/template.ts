@@ -80,11 +80,13 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 25 moves the note about a shorter board onto its lumber line, and gives each line what
  * else to buy when the store has none of its boards: other lengths, and other beam sizes that keep
  * the beam checks' margin, each with its margin (#450). No number changes.
- * Version 26 marks every part as treated lumber, so each part's cuts and each bolt's holes get a
+ * Version 26 asks whether buried legs need use category UC4B rather than UC4A, asks what each leg's
+ * end stands on, and cites NDS Table 2.3.2 for the C_D cap (#464). No number changes.
+ * Version 27 marks every part as treated lumber, so each part's cuts and each bolt's holes get a
  * coat of preservative (IRC 2021 R317.1.1), in a step after easing the edges and before each bolt
  * goes in, and the shopping list adds the preservative (#447). No number changes.
  */
-export const TEMPLATE_VERSION = 26;
+export const TEMPLATE_VERSION = 27;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

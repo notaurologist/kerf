@@ -498,8 +498,8 @@
         },
         {
           "category": "load-bearing",
-          "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-          "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line.",
+          "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+          "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B.",
           "partIds": [
             "leg-back",
             "leg-front"
@@ -948,7 +948,7 @@
                 "Fb",
                 "Fv"
               ],
-              "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+              "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
               "sources": [
                 {
                   "source": "nds-2024",
@@ -1457,7 +1457,7 @@
                 "Fb",
                 "Fv"
               ],
-              "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+              "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
               "sources": [
                 {
                   "source": "nds-2024",
@@ -2170,7 +2170,7 @@
         {
           "category": "tipping-and-anchoring",
           "element": "Buried legs",
-          "confirm": "Burial depth (24\"), soil, backfill or concrete, and lumber rated for ground contact.",
+          "confirm": "Burial depth (24\"), soil, what each leg's end stands on (gravel or tamped soil), whether the backfill or concrete around it sheds water away from the wood, and lumber rated for ground contact (UC4A, or UC4B if critical or hard to replace).",
           "why": "Burial keeps the frame from lifting and walking; tipping and anchoring are not computed.",
           "partIds": [
             "leg-back",
@@ -3832,8 +3832,8 @@
               },
               {
                 "category": "load-bearing",
-                "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-                "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line.",
+                "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+                "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B.",
                 "sources": []
               }
             ]
@@ -7915,8 +7915,8 @@
               },
               {
                 "category": "load-bearing",
-                "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-                "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line.",
+                "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+                "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B.",
                 "sources": []
               }
             ]
@@ -11161,8 +11161,8 @@
         },
         {
           "category": "load-bearing",
-          "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-          "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line.",
+          "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+          "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B.",
           "partIds": [
             "leg-back",
             "leg-front"
@@ -11384,7 +11384,7 @@
         {
           "category": "tipping-and-anchoring",
           "element": "Buried legs",
-          "confirm": "Burial depth (24\"), soil, backfill or concrete, and lumber rated for ground contact.",
+          "confirm": "Burial depth (24\"), soil, what each leg's end stands on (gravel or tamped soil), whether the backfill or concrete around it sheds water away from the wood, and lumber rated for ground contact (UC4A, or UC4B if critical or hard to replace).",
           "why": "Burial keeps the frame from lifting and walking; tipping and anchoring are not computed.",
           "partIds": [
             "leg-back",
@@ -13046,8 +13046,8 @@
               },
               {
                 "category": "load-bearing",
-                "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-                "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line.",
+                "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+                "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B.",
                 "sources": []
               }
             ]
@@ -17129,8 +17129,8 @@
               },
               {
                 "category": "load-bearing",
-                "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-                "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line.",
+                "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+                "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B.",
                 "sources": []
               }
             ]
@@ -20850,7 +20850,7 @@
                 "Fb",
                 "Fv"
               ],
-              "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+              "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
               "sources": [
                 {
                   "source": "nds-2024",
@@ -21373,7 +21373,7 @@
                 "Fb",
                 "Fv"
               ],
-              "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+              "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
               "sources": [
                 {
                   "source": "nds-2024",

@@ -28,6 +28,7 @@ import v22 from './snapshots/v22.json' with { type: 'json' };
 import v23 from './snapshots/v23.json' with { type: 'json' };
 import v24 from './snapshots/v24.json' with { type: 'json' };
 import v25 from './snapshots/v25.json' with { type: 'json' };
+import v26 from './snapshots/v26.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -86,11 +87,21 @@ const isVersion25 = (c: { path: string; before?: unknown }) =>
     String(c.before).includes(' to leave room for trimming'));
 
 /**
- * Version 26's changes (#447): every part marked treated, an operation to treat each part's cuts and
+ * Version 26's changes (#464): the buried-legs flag and checklist item ask about UC4B and what each
+ * leg stands on, and the beam's C_D reason cites Table 2.3.2, footnote 2. Set aside like version 18's.
+ */
+const isVersion26 = (c: { path: string; after?: unknown }) =>
+  (/^(design\.flags\[\d+\]\.(ask|why)|structuralReview\.checklist\[\d+\]\.confirm)$/.test(c.path) &&
+    String(c.after).includes('UC4B')) ||
+  (/^structuralReview\.beam\.(bending|shear)\.factors\[\d+\]\.reason$/.test(c.path) &&
+    String(c.after).includes('Table 2.3.2, footnote 2'));
+
+/**
+ * Version 27's changes (#447): every part marked treated, an operation to treat each part's cuts and
  * each bolt's holes, and the preservative in the hardware and its shopping line. Each is new, with
  * nothing before it. Set aside like version 18's.
  */
-const isVersion26 = (c: { path: string; before?: unknown; after?: unknown }) => {
+const isVersion27 = (c: { path: string; before?: unknown; after?: unknown }) => {
   if (c.before !== undefined) return false;
   const after = c.after as { id?: string; type?: string } | undefined;
   return (
@@ -112,6 +123,7 @@ function regenerated(
   keepVersion24 = false,
   keepVersion25 = false,
   keepVersion26 = false,
+  keepVersion27 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -127,7 +139,8 @@ function regenerated(
         (keepVersion23 || !isVersion23(c)) &&
         (keepVersion24 || !isVersion24(c)) &&
         (keepVersion25 || !isVersion25(c)) &&
-        (keepVersion26 || !isVersion26(c)),
+        (keepVersion26 || !isVersion26(c)) &&
+        (keepVersion27 || !isVersion27(c)),
     ),
   };
   return keepVersion18
@@ -614,7 +627,8 @@ describe('swing-set template versions', () => {
           !isVersion23(c) &&
           !isVersion24(c) &&
           !isVersion25(c) &&
-          !isVersion26(c),
+          !isVersion26(c) &&
+          !isVersion27(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -726,9 +740,7 @@ describe('swing-set template versions', () => {
     ]);
   });
 
-  // Hand check in operations.test.ts: each leg has 3 cuts (top, foot, flush cut), every other part
-  // 2; each bolt's holes are treated where they pass through treated parts, which is every one.
-  it('version 26 treats every cut and bolt hole, and adds the preservative (#447)', () => {
+  it('version 26 asks about UC4B and what each buried leg stands on, and changes no number (#464)', () => {
     for (const stored of v25) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
@@ -740,6 +752,34 @@ describe('swing-set template versions', () => {
     const first = readSnapshot([template], v25[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
     const { changes } = regenerated(first.snapshot, false, false, false, false, false, true);
+    expect(changes.map((c) => c.path).sort()).toEqual([
+      'design.flags[2].ask',
+      'design.flags[2].why',
+      'structuralReview.beam.bending.factors[0].reason',
+      'structuralReview.beam.shear.factors[0].reason',
+      'structuralReview.checklist[3].confirm',
+    ]);
+    const confirm = changes.find((c) => c.path.endsWith('.confirm'));
+    expect(String(confirm?.after)).toContain(
+      "what each leg's end stands on (gravel or tamped soil)",
+    );
+    expect(String(confirm?.after)).not.toMatch(/\d+"? (of )?gravel/);
+  });
+
+  // Hand check in operations.test.ts: each leg has 3 cuts (top, foot, flush cut), every other part
+  // 2; each bolt's holes are treated where they pass through treated parts, which is every one.
+  it('version 27 treats every cut and bolt hole, and adds the preservative (#447)', () => {
+    for (const stored of v26) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(26);
+      const { changes } = regenerated(read.snapshot, false, false, false, false, false, false, true);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion27(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v26[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const { changes } = regenerated(first.snapshot, false, false, false, false, false, false, true);
     const added = changes
       .filter((c) => c.path.startsWith('design.operations'))
       .map((c) => c.after as Operation);

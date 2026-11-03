@@ -178,7 +178,6 @@
             "name": "Beam",
             "role": "beam",
             "selection": ["structural", "span", "bolted"],
-            "treated": true,
             "stock": {
               "nominal": "4x6",
               "thickness": 3.5,
@@ -241,7 +240,6 @@
             "name": "Back leg (uphill)",
             "role": "leg",
             "selection": ["structural", "along-length", "bolted", "ground-contact"],
-            "treated": true,
             "stock": {
               "nominal": "4x4",
               "thickness": 3.5,
@@ -376,7 +374,6 @@
             "name": "Front leg (downhill)",
             "role": "leg",
             "selection": ["structural", "along-length", "bolted", "ground-contact"],
-            "treated": true,
             "stock": {
               "nominal": "4x4",
               "thickness": 3.5,
@@ -511,7 +508,6 @@
             "name": "Crossbar",
             "role": "crossbar",
             "selection": ["structural", "bolted"],
-            "treated": true,
             "stock": {
               "nominal": "2x6",
               "thickness": 1.5,
@@ -620,7 +616,6 @@
             "name": "Gusset",
             "role": "gusset",
             "selection": ["structural", "bolted"],
-            "treated": true,
             "stock": {
               "nominal": "2x8",
               "thickness": 1.5,
@@ -1027,17 +1022,6 @@
               "Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80\" from pivot to seat, less the hanger's drop."
             ],
             "group": "Swing hardware"
-          },
-          {
-            "id": "preservative",
-            "name": "Wood preservative for cut ends",
-            "quantity": 1,
-            "structural": false,
-            "notes": [
-              "For every cut and bolt hole in treated lumber, which IRC 2021 R317.1.1 requires to be treated as AWPA M4 says. Choose one whose label says it is for treating cuts in treated wood.",
-              "Copper naphthenate suits any treated lumber; boron is only for wood off the ground and out of the rain (AWPA M4-06, 7.1.1 and 7.1.2). M4-06 recommends at least 2.0% copper as metal, or 1.0% where that is not readily available. The label gives the copper as metal; the percentage of copper naphthenate is a different number."
-            ],
-            "group": "Paint and stain"
           }
         ],
         "hardwareNotes": [
@@ -1063,8 +1047,8 @@
             "category": "load-bearing",
             "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
-            "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-            "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line."
+            "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+            "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B."
           },
           {
             "category": "load-bearing",
@@ -1677,68 +1661,6 @@
             "type": "dig-holes",
             "count": 4,
             "depth": 24
-          },
-          {
-            "id": "beam/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "beam",
-            "count": 1,
-            "cuts": 2
-          },
-          {
-            "id": "leg-back/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "leg-back",
-            "count": 2,
-            "cuts": 3
-          },
-          {
-            "id": "leg-front/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "leg-front",
-            "count": 2,
-            "cuts": 3
-          },
-          {
-            "id": "crossbar/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "crossbar",
-            "count": 2,
-            "cuts": 2
-          },
-          {
-            "id": "gusset/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "gusset",
-            "count": 2,
-            "cuts": 2
-          },
-          {
-            "id": "leg-beam-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "leg-beam-bolts",
-            "partIds": ["beam", "leg-back", "leg-front"],
-            "count": 2,
-            "holeDiameter": 0.5625,
-            "depth": 8.947408118867273
-          },
-          {
-            "id": "crossbar-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "crossbar-bolts",
-            "partIds": ["leg-back", "leg-front", "crossbar"],
-            "count": 8,
-            "holeDiameter": 0.5625,
-            "depth": 5
-          },
-          {
-            "id": "gusset-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "gusset-bolts",
-            "partIds": ["leg-back", "leg-front", "gusset"],
-            "count": 8,
-            "holeDiameter": 0.5625,
-            "depth": 5
           }
         ]
       },
@@ -2139,15 +2061,6 @@
           "group": "Swing hardware",
           "notes": [
             "Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80\" from pivot to seat, less the hanger's drop."
-          ]
-        },
-        {
-          "description": "Wood preservative for cut ends",
-          "quantity": 1,
-          "group": "Paint and stain",
-          "notes": [
-            "For every cut and bolt hole in treated lumber, which IRC 2021 R317.1.1 requires to be treated as AWPA M4 says. Choose one whose label says it is for treating cuts in treated wood.",
-            "Copper naphthenate suits any treated lumber; boron is only for wood off the ground and out of the rain (AWPA M4-06, 7.1.1 and 7.1.2). M4-06 recommends at least 2.0% copper as metal, or 1.0% where that is not readily available. The label gives the copper as metal; the percentage of copper naphthenate is a different number."
           ]
         }
       ],
@@ -2578,7 +2491,7 @@
                 "name": "Load duration",
                 "value": 1,
                 "appliesTo": ["Fb", "Fv"],
-                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
                     "source": "nds-2024",
@@ -3069,7 +2982,7 @@
                 "name": "Load duration",
                 "value": 1,
                 "appliesTo": ["Fb", "Fv"],
-                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
                     "source": "nds-2024",
@@ -3728,7 +3641,7 @@
             "element": "Buried legs",
             "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
-            "confirm": "Burial depth (24\"), soil, backfill or concrete, and lumber rated for ground contact.",
+            "confirm": "Burial depth (24\"), soil, what each leg's end stands on (gravel or tamped soil), whether the backfill or concrete around it sheds water away from the wood, and lumber rated for ground contact (UC4A, or UC4B if critical or hard to replace).",
             "why": "Burial keeps the frame from lifting and walking; tipping and anchoring are not computed."
           },
           {
@@ -3929,7 +3842,6 @@
             "name": "Beam",
             "role": "beam",
             "selection": ["structural", "span", "bolted"],
-            "treated": true,
             "stock": {
               "nominal": "4x6",
               "thickness": 3.5,
@@ -3992,7 +3904,6 @@
             "name": "Back leg (uphill)",
             "role": "leg",
             "selection": ["structural", "along-length", "bolted", "ground-contact"],
-            "treated": true,
             "stock": {
               "nominal": "4x4",
               "thickness": 3.5,
@@ -4127,7 +4038,6 @@
             "name": "Front leg (downhill)",
             "role": "leg",
             "selection": ["structural", "along-length", "bolted", "ground-contact"],
-            "treated": true,
             "stock": {
               "nominal": "4x4",
               "thickness": 3.5,
@@ -4262,7 +4172,6 @@
             "name": "Crossbar",
             "role": "crossbar",
             "selection": ["structural", "bolted"],
-            "treated": true,
             "stock": {
               "nominal": "2x6",
               "thickness": 1.5,
@@ -4371,7 +4280,6 @@
             "name": "Gusset",
             "role": "gusset",
             "selection": ["structural", "bolted"],
-            "treated": true,
             "stock": {
               "nominal": "2x8",
               "thickness": 1.5,
@@ -4778,17 +4686,6 @@
               "Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80\" from pivot to seat, less the hanger's drop."
             ],
             "group": "Swing hardware"
-          },
-          {
-            "id": "preservative",
-            "name": "Wood preservative for cut ends",
-            "quantity": 1,
-            "structural": false,
-            "notes": [
-              "For every cut and bolt hole in treated lumber, which IRC 2021 R317.1.1 requires to be treated as AWPA M4 says. Choose one whose label says it is for treating cuts in treated wood.",
-              "Copper naphthenate suits any treated lumber; boron is only for wood off the ground and out of the rain (AWPA M4-06, 7.1.1 and 7.1.2). M4-06 recommends at least 2.0% copper as metal, or 1.0% where that is not readily available. The label gives the copper as metal; the percentage of copper naphthenate is a different number."
-            ],
-            "group": "Paint and stain"
           }
         ],
         "hardwareNotes": [
@@ -4814,8 +4711,8 @@
             "category": "load-bearing",
             "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
-            "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-            "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line."
+            "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+            "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B."
           },
           {
             "category": "load-bearing",
@@ -5428,68 +5325,6 @@
             "type": "dig-holes",
             "count": 4,
             "depth": 24
-          },
-          {
-            "id": "beam/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "beam",
-            "count": 1,
-            "cuts": 2
-          },
-          {
-            "id": "leg-back/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "leg-back",
-            "count": 2,
-            "cuts": 3
-          },
-          {
-            "id": "leg-front/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "leg-front",
-            "count": 2,
-            "cuts": 3
-          },
-          {
-            "id": "crossbar/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "crossbar",
-            "count": 2,
-            "cuts": 2
-          },
-          {
-            "id": "gusset/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "gusset",
-            "count": 2,
-            "cuts": 2
-          },
-          {
-            "id": "leg-beam-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "leg-beam-bolts",
-            "partIds": ["beam", "leg-back", "leg-front"],
-            "count": 2,
-            "holeDiameter": 0.5625,
-            "depth": 8.947408118867273
-          },
-          {
-            "id": "crossbar-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "crossbar-bolts",
-            "partIds": ["leg-back", "leg-front", "crossbar"],
-            "count": 8,
-            "holeDiameter": 0.5625,
-            "depth": 5
-          },
-          {
-            "id": "gusset-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "gusset-bolts",
-            "partIds": ["leg-back", "leg-front", "gusset"],
-            "count": 8,
-            "holeDiameter": 0.5625,
-            "depth": 5
           }
         ]
       },
@@ -5885,15 +5720,6 @@
           "notes": [
             "Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80\" from pivot to seat, less the hanger's drop."
           ]
-        },
-        {
-          "description": "Wood preservative for cut ends",
-          "quantity": 1,
-          "group": "Paint and stain",
-          "notes": [
-            "For every cut and bolt hole in treated lumber, which IRC 2021 R317.1.1 requires to be treated as AWPA M4 says. Choose one whose label says it is for treating cuts in treated wood.",
-            "Copper naphthenate suits any treated lumber; boron is only for wood off the ground and out of the rain (AWPA M4-06, 7.1.1 and 7.1.2). M4-06 recommends at least 2.0% copper as metal, or 1.0% where that is not readily available. The label gives the copper as metal; the percentage of copper naphthenate is a different number."
-          ]
         }
       ],
       "structuralReview": {
@@ -6054,7 +5880,7 @@
             "element": "Buried legs",
             "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
-            "confirm": "Burial depth (24\"), soil, backfill or concrete, and lumber rated for ground contact.",
+            "confirm": "Burial depth (24\"), soil, what each leg's end stands on (gravel or tamped soil), whether the backfill or concrete around it sheds water away from the wood, and lumber rated for ground contact (UC4A, or UC4B if critical or hard to replace).",
             "why": "Burial keeps the frame from lifting and walking; tipping and anchoring are not computed."
           },
           {
@@ -6274,7 +6100,6 @@
             "name": "Beam ply",
             "role": "beam",
             "selection": ["structural", "span", "bolted"],
-            "treated": true,
             "stock": {
               "nominal": "2x6",
               "thickness": 1.5,
@@ -6364,7 +6189,6 @@
             "name": "Back leg",
             "role": "leg",
             "selection": ["structural", "along-length", "bolted", "ground-contact"],
-            "treated": true,
             "stock": {
               "nominal": "4x4",
               "thickness": 3.5,
@@ -6498,7 +6322,6 @@
             "name": "Front leg",
             "role": "leg",
             "selection": ["structural", "along-length", "bolted", "ground-contact"],
-            "treated": true,
             "stock": {
               "nominal": "4x4",
               "thickness": 3.5,
@@ -6632,7 +6455,6 @@
             "name": "Crossbar",
             "role": "crossbar",
             "selection": ["structural", "bolted"],
-            "treated": true,
             "stock": {
               "nominal": "2x6",
               "thickness": 1.5,
@@ -6741,7 +6563,6 @@
             "name": "Gusset",
             "role": "gusset",
             "selection": ["structural", "bolted"],
-            "treated": true,
             "stock": {
               "nominal": "2x8",
               "thickness": 1.5,
@@ -7202,17 +7023,6 @@
             "structural": true,
             "notes": ["Bury or cover the anchors (CPSC Pub. 324, p. 4)."],
             "group": "Ground anchors"
-          },
-          {
-            "id": "preservative",
-            "name": "Wood preservative for cut ends",
-            "quantity": 1,
-            "structural": false,
-            "notes": [
-              "For every cut and bolt hole in treated lumber, which IRC 2021 R317.1.1 requires to be treated as AWPA M4 says. Choose one whose label says it is for treating cuts in treated wood.",
-              "Copper naphthenate suits any treated lumber; boron is only for wood off the ground and out of the rain (AWPA M4-06, 7.1.1 and 7.1.2). M4-06 recommends at least 2.0% copper as metal, or 1.0% where that is not readily available. The label gives the copper as metal; the percentage of copper naphthenate is a different number."
-            ],
-            "group": "Paint and stain"
           }
         ],
         "hardwareNotes": [
@@ -7861,77 +7671,6 @@
             "id": "site/level-pads",
             "type": "level-pads",
             "count": 4
-          },
-          {
-            "id": "beam/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "beam",
-            "count": 2,
-            "cuts": 2
-          },
-          {
-            "id": "leg-back/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "leg-back",
-            "count": 2,
-            "cuts": 3
-          },
-          {
-            "id": "leg-front/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "leg-front",
-            "count": 2,
-            "cuts": 3
-          },
-          {
-            "id": "crossbar/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "crossbar",
-            "count": 2,
-            "cuts": 2
-          },
-          {
-            "id": "gusset/treat-cuts",
-            "type": "treat-cuts",
-            "partId": "gusset",
-            "count": 2,
-            "cuts": 2
-          },
-          {
-            "id": "leg-beam-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "leg-beam-bolts",
-            "partIds": ["beam", "leg-back", "leg-front"],
-            "count": 2,
-            "holeDiameter": 0.5625,
-            "depth": 8.452713591586766
-          },
-          {
-            "id": "crossbar-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "crossbar-bolts",
-            "partIds": ["leg-back", "leg-front", "crossbar"],
-            "count": 8,
-            "holeDiameter": 0.5625,
-            "depth": 5
-          },
-          {
-            "id": "gusset-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "gusset-bolts",
-            "partIds": ["leg-back", "leg-front", "gusset"],
-            "count": 8,
-            "holeDiameter": 0.5625,
-            "depth": 5
-          },
-          {
-            "id": "ply-bolts/treat-holes",
-            "type": "treat-holes",
-            "hardwareId": "ply-bolts",
-            "partIds": ["beam"],
-            "count": 6,
-            "holeDiameter": 0.5625,
-            "depth": 3
           }
         ]
       },
@@ -8330,15 +8069,6 @@
           "quantity": 4,
           "group": "Ground anchors",
           "notes": ["Bury or cover the anchors (CPSC Pub. 324, p. 4)."]
-        },
-        {
-          "description": "Wood preservative for cut ends",
-          "quantity": 1,
-          "group": "Paint and stain",
-          "notes": [
-            "For every cut and bolt hole in treated lumber, which IRC 2021 R317.1.1 requires to be treated as AWPA M4 says. Choose one whose label says it is for treating cuts in treated wood.",
-            "Copper naphthenate suits any treated lumber; boron is only for wood off the ground and out of the rain (AWPA M4-06, 7.1.1 and 7.1.2). M4-06 recommends at least 2.0% copper as metal, or 1.0% where that is not readily available. The label gives the copper as metal; the percentage of copper naphthenate is a different number."
-          ]
         }
       ],
       "structuralReview": {
@@ -8782,7 +8512,7 @@
                 "name": "Load duration",
                 "value": 1,
                 "appliesTo": ["Fb", "Fv"],
-                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
                     "source": "nds-2024",
@@ -9287,7 +9017,7 @@
                 "name": "Load duration",
                 "value": 1,
                 "appliesTo": ["Fb", "Fv"],
-                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
                     "source": "nds-2024",

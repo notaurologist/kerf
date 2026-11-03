@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 26,
+    "templateVersion": 27,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -1063,8 +1063,8 @@
             "category": "load-bearing",
             "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
-            "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-            "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line."
+            "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+            "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B."
           },
           {
             "category": "load-bearing",
@@ -2578,7 +2578,7 @@
                 "name": "Load duration",
                 "value": 1,
                 "appliesTo": ["Fb", "Fv"],
-                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
                     "source": "nds-2024",
@@ -3069,7 +3069,7 @@
                 "name": "Load duration",
                 "value": 1,
                 "appliesTo": ["Fb", "Fv"],
-                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
                     "source": "nds-2024",
@@ -3728,7 +3728,7 @@
             "element": "Buried legs",
             "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
-            "confirm": "Burial depth (24\"), soil, backfill or concrete, and lumber rated for ground contact.",
+            "confirm": "Burial depth (24\"), soil, what each leg's end stands on (gravel or tamped soil), whether the backfill or concrete around it sheds water away from the wood, and lumber rated for ground contact (UC4A, or UC4B if critical or hard to replace).",
             "why": "Burial keeps the frame from lifting and walking; tipping and anchoring are not computed."
           },
           {
@@ -3761,7 +3761,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 26,
+    "templateVersion": 27,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -6456,7 +6456,7 @@
                 "name": "Load duration",
                 "value": 1,
                 "appliesTo": ["Fb", "Fv"],
-                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
                     "source": "nds-2024",
@@ -6961,7 +6961,7 @@
                 "name": "Load duration",
                 "value": 1,
                 "appliesTo": ["Fb", "Fv"],
-                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).",
+                "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
                     "source": "nds-2024",
@@ -7675,7 +7675,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 26,
+    "templateVersion": 27,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -8728,8 +8728,8 @@
             "category": "load-bearing",
             "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
-            "ask": "Confirm the burial depth (24\") and that the leg lumber is rated for ground contact.",
-            "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line."
+            "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
+            "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B."
           },
           {
             "category": "load-bearing",
@@ -9968,7 +9968,7 @@
             "element": "Buried legs",
             "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
-            "confirm": "Burial depth (24\"), soil, backfill or concrete, and lumber rated for ground contact.",
+            "confirm": "Burial depth (24\"), soil, what each leg's end stands on (gravel or tamped soil), whether the backfill or concrete around it sheds water away from the wood, and lumber rated for ground contact (UC4A, or UC4B if critical or hard to replace).",
             "why": "Burial keeps the frame from lifting and walking; tipping and anchoring are not computed."
           },
           {
