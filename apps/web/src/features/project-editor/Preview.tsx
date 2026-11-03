@@ -12,7 +12,6 @@ import { type ApiResult, api, failureOf, send } from '../../lib/api.ts';
 import { type Changes, indexChanges } from '../../lib/changes.tsx';
 import { useLatest } from '../../lib/latest.ts';
 import { planOf } from '../../lib/plan.ts';
-import { sameJson } from '../../lib/sameJson.ts';
 import type { Project } from '../../lib/types.ts';
 import {
   CheckStatus,
@@ -27,6 +26,7 @@ import {
   StateTag,
   Text,
 } from '../../ui/index.ts';
+import { sameJson } from '../../ui/sameJson.ts';
 import { CutList } from '../cut-list/CutList.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 

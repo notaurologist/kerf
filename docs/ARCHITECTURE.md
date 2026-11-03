@@ -29,8 +29,8 @@ Read `PRODUCT.md` and `DOMAIN.md` first. Decisions behind the choices here are r
  └────────┬─────────┘
           │
  ┌────────▼─────────┐
- │     Postgres     │  projects, tools, sessions, login failures
- └──────────────────┘
+ │     Postgres     │  projects, project history, project progress,
+ └──────────────────┘  tools, sessions, login failures
 ```
 
 The web app also imports `packages/core` for types, parameter schemas (to validate forms before submitting), a plan's tables from stored outputs, and display formatting. It shows the snapshot, drawings and starting suggestions the API returns and never generates them. `generation.test.ts` parses core and the web app's sources and follows each call through its imports, so it finds every core function that reaches a template's `generate`, `drawings`, `assembly` or `steps`, by a method or by an imported name, and every template member that does (the swing set's `suggest`, which lays out bolts by generating the frame). A web source that imports one of those functions or calls one of those members fails it. A template's `plan` reads stored outputs into tables; only `lib/plan.ts` and the catalog may call it. The design system catalog reads its sample from a committed file, `ui/catalog-sample.json`, written by the API's `write-catalog-sample` script and checked against core by a test.
@@ -64,8 +64,10 @@ The template definitions still carry the generation code into the web bundle, si
 │           │                 # diagrams/, build-steps/, structural/, glossary/, inventory/,
 │           │                 # login/
 │           ├── ui/           # The design system: tokens, layout primitives, components,
-│           │                 # icons, fonts, and the catalog page (docs/design/system.md)
-│           ├── lib/          # API client, routes, display helpers
+│           │                 # icons, fonts, and the catalog page (docs/design/system.md);
+│           │                 # imports nothing from lib/ or features/ (ui/layers.test.ts)
+│           ├── lib/          # API client, routes, display helpers, and the components that
+│           │                 # join ui/ to them (Loaded, ErrorBoundary, FieldInput)
 │           └── main.tsx
 ├── packages/
 │   └── core/
@@ -94,36 +96,38 @@ Pure TypeScript. No I/O, no framework dependencies, no clock or randomness. The 
 
 ### Template contract (sketch)
 
-```ts
-interface Template<P> {
-  id: string;                   // 'swing-set-a-frame'
-  version: number;              // bumped when output for the same parameters changes (0008)
-  ownWords: string[];           // words only its folder may use, such as its parts' names, even in identifiers
-  params: z.ZodType<P>;         // types, ranges, defaults
-  outputs: z.ZodType<O>;        // what generate makes now: every field generic code reads, required;
-                                // a part's lists default to empty and are stored only when not
-  storedOutputs: z.ZodType<S>;  // reads a stored snapshot after its upgrades (0014); relaxes only
-                                // the fields older shapes lack
-  validate(p: P): Issue[];      // combinations: contradictory or out-of-range values
-  form: TemplateForm;           // how parameters and structural inputs are entered (data)
-  plan(o: Stored): Plan;        // outputs in the shape every display shares; picks and fills in
-                                // what an older snapshot lacks, never computes
-  drawings(o: Stored): Drawings; // 2D primitives drawn from stored outputs; not stored (#90)
-  assembly(o: Stored): { scene; view; explode } | null; // what the 3D views draw from, as data (#118)
-  generate(p: P): TemplateOutput;
-  questions?: StartingQuestions; // a few plain questions and a pure answers-to-parameters function (#163)
-  storeReadings?: StoreReading[]; // fields read at the store, and the shopping lines they sit beside (#390)
-}
+`model/definition.ts` is the source of truth; this leaves out the comments.
 
-interface TemplateOutput {
-  parts: Part[];                // DOMAIN.md data model
-  hardware: HardwareItem[];
-  operations: Operation[];      // cuts and bolt holes made generically from parts and hardware (model/operations.ts); easing, site work
-  placements: Placement[];      // each part instance's local frame in 3D: origin and axes (DOMAIN.md, Geometry)
-  structuralModel: StructuralModel; // members, supports, loads, load cases, checklist items
-  layout: SiteLayout;           // footprint and clearance zones
+```ts
+interface TemplateDefinition<Params, Inputs, StoredOutputs, Outputs extends StoredOutputs> {
+  id: string;                     // 'swing-set-a-frame'
+  version: number;                // bumped when output for the same parameters changes (0008)
+  name: string;
+  description: string;            // one sentence, for choosing a template (#357)
+  ownWords: readonly string[];    // words only its folder may use, even in identifiers
+  params: z.ZodType<Params>;      // types and ranges
+  structuralInputs: z.ZodType<Inputs>; // every one optional: missing means "input needed"
+  form: TemplateForm;             // how parameters and structural inputs are entered (data)
+  outputs: z.ZodType<Outputs>;    // what generate makes now: every field generic code reads,
+                                  // required; a part's lists default to empty
+  storedOutputs: z.ZodType<StoredOutputs>; // reads a stored snapshot after its upgrades (0014);
+                                  // relaxes only the fields older shapes lack
+  plan(o: StoredOutputs): Plan;   // outputs in the shape every display shares; picks and fills
+                                  // in what an older snapshot lacks, never computes
+  drawings(o: StoredOutputs): Drawings; // 2D primitives drawn from stored outputs; not stored (#90)
+  assembly(o: StoredOutputs): { scene; view; explode } | null; // what the 3D views draw from (#118)
+  steps(o: StoredOutputs): StepOutline[]; // the build steps' order, as operation IDs (#105)
+  generate(p: Params, i: Inputs): GenerateResult<Outputs>; // pure; issues for contradictory
+                                  // or out-of-range combinations
+  snapshotVersion: number;        // the stored shape (0014)
+  snapshotUpgrades: Record<number, SnapshotUpgrade>; // shape n to n + 1, restructuring only
+  examples: { name; start?; params; structuralInputs }[]; // worked examples, and the fixtures'
+  questions?: StartingQuestions;  // a few plain questions and a pure answers-to-values function (#163)
+  storeReadings?: StoreReading[]; // fields read at the store, beside their shopping lines (#390)
 }
 ```
+
+Each template's outputs are its own shape. Generic code reads them only through `plan`, `drawings`, `assembly`, and `steps`, and the shared output types in `model/types.ts` (parts, end cuts, holes, hardware, operations, placements, flags, checklist items) that a template's outputs are built from.
 
 ### Generation pipeline
 
@@ -190,7 +194,7 @@ The preference order is the order of `METHODS` in `knowledge/methods.ts`, where 
 | `GET /api/projects/:id/progress` | What has been ticked off (#57): `ticks`, each with its kind, key, and the time the server saved it |
 | `PATCH /api/projects/:id/progress` | Set and clear ticks: `{ revision, changes: [{ kind, key, done }] }`. Ticks made on an older revision of the plan are refused with 409 `stale-project`, and nothing saved (0018). Safe to send again: ticking a done item keeps its first time, and clearing one that is not done does nothing, so a client can retry writes queued through a dropped connection. A tick on an item the stored plan lacks is refused with 422 `unknown-progress`, naming the items, and nothing in the request is saved. Answers `ticks` and `status`: status follows progress (#61), moving a Planned project to In progress at its first tick in Shopping or Building and to Built when a write finishes the last step (a tick in the structural review moves nothing, #393); it never moves back, and can still be set by hand (from the project's Edit screen, #355) |
 | `DELETE /api/projects/:id` | Move a project to the trash, with its history and progress (204). Every other project route then answers 404 for it |
-| `GET /api/trash` | Projects in the trash, most recently deleted first, each with `deletedAt` and `purgeAt` (30 days later). Reading it or the project list first purges anything past that |
+| `GET /api/trash` | Projects in the trash, most recently deleted first, each with `deletedAt` and `purgeAt` (30 days later). Reading it or the project list first purges anything past that: a delete inside a GET, on purpose, so no scheduled job is needed (#21). It deletes only what no route shows any more, so a repeated read changes nothing the owner can see |
 | `POST /api/trash/:id/restore` | Take a project out of the trash, as it was (204) |
 | `DELETE /api/trash/:id` | Delete a project in the trash for good, with its history and progress rows (204) |
 | `GET /api/export` | Every project not in the trash, as stored, with its ticks, and the tool list, as a streamed JSON download (`kerf-YYYY-MM-DD.json`) with `formatVersion` |
@@ -251,7 +255,7 @@ There are no scheduled backups. Neon's free plan restores only the last 6 hours,
 4. Check a dump by restoring it into the local Docker database. This replaces the local development data: `pg_restore -d postgres://kerf:kerf@localhost:5432/kerf --clean --if-exists --no-owner ~/Backups/kerf-<date>.dump`
 5. To restore production, run the same `pg_restore` against `"$NEON_URL"`. Every session is gone afterwards, so log in again. If the mistake happened within the last 6 hours, Neon's own restore in the console is simpler.
 
-Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty database brought back every row of the other tables, plus the Drizzle migration history, and left `sessions` and `login_attempts` empty.
+Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty database brought back every row of the other tables, plus the Drizzle migration history, and left `sessions` and `login_failures` empty.
 
 #### First deploy (the owner's steps; they need accounts)
 
@@ -273,7 +277,7 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 - Building mode's step screen (#118) is shop density: where you are, the step's title, then for a cutting step its board's pieces in cutting order, each length at glance size with a tick and a cut card, and the methods and flags. The cut card has the length largest, each end cut as the boxed saw setting with the angle to the board's edge (from the plan's operations through core's formatters), the marks, a tick per piece, and the cut detail. From 600 px of width (the 8-column page grid, #41) the step or card sits beside its drawing; narrower, a step's drawing comes after its pieces (or its title) and before its methods (`StepLayout`, #134): the board for a cutting step, the action drawing for an assembly step, the site layout for site work, the cut detail for a card.
 - Ticks go through one queue per project (`lib/ticks.ts`, #57): sent at once, counted as done while waiting, marked "not yet sent" until the server answers, and sent again after a failure with a growing wait (2 s doubling to 30 s) and when the browser comes back online or the page comes back to the foreground (`online`, `visibilitychange` to visible, `pageshow`; iOS fires `online` unreliably after a resume, #428). A tick the server refuses because the plan no longer has the item is dropped and said. Waiting ticks are also written to local storage under `kerf.ticks.<project id>`, each with the revision it was made on, and removed once the server accepts them (0005, #427). A reloaded page reads them back through a Zod schema from core, drops what does not parse, shows them as waiting, and sends them; one made on an older revision is refused with the usual message (0018). When storage is missing or throws, the queue stays in memory and a reload or closing the tab while ticks wait asks first. Data is loaded per screen with plain `fetch` through the client; there is no client-side cache library. The one exception is the last project the API returned, kept in memory (`lib/projectStore.ts`): the plan and the modes show it at once, refresh it in the background, and keep showing it when the refresh fails, so moving between them needs no round trip and survives a dropped connection. A save stores the saved project and a delete forgets it. The plan and build steps are parsed once per response (`useReadProject`). The drawings are loaded where they are shown, by the plan and the modes (`useDrawings` in `lib/drawings.ts`), again whenever the plan's revision changes, and the last ones are kept in memory beside the project; the plan's drawings section holds their place while they load and says why if they do not.
 - Uses core's parameter schemas to show validation before submitting; the API validates again.
-- The new-project screen (#98, #163, #358) first asks how to start, as four choices: "Answer a few questions" when the template has starting questions (`&questions`, first), a worked example (`&example=<n>`), a copy of an earlier project (`&project=<id>`; the three most recent, then a search), and an empty form (`&empty`). The form then opens filled, saying how it was started, with a way back to the choice. The questions start asks first, then opens the form filled with the suggestions; each field says where its value came from until it is changed, and "Change your answers" goes back with the answers kept.
+- The new-project screen (#98, #163, #358) first asks how to start, as four choices: "Answer a few questions" when the template has starting questions (`&questions`, first), a worked example (`&example=<n>`), a copy of an earlier project (`&project=<id>`; the three most recent, then a search), and an empty form (`&empty`). The form then opens filled, saying how it was started, with a way back to the choice. The questions start asks first, then opens the form filled with the suggestions; each field says where its value came from until it is changed, and "Change your answers" goes back with the answers kept, asking first when the form has changes.
 - The edit screen shows the project's output beside the form (#39, L-A). A moment after typing stops, it asks the preview route for the snapshot the form would produce, labels it "Preview, not saved", and marks each changed value with the saved one, from the paths the route returns. While a newer preview is pending, the one on screen stays, labeled "Earlier values, not saved", and the status says its numbers are for the values before the latest change.
 - The plan screen (#119, #156) has the sections of order A, one on screen at a time, with the contents beside it (a bar that opens them on a phone) and Previous and Next at the end: diagrams, structural review, cut list, boards, shopping list, and build steps. Above them, the header has the status, a line of what is next (the next step, the structural inputs still needed, and the expert checks not yet ticked as asked in the structural review's To do band (#393), each linking to where it is dealt with), and Shop and Build buttons with progress (#356). The contents end with Values used, a link to Edit, where the parameters and inputs are on screen (#356); on paper they follow the last section, read back through core's `enteredValues`. The other sections stay in the page, hidden, so printing from the browser gives the whole plan in order A from any section, with every `Disclosure` opened on `beforeprint`. There is no Print button. Delete project sits at the foot of the Edit screen, below and outside its form, away from the plan's Previous and Next; the plan screen shows it only when the plan cannot be read, since there is then no Edit. After a move, focus goes to the section's heading, and the page title names the section and project. Every other change of screen, including a mode's steps and cards, scrolls to the top, focuses the new screen's `h1`, and sets the page title from it (`lib/screenChange.ts`). Each change of address plays as a view transition (`lib/moves.ts`, Stage 9, #266): `moveFor` names the move from the two routes, and the transition's update holds the old screen on view for up to 300 ms until every screen's first load (counted by `useLoad`) has arrived, so a usual load moves in complete; a slower one moves in as its skeleton. A transition that never starts its update, as on a page that renders no frames, is skipped after a second, which still runs it.
 - Uses core's display helpers for every length and angle so all views round the same way. A project's outputs are parsed with the template's `storedOutputs` and read through its `plan`, so screens know no template.
@@ -290,7 +294,7 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 | Area | What tests must cover |
 |---|---|
 | `units/` | Fraction rounding at every 1/32 boundary, feet-inches display, angle convention conversions |
-| `templates/` | Hand-checked worked examples; fit tests (`DOMAIN.md`, Verification); validation of contradictory parameters; a version-bump test listing changed outputs; every template's examples parse with its strict `outputs` and read back unchanged, and no text a template gives the reader has verdict words or brands (`contract.test.ts`); every stored fixture's plan fills in what generic code reads |
+| `templates/` | Hand-checked worked examples; fit tests (`DOMAIN.md`, Verification); validation of contradictory parameters; a version-bump test listing changed outputs; every template's examples parse with its strict `outputs` and read back unchanged, and no text a template gives the reader has verdict words or brands (`contract.test.ts`); every template's snapshot fixtures, found by glob, cover each version and shape, read through the upgrades, regenerate exactly at the current version, and give plans that fill in what generic code reads (`contract.test.ts`, 0014) |
 | `structural/` | Hand-checked worked examples for each check, including the symmetric hand-check cases and an asymmetric case; missing inputs produce "input needed" |
 | `outputs/` | Board grouping including kerf and trim; nothing silently dropped when a part is longer than any buyable length |
 | `knowledge/`, `design-values/` | Every entry parses; every reference resolves; every design value has a source |

@@ -11,8 +11,11 @@ import { fieldId } from '../../lib/fieldIds.ts';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, renderText, textOf } from '../../test/render.tsx';
+import { EditProject } from './EditProject.tsx';
 import { placeIssues, schemaIssues } from './issues.ts';
-import { changesFor, EditProject, ProjectEditor, startValues } from './ProjectEditor.tsx';
+import { ProjectEditor } from './ProjectEditor.tsx';
+import { changesFor } from './save.ts';
+import { startValues } from './start.ts';
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const { params: sections } = template.form;
@@ -136,7 +139,7 @@ describe('starting a new project (#98)', () => {
       const start = startValues(template, { kind: 'example', index }, null);
       if (!start.ok) throw new Error(start.message);
       const { params, inputs } = start.initial;
-      expect(params['beamLength']).not.toBe('');
+      expect(params.beamLength).not.toBe('');
       for (const path of confirm) expect(params[path]).toBe('');
       // Only the hardware is missing: filled in, the example's parameters are what core reads.
       const example = template.examples[index];
@@ -158,9 +161,9 @@ describe('starting a new project (#98)', () => {
     const start = startValues(template, { kind: 'project', id: earlier.id }, earlier);
     if (!start.ok) throw new Error(start.message);
     expect(start.initial.name).toBe('');
-    expect(start.initial.params['beamLength']).toBe('120');
+    expect(start.initial.params.beamLength).toBe('120');
     expect(start.initial.params['hardware.legBoltDiameter']).toBe('0.5');
-    expect(start.initial.inputs['beamSpeciesGrade']).toBe('southern-pine-no2');
+    expect(start.initial.inputs.beamSpeciesGrade).toBe('southern-pine-no2');
     expect(start.copied?.from).toBe('First swing set');
     expect(start.copied?.inputs).toEqual(start.initial.inputs);
     expect(Object.keys(start.copied?.params ?? {})).toEqual([...confirmedPaths(sections)]);

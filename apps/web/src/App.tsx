@@ -6,7 +6,8 @@ import { ToolsScreen } from './features/inventory/ToolsScreen.tsx';
 import { LoginAgain, LoginScreen } from './features/login/LoginScreen.tsx';
 import { ModeScreen } from './features/modes/modes.tsx';
 import { ProjectScreen } from './features/project/ProjectScreen.tsx';
-import { EditProjectScreen, NewProjectScreen } from './features/project-editor/ProjectEditor.tsx';
+import { EditProjectScreen } from './features/project-editor/EditProject.tsx';
+import { NewProjectScreen } from './features/project-editor/NewProject.tsx';
 import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { TemplatePicker } from './features/projects/TemplatePicker.tsx';
 import { TrashScreen } from './features/projects/TrashScreen.tsx';
@@ -18,7 +19,6 @@ import {
   send,
   setLoginRequiredHandler,
 } from './lib/api.ts';
-import { leaveGate } from './lib/leave.ts';
 import { changeScreen } from './lib/moves.ts';
 import { href, isMode, type PlaceId, placeOf, type Route, useRoute } from './lib/route.ts';
 import { useScreenChange } from './lib/screenChange.ts';
@@ -36,6 +36,7 @@ import {
   TermScope,
   Wordmark,
 } from './ui/index.ts';
+import { leaveGate } from './ui/leave.ts';
 
 // The design system's catalog (#45), loaded only when opened: it carries the worked examples'
 // snapshots and drawings for its sample values.

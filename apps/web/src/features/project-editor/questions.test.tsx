@@ -68,8 +68,8 @@ describe('the starting questions', () => {
 
   it('suggests values from complete answers', () => {
     const { params, inputs } = suggested(answers);
-    expect(params['beamHeight']).toBe('84');
-    expect(params['beamLength']).toBe('108');
+    expect(params.beamHeight).toBe('84');
+    expect(params.beamLength).toBe('108');
     expect(inputs['riderWeights.0']).toBe('200');
   });
 });

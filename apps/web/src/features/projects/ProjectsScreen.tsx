@@ -3,7 +3,7 @@ import { api, send } from '../../lib/api.ts';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { href } from '../../lib/route.ts';
-import type { ProjectSummary, TemplateSummary } from '../../lib/types.ts';
+import { type ProjectSummary, STATUS_LABELS, type TemplateSummary } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import {
   ButtonLink,
@@ -88,7 +88,7 @@ export function ProjectList(props: {
               <Stack gap="2xs">
                 <Cluster spread>
                   <RowLink href={href({ screen: 'project', id: p.id })}>{p.name}</RowLink>
-                  <StatusTag status={p.status} />
+                  <StatusTag status={p.status}>{STATUS_LABELS[p.status]}</StatusTag>
                 </Cluster>
                 {p.progress && p.status !== 'planned' && (
                   <Text>

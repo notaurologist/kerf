@@ -28,6 +28,7 @@ import {
   useDraft,
   useFormIssues,
 } from '../../ui/index.ts';
+import { leaveGate } from '../../ui/leave.ts';
 import { type FormIssues, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 
 // A new project started from a few plain questions (#163). The template asks them as form data;
@@ -96,7 +97,8 @@ export function StartQuestions(props: {
             structural inputs are yours to enter.
           </Text>
           <Cluster>
-            <Button variant="link" onClick={() => setSuggested(null)}>
+            {/* The editor's draft holds the gate while it has changes, so this asks first. */}
+            <Button variant="link" onClick={() => leaveGate.confirm(() => setSuggested(null))}>
               Change your answers
             </Button>
           </Cluster>

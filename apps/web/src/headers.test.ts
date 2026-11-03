@@ -13,7 +13,10 @@ const policy: string = vercel.headers
 
 describe('the web Content-Security-Policy', () => {
   it('allows each inline script in index.html by the hash of what it holds now', () => {
-    const inline = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1] ?? '');
+    // Any script element without a src, whatever its other attributes.
+    const inline = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
+      .filter((m) => !/\bsrc\s*=/.test(m[1] ?? ''))
+      .map((m) => m[2] ?? '');
     expect(inline.length).toBeGreaterThan(0);
     for (const script of inline) {
       const hash = createHash('sha256').update(script).digest('base64');

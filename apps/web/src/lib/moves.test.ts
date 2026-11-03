@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { changeScreen, HOLD_MS, moveFor, startLoading } from './moves.ts';
+import { HOLD_MS } from '../ui/motion.ts';
+import { changeScreen, moveFor, startLoading } from './moves.ts';
 import type { Route } from './route.ts';
 import type { PlanSectionId } from './sections.ts';
 

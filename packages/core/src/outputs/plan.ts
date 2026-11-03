@@ -20,7 +20,10 @@ export interface Plan {
   hardwareNotes: readonly string[];
   /** Expert-check flags on the design. */
   flags: Flag[];
-  /** Sanity checks, in the order to show them. */
+  /**
+   * Sanity checks, in the template's order, which change paths such as `checks[0].margin` use.
+   * The structural review shows them lowest margin first (`byMargin`).
+   */
   checks: CheckResult[];
   /**
    * How much each solid-wood part the template allows for moves across its grain (DOMAIN.md,

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { useScreenHeading } from '../lib/screenChange.ts';
 import { Cluster, Stack } from './layout.tsx';
+import { useScreenHeading } from './screenFocus.ts';
 import { Text } from './text.tsx';
 
 // The top of a screen: its title with the screen's actions beside it, wrapping under it when

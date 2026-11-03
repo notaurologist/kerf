@@ -1,5 +1,4 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { type ProjectStatus, STATUS_LABELS } from '../lib/types.ts';
 import { Button, ButtonLink } from './Button.tsx';
 import { Icon } from './Icon.tsx';
 import { Cluster, Stack } from './layout.tsx';
@@ -243,10 +242,10 @@ export function StateTag(props: { children: ReactNode }) {
 }
 
 /** A project's status as a label, tinted by status; the word carries the meaning. */
-export function StatusTag(props: { status: ProjectStatus }) {
+export function StatusTag(props: { status: string; children: ReactNode }) {
   return (
     <span className="k-tag" data-tone="status" data-status={props.status}>
-      {STATUS_LABELS[props.status]}
+      {props.children}
     </span>
   );
 }
