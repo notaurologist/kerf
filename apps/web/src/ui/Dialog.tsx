@@ -32,6 +32,11 @@ export function ConfirmDialog(props: {
         e.preventDefault();
         props.onStay();
       }}
+      // Browsers with close watchers close the dialog on a second Escape despite the
+      // preventDefault above.
+      onClose={() => {
+        if (props.open) props.onStay();
+      }}
     >
       <div className="l-stack">
         <h2 id={titleId}>{props.title}</h2>
@@ -47,7 +52,7 @@ export function ConfirmDialog(props: {
   );
 }
 
-/** Escape does not close it. */
+/** Escape does not close it, and it reopens if a browser closes it anyway. */
 export function BlockingDialog(props: { title: string; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -60,6 +65,9 @@ export function BlockingDialog(props: { title: string; children: ReactNode }) {
       className="k-dialog"
       aria-labelledby={titleId}
       onCancel={(e) => e.preventDefault()}
+      onClose={(e) => {
+        if (!e.currentTarget.open) e.currentTarget.showModal();
+      }}
     >
       <div className="l-stack">
         <h2 id={titleId}>{props.title}</h2>

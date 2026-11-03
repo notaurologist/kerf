@@ -40,6 +40,16 @@ describe('ConfirmDialog', () => {
     expect(dialog.open).toBe(true);
   });
 
+  it('treats a close the browser forced as staying, and closes once asked', () => {
+    const onStay = vi.fn();
+    const { container, rerender } = mount(confirm(true, onStay));
+    const dialog = container.querySelector('dialog') as HTMLDialogElement;
+    dialog.close();
+    expect(onStay).toHaveBeenCalledOnce();
+    rerender(confirm(false, onStay));
+    expect(onStay).toHaveBeenCalledOnce();
+  });
+
   it('calls each choice from its own button', async () => {
     const onStay = vi.fn();
     const onLeave = vi.fn();
@@ -60,6 +70,13 @@ describe('BlockingDialog', () => {
     const cancel = new Event('cancel', { cancelable: true });
     dialog.dispatchEvent(cancel);
     expect(cancel.defaultPrevented).toBe(true);
+    expect(dialog.open).toBe(true);
+  });
+
+  it('reopens when a browser closes it anyway', () => {
+    const { container } = mount(<BlockingDialog title="Signed out">Log in again.</BlockingDialog>);
+    const dialog = container.querySelector('dialog') as HTMLDialogElement;
+    dialog.close();
     expect(dialog.open).toBe(true);
   });
 });
