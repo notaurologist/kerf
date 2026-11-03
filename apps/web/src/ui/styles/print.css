@@ -61,7 +61,10 @@
       overflow: visible;
     }
 
+    /* What only a screen can use: buttons, popover triggers, and lines about tapping. */
     .k-button,
+    .k-info,
+    [data-screen-only],
     .k-table__toggle,
     .k-titlebar,
     .k-frame__side,
@@ -89,11 +92,19 @@
       display: block;
     }
 
+    /* Each view leaves the cell the views share on screen, so it prints alone. */
+    .k-views__view {
+      grid-area: auto;
+    }
+
     .k-views__view[hidden] {
       visibility: visible;
     }
 
-    .k-diagram-wrap[data-page="landscape"] {
+    /* A landscape drawing's page holds its heading too. */
+    .l-stack:has(> .k-diagram-wrap[data-page="landscape"]),
+    .k-views:has(> .k-diagram-wrap[data-page="landscape"]),
+    .k-views__view:has(> .k-diagram-wrap[data-page="landscape"]) {
       page: landscape;
       break-before: page;
       break-after: page;
@@ -105,9 +116,25 @@
       max-block-size: 7in;
     }
 
-    /* Cut details do not split across pages. */
-    .k-diagram-wrap {
+    /* A drawing, with its heading and notes, does not split across pages. */
+    .k-diagram-wrap,
+    .l-stack:has(> .k-diagram-wrap) {
       break-inside: avoid;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+      break-after: avoid;
+    }
+
+    /* Paper cannot scroll sideways, so a long formula wraps. */
+    .k-code {
+      display: inline;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .k-diagram-wrap .k-hatch {

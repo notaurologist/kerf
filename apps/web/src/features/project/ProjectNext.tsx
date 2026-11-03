@@ -58,7 +58,7 @@ export function ProjectNext(props: {
   // A space at the start of the end would be dropped, so the first dot's is one with no break.
   const end = counts.flatMap((part, i) => [i > 0 ? ' · ' : step ? '\u00a0· ' : '', part]);
   return (
-    <Text>
+    <Text screenOnly>
       <OneLine end={counts.length > 0 ? end : undefined}>{step}</OneLine>
     </Text>
   );

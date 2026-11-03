@@ -81,9 +81,10 @@ function buildingIsNext(s: ProgressSummary): boolean {
 }
 
 /**
- * Where an in-progress project picks up: the next step once building has started or the shopping
- * is done, or else the shopping list once a line is bought. Null for a project that is not in
- * progress, has nothing ticked, or has nothing left.
+ * Where an in-progress project picks up: in Building, the step with the most recent tick, beside
+ * the first step not done (#460), once building has started or the shopping is done; or else the
+ * shopping list once a line is bought. Null for a project that is not in progress, has nothing
+ * ticked, or has nothing left.
  */
 export function resumeTarget(project: ProjectSummary) {
   const { progress } = project;
@@ -91,17 +92,22 @@ export function resumeTarget(project: ProjectSummary) {
   const { shopping, steps, nextStep } = progress;
   const inBuilding = buildingIsNext(progress);
   if (inBuilding && nextStep) {
+    const at = progress.resumeStep ?? nextStep;
+    const firstNotDone =
+      at.id === nextStep.id
+        ? []
+        : [`First step not done: step ${nextStep.number}, ${nextStep.title}.`];
     return {
       mode: 'building' as const,
-      href: href({ screen: 'build-step', id: project.id, step: nextStep.id }),
-      text: `Step ${nextStep.number} of ${steps.total}: ${nextStep.title}.`,
+      href: href({ screen: 'build-step', id: project.id, step: at.id }),
+      text: [`Step ${at.number} of ${steps.total}: ${at.title}.`, ...firstNotDone],
     };
   }
   if (!inBuilding && shopping.done > 0) {
     return {
       mode: 'shopping' as const,
       href: href({ screen: 'shop', id: project.id }),
-      text: shoppingText(shopping),
+      text: [shoppingText(shopping)],
     };
   }
   return null;
@@ -114,12 +120,12 @@ export function ResumeCard(props: { project: ProjectSummary }) {
   return (
     <Card as="section" mode={target.mode}>
       <Stack gap="xs">
-        <h2>Resume {target.mode}</h2>
-        <Text>
-          <b>{props.project.name}</b>. {target.text}
-        </Text>
+        <h2>{props.project.name}</h2>
+        {target.text.map((line) => (
+          <Text key={line}>{line}</Text>
+        ))}
         <Cluster>
-          <ButtonLink href={target.href}>Go</ButtonLink>
+          <ButtonLink href={target.href}>Resume {target.mode}</ButtonLink>
         </Cluster>
       </Stack>
     </Card>

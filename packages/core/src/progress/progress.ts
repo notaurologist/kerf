@@ -285,20 +285,47 @@ export interface ProgressSummary {
   pieces: { done: number; total: number };
   steps: { done: number; total: number };
   /** The first step not done, numbered from 1; null when there are no steps or all are done. */
-  nextStep: { id: string; number: number; title: string } | null;
+  nextStep: SummaryStep | null;
+  /**
+   * Where the owner was (#460): the step of the most recent tick in Building, or the step after it
+   * when that tick marked a step done, as "Done, next" goes there. Null when no Building tick has
+   * a time, such as ticks counted on the client before the server saved them.
+   */
+  resumeStep: SummaryStep | null;
+}
+
+/** A step as the progress summary names it, numbered from 1. */
+interface SummaryStep {
+  id: string;
+  number: number;
+  title: string;
+}
+
+/** A tick as the summary counts it; the server's ticks carry when each was saved. */
+type CountedTick = Pick<ProgressItem, 'kind' | 'key'> & { doneAt?: string };
+
+/** A step as the summary reads it: a cutting step's board, so a cut piece finds its step. */
+interface CountedStep {
+  id: string;
+  title: string;
+  board?: { id: string; pieces: readonly { partId: string; instance: number }[] };
 }
 
 /** Counts the ticked shopping lines, pieces, and steps, and finds the first step not done. */
 export function summarizeProgress(
   plan: Pick<Plan, 'lumber' | 'hardware' | 'cutList'>,
-  steps: readonly { id: string; title: string }[],
-  ticked: readonly Pick<ProgressItem, 'kind' | 'key'>[],
+  steps: readonly CountedStep[],
+  ticked: readonly CountedTick[],
 ): ProgressSummary {
   const done = new Set(ticked.map(progressId));
   const lines = shoppingLines(plan);
   const isDone = (kind: ProgressKind, key: string) => done.has(progressId({ kind, key }));
   const next = steps.findIndex((s) => !isDone('step', s.id));
-  const step = steps[next];
+  const numbered = (i: number): SummaryStep | null => {
+    const step = steps[i];
+    return step ? { id: step.id, number: i + 1, title: step.title } : null;
+  };
+  const nextStep = numbered(next);
   const pieces = plan.cutList.flatMap((row) =>
     Array.from({ length: row.quantity }, (_, i) => partProgressKey(row.partId, i)),
   );
@@ -312,8 +339,48 @@ export function summarizeProgress(
       total: pieces.length,
     },
     steps: { done: steps.filter((s) => isDone('step', s.id)).length, total: steps.length },
-    nextStep: step ? { id: step.id, number: next + 1, title: step.title } : null,
+    nextStep,
+    resumeStep: resumeAt(steps, ticked, numbered, nextStep),
   };
+}
+
+/**
+ * The step to resume at (`ProgressSummary.resumeStep`). The latest tick wins. Ticks saved in the
+ * same write are told apart by how far along they are: the later step, and on one step, the step
+ * marked done. A step marked done resumes at the step after it, or at the first step not done when
+ * it was the last.
+ */
+function resumeAt(
+  steps: readonly CountedStep[],
+  ticked: readonly CountedTick[],
+  numbered: (i: number) => SummaryStep | null,
+  nextStep: SummaryStep | null,
+): SummaryStep | null {
+  let latest: { doneAt: string; at: number; along: number } | null = null;
+  for (const { kind, key, doneAt } of ticked) {
+    if (doneAt === undefined) continue;
+    const at = stepOfTick(steps, kind, key);
+    if (at < 0) continue;
+    const along = at * 2 + (kind === 'step' ? 1 : 0);
+    if (!latest || doneAt > latest.doneAt || (doneAt === latest.doneAt && along > latest.along)) {
+      latest = { doneAt, at, along };
+    }
+  }
+  if (!latest) return null;
+  if (latest.along % 2 === 0) return numbered(latest.at);
+  return numbered(latest.at + 1) ?? nextStep;
+}
+
+/** The index of the step a Building tick was made on, or -1 for any other tick. */
+function stepOfTick(steps: readonly CountedStep[], kind: ProgressKind, key: string): number {
+  if (kind === 'step') return steps.findIndex((s) => s.id === key);
+  if (kind === 'board') return steps.findIndex((s) => s.board?.id === key);
+  if (kind === 'part') {
+    return steps.findIndex((s) =>
+      s.board?.pieces.some((p) => partProgressKey(p.partId, p.instance) === key),
+    );
+  }
+  return -1;
 }
 
 /** How many of the structural review's expert checks and checklist items are still open. */
@@ -342,7 +409,7 @@ export function summarizeReview(
 export function progressSummary<O>(
   template: Pick<TemplateDefinition<unknown, unknown, O>, 'steps' | 'plan'>,
   outputs: O,
-  ticked: readonly Pick<ProgressItem, 'kind' | 'key'>[],
+  ticked: readonly CountedTick[],
 ): ProgressSummary {
   const plan = template.plan(outputs);
   return summarizeProgress(plan, stepContents(template.steps(outputs), plan), ticked);

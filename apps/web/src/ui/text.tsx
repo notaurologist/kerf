@@ -10,10 +10,17 @@ export function Text(props: {
   tone?: 'muted';
   size?: 'small';
   as?: 'p' | 'span';
+  /** Left off paper, such as a line about tapping a drawing. */
+  screenOnly?: boolean;
 }) {
   const Tag = props.as ?? 'p';
   return (
-    <Tag className="k-text" data-tone={props.tone} data-size={props.size}>
+    <Tag
+      className="k-text"
+      data-tone={props.tone}
+      data-size={props.size}
+      data-screen-only={props.screenOnly || undefined}
+    >
       {props.children}
     </Tag>
   );

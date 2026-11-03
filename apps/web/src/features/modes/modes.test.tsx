@@ -21,12 +21,14 @@ const snapshot = JSON.parse(JSON.stringify(made.output)) as NonNullable<Project[
 
 // Each test uses its own project ID: a project's tick queue lives as long as the page.
 let n = 0;
-function project(ticks: { kind: Project['ticks'][number]['kind']; key: string }[] = []) {
+function project(
+  ticks: { kind: Project['ticks'][number]['kind']; key: string; doneAt?: string }[] = [],
+) {
   n++;
   return projectFrom(snapshot, {
     id: `6f1c2a3e-0000-4000-8000-${String(n).padStart(12, '0')}`,
     status: ticks.length > 0 ? 'in-progress' : 'planned',
-    ticks: ticks.map((t) => ({ ...t, doneAt: '2026-10-29T12:00:00.000Z' })),
+    ticks: ticks.map((t) => ({ doneAt: '2026-10-29T12:00:00.000Z', ...t })),
   });
 }
 
@@ -345,6 +347,7 @@ describe('progress in words', () => {
     pieces: { done: pieces[0], total: pieces[1] },
     steps: { done: steps[0], total: steps[1] },
     nextStep: next ? { id: `s${next}`, number: next, title: 'Bolt' } : null,
+    resumeStep: null,
   });
 
   it('counts the shopping and the steps', () => {
@@ -368,7 +371,7 @@ describe('progress in words', () => {
     expect(resumeTarget(summaryOf(summary([0, 11], [0, 11], 1)))).toBeNull();
     expect(resumeTarget(summaryOf(summary([11, 11], [0, 11], 1)))).toMatchObject({
       mode: 'building',
-      text: 'Step 1 of 11: Bolt.',
+      text: ['Step 1 of 11: Bolt.'],
     });
     expect(resumeTarget(summaryOf(summary([4, 11], [2, 11], 3)))?.mode).toBe('building');
     expect(resumeTarget(summaryOf(summary([11, 11], [11, 11])))).toBeNull();
@@ -386,9 +389,25 @@ describe('progress in words', () => {
     // One card, for the first project in the list (the most recently updated).
     expect(text.match(/Resume /g)).toHaveLength(1);
     expect(text).toContain(
-      "Resume building Backyard swing set. Step 2 of 11: Cut board 2, a 4x4 12' long: Front leg (downhill). Go",
+      "Backyard swing set Step 2 of 11: Cut board 2, a 4x4 12' long: Front leg (downhill). Resume building",
     );
     expect(text).toContain('Shopping: 11 lines, none bought. Building: Step 2 of 11 next');
+  });
+
+  it('resumes at the step with the most recent tick, naming the first step not done (#460)', () => {
+    // Legs cut before the beam: a front leg piece on board 2, then a back leg piece on board 4,
+    // with board 1 (the beam) not started. The ticks come in an order other than their times.
+    const p = project([
+      { kind: 'part', key: 'leg-back/0', doneAt: '2026-11-02T18:09:00.000Z' },
+      { kind: 'part', key: 'leg-front/0', doneAt: '2026-11-02T18:05:00.000Z' },
+      { kind: 'shopping-line', key: 'lumber/2x6/10', doneAt: '2026-11-02T18:12:00.000Z' },
+    ]);
+    const html = render(<ProjectList projects={[p]} templates={[]} />);
+    const text = renderText(<ProjectList projects={[p]} templates={[]} />);
+    expect(text).toContain(
+      "Backyard swing set Step 4 of 11: Cut board 4, a 4x4 12' long: Back leg (uphill). First step not done: step 1, Cut board 1, a 4x6 12' long: Beam. Resume building",
+    );
+    expect(html).toContain(`href="#/projects/${p.id}/build/board-4"`);
   });
 });
 

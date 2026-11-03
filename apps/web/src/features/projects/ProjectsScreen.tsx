@@ -68,7 +68,7 @@ export function ProjectList(props: {
         status={props.flash && <StatusLine>{props.flash}</StatusLine>}
         actions={
           // One way to start, whatever the templates (#357). While there is somewhere to
-          // resume, Go is the screen's one primary (Stage 10).
+          // resume, the Resume card's button is the screen's one primary (Stage 10).
           <ButtonLink
             href={href({ screen: 'pick-template' })}
             variant={resuming ? 'secondary' : 'primary'}
