@@ -10,10 +10,10 @@ import { formatLength } from '../../units/length.ts';
 import type { CabinetGeometry } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
 
-// The structural model (spec, Structural model): the front and back aprons under records and the
-// top's load, and the top under
-// everything on it as one load at midspan (#331), deflection only (#288); each part's wood movement (#284); and the
-// flags and checklist. Every load, the species, and the deflection limit are the owner's to enter.
+// The structural model (spec, Structural model): the case bottom under records in each bay, the
+// front and back aprons under records and the top's load, and the top under everything on it as one
+// load at midspan (#331), deflection only (#288); each part's wood movement (#284); and the flags
+// and checklist. Every load, the species, and the deflection limit are the owner's to enter.
 
 const SPECIES_IDS = WOOD_SPECIES.map((s) => s.id) as [string, ...string[]];
 
@@ -126,6 +126,8 @@ const SLOT_MARGIN = 1 / 16;
 const PANEL_MARGIN = 1 / 32;
 
 export const RecordCabinetReview = z.object({
+  /** Missing from plans made before template version 18, which did not check it. */
+  bottom: BeamChecks.optional(),
   apron: BeamChecks,
   top: BeamChecks,
   movement: z.array(MovementResult),
@@ -137,6 +139,7 @@ export type RecordCabinetReview = z.infer<typeof RecordCabinetReview>;
 const concerns = (partIds: string[]) => ({ partIds, hardwareIds: [] });
 
 /** The members checked, by the subject their checks name. */
+const BOTTOM = 'Case bottom, in each bay';
 const APRON = 'Front and back aprons';
 const TOP = 'Top';
 
@@ -151,6 +154,9 @@ const inputs = (...paths: (keyof typeof STRUCTURAL_INPUT_LABELS)[]) =>
  */
 export function checkFields(check: { subject: string }): FieldRef[] {
   const span = params('width', 'endOverhang', 'bays', 'panelThickness');
+  if (check.subject === BOTTOM) {
+    return [...span, ...params('caseDepth'), ...inputs('species', 'recordLoad', 'deflectionLimit')];
+  }
   if (check.subject === APRON) {
     return [
       ...params('apronHeight', 'board.source', 'board.thickness', 'board.surfaced'),
@@ -194,6 +200,43 @@ export function structuralReview(
     (v) => v.recordLoad,
   );
   const topLoad = mapNeeded(need(inputs, STRUCTURAL_INPUT_LABELS, 'topLoad'), (v) => v.topLoad);
+  // The case bottom in each bay, along its grain between the panels standing on it, as the bottom
+  // shelves were (spec, Structural model).
+  const bottom = clearWoodChecks({
+    member: {
+      subject: BOTTOM,
+      breadth: p.caseDepth,
+      depth: t,
+      sizeBasis: 'Panel size from the template',
+      supportsX: [0, span],
+    },
+    species,
+    creep: 'seasoned-dry',
+    loadCase: {
+      name: 'Records along the bay, for years',
+      longTerm:
+        'value' in records
+          ? {
+              value: {
+                points: [],
+                uniform: { w: records.value / 12, label: 'Records, per inch of bay' },
+              },
+            }
+          : records,
+      shortTerm: { points: [] },
+      working: [spanWorking],
+      assumptions: [
+        'Records fill the bay evenly, end to end.',
+        'Taking the span to the panel centerlines, where the case bottom really bears under each panel, overstates it slightly.',
+        'The front and back aprons under its edges also carry it; taking it as spanning only along its grain, between the panels, overstates its sag.',
+      ],
+      limitRatio,
+      limitKey: 'deflectionLimit',
+    },
+    assumptions: [
+      'Each bay of the case bottom is a simply supported span between the panels on either side, which stand on it over the aprons; the dadoes hold it but are taken as pinned.',
+    ],
+  });
   // Each front and back apron between the legs (spec, The Shaker-modern base), carrying half of
   // the records along every bay and everything on the top, spread along it.
   const L = g.caseWidth - 2 * p.legStock.size;
@@ -321,8 +364,8 @@ export function structuralReview(
     {
       category: 'load-bearing',
       ask: 'Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.',
-      why: 'Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.',
-      ...concerns(['apron-long', 'leg', 'top']),
+      why: 'Records are heavy and stay for years, and Kerf computes only the case bottom’s, the long aprons’, and the top’s sag.',
+      ...concerns(['bottom', 'apron-long', 'leg', 'top']),
     },
   ];
   const checklist: ChecklistItem[] = [
@@ -361,12 +404,13 @@ export function structuralReview(
     {
       category: 'check-assumptions',
       element: 'Bending and shear of the aprons and top',
-      confirm: 'Confirm the aprons and top are strong enough, not only stiff enough.',
+      confirm: 'Confirm the case bottom, aprons, and top are strong enough, not only stiff enough.',
       why: 'There are no published design values for furniture lumber, so Kerf checks only deflection.',
-      ...concerns(['apron-long', 'top']),
+      ...concerns(['bottom', 'apron-long', 'top']),
     },
   ];
   return {
+    bottom,
     apron,
     top,
     movement,

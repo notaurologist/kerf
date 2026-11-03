@@ -218,6 +218,7 @@ describe('hardwareList', () => {
       { description: '1/2" bolt caps', quantity: 18, group: bolts },
       { description: 'Swing hangers', quantity: 4, group: swing },
       { description: 'Swing seats with chain', quantity: 2, group: swing },
+      { description: 'Wood preservative for cut ends', quantity: 1, group: 'Paint and stain' },
     ]);
   });
 
@@ -256,7 +257,7 @@ describe('hardwareList', () => {
       output({ ...example, burialDepth: 0, hardware: { ...example.hardware, anchorsPerFoot: 1 } })
         .hardware,
     );
-    expect(onPads.at(-1)).toEqual({
+    expect(onPads.find((l) => l.group === 'Ground anchors')).toEqual({
       description: 'Ground anchors',
       quantity: 4,
       group: 'Ground anchors',
@@ -268,7 +269,7 @@ describe('hardwareList', () => {
   // anchors are listed with the input their count waits for, and no count.
   it('lists the ground anchors on pads before their count is entered', () => {
     const onPads = hardwareList(output({ ...example, burialDepth: 0 }).hardware);
-    expect(onPads.at(-1)).toEqual({
+    expect(onPads.find((l) => l.group === 'Ground anchors')).toEqual({
       description: 'Ground anchors',
       quantityNeeded: { key: 'hardware.anchorsPerFoot', label: 'Ground anchors per leg foot' },
       group: 'Ground anchors',

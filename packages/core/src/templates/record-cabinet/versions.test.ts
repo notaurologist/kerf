@@ -20,6 +20,7 @@ import v14 from './snapshots/v14.json' with { type: 'json' };
 import v15 from './snapshots/v15.json' with { type: 'json' };
 import v16 from './snapshots/v16.json' with { type: 'json' };
 import v17 from './snapshots/v17.json' with { type: 'json' };
+import v18 from './snapshots/v18.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -284,5 +285,25 @@ describe('record-cabinet template versions', () => {
     const list = changes(v16, v17);
     expect(kinds(list)).toEqual(['outputs.lumber.lines[].alternatives[]']);
     for (const c of list) expect(c).not.toHaveProperty('before');
+  });
+
+  // Hand check in template.test.ts: the worked example's case bottom sags 1.5 × 0.0043156" in
+  // each bay, the edge of range's 1.5 × 0.000792".
+  it('version 18 checks the case bottom in each bay, and adds it to the flags and checklist (#464)', () => {
+    const list = changes(v17, v18);
+    expect(kinds(list)).toEqual([
+      'outputs.review.bottom',
+      'outputs.review.checklist[].confirm',
+      'outputs.review.checklist[].partIds[]',
+      'outputs.review.flags[].partIds[]',
+      'outputs.review.flags[].why',
+    ]);
+    const added = list.filter((c) => c.path === 'outputs.review.bottom');
+    expect(added.map((c) => c.before)).toEqual([undefined, undefined, undefined]);
+    const sag = added.map(
+      (c) =>
+        (c.after as { deflection: { computed?: { value: number } } }).deflection.computed?.value,
+    );
+    expect(sag).toEqual([expect.closeTo(0.0064733, 6), undefined, expect.closeTo(0.0011882, 6)]);
   });
 });

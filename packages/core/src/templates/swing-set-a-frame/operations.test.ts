@@ -62,6 +62,14 @@ describe('swing-set operations (#103)', () => {
       'crossbar/ease-edges',
       'gusset/ease-edges',
       'site/dig-holes',
+      'beam/treat-cuts',
+      'leg-back/treat-cuts',
+      'leg-front/treat-cuts',
+      'crossbar/treat-cuts',
+      'gusset/treat-cuts',
+      'leg-beam-bolts/treat-holes',
+      'crossbar-bolts/treat-holes',
+      'gusset-bolts/treat-holes',
     ]);
   });
 
@@ -152,7 +160,38 @@ describe('swing-set operations (#103)', () => {
       burialDepth: 0,
       hardware: { ...example.hardware, anchorsPerFoot: 2 },
     });
-    expect(onPads.at(-1)).toEqual({ id: 'site/level-pads', type: 'level-pads', count: 4 });
+    expect(onPads.find((o) => o.id === 'site/level-pads')).toEqual({
+      id: 'site/level-pads',
+      type: 'level-pads',
+      count: 4,
+    });
     expect(onPads.some((o) => o.type === 'dig-holes')).toBe(false);
+  });
+
+  // Every part is treated lumber (IRC 2021 R317.1.1). Each leg is cut at its top and foot and along
+  // its flush cut, 3 cuts; the beam, crossbars, and gussets at their two ends. Each bolt's holes
+  // pass through treated parts only, so all of them are treated: 2 leg-to-beam holes 8.947 deep,
+  // 8 crossbar and 8 gusset holes 5 deep, each 1/2" + 1/16" = 9/16" across.
+  it('treats every cut in each part and every bolt hole, after the other operations (#447)', () => {
+    expect(
+      ops.flatMap((o) => (o.type === 'treat-cuts' ? [[o.partId, o.count, o.cuts]] : [])),
+    ).toEqual([
+      ['beam', 1, 2],
+      ['leg-back', 2, 3],
+      ['leg-front', 2, 3],
+      ['crossbar', 2, 2],
+      ['gusset', 2, 2],
+    ]);
+    const holes = ops.filter((o) => o.type === 'treat-holes');
+    expect(holes.map((o) => [o.hardwareId, o.count, o.partIds])).toEqual([
+      ['leg-beam-bolts', 2, ['beam', 'leg-back', 'leg-front']],
+      ['crossbar-bolts', 8, ['leg-back', 'leg-front', 'crossbar']],
+      ['gusset-bolts', 8, ['leg-back', 'leg-front', 'gusset']],
+    ]);
+    expect(holes[0]?.depth).toBeCloseTo(8.947, 3);
+    expect(holes.map((o) => [o.holeDiameter, o.depth]).slice(1)).toEqual([
+      [0.5625, 5],
+      [0.5625, 5],
+    ]);
   });
 });

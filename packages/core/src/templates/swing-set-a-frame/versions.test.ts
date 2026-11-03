@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TemplateDefinition } from '../../model/definition.ts';
+import type { Operation } from '../../model/operations.ts';
 import { diff } from '../../snapshot/diff.ts';
 import { createSnapshot, type ProjectSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
 import { swingSetAFrame } from './definition.ts';
@@ -27,6 +28,8 @@ import v22 from './snapshots/v22.json' with { type: 'json' };
 import v23 from './snapshots/v23.json' with { type: 'json' };
 import v24 from './snapshots/v24.json' with { type: 'json' };
 import v25 from './snapshots/v25.json' with { type: 'json' };
+import v26 from './snapshots/v26.json' with { type: 'json' };
+import v27 from './snapshots/v27.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -85,10 +88,38 @@ const isVersion25 = (c: { path: string; before?: unknown }) =>
     String(c.before).includes(' to leave room for trimming'));
 
 /**
- * Version 26's changes (#456): the gusset's distances and note under the beam's weight, added after
+ * Version 26's changes (#464): the buried-legs flag and checklist item ask about UC4B and what each
+ * leg stands on, and the beam's C_D reason cites Table 2.3.2, footnote 2. Set aside like version 18's.
+ */
+const isVersion26 = (c: { path: string; after?: unknown }) =>
+  (/^(design\.flags\[\d+\]\.(ask|why)|structuralReview\.checklist\[\d+\]\.confirm)$/.test(c.path) &&
+    String(c.after).includes('UC4B')) ||
+  (/^structuralReview\.beam\.(bending|shear)\.factors\[\d+\]\.reason$/.test(c.path) &&
+    String(c.after).includes('Table 2.3.2, footnote 2'));
+
+/**
+ * Version 27's changes (#447): every part marked treated, an operation to treat each part's cuts and
+ * each bolt's holes, and the preservative in the hardware and its shopping line. Each is new, with
+ * nothing before it. Set aside like version 18's.
+ */
+const isVersion27 = (c: { path: string; before?: unknown; after?: unknown }) => {
+  if (c.before !== undefined) return false;
+  const after = c.after as { id?: string; type?: string } | undefined;
+  return (
+    (/^design\.parts\[\d+\]\.treated$/.test(c.path) && c.after === true) ||
+    (/^design\.operations\[\d+\]$/.test(c.path) &&
+      (after?.type === 'treat-cuts' || after?.type === 'treat-holes')) ||
+    (/^design\.hardware\[\d+\]$/.test(c.path) && after?.id === 'preservative') ||
+    (/^hardware\[\d+\]$/.test(c.path) &&
+      (c.after as { description?: string }).description === 'Wood preservative for cut ends')
+  );
+};
+
+/**
+ * Version 28's changes (#456): the gusset's distances and note under the beam's weight, added after
  * its other rows, and the gusset flag's item for its top edge. Set aside like version 18's.
  */
-const isVersion26 = (c: { path: string; before?: unknown; after?: unknown }) =>
+const isVersion28 = (c: { path: string; before?: unknown; after?: unknown }) =>
   (/^design\.boltLayout\[\d+\]\.distances\[\d+\]$/.test(c.path) &&
     c.before === undefined &&
     String((c.after as { label?: unknown }).label).includes("under the beam's weight")) ||
@@ -108,6 +139,8 @@ function regenerated(
   keepVersion24 = false,
   keepVersion25 = false,
   keepVersion26 = false,
+  keepVersion27 = false,
+  keepVersion28 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -123,7 +156,9 @@ function regenerated(
         (keepVersion23 || !isVersion23(c)) &&
         (keepVersion24 || !isVersion24(c)) &&
         (keepVersion25 || !isVersion25(c)) &&
-        (keepVersion26 || !isVersion26(c)),
+        (keepVersion26 || !isVersion26(c)) &&
+        (keepVersion27 || !isVersion27(c)) &&
+        (keepVersion28 || !isVersion28(c)),
     ),
   };
   return keepVersion18
@@ -610,7 +645,9 @@ describe('swing-set template versions', () => {
           !isVersion23(c) &&
           !isVersion24(c) &&
           !isVersion25(c) &&
-          !isVersion26(c),
+          !isVersion26(c) &&
+          !isVersion27(c) &&
+          !isVersion28(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -721,21 +758,86 @@ describe('swing-set template versions', () => {
       expect.objectContaining({ kind: 'stock', name: 'Beam', field: 'beamStock', nominal: '4x8' }),
     ]);
   });
-  // Hand check in features.test.ts: under the beam's weight the worked example's top gusset bolt is
-  // 7.25 − 5.4375 = 1.8125 (3.6D) from the top edge, under 4D = 2 for the loaded edge.
-  it("version 26 measures the gusset's bolts against the beam's weight, and changes nothing else (#456)", () => {
+
+  it('version 26 asks about UC4B and what each buried leg stands on, and changes no number (#464)', () => {
     for (const stored of v25) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(25);
       const { changes } = regenerated(read.snapshot, false, false, false, false, false, true);
-      // Four distances and a note on the gusset joint, and its flag.
-      expect(changes).toHaveLength(6);
+      expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion26(c))).toEqual([]);
     }
     const first = readSnapshot([template], v25[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const added = regenerated(first.snapshot, false, false, false, false, false, true)
+    const { changes } = regenerated(first.snapshot, false, false, false, false, false, true);
+    expect(changes.map((c) => c.path).sort()).toEqual([
+      'design.flags[2].ask',
+      'design.flags[2].why',
+      'structuralReview.beam.bending.factors[0].reason',
+      'structuralReview.beam.shear.factors[0].reason',
+      'structuralReview.checklist[3].confirm',
+    ]);
+    const confirm = changes.find((c) => c.path.endsWith('.confirm'));
+    expect(String(confirm?.after)).toContain(
+      "what each leg's end stands on (gravel or tamped soil)",
+    );
+    expect(String(confirm?.after)).not.toMatch(/\d+"? (of )?gravel/);
+  });
+
+  // Hand check in operations.test.ts: each leg has 3 cuts (top, foot, flush cut), every other part
+  // 2; each bolt's holes are treated where they pass through treated parts, which is every one.
+  it('version 27 treats every cut and bolt hole, and adds the preservative (#447)', () => {
+    for (const stored of v26) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(26);
+      const { changes } = regenerated(
+        read.snapshot,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+      );
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion27(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v26[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const { changes } = regenerated(first.snapshot, false, false, false, false, false, false, true);
+    const added = changes
+      .filter((c) => c.path.startsWith('design.operations'))
+      .map((c) => c.after as Operation);
+    expect(added.map((op) => op.id)).toEqual([
+      'beam/treat-cuts',
+      'leg-back/treat-cuts',
+      'leg-front/treat-cuts',
+      'crossbar/treat-cuts',
+      'gusset/treat-cuts',
+      'leg-beam-bolts/treat-holes',
+      'crossbar-bolts/treat-holes',
+      'gusset-bolts/treat-holes',
+    ]);
+  });
+  // Hand check in features.test.ts: under the beam's weight the worked example's top gusset bolt is
+  // 7.25 − 5.4375 = 1.8125 (3.6D) from the top edge, under 4D = 2 for the loaded edge.
+  it("version 28 measures the gusset's bolts against the beam's weight, and changes nothing else (#456)", () => {
+    const keep28 = [false, false, false, false, false, false, false, true] as const;
+    for (const stored of v27) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(27);
+      const { changes } = regenerated(read.snapshot, ...keep28);
+      // Four distances and a note on the gusset joint, and its flag.
+      expect(changes).toHaveLength(6);
+      expect(changes.filter((c) => !isVersion28(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v27[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const added = regenerated(first.snapshot, ...keep28)
       .changes.filter((c) => /\.distances\[\d+\]$/.test(c.path))
       .map((c) => c.after as { label: string; value: number });
     expect(added.map((d) => [d.label.split(',')[0], Number(d.value.toFixed(4))])).toEqual([

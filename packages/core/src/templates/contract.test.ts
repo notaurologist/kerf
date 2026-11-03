@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { solid } from '../geometry/solid.ts';
+import { preservativeFor } from '../lumber/treatment.ts';
 import { buildFromForm, confirmedPaths, formValues, readPath } from '../model/form.ts';
+import { treatmentOperations } from '../model/operations.ts';
 import { describeBasis, needsConfirming, suggestedValues } from '../model/questions.ts';
 import { exampleStart } from '../model/start.ts';
 import {
@@ -11,7 +13,7 @@ import {
   suggestionsUsed,
   withSuggested,
 } from '../model/suggested.ts';
-import { ChecklistItem, Flag } from '../model/types.ts';
+import { ChecklistItem, Flag, type Part } from '../model/types.ts';
 import { LumberPlan } from '../outputs/shoppingList.ts';
 import { leaveOutDefaults } from '../snapshot/defaults.ts';
 import { shapeOf } from '../snapshot/shape.ts';
@@ -31,6 +33,9 @@ function generated(t: (typeof TEMPLATES)[number], e: (typeof t.examples)[number]
   if (!made.ok) throw new Error(JSON.stringify(made.issues));
   return made.output;
 }
+
+/** The preservative's shopping line, by its name. */
+const PRESERVATIVE = preservativeFor([{ treated: true } as Part], '')[0]?.name;
 
 const examples = TEMPLATES.flatMap((t) => t.examples.map((e) => [t.id, e.name, t, e] as const));
 
@@ -181,6 +186,23 @@ describe('every template', () => {
         expect([f.normal.x, f.normal.y, f.normal.z].every(Number.isFinite)).toBe(true);
       }
     }
+  });
+
+  // IRC 2021 R317.1.1: every cut and bolt hole in treated lumber is field-treated. Templates add
+  // these operations after their own, so this checks none is left out.
+  it.each(examples)('%s, %s: treats every cut and bolt hole in treated parts', (_, __, t, e) => {
+    const made = createSnapshot(t, e.params, e.structuralInputs);
+    if (!made.ok) throw new Error(JSON.stringify(made.issues));
+    const out = generated(t, e) as { parts?: Part[]; design?: { parts?: Part[] } };
+    const parts = out.parts ?? out.design?.parts ?? [];
+    expect(parts.length).toBeGreaterThan(0);
+    const plan = t.plan(t.storedOutputs.parse(asJson(made.output.outputs)));
+    const ids = plan.operations.map((op) => op.id);
+    for (const op of treatmentOperations(parts, plan.operations)) {
+      expect(ids, op.id).toContain(op.id);
+    }
+    const preservative = plan.hardware.some((l) => l.description === PRESERVATIVE);
+    expect(preservative).toBe(parts.some((p) => p.treated));
   });
 
   it.each(TEMPLATES.map((t) => [t.id, t] as const))('%s gives no verdicts', (_, t) => {

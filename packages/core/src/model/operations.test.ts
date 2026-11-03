@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { panelStock } from '../lumber/panel.ts';
 import { stock } from '../lumber/stock.ts';
-import { boardCuts, cutAndDrillOperations, Operation } from './operations.ts';
+import { boardCuts, cutAndDrillOperations, Operation, treatmentOperations } from './operations.ts';
 import type { HardwareItem, Part } from './types.ts';
 
 // Generic: a made-up post and rail, so nothing here depends on one template's numbers.
@@ -326,5 +326,57 @@ describe('dadoes, notches, and cutouts', () => {
     expect(() => cutAndDrillOperations([notched], [])).toThrow(/side\/notch-0 is on an angled end/);
     const cut = { ...angled, cutouts: [{ end: 1 as const, v0: 1, v1: 2, depth: 1 }] };
     expect(() => cutAndDrillOperations([cut], [])).toThrow(/side\/cutout-0 is on an angled end/);
+  });
+});
+
+// IRC 2021 R317.1.1 and AWPA M4-06 6.1: every cut and hole in treated lumber is field-treated.
+describe('treatmentOperations', () => {
+  const treatedPost: Part = { ...post, treated: true };
+  const drilled = cutAndDrillOperations([treatedPost, rail], [bolts]);
+
+  it('treats every cut in each piece of a treated part, and none in an untreated one', () => {
+    // The post: two ends and a taper, 3 cuts on each of its 3 pieces. The rail is untreated.
+    expect(treatmentOperations([treatedPost, rail], drilled)).toEqual([
+      { id: 'post/treat-cuts', type: 'treat-cuts', partId: 'post', count: 3, cuts: 3 },
+    ]);
+  });
+
+  it('treats a bolt hole where it passes through treated parts, after it is drilled', () => {
+    const treatedRail: Part = { ...rail, treated: true };
+    const ops = cutAndDrillOperations([post, treatedRail], [bolts]);
+    expect(treatmentOperations([post, treatedRail], ops).at(-1)).toEqual({
+      id: 'bolts/treat-holes',
+      type: 'treat-holes',
+      hardwareId: 'bolts',
+      partIds: ['rail'],
+      count: 6,
+      holeDiameter: 0.4375,
+      depth: 5,
+    });
+  });
+
+  it('counts each notch, dado, or other cut into a part as a cut', () => {
+    const notched: Part = {
+      ...treatedPost,
+      ends: [square, square],
+      tapers: [],
+      notches: [{ end: 0, edge: 'reference', along: 3, across: 1.5 }],
+    };
+    expect(treatmentOperations([notched], [])).toMatchObject([{ cuts: 3 }]);
+  });
+
+  it('adds nothing when no part is treated', () => {
+    expect(treatmentOperations([post, rail], cutAndDrillOperations([post, rail], [bolts]))).toEqual(
+      [],
+    );
+  });
+
+  it('gives each a unique ID, and each parses', () => {
+    const ops = [
+      ...drilled,
+      ...treatmentOperations([treatedPost, { ...rail, treated: true }], drilled),
+    ];
+    expect(new Set(ops.map((o) => o.id)).size).toBe(ops.length);
+    for (const op of ops) expect(Operation.safeParse(op).error).toBeUndefined();
   });
 });

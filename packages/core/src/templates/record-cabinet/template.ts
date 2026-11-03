@@ -25,7 +25,7 @@ export const TEMPLATE_ID = 'record-cabinet';
  * Version 17 gives each lumber line its own notes and the boards that hold its pieces when the
  * store has none of its own (#450). No number changes.
  */
-export const TEMPLATE_VERSION = 17;
+export const TEMPLATE_VERSION = 18;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,

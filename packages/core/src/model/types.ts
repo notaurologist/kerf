@@ -269,6 +269,11 @@ export const Part = z.object({
    * (knowledge/boardSelection.ts), most general first.
    */
   selection: z.array(z.string()).default([]),
+  /**
+   * Cut from preservative-treated lumber, so its cuts and bolt holes are field-treated (IRC 2021
+   * R317.1.1). Absent for untreated wood.
+   */
+  treated: z.literal(true).optional(),
   /** The edge `across` starts from (Placement), in words, such as "inner edge, against the beam". */
   referenceEdge: z.string(),
   holes: z.array(Hole).default([]),

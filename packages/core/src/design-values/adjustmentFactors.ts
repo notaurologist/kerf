@@ -24,7 +24,7 @@ export const LOAD_DURATION = {
   'two-months': { C_D: 1.15, description: 'Two months (snow load)' },
   'seven-days': { C_D: 1.25, description: 'Seven days (construction load)' },
   'ten-minutes': { C_D: 1.6, description: 'Ten minutes (wind or earthquake load)' },
-  /** Not permitted for members pressure-treated with water-borne preservatives (NDS 4.3.13). */
+  /** Not permitted for members pressure-treated with water-borne preservatives (NDS 4.3.13; Table 2.3.2, footnote 2). */
   impact: { C_D: 2.0, description: 'Impact' },
   sources: [
     {

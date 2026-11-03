@@ -84,6 +84,8 @@ export const Method = z.object({
     'rabbet',
     'finger-recess',
     'bolt-holes',
+    'treat-cuts',
+    'treat-holes',
     'ease-edges',
     'dry-fit',
     'glue-assembly',
@@ -245,6 +247,12 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     holeDiameter: { kind: 'length', of: (op) => op.holeDiameter },
     depth: { kind: 'length', of: (op) => op.depth },
   },
+  'treat-cuts': { count, cuts: { kind: 'count', of: (op) => op.cuts } },
+  'treat-holes': {
+    count,
+    holeDiameter: { kind: 'length', of: (op) => op.holeDiameter },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
   'ease-edges': { count },
   'dry-fit': { count, reach: { kind: 'length', of: (op) => op.reach } },
   'glue-assembly': { count, reach: { kind: 'length', of: (op) => op.reach } },
@@ -365,6 +373,15 @@ const BOLT_HOLE_SIZE = {
   text: 'Drill {holeDiameter} for a {boltDiameter} bolt. A hole a little larger than the bolt lets it go in without being driven.',
   sources: [{ source: 'nds-2024', locator: 'Section 12.1.3.2' }],
 } satisfies z.input<typeof SafetyNote>;
+
+const PRESERVATIVE_LABEL = {
+  text: 'Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.',
+  sources: [{ source: 'awpa-m4-06', locator: 'Section 7.1, p. 2' }],
+} satisfies z.input<typeof SafetyNote>;
+
+/** How every field treatment starts: the preservative the shopping list names, and its label. */
+const PRESERVATIVE_SETUP =
+  'Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry.';
 
 const DUST_FLAG = {
   category: 'dust-and-species',
@@ -2177,6 +2194,106 @@ export const METHODS = [
       'Marking the two faces from different references makes the holes miss in the middle. Measure both marks from the same end and the same edge, and square across from one to find the other where you can.',
     ],
     safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, BOLT_HOLE_SIZE, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Treat cuts and bolt holes in treated lumber. IRC 2021 R317.1.1 requires field-cut ends,
+  // notches, and drilled holes of treated wood to be treated as AWPA M4 says. M4-06 6.1: every cut
+  // and hole, with a preservative applied as its label says, coating every exposed surface without
+  // excess, and wiping off what does not soak in. WWPI: brushed on, worked deep into holes.
+  {
+    id: 'treat-cuts-brush',
+    operation: 'treat-cuts',
+    name: 'Brushed on',
+    tools: [],
+    skills: ['treat-a-cut'],
+    setup: [PRESERVATIVE_SETUP],
+    technique: [
+      'Brush the sawdust off each cut.',
+      'Brush the preservative onto each of the {cuts} cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.',
+      'Add a second coat if the label calls for one.',
+      'Wipe off what has not soaked in.',
+      'Treat {count} this way.',
+    ],
+    mistakes: [
+      'Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.',
+      'Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first.',
+    ],
+    safety: [PRESERVATIVE_LABEL],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'treat-cuts-dip',
+    operation: 'treat-cuts',
+    name: 'Ends dipped, other cuts brushed',
+    tools: [],
+    skills: ['treat-a-cut'],
+    setup: [
+      PRESERVATIVE_SETUP,
+      'Pour enough of it into a shallow tray to stand the end of a piece in.',
+    ],
+    technique: [
+      'Brush the sawdust off each cut.',
+      'Stand each end of the piece in the tray for as long as the label says, then let it drip back into the tray.',
+      'Brush the preservative onto the rest of the {cuts} cuts on the piece, and onto any corner you rounded or chamfered.',
+      'Wipe off what has not soaked in.',
+      'Treat {count} this way.',
+    ],
+    mistakes: [
+      'Lifting an end out of the tray at once coats it without soaking it. Leave it in as long as the label says.',
+      'Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first.',
+    ],
+    safety: [PRESERVATIVE_LABEL],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'treat-holes-brush',
+    operation: 'treat-holes',
+    name: 'Brushed in',
+    tools: [],
+    skills: ['treat-a-cut'],
+    setup: [PRESERVATIVE_SETUP],
+    technique: [
+      'Brush or blow the chips out of each hole.',
+      'Wet a brush narrow enough for a {holeDiameter} hole, or a rag wrapped on a thin stick, with the preservative, and work it through the {depth} of the hole from one face, then from the other, so the whole inside is wet.',
+      'Wipe off what runs out onto the faces.',
+      'Treat {count} holes this way, then put in the bolts once the label says it has soaked in.',
+    ],
+    mistakes: [
+      'Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces.',
+    ],
+    safety: [PRESERVATIVE_LABEL],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'treat-holes-pour',
+    operation: 'treat-holes',
+    name: 'Poured in',
+    tools: [],
+    skills: ['treat-a-cut'],
+    setup: [
+      PRESERVATIVE_SETUP,
+      'Pour a little of it into a small squeeze bottle or a cup with a spout.',
+      'Lay the parts flat, still clamped, so the holes stand upright, with a rag under each one.',
+    ],
+    technique: [
+      'Brush or blow the chips out of each hole.',
+      'Pour the preservative slowly into the top of the hole until it runs out the bottom of the {depth} onto the rag.',
+      'Wipe off what runs out onto the faces.',
+      'Treat {count} holes this way, then put in the bolts once the label says it has soaked in.',
+    ],
+    mistakes: [
+      'Pouring fast fills the top of the hole and spills over before the wood below is wet. Pour slowly, until it comes out the bottom.',
+    ],
+    safety: [PRESERVATIVE_LABEL],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],

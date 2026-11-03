@@ -69,6 +69,14 @@ export const SOURCES = {
     url: 'https://awpa.com/info/technical/homeowners',
     note: 'For ground-contact use categories and end tags.',
   },
+  'awpa-u1': {
+    title: 'Standard U1-25, Use Category System: User Specification for Treated Wood (excerpt)',
+    publisher: 'American Wood Protection Association',
+    edition:
+      '2025; the free excerpt of Sections 1 to 6 and Commodity Specification A, read November 2026',
+    url: 'https://awpa.com/images/2025/U1-25_excerpt.pdf',
+    note: 'For which ground-contact parts need UC4B rather than UC4A.',
+  },
   'osha-3080': {
     title: 'Hand and Power Tools (OSHA 3080)',
     publisher: 'U.S. Department of Labor, Occupational Safety and Health Administration',
@@ -135,7 +143,22 @@ export const SOURCES = {
     publisher: 'International Code Council',
     edition: '2021',
     url: 'https://codes.iccsafe.org/content/IRC2021P2/chapter-3-building-planning',
-    note: 'A code for houses, not play sets. Kerf follows it where it names materials for treated lumber.',
+    note: 'A code for houses, not play sets. Kerf follows it where it names materials for treated lumber, and for field-treating cuts and holes in it (R317.1.1).',
+  },
+  'awpa-m4-06': {
+    title: 'M4, Standard for the Care of Preservative-Treated Wood Products',
+    publisher:
+      'American Wood Protection Association (then the American Wood-Preservers’ Association)',
+    edition: 'M4-06, 2007',
+    url: 'https://www.anthonyforest.com/assets/pdf/awpa-M4-06-REM-2016-11-22-RG.pdf',
+    note: 'IRC 2021 refers to M4-15, which is sold, not free to read. The link is a lumber maker’s copy of the 2006 edition, read November 2026.',
+  },
+  'wwpi-field-treating': {
+    title: 'Field Treating',
+    publisher: 'Western Wood Preservers Institute',
+    edition: 'Web page, read November 2026 (undated)',
+    url: 'https://preservedwood.org/how-to/field-treatment/',
+    note: 'For how to apply a field treatment: brushed on, worked into holes, as the label says.',
   },
 } as const satisfies Record<string, Source>;
 
