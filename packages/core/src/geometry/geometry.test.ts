@@ -209,6 +209,46 @@ describe('cut details', () => {
     );
   });
 
+  it('names each end beside its setting where the template names it, and in the notes', () => {
+    const named = board({
+      ends: [
+        { setting: 20, description: 'Top: level cut', measuredFrom: 'reference-edge' },
+        { setting: 0, description: 'Foot: square', measuredFrom: 'reference-edge' },
+      ],
+      holes: [
+        {
+          hardwareId: 'bolt',
+          diameter: 0.5625,
+          boltDiameter: 0.5,
+          entry: { u: 4, v: 1.375, n: 0 },
+          direction: { u: 0, v: 0, n: 1 },
+          length: 1.5,
+        },
+      ],
+    });
+    const detail = cutDetail(named);
+    const labels = detail.primitives.flatMap((p) =>
+      p.kind === 'text' && p.role === 'label' ? [p] : [],
+    );
+    expect(labels.map((l) => [l.text, l.anchor])).toEqual([
+      ['Top', 'end'],
+      ['Foot', 'start'],
+    ]);
+    // The first end's name sits above its setting; a square end's where a setting would be.
+    const saw = detail.primitives.find((p) => p.kind === 'text' && p.text.startsWith('Saw at'));
+    expect(labels[0]?.at.y).toBeLessThan(saw?.kind === 'text' ? saw.at.y : 0);
+    expect(labels[1]?.at.y).toBe(saw?.kind === 'text' ? saw.at.y : 0);
+    expect(detail.notes).toContain(
+      'Hole positions are measured from the long point of the top, on the left, along the reference edge.',
+    );
+    // Ends a template does not name are numbered, with no label.
+    const unnamed = cutDetail(board({ holes: named.holes }));
+    expect(unnamed.primitives.some((p) => p.kind === 'text' && p.role === 'label')).toBe(false);
+    expect(unnamed.notes).toContain(
+      'Hole positions are measured from the long point of the first end, on the left, along the reference edge.',
+    );
+  });
+
   it('breaks a part more than 10 times longer than wide, keeping its ends', () => {
     const detail = cutDetail(board({ length: 120 }));
     expect(detail.primitives.filter((p) => p.kind === 'line' && p.role === 'break')).toHaveLength(

@@ -2,12 +2,20 @@ import { describe, expect, it } from 'vitest';
 import { type BoardStock, PartStock, panelStock } from '../lumber/panel.ts';
 import { stock } from '../lumber/stock.ts';
 import type { HardwareItem, Part } from '../model/types.ts';
-import { cutList, panelMade } from './cutList.ts';
+import { cutList, endName, panelMade } from './cutList.ts';
 import { hardwareList } from './hardwareList.ts';
 import { planLumber } from './shoppingList.ts';
 
 // Generic outputs, tested on made-up parts. Each template tests its own output through these
 // in its own folder.
+
+describe('endName', () => {
+  it('reads the name a template gives an end before its colon, and none without one', () => {
+    expect(endName('Top: level cut')).toBe('Top');
+    expect(endName('1-1/2" past the leg, parallel to it')).toBeUndefined();
+    expect(endName('Square')).toBeUndefined();
+  });
+});
 
 describe('cutList', () => {
   const part: Part = {

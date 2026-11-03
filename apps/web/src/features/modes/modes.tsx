@@ -8,7 +8,7 @@ import {
 } from '@kerf/core';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { type DrawingsState, useDrawings } from '../../lib/drawings.ts';
-import { takeFlash } from '../../lib/flash.ts';
+import { takeFlashText } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
 import { useProject } from '../../lib/projectStore.ts';
@@ -95,7 +95,7 @@ export function ModeView(props: {
   const steps = read.steps?.steps ?? [];
   const ticks = useTicks(project.id, project.ticks, project.revision);
   // "Saved." from Edit, opened here for a value read at the store (#390).
-  const [flash] = useState(takeFlash);
+  const [flash] = useState(takeFlashText);
   const readings = useMemo(
     () => (plan.ok ? projectStoreReadings(project, plan.plan) : undefined),
     [project, plan],

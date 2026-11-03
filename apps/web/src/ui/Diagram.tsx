@@ -51,6 +51,34 @@ function useWidth(assumed: number) {
   return { ref, width };
 }
 
+/**
+ * Which sides of a drawing wider than its box are scrolled out of view, so the box can fade that
+ * edge (#455): on a phone a cut detail's second end starts off-screen, with only a thin scrollbar
+ * to say so.
+ */
+function useHidden(ref: { current: HTMLDivElement | null }, shown: number) {
+  const [hidden, setHidden] = useState<'start' | 'end' | 'both' | undefined>();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: measured again when the drawing's width changes.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const start = el.scrollLeft > 1;
+      const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+      setHidden(start && end ? 'both' : start ? 'start' : end ? 'end' : undefined);
+    };
+    measure();
+    el.addEventListener('scroll', measure, { passive: true });
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(el);
+    return () => {
+      el.removeEventListener('scroll', measure);
+      observer?.disconnect();
+    };
+  }, [ref, shown]);
+  return hidden;
+}
+
 const pts = (points: readonly Point2[]) => points.map((p) => `${p.x},${p.y}`).join(' ');
 
 /**
@@ -145,6 +173,8 @@ export function DiagramDrawing(props: {
   );
   const hatch = `${useId().replace(/:/g, '')}-hatch`;
   const { shown, u, placed, placedText, viewBox } = drawingLayout(drawing, width, props);
+  const scroller = useRef<HTMLDivElement>(null);
+  const hidden = useHidden(scroller, shown);
   // A moving part's shapes carry how far it goes in its stage of a move, for the move to slide.
   const moves = new Map(props.motion?.moves?.map((m) => [`${m.partId}/${m.instance}`, m.by]));
   const movesBack = (p: {
@@ -337,40 +367,42 @@ export function DiagramDrawing(props: {
       data-labels={props.motion?.labels === false ? 'hidden' : undefined}
       data-over={props.motion?.over}
     >
-      <DiagramFrame
-        label={props.label}
-        describedBy={props.describedBy}
-        caption={props.caption}
-        viewBox={viewBox}
-        width={shown}
-      >
-        <defs>
-          <pattern
-            id={hatch}
-            patternUnits="userSpaceOnUse"
-            width={8 * u}
-            height={8 * u}
-            patternTransform="rotate(45)"
-          >
-            <line className="k-hatch__line" x1="0" y1="0" x2="0" y2={8 * u} />
-          </pattern>
-          {/* Section lining (ASME Y14.2): thin lines at 45°, on screen and paper. */}
-          <pattern
-            id={`${hatch}-section`}
-            patternUnits="userSpaceOnUse"
-            width={5 * u}
-            height={5 * u}
-            patternTransform="rotate(45)"
-          >
-            <line className="k-section-lining__line" x1="0" y1="0" x2="0" y2={5 * u} />
-          </pattern>
-        </defs>
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: tapping a part is a pointer shortcut; the cut list's part buttons select the same parts from the keyboard. */}
-        <g onClick={props.onSelect ? tap : undefined}>
-          {shapes}
-          {marks}
-        </g>
-      </DiagramFrame>
+      <div ref={scroller} className="k-diagram-scroll" data-hidden={hidden}>
+        <DiagramFrame
+          label={props.label}
+          describedBy={props.describedBy}
+          caption={props.caption}
+          viewBox={viewBox}
+          width={shown}
+        >
+          <defs>
+            <pattern
+              id={hatch}
+              patternUnits="userSpaceOnUse"
+              width={8 * u}
+              height={8 * u}
+              patternTransform="rotate(45)"
+            >
+              <line className="k-hatch__line" x1="0" y1="0" x2="0" y2={8 * u} />
+            </pattern>
+            {/* Section lining (ASME Y14.2): thin lines at 45°, on screen and paper. */}
+            <pattern
+              id={`${hatch}-section`}
+              patternUnits="userSpaceOnUse"
+              width={5 * u}
+              height={5 * u}
+              patternTransform="rotate(45)"
+            >
+              <line className="k-section-lining__line" x1="0" y1="0" x2="0" y2={5 * u} />
+            </pattern>
+          </defs>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: tapping a part is a pointer shortcut; the cut list's part buttons select the same parts from the keyboard. */}
+          <g onClick={props.onSelect ? tap : undefined}>
+            {shapes}
+            {marks}
+          </g>
+        </DiagramFrame>
+      </div>
       {drawing.notes.length > 0 && (
         <ul className="k-diagram__notes">
           {drawing.notes.map((n) => (

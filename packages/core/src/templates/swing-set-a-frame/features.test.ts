@@ -82,7 +82,7 @@ describe('the worked example (spec, Holes and joints)', () => {
     expect(cut?.end.u).toBeCloseTo(0.685, 3);
     expect(cut?.end.v).toBeCloseTo(1.881, 3);
     expect(leg.notes[0]).toBe(
-      'Flush cut on the inside face at the top: mark the inner edge 5-7/8" down from the top corner, and the top cut 2" from that corner (1-7/8" in from the edge, square to it). Cut along the line between the marks, through the leg; it runs at 20.0° to the inner edge.',
+      'Taper the inside face at the top, so it sits flush against the beam: mark the inner edge 5-7/8" down from the top corner, and the top cut 2" along it from that corner. Cut along the line between the marks, through the leg; it runs at 20.0° to the inner edge.',
     );
   });
 

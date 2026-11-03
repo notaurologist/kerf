@@ -46,6 +46,7 @@ export function DeleteProject(props: { id: string; name: string }) {
       projectStore.forget(props.id);
       setFlash(
         `Moved “${props.name.trim()}” to Deleted projects in Workshop. You can restore it there for 30 days.`,
+        { id: props.id, name: props.name.trim() },
       );
       navigate({ screen: 'projects' });
     } else setError(describeError(result.error));

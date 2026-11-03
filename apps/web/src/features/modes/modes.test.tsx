@@ -1,4 +1,4 @@
-import { createSnapshot, TEMPLATES } from '@kerf/core';
+import { checklistProgressKey, createSnapshot, flagProgressKey, TEMPLATES } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { Screen } from '../../App.tsx';
 import type { Project } from '../../lib/types.ts';
@@ -124,11 +124,25 @@ describe('Building mode', () => {
     expect(text).toContain("Cut board 6, a 2x6 10' long: 2 × Crossbar");
     expect(text).toContain('Trim 1/2" off the factory end to square it');
     expect(text).toContain('Each saw cut takes 1/8"');
-    // Both crossbars, each with its tick, its length to cut, and its cut card.
-    // The saw settings beside the length, since a crossbar's ends are mitered (#362).
-    expect(text).toContain('D Crossbar, piece 1 of 2 cut 59" 20.0° 20.0° Cut card');
-    expect(text).toContain('D Crossbar, piece 2 of 2 cut 59" 20.0° 20.0° Cut card');
-    expect(html.match(/class="k-glance"/g)).toHaveLength(2);
+    // Both crossbars, each with its tick, its length to cut, and its cut card. The saw settings
+    // beside the length, since a crossbar's ends are mitered (#362), numbered by end, as the
+    // template does not name them, and saying they mirror each other (#455).
+    expect(text).toContain(
+      'D Crossbar, piece 1 of 2 cut 59" End 1 20.0° End 2 20.0° Ends mirror each other Cut card',
+    );
+    expect(text).toContain(
+      'D Crossbar, piece 2 of 2 cut 59" End 1 20.0° End 2 20.0° Ends mirror each other Cut card',
+    );
+    // A fixed grid: the tick with its letter in a column of its own, the length and settings, then
+    // Cut card on a line of its own, so it keeps its place however long the name (#455).
+    expect(
+      html.match(
+        /<div class="k-piece"><label class="k-tick"[^>]*><input type="checkbox"[^>]*\/><span class="k-part-letter">D<\/span>/g,
+      ),
+    ).toHaveLength(2);
+    expect(
+      html.match(/<div class="k-piece__action"><a [^>]*>Cut card<\/a><\/div><\/div>/g),
+    ).toHaveLength(2);
     expect(html.match(/checked=""/g)).toHaveLength(1);
     expect(html).toContain(`href="#/projects/${p.id}/build/board-6/crossbar"`);
     // The board's drawing: beside the step from the 8-column width, and on a phone after the
@@ -252,9 +266,7 @@ describe('Building mode', () => {
     const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     const html = render(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain('Step 6 of 11 · Cutting Back to the step');
-    expect(text).toContain(
-      `D Crossbar 2x6 (1-1/2" x 5-1/2"). Cut 2. From board 6, a 2x6 10' 0" long.`,
-    );
+    expect(text).toContain(`D Crossbar 2x6 (1-1/2" x 5-1/2"). Cut 2 from this board.`);
     expect(text).toContain('Length, long point to long point 59"');
     // Where the angles are laid out from, before the ends (#132).
     expect(text).toContain(
@@ -283,6 +295,21 @@ describe('Building mode', () => {
     expect(text).toContain('from the inner edge, against the beam.');
     expect(text).toMatch(/Top: level cut Saw at 20\.0° To the edge 70\.0°/);
     expect(text).toMatch(/Foot: level cut Saw at 20\.0° To the edge 70\.0°/);
+    // One of the two front legs comes off this board (#455).
+    expect(text).toContain('Cut 1 from this board (2 in all).');
+    // The cut detail names the ends as the text does.
+    expect(text).toContain(
+      'Hole positions are measured from the long point of the top, on the left',
+    );
+  });
+
+  it('names a leg’s settings Top and Foot on its step, and says the ends are parallel (#455)', () => {
+    const p = project();
+    const route = { screen: 'build-step' as const, id: p.id, step: 'board-2' };
+    const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
+    expect(text).toContain(
+      'C Front leg (downhill), piece 1 of 2 cut 138-3/8" Top 20.0° Foot 20.0° Ends parallel Cut card',
+    );
   });
 
   it('says when a link names a step the plan no longer has', () => {
@@ -306,6 +333,16 @@ describe('Building mode', () => {
 });
 
 describe('the plan’s mode buttons (#356)', () => {
+  // Every expert check asked and checklist item confirmed: the structural review's To do is done.
+  const plan = template.plan(snapshot.outputs);
+  const reviewed = [
+    ...plan.flags.map((f) => ({ kind: 'flag' as const, key: flagProgressKey(f) })),
+    ...plan.checklist.map((c) => ({
+      kind: 'checklist-item' as const,
+      key: checklistProgressKey(c),
+    })),
+  ];
+
   it('start each mode, with its progress', () => {
     const text = renderText(
       <ProjectView project={project()} drawings={loadedDrawings(project())} />,
@@ -315,16 +352,30 @@ describe('the plan’s mode buttons (#356)', () => {
   });
 
   it('resume where you left off, and say what is next', () => {
-    const p = project([
+    const building = [
       { kind: 'shopping-line', key: 'lumber/2x6/10' },
       { kind: 'step', key: 'board-1' },
-    ]);
+    ] as const;
+    const p = project([...reviewed, ...building]);
     const text = renderText(<ProjectView project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain('Shop · 1 of 11 bought');
     expect(text).toContain('Build · step 2 of 11');
     expect(text).toContain("Next: Cut board 2, a 4x4 12' long: Front leg (downhill)");
     expect(render(<ProjectView project={p} drawings={loadedDrawings(p)} />)).toContain(
       `href="#/projects/${p.id}/build"`,
+    );
+  });
+
+  it('say the structural review is next while its To do is open, then shopping (#448)', () => {
+    const next = (p: Project) =>
+      renderText(<ProjectView project={p} drawings={loadedDrawings(p)} />).match(
+        /Next: [^·]*/,
+      )?.[0];
+    // Even once building has started: the review is settled first.
+    expect(next(project([{ kind: 'step', key: 'board-1' }]))).toBe('Next: Structural review ');
+    expect(next(project(reviewed))).toBe('Next: Shopping list, 11 to buy ');
+    expect(next(project([...reviewed, { kind: 'shopping-line', key: 'lumber/2x6/10' }]))).toBe(
+      'Next: Shopping list, 10 to buy ',
     );
   });
 

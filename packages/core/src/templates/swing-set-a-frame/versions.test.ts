@@ -21,6 +21,7 @@ import v16 from './snapshots/v16.json' with { type: 'json' };
 import v17 from './snapshots/v17.json' with { type: 'json' };
 import v18 from './snapshots/v18.json' with { type: 'json' };
 import v19 from './snapshots/v19.json' with { type: 'json' };
+import v20 from './snapshots/v20.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -38,27 +39,36 @@ const isVersion18 = (c: { path: string; before?: unknown; after?: unknown }) =>
     String(c.before).replace(' entered, ', ', ') === c.after);
 
 /**
- * Version 20's changes (#449): each bolt's length to buy and its notes, each shopping line's
+ * Version 20's change (#455): each leg's flush-cut note, in its part and its cut-list row, calls the
+ * cut a taper and gives one measurement for the mark on the top cut. Set aside like version 18's.
+ */
+const isVersion20 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  /^(design\.parts|cutList)\[\d+\]\.notes\[0\]$/.test(c.path) &&
+  String(c.before).startsWith('Flush cut on the inside face at the top:') &&
+  String(c.after).startsWith('Taper the inside face at the top,');
+/**
+ * Version 21's changes (#449): each bolt's length to buy and its notes, each shopping line's
  * description and notes, and the hardware notes. Set aside like version 18's.
  */
-const isVersion20 = (c: { path: string }) =>
+const isVersion21 = (c: { path: string }) =>
   /^design\.hardware\[\d+\]\.(bolt\.length|notes\[0\])$/.test(c.path) ||
   /^design\.hardwareNotes\[\d+\]$/.test(c.path) ||
   /^hardware\[\d+\]\.(description|notes(\[\d+\])?)$/.test(c.path);
 
 /** What regenerating with the current version changes in the stored outputs, field by field. */
-function regenerated(snapshot: ProjectSnapshot, keepVersion18 = false, keepVersion20 = false) {
+function regenerated(snapshot: ProjectSnapshot, keepVersion18 = false, keepVersion21 = false) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = template.storedOutputs.parse(current.output.outputs);
-  const result = diff(json(snapshot.outputs), json(outputs), 1000);
-  return {
-    ...result,
-    changes: result.changes.filter(
-      (c) => (keepVersion18 || !isVersion18(c)) && (keepVersion20 || !isVersion20(c)),
-    ),
+  const found = diff(json(snapshot.outputs), json(outputs), 1000);
+  const result = {
+    ...found,
+    changes: found.changes.filter((c) => !isVersion20(c) && (keepVersion21 || !isVersion21(c))),
   };
+  return keepVersion18
+    ? result
+    : { ...result, changes: result.changes.filter((c) => !isVersion18(c)) };
 }
 
 /** The value at an outputs path such as 'structuralReview.beam.bending.inputs[1]'. */
@@ -520,18 +530,40 @@ describe('swing-set template versions', () => {
     expect(JSON.stringify(first.snapshot.outputs)).not.toMatch(/" entered,/);
   });
 
-  // Hand check in lists.test.ts: the worked example's 1/2" leg-to-beam bolt, grip 8.947, fits from
-  // 9.820 to 10.320, so 10"; the crossbar and gusset bolts, grip 5, fit from 5.873 to 6.373, so 6".
-  it('version 20 names each bolt by the length to buy, and changes nothing else (#449)', () => {
+  it("version 20 rewords only the legs' flush-cut note, with one measurement a mark (#455)", () => {
     for (const stored of v19) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
-      expect(read.snapshot.templateVersion).toBe(19);
+      const current = createSnapshot(
+        template,
+        read.snapshot.params,
+        read.snapshot.structuralInputs,
+      );
+      if (!current.ok) throw new Error('worked example no longer generates');
+      const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+      const outputs = template.storedOutputs.parse(current.output.outputs);
+      const changes = diff(json(read.snapshot.outputs), json(outputs), 1000).changes.filter(
+        (c) => !isVersion21(c),
+      );
+      expect(changes.every(isVersion20)).toBe(true);
+      // Two legs, each in its part and its cut-list row.
+      expect(changes).toHaveLength(4);
+      for (const c of changes) expect(String(c.after)).not.toContain('square to it');
+    }
+  });
+
+  // Hand check in lists.test.ts: the worked example's 1/2" leg-to-beam bolt, grip 8.947, fits from
+  // 9.820 to 10.320, so 10"; the crossbar and gusset bolts, grip 5, fit from 5.873 to 6.373, so 6".
+  it('version 21 names each bolt by the length to buy, and changes nothing else (#449)', () => {
+    for (const stored of v20) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(20);
       const { changes } = regenerated(read.snapshot, false, true);
       expect(changes.length).toBeGreaterThan(0);
-      expect(changes.filter((c) => !isVersion20(c))).toEqual([]);
+      expect(changes.filter((c) => !isVersion21(c))).toEqual([]);
     }
-    const first = readSnapshot([template], v19[0]);
+    const first = readSnapshot([template], v20[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
     const descriptions = regenerated(first.snapshot, false, true)
       .changes.filter((c) => c.path.endsWith('.description'))

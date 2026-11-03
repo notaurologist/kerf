@@ -3,9 +3,12 @@ import { boardIds } from '../outputs/shoppingList.ts';
 import {
   checklistProgressKey,
   flagProgressKey,
+  inputsNeeded,
   isReviewProgress,
+  nextUp,
   PROGRESS_KINDS,
   type ProgressItem,
+  type ProgressSummary,
   progressToReset,
   shoppingGroups,
   summarizeProgress,
@@ -194,6 +197,58 @@ describe('summarizeReview', () => {
   it('keys a flag by its category and ask, and a checklist item by its category and element', () => {
     expect(flagProgressKey(flag('Bolt size?'))).toBe('load-bearing/Bolt size?');
     expect(checklistProgressKey(item('Beam'))).toBe('racking/Beam');
+  });
+});
+
+describe('inputsNeeded', () => {
+  it('counts each input once across the checks and estimates waiting for it', () => {
+    const waiting = (...keys: string[]) => ({
+      status: 'input-needed' as const,
+      missing: keys.map((key) => ({ key, label: key })),
+    });
+    const plan = {
+      checks: [waiting('species', 'load'), waiting('load'), { status: 'computed' }],
+      movement: [waiting('species', 'moisture')],
+    } as unknown as Parameters<typeof inputsNeeded>[0];
+    expect(inputsNeeded(plan)).toBe(3);
+  });
+});
+
+describe('nextUp', () => {
+  const step = { id: 's1', number: 1, title: 'Cut board 1' };
+  const summary = (over: Partial<ProgressSummary> = {}): ProgressSummary => ({
+    shopping: { done: 0, total: 11 },
+    pieces: { done: 0, total: 8 },
+    steps: { done: 0, total: 5 },
+    nextStep: step,
+    resumeStep: null,
+    ...over,
+  });
+
+  it('puts the structural review first while its To do has anything open (#448)', () => {
+    expect(nextUp(summary(), 3)).toEqual({ kind: 'review' });
+    // Even once building has started.
+    expect(nextUp(summary({ steps: { done: 2, total: 5 } }), 1)).toEqual({ kind: 'review' });
+  });
+
+  it('then the shopping, until every line is bought or building starts', () => {
+    expect(nextUp(summary({ shopping: { done: 4, total: 11 } }), 0)).toEqual({
+      kind: 'shopping',
+      toBuy: 7,
+    });
+    expect(nextUp(summary({ shopping: { done: 11, total: 11 } }), 0)).toEqual({
+      kind: 'step',
+      step,
+    });
+    expect(nextUp(summary({ pieces: { done: 1, total: 8 } }), 0)).toEqual({ kind: 'step', step });
+  });
+
+  it('then the first step not done, until every step is', () => {
+    const built = summary({ steps: { done: 5, total: 5 }, nextStep: null });
+    expect(nextUp(built, 0)).toEqual({ kind: 'done' });
+    // A plan made before build steps has nothing after the shopping.
+    const old = summary({ shopping: { done: 11, total: 11 }, steps: { done: 0, total: 0 } });
+    expect(nextUp({ ...old, nextStep: null }, 0)).toBeNull();
   });
 });
 

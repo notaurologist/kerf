@@ -9,6 +9,10 @@ import { STRUCTURAL_INPUT_LABELS as INPUT } from './structural.ts';
 // inputs are all the owner's to enter (hard rule 3). Sections are parts of the swing set, so a
 // part's size, lumber, bolts, and structural inputs are entered together.
 
+/** How to find a rider weight; the starting questions ask for it too. */
+export const RIDER_WEIGHT_HELP =
+  'Weigh the rider on a bathroom scale holding the seat and chain, or weigh each and add. 0 for a swing left empty.';
+
 const stock: FieldOption[] = NOMINAL_SIZES.map((n) => ({ value: n, label: n }));
 
 /** The bolt diameters the form offers, inches. */
@@ -280,14 +284,14 @@ export const SWING_SET_FORM: TemplateForm = {
           label: 'Heaviest rider on the left swing, with seat and chain',
           kind: 'number',
           unit: 'lb',
-          help: 'Weigh the rider on a bathroom scale holding the seat and chain, or weigh each and add. 0 for a swing left empty.',
+          help: RIDER_WEIGHT_HELP,
         },
         {
           path: 'riderWeights.1',
           label: 'Heaviest rider on the right swing, with seat and chain',
           kind: 'number',
           unit: 'lb',
-          help: 'Weigh the rider on a bathroom scale holding the seat and chain, or weigh each and add. 0 for a swing left empty.',
+          help: RIDER_WEIGHT_HELP,
         },
         {
           path: 'maxSwingAngle',

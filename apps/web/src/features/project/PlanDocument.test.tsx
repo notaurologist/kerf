@@ -43,9 +43,35 @@ describe('the plan’s header (#356)', () => {
     );
   });
 
-  it('keeps no key figures or list of expert checks', () => {
-    expect(textOf(html(complete))).not.toContain('Lowest margin');
+  it('keeps no list of expert checks', () => {
     expect(textOf(html(complete))).not.toContain('Read them in full');
+  });
+
+  it('shows the lowest margin and its check once every check has one (#448)', () => {
+    const id = projectFrom(complete).id;
+    expect(head(complete)).toContain(
+      `<p class="k-text" data-screen-only="true"><a href="#/projects/${id}/structural-review">Lowest margin 1.1x: bending, top beam, 4x6</a></p>`,
+    );
+    // A check waiting for inputs could be the lowest.
+    expect(textOf(head(noInputs))).not.toContain('Lowest margin');
+  });
+
+  it('shows a lowest margin under 1.0 the same way, and puts the review first (#448)', () => {
+    // The worked example with heavier riders: the beam's computed bending stress is larger than
+    // its allowable one. Roughly 1.1 × (2 × 300 lb) / (3 × 500 lb) = 0.44, a little more since the
+    // beam's own weight, which the dynamic factor does not multiply, stays the same.
+    const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
+    const example = template.examples[0];
+    if (!example) throw new Error('no worked example');
+    const made = createSnapshot(template, example.params, {
+      ...(example.structuralInputs as object),
+      riderWeights: [250, 250],
+      dynamicFactor: 3,
+    });
+    if (!made.ok) throw new Error('heavier riders do not generate');
+    const text = textOf(head(JSON.parse(JSON.stringify(made.output))));
+    expect(text).toContain('Lowest margin 0.4x: bending, top beam, 4x6');
+    expect(text).toMatch(/Next: Structural review · .*expert checks/);
   });
 
   it('shares the first printed page with the first section', () => {

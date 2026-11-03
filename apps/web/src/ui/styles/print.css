@@ -122,6 +122,11 @@
       break-inside: avoid;
     }
 
+    /* The whole drawing is on the page, so no edge fades. */
+    .k-diagram-scroll {
+      mask-image: none;
+    }
+
     h1,
     h2,
     h3,

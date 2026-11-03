@@ -18,7 +18,12 @@ import {
   type LoadFactor,
 } from './checks.ts';
 import type { ServiceConditions } from './factors.ts';
-import { type CheckResult, type ComputedCheck, formatBreakEven } from './types.ts';
+import {
+  type CheckResult,
+  type ComputedCheck,
+  formatBreakEven,
+  formatBreakEvenLimit,
+} from './types.ts';
 
 // Hand-checked worked examples for the generic checks, on a made-up member (each template tests
 // its own structural model in its own folder). Expected values were computed independently from
@@ -425,6 +430,14 @@ describe('a load factor', () => {
       'margin 1.0 or more while the impact factor is 2.0 or less',
     );
     expect(formatBreakEven({ ...b, value: 0 })).toMatch(/^below margin 1\.0 at any impact factor/);
+  });
+
+  it('gives the factor alone for a table that names it', () => {
+    const b = { key: 'impact', symbol: 'C_i', label: 'Impact factor' };
+    expect(formatBreakEvenLimit({ ...b, value: 2.1999 })).toBe('2.1 or less');
+    expect(formatBreakEvenLimit({ ...b, value: 0 })).toBe(
+      'no value: the loads it does not multiply reach margin 1.0 on their own',
+    );
   });
 });
 

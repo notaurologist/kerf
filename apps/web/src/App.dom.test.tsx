@@ -92,7 +92,9 @@ describe('a session that ends while a screen loads', () => {
     await goTo(href({ screen: 'projects' }));
     const { container } = mount(<App />);
     await waitForRequests();
-    expect(container.textContent).toContain('Your session ended.');
+    // Log in again says the session ended; the screen behind it does not say so a second time.
+    expect(container.textContent).toContain('Kerf could not do this while you were logged out.');
+    expect(document.body.textContent?.match(/session (has )?ended/gi)).toHaveLength(1);
     await logInAgain();
     expect(loginDialog()).toBeUndefined();
     expect(container.textContent).toContain('No projects yet.');
