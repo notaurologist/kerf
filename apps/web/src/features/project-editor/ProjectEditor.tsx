@@ -57,6 +57,11 @@ export function ProjectEditor(props: {
    * while it holds the suggestion.
    */
   suggested?: ReadonlyMap<string, SuggestedField>;
+  /**
+   * A new project's answers to the starting questions, sent with Create and the preview so the
+   * server records which values are still suggestions (#417).
+   */
+  answers?: unknown;
   /** A new project's choice of start, shown above the form. */
   starts?: ReactNode;
 }) {
@@ -157,6 +162,7 @@ export function ProjectEditor(props: {
               templateId: template.id,
               params: builtParams,
               structuralInputs: builtInputs,
+              ...(props.answers !== undefined ? { answers: props.answers } : {}),
             },
           }),
         );
@@ -213,7 +219,7 @@ export function ProjectEditor(props: {
   // Read once per saved project, not per keystroke, so the preview pane keeps its saved plan.
   const saved = useMemo(() => (project ? readPlan(project) : null), [project]);
   const showsPlan = saved?.ok || !project;
-  const preview = usePreview(template, project ?? null, params, inputs, !showsPlan);
+  const preview = usePreview(template, project ?? null, params, inputs, !showsPlan, props.answers);
   // The plan for the values in the form, when there is one: for comparing a value against.
   const current =
     preview.kind === 'ready'

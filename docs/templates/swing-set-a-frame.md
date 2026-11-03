@@ -41,6 +41,8 @@ Template version 13 gives the bending check's position of the largest moment its
 
 Template version 17 (#430) stores a plan without the part lists it leaves empty, such as a beam's tapers. Reading a plan fills them back in, so nothing a plan shows changes.
 
+Template version 18 (#417) names, in the structural working, the input behind each entered value (the rider weights, swing angle, beam moisture content, dynamic factor, and deflection limit), and in the bolt layout the parameters behind each joint's bolt size and count, so a value Kerf suggested says so until the owner confirms it. The leg-to-beam checklist item no longer calls its bolt size entered. No number changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates

@@ -141,6 +141,7 @@ function rail(overrides: Partial<BeamCheckInput['member']> = {}): BeamCheckInput
       working: [],
       assumptions: [],
       limitRatio: { value: 240 },
+      limitKey: 'deflectionLimit',
     },
     assumptions: [],
   };

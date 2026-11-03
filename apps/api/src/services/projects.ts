@@ -1,8 +1,10 @@
 import {
   type BuildSteps,
   type Change,
+  carrySuggested,
   compareSnapshots,
   compareWithCurrent,
+  confirmSuggested,
   cornerViews,
   createSnapshot,
   type geometry,
@@ -15,6 +17,8 @@ import {
   progressSummary,
   projectDrawings,
   readSnapshot,
+  type SuggestedValue,
+  suggestedFor,
   type TemplateDefinition,
   type VersionReport,
 } from '@kerf/core';
@@ -40,6 +44,7 @@ import {
   type ProjectChanges,
   type ProjectRegenerate,
   ProjectStatus,
+  type SuggestedChanges,
 } from './projectBodies.ts';
 import { exportTools, getInventory } from './tools.ts';
 
@@ -149,6 +154,8 @@ export type Result<T> =
     }
   | { ok: false; error: 'invalid-project'; issues: Issue[] }
   | { ok: false; error: 'unknown-progress'; items: { kind: string; key: string }[] }
+  /** A confirmation for a value the stored plan does not hold as a suggestion. */
+  | { ok: false; error: 'unknown-suggestion'; fields: { from: string; path: string }[] }
   /** Another save changed the plan since this one's revision; `revision` is the current one. */
   | { ok: false; error: 'stale-project'; revision: number };
 
@@ -279,12 +286,45 @@ export function createProjectService(deps: {
     };
   }
 
-  function generate(templateId: string, params: unknown, structuralInputs: unknown) {
+  function generate(
+    templateId: string,
+    params: unknown,
+    structuralInputs: unknown,
+    suggested: readonly SuggestedValue[] = [],
+  ) {
     const template = findTemplate(templateId);
     if (!template) return { ok: false, error: 'unknown-template' } as const;
-    const result = createSnapshot(template, params, structuralInputs);
+    const result = createSnapshot(template, params, structuralInputs, suggested);
     if (!result.ok) return { ok: false, error: 'invalid-project', issues: result.issues } as const;
     return { ok: true, snapshot: result.output, template } as const;
+  }
+
+  /**
+   * A new project's snapshot. Started from the template's questions, it records which values are
+   * still Kerf's suggestions, worked out here from the answers (#417), so no client can store a
+   * suggestion as entered.
+   */
+  function generateNew(input: NewProjectPreview) {
+    const template = findTemplate(input.templateId);
+    if (!template) return { ok: false, error: 'unknown-template' } as const;
+    const inputs = input.structuralInputs ?? {};
+    if (input.answers === undefined) return generate(input.templateId, input.params, inputs);
+    const found = suggestedFor(template, input.answers, input.params, inputs);
+    if (!found.ok) return { ok: false, error: 'invalid-project', issues: found.issues } as const;
+    return generate(input.templateId, input.params, inputs, found.suggested);
+  }
+
+  /**
+   * The suggestions a regenerated snapshot keeps from the stored one: those whose values it left as
+   * they were. Read from the row as locked, so a confirmation made since this save's revision
+   * stands.
+   */
+  function carried(
+    template: TemplateDefinition,
+    stored: ProjectSnapshot,
+    next: ProjectSnapshot,
+  ): ProjectSnapshot {
+    return { ...next, suggested: carrySuggested(template.form, stored.suggested, stored, next) };
   }
 
   const snapshotColumns = (s: ProjectSnapshot) => ({
@@ -363,7 +403,7 @@ export function createProjectService(deps: {
     },
 
     async create(input: NewProject): Promise<Result<Project>> {
-      const generated = generate(input.templateId, input.params, input.structuralInputs ?? {});
+      const generated = generateNew(input);
       if (!generated.ok) return generated;
       const at = now();
       const row = await db.transaction(async (tx) => {
@@ -417,6 +457,11 @@ export function createProjectService(deps: {
         const row = await lock(tx, id);
         if (!row) return { ok: false, error: 'not-found' };
         if (plan && changes.revision !== row.revision) return stale(row);
+        if (saved) {
+          const locked = read(row);
+          if (!locked.ok) return { ok: false, error: 'unreadable-snapshot' };
+          saved = { ...saved, snapshot: carried(saved.template, locked.snapshot, saved.snapshot) };
+        }
         const [updated] = await tx
           .update(projects)
           .set({
@@ -458,12 +503,10 @@ export function createProjectService(deps: {
         changes.structuralInputs ?? stored.snapshot.structuralInputs,
       );
       if (!generated.ok) return generated;
+      const snapshot = carried(template, stored.snapshot, generated.snapshot);
       return {
         ok: true,
-        value: {
-          snapshot: generated.snapshot,
-          ...compareSnapshots(template, stored.snapshot, generated.snapshot),
-        },
+        value: { snapshot, ...compareSnapshots(template, stored.snapshot, snapshot) },
       };
     },
 
@@ -472,7 +515,7 @@ export function createProjectService(deps: {
      * There is no saved plan to compare with, so nothing is marked as changed.
      */
     previewNew(input: NewProjectPreview): Result<Preview> {
-      const generated = generate(input.templateId, input.params, input.structuralInputs ?? {});
+      const generated = generateNew(input);
       if (!generated.ok) return generated;
       return { ok: true, value: { snapshot: generated.snapshot, changes: [], truncated: false } };
     },
@@ -501,22 +544,25 @@ export function createProjectService(deps: {
         const locked = await lock(tx, id);
         if (!locked) return { ok: false, error: 'not-found' };
         if (request.revision !== locked.revision) return stale(locked);
+        const current = read(locked);
+        if (!current.ok) return { ok: false, error: 'unreadable-snapshot' };
+        const snapshot = carried(generated.template, current.snapshot, generated.snapshot);
         const [updated] = await tx
           .update(projects)
           .set({
-            ...snapshotColumns(generated.snapshot),
+            ...snapshotColumns(snapshot),
             revision: locked.revision + 1,
             updatedAt: at,
           })
           .where(eq(projects.id, id))
           .returning();
         if (!updated) return { ok: false, error: 'not-found' };
-        await writeHistory(tx, generated.template, id, generated.snapshot, at);
+        await writeHistory(tx, generated.template, id, snapshot, at);
         progressReset = await resetProgress(
           tx,
           id,
           { snapshot: stored.snapshot, template: generated.template },
-          generated,
+          { snapshot, template: generated.template },
         );
         return updated;
       });
@@ -575,6 +621,37 @@ export function createProjectService(deps: {
           await tx.update(projects).set({ status, updatedAt: at }).where(eq(projects.id, id));
         }
         return { ok: true, value: { ticks, status } };
+      });
+    },
+
+    /**
+     * Confirms or unconfirms suggested values, ticked in the structural review (#417). Refused on
+     * an older revision of the plan, as a tick is (0018). A confirmation changes no number, so it
+     * leaves the revision and the status as they are, and a form open on another device can still
+     * save: its save keeps the confirmation, read under the lock. The stored snapshot keeps its
+     * shape; only its list of suggestions changes.
+     */
+    async confirmSuggested(
+      id: string,
+      request: SuggestedChanges,
+    ): Promise<Result<{ suggested: SuggestedValue[] }>> {
+      return db.transaction(async (tx) => {
+        const row = await lock(tx, id);
+        if (!row) return { ok: false, error: 'not-found' };
+        if (request.revision !== row.revision) return stale(row);
+        const stored = read(row);
+        if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+        const confirmed = confirmSuggested(stored.snapshot.suggested, request.changes);
+        if (!confirmed.ok)
+          return { ok: false, error: 'unknown-suggestion', fields: confirmed.unknown };
+        await tx
+          .update(projects)
+          .set({
+            snapshot: { ...(row.snapshot as object), suggested: confirmed.suggested },
+            updatedAt: now(),
+          })
+          .where(eq(projects.id, id));
+        return { ok: true, value: { suggested: confirmed.suggested } };
       });
     },
 

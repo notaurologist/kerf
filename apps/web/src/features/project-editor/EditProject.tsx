@@ -1,4 +1,4 @@
-import { findTemplate, formValues } from '@kerf/core';
+import { findTemplate, formValues, suggestedFields } from '@kerf/core';
 import { api, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { type EditFrom, href } from '../../lib/route.ts';
@@ -89,6 +89,7 @@ function EditProjectForm(props: {
         params: formValues(template.form.params, project.snapshot.params),
         inputs: formValues(template.form.structuralInputs, project.snapshot.structuralInputs),
       }}
+      suggested={suggestedFields(template.form, project.snapshot)}
     />
   );
 }

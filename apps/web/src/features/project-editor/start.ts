@@ -1,4 +1,10 @@
-import { confirmedPaths, type FormValues, formValues, type TemplateDefinition } from '@kerf/core';
+import {
+  confirmedPaths,
+  exampleStart,
+  type FormValues,
+  formValues,
+  type TemplateDefinition,
+} from '@kerf/core';
 import { newProjectLabel } from '../../lib/names.ts';
 import type { ProjectStart } from '../../lib/route.ts';
 import type { Project, ProjectStatus } from '../../lib/types.ts';
@@ -41,16 +47,9 @@ export function startValues(
   const { form } = template;
   const empty = formValues(form.structuralInputs, {});
   if (start?.kind === 'example') {
-    const example = template.examples[start.index];
-    if (!example?.start) return { ok: false, message: 'There is no such example to start from.' };
-    const confirm = confirmedPaths(form.params);
-    const params = Object.fromEntries(
-      Object.entries(formValues(form.params, example.params)).map(([path, text]) => [
-        path,
-        confirm.has(path) ? '' : text,
-      ]),
-    );
-    return { ok: true, initial: { name: '', params, inputs: empty } };
+    const example = exampleStart(template, start.index);
+    if (!example) return { ok: false, message: 'There is no such example to start from.' };
+    return { ok: true, initial: { name: '', ...example } };
   }
   if (start?.kind === 'questions') {
     return { ok: false, message: 'This template has no starting questions.' };

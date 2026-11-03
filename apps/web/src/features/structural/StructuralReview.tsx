@@ -6,10 +6,13 @@ import {
   type Flag,
   flagProgressKey,
   type movement,
+  type SuggestedItem,
   structural,
+  suggestionsUsed,
   summarizeReview,
 } from '@kerf/core';
 import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
+import type { Suggested } from '../../lib/suggested.ts';
 import type { Ticks } from '../../lib/ticks.ts';
 import {
   Card,
@@ -38,6 +41,8 @@ import { CitationList, SourceList, SourceToggle } from './Citation.tsx';
 // then one line per check with its margin, opening to its full working. Results are margins under stated
 // assumptions, never verdicts (decision 0001). Every number comes formatted from core. Each expert
 // check and checklist item has a tick (#393) that says it was asked or confirmed, nothing more.
+// Each value Kerf suggested has a tick that confirms it (#417), and a result computed with one not
+// yet confirmed says so beside its margin.
 
 /** The wood movement subsection's opening line, exported for the printed plan's terms too. */
 export const WOOD_MOVEMENT_INTRO =
@@ -60,8 +65,12 @@ export function StructuralReview(props: {
   ticks: Ticks;
   boltLayout?: readonly structural.BoltJoint[];
   movement?: readonly MovementResult[];
+  /** The values Kerf suggested, and how to confirm them. */
+  suggested?: Suggested;
 }) {
   const movement = props.movement ?? [];
+  const suggested = props.suggested;
+  const values = suggested?.items ?? [];
   const results = (
     <Stack>
       <h3>Checks</h3>
@@ -72,7 +81,7 @@ export function StructuralReview(props: {
       <Rows>
         {byMargin(props.checks).map((check) => (
           <Row key={`${check.kind}/${check.subject}`} as="section">
-            <Check check={check} inputHref={props.inputHref} />
+            <Check check={check} inputHref={props.inputHref} suggested={values} />
           </Row>
         ))}
       </Rows>
@@ -86,27 +95,28 @@ export function StructuralReview(props: {
           <Rows>
             {movement.map((m) => (
               <Row key={m.subject} as="section">
-                <Movement result={m} inputHref={props.inputHref} />
+                <Movement result={m} inputHref={props.inputHref} suggested={values} />
               </Row>
             ))}
           </Rows>
         </>
       )}
 
-      <BoltLayout joints={props.boltLayout ?? []} />
+      <BoltLayout joints={props.boltLayout ?? []} suggested={values} />
 
       <SourcesUsed checks={props.checks} movement={movement} />
     </Stack>
   );
   const missing = missingInputs([...props.checks, ...movement]);
   const toDo =
-    missing.length + props.flags.length + props.checklist.length > 0 ? (
+    missing.length + props.flags.length + props.checklist.length + values.length > 0 ? (
       <ToDo
         missing={missing}
         inputHref={props.inputHref}
         flags={props.flags}
         checklist={props.checklist}
         ticks={props.ticks}
+        suggested={suggested}
       />
     ) : null;
   return (
@@ -161,10 +171,12 @@ function ToDo(props: {
   flags: readonly Flag[];
   checklist: readonly ChecklistItem[];
   ticks: Ticks;
+  suggested?: Suggested;
 }) {
-  const { ticks } = props;
+  const { ticks, suggested } = props;
   const review = summarizeReview(props, ticks.ticked());
-  const count = props.missing.length + review.flags.open + review.checklist.open;
+  const unconfirmed = (suggested?.items ?? []).filter((s) => !s.confirmed).length;
+  const count = props.missing.length + review.flags.open + review.checklist.open + unconfirmed;
   const tick = (kind: 'flag' | 'checklist-item', key: string) => {
     const item = { kind, key };
     return {
@@ -182,6 +194,37 @@ function ToDo(props: {
           <Stack gap="xs">
             <h4>Inputs needed</h4>
             <MissingInputs missing={props.missing} inputHref={props.inputHref} />
+          </Stack>
+        )}
+        {suggested && suggested.items.length > 0 && (
+          <Stack gap="xs">
+            <h4>Suggested values</h4>
+            <Text tone="muted">
+              Kerf suggested these from the sources named. Check each, and tick Confirmed once you
+              have, or change it in Edit. A result that uses one not yet confirmed says so.
+            </Text>
+            {suggested.problem && <Text>{suggested.problem}</Text>}
+            <Rows as="ul">
+              {suggested.items.map((item) => (
+                <Row key={item.key} as="li">
+                  <Stack gap="2xs">
+                    <ResultLine title={item.label} result={<Readings text={item.text} />}>
+                      <Text tone="muted">
+                        <Measured text={item.about} />
+                      </Text>
+                    </ResultLine>
+                    <Tick
+                      done={item.confirmed}
+                      waiting={suggested.sending.has(item.key)}
+                      onChange={(done) => suggested.set(item, done)}
+                      context={`: ${item.label}, ${item.text}`}
+                    >
+                      Confirmed
+                    </Tick>
+                  </Stack>
+                </Row>
+              ))}
+            </Rows>
           </Stack>
         )}
         {props.flags.length > 0 && (
@@ -257,16 +300,50 @@ function ToDo(props: {
   );
 }
 
+/** The suggested values a result was computed with that are not confirmed yet. */
+function unconfirmedIn(result: CheckResult | MovementResult, suggested: readonly SuggestedItem[]) {
+  return suggestionsUsed(result, suggested).filter((s) => !s.confirmed);
+}
+
+/** Which unconfirmed suggestions a result uses, by field and value. */
+function UsesSuggested(props: {
+  values: readonly { label: string; text: string; about: string }[];
+}) {
+  if (props.values.length === 0) return null;
+  return (
+    <Text>
+      Uses {props.values.length === 1 ? 'a suggested value' : 'suggested values'} not confirmed yet:{' '}
+      {props.values.map((v, i) => (
+        <span key={v.label}>
+          {i > 0 && '; '}
+          {v.label}, <Readings text={v.text} />
+        </span>
+      ))}
+      . Confirm {props.values.length === 1 ? 'it' : 'them'} under To do, or change{' '}
+      {props.values.length === 1 ? 'it' : 'them'} in Edit.
+    </Text>
+  );
+}
+
 /** One check as a line with its margin, opening to its working. */
-function Check(props: { check: CheckResult; inputHref: (key: string) => string }) {
+function Check(props: {
+  check: CheckResult;
+  inputHref: (key: string) => string;
+  suggested: Suggested['items'];
+}) {
   const { check } = props;
+  const unconfirmed = unconfirmedIn(check, props.suggested);
   return (
     <ResultLine
       title={<Measured text={`${check.title}: ${check.subject}`} />}
       detail={<Measured text={check.loadCase} />}
       result={
         check.status === 'computed' ? (
-          formatMargin(check.margin)
+          unconfirmed.length > 0 ? (
+            `${formatMargin(check.margin)}, with a suggested value`
+          ) : (
+            formatMargin(check.margin)
+          )
         ) : check.status === 'input-needed' ? (
           <InputNeeded />
         ) : (
@@ -280,6 +357,7 @@ function Check(props: { check: CheckResult; inputHref: (key: string) => string }
         </Text>
         {/* Input needed is on the line already; the links to enter each follow. */}
         {check.status !== 'input-needed' && <CheckStatus check={check} />}
+        <UsesSuggested values={unconfirmed} />
         {check.status !== 'not-computed' && check.breakEven && (
           <Text>
             <Readings text={breakEvenLine(check.breakEven)} />
@@ -327,8 +405,13 @@ function MissingInputs(props: {
   );
 }
 
-function Movement(props: { result: MovementResult; inputHref: (key: string) => string }) {
+function Movement(props: {
+  result: MovementResult;
+  inputHref: (key: string) => string;
+  suggested: Suggested['items'];
+}) {
   const { result } = props;
+  const unconfirmed = unconfirmedIn(result, props.suggested);
   return (
     <ResultLine
       title={<Measured text={result.subject} />}
@@ -353,6 +436,7 @@ function Movement(props: { result: MovementResult; inputHref: (key: string) => s
             </b>{' '}
             across the grain.
           </Text>
+          <UsesSuggested values={unconfirmed} />
           <h5>Inputs</h5>
           <Quantities caption="Inputs" list={result.inputs} />
           <h5>Formula</h5>

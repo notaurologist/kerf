@@ -2,6 +2,7 @@ import type { SnapshotUpgrade, TemplateDefinition } from '../../model/definition
 import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { planLumber } from '../../outputs/shoppingList.ts';
+import { noSuggestions } from '../../snapshot/snapshot.ts';
 import { cabinetExplode, cabinetScene, drawings, VIEW } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { RECORD_CABINET_FORM } from './form.ts';
@@ -233,7 +234,7 @@ export const recordCabinet: TemplateDefinition<
   outputs: RecordCabinetOutputs,
   storedOutputs: StoredRecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
-  snapshotVersion: 10,
+  snapshotVersion: 11,
   // Shape 3 to 4 adds assembly and finish operations, which older plans simply do not have.
   snapshotUpgrades: {
     1: addFlattening,
@@ -247,6 +248,8 @@ export const recordCabinet: TemplateDefinition<
     8: toDoors,
     // Shape 9 to 10 leaves out each part list that is empty (#430); reading fills it back in.
     9: (snapshot) => snapshot,
+    // Shape 10 to 11 adds the project's suggested values (#417): every older plan's were entered.
+    10: noSuggestions,
   },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,

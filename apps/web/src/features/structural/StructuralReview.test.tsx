@@ -221,6 +221,7 @@ describe('wood movement in the structural review', () => {
       species: { value: 'black-cherry' },
       orientation: { value: 'flatsawn' },
       moisture: { value: { low: 6, high: 10 } },
+      moistureKey: 'moisture',
     }),
     movement.woodMovement({
       subject: 'Top',
@@ -228,6 +229,7 @@ describe('wood movement in the structural review', () => {
       species: missing('Species'),
       orientation: { value: 'unknown' },
       moisture: { value: { low: 6, high: 10 } },
+      moistureKey: 'moisture',
     }),
     movement.woodMovement({
       subject: 'Back rail',
@@ -235,6 +237,7 @@ describe('wood movement in the structural review', () => {
       species: { value: 'black-cherry' },
       orientation: { value: 'flatsawn' },
       moisture: { value: { low: 4, high: 10 } },
+      moistureKey: 'moisture',
     }),
   ];
   const html = render(

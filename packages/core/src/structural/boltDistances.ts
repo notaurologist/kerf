@@ -41,6 +41,8 @@ export const BoltJoint = z.object({
   title: z.string(),
   bolts: z.number().int().positive(),
   diameter: z.number(),
+  /** The parameters its bolts' diameter and count are entered in, by their paths in the form. */
+  params: z.array(z.string()).default([]),
   distances: z.array(BoltDistance),
   /** How the layout was chosen, and the assumptions behind which rows apply. */
   notes: z.array(z.string()),

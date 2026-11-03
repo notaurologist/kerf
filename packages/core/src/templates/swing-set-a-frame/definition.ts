@@ -3,6 +3,7 @@ import { withLetters } from '../../model/letters.ts';
 import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { DEFAULT_BOARD_OPTIONS, planLumber } from '../../outputs/shoppingList.ts';
+import { noSuggestions } from '../../snapshot/snapshot.ts';
 import { assembly, drawings } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';
@@ -123,8 +124,9 @@ export const swingSetAFrame: TemplateDefinition<
   // (#401), optional. Shape 15 lets a hardware item and line wait for their quantity (#406): an
   // optional quantity and the input it waits for. Every stored plan has its quantities. Shape 16
   // leaves out each part list that is empty (#430); reading fills it back in, so older shapes
-  // read unchanged.
-  snapshotVersion: 16,
+  // read unchanged. Shape 17 adds the project's suggested values (#417); every older plan's
+  // values were entered, so it reads with none.
+  snapshotVersion: 17,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -141,6 +143,7 @@ export const swingSetAFrame: TemplateDefinition<
     13: (snapshot) => snapshot,
     14: (snapshot) => snapshot,
     15: (snapshot) => snapshot,
+    16: noSuggestions,
   },
   examples: EXAMPLES,
   questions: SWING_SET_QUESTIONS,

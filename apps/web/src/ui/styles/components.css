@@ -148,8 +148,11 @@
     text-overflow: ellipsis;
   }
 
+  /* Never wider than the line: an end too long for one wraps within itself. */
   .k-one-line__end {
     flex: none;
+    max-inline-size: 100%;
+    white-space: normal;
   }
 
   .k-section__title-block {

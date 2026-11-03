@@ -12,6 +12,7 @@ import { useProject } from '../../lib/projectStore.ts';
 import { href, redirect } from '../../lib/route.ts';
 import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { cutDetailHeadingId, cutListPartId } from '../../lib/show.ts';
+import { useSuggested } from '../../lib/suggested.ts';
 import { useTicks } from '../../lib/ticks.ts';
 import { type Project, STATUS_LABELS } from '../../lib/types.ts';
 import { loadCornerViews } from '../../lib/views.ts';
@@ -102,6 +103,7 @@ export function ProjectView(props: {
     [project, plan],
   );
   const ticks = useTicks(project.id, project.ticks, project.revision);
+  const suggested = useSuggested(project, props.onChange);
   // Plans made before operations have no build steps.
   const hasSteps = steps !== null && steps.steps.length > 0;
   const terms = useMemo(
@@ -280,6 +282,7 @@ export function ProjectView(props: {
               ticks={ticks}
               boltLayout={plan.plan.boltLayout}
               movement={plan.plan.movement}
+              suggested={suggested}
             />
           </PlanSection>
           <PlanSection {...section('cut-list')} intro={CUT_LIST_INTRO}>
