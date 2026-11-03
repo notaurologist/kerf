@@ -17,6 +17,8 @@ import { describe, expect, it } from 'vitest';
 
 const root = new URL('../../..', import.meta.url).pathname;
 const templatesDir = join(root, 'packages', 'core', 'src', 'templates');
+/** The joint model's version of each template (docs/explorations/joint-model.md). */
+const modelTemplatesDir = join(root, 'packages', 'model', 'src', 'templates');
 
 /** Splits text into lowercase words, one list per identifier or hyphenated word. */
 function words(text: string): string[][] {
@@ -44,8 +46,10 @@ function files(dir: string, { skipTemplates }: { skipTemplates: boolean }): stri
     const path = join(dir, name);
     if (statSync(path).isDirectory()) {
       if (name === 'node_modules' || name === 'test' || name === 'fonts') return [];
-      // A template's own folder: packages/core/src/templates/<template-id>/.
-      if (skipTemplates && TEMPLATES.some((t) => t.id === name) && dir === templatesDir) return [];
+      // A template's own folder: packages/core/src/templates/<template-id>/, or the joint model's
+      // version of it in packages/model/src/templates/<template-id>/.
+      const inTemplates = dir === templatesDir || dir === modelTemplatesDir;
+      if (skipTemplates && TEMPLATES.some((t) => t.id === name) && inTemplates) return [];
       return files(path, { skipTemplates });
     }
     if (!/\.(tsx?|css)$/.test(name)) return [];
