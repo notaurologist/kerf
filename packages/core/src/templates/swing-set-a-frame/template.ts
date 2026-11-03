@@ -257,7 +257,14 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
 
   const g = frameGeometry(dims, splay);
   const swings = swingGeometry(p);
-  const issues = [...validate(dims, g), ...validateSwings(dims, swings), ...validateHardware(p)];
+  const frameIssues = validate(dims, g);
+  // Swings are checked against the span between the frames, which overlapping frames don't have.
+  const fits = !frameIssues.some((issue) => issue.code === 'frames-do-not-fit');
+  const issues = [
+    ...frameIssues,
+    ...(fits ? validateSwings(dims, swings) : []),
+    ...validateHardware(p),
+  ];
   if (issues.length > 0) return { ok: false, issues };
 
   const joints = boltJoints(p, dims, g);

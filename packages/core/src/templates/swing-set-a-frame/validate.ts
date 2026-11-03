@@ -103,6 +103,13 @@ export function validateSwings(dims: Dimensions, s: SwingGeometry): Issue[] {
       params: ['swings'],
     });
   }
+  if (s.chainLength <= 0) {
+    issues.push({
+      code: 'seat-above-beam',
+      message: `The seats hang from the beam, so they must be lower than its ${len(dims.H)} height.`,
+      params: ['swings', 'beamHeight'],
+    });
+  }
   if (dims.H - s.chainLength < CLEARANCES.seatClearance.value) {
     issues.push({
       code: 'seat-too-low',

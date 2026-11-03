@@ -3,6 +3,7 @@ import { solid } from '../../geometry/solid.ts';
 import { cross, dot, sub, unit } from '../../geometry/vec.ts';
 import { isPanel } from '../../lumber/panel.ts';
 import type { Part, Placement, Vec3 } from '../../model/types.ts';
+import { createSnapshot } from '../../snapshot/snapshot.ts';
 import { recordCabinet } from './definition.ts';
 import { EXAMPLES, WORKED_EXAMPLE } from './examples.ts';
 import type { RecordCabinetOutputs } from './outputs.ts';
@@ -512,4 +513,40 @@ describe('plan and drawings', () => {
       expect(notes).toMatch(/ask/i);
     },
   );
+});
+
+describe('ranges that bound generation (spec, Ranges that bound generation)', () => {
+  const store = WORKED_EXAMPLE.board.source === 'store' ? WORKED_EXAMPLE.board : undefined;
+  if (!store) throw new Error('the worked example buys boards at a store');
+  const issueParams = (params: unknown) => {
+    const result = createSnapshot(recordCabinet, params, {});
+    return result.ok ? [] : result.issues.map((i) => i.params[0]);
+  };
+
+  it('refuses the values that ran without end or threw (#421) as entries out of range', () => {
+    expect(issueParams({ ...WORKED_EXAMPLE, board: { ...store, width: 0.13 } })).toEqual(['board']);
+    expect(issueParams({ ...WORKED_EXAMPLE, board: { ...store, width: 0.1251 } })).toEqual([
+      'board',
+    ]);
+    expect(issueParams({ ...WORKED_EXAMPLE, dadoDepth: 1e-12 })).toEqual(['dadoDepth']);
+    expect(issueParams({ ...WORKED_EXAMPLE, footSize: Number.MAX_VALUE })).toEqual(['footSize']);
+    expect(issueParams({ ...WORKED_EXAMPLE, tenonLength: Number.MAX_VALUE })).toEqual([
+      'tenonLength',
+    ]);
+  });
+
+  it('glues the top from 18 boards at the narrowest board and the most jointing', () => {
+    // ⌈(17-3/4 + 1/2 − 2 × 1/4) / (1-1/2 − 2 × 1/4)⌉ = ⌈17.75⌉ = 18.
+    const result = recordCabinet.generate(
+      {
+        ...WORKED_EXAMPLE,
+        board: { ...store, width: 1.5 },
+        allowances: { ...WORKED_EXAMPLE.allowances, jointPerEdge: 0.25 },
+      },
+      {},
+    );
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    const s = part(result.output, 'top').stock;
+    expect(isPanel(s) && s.boards).toBe(18);
+  });
 });

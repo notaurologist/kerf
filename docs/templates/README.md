@@ -15,7 +15,7 @@ Two templates follow it: the swing set (`templates/swing-set-a-frame/`, spec `sw
 
 - **Design covered**: what the template builds, what it leaves out, and the variants it does not cover.
 - **Coordinates**: the origin and axes the geometry uses.
-- **Parameters**: each with its unit, range, and why that range.
+- **Parameters**: each with its unit, range, and why that range. Every number in the parameter schema has a minimum and a maximum, so no entry can ask for any number of parts or boards, or a size the display cannot show (#421).
 - **Derived geometry**: every length, angle, and position as a formula from the parameters, in the miter-saw convention (`DOMAIN.md`, Units).
 - **Hardware, operations, build steps, drawings**: what the template generates for each.
 - **Validation and flags**: combinations it refuses, and what it flags for an expert check (`DOMAIN.md`, Expert-check categories).
@@ -52,6 +52,7 @@ Register the template in `templates/index.ts`: add its definition to `TEMPLATES`
 | Fit | the template's folder, like `placements.test.ts` | The parts meet where the spec says they do (`DOMAIN.md`, Verification) |
 | Structural | the template's folder, like `structural.test.ts` | Each computed check against the hand-checked working, and "input needed" when an input is missing |
 | Contract | `templates/contract.test.ts` (runs for every registered template) | Each example's outputs parse with `outputs` and read back unchanged through `storedOutputs` and `readSnapshot`; `ownWords` is set; no verdict words or brands in the outputs, plan, build steps, form, starting questions and what they suggest for `questions.examples`, or store readings (hard rules 2 and 11) |
+| Random parameters | `templates/properties.test.ts` (runs for every registered template) | Every number in `params` has a range; random values inside the schemas either generate or return issues, within a time budget, and never throw (#421) |
 | Snapshot fixtures | the template's `snapshots.test.ts`, and `apps/api/scripts/snapshot-fixtures.test.ts` | Step 5 |
 | Generic code | `apps/web/src/generic.test.ts`, `templateFolders.test.ts`, `generation.test.ts` | Step 6 |
 

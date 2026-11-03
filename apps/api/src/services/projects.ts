@@ -355,32 +355,36 @@ export function createProjectService(deps: {
       const plan = changesPlan(changes);
       const at = now();
       let progressReset: ProgressReset[] | undefined;
+      // Generating can take a while, so it runs before the row is locked, from the row as this
+      // save's revision left it. The revision is checked again under the lock: if it moved, the
+      // values generated from are no longer the stored ones.
+      let saved: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
+      let before: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
+      if (changes.params !== undefined || changes.structuralInputs !== undefined) {
+        const row = await load(id);
+        if (!row) return { ok: false, error: 'not-found' };
+        if (changes.revision !== row.revision) return stale(row);
+        const stored = read(row);
+        if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+        const generated = generate(
+          row.templateId,
+          changes.params ?? stored.snapshot.params,
+          changes.structuralInputs ?? stored.snapshot.structuralInputs,
+        );
+        if (!generated.ok) return generated;
+        saved = generated;
+        before = { snapshot: stored.snapshot, template: generated.template };
+      }
       const outcome = await db.transaction(async (tx): Promise<Row | Failure> => {
         const row = await lock(tx, id);
         if (!row) return { ok: false, error: 'not-found' };
         if (plan && changes.revision !== row.revision) return stale(row);
-        let regenerated = {};
-        let saved: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
-        let before: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
-        if (changes.params !== undefined || changes.structuralInputs !== undefined) {
-          const stored = read(row);
-          if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-          const generated = generate(
-            row.templateId,
-            changes.params ?? stored.snapshot.params,
-            changes.structuralInputs ?? stored.snapshot.structuralInputs,
-          );
-          if (!generated.ok) return generated;
-          regenerated = snapshotColumns(generated.snapshot);
-          saved = generated;
-          before = { snapshot: stored.snapshot, template: generated.template };
-        }
         const [updated] = await tx
           .update(projects)
           .set({
             ...(changes.name !== undefined ? { name: changes.name } : {}),
             ...(changes.status !== undefined ? { status: changes.status } : {}),
-            ...regenerated,
+            ...(saved ? snapshotColumns(saved.snapshot) : {}),
             ...(plan ? { revision: row.revision + 1 } : {}),
             updatedAt: at,
           })
@@ -443,23 +447,27 @@ export function createProjectService(deps: {
     async regenerate(id: string, request: ProjectRegenerate): Promise<Result<Project>> {
       const at = now();
       let progressReset: ProgressReset[] | undefined;
+      // Generated before the lock and checked again under it, as a save is.
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      if (request.revision !== row.revision) return stale(row);
+      const stored = read(row);
+      if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+      const generated = generate(
+        row.templateId,
+        stored.snapshot.params,
+        stored.snapshot.structuralInputs,
+      );
+      if (!generated.ok) return generated;
       const outcome = await db.transaction(async (tx): Promise<Row | Failure> => {
-        const row = await lock(tx, id);
-        if (!row) return { ok: false, error: 'not-found' };
-        if (request.revision !== row.revision) return stale(row);
-        const stored = read(row);
-        if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-        const generated = generate(
-          row.templateId,
-          stored.snapshot.params,
-          stored.snapshot.structuralInputs,
-        );
-        if (!generated.ok) return generated;
+        const locked = await lock(tx, id);
+        if (!locked) return { ok: false, error: 'not-found' };
+        if (request.revision !== locked.revision) return stale(locked);
         const [updated] = await tx
           .update(projects)
           .set({
             ...snapshotColumns(generated.snapshot),
-            revision: row.revision + 1,
+            revision: locked.revision + 1,
             updatedAt: at,
           })
           .where(eq(projects.id, id))
