@@ -1,8 +1,8 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 32,
-    "snapshotVersion": 18,
+    "templateVersion": 33,
+    "snapshotVersion": 19,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -4461,8 +4461,8 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 32,
-    "snapshotVersion": 18,
+    "templateVersion": 33,
+    "snapshotVersion": 19,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -9423,8 +9423,8 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 32,
-    "snapshotVersion": 18,
+    "templateVersion": 33,
+    "snapshotVersion": 19,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
