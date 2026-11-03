@@ -1,15 +1,16 @@
 import { type BuildStep, type Plan, summarizeProgress, summarizeReview } from '@kerf/core';
 import { arriveAt } from '../../lib/planMoves.ts';
+import { href } from '../../lib/route.ts';
 import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
 import { useTicks } from '../../lib/ticks.ts';
 import type { Project } from '../../lib/types.ts';
 import { OneLine, Text } from '../../ui/index.ts';
 
-// The project header's line of what is next (#356), on every section: the next build step, the
-// structural inputs still needed, the suggested values not yet confirmed (#417), and the expert
-// checks not yet asked (#393), each a way to where it is dealt with. One line, so the section stays
-// in the first screen on a phone: the step is cut short, since it is in full in the build steps, and
-// the counts stay whole.
+// The project header's line of what is next (#356), on every section: the next build step, an
+// empty toolbox, which leaves every step without a method, the structural inputs still needed,
+// the suggested values not yet confirmed (#417), and the expert checks not yet asked (#393), each
+// a way to where it is dealt with. One line, so the section stays in the first screen on a phone:
+// the step is cut short, since it is in full in the build steps, and the counts stay whole.
 
 /** The structural inputs the plan's checks and estimates are waiting for, each counted once. */
 export function inputsNeeded(plan: Pick<Plan, 'checks' | 'movement'>): number {
@@ -27,6 +28,7 @@ export function ProjectNext(props: {
   project: Project;
   plan: Plan;
   steps: readonly BuildStep[];
+  toolboxEmpty: boolean;
   reviewHref: string;
 }) {
   const { project, plan } = props;
@@ -38,6 +40,11 @@ export function ProjectNext(props: {
   const toConfirm = (project.snapshot?.suggested ?? []).filter((s) => !s.confirmed).length;
   const step = nextStep ? `Next: ${nextStep.title}` : steps.total > 0 ? 'Every step done' : null;
   const counts = [
+    props.toolboxEmpty && (
+      <a key="tools" href={href({ screen: 'tools' })}>
+        Add your tools
+      </a>
+    ),
     inputs > 0 && (
       <a key="inputs" href={props.reviewHref}>
         {count(inputs, 'input needed', 'inputs needed')}

@@ -190,7 +190,10 @@ describe('GET /api/projects/:id build steps (#52)', () => {
     expect([...new Set(stepped.map((o: Json) => o.operation.id))].sort()).toEqual(
       operations.map((o: Json) => o.id).sort(),
     );
-    expect(stepped.every((o: Json) => o.method === undefined && o.needed)).toBe(true);
+    expect(stepped.every((o: Json) => o.method === undefined && o.alternatives.length > 0)).toBe(
+      true,
+    );
+    expect(before.steps.toolboxEmpty).toBe(true);
 
     // With a miter saw that cuts a 4x6, the beam's ends get the miter-saw method, and the key
     // names the new inventory.
@@ -204,6 +207,7 @@ describe('GET /api/projects/:id build steps (#52)', () => {
     const after = await read();
     expect(after.steps.inventoryKey).toBe(inventoryKey(tools));
     expect(after.steps.inventoryKey).not.toBe(before.steps.inventoryKey);
+    expect(after.steps.toolboxEmpty).toBe(false);
     const beam = after.steps.steps.find((s: Json) =>
       s.board?.pieces.some((p: Json) => p.partId === 'beam'),
     );

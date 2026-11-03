@@ -83,8 +83,11 @@ export const StepOperation = z.object({
   partIds: z.array(z.string()),
   method: FilledMethod.optional(),
   skills: z.array(SkillIdSchema),
-  /** With no method: the method closest to supported and what it lacks. */
-  needed: MethodGaps.optional(),
+  /**
+   * With no method: every method for the operation and what each lacks, closest to supported
+   * first, so a client lists them in this order. Empty when a method is chosen.
+   */
+  alternatives: z.array(MethodGaps),
   /** Better methods that wait only on capabilities not entered. */
   inputNeeded: z.array(MethodGaps),
   /** Methods the tools do not support that are easier or more accurate than the chosen one. */
@@ -179,14 +182,14 @@ function stepOperation(op: Operation, inventory: Inventory): [StepOperation, Met
       partIds: partIdsOf(op),
       ...(chosen ? { method: fill(chosen, op, inventory) } : {}),
       skills: chosen ? [...chosen.skills] : [],
-      ...(selection.needed ? { needed: gapsOf(selection.needed) } : {}),
+      alternatives: selection.alternatives.map(gapsOf),
       inputNeeded: selection.inputNeeded.map(gapsOf),
       suggestions: selection.suggestions.map((x) => ({
         ...methodGaps(x.methodId, x.gaps),
         better: x.better,
       })),
     },
-    chosen ?? selection.needed?.method,
+    chosen ?? selection.alternatives[0]?.method,
   ];
 }
 
@@ -424,6 +427,8 @@ export function inventoryKey(inventory: Inventory): string {
 /** A plan's build steps and the inventory they were chosen from. */
 export const BuildSteps = z.object({
   inventoryKey: z.string(),
+  /** No tools in the inventory, so no step has a method until some are added. */
+  toolboxEmpty: z.boolean(),
   steps: z.array(BuildStep),
 });
 export type BuildSteps = z.infer<typeof BuildSteps>;
@@ -436,6 +441,7 @@ export function planSteps<O>(
 ): BuildSteps {
   return {
     inventoryKey: inventoryKey(inventory),
+    toolboxEmpty: inventory.tools.length === 0,
     steps: buildSteps(template.steps(outputs), template.plan(outputs), inventory),
   };
 }

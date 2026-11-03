@@ -32,7 +32,7 @@ import {
   WithContents,
 } from '../../ui/index.ts';
 import { Boards } from '../boards/Boards.tsx';
-import { BuildSteps } from '../build-steps/BuildSteps.tsx';
+import { BuildSteps, EmptyToolbox } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { Diagrams, DrawingsWaiting } from '../diagrams/Diagrams.tsx';
 import { ModeButtons } from '../modes/ModeCards.tsx';
@@ -231,6 +231,7 @@ export function ProjectView(props: {
               project={project}
               plan={plan.plan}
               steps={steps?.steps ?? []}
+              toolboxEmpty={steps?.toolboxEmpty ?? false}
               reviewHref={at('structural-review')}
             />
             <ModeButtons project={project} plan={plan.plan} steps={steps?.steps ?? []} />
@@ -312,6 +313,7 @@ export function ProjectView(props: {
           </PlanSection>
           {hasSteps && (
             <PlanSection {...section('build-steps')} intro={BUILD_STEPS_INTRO}>
+              {steps?.toolboxEmpty && <EmptyToolbox />}
               <BuildSteps
                 steps={steps?.steps ?? []}
                 rows={plan.plan.cutList}

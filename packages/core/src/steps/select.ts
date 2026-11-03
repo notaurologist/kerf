@@ -11,7 +11,7 @@ import { formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
 
 // Method selection (ARCHITECTURE.md, Method selection): for one operation and an inventory, which
-// methods the tools support, which one to use, what would allow one when none fits, and which
+// methods the tools support, which one to use, what each method lacks when none fits, and which
 // tools would allow an easier or more accurate method. Generic: it reads only the operation, the
 // knowledge base, and the inventory.
 
@@ -169,14 +169,37 @@ export interface Selection {
   /** The first method in preference order the inventory supports, if any. */
   chosen?: Method;
   /**
-   * With no method chosen: the gaps of the method closest to supported (fewest requirements
-   * missing, then preference order), naming the tools that would allow it.
+   * With no method chosen: every method for the operation with what it lacks, closest to
+   * supported first (`byCloseness`). Empty when a method is chosen.
    */
-  needed?: MethodFit;
+  alternatives: MethodFit[];
   /** Methods preferred over the chosen one (or all, with none chosen) that wait only on input. */
   inputNeeded: MethodFit[];
   /** Methods the inventory does not support that are easier or more accurate than the chosen. */
   suggestions: ToolSuggestion[];
+}
+
+/** How many of a method's requirements a tool the owner has meets, or would with more capacity. */
+function owning(fit: MethodFit) {
+  const met = fit.method.tools.length - fit.gaps.length;
+  const short = fit.gaps.filter((g) => g.anyOf.some((c) => c.owned)).length;
+  return { met, short };
+}
+
+/**
+ * Methods none of which fits, closest to supported first: most requirements the owner's tools
+ * meet, then most met by a tool they have that falls short (a saw that cuts too shallow), then
+ * fewest missing, then preference order. A method built around a tool the owner has comes before
+ * one that needs every tool bought.
+ */
+function byCloseness(fits: readonly MethodFit[]): MethodFit[] {
+  return fits
+    .map((fit, i) => ({ fit, i, ...owning(fit) }))
+    .sort(
+      (a, b) =>
+        b.met - a.met || b.short - a.short || a.fit.gaps.length - b.fit.gaps.length || a.i - b.i,
+    )
+    .map((x) => x.fit);
 }
 
 export function selectMethod(op: Operation, inventory: Inventory): Selection {
@@ -184,8 +207,11 @@ export function selectMethod(op: Operation, inventory: Inventory): Selection {
   const index = fits.findIndex((f) => f.gaps.length === 0);
   const chosen = index >= 0 ? fits[index]?.method : undefined;
   if (!chosen) {
-    const needed = fits.reduce((best, f) => (f.gaps.length < best.gaps.length ? f : best));
-    return { needed, inputNeeded: fits.filter(onlyInputNeeded), suggestions: [] };
+    return {
+      alternatives: byCloseness(fits),
+      inputNeeded: fits.filter(onlyInputNeeded),
+      suggestions: [],
+    };
   }
   const betterThanChosen = (f: MethodFit): ToolSuggestion['better'] => [
     ...(f.method.easierThan.includes(chosen.id) ? (['easier'] as const) : []),
@@ -199,5 +225,5 @@ export function selectMethod(op: Operation, inventory: Inventory): Selection {
     const better = betterThanChosen(f);
     return better.length > 0 ? [{ methodId: f.method.id, better, gaps: f.gaps }] : [];
   });
-  return { chosen, inputNeeded, suggestions };
+  return { chosen, alternatives: [], inputNeeded, suggestions };
 }

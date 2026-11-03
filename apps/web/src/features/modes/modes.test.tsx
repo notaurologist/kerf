@@ -201,6 +201,15 @@ describe('Building mode', () => {
     expect(text).not.toContain('Done, next');
   });
 
+  it('offers My toolbox while it is empty, and Shopping does not', () => {
+    const p = project();
+    const at = (route: Parameters<typeof ModeView>[0]['route']) =>
+      renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
+    expect(at({ screen: 'build-steps', id: p.id })).toContain('My toolbox is empty');
+    expect(at({ screen: 'build-step', id: p.id, step: 'board-1' })).toContain('Add tools');
+    expect(at({ screen: 'shop', id: p.id })).not.toContain('My toolbox is empty');
+  });
+
   it('lists every step with its tick', () => {
     const p = project([
       { kind: 'step', key: 'board-1' },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Inventory } from '../../inventory/tools.ts';
-import { BuildStep, buildSteps } from '../../steps/build.ts';
+import { BuildStep, buildSteps, planSteps } from '../../steps/build.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 
@@ -207,10 +207,29 @@ describe('swing-set build steps (#105)', () => {
     const built = steps(inventory());
     for (const op of built.flatMap((s) => s.operations)) {
       expect(op.method, op.operation.id).toBeUndefined();
-      expect(op.needed?.gaps.length, op.operation.id).toBeGreaterThan(0);
+      expect(op.alternatives[0]?.gaps.length, op.operation.id).toBeGreaterThan(0);
     }
     const dig = built.find((s) => s.id === 'site')?.operations[0];
-    expect(dig?.needed?.methodId).toBe('dig-holes-shovel');
+    expect(dig?.alternatives[0]?.methodId).toBe('dig-holes-shovel');
+    expect(planSteps(swingSetAFrame, outputs, inventory()).toolboxEmpty).toBe(true);
+    expect(planSteps(swingSetAFrame, outputs, circularSawKit).toolboxEmpty).toBe(false);
+  });
+
+  it('with only a circular saw, offers the leg cuts it can make first', () => {
+    // 2-3/8" reaches past half of a 4x4 leg (1-3/4") but not through it (3-1/2"): the two-face
+    // methods have their saw. The miter saw method lacks fewer tools (2) but none it owns.
+    const leg = steps(inventory(['circular-saw', { depthOfCut: 2.375 }])).find((s) =>
+      s.title.includes('Front leg'),
+    );
+    const order = (type: string) =>
+      leg?.operations.find((o) => o.operation.type === type)?.alternatives.map((a) => a.methodId);
+    expect(order('miter')).toEqual([
+      'miter-circular-saw-two-faces',
+      'miter-circular-saw',
+      'miter-miter-saw',
+      'miter-hand-saw',
+    ]);
+    expect(order('taper')).toEqual(['taper-circular-saw', 'taper-jigsaw', 'taper-hand-saw']);
   });
 
   it("shows each step's expert checks: dust on sanding, loads on the site and the bolted joints", () => {
@@ -293,6 +312,11 @@ describe('swing-set build steps (#105)', () => {
     const site = built.find((s) => s.id === 'site');
     expect(site?.title).toBe('Level the pads');
     expect(site?.operations[0]?.method).toBeUndefined();
-    expect(site?.operations[0]?.needed?.methodId).toBe('level-pads-straight-board');
+    // The string-line method uses the shovel, tamper, and string line the shop has (lacking a line
+    // level and a level); the straight-board method uses two of them (lacking a level).
+    expect(site?.operations[0]?.alternatives.map((a) => a.methodId)).toEqual([
+      'level-pads-string-line',
+      'level-pads-straight-board',
+    ]);
   });
 });

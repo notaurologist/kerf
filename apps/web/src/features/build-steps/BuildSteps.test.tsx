@@ -261,9 +261,53 @@ describe('a step taken in at a glance (#362)', () => {
     );
     const text = textOf(html);
     expect(text.match(/No method fits your tools for/g)?.length).toBe(
-      steps.filter((s) => s.operations.some((op) => !op.method && op.needed)).length,
+      steps.filter((s) => s.operations.some((op) => !op.method && op.alternatives.length > 0))
+        .length,
     );
     expect(text).not.toContain('No method fits your tools. ');
+  });
+
+  it('with an empty toolbox, offers My toolbox in the plan and its header', () => {
+    const empty = project({ tools: [] });
+    const html = render(<ProjectView project={empty} drawings={loadedDrawings(empty)} />);
+    expect(textOf(sectionOf(html, 'build-steps'))).toContain(
+      'My toolbox is empty, so no step has a way to do its work yet.',
+    );
+    expect(html).toContain('<a href="#/tools">Add your tools</a>');
+    const stocked = render(
+      <ProjectView project={project(shop)} drawings={loadedDrawings(project(shop))} />,
+    );
+    expect(stocked).not.toContain('My toolbox is empty');
+    expect(stocked).not.toContain('Add your tools');
+  });
+
+  it("lists each operation's methods in core's order, labeled by operation", () => {
+    // A circular saw that cuts 2-3/8": past half of a 4x4 leg, not through it. Core puts the
+    // two-face methods first, since they use the saw the owner has.
+    const saw = project({
+      tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }],
+    });
+    const legs = (readSteps(saw)?.steps ?? []).find((s) => s.title.includes('Front leg'));
+    const html = render(<ProjectView project={saw} drawings={loadedDrawings(saw)} />);
+    const text = textOf(sectionOf(html, 'build-steps'));
+    const start = text.indexOf(legs?.title ?? '?');
+    const step = text.slice(start, text.indexOf('Miter × 2', start));
+    expect(step).toContain(
+      'Miter, closest to your tools first: With a circular saw, from two faces: you need',
+    );
+    expect(step).toContain(
+      'Taper, closest to your tools first: With a circular saw, from two faces: you need Hand saw',
+    );
+    const order = [
+      'With a circular saw, from two faces',
+      'With a circular saw:',
+      'With a miter saw',
+      'With a hand saw',
+    ];
+    const miter = step.slice(step.indexOf('Miter, closest'), step.indexOf('Taper, closest'));
+    const at = order.map((m) => miter.indexOf(m));
+    expect(at.every((i) => i >= 0)).toBe(true);
+    expect(at).toEqual([...at].sort((a, b) => a - b));
   });
 
   it('puts the saw settings beside a mitered piece, and none beside a square one', () => {

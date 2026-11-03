@@ -25,6 +25,7 @@ const stored = JSON.parse(JSON.stringify(made.output));
 const project = projectFrom(stored, {
   steps: {
     inventoryKey: 'none',
+    toolboxEmpty: true,
     steps: buildSteps(template.steps(outputs), template.plan(outputs), { tools: [] }),
   },
 });

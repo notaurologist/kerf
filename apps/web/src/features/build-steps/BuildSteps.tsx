@@ -12,7 +12,10 @@ import {
 import { Fragment } from 'react';
 import { href } from '../../lib/route.ts';
 import {
+  ButtonLink,
+  Cluster,
   FlagList,
+  InfoNotice,
   InputNeeded,
   Length,
   List,
@@ -91,7 +94,7 @@ export function StepBody(props: {
             <Text tone="muted">Parts: {step.partIds.map(partName).join(', ')}.</Text>
           )}
       <FlagList flags={step.flags} />
-      <MissingTools ops={step.operations} />
+      <MissingTools ops={step.operations} partName={partName} />
       <Rows as="ul">
         {groupOperations(step.operations).map((group) => (
           <Row key={group.key} as="li">
@@ -110,30 +113,77 @@ export function StepBody(props: {
 export function groupOperations(ops: readonly StepOperation[]) {
   const groups = new Map<string, StepOperation[]>();
   for (const op of ops) {
-    const key = JSON.stringify([op.operation.type, op.method ?? op.needed ?? null]);
+    const key = JSON.stringify([op.operation.type, op.method ?? op.alternatives]);
     groups.set(key, [...(groups.get(key) ?? []), op]);
   }
   return [...groups].map(([key, grouped]) => ({ key, ops: grouped }));
 }
 
-/** When no method fits the tools, said once for the step rather than on every operation. */
-function MissingTools(props: { ops: readonly StepOperation[] }) {
-  const needed = props.ops.flatMap((op) => (!op.method && op.needed ? [op.needed] : []));
-  if (needed.length === 0) return null;
-  const unique = [...new Map(needed.map((n) => [JSON.stringify(n), n])).values()];
+/**
+ * Before any tool is added, every step would say no method fits, so the plan and Building say
+ * once where the steps get their methods.
+ */
+export function EmptyToolbox() {
+  return (
+    <InfoNotice>
+      <Stack gap="xs">
+        <Text>
+          <b>My toolbox is empty,</b> so no step has a way to do its work yet. Add the tools you
+          have, and each step picks a method that uses them.
+        </Text>
+        <Cluster>
+          <ButtonLink variant="secondary" href={href({ screen: 'tools' })}>
+            Add tools
+          </ButtonLink>
+        </Cluster>
+      </Stack>
+    </InfoNotice>
+  );
+}
+
+/**
+ * When no method fits the tools, said once for the step rather than on every operation: for each
+ * kind of operation, its methods in the order core gives, closest to the tools first, each with
+ * what it lacks. Operations of one kind that lack different things, such as crosscuts through
+ * boards of two widths, are told apart by their parts.
+ */
+function MissingTools(props: { ops: readonly StepOperation[]; partName: (id: string) => string }) {
+  const missing = props.ops.filter((op) => !op.method && op.alternatives.length > 0);
+  if (missing.length === 0) return null;
+  const groups = new Map<string, StepOperation[]>();
+  for (const op of missing) {
+    const key = JSON.stringify([op.operation.type, op.alternatives]);
+    groups.set(key, [...(groups.get(key) ?? []), op]);
+  }
+  const kinds = [...groups.values()].map(([op]) => op?.operation.type);
+  const label = (ops: readonly StepOperation[]) => {
+    const [first] = ops;
+    if (!first) return '';
+    const type = OPERATION_TYPE_LABELS[first.operation.type];
+    if (kinds.filter((k) => k === first.operation.type).length < 2) return type;
+    const parts = [...new Set(ops.flatMap((op) => op.partIds))].map(props.partName);
+    return `${type} on ${parts.join(', ')}`;
+  };
   return (
     <Stack gap="2xs">
       <Text>
         <b>
           No method fits your tools for{' '}
-          {needed.length === props.ops.length ? 'this step' : `${needed.length} of these`}.
+          {missing.length === props.ops.length ? 'this step' : `${missing.length} of these`}.
         </b>{' '}
         <a href={href({ screen: 'tools' })}>Add a tool in My toolbox</a>
       </Text>
       <List>
-        {unique.map((n) => (
-          <li key={n.methodId}>
-            {n.methodName}: you need <Gaps of={n} />
+        {[...groups].map(([key, ops]) => (
+          <li key={key}>
+            {label(ops)}, closest to your tools first:
+            <List>
+              {ops[0]?.alternatives.map((n) => (
+                <li key={n.methodId}>
+                  {n.methodName}: you need <Gaps of={n} />
+                </li>
+              ))}
+            </List>
           </li>
         ))}
       </List>

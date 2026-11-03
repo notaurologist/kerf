@@ -60,9 +60,11 @@ import { flags, validate, validateSwings } from './validate.ts';
  * before give the same output. Version 17 leaves out each part list that is empty (#430). Version
  * 18 names the structural input behind each entered quantity in the working, and the parameters
  * behind each bolted joint's size and count, so a suggested value can say so (#417); the
- * leg-to-beam checklist item no longer calls its bolt size entered. No number changes.
+ * leg-to-beam checklist item no longer calls its bolt size entered. No number changes. Version 19
+ * changes only how its build steps read: with no method fitting, a step lists every method closest
+ * to the owner's tools first, and says when the toolbox is empty (#459). Stored output is the same.
  */
-export const TEMPLATE_VERSION = 18;
+export const TEMPLATE_VERSION = 19;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

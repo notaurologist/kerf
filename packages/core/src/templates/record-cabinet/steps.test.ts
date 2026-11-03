@@ -131,7 +131,7 @@ describe('assembling and finishing the record cabinet', () => {
 
   it('says what clamps the case needs when none open far enough', () => {
     const steps = buildSteps(recordCabinet.steps(outputs), plan, inventory(24));
-    const needed = steps.find((s) => s.id === 'case')?.operations[0]?.needed;
+    const needed = steps.find((s) => s.id === 'case')?.operations[0]?.alternatives[0];
     expect(needed?.methodId).toBe('glue-assembly-clamps');
     expect(needed?.gaps).toEqual([
       {

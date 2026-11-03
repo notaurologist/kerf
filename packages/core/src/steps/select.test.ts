@@ -133,16 +133,67 @@ describe('selectMethod', () => {
     );
   });
 
-  it('with no method supported, names the tools for the one closest to supported', () => {
+  it('with no method supported, names first the tools for the method using most of those owned', () => {
     const s = selectMethod(post, inventory(['tape-measure'], ['combination-square']));
     expect(s.chosen).toBeUndefined();
-    // The miter saw method lacks only the saw; the hand saw method lacks the saw and clamps.
-    expect(s.needed?.method.id).toBe('crosscut-miter-saw');
-    expect(s.needed?.gaps.map((g) => g.anyOf.map(describeChoice))).toEqual([
+    // The circular saw and hand saw methods use the tape and the square, each lacking a saw and
+    // clamps, so preference order puts them in order. The miter saw method uses only the tape, so
+    // it comes last, though it lacks only the saw.
+    expect(s.alternatives.map((f) => f.method.id)).toEqual([
+      'crosscut-circular-saw',
+      'crosscut-circular-saw-two-faces',
+      'crosscut-hand-saw',
+      'crosscut-miter-saw',
+    ]);
+    expect(s.alternatives[2]?.gaps.map((g) => g.anyOf.map(describeChoice))).toEqual([
+      ['Hand saw'],
+      ['Clamps'],
+    ]);
+    expect(s.alternatives[3]?.gaps.map((g) => g.anyOf.map(describeChoice))).toEqual([
       [
         'Miter saw with thickest board it cuts through at least 3-1/2" and widest crosscut with the saw square at least 3-1/2"',
       ],
     ]);
+  });
+
+  it('with no tools, lists every method, fewest missing first, then in preference order', () => {
+    // Requirements by method: the miter saw's 2 (saw, tape), each circular saw's and the hand
+    // saw's 4 (saw, tape, square, clamps).
+    const s = selectMethod(post, inventory());
+    expect(s.alternatives.map((f) => [f.method.id, f.gaps.length])).toEqual([
+      ['crosscut-miter-saw', 2],
+      ['crosscut-circular-saw', 4],
+      ['crosscut-circular-saw-two-faces', 4],
+      ['crosscut-hand-saw', 4],
+    ]);
+  });
+
+  it('with only a circular saw, puts first the methods it can do the cutting for', () => {
+    // A 2-3/8" depth reaches past half of the 3-1/2" post (1-3/4"), so the two-face method has
+    // its saw and lacks 3 tools. The one-pass method has a saw too shallow, which still puts it
+    // before the miter saw's 2 missing tools. The hand saw method lacks all 4.
+    const s = selectMethod(post, inventory(['circular-saw', { depthOfCut: 2.375 }]));
+    expect(s.chosen).toBeUndefined();
+    expect(s.alternatives.map((f) => [f.method.id, f.gaps.length])).toEqual([
+      ['crosscut-circular-saw-two-faces', 3],
+      ['crosscut-circular-saw', 4],
+      ['crosscut-miter-saw', 2],
+      ['crosscut-hand-saw', 4],
+    ]);
+    expect(s.alternatives[0]?.gaps.map((g) => g.use)).toEqual([
+      'measuring',
+      'guiding the saw',
+      'holding the work',
+    ]);
+    expect(s.alternatives[1]?.gaps[0]?.anyOf.map(describeChoice)).toEqual([
+      'Circular saw with depth of cut with the blade square at least 3-1/2" (you entered 2-3/8")',
+    ]);
+  });
+
+  it('lists no alternatives once a method is chosen', () => {
+    const s = selectMethod(post, inventory(['circular-saw', { depthOfCut: 2.375 }], ...marking));
+    expect(s.chosen?.id).toBe('crosscut-circular-saw-two-faces');
+    expect(s.alternatives).toEqual([]);
   });
 
   it('meets a requirement with any one of its tool types', () => {
@@ -390,7 +441,7 @@ describe('buildSteps with a panel', () => {
     );
     const short = selectMethod(glue, inventory(['clamps', { maxOpening: 12 }]));
     expect(short.chosen).toBeUndefined();
-    expect(short.needed?.gaps.map((g) => g.anyOf.map(describeChoice))).toEqual([
+    expect(short.alternatives[0]?.gaps.map((g) => g.anyOf.map(describeChoice))).toEqual([
       ['Clamps with widest opening at least 16-1/4" (you entered 12")'],
     ]);
     const [, , panels] = buildSteps(outline, plan, inventory(['clamps', { maxOpening: 18 }]));
