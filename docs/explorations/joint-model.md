@@ -136,6 +136,19 @@ Step 5 (#555): `packages/model/src/joinery.ts`.
 
 The record cabinet's joint-based design adds the aprons' tenons and the legs' mortises, the doors' rails, grooves, and panels, and the cleats' screw holes, and reaches parity in all 8 cases.
 
+## Parity sweep
+
+The hand-picked cases cover 13 parameter sets for the swing set and 8 for the cabinet. The sweep (`packages/model/src/templates/<template-id>/sweep.test.ts`) draws 800 more for each from a fixed seed, every parameter within its schema's range, half of them on a 1/16" step as an owner would type them. It keeps those the schema accepts: over 300 for the swing set, of which over 150 make a plan, and over 600 for the cabinet, of which over 180 do. Every draw's result is compared, refusals issue for issue, and every twentieth draw's shown plan. `random.ts` is the seeded source; `sampledCases` in `parity.ts` draws the cases.
+
+It found four things the hand-picked cases missed.
+
+1. **Displayed angles flipped at half steps.** A swing set splayed exactly 17.25°, as an owner would type it, showed its cuts at 17.3° from the template and 17.2° from the joints. The trim recovers the angle as atan(tan 17.25°) = 17.249999999999996, inside the tolerance, but `formatAngle` rounded it down. On this branch core's display formatters now round a value within 1e-9 of a half step as its exact value would: `formatAngle` and `toSixteenths`. No current plan shows anything differently: every fixture and shown-plan lock passes unchanged. Rounding still happens only in the formatters (hard rule 4).
+2. **The record cabinet puts leg mortises outside the leg** when the apron and its setback are wider than the leg (#561). The mortise-and-tenon joint refuses those parameters; the template makes the plan.
+3. **The record cabinet sizes a one-board door panel's tongue from `panelThickness`**, not from the board, so the tongue is too thick for its groove (#562). The floating-panel joint sizes it from the stock.
+4. **The record cabinet's door thickness and tracks come from the board** even when the stiles and rails are glued up and flattened thinner (#563). The tracks are too wide and the frame's parts are placed on different planes. The floating-panel joint refuses a frame whose grooves are not in one plane.
+
+The last three are bugs in the template on `main`, filed as issues. The sweep leaves out the draws each one affects, found from the template's own output, and checks that the joints refuse them or, for the panel, give a tongue that fits.
+
 ## Where it ended, November 3, 2026
 
 Both templates reach parity. From the joints: every part's length, end cuts, and placement, and every hole, grip, dado, notch, mortise, tenon, groove, rabbet, and screw hole. Still from the template:
@@ -151,11 +164,13 @@ One inconsistency surfaced: the cabinet's leg mortises record `withPart: 'apron'
 1. **A decision record.** It changes how templates are written (0008), so it is the owner's call (rule 13).
 2. **Move the joints into core,** under `packages/core/src/joints/`. They are generic already; the generic-code scan covers them where they are.
 3. **Rewrite each template's parts and placements as joint declarations,** from its joint-based design here, and delete the per-part features and formulas the joints replace. The template specs would describe the joints, and their hand-checked worked examples stay.
-4. **Decide what "the same output" means for the swing set.** The cabinet's joint-based output is identical to the last bit for its worked examples, since its sizes are binary fractions. The swing set's differs in the last bits in 33 values per worked example (part lengths, marked edges, hole positions, origins), because its trigonometry is computed another way. Core's fixture lock compares exactly, so adopting it as is means a template version bump (0008). Every stored swing-set plan would then say the current template gives different numbers, with no difference anyone can see. Three ways out:
+4. **Fix #561 to #563 on `main` first,** so the joint-based versions and the templates agree everywhere the sweep draws.
+5. **Decide what "the same output" means for the swing set.** The cabinet's joint-based output is identical to the last bit for its worked examples, since its sizes are binary fractions. The swing set's differs in the last bits in 33 values per worked example (part lengths, marked edges, hole positions, origins), because its trigonometry is computed another way. Core's fixture lock compares exactly, so adopting it as is means a template version bump (0008). Every stored swing-set plan would then say the current template gives different numbers, with no difference anyone can see. Three ways out:
    - accept the bump
    - have the version report ignore differences below the display's rounding
    - arrange the joint math to reproduce the template's formulas bit for bit, which the trims could do for level cuts
-5. **Remove the `generateWith` seams,** or keep them for the next experiment.
+6. **Bring the formatters' rounding to `main`** with the joints, or the swing set's displayed angles can flip at half steps.
+7. **Remove the `generateWith` seams,** or keep them for the next experiment.
 
 ## Still open
 

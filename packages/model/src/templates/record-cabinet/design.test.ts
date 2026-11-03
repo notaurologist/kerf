@@ -16,11 +16,11 @@ const [worked] = template.examples;
 if (!worked) throw new Error('No worked example');
 const params = worked.params;
 
-// Beyond the fixtures: one bay, with no partitions, and four, with three.
+// Beyond the fixtures: two bays with doors, so one partition, and four, with three.
 const more: (ParityCase & Pick<typeof worked, 'params' | 'structuralInputs'>)[] = [
   {
-    name: 'one bay',
-    params: { ...params, width: 24, bays: 1, doors: 'none' },
+    name: 'two bays with doors',
+    params: { ...params, width: 40, bays: 2 },
     structuralInputs: worked.structuralInputs,
   },
   {
@@ -34,7 +34,11 @@ const generate = recordCabinet.generateWith(design) as Generator;
 
 describe('the record cabinet from joints', () => {
   it('matches the template in every case', () => {
-    for (const c of more) expect(template.generate(c.params, c.structuralInputs).ok).toBe(true);
+    for (const c of more) {
+      // The definition's generate takes parsed parameters, so each is parsed here first.
+      expect(template.params.safeParse(c.params).success).toBe(true);
+      expect(template.generate(c.params, c.structuralInputs).ok).toBe(true);
+    }
     const results = parity(template, generate, cases);
     expect(results.length).toBe(cases.length);
     expect(results.filter((r) => r.mismatches.length > 0)).toEqual([]);
