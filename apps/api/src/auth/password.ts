@@ -36,14 +36,36 @@ function parse(value: string): StoredHash | undefined {
   return { N, r, p, salt, hash };
 }
 
+// Each hash holds about 128 MiB while it runs. Node's thread pool (4 threads by default) already
+// caps how many run at once; this keeps the cap at 2 per instance whatever the pool size, so a
+// burst of logins cannot use up the function's memory. Waiting logins hold nothing large.
+export const MAX_CONCURRENT_HASHES = 2;
+let running = 0;
+const waiting: (() => void)[] = [];
+
+async function oneOfFew<T>(work: () => Promise<T>): Promise<T> {
+  if (running >= MAX_CONCURRENT_HASHES) await new Promise<void>((go) => waiting.push(go));
+  else running++;
+  try {
+    return await work();
+  } finally {
+    const next = waiting.shift();
+    if (next) next();
+    else running--;
+  }
+}
+
 function derive(password: string, salt: Buffer, length: number, cost: ScryptOptions) {
   // scrypt needs 128·N·r bytes; allow twice that so the default 32 MiB cap does not stop it.
   const maxmem = 256 * (cost.N ?? 0) * (cost.r ?? 0);
-  return new Promise<Buffer>((resolve, reject) => {
-    scrypt(password.normalize('NFKC'), salt, length, { ...cost, maxmem }, (error, key) =>
-      error ? reject(error) : resolve(key),
-    );
-  });
+  return oneOfFew(
+    () =>
+      new Promise<Buffer>((resolve, reject) => {
+        scrypt(password.normalize('NFKC'), salt, length, { ...cost, maxmem }, (error, key) =>
+          error ? reject(error) : resolve(key),
+        );
+      }),
+  );
 }
 
 /** `cost` is for tests, which use a cheap one; the stored hash records whichever was used. */

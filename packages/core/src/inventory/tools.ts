@@ -36,11 +36,11 @@ function inUnits(field: CapabilityField, n: number): string {
 
 export const Tool = z
   .object({
-    toolTypeId: z.string(),
+    toolTypeId: z.string().max(80),
     /** Tells two tools of one type apart, such as "Long clamps"; build steps say it. */
     name: z.string().trim().max(80).optional(),
     /** By capability ID. A capability not entered is left out. */
-    capabilities: z.record(z.string(), CapabilityValue),
+    capabilities: z.record(z.string().max(80), CapabilityValue),
   })
   .superRefine((tool, ctx) => {
     const type = findToolType(tool.toolTypeId);

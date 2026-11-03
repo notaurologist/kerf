@@ -8,7 +8,9 @@ import { sessions } from '../db/schema.ts';
 // records a fingerprint of the password hash it was created under, and is valid only while that
 // matches, so changing PASSWORD_HASH ends every session.
 
-export const SESSION_COOKIE = 'kerf_session';
+// The __Host- prefix makes the browser refuse this cookie unless it is Secure, has Path=/ and no
+// Domain, so no other subdomain or plain-HTTP response can set or shadow it.
+export const SESSION_COOKIE = '__Host-kerf_session';
 export const SESSION_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 

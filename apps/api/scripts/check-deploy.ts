@@ -22,20 +22,24 @@ const step = (name: string, res: Response, expected: number) => {
   return res.status === expected;
 };
 
-const headers = (name: string, res: Response) => {
+const headers = (name: string, res: Response, kind: 'web' | 'api') => {
   const csp = res.headers.get('content-security-policy') ?? '';
   const ok =
-    /frame-ancestors 'none'/.test(csp) && res.headers.get('x-content-type-options') === 'nosniff';
+    /frame-ancestors 'none'/.test(csp) &&
+    res.headers.get('x-content-type-options') === 'nosniff' &&
+    (kind === 'web'
+      ? /camera=\(\)/.test(res.headers.get('permissions-policy') ?? '')
+      : res.headers.get('cache-control') === 'no-store');
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${name} security headers`);
   if (!ok) process.exitCode = 1;
 };
 
 const page = await fetch(`${base}/`);
 step('web app', page, 200);
-headers('web app', page);
+headers('web app', page, 'web');
 const health = await fetch(`${base}/api/health`);
 step('health', health, 200);
-headers('health', health);
+headers('health', health, 'api');
 step('projects without a session', await fetch(`${base}/api/projects`), 401);
 
 const password = await readHidden('Password: ');

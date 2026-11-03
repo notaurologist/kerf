@@ -1,5 +1,22 @@
-import { describe, expect, it } from 'vitest';
-import { hashPassword, isPasswordHash, verifyPassword } from './password.ts';
+import type * as crypto from 'node:crypto';
+import { describe, expect, it, vi } from 'vitest';
+import { hashPassword, isPasswordHash, MAX_CONCURRENT_HASHES, verifyPassword } from './password.ts';
+
+// Counts the hashes running at once, around the real scrypt.
+const hashes = vi.hoisted(() => ({ running: 0, most: 0 }));
+vi.mock('node:crypto', async (original) => {
+  const real = await original<typeof crypto>();
+  const scrypt = (...args: unknown[]) => {
+    const done = args.pop() as (error: Error | null, key: Buffer) => void;
+    hashes.running++;
+    hashes.most = Math.max(hashes.most, hashes.running);
+    (real.scrypt as (...a: unknown[]) => void)(...args, (error: Error | null, key: Buffer) => {
+      hashes.running--;
+      done(error, key);
+    });
+  };
+  return { ...real, scrypt };
+});
 
 const CHEAP = { N: 1024, r: 8, p: 1 };
 
@@ -9,6 +26,19 @@ describe('password hashes', () => {
     expect(hash).toMatch(/^scrypt:1024:8:1:/);
     expect(await verifyPassword('a long test password', hash)).toBe(true);
     expect(await verifyPassword('a long test passwore', hash)).toBe(false);
+  });
+
+  it('run at most a few at once, and every one still finishes', async () => {
+    const hash = await hashPassword('a long test password', CHEAP);
+    hashes.most = 0;
+    const results = await Promise.all(
+      Array.from({ length: 10 }, (_, i) =>
+        verifyPassword(i === 0 ? 'a long test password' : 'wrong', hash),
+      ),
+    );
+    expect(hashes.most).toBe(MAX_CONCURRENT_HASHES);
+    expect(results.filter(Boolean)).toHaveLength(1);
+    expect(hashes.running).toBe(0);
   });
 
   it('use a fresh salt each time', async () => {

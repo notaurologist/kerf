@@ -29,6 +29,21 @@ describe('the web Content-Security-Policy', () => {
   });
 });
 
+describe('the web Permissions-Policy', () => {
+  const permissions: string = vercel.headers
+    .flatMap((rule: { headers: { key: string; value: string }[] }) => rule.headers)
+    .find((h: { key: string }) => h.key === 'Permissions-Policy').value;
+
+  // Building mode keeps the screen on, and the backup is saved through the share sheet.
+  it('allows the screen wake lock and sharing to the site itself, and nothing else asked for', () => {
+    expect(permissions).toContain('screen-wake-lock=(self)');
+    expect(permissions).toContain('web-share=(self)');
+    for (const feature of ['camera', 'microphone', 'geolocation', 'payment']) {
+      expect(permissions).toContain(`${feature}=()`);
+    }
+  });
+});
+
 describe('deployments', () => {
   // A preview gets no database or password, so its API cannot start; each deploy also counts
   // toward the plan's daily limit. `**` matches branch names with slashes, such as `claude/…`.

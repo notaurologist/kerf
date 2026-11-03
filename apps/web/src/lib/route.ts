@@ -59,6 +59,9 @@ export type ProjectStart =
   | { kind: 'questions' }
   | { kind: 'empty' };
 
+// Project IDs go into API paths, so anything else is refused here rather than sent there.
+const PROJECT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function parseRoute(hash: string): Route {
   const [path = '', query = ''] = hash.replace(/^#/, '').split('?');
   let parts: string[];
@@ -91,6 +94,7 @@ export function parseRoute(hash: string): Route {
       ? { screen: 'new-project', templateId, start }
       : { screen: 'new-project', templateId };
   }
+  if (!PROJECT_ID.test(second)) return { screen: 'not-found' };
   if (third === undefined) return project(second, undefined, null);
   if (third === 'edit' && parts.length === 3) {
     const from = search.get('from');
@@ -122,7 +126,7 @@ function startOf(search: URLSearchParams): ProjectStart | undefined {
   const example = search.get('example');
   if (example !== null && /^\d+$/.test(example)) return { kind: 'example', index: Number(example) };
   const project = search.get('project');
-  if (project) return { kind: 'project', id: project };
+  if (project && PROJECT_ID.test(project)) return { kind: 'project', id: project };
   if (search.has('questions')) return { kind: 'questions' };
   return search.has('empty') ? { kind: 'empty' } : undefined;
 }

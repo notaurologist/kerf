@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { editReturn, href, navigate, parseRoute, type Route, redirect } from './route.ts';
 import { PLAN_SECTIONS } from './sections.ts';
 
+const ID = '6f1c2a3e-0000-4000-8000-000000000000';
+
 describe('parseRoute', () => {
   it.each<[string, Route]>([
     ['', { screen: 'projects' }],
@@ -20,8 +22,8 @@ describe('parseRoute', () => {
     ['#/glossary/end-cut', { screen: 'glossary', term: 'end-cut' }],
     ['#/glossary/elsewhere', { screen: 'not-found' }],
     ['#/glossary/end-cut/x', { screen: 'not-found' }],
-    ['#/projects/abc', { screen: 'project', id: 'abc' }],
-    ['#/projects/abc/edit', { screen: 'edit-project', id: 'abc' }],
+    [`#/projects/${ID}`, { screen: 'project', id: ID }],
+    [`#/projects/${ID}/edit`, { screen: 'edit-project', id: ID }],
     [
       '#/projects/new?template=swing-set-a-frame',
       { screen: 'new-project', templateId: 'swing-set-a-frame' },
@@ -35,11 +37,11 @@ describe('parseRoute', () => {
       },
     ],
     [
-      '#/projects/new?template=swing-set-a-frame&project=abc',
+      `#/projects/new?template=swing-set-a-frame&project=${ID}`,
       {
         screen: 'new-project',
         templateId: 'swing-set-a-frame',
-        start: { kind: 'project', id: 'abc' },
+        start: { kind: 'project', id: ID },
       },
     ],
     [
@@ -59,49 +61,57 @@ describe('parseRoute', () => {
       { screen: 'new-project', templateId: 'swing-set-a-frame' },
     ],
     ['#/projects/new', { screen: 'pick-template' }],
-    ['#/projects/abc/delete', { screen: 'not-found' }],
-    ['#/projects/abc/edit/x', { screen: 'not-found' }],
-    ['#/projects/abc/shop', { screen: 'shop', id: 'abc' }],
-    ['#/projects/abc/shop/x', { screen: 'not-found' }],
-    ['#/projects/abc/build', { screen: 'build', id: 'abc' }],
-    ['#/projects/abc/build/steps', { screen: 'build-steps', id: 'abc' }],
-    ['#/projects/abc/build/steps/x', { screen: 'not-found' }],
-    ['#/projects/abc/build/board-2', { screen: 'build-step', id: 'abc', step: 'board-2' }],
+    [`#/projects/${ID}/delete`, { screen: 'not-found' }],
+    [`#/projects/${ID}/edit/x`, { screen: 'not-found' }],
+    [`#/projects/${ID}/shop`, { screen: 'shop', id: ID }],
+    [`#/projects/${ID}/shop/x`, { screen: 'not-found' }],
+    [`#/projects/${ID}/build`, { screen: 'build', id: ID }],
+    [`#/projects/${ID}/build/steps`, { screen: 'build-steps', id: ID }],
+    [`#/projects/${ID}/build/steps/x`, { screen: 'not-found' }],
+    [`#/projects/${ID}/build/board-2`, { screen: 'build-step', id: ID, step: 'board-2' }],
     [
-      '#/projects/abc/build/board-2/leg-back',
-      { screen: 'build-part', id: 'abc', step: 'board-2', part: 'leg-back' },
+      `#/projects/${ID}/build/board-2/leg-back`,
+      { screen: 'build-part', id: ID, step: 'board-2', part: 'leg-back' },
     ],
-    ['#/projects/abc/build/board-2/leg-back/x', { screen: 'not-found' }],
+    [`#/projects/${ID}/build/board-2/leg-back/x`, { screen: 'not-found' }],
     ['#/elsewhere', { screen: 'not-found' }],
     // The plan, one section per screen (#156).
-    ['#/projects/abc/diagrams', { screen: 'project', id: 'abc', section: 'diagrams' }],
+    [`#/projects/${ID}/diagrams`, { screen: 'project', id: ID, section: 'diagrams' }],
     [
-      '#/projects/abc/structural-review',
-      { screen: 'project', id: 'abc', section: 'structural-review' },
+      `#/projects/${ID}/structural-review`,
+      { screen: 'project', id: ID, section: 'structural-review' },
     ],
-    ['#/projects/abc/parameters', { screen: 'not-found' }],
+    [`#/projects/${ID}/parameters`, { screen: 'not-found' }],
     [
-      '#/projects/abc/cut-list?part=leg-front',
-      { screen: 'project', id: 'abc', section: 'cut-list', part: 'leg-front' },
+      `#/projects/${ID}/cut-list?part=leg-front`,
+      { screen: 'project', id: ID, section: 'cut-list', part: 'leg-front' },
     ],
     [
-      '#/projects/abc/diagrams?part=leg%2Ffront',
-      { screen: 'project', id: 'abc', section: 'diagrams', part: 'leg/front' },
+      `#/projects/${ID}/diagrams?part=leg%2Ffront`,
+      { screen: 'project', id: ID, section: 'diagrams', part: 'leg/front' },
     ],
     // The summary is the project's own address, and has no part to select.
-    ['#/projects/abc/summary', { screen: 'not-found' }],
-    ['#/projects/abc?part=beam', { screen: 'project', id: 'abc' }],
-    ['#/projects/abc/cut-list/x', { screen: 'not-found' }],
-    ['#/projects/abc/cutlist', { screen: 'not-found' }],
-    ['#/projects/abc/edit?from=cut-list', { screen: 'edit-project', id: 'abc', from: 'cut-list' }],
-    ['#/projects/abc/edit?from=summary', { screen: 'edit-project', id: 'abc' }],
-    ['#/projects/abc/edit?from=shop', { screen: 'edit-project', id: 'abc', from: 'shop' }],
-    ['#/projects/abc/edit?from=elsewhere', { screen: 'edit-project', id: 'abc' }],
+    [`#/projects/${ID}/summary`, { screen: 'not-found' }],
+    [`#/projects/${ID}?part=beam`, { screen: 'project', id: ID }],
+    [`#/projects/${ID}/cut-list/x`, { screen: 'not-found' }],
+    [`#/projects/${ID}/cutlist`, { screen: 'not-found' }],
+    [`#/projects/${ID}/edit?from=cut-list`, { screen: 'edit-project', id: ID, from: 'cut-list' }],
+    [`#/projects/${ID}/edit?from=summary`, { screen: 'edit-project', id: ID }],
+    [`#/projects/${ID}/edit?from=shop`, { screen: 'edit-project', id: ID, from: 'shop' }],
+    [`#/projects/${ID}/edit?from=elsewhere`, { screen: 'edit-project', id: ID }],
     [
-      '#/projects/abc/edit?from=cut-list&field=s-moisture.low',
-      { screen: 'edit-project', id: 'abc', from: 'cut-list', field: 's-moisture.low' },
+      `#/projects/${ID}/edit?from=cut-list&field=s-moisture.low`,
+      { screen: 'edit-project', id: ID, from: 'cut-list', field: 's-moisture.low' },
     ],
     ['#/projects/%E0', { screen: 'not-found' }],
+    // Project IDs go into API paths, so only a UUID is read as one.
+    ['#/projects/abc', { screen: 'not-found' }],
+    ['#/projects/abc/edit', { screen: 'not-found' }],
+    ['#/projects/..%2Ftrash%2F6f1c2a3e-0000-4000-8000-000000000000', { screen: 'not-found' }],
+    [
+      '#/projects/new?template=swing-set-a-frame&project=..%2Ftrash',
+      { screen: 'new-project', templateId: 'swing-set-a-frame' },
+    ],
     ['#/tools/%', { screen: 'not-found' }],
   ])('%s', (hash, route) => {
     expect(parseRoute(hash)).toEqual(route);
@@ -118,40 +128,40 @@ describe('parseRoute', () => {
       { screen: 'pick-template' },
       { screen: 'glossary' },
       { screen: 'glossary', term: 'long-point' },
-      { screen: 'project', id: '6f1c2a3e-0000-4000-8000-000000000000' },
-      { screen: 'edit-project', id: 'x y' },
-      { screen: 'edit-project', id: 'p', from: 'boards', field: 's-riderWeights.0' },
+      { screen: 'project', id: ID },
+      { screen: 'edit-project', id: ID },
+      { screen: 'edit-project', id: ID, from: 'boards', field: 's-riderWeights.0' },
       { screen: 'new-project', templateId: 'swing-set-a-frame' },
       {
         screen: 'new-project',
         templateId: 'swing-set-a-frame',
         start: { kind: 'example', index: 0 },
       },
-      { screen: 'new-project', templateId: 'swing set', start: { kind: 'project', id: 'a b' } },
+      { screen: 'new-project', templateId: 'swing set', start: { kind: 'project', id: ID } },
       { screen: 'new-project', templateId: 'swing-set-a-frame', start: { kind: 'empty' } },
-      { screen: 'shop', id: 'abc' },
-      { screen: 'build', id: 'abc' },
-      { screen: 'build-steps', id: 'abc' },
-      { screen: 'build-step', id: 'abc', step: 'board 1/2' },
-      { screen: 'build-part', id: 'abc', step: 'board-1', part: 'leg/back' },
+      { screen: 'shop', id: ID },
+      { screen: 'build', id: ID },
+      { screen: 'build-steps', id: ID },
+      { screen: 'build-step', id: ID, step: 'board 1/2' },
+      { screen: 'build-part', id: ID, step: 'board-1', part: 'leg/back' },
     ];
     for (const route of routes) expect(parseRoute(href(route))).toEqual(route);
   });
 
   it('reads back every section’s address, with and without a part, so a reload stays put', () => {
     for (const { id } of PLAN_SECTIONS) {
-      const route: Route = { screen: 'project', id: 'p 1', section: id };
+      const route: Route = { screen: 'project', id: ID, section: id };
       expect(parseRoute(href(route))).toEqual(route);
       const withPart: Route = { ...route, part: 'leg-back' };
       expect(parseRoute(href(withPart))).toEqual(withPart);
-      const edit: Route = { screen: 'edit-project', id: 'p 1', from: id };
+      const edit: Route = { screen: 'edit-project', id: ID, from: id };
       expect(parseRoute(href(edit))).toEqual(edit);
     }
   });
 
   it('gives the project’s own address no section, and has no summary section', () => {
     expect(href({ screen: 'project', id: 'p' })).toBe('#/projects/p');
-    expect(parseRoute('#/projects/p/summary')).toEqual({ screen: 'not-found' });
+    expect(parseRoute(`#/projects/${ID}/summary`)).toEqual({ screen: 'not-found' });
   });
 });
 
@@ -173,9 +183,9 @@ describe('the plan’s sections', () => {
       expect(PLAN_SECTIONS.map((s) => s.id)).not.toContain(reserved);
     }
     // Each reserved address still opens its own screen.
-    expect(parseRoute('#/projects/abc/edit').screen).toBe('edit-project');
-    expect(parseRoute('#/projects/abc/shop').screen).toBe('shop');
-    expect(parseRoute('#/projects/abc/build').screen).toBe('build');
+    expect(parseRoute(`#/projects/${ID}/edit`).screen).toBe('edit-project');
+    expect(parseRoute(`#/projects/${ID}/shop`).screen).toBe('shop');
+    expect(parseRoute(`#/projects/${ID}/build`).screen).toBe('build');
   });
 
   it('are in order A', () => {
