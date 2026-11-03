@@ -127,6 +127,36 @@ Still from the template: the grip printed in hardware notes and flag text, which
 
 Step 4 (#554): `packages/model/src/housedEnd.ts`. `housingPlane` is the plane a dado's depth inside a part's face; a part trimmed to it is long enough to reach the dado's bottom. `housedEnd` then gives the dado: the housed end's outline where it enters the housing, on the face it enters, found from the parts' frames. A dado stopped short of the housed part's reference edge leaves that corner notched. It refuses an angled end, a part that meets the face at an angle, an end that doesn't reach the dado's bottom, and one that runs past the housing. The record cabinet's definition has the same `generateWith` seam as the swing set's. Its joint-based design trims each side and partition into the top and case bottom, and each back rail into the panels on either side of its bay. The panels' and rails' lengths and placements, the top's, bottom's, and panels' dadoes for them, and the panels' notches all come from the joints. The doors' tracks are still the template's. It reaches parity in the 6 fixture cases and two more: one bay and four bays.
 
+Step 5 (#555): `packages/model/src/joinery.ts`.
+- `mortiseAndTenon` gives a tenon of the template's size on the end and the mortise it fits, on whichever face or edge of the mortised part it enters.
+- `tenonInGroove` gives a stub tenon as thick as the groove it reaches is wide, where that groove is.
+- `floatingPanel` gives each frame part's groove and the panel's length, place, and tongue rabbets, centered in the grooves, short of their bottoms by its gaps. It refuses a panel whose stock is not the width between the grooves less its gaps.
+- `slottedScrews` makes the screw nearest the edge the held part is fixed at round and slots the rest the way that part moves across its grain.
+- `entering` and `sideEntered`, from step 4, find the face or edge an end goes into for all of them.
+
+The record cabinet's joint-based design adds the aprons' tenons and the legs' mortises, the doors' rails, grooves, and panels, and the cleats' screw holes, and reaches parity in all 8 cases.
+
+## Where it ended, November 3, 2026
+
+Both templates reach parity. From the joints: every part's length, end cuts, and placement, and every hole, grip, dado, notch, mortise, tenon, groove, rabbet, and screw hole. Still from the template:
+- single-part features: the swing set's flush cut, the cabinet's leg tapers, door tracks, and finger recesses
+- where each part stands, and each joint's size
+- the swing set's ply-bolt and horizontal-hanger grips, and the grips printed in its notes and flags
+- the beam's deeper-stock comparison and the starting questions' bolt suggestions, which call the swing set's own design
+
+One inconsistency surfaced: the cabinet's leg mortises record `withPart: 'apron'`, the aprons' role, where every other joint feature records a part ID. Nothing reads `withPart` outside the templates, so it shows nowhere. The joint-based design keeps the role, for parity.
+
+### What adopting it would take
+
+1. **A decision record.** It changes how templates are written (0008), so it is the owner's call (rule 13).
+2. **Move the joints into core,** under `packages/core/src/joints/`. They are generic already; the generic-code scan covers them where they are.
+3. **Rewrite each template's parts and placements as joint declarations,** from its joint-based design here, and delete the per-part features and formulas the joints replace. The template specs would describe the joints, and their hand-checked worked examples stay.
+4. **Decide what "the same output" means for the swing set.** The cabinet's joint-based output is identical to the last bit for its worked examples, since its sizes are binary fractions. The swing set's differs in the last bits in 33 values per worked example (part lengths, marked edges, hole positions, origins), because its trigonometry is computed another way. Core's fixture lock compares exactly, so adopting it as is means a template version bump (0008). Every stored swing-set plan would then say the current template gives different numbers, with no difference anyone can see. Three ways out:
+   - accept the bump
+   - have the version report ignore differences below the display's rounding
+   - arrange the joint math to reproduce the template's formulas bit for bit, which the trims could do for level cuts
+5. **Remove the `generateWith` seams,** or keep them for the next experiment.
+
 ## Still open
 
 - The parity test's tolerance (exact display, 1e-9 before display) is used as written until the owner changes it.

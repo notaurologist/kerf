@@ -66,7 +66,7 @@ export type CabinetGeometry = z.infer<typeof CabinetGeometry>;
 /** The finger recess in each door's outer stile, centered on it: rules of thumb (spec, Sliding doors). */
 export const RECESS = { along: 3, across: 0.75, depth: 0.25 } as const;
 /** A floating panel's margin at each end, along its grain (DOMAIN.md, Joints that let wood move). */
-const PANEL_END_GAP = 1 / 32;
+export const PANEL_END_GAP = 1 / 32;
 
 /** The board's actual thickness, which a part ripped from one board keeps. */
 const boardThickness = (p: RecordCabinetParams) =>
