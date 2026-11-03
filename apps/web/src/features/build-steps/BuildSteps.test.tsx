@@ -69,6 +69,7 @@ describe('glossary terms in the plan (#178)', () => {
       'burial depth',
       'tamped',
       'backfill',
+      'bending',
       'knots',
       'midspan',
       'grain',

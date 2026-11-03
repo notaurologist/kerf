@@ -78,6 +78,7 @@ const ASSEMBLY_WITHOUT_TOOLS: Record<string, string> = {
   'leg-beam-bolts/tighten': 'none',
   'crossbar-bolts/tighten': 'none',
   'gusset-bolts/tighten': 'none',
+  'hanger-bolts/tighten': 'none',
   'swings/hang': 'none',
 };
 
@@ -91,6 +92,7 @@ const TREATMENT: Record<string, string> = {
   'leg-beam-bolts/treat-holes': 'treat-holes-brush',
   'crossbar-bolts/treat-holes': 'treat-holes-brush',
   'gusset-bolts/treat-holes': 'treat-holes-brush',
+  'hanger-bolts/treat-holes': 'treat-holes-brush',
 };
 
 describe('swing-set build steps (#105)', () => {
@@ -118,6 +120,7 @@ describe('swing-set build steps (#105)', () => {
       ['treat-cuts', 'Treat every cut with preservative', []],
       ['site', 'Dig the leg holes', []],
       ['frames', 'Bolt the crossbars and gussets across the legs', []],
+      ['hanger-holes', 'Drill the swing hanger holes in the beam', []],
       ['raise', 'Stand the frames up and brace them', []],
       ['beam', 'Bolt the beam between the leg tops', []],
       ['set', 'Plumb the frames and backfill the leg holes', []],
@@ -154,6 +157,7 @@ describe('swing-set build steps (#105)', () => {
       'gusset-bolts/holes',
       'gusset-bolts/treat-holes',
     ]);
+    expect(ids('hanger-holes')).toEqual(['hanger-bolts/holes', 'hanger-bolts/treat-holes']);
     expect(ids('beam')).toEqual(['leg-beam-bolts/holes', 'leg-beam-bolts/treat-holes']);
   });
 
@@ -181,6 +185,7 @@ describe('swing-set build steps (#105)', () => {
       'crossbar-bolts/holes': 'bolt-holes-auger-one-side',
       'gusset-bolts/holes': 'bolt-holes-auger-one-side',
       'leg-beam-bolts/holes': 'bolt-holes-auger-one-side',
+      'hanger-bolts/holes': 'bolt-holes-auger-one-side',
       ...ASSEMBLY_WITHOUT_TOOLS,
     });
   });
@@ -209,6 +214,8 @@ describe('swing-set build steps (#105)', () => {
       'crossbar-bolts/holes': 'bolt-holes-spade-one-side',
       'gusset-bolts/holes': 'bolt-holes-spade-one-side',
       'leg-beam-bolts/holes': 'bolt-holes-spade-both-sides',
+      // 5-1/2" down through the beam, within the 6" spade bits' reach.
+      'hanger-bolts/holes': 'bolt-holes-spade-one-side',
       ...ASSEMBLY_WITHOUT_TOOLS,
     });
   });
@@ -301,6 +308,7 @@ describe('swing-set build steps (#105)', () => {
         'treat-cuts': [],
         site: ['load-bearing'],
         frames: ['load-bearing', 'load-bearing', 'load-bearing', 'load-bearing'],
+        'hanger-holes': ['load-bearing', 'dynamic-loads'],
         raise: ['load-bearing', 'load-bearing'],
         beam: ['load-bearing', 'load-bearing', 'dynamic-loads'],
         set: ['load-bearing'],
@@ -321,8 +329,8 @@ describe('swing-set build steps (#105)', () => {
     expect(stepOf('Confirm the frame on sloped ground')).toEqual(['board-2']);
     expect(stepOf('Confirm the burial depth (24")')).toEqual(['board-2']);
     // Bolt flags go where their bolts are drilled.
-    expect(stepOf('Crossbar to leg, 2 1/2" bolts')).toEqual(['frames']);
-    expect(stepOf('Gusset to leg, 2 1/2" bolts')).toEqual(['frames']);
+    expect(stepOf('Crossbar to leg, 2 × 1/2" bolts')).toEqual(['frames']);
+    expect(stepOf('Gusset to leg, 2 × 1/2" bolts')).toEqual(['frames']);
     expect(stepOf("For the bolts' end distance")).toEqual(['frames']);
     expect(stepOf('Confirm the bolt size for the leg-to-beam bolt')).toEqual(['beam']);
     // The template places the order the frame goes up in on the step that stands it up, though
@@ -377,11 +385,7 @@ describe('swing-set build steps (#105)', () => {
     expect(methods).toEqual({
       raise: ['raise-screwed-braces'],
       set: ['backfill-tamper'],
-      tighten: [
-        'tighten-bolts-socket-wrench',
-        'tighten-bolts-socket-wrench',
-        'tighten-bolts-socket-wrench',
-      ],
+      tighten: Array(4).fill('tighten-bolts-socket-wrench'),
       hang: ['hang-quick-links'],
     });
     const text = (id: string) =>

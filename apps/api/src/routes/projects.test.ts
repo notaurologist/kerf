@@ -76,8 +76,9 @@ describe('POST /api/projects', () => {
       templateBehind: false,
       version: { status: 'current', version: CURRENT },
     });
-    // The structural review is in the snapshot: the worked example's bending margin is 0.985.
-    expect(project.snapshot.outputs.structuralReview.beam.bending.margin).toBeCloseTo(0.985, 3);
+    // The structural review is in the snapshot: the worked example's bending margin is 0.828, at
+    // the inner hangers' holes.
+    expect(project.snapshot.outputs.structuralReview.beam.bending.margin).toBeCloseTo(0.828, 3);
   });
 
   it('stores a project with no structural inputs, its checks waiting on input', async () => {
@@ -254,11 +255,11 @@ describe('project history (#106)', () => {
     expect(rows.map((r) => [r.operation_id, r.operation]).sort()).toEqual(
       operations.map((o) => [o.id, o.type]).sort(),
     );
-    // No tools yet: no method and no skills, except field treatment, which needs no tools; and the
-    // empty inventory's key.
+    // No tools yet: no method and no skills, except field treatment, which needs no tools (5 parts'
+    // cuts and 4 bolts' holes, the hanger bolts among them); and the empty inventory's key.
     const needTools = rows.filter((r) => !r.operation.startsWith('treat-'));
     expect(needTools.every((r) => r.method_id === null && r.skills.length === 0)).toBe(true);
-    expect(rows.length - needTools.length).toBe(8);
+    expect(rows.length - needTools.length).toBe(9);
     expect(new Set(rows.map((r) => r.inventory_key))).toEqual(
       new Set([inventoryKey({ tools: [] })]),
     );

@@ -12,7 +12,8 @@
       "!pnpm-lock.yaml",
       "!**/*.md",
       "!docs",
-      "!packages/core/src/templates/*/shown"
+      "!packages/core/src/templates/*/shown",
+      "!apps/web/src/ui/catalog-sample.json"
     ]
   },
   "formatter": {

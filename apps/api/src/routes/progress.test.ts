@@ -219,7 +219,8 @@ describe('project progress', () => {
     expect((await tick([done('shopping-line', 'lumber/2x6/10')])).body.status).toBe('in-progress');
 
     const steps = [1, 2, 3, 4, 5, 6, 7].map((n) => `board-${n}`);
-    steps.push('ease-edges', 'treat-cuts', 'site', 'frames', 'raise', 'beam', 'set', 'tighten');
+    steps.push('ease-edges', 'treat-cuts', 'site', 'frames', 'hanger-holes', 'raise', 'beam');
+    steps.push('set', 'tighten');
     expect((await tick(steps.map((key) => done('step', key)))).body.status).toBe('in-progress');
     expect((await tick([done('step', 'hang')])).body.status).toBe('built');
     expect(await status()).toBe('built');
@@ -283,11 +284,11 @@ describe('project progress', () => {
     const [project] = list.projects;
     expect(project).not.toHaveProperty('snapshot');
     // The worked example: 4 lumber and 8 hardware lines; 9 pieces (a beam and two each of back
-    // legs, front legs, crossbars, and gussets); 7 board steps and 9 more.
+    // legs, front legs, crossbars, and gussets); 7 board steps and 10 more.
     expect(project.progress).toEqual({
-      shopping: { done: 2, total: 12 },
+      shopping: { done: 2, total: 13 },
       pieces: { done: 1, total: 9 },
-      steps: { done: 2, total: 16 },
+      steps: { done: 2, total: 17 },
       nextStep: {
         id: 'board-3',
         number: 3,
@@ -326,6 +327,6 @@ describe('project progress', () => {
     await tick([done('step', 'board-1')]);
     const project = (await (await authed(`/api/projects/${id}`)).json()) as Json;
     expect(project.ticks.map((t: Json) => t.key)).toEqual(['board-1']);
-    expect(project.progress.steps).toEqual({ done: 1, total: 16 });
+    expect(project.progress.steps).toEqual({ done: 1, total: 17 });
   });
 });

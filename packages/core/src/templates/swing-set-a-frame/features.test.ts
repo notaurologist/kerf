@@ -198,6 +198,20 @@ describe('the worked example (spec, Holes and joints)', () => {
       'gusset edge distance under the beam\'s weight, to the top edge 1-13/16" (3.6D): under 4D (2") for minimum, the edge the load pushes toward',
     );
     expect(boltFlags[0]?.ask).not.toContain("beam's weight");
+    // Count and size as the bolt layout writes them, so two 1/2" bolts do not read as 2-1/2".
+    expect(boltFlags.map((f) => f.ask.split(':')[0])).toEqual([
+      'Crossbar to leg, 2 × 1/2" bolts',
+      'Gusset to leg, 2 × 1/2" bolts',
+    ]);
+  });
+
+  it('names a single bolt in the bolt flag', () => {
+    const one = run({
+      ...workedExample,
+      hardware: { ...workedExample.hardware, crossbarBolts: { diameter: 0.5, perJoint: 1 } },
+    });
+    const flag = one.flags.find((f) => f.ask.startsWith('Crossbar to leg'));
+    expect(flag?.ask.split(':')[0]).toBe('Crossbar to leg, 1 × 1/2" bolt');
   });
 
   it('asks about the projecting ends, with how far and how high', () => {
