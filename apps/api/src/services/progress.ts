@@ -7,12 +7,14 @@ import {
   type ProjectSnapshot,
   progressItems,
   progressToReset,
+  ResetRecord,
+  recordResets,
   type TemplateDefinition,
 } from '@kerf/core';
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from '../db/client.ts';
-import { type PROJECT_STATUSES, projectProgress } from '../db/schema.ts';
+import { type PROJECT_STATUSES, projectProgress, projectResets } from '../db/schema.ts';
 
 // Saved progress (#57): what has been ticked off in a project, by the keys core gives each item.
 // Every device reads the same rows. A write sets or clears ticks and is safe to send again, so a
@@ -122,29 +124,139 @@ async function clearTicks(
   }
 }
 
-/**
- * Clears the ticks a regeneration makes wrong (`progressToReset`): items no longer in the plan or
- * there with other numbers. Called in the transaction that saves the new snapshot.
- */
-export async function resetProgress(
-  tx: Database,
+type Planned = { template: TemplateDefinition; snapshot: ProjectSnapshot };
+
+/** The ticks a change from `before` to `after` would clear, each recorded against `before`. */
+export async function resetsFor(
+  db: Database,
   projectId: string,
-  before: { template: TemplateDefinition; snapshot: ProjectSnapshot },
-  after: { template: TemplateDefinition; snapshot: ProjectSnapshot },
-): Promise<ProgressReset[]> {
-  const ticked = await tx
+  before: Planned,
+  after: Planned,
+): Promise<{ reset: ProgressReset[]; records: ResetRecord[] }> {
+  const ticked = await db
     .select({ kind: projectProgress.kind, key: projectProgress.key })
     .from(projectProgress)
     .where(eq(projectProgress.projectId, projectId))
     .orderBy(...ORDER);
-  if (ticked.length === 0) return [];
+  if (ticked.length === 0) return { reset: [], records: [] };
   const reset = progressToReset(
     ticked,
     itemsOf(before.template, before.snapshot),
     itemsOf(after.template, after.snapshot),
   );
+  const outputs = before.template.storedOutputs.parse(before.snapshot.outputs);
+  return { reset, records: recordResets(before.template, outputs, reset) };
+}
+
+/**
+ * Clears the ticks a regeneration makes wrong (`progressToReset`): items no longer in the plan or
+ * there with other numbers, and records what each was (#444). Called in the transaction that
+ * saves the new snapshot.
+ */
+export async function resetProgress(
+  tx: Database,
+  projectId: string,
+  before: Planned,
+  after: Planned,
+  at: Date,
+): Promise<ProgressReset[]> {
+  const { reset, records } = await resetsFor(tx, projectId, before, after);
   await clearTicks(tx, projectId, reset);
+  if (records.length > 0) {
+    await tx
+      .insert(projectResets)
+      .values(
+        records.map((record) => ({
+          projectId,
+          kind: record.kind,
+          key: record.key,
+          record,
+          resetAt: at,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: [projectResets.projectId, projectResets.kind, projectResets.key],
+        set: { record: sql`excluded.record`, resetAt: at },
+      });
+  }
   return reset;
+}
+
+/** A recorded reset and when the save that made it was saved, which a dismissal names. */
+export interface StoredReset {
+  record: ResetRecord;
+  resetAt: string;
+}
+
+/**
+ * A project's recorded resets, oldest first. A row that no longer parses is logged and left out,
+ * so one bad row does not stop the project opening.
+ */
+export async function readResets(db: Database, projectId: string): Promise<StoredReset[]> {
+  const rows = await db
+    .select()
+    .from(projectResets)
+    .where(eq(projectResets.projectId, projectId))
+    .orderBy(asc(projectResets.resetAt), asc(projectResets.kind), asc(projectResets.key));
+  return rows.flatMap((row) => {
+    const parsed = ResetRecord.safeParse(row.record);
+    if (parsed.success) return [{ record: parsed.data, resetAt: row.resetAt.toISOString() }];
+    console.error(`project ${projectId}: reset ${row.kind} could not be read`, parsed.error);
+    return [];
+  });
+}
+
+/** Every project's recorded resets as stored, by project ID, for the backup file. */
+export async function readAllResets(
+  db: Database,
+): Promise<Map<string, { record: unknown; resetAt: string }[]>> {
+  const rows = await db
+    .select()
+    .from(projectResets)
+    .orderBy(asc(projectResets.resetAt), asc(projectResets.kind), asc(projectResets.key));
+  const byProject = new Map<string, { record: unknown; resetAt: string }[]>();
+  for (const row of rows) {
+    const reset = { record: row.record, resetAt: row.resetAt.toISOString() };
+    byProject.set(row.projectId, [...(byProject.get(row.projectId) ?? []), reset]);
+  }
+  return byProject;
+}
+
+export const ResetDismissals = z.object({
+  resets: z
+    .array(
+      z.object({
+        kind: ProgressKindSchema,
+        key: z.string().min(1).max(1000),
+        /** When the reset was saved, so a dismissal never clears a later reset of the item. */
+        resetAt: z.iso.datetime(),
+      }),
+    )
+    .min(1)
+    .max(500),
+});
+export type ResetDismissals = z.infer<typeof ResetDismissals>;
+
+/** Deletes the resets the owner dismissed. Dismissing one already gone does nothing. */
+export async function dismissResets(
+  db: Database,
+  projectId: string,
+  resets: ResetDismissals['resets'],
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    for (const { kind, key, resetAt } of resets) {
+      await tx
+        .delete(projectResets)
+        .where(
+          and(
+            eq(projectResets.projectId, projectId),
+            eq(projectResets.kind, kind),
+            eq(projectResets.key, key),
+            eq(projectResets.resetAt, new Date(resetAt)),
+          ),
+        );
+    }
+  });
 }
 
 type Status = (typeof PROJECT_STATUSES)[number];

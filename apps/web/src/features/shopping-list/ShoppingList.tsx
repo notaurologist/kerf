@@ -4,6 +4,7 @@ import {
   groupHardware,
   type HardwareLine,
   type LumberPlan,
+  type Replacement,
   readingsBesideHardware,
   readingsBesideLumber,
   type StoreReading,
@@ -42,6 +43,8 @@ export function ShoppingList(props: {
     byLine: StoreReadingsByLine;
     href: (reading: StoreReading) => string;
   };
+  /** Boards for pieces cut shorter than the plan now needs, before a change (#444). */
+  replacements?: readonly Replacement[];
 }) {
   const { lumber, readings } = props;
   const changes = props.changes ?? NO_CHANGES;
@@ -115,6 +118,17 @@ export function ShoppingList(props: {
               )}
               readingHref={readings.href}
             />
+          )}
+          {props.replacements && props.replacements.length > 0 && (
+            <Text>
+              Also buy, for pieces cut before a change and now too short:{' '}
+              <Measured
+                text={props.replacements
+                  .map((r) => `1 x ${r.nominal}, ${formatBoardLength(r.feet)} for ${r.piece}`)
+                  .join('; ')}
+              />
+              .
+            </Text>
           )}
           {removedLumber.length > 0 && (
             <Text>

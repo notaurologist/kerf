@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import { stream } from 'hono/streaming';
 import { z } from 'zod';
 import { exportJson } from '../services/exportFile.ts';
-import { ProgressChanges } from '../services/progress.ts';
+import { ProgressChanges, ResetDismissals } from '../services/progress.ts';
 import {
   NewProject,
   NewProjectPreview,
@@ -97,6 +97,15 @@ export function projectRoutes(projects: ProjectService) {
       async (c) => {
         const result = await projects.setProgress(c.req.valid('param').id, c.req.valid('json'));
         return result.ok ? c.json(result.value, 200) : failure(c, result);
+      },
+    )
+    .post(
+      '/projects/:id/resets/dismiss',
+      valid('param', ById),
+      valid('json', ResetDismissals),
+      async (c) => {
+        const result = await projects.dismissResets(c.req.valid('param').id, c.req.valid('json'));
+        return result.ok ? c.json({ resets: result.value }, 200) : failure(c, result);
       },
     )
     .patch(

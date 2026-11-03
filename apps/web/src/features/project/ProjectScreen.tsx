@@ -50,6 +50,7 @@ import {
 } from '../structural/StructuralReview.tsx';
 import { ParametersAndInputs } from './ParametersAndInputs.tsx';
 import { ProjectNext } from './ProjectNext.tsx';
+import { ResetNotes, replacementsOf } from './ResetNotes.tsx';
 import { VersionNotice } from './VersionNotice.tsx';
 
 const VALUES_USED_ID = 'values-used';
@@ -264,6 +265,7 @@ export function ProjectView(props: {
           }}
           onNewer={props.onChange}
         />
+        <ResetNotes project={project} />
       </PlanHead>
       {!plan.ok ? (
         // With no plan there is no Edit, which is where Delete lives otherwise.
@@ -326,6 +328,7 @@ export function ProjectView(props: {
               lumber={plan.plan.lumber}
               hardware={plan.plan.hardware}
               hardwareNotes={plan.plan.hardwareNotes}
+              replacements={replacementsOf(project.resets)}
               readings={
                 readings && { byLine: readings, href: readingHref(project, 'shopping-list') }
               }
