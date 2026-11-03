@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 23,
+    "templateVersion": 24,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -947,6 +947,10 @@
               "diameter": 0.5,
               "grip": 8.947408118867273,
               "length": 10,
+              "fits": {
+                "min": 9.820408118867272,
+                "max": 10.320408118867272
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -965,6 +969,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -983,6 +991,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -1922,7 +1934,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 8.947408118867273,
+            "length": 10,
+            "fits": {
+              "min": 9.820408118867272,
+              "max": 10.320408118867272
+            },
+            "items": ["leg-beam-bolts"]
+          }
         },
         {
           "description": "1/2\" × 6\" through-bolt",
@@ -1930,7 +1952,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5,
+            "length": 6,
+            "fits": {
+              "min": 5.873,
+              "max": 6.373
+            },
+            "items": ["crossbar-bolts", "gusset-bolts"]
+          }
         },
         {
           "description": "1/2\" flat washers",
@@ -3572,7 +3604,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 23,
+    "templateVersion": 24,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -4577,6 +4609,10 @@
               "diameter": 0.5,
               "grip": 8.452713591586766,
               "length": 9.5,
+              "fits": {
+                "min": 9.325713591586766,
+                "max": 9.825713591586766
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -4595,6 +4631,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -4613,6 +4653,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -4631,6 +4675,10 @@
               "diameter": 0.5,
               "grip": 3,
               "length": 4,
+              "fits": {
+                "min": 3.873,
+                "max": 4.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -5582,7 +5630,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 8-7/16\". Any length from 9-3/8\" to 9-13/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 8.452713591586766,
+            "length": 9.5,
+            "fits": {
+              "min": 9.325713591586766,
+              "max": 9.825713591586766
+            },
+            "items": ["leg-beam-bolts"]
+          }
         },
         {
           "description": "1/2\" × 6\" through-bolt",
@@ -5590,7 +5648,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5,
+            "length": 6,
+            "fits": {
+              "min": 5.873,
+              "max": 6.373
+            },
+            "items": ["crossbar-bolts", "gusset-bolts"]
+          }
         },
         {
           "description": "1/2\" × 4\" through-bolt",
@@ -5598,7 +5666,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 3\". Any length from 3-7/8\" to 4-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 3,
+            "length": 4,
+            "fits": {
+              "min": 3.873,
+              "max": 4.373
+            },
+            "items": ["ply-bolts"]
+          }
         },
         {
           "description": "1/2\" flat washers",
@@ -7296,7 +7374,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 23,
+    "templateVersion": 24,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -8233,6 +8311,10 @@
               "diameter": 0.5,
               "grip": 8.947408118867273,
               "length": 10,
+              "fits": {
+                "min": 9.820408118867272,
+                "max": 10.320408118867272
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -8251,6 +8333,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -8269,6 +8355,10 @@
               "diameter": 0.5,
               "grip": 5,
               "length": 6,
+              "fits": {
+                "min": 5.873,
+                "max": 6.373
+              },
               "washers": 2,
               "nut": "locking",
               "cap": true
@@ -9208,7 +9298,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 8.947408118867273,
+            "length": 10,
+            "fits": {
+              "min": 9.820408118867272,
+              "max": 10.320408118867272
+            },
+            "items": ["leg-beam-bolts"]
+          }
         },
         {
           "description": "1/2\" × 6\" through-bolt",
@@ -9216,7 +9316,17 @@
           "group": "Bolts and fittings",
           "notes": [
             "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
-          ]
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5,
+            "length": 6,
+            "fits": {
+              "min": 5.873,
+              "max": 6.373
+            },
+            "items": ["crossbar-bolts", "gusset-bolts"]
+          }
         },
         {
           "description": "1/2\" flat washers",

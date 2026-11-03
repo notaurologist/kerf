@@ -24,6 +24,7 @@ import v19 from './snapshots/v19.json' with { type: 'json' };
 import v20 from './snapshots/v20.json' with { type: 'json' };
 import v21 from './snapshots/v21.json' with { type: 'json' };
 import v22 from './snapshots/v22.json' with { type: 'json' };
+import v23 from './snapshots/v23.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -56,7 +57,6 @@ const isVersion22 = (c: { path: string }) =>
   /^design\.hardware\[\d+\]\.(bolt\.length|notes\[0\])$/.test(c.path) ||
   /^design\.hardwareNotes\[\d+\]$/.test(c.path) ||
   /^hardware\[\d+\]\.(description|notes(\[\d+\])?)$/.test(c.path);
-
 /**
  * Version 23's change (#445): the beam supported at the middle of each gusset's top edge instead
  * of at the frame centerlines, which moves every beam check's numbers and its support assumptions.
@@ -66,6 +66,12 @@ const isVersion23 = (c: { path: string }) =>
   /^structuralReview\.beam\.(bending|shear|deflection)\.((inputs|steps|factors)\[\d+\]\.value|assumptions\[\d+\]|(computed|allowable|breakEven)\.value|margin)$/.test(
     c.path,
   );
+/**
+ * Version 24's changes (#514): the lengths that fit each bolt, and each bolt line's bolt. Set aside
+ * like version 18's.
+ */
+const isVersion24 = (c: { path: string }) =>
+  /^design\.hardware\[\d+\]\.bolt\.fits$/.test(c.path) || /^hardware\[\d+\]\.bolt$/.test(c.path);
 
 /** What regenerating with the current version changes in the stored outputs, field by field. */
 function regenerated(
@@ -73,6 +79,7 @@ function regenerated(
   keepVersion18 = false,
   keepVersion22 = false,
   keepVersion23 = false,
+  keepVersion24 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -83,7 +90,10 @@ function regenerated(
     ...found,
     changes: found.changes.filter(
       (c) =>
-        !isVersion20(c) && (keepVersion22 || !isVersion22(c)) && (keepVersion23 || !isVersion23(c)),
+        !isVersion20(c) &&
+        (keepVersion22 || !isVersion22(c)) &&
+        (keepVersion23 || !isVersion23(c)) &&
+        (keepVersion24 || !isVersion24(c)),
     ),
   };
   return keepVersion18
@@ -565,7 +575,7 @@ describe('swing-set template versions', () => {
       const json = (value: unknown) => JSON.parse(JSON.stringify(value));
       const outputs = template.storedOutputs.parse(current.output.outputs);
       const changes = diff(json(read.snapshot.outputs), json(outputs), 1000).changes.filter(
-        (c) => !isVersion22(c) && !isVersion23(c),
+        (c) => !isVersion22(c) && !isVersion23(c) && !isVersion24(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -623,5 +633,29 @@ describe('swing-set template versions', () => {
     expect(String(changes.find((c) => c.path.endsWith('assumptions[0]'))?.after)).toMatch(
       /^Supported at the middle of each gusset's top edge under the beam, 11-1\/4" and 108-3\/4"/,
     );
+  });
+
+  // Hand check in resets.test.ts: the worked example's leg-to-beam bolts fit from 9.820 to 10.320.
+  it("version 24 keeps the lengths that fit each bolt and each line's bolt, and changes nothing else (#514)", () => {
+    for (const stored of v23) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(23);
+      const { changes } = regenerated(read.snapshot, false, false, false, true);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion24(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v23[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const legBolts = regenerated(first.snapshot, false, false, false, true).changes.find(
+      (c) => c.path === 'hardware[0].bolt',
+    );
+    expect(legBolts?.after).toEqual({
+      diameter: 0.5,
+      grip: expect.closeTo(8.947, 3),
+      length: 10,
+      fits: { min: expect.closeTo(9.82, 3), max: expect.closeTo(10.32, 3) },
+      items: ['leg-beam-bolts'],
+    });
   });
 });

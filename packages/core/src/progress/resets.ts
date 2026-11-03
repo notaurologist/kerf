@@ -3,7 +3,7 @@ import type { TemplateDefinition } from '../model/definition.ts';
 import type { Plan } from '../outputs/plan.ts';
 import { boardIds } from '../outputs/shoppingList.ts';
 import { type StepContent, stepContents } from '../steps/build.ts';
-import { formatBoardLength, formatLength, toSixteenths } from '../units/length.ts';
+import { formatBoardLength, formatLength, formatLimit, toSixteenths } from '../units/length.ts';
 import {
   checklistProgressKey,
   flagProgressKey,
@@ -20,7 +20,9 @@ import {
 // against, read from the plan before the change, and the record stays until the owner dismisses
 // it. Each time it is shown, it is compared with the current plan, so its note says what the work
 // now needs even after further changes: a piece cut short needs a new board, a piece cut long can
-// be cut down, and a bought line the plan now needs more of needs only the difference.
+// be cut down, and a bought line the plan now needs more of needs only the difference. Bolts bought
+// for a line the plan no longer has are compared with the lengths that fit the bolts that replace
+// them (#514).
 
 const ResetReason = z.enum(['removed', 'changed']);
 
@@ -44,7 +46,14 @@ export const ResetRecord = z.discriminatedUnion('kind', [
     reason: ResetReason,
     was: z.union([
       z.object({ nominal: z.string(), feet: z.number(), count: z.number().int() }),
-      z.object({ description: z.string(), quantity: z.number().int().optional() }),
+      z.object({
+        description: z.string(),
+        quantity: z.number().int().optional(),
+        /** A bolt line's bolt as bought, and the items it was bought for (`HardwareLine.bolt`). */
+        bolt: z
+          .object({ diameter: z.number(), length: z.number(), items: z.array(z.string()) })
+          .optional(),
+      }),
     ]),
   }),
   z.object({
@@ -161,9 +170,13 @@ export function recordResets<O>(
         }
         const hardware = plan.hardware.find((l) => hardwareProgressKey(l.description) === key);
         if (!hardware) return [];
+        const bolt = hardware.bolt;
         const was = {
           description: hardware.description,
           ...(hardware.quantity === undefined ? {} : { quantity: hardware.quantity }),
+          ...(bolt?.length === undefined
+            ? {}
+            : { bolt: { diameter: bolt.diameter, length: bolt.length, items: bolt.items } }),
         };
         return [{ kind, key, reason, was }];
       }
@@ -227,6 +240,8 @@ function noteFor(view: PlanView, record: ResetRecord): ResetNote {
         return { ...base, item, stepIds: [], ...bought(was.count, now?.count) };
       }
       const now = plan.hardware.find((l) => l.description === was.description);
+      const replaced = now || !was.bolt ? undefined : boltsNow(plan, was, was.bolt);
+      if (replaced) return { ...base, item: was.description, stepIds: [], ...replaced };
       return {
         ...base,
         item: was.description,
@@ -308,6 +323,44 @@ function bought(
   if (needs > had) return { change, action: `Buy ${needs - had} more.` };
   if (needs < had) return { change, action: `${had - needs} left over.` };
   return { change };
+}
+
+/**
+ * Bolts bought for a line the plan no longer has, against the lines that now hold the bolts they
+ * were bought for: whether a bolt of that diameter and length fits each one's grip. Undefined when
+ * the plan no longer has those bolts.
+ */
+function boltsNow(
+  plan: PlanView['plan'],
+  was: { quantity?: number },
+  bolt: { diameter: number; length: number; items: string[] },
+): Pick<ResetNote, 'change' | 'action'> | undefined {
+  const lines = plan.hardware.filter((l) => l.bolt?.items.some((id) => bolt.items.includes(id)));
+  if (lines.length === 0) return undefined;
+  const had = was.quantity === undefined ? 'bought' : `bought ${was.quantity}`;
+  const change = `${had}; now ${lines.map((l) => l.description).join(' and ')}`;
+  const actions = lines.flatMap((line) => {
+    const now = line.bolt;
+    if (!now) return [];
+    if (now.diameter !== bolt.diameter) {
+      return [
+        `The bolts bought are ${formatLength(bolt.diameter)}; the plan now takes ${formatLength(now.diameter)}.`,
+      ];
+    }
+    if (!now.fits) return [];
+    const { min, max } = now.fits;
+    const range = `any length from ${formatLimit(min, 'min')} to ${formatLimit(max, 'max')} fits`;
+    const grip = `grip ${formatLength(now.grip)}`;
+    const bought = `A ${formatLength(bolt.length)} bolt`;
+    const eps = 1e-9;
+    const buy = `Buy the ${line.description} instead.`;
+    if (bolt.length < min - eps) return [`${bought} is too short for ${grip}: ${range}. ${buy}`];
+    if (bolt.length > max + eps) return [`${bought} is too long for ${grip}: ${range}. ${buy}`];
+    return [
+      `${bought} still fits ${grip}: ${range}. Use the ones bought in place of the ${line.description}.`,
+    ];
+  });
+  return { change, ...(actions.length === 0 ? {} : { action: actions.join(' ') }) };
 }
 
 function partNote(view: PlanView, record: Extract<ResetRecord, { kind: 'part' }>): ResetNote {

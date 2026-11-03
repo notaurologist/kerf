@@ -273,9 +273,42 @@ describe('hardwareList', () => {
       bolt('c', 1, 0.5, 6),
     ]);
     expect(lines.slice(0, 2)).toEqual([
-      { description: '1/2" through-bolt, grip 5"', quantity: 5, group: 'Bolts', notes: [] },
-      { description: '1/2" through-bolt, grip 6"', quantity: 1, group: 'Bolts', notes: [] },
+      {
+        description: '1/2" through-bolt, grip 5"',
+        quantity: 5,
+        group: 'Bolts',
+        notes: [],
+        bolt: { diameter: 0.5, grip: 5, items: ['a', 'b'] },
+      },
+      {
+        description: '1/2" through-bolt, grip 6"',
+        quantity: 1,
+        group: 'Bolts',
+        notes: [],
+        bolt: { diameter: 0.5, grip: 6, items: ['c'] },
+      },
     ]);
+  });
+
+  it('keeps the lengths that fit every bolt on a line', () => {
+    const lines = hardwareList([
+      bolt('a', 2, 0.5, 5, { length: 6, fits: { min: 5.873, max: 6.373 } }),
+      bolt('b', 2, 0.5, 5.01, { length: 6, fits: { min: 5.883, max: 6.383 } }),
+      bolt('c', 1, 0.5, 6, { length: 7 }),
+    ]);
+    expect(lines[0]?.bolt).toEqual({
+      diameter: 0.5,
+      grip: 5,
+      length: 6,
+      fits: { min: 5.883, max: 6.373 },
+      items: ['a', 'b'],
+    });
+    // A line with a bolt whose fittings Kerf has no sizes for has no range.
+    const mixed = hardwareList([
+      bolt('a', 1, 0.5, 5, { length: 6, fits: { min: 5.873, max: 6.373 } }),
+      bolt('b', 1, 0.5, 5, { length: 6 }),
+    ]);
+    expect(mixed[0]?.bolt?.fits).toBeUndefined();
   });
 
   it('names a bolt by the length to buy, and keeps lengths and grips apart', () => {
