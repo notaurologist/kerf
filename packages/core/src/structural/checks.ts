@@ -154,7 +154,10 @@ const SOURCES = {
   apparentE: nds('Appendix F.3.1, p. 181', SOURCE_LINKS.ndsAppendix),
   span: nds('3.2.1, p. 17', SOURCE_LINKS.ndsChapter3),
   netSection: nds('3.1.2.1, p. 16', SOURCE_LINKS.ndsChapter3),
-  pressureTreated: nds('4.3.13, p. 32', SOURCE_LINKS.ndsChapter4),
+  pressureTreated: [
+    nds('4.3.13, p. 32', SOURCE_LINKS.ndsChapter4),
+    nds('Table 2.3.2, footnote 2, p. 13', SOURCE_LINKS.ndsChapter2),
+  ],
 } satisfies Record<string, Citation | Citation[]>;
 
 const BUILT_UP = 'Each ply carries an equal share of every load (decision 0013).';
@@ -362,7 +365,7 @@ function checksOf(input: BeamCheckInput): BeamChecks {
   if (CD > 1.6 && input.conditions.waterborneTreatment) {
     return notComputed(
       'Load duration factors above 1.6 do not apply to lumber treated with water-borne preservatives.',
-      [SOURCES.pressureTreated],
+      SOURCES.pressureTreated,
     );
   }
 

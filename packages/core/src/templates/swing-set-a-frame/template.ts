@@ -80,10 +80,12 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 25 moves the note about a shorter board onto its lumber line, and gives each line what
  * else to buy when the store has none of its boards: other lengths, and other beam sizes that keep
  * the beam checks' margin, each with its margin (#450). No number changes.
- * Version 26 takes the beam's bending at each swing hanger on the net section its mounting holes
+ * Version 26 asks about UC4B for buried legs and what each leg stands on, and cites NDS Table
+ * 2.3.2, footnote 2, for the beam's C_D (#464). No number changes.
+ * Version 27 takes the beam's bending at each swing hanger on the net section its mounting holes
  * leave (NDS 2024 3.1.2.1), lists the bolts that mount the hangers, and drills their holes (#446).
  */
-export const TEMPLATE_VERSION = 26;
+export const TEMPLATE_VERSION = 27;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
