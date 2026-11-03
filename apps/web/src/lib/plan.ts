@@ -1,4 +1,4 @@
-import { BuildSteps, findTemplate, geometry, type Plan } from '@kerf/core';
+import { BuildSteps, findTemplate, type Plan } from '@kerf/core';
 import { useMemo } from 'react';
 import type { Project } from './types.ts';
 
@@ -29,15 +29,6 @@ export function planOf(templateId: string, outputs: unknown): PlanResult {
 }
 
 /**
- * The plan's drawings from the API (#91), parsed with core's schema (hard rule 8). Null when
- * the API sent none, as for a plan whose snapshot cannot be read.
- */
-export function readDrawings(project: Project): geometry.Drawings | null {
-  const parsed = geometry.Drawings.safeParse(project.drawings);
-  return parsed.success ? parsed.data : null;
-}
-
-/**
  * The plan's build steps from the API (#52), parsed with core's schema (hard rule 8): chosen from
  * the tool inventory the key names. Null when the API sent none.
  */
@@ -46,10 +37,7 @@ export function readSteps(project: Project): BuildSteps | null {
   return parsed.success ? parsed.data : null;
 }
 
-/** The project's plan, drawings and build steps, parsed once for each response, not each render. */
+/** The project's plan and build steps, parsed once for each response, not each render. */
 export function useReadProject(project: Project) {
-  return useMemo(
-    () => ({ plan: readPlan(project), drawings: readDrawings(project), steps: readSteps(project) }),
-    [project],
-  );
+  return useMemo(() => ({ plan: readPlan(project), steps: readSteps(project) }), [project]);
 }

@@ -1,7 +1,7 @@
 import { createSnapshot, recordCabinet, visibleFields } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import type { Project } from '../../lib/types.ts';
-import { projectFrom } from '../../test/projects.ts';
+import { loadedDrawings, projectFrom } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
 import { ModeView } from '../modes/modes.tsx';
 import { startValues } from '../project-editor/ProjectEditor.tsx';
@@ -23,7 +23,7 @@ const project = projectFrom(snapshot, {
 });
 
 describe('a record cabinet plan', () => {
-  const text = renderText(<ProjectView project={project} />);
+  const text = renderText(<ProjectView project={project} drawings={loadedDrawings(project)} />);
 
   it("lists each panel's boards in the cut list", () => {
     expect(text).toContain('Panel (3/4" x 17-3/4")');
@@ -45,7 +45,11 @@ describe('a record cabinet plan', () => {
 describe('a panel in Building mode', () => {
   const card = (step: string, part: string) =>
     renderText(
-      <ModeView route={{ screen: 'build-part', id: project.id, step, part }} project={project} />,
+      <ModeView
+        route={{ screen: 'build-part', id: project.id, step, part }}
+        project={project}
+        drawings={loadedDrawings(project)}
+      />,
     );
 
   it("gives a panel's board length when its boards are cut", () => {
@@ -66,6 +70,7 @@ describe('a panel in Building mode', () => {
       <ModeView
         route={{ screen: 'build-step', id: project.id, step: 'panels' }}
         project={project}
+        drawings={loadedDrawings(project)}
       />,
     );
     expect(html).toContain('Glue up 4 boards for A Top');

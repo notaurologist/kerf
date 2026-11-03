@@ -27,6 +27,19 @@ export const PROGRESS_KINDS = [
 export const ProgressKind = z.enum(PROGRESS_KINDS);
 export type ProgressKind = z.infer<typeof ProgressKind>;
 
+/** A tick set or cleared, as a client sends it to the server and keeps it while it waits. */
+export const ProgressChange = z.object({
+  kind: ProgressKind,
+  key: z.string().min(1),
+  done: z.boolean(),
+});
+export type ProgressChange = z.infer<typeof ProgressChange>;
+
+/** Changes waiting to be sent, each with the revision of the plan it was made on (0018). */
+export const WaitingProgressChanges = z.array(
+  ProgressChange.extend({ revision: z.number().int().positive() }),
+);
+
 /**
  * The kinds ticked in the structural review rather than in Shopping or Building. They record what
  * was asked and confirmed, not work done on the project, so they never move its status.

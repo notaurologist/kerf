@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { GlossaryScreen } from './features/glossary/GlossaryScreen.tsx';
 import { ProjectView } from './features/project/ProjectScreen.tsx';
 import type { Project } from './lib/types.ts';
-import { projectFrom, storedSnapshots } from './test/projects.ts';
+import { loadedDrawings, projectFrom, storedSnapshots } from './test/projects.ts';
 import { renderText } from './test/render.tsx';
 
 // Hard rules 2 and 11 over everything a reader sees: the whole plan (its build steps, flags, board
@@ -28,7 +28,12 @@ function currentSnapshot(t: (typeof TEMPLATES)[number], e: (typeof t.examples)[n
 const pages = [
   ...storedSnapshots.map((snapshot, i) => ({
     name: `the plan for stored example ${i}`,
-    text: renderText(<ProjectView project={projectFrom(snapshot)} />),
+    text: renderText(
+      <ProjectView
+        project={projectFrom(snapshot)}
+        drawings={loadedDrawings(projectFrom(snapshot))}
+      />,
+    ),
   })),
   ...TEMPLATES.flatMap((t) =>
     t.examples.map((e) => ({
@@ -40,6 +45,13 @@ const pages = [
             templateVersion: t.version,
             version: { status: 'current', version: t.version },
           })}
+          drawings={loadedDrawings(
+            projectFrom(currentSnapshot(t, e), {
+              templateId: t.id,
+              templateVersion: t.version,
+              version: { status: 'current', version: t.version },
+            }),
+          )}
         />,
       ),
     })),

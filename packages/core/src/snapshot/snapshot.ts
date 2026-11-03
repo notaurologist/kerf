@@ -32,6 +32,33 @@ function zodIssues(error: z.ZodError): Issue[] {
 }
 
 /**
+ * The template's output, or an issue if it throws. A throw is a combination of values the
+ * template's checks missed, so it reaches the owner as an issue on the values entered, not as
+ * an error from the server.
+ */
+function generateOrIssue(
+  template: TemplateDefinition,
+  params: unknown,
+  structuralInputs: unknown,
+): GenerateResult<unknown> {
+  try {
+    return template.generate(params, structuralInputs);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    return {
+      ok: false,
+      issues: [
+        {
+          code: 'generation-error',
+          message: `Kerf couldn't make a plan from these values (${reason}). Its checks missed this combination; try changing the values you entered last.`,
+          params: [],
+        },
+      ],
+    };
+  }
+}
+
+/**
  * Generates a snapshot with the template's current version, as stored: its outputs leave out each
  * field still at its schema default, which reading fills back in.
  */
@@ -48,7 +75,7 @@ export function createSnapshot(
       issues: [...(p.success ? [] : zodIssues(p.error)), ...(i.success ? [] : zodIssues(i.error))],
     };
   }
-  const generated = template.generate(p.data, i.data);
+  const generated = generateOrIssue(template, p.data, i.data);
   if (!generated.ok) return generated;
   return {
     ok: true,

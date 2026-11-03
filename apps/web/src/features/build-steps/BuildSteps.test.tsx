@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { readSteps } from '../../lib/plan.ts';
 import { cutDetailId } from '../../lib/show.ts';
 import type { Project } from '../../lib/types.ts';
-import { projectFrom, stepsFor } from '../../test/projects.ts';
+import { loadedDrawings, projectFrom, stepsFor } from '../../test/projects.ts';
 import { render, renderText, sectionOf, textOf } from '../../test/render.tsx';
 import { TermScope } from '../../ui/index.ts';
 import { ProjectView } from '../project/ProjectScreen.tsx';
@@ -39,7 +39,7 @@ function project(inventory: Inventory): Project {
 describe('glossary terms in the plan (#178)', () => {
   const html = render(
     <TermScope entryHref={(id) => `#/glossary/${id}`}>
-      <ProjectView project={project(shop)} />
+      <ProjectView project={project(shop)} drawings={loadedDrawings(project(shop))} />
     </TermScope>,
   );
   const marked = (section: string) =>
@@ -130,7 +130,9 @@ describe('build steps in the project view (#52)', () => {
         { toolTypeId: 'tape-measure', capabilities: {} },
       ],
     };
-    const text = renderText(<ProjectView project={project(named)} />);
+    const text = renderText(
+      <ProjectView project={project(named)} drawings={loadedDrawings(project(named))} />,
+    );
     expect(text).toContain('With a miter saw. Tools: Miter saw (Sliding), Tape measure.');
   });
 
@@ -139,7 +141,7 @@ describe('build steps in the project view (#52)', () => {
     const steps = readSteps(p);
     if (!steps) throw new Error('the response has no steps');
     expect(steps.steps.length).toBeGreaterThan(0);
-    const text = renderText(<ProjectView project={p} />);
+    const text = renderText(<ProjectView project={p} drawings={loadedDrawings(p)} />);
     steps.steps.forEach((step, i) => {
       expect(text).toContain(`${i + 1}. ${step.title}`);
       for (const op of step.operations) {
@@ -152,7 +154,9 @@ describe('build steps in the project view (#52)', () => {
   });
 
   it('shows the chosen method with its numbers, and what is needed where none fits', () => {
-    const text = renderText(<ProjectView project={project(shop)} />);
+    const text = renderText(
+      <ProjectView project={project(shop)} drawings={loadedDrawings(project(shop))} />,
+    );
     // The beam's two ends, done alike, as one line with the tools that do them (#362).
     expect(text).toContain(
       'Square crosscut × 2 A Beam, end 1; A Beam, end 2 Miter saw, Tape measure',
@@ -166,14 +170,18 @@ describe('build steps in the project view (#52)', () => {
   });
 
   it("puts each tool's icon before its name in a method's tools (#86)", () => {
-    const html = render(<ProjectView project={project(shop)} />);
+    const html = render(
+      <ProjectView project={project(shop)} drawings={loadedDrawings(project(shop))} />,
+    );
     expect(html).toMatch(
       /<span class="k-tool-label"><svg class="k-tool-icon"[^>]*aria-hidden="true"[^>]*>.*?<\/svg>Miter saw<\/span>/,
     );
   });
 
   it("links each of a method's tools to its page", () => {
-    const html = render(<ProjectView project={project(shop)} />);
+    const html = render(
+      <ProjectView project={project(shop)} drawings={loadedDrawings(project(shop))} />,
+    );
     expect(html).toMatch(/<a href="#\/tools\/miter-saw"><span class="k-tool-label">/);
     expect(html).toMatch(/<a href="#\/tools\/tape-measure"><span class="k-tool-label">/);
   });
@@ -190,7 +198,7 @@ describe('build steps in the project view (#52)', () => {
   it('cuts board by board, each piece naming its part and opening its cut detail (#58)', () => {
     const p = project(shop);
     const steps = readSteps(p)?.steps ?? [];
-    const text = renderText(<ProjectView project={p} />);
+    const text = renderText(<ProjectView project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain("1. Cut board 1, a 4x6 12' long: Beam");
     expect(text).toContain(
       'Trim 1/2" off the end to square it, then cut these in order, measuring each from the fresh cut. Each saw cut takes about 1/8".',
@@ -209,14 +217,19 @@ describe('build steps in the project view (#52)', () => {
       steps.filter((s) => s.board).length,
     );
     // Every piece's cut detail is on the page to open.
-    const html = render(<ProjectView project={p} />);
+    const html = render(<ProjectView project={p} drawings={loadedDrawings(p)} />);
     for (const piece of steps.flatMap((s) => s.board?.pieces ?? [])) {
       expect(html).toContain(`id="${cutDetailId(piece.partId)}"`);
     }
   });
 
   it('shows no build steps for a plan made before operations', () => {
-    const text = renderText(<ProjectView project={projectFrom(snapshot, { steps: null })} />);
+    const text = renderText(
+      <ProjectView
+        project={projectFrom(snapshot, { steps: null })}
+        drawings={loadedDrawings(projectFrom(snapshot, { steps: null }))}
+      />,
+    );
     expect(text).not.toContain('Build steps');
   });
 });
@@ -237,7 +250,15 @@ describe('a step taken in at a glance (#362)', () => {
   });
 
   it('says once per step what the tools lack, not on every operation', () => {
-    const html = sectionOf(render(<ProjectView project={project({ tools: [] })} />), 'build-steps');
+    const html = sectionOf(
+      render(
+        <ProjectView
+          project={project({ tools: [] })}
+          drawings={loadedDrawings(project({ tools: [] }))}
+        />,
+      ),
+      'build-steps',
+    );
     const text = textOf(html);
     expect(text.match(/No method fits your tools for/g)?.length).toBe(
       steps.filter((s) => s.operations.some((op) => !op.method && op.needed)).length,
@@ -246,7 +267,12 @@ describe('a step taken in at a glance (#362)', () => {
   });
 
   it('puts the saw settings beside a mitered piece, and none beside a square one', () => {
-    const text = textOf(sectionOf(render(<ProjectView project={project(shop)} />), 'build-steps'));
+    const text = textOf(
+      sectionOf(
+        render(<ProjectView project={project(shop)} drawings={loadedDrawings(project(shop))} />),
+        'build-steps',
+      ),
+    );
     expect(text).toMatch(/B Back leg \(uphill\) 131-1\/2", piece 1 of 2 20\.0° 20\.0°/);
     expect(text).toMatch(/A Beam 120" (?!\d)/);
   });

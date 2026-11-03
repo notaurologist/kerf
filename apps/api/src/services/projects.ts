@@ -10,6 +10,7 @@ import {
   type ProgressReset,
   type ProgressSummary,
   type ProjectSnapshot,
+  planSteps,
   progressId,
   progressSummary,
   projectDrawings,
@@ -21,7 +22,7 @@ import { and, desc, eq, isNotNull, isNull, lt } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { Database } from '../db/client.ts';
 import { projects } from '../db/schema.ts';
-import { snapshotSteps, writeHistory } from './history.ts';
+import { writeHistory } from './history.ts';
 import {
   itemsOf,
   type ProgressChanges,
@@ -104,12 +105,6 @@ export interface Project extends ProjectSummary {
   /** Null when the snapshot cannot be read, or comparing it with the template fails. */
   version: VersionReport | null;
   /**
-   * The plan's drawings (#90, #91), drawn by core from the stored snapshot on each read. Not
-   * stored: a view of the numbers the snapshot holds. Null when the snapshot cannot be read or
-   * drawing it fails.
-   */
-  drawings: geometry.Drawings | null;
-  /**
    * The build steps (#105, #52), with methods chosen from the current tool inventory on each read,
    * and the key of that inventory so a client can tell when they are stale. In the project
    * response so the shop view needs no other request. Null when the snapshot cannot be read or
@@ -133,6 +128,15 @@ export interface Preview {
   truncated: boolean;
 }
 
+/**
+ * The plan's drawings (#90, #91), drawn by core from the stored snapshot on each read, in a
+ * request of their own: a large plan's are megabytes. Not stored: a view of the numbers the snapshot
+ * holds. Null when the snapshot cannot be read or drawing it fails.
+ */
+export interface ProjectDrawings {
+  drawings: geometry.Drawings | null;
+}
+
 /** A plan's assembled and exploded views from one corner. */
 type CornerViews = Pick<geometry.Drawings, 'isometric' | 'exploded'>;
 
@@ -149,6 +153,15 @@ export type Result<T> =
   | { ok: false; error: 'stale-project'; revision: number };
 
 type Row = typeof projects.$inferSelect;
+
+type Stored =
+  | {
+      ok: true;
+      template: TemplateDefinition;
+      snapshot: ProjectSnapshot;
+      outputs: ReturnType<TemplateDefinition['storedOutputs']['parse']>;
+    }
+  | { ok: false; reason: string; message: string };
 
 /** A project read after a regenerating save, with the ticks the save cleared. */
 function withReset(
@@ -167,17 +180,38 @@ export function createProjectService(deps: {
   const { db, templates, now } = deps;
   const findTemplate = (id: string) => templates.find((t) => t.id === id);
 
-  /** Progress counted from the ticks, or null when the stored plan cannot be counted. */
-  function progressOf(row: Row, ticks: readonly ProgressEntry[]) {
+  /** The stored snapshot, upgraded to the current shape if it was stored in an older one. */
+  const read = (row: Row) => readSnapshot(templates, row.snapshot);
+
+  /**
+   * The row's snapshot read once, with its template and its outputs parsed by the template's
+   * schema, for everything a read draws or counts from it; or why it cannot be read.
+   */
+  function readStored(row: Row): Stored {
     const template = findTemplate(row.templateId);
-    const stored = template ? read(row) : undefined;
-    if (!template || !stored?.ok) return null;
+    if (!template) {
+      return {
+        ok: false,
+        reason: 'unknown-template',
+        message: `No template has the ID "${row.templateId}".`,
+      };
+    }
+    const result = read(row);
+    if (!result.ok) return result;
+    const { snapshot } = result;
+    return {
+      ok: true,
+      template,
+      snapshot,
+      outputs: template.storedOutputs.parse(snapshot.outputs),
+    };
+  }
+
+  /** Progress counted from the ticks, or null when the stored plan cannot be counted. */
+  function progressOf(row: Row, stored: Stored, ticks: readonly ProgressEntry[]) {
+    if (!stored.ok) return null;
     try {
-      return progressSummary(
-        template,
-        template.storedOutputs.parse(stored.snapshot.outputs),
-        ticks,
-      );
+      return progressSummary(stored.template, stored.outputs, ticks);
     } catch (error) {
       console.error(`project ${row.id}: progress could not be counted`, error);
       return null;
@@ -185,7 +219,11 @@ export function createProjectService(deps: {
   }
 
   /** The row's summary, with its progress counted from its ticks. */
-  function summary(row: Row, ticks: readonly ProgressEntry[]): ProjectSummary {
+  function summary(
+    row: Row,
+    ticks: readonly ProgressEntry[],
+    stored: Stored = readStored(row),
+  ): ProjectSummary {
     const template = findTemplate(row.templateId);
     return {
       id: row.id,
@@ -195,14 +233,11 @@ export function createProjectService(deps: {
       templateVersion: row.templateVersion,
       revision: row.revision,
       templateBehind: template !== undefined && row.templateVersion < template.version,
-      progress: progressOf(row, ticks),
+      progress: progressOf(row, stored, ticks),
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
     };
   }
-
-  /** The stored snapshot, upgraded to the current shape if it was stored in an older one. */
-  const read = (row: Row) => readSnapshot(templates, row.snapshot);
 
   /** What `draw` returns, or null if it throws, so one broken view does not stop the project opening. */
   function drawn<T>(row: Row, what: string, draw: () => T): T | null {
@@ -215,42 +250,31 @@ export function createProjectService(deps: {
   }
 
   async function view(row: Row): Promise<Result<Project>> {
-    const template = findTemplate(row.templateId);
-    const result = template
-      ? { ...read(row), template }
-      : {
-          ok: false as const,
-          reason: 'unknown-template' as const,
-          message: `No template has the ID "${row.templateId}".`,
-        };
+    const stored = readStored(row);
     const ticks = await readProgress(db, row.id);
-    if (!result.ok) {
+    if (!stored.ok) {
       return {
         ok: true,
         value: {
-          ...summary(row, ticks),
+          ...summary(row, ticks, stored),
           snapshot: null,
-          unreadable: { reason: result.reason, message: result.message },
+          unreadable: { reason: stored.reason, message: stored.message },
           version: null,
-          drawings: null,
           steps: null,
           ticks,
         },
       };
     }
-    const { snapshot, template: found } = result;
+    const { snapshot, template, outputs } = stored;
     const inventory = await getInventory(db);
     return {
       ok: true,
       value: {
-        ...summary(row, ticks),
+        ...summary(row, ticks, stored),
         ticks,
         snapshot,
-        version: drawn(row, 'the version report', () => compareWithCurrent(found, snapshot)),
-        drawings: drawn(row, 'the drawings', () =>
-          projectDrawings(found, found.storedOutputs.parse(snapshot.outputs)),
-        ),
-        steps: drawn(row, 'the build steps', () => snapshotSteps(found, snapshot, inventory)),
+        version: drawn(row, 'the version report', () => compareWithCurrent(template, snapshot)),
+        steps: drawn(row, 'the build steps', () => planSteps(template, outputs, inventory)),
       },
     };
   }
@@ -316,12 +340,26 @@ export function createProjectService(deps: {
     async views(id: string, corner: geometry.Corner): Promise<Result<CornerViews>> {
       const row = await load(id);
       if (!row) return { ok: false, error: 'not-found' };
-      const template = findTemplate(row.templateId);
-      if (!template) return { ok: false, error: 'missing-template' };
-      const result = read(row);
-      if (!result.ok) return { ok: false, error: 'unreadable-snapshot' };
-      const outputs = template.storedOutputs.parse(result.snapshot.outputs);
-      return { ok: true, value: cornerViews(template, outputs, corner) };
+      if (!findTemplate(row.templateId)) return { ok: false, error: 'missing-template' };
+      const stored = readStored(row);
+      if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+      return { ok: true, value: cornerViews(stored.template, stored.outputs, corner) };
+    },
+
+    /**
+     * The plan's drawings, drawn on read. A plan that cannot be read or drawn has none, as it
+     * opens without them; drawing errors are logged.
+     */
+    async drawings(id: string): Promise<Result<ProjectDrawings>> {
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      const stored = readStored(row);
+      if (!stored.ok) return { ok: true, value: { drawings: null } };
+      const { template, outputs } = stored;
+      return {
+        ok: true,
+        value: { drawings: drawn(row, 'the drawings', () => projectDrawings(template, outputs)) },
+      };
     },
 
     async create(input: NewProject): Promise<Result<Project>> {
@@ -355,32 +393,36 @@ export function createProjectService(deps: {
       const plan = changesPlan(changes);
       const at = now();
       let progressReset: ProgressReset[] | undefined;
+      // Generating can take a while, so it runs before the row is locked, from the row as this
+      // save's revision left it. The revision is checked again under the lock: if it moved, the
+      // values generated from are no longer the stored ones.
+      let saved: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
+      let before: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
+      if (changes.params !== undefined || changes.structuralInputs !== undefined) {
+        const row = await load(id);
+        if (!row) return { ok: false, error: 'not-found' };
+        if (changes.revision !== row.revision) return stale(row);
+        const stored = read(row);
+        if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+        const generated = generate(
+          row.templateId,
+          changes.params ?? stored.snapshot.params,
+          changes.structuralInputs ?? stored.snapshot.structuralInputs,
+        );
+        if (!generated.ok) return generated;
+        saved = generated;
+        before = { snapshot: stored.snapshot, template: generated.template };
+      }
       const outcome = await db.transaction(async (tx): Promise<Row | Failure> => {
         const row = await lock(tx, id);
         if (!row) return { ok: false, error: 'not-found' };
         if (plan && changes.revision !== row.revision) return stale(row);
-        let regenerated = {};
-        let saved: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
-        let before: { snapshot: ProjectSnapshot; template: TemplateDefinition } | undefined;
-        if (changes.params !== undefined || changes.structuralInputs !== undefined) {
-          const stored = read(row);
-          if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-          const generated = generate(
-            row.templateId,
-            changes.params ?? stored.snapshot.params,
-            changes.structuralInputs ?? stored.snapshot.structuralInputs,
-          );
-          if (!generated.ok) return generated;
-          regenerated = snapshotColumns(generated.snapshot);
-          saved = generated;
-          before = { snapshot: stored.snapshot, template: generated.template };
-        }
         const [updated] = await tx
           .update(projects)
           .set({
             ...(changes.name !== undefined ? { name: changes.name } : {}),
             ...(changes.status !== undefined ? { status: changes.status } : {}),
-            ...regenerated,
+            ...(saved ? snapshotColumns(saved.snapshot) : {}),
             ...(plan ? { revision: row.revision + 1 } : {}),
             updatedAt: at,
           })
@@ -443,23 +485,27 @@ export function createProjectService(deps: {
     async regenerate(id: string, request: ProjectRegenerate): Promise<Result<Project>> {
       const at = now();
       let progressReset: ProgressReset[] | undefined;
+      // Generated before the lock and checked again under it, as a save is.
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      if (request.revision !== row.revision) return stale(row);
+      const stored = read(row);
+      if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
+      const generated = generate(
+        row.templateId,
+        stored.snapshot.params,
+        stored.snapshot.structuralInputs,
+      );
+      if (!generated.ok) return generated;
       const outcome = await db.transaction(async (tx): Promise<Row | Failure> => {
-        const row = await lock(tx, id);
-        if (!row) return { ok: false, error: 'not-found' };
-        if (request.revision !== row.revision) return stale(row);
-        const stored = read(row);
-        if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-        const generated = generate(
-          row.templateId,
-          stored.snapshot.params,
-          stored.snapshot.structuralInputs,
-        );
-        if (!generated.ok) return generated;
+        const locked = await lock(tx, id);
+        if (!locked) return { ok: false, error: 'not-found' };
+        if (request.revision !== locked.revision) return stale(locked);
         const [updated] = await tx
           .update(projects)
           .set({
             ...snapshotColumns(generated.snapshot),
-            revision: row.revision + 1,
+            revision: locked.revision + 1,
             updatedAt: at,
           })
           .where(eq(projects.id, id))

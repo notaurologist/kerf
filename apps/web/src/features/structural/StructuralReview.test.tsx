@@ -9,7 +9,7 @@ import {
 import { VERDICT_WORDS } from '@kerf/core/testing';
 import { describe, expect, it } from 'vitest';
 import { readPlan } from '../../lib/plan.ts';
-import { noTicks, projectFrom, storedSnapshots } from '../../test/projects.ts';
+import { loadedDrawings, noTicks, projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from '../project/ProjectScreen.tsx';
 import { byMargin, StructuralReview } from './StructuralReview.tsx';
@@ -19,12 +19,27 @@ const [complete, noInputs, builtUp] = storedSnapshots;
 if (!complete || !noInputs || !builtUp) throw new Error('fixture has three worked examples');
 /** The plan's structural review section, as text. */
 const text = (snapshot: typeof complete) =>
-  textOf(sectionOf(render(<ProjectView project={projectFrom(snapshot)} />), 'structural-review'));
+  textOf(
+    sectionOf(
+      render(
+        <ProjectView
+          project={projectFrom(snapshot)}
+          drawings={loadedDrawings(projectFrom(snapshot))}
+        />,
+      ),
+      'structural-review',
+    ),
+  );
 
 describe('the structural review, worked example with every input', () => {
   const review = text(complete);
   const html = sectionOf(
-    render(<ProjectView project={projectFrom(complete)} />),
+    render(
+      <ProjectView
+        project={projectFrom(complete)}
+        drawings={loadedDrawings(projectFrom(complete))}
+      />,
+    ),
     'structural-review',
   );
 
@@ -69,7 +84,12 @@ describe('the structural review, worked example with every input', () => {
 
   it('lets a long value break between its readings, so a stacked row fits at 320 px (#152)', () => {
     const html = sectionOf(
-      render(<ProjectView project={projectFrom(complete)} />),
+      render(
+        <ProjectView
+          project={projectFrom(complete)}
+          drawings={loadedDrawings(projectFrom(complete))}
+        />,
+      ),
       'structural-review',
     );
     expect(html).toContain(
@@ -119,7 +139,13 @@ describe('ticks in the To do band (#393)', () => {
       },
     ],
   });
-  const html = render(<ProjectView project={project} section="structural-review" />);
+  const html = render(
+    <ProjectView
+      project={project}
+      drawings={loadedDrawings(project)}
+      section="structural-review"
+    />,
+  );
   const review = sectionOf(html, 'structural-review');
 
   it('gives each expert check an Asked tick and each checklist item a Confirmed one', () => {
@@ -155,7 +181,12 @@ describe('the structural review, no structural inputs', () => {
 
   it('links each missing input to its own field in Edit', () => {
     const html = sectionOf(
-      render(<ProjectView project={projectFrom(noInputs)} />),
+      render(
+        <ProjectView
+          project={projectFrom(noInputs)}
+          drawings={loadedDrawings(projectFrom(noInputs))}
+        />,
+      ),
       'structural-review',
     );
     // With inputs needed the project opens on the review, so Edit returns there.

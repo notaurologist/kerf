@@ -98,6 +98,26 @@ describe('createSnapshot', () => {
     if (result.ok) return;
     expect(result.issues.map((i) => i.code)).toContain('ply-bolts-missing');
   });
+
+  it('reports a throw from the template as an issue', () => {
+    const throwing: TemplateDefinition = {
+      ...swingSetAFrame,
+      generate: () => {
+        throw new RangeError('Length must not be negative, got -1');
+      },
+    };
+    const result = createSnapshot(throwing, params, inputs);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.issues).toEqual([
+      {
+        code: 'generation-error',
+        message:
+          "Kerf couldn't make a plan from these values (Length must not be negative, got -1). Its checks missed this combination; try changing the values you entered last.",
+        params: [],
+      },
+    ]);
+  });
 });
 
 describe('readSnapshot', () => {

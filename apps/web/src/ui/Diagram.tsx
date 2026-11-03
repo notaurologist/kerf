@@ -1,5 +1,5 @@
 import type { geometry } from '@kerf/core';
-import { type CSSProperties, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { type CSSProperties, memo, useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { Motion } from './assemblyMotion.ts';
 import { DiagramFrame } from './DiagramFrame.tsx';
 
@@ -64,7 +64,8 @@ function oneColumn(letters: Extract<Primitive, { kind: 'letter' }>[], x: number,
     });
 }
 
-export function Diagram(props: {
+/** A drawing from core as SVG. Shown through `Diagram`; exported for tests that read its tree. */
+export function DiagramDrawing(props: {
   drawing: Drawing;
   /** A short description generated from the same data. */
   label: string;
@@ -362,6 +363,12 @@ export function Diagram(props: {
     </div>
   );
 }
+
+/**
+ * A drawing is thousands of shapes, so a screen with many, such as the plan's drawings during a
+ * move between views, redraws only those whose props change.
+ */
+export const Diagram = memo(DiagramDrawing);
 
 type Box = { x0: number; x1: number; y0: number; y1: number };
 

@@ -150,14 +150,17 @@ export function Notice(props: { children: ReactNode; icon?: 'connection' | 'erro
   );
 }
 
-/** Never a dead end: always a way back. Leave out `title` where the screen has a heading. */
+/**
+ * Never a dead end: a way back, or Try again on the screen a way back would go to. Leave out
+ * `title` where the screen has a heading.
+ */
 export function ProblemScreen(props: {
   title?: string;
   children: ReactNode;
   icon?: 'connection' | 'error';
   onRetry?: () => void;
   retryLabel?: string;
-  back: { href: string; label: string };
+  back?: { href: string; label: string };
 }) {
   return (
     <Stack>
@@ -167,9 +170,11 @@ export function ProblemScreen(props: {
         {props.onRetry && (
           <Button onClick={props.onRetry}>{props.retryLabel ?? 'Try again'}</Button>
         )}
-        <ButtonLink variant={props.onRetry ? 'secondary' : 'primary'} href={props.back.href}>
-          {props.back.label}
-        </ButtonLink>
+        {props.back && (
+          <ButtonLink variant={props.onRetry ? 'secondary' : 'primary'} href={props.back.href}>
+            {props.back.label}
+          </ButtonLink>
+        )}
       </Cluster>
     </Stack>
   );

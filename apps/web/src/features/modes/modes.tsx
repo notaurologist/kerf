@@ -7,6 +7,7 @@ import {
   summarizeProgress,
 } from '@kerf/core';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type DrawingsState, useDrawings } from '../../lib/drawings.ts';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
@@ -32,6 +33,7 @@ import {
   Text,
   Tick,
 } from '../../ui/index.ts';
+import { DrawingsWaiting } from '../diagrams/Diagrams.tsx';
 import {
   projectStoreReadings,
   readingHref,
@@ -67,15 +69,26 @@ export function ModeScreen(props: { route: ModeRoute }) {
       </ModeFrame>
     );
   }
-  return <ModeView route={props.route} project={loaded.value} />;
+  return <ModeWithDrawings route={props.route} project={loaded.value} />;
 }
 
-export function ModeView(props: { route: ModeRoute; project: Project }) {
+/** The mode, with the plan's drawings loaded where they are shown. */
+function ModeWithDrawings(props: { route: ModeRoute; project: Project }) {
+  return <ModeView {...props} drawings={useDrawings(props.project)} />;
+}
+
+export function ModeView(props: {
+  route: ModeRoute;
+  project: Project;
+  /** The plan's drawings, which come in a request of their own. */
+  drawings: DrawingsState;
+}) {
   const { route, project } = props;
   const exitHref = href({ screen: 'project', id: project.id });
   const mode = route.screen === 'shop' ? 'Shopping' : 'Building';
   const read = useReadProject(project);
-  const { plan, drawings } = read;
+  const { plan } = read;
+  const drawings = props.drawings.state === 'ready' ? props.drawings.value : null;
   const steps = read.steps?.steps ?? [];
   const ticks = useTicks(project.id, project.ticks, project.revision);
   // "Saved." from Edit, opened here for a value read at the store (#390).
@@ -88,6 +101,7 @@ export function ModeView(props: { route: ModeRoute; project: Project }) {
     <ModeFrame mode={mode} context={project.name} exitHref={exitHref} end={<ThemeSwitch />}>
       <Stack>
         <Waiting ticks={ticks} />
+        {props.drawings.state === 'error' && <DrawingsWaiting state={props.drawings} />}
         {children}
       </Stack>
     </ModeFrame>
