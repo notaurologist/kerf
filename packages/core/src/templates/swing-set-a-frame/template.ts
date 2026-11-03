@@ -114,8 +114,10 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * Version 34 checks the longer leg as a column in compression (NDS 2024 3.6.3 and 3.7.1), with
  * the legs' species, grade, and incising as structural inputs (#468). The ground anchor check's
  * note on the legs' weight now names what is missing for it. No other output changes.
+ * Version 35 measures the spacing of the crossbar and gusset bolts along the leg as spacing between
+ * rows (Table 12.5.1D), since across the leg's grain each bolt is its own row (#524).
  */
-export const TEMPLATE_VERSION = 34;
+export const TEMPLATE_VERSION = 35;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
