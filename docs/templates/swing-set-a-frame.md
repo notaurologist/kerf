@@ -49,6 +49,8 @@ Template version 20 (#455) rewords the leg's flush-cut note: it calls the cut a 
 
 Template version 21 (#457) changes only how the build steps read, a change in generic code: every method that uses a power tool says to wear eye protection, and hearing protection too for saws, routers, jointers and planers, and the leg taper cut with a circular saw marks where the blade stops and says to let the blade stop before lifting the saw. Stored output is the same.
 
+Template version 23 (#445) supports the beam, in the structural checks, at the middle of each gusset's top edge instead of at the frame centerlines (Structural model, below). The beam rests on the gussets, and the leg-to-beam bolt sits in a hole 1/16" over its size, so the gussets take the load first. The span grows by one leg's thickness plus one gusset's: 92.5 to 97.5 in the worked example, whose bending margin falls from 1.08 to 0.98. No part, cut, or bolt moves.
+
 Template version 22 (#449) gives each bolt the length to buy (Hardware, below) and names its shopping line by it ("1/2" × 10" through-bolt"), with the grip and the lengths that fit as the line's note. Each hardware line now carries its item's notes, which both shopping lists show, and the hardware notes name the fastener materials IRC 2021 R317.3.1 allows in treated lumber. No part, cut, or check changes.
 
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
@@ -175,7 +177,8 @@ Worked example (1/2" bolts, two per joint): p = 1.638; crossbar bolts 1.375 and 
 
 - Left frame legs occupy x from e to e + t; right frame legs from L − e − t to L − e.
 - The gusset and the crossbar sit on the outside face (x < e on the left frame).
-- Frame centerlines (the supports for the structural checks) are at x = e + t/2 and L − e − t/2.
+- Frame centerlines, where the leg-to-beam bolts go, are at x = e + t/2 and L − e − t/2.
+- The gusset's top edge is under the beam from x = max(0, e − gt) to e on the left frame, mirrored on the right. The structural checks support the beam at the middle of that edge (Structural model, Beam).
 
 ### Swings
 
@@ -565,7 +568,7 @@ None has a default (decision 0001). A missing input makes every check that needs
 - **Strength** (bending, shear, hanger): per-hanger load times the dynamic factor.
 - **Break-even dynamic factor** (#401): each strength check also reports the dynamic factor at which its margin reaches 1.0, with every other input as entered (`DOMAIN.md`, Structural checks). For the hanger it is the rating over the smooth-swing load on the most loaded hanger. For bending and shear it is solved from the check, since the beam's weight is not multiplied: C = (allowable − the weight's part) / the hangers' part at factor 1. It is shown with the check and under the dynamic factor's field in Edit, and it is reported while the factor is still missing; the checks stay "input needed" until the factor is entered.
 - **Deflection:** per-hanger load without the dynamic factor.
-- **Beam:** supported at the frame centerlines, `geometry.supportsX`, with a point load at each hanger, `swings.hangersX`. The unbraced length for beam stability is the span, since each frame holds the beam against rotation (a checklist item). The beam's own weight is a uniform load over the span, not multiplied by the dynamic factor; the overhangs' weight is left out, which slightly raises the moment between the supports.
+- **Beam:** supported where it bears, with a point load at each hanger, `swings.hangersX`. The gusset is fitted with its top edge against the beam's underside, and the leg-to-beam bolt sits in a hole 1/16" over its size (Hole size, version 9), so the gusset is what the beam meets first. The bolt carries part of the reaction only if the gusset settles (its own bolts are in oversize holes too) or the wood crushes; that moves the support inward and shortens the span, so the gusset position is the longer of the two. Each support is at the middle of the part of the gusset's top edge under the beam, b_g = min(gt, e) long: x = e − b_g/2 and L − e + b_g/2 (`beamSupports` in `structural.ts`, version 23, #445). NDS 2024 3.2.1 (p. 17) takes a simple beam's span "from face to face of supports, plus ½ the required bearing length at each end". The faces are the gussets' inner faces, L − 2e apart, and the required bearing length can be no more than the bearing there is, b_g, so the span to the middle of each gusset, L − 2e + b_g, is the longest the clause allows. Kerf uses it rather than computing the required bearing length, which needs a bearing check it does not make; the longer span gives the larger moment and deflection. With e = 0 no gusset is under the beam, and it is supported at the bolts, `geometry.supportsX`. Before version 23 the supports were the frame centerlines, which put the span 2.5 short at each end in the worked example. The unbraced length for beam stability is the span, since each frame holds the beam against rotation (a checklist item). The beam's own weight is a uniform load over the span, not multiplied by the dynamic factor; the overhangs' weight is left out, which slightly raises the moment between the supports.
 - **Service conditions:** wet service (outdoors, uncovered), C_t = 1.0 (no sustained heat above 100°F), C_D = 1.0 (the impact increase is not used, and the NDS bars factors above 1.6 for lumber treated with water-borne preservatives), no repetitive member factor (one beam).
 - **Beam weight:** w = ρ·A / 1728 lb/in, with A the cross-section of all plies and ρ the density at the entered moisture content M from Simpson, FPL-GTR-76: G_b = G / (1 + 0.265·G) with G = 0.55 from Table 4B, then ρ = 62.4·G_b·(1 + M/100) at or above 30%, divided by (1 − 0.265·a·G_b) with a = (30 − M)/30 below 30%. The NDS Supplement 3.1.3 formula agrees within 0.3% up to 30%; above 30% it reads low, because it keeps shrinking the volume of wood that no longer swells.
 - **Built-up beam:** each ply carries an equal share of every load, including the beam's weight (decision 0013).
@@ -576,59 +579,61 @@ Leg-to-beam bolt and gusset; beam plies (built-up beams only); beam held against
 
 ### Worked examples (hand-checked)
 
-Geometry from the worked example above: supports at 13.75 and 106.25 (span L = 92.5), hangers at 30, 50, 70, 90, which are 16.25, 36.25, 56.25, and 76.25 from the left support. Southern Pine No.2, not incised, beam moisture content 30%, θ = 60° (3 − 2·cos θ = 2), dynamic factor 2, deflection limit L/240, hanger rating 1200 lb.
+Geometry from the worked example above: the gusset (a 2x8, gt = 1.5) is under the beam from 10.5 to 12, so the supports are at 12 − 0.75 = 11.25 and 120 − 11.25 = 108.75 (span L = 97.5), and the hangers at 30, 50, 70, 90 are 18.75, 38.75, 58.75, and 78.75 from the left support. Version 22 and earlier used 13.75 and 106.25 (span 92.5); their numbers are in the version 22 spec. Southern Pine No.2, not incised, beam moisture content 30%, θ = 60° (3 − 2·cos θ = 2), dynamic factor 2, deflection limit L/240, hanger rating 1200 lb.
 
 Design values (Table 4B, 5"–6" wide): Fb = 1000, Fv = 175, E = 1,400,000, Emin = 510,000 psi, G = 0.55. Wet service: C_M = 1.0 for Fb (Fb·C_F = 1000 ≤ 1150 psi), 0.97 for Fv, 0.9 for E and Emin. So Fv' = 169.75 psi, E' = 1,260,000 psi, Emin' = 459,000 psi.
 
 Beam weight at 30%: G_b = 0.55 / 1.14575 = 0.480035, ρ = 62.4 · 0.480035 · 1.30 = 38.940 lb/ft³. A 4x6 (19.25 in²) weighs w = 38.940 · 19.25 / 1728 = 0.433798 lb/in (5.21 lb/ft); two 2x6 plies (16.5 in²) weigh 0.371827 lb/in, 0.185914 per ply.
 
-Beam stability: ℓu/d = 92.5/5.5 = 16.8 > 14.3, so ℓe = 1.84·92.5 = 170.2.
+Beam stability: ℓu/d = 97.5/5.5 = 17.7 > 14.3, so ℓe = 1.84·97.5 = 179.4.
 
 | | 4x6, b = 3.5 | One ply of 2x6, b = 1.5 |
 |---|---|---|
-| R_B = √(ℓe·d / b²) | 8.7416 | 20.3972 |
-| F_bE = 1.20·Emin' / R_B² | 7207.9 | 1323.9 |
-| C_L | 0.99208 | 0.90309 |
-| Fb' | 992.08 | 903.09 |
+| R_B = √(ℓe·d / b²) | 8.9748 | 20.9412 |
+| F_bE = 1.20·Emin' / R_B² | 6838.2 | 1256.0 |
+| C_L | 0.99159 | 0.89116 |
+| Fb' | 991.59 | 891.16 |
 | S = b·d²/6, I = b·d³/12 | 17.6458, 48.5260 | 7.5625, 20.7969 |
 
 **Example 1, symmetric, 4x6:** 150 lb riders on both swings. T = 300 per swing; 150 per hanger for deflection, 300 for strength.
 
 | Quantity | Value |
 |---|---|
-| Reactions, 600 + w·L/2 | 620.06, 620.06 |
-| M at midspan: hangers 600·36.25 − 300·20 = 15,750, plus w·L²/8 = 463.96 | 16,213.96 lb·in |
-| f_b = M/S | 918.85 psi; margin 992.08 / 918.85 = 1.08 |
-| f_v = 3·620.06 / (2·3.5·5.5) | 48.32 psi; margin 169.75 / 48.32 = 3.51 |
-| δ·EI at midspan: two symmetric pairs (DA6 Fig. 9), [150·16.25·(3·92.5² − 4·16.25²) + 150·36.25·(3·92.5² − 4·36.25²)] / 24 = 7,124,414, plus 5·w·L⁴/384 = 413,517 (DA6 Fig. 1) | 7,537,931 / 61,142,813 = 0.1233 in |
-| Limit 92.5/240 | 0.3854 in; margin 3.13 |
+| Reactions, 600 + w·L/2 | 621.15, 621.15 |
+| M at midspan: hangers 600·48.75 − 300·30 − 300·10 = 17,250, plus w·L²/8 = 515.47 | 17,765.47 lb·in |
+| f_b = M/S | 1006.78 psi; margin 991.59 / 1006.78 = 0.98 |
+| f_v = 3·621.15 / (2·3.5·5.5) | 48.40 psi; margin 169.75 / 48.40 = 3.51 |
+| δ·EI at midspan: two symmetric pairs (DA6 Fig. 9), [150·18.75·(3·97.5² − 4·18.75²) + 150·38.75·(3·97.5² − 4·38.75²)] / 24 = 8,629,492, plus 5·w·L⁴/384 = 510,440 (DA6 Fig. 1) | 9,139,933 / 61,142,813 = 0.1495 in |
+| Limit 97.5/240 | 0.4063 in; margin 2.72 |
 | Hanger | 300 lb against 1200; margin 4.0 |
-| Break-even dynamic factor, bending | Fb'·S = 992.08 · 17.6458 = 17,506.13 lb·in; the hangers give 7,875 per unit factor and the weight 463.96, so C = (17,506.13 − 463.96) / 7,875 = 2.164 (not margin × factor, 1.08 · 2 = 2.16, since the weight is not multiplied) |
-| Break-even dynamic factor, shear | Fv'·2·b·d/3 = 2,178.46 lb; C = (2,178.46 − 20.06) / 300 = 7.195 |
+| Break-even dynamic factor, bending | Fb'·S = 991.59 · 17.6458 = 17,497.46 lb·in; the hangers give 8,625 per unit factor and the weight 515.47, so C = (17,497.46 − 515.47) / 8,625 = 1.969 (not margin × factor, 0.985 · 2 = 1.970, since the weight is not multiplied) |
+| Break-even dynamic factor, shear | Fv'·2·b·d/3 = 2,178.46 lb; C = (2,178.46 − 21.15) / 300 = 7.191 |
 | Break-even dynamic factor, hanger | 1200 / 150 = 8.0 |
 
 **Example 2, asymmetric, 4x6:** 200 lb on the left swing, 80 lb on the right. Strength loads per hanger 400, 400, 160, 160.
 
 | Quantity | Value |
 |---|---|
-| R1 = (400·(76.25 + 56.25) + 160·(36.25 + 16.25)) / 92.5 + w·L/2 | 663.78 + 20.06 = 683.85; R2 = 1120 + 40.13 − 683.85 = 476.28 |
-| M under the second hanger, 683.85·36.25 − 400·20 − w·36.25²/2 | 16,504.44 lb·in (the shear changes sign there) |
-| f_b | 935.31 psi; margin 1.06 |
-| f_v = 3·683.85 / 38.5 | 53.29 psi; margin 3.19 |
-| δ (deflection loads 200, 200, 80, 80, plus w) | 0.1157 in, at x = 58.34; margin 3.33 |
+| R1 = (400·(78.75 + 58.75) + 160·(38.75 + 18.75)) / 97.5 + w·L/2 | 658.46 + 21.15 = 679.61; R2 = 1120 + 42.30 − 679.61 = 482.69 |
+| M under the second hanger, 679.61·38.75 − 400·20 − w·38.75²/2 | 18,009.17 lb·in (the shear changes sign there) |
+| f_b | 1020.59 psi; margin 0.97 |
+| f_v = 3·679.61 / 38.5 | 52.96 psi; margin 3.21 |
+| δ (deflection loads 200, 200, 80, 80, plus w) | 0.1403 in, at x = 58.29; margin 2.90 |
 | Hanger | 400 lb against 1200; margin 3.0 |
 
 **Example 3, two-ply 2x6, example 1's loads:** each ply carries half of every load and half the beam's weight.
 
 | Quantity | Value |
 |---|---|
-| M per ply, 7,875 + 0.185914·92.5²/8 | 8,073.84 lb·in |
-| f_b = 8073.84 / 7.5625 | 1067.62 psi; margin 903.09 / 1067.62 = 0.85 |
-| f_v = 3·308.60 / (2·1.5·5.5) | 56.11 psi; margin 3.03 |
-| δ | 0.1427 in; margin 2.70 |
-| Break-even dynamic factor, bending | Fb'·S = 903.09 · 7.5625 = 6,829.64 per ply; C = (6,829.64 − 198.84) / 3,937.5 = 1.684 |
+| M per ply, 8,625 + 0.185914·97.5²/8 | 8,845.92 lb·in |
+| f_b = 8845.92 / 7.5625 | 1169.71 psi; margin 891.16 / 1169.71 = 0.76 |
+| f_v = 3·309.06 / (2·1.5·5.5) | 56.19 psi; margin 3.02 |
+| δ | 0.1730 in; margin 2.35 |
+| Break-even dynamic factor, bending | Fb'·S = 891.16 · 7.5625 = 6,739.42 per ply; C = (6,739.42 − 220.92) / 4,312.5 = 1.512 |
 
-The two-ply 2x6 has less margin in bending than the 4x6 under the same inputs, for two reasons: two 2x6 plies (3.0 in) are narrower than a 4x6 (3.5 in), and one ply is far more slender for beam stability. The beam's weight lowers each bending margin by about 3%. Maximum moments and deflections were also found by sampling the summed DA6 curves at 200,000 points; the code finds them exactly, and both agree to the precision shown.
+The two-ply 2x6 has less margin in bending than the 4x6 under the same inputs, for two reasons: two 2x6 plies (3.0 in) are narrower than a 4x6 (3.5 in), and one ply is far more slender for beam stability. The beam's weight lowers each bending margin by about 3%. Maximum moments and deflections were also found by sampling the summed DA6 curves at 200,000 points; the code finds them exactly, and both agree to the precision shown. Version 23's numbers were recomputed by a separate script that first reproduced every version 22 number above from the old supports.
+
+The supports at the frame centerlines give a shorter span and so a larger margin in bending and deflection, but in example 2 a slightly smaller one in shear (3.19 against 3.21), since the left reaction is then larger (683.85 against 679.61). The difference is under 1%, and the bolt carries load only after the gusset bears, so Kerf reports the gusset position alone.
 
 These inputs are only for testing. The real values are the owner's to choose with an experienced builder.
 
