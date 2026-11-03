@@ -114,7 +114,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
 
 ## Breakpoints
 
-Components respond to their own width (container queries), so a breakpoint is a width of the component, not the page. Use one of these; `styles.test.ts` fails on any other.
+Components respond to their own width (container queries), so a breakpoint is a width of the component, not the page. Use one of these; `styles.test.ts` fails on any other. Because the test reads this table, CI runs on a change to this file, unlike the rest of `docs/` (0010).
 
 | Width | Used by |
 |---|---|
