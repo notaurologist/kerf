@@ -17,12 +17,21 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!-- The color at the top of a phone's screen: the title bar's, or a shop mode's bar while one
+         is open. Kept in step with tokens.css by src/lib/theme.tsx. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1d23" />
     <!-- The theme chosen on this device (#155), set before the first paint so the page does not
          flash the other scheme. Keep in step with src/lib/theme.tsx. -->
     <script>
       try {
         const theme = localStorage.getItem('kerf-theme');
-        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+        if (theme === 'light' || theme === 'dark') {
+          document.documentElement.dataset.theme = theme;
+          const metas = document.querySelectorAll('meta[name="theme-color"]');
+          const chosen = document.querySelector(`meta[name="theme-color"][media*="${theme}"]`);
+          for (const meta of metas) meta.content = chosen.content;
+        }
       } catch {}
     </script>
   </head>
