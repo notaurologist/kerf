@@ -382,7 +382,26 @@ describe('refusals (spec, Validation)', () => {
     expect(refused(half)).toEqual(['mortise-off-leg']);
     // A mortise whose wall is flush with the inside face is open there: 1.1875 − 0.4375 − 0.75 = 0.
     expect(refused({ ...half, apronSetback: 0.4375 })).toEqual(['mortise-off-leg']);
-    expect(refused({ ...half, apronSetback: 0.375 })).toEqual([]);
+  });
+
+  it("refuses aprons that stand past the leg's inside face", () => {
+    const legs = { legStock: { size: 1.1875, lengths: [3] }, footSize: 0.75 };
+    // 13/16 aprons on 1-3/16 legs: 3/8 + 13/16 = 1-3/16 is flush with the inside face.
+    expect(refused({ ...legs, apronSetback: 0.375 })).toEqual([]);
+    expect(refused({ ...legs, apronSetback: 0.4375 })).toEqual(['apron-past-leg']);
+    // #561, draw 25 with the mortise back in the leg: 3/8 + 1-1/4 = 1-5/8, past the 1-3/16 leg.
+    const result = recordCabinet.generate(
+      {
+        ...WORKED_EXAMPLE,
+        ...legs,
+        apronSetback: 0.375,
+        board: { ...WORKED_EXAMPLE.board, thickness: 1.25 },
+      },
+      {},
+    );
+    expect(result.ok ? [] : result.issues.map((i) => i.message)).toEqual([
+      `Aprons 1-1/4" thick, set back 3/8" on 1-3/16" legs, would stand past the leg's inside face, where the two aprons at each leg would run into each other. To fix it, use legs at least 1-5/8", or use thinner boards.`,
+    ]);
   });
 
   it('refuses a largest item wider than the 54" top or deeper than its 17-3/4"', () => {

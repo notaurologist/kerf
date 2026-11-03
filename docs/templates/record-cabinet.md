@@ -42,7 +42,7 @@ The cabinet first stood on its panels with a cutout between them, which looked p
 | Tenon thickness | t_t | board thickness / 3, rounded down to 1/16 | Rule of thumb |
 | Tenon length | l_t | s/2 + 1/4 | Rule of thumb |
 
-H, h_f, h_c, and f_w are removed. Validation refuses s_f ≥ s (no taper), l_t ≥ s (a tenon through the leg), r_a + t_t ≥ s (an apron off its leg), and r_a + (t_a + t_t)/2 ≥ s (a mortise past the leg's inside face, #561).
+H, h_f, h_c, and f_w are removed. Validation refuses s_f ≥ s (no taper), l_t ≥ s (a tenon through the leg), r_a + t_t ≥ s (an apron off its leg), r_a + (t_a + t_t)/2 ≥ s (a mortise past the leg's inside face, #561), and r_a + t_a > s (an apron past the leg's inside face, #561).
 
 ### Worked example (hand-checked)
 
@@ -249,6 +249,7 @@ Refused:
 - 2·j ≥ t (no wood left between a partition's dadoes), or s_d ≥ D_c
 - From version 8: s_f ≥ s (no taper), l_t ≥ s (a tenon through the leg), and r_a + t_t ≥ s (an apron off its leg).
 - A mortise past the leg's inside face (#561): r_a + (t_a + t_t)/2 ≥ s, where t_a is the apron's thickness from its stock (the board's, for an apron of one board). Each mortise's inside wall is a_0 = s − r_a − t_a + (t_a − t_t)/2 from the leg's other inside face, so this refuses a_0 ≤ 0: at 0 the mortise is open on that face. The issue names the leg size, the setback, and the apron's thickness, and gives the larger leg, the smaller setback, or a thinner board that would fit. It refuses only parameters that used to draw the mortise outside the leg, so the template version is unchanged (0008). Worked: legs 1-1/16, r_a = 13/16, t_a = 1.1873, t_t = 3/16 give a_0 = 1.0625 − 0.8125 − 0.6874 = −0.437, the whole mortise outside the leg; legs 1-3/16, r_a = 9/16, t_a = 1-1/4, t_t = 1/4 give −0.125 to 0.125, half outside.
+- An apron past the leg's inside face (owner, #561): r_a + t_a > s. Measured from the corner's outside faces, the side apron spans x = r_a to r_a + t_a from its shoulder at y = s, and the front or back apron spans y = r_a to r_a + t_a from its shoulder at x = s, at the same height. Past the inside face they overlap in a square r_a + t_a − s on a side inside each corner, and the front and back aprons overlap the cleats' ends, which start at y = s. Flush (r_a + t_a = s) is accepted. The mortise check runs first, so a plan refused for both names the mortise. Like the mortise rule, it refuses parameters without changing what any accepted ones produce, so the template version is unchanged. Worked: 13/16 aprons on 1-3/16 legs are flush at r_a = 3/8 and refused at 7/16; legs 1-3/16, r_a = 3/8, t_a = 1-1/4 stand 7/16 past the inside face.
 
 Flags (`DOMAIN.md`, Expert-check categories):
 - **Router technique** and **table saw operations:** dadoes and stopped dadoes.

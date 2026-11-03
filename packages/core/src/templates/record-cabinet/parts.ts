@@ -196,6 +196,21 @@ export function cabinetParts(
     });
     return { ok: false, issues };
   }
+  // An apron past the leg's inside face meets the other apron in the corner, and the cleat's end.
+  if (p.apronSetback + ta > s) {
+    const setback = s - ta;
+    const fixes = [
+      `use legs at least ${formatLimit(p.apronSetback + ta, 'min')}`,
+      ...(setback >= 0 ? [`set the aprons back at most ${formatLimit(setback, 'max')}`] : []),
+      'use thinner boards',
+    ];
+    issues.push({
+      code: 'apron-past-leg',
+      message: `Aprons ${formatLength(ta)} thick, set back ${formatLength(p.apronSetback)} on ${formatLength(s)} legs, would stand past the leg's inside face, where the two aprons at each leg would run into each other. To fix it, ${fixes.join(', or ')}.`,
+      params: ['legStock.size', 'apronSetback', 'board'],
+    });
+    return { ok: false, issues };
+  }
   if (door && partitionDepth - r < p.jacket) {
     issues.push({
       code: 'records-behind-tracks',
