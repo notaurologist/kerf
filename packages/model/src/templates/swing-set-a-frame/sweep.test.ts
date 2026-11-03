@@ -83,11 +83,11 @@ describe('the swing set from joints, swept', () => {
     expect(results.filter((r) => r.mismatches.length > 0)).toEqual([]);
   });
 
-  it('shows the same plan in every twentieth draw', () => {
+  it('shows the same plan in every tenth draw', () => {
     const results = parity(
       template,
       generate,
-      cases.filter((_, i) => i % 20 === 0),
+      cases.filter((_, i) => i % 10 === 0),
     );
     expect(results.filter((r) => r.mismatches.length > 0)).toEqual([]);
   });

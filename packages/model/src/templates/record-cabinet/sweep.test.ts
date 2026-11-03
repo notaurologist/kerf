@@ -12,11 +12,6 @@ const template = recordCabinet.definition;
 const [worked] = template.examples;
 if (!worked) throw new Error('No worked example');
 
-type Case = {
-  params: Parameters<typeof template.generate>[0];
-  structuralInputs: Parameters<typeof template.generate>[1];
-};
-
 function sample(r: Random) {
   const p = worked?.params;
   if (!p) throw new Error('No worked example');
@@ -58,53 +53,8 @@ function sample(r: Random) {
   };
 }
 
-/**
- * Whether the template puts a leg's mortise outside the leg: it does not refuse an apron that,
- * with its setback, is wider than the leg (#561). The joint refuses those, so they are left out.
- */
-function mortiseOutsideLeg(c: Case): boolean {
-  const made = template.generate(c.params, c.structuralInputs);
-  if (!made.ok) return false;
-  const leg = made.output.design.parts.find((q) => q.id === 'leg');
-  return (leg?.mortises ?? []).some((m) => m.a0 < 0 || m.a1 > (leg?.stock.width ?? 0));
-}
-
-/**
- * Whether the template sizes a door panel's tongue from `panelThickness` when its stock is a
- * board of another thickness (#562). The joint sizes it from the stock, so those differ.
- */
-function tongueFromParameter(c: Case): boolean {
-  const made = template.generate(c.params, c.structuralInputs);
-  if (!made.ok) return false;
-  const panel = made.output.design.parts.find((q) => q.id === 'door-panel');
-  return panel !== undefined && panel.stock.thickness !== made.output.design.params.panelThickness;
-}
-
-/**
- * Whether the template's door is thicker than its stiles and rails: a frame wider than a board is
- * glued up and flattened, while the tracks and placements use the board's thickness (#563). The
- * joint refuses a frame whose grooves are not in one plane.
- */
-function frameThinnerThanDoor(c: Case): boolean {
-  const made = template.generate(c.params, c.structuralInputs);
-  if (!made.ok) return false;
-  const door = made.output.design.geometry.door;
-  return made.output.design.parts.some(
-    (q) =>
-      (q.id.startsWith('door-stile') || q.id === 'door-rail') &&
-      door !== undefined &&
-      q.stock.thickness !== door.thickness,
-  );
-}
-
 describe('the record cabinet from joints, swept', () => {
-  const drawn = sampledCases(template, sample, 800, 543);
-  const outside = drawn.filter(mortiseOutsideLeg);
-  const thinFrame = drawn.filter(frameThinnerThanDoor);
-  const thickTongue = drawn.filter((c) => !thinFrame.includes(c) && tongueFromParameter(c));
-  const cases = drawn.filter(
-    (c) => !outside.includes(c) && !thickTongue.includes(c) && !thinFrame.includes(c),
-  );
+  const cases = sampledCases(template, sample, 800, 543);
   const generate = recordCabinet.generateWith(design) as Generator;
 
   it('draws enough plans the template makes', () => {
@@ -113,41 +63,16 @@ describe('the record cabinet from joints, swept', () => {
     expect(made.length).toBeGreaterThan(180);
   });
 
-  it('gives a door panel thicker than its parameter a tongue as thick as the groove', () => {
-    expect(thickTongue.length).toBeGreaterThan(0);
-    for (const c of thickTongue) {
-      const made = recordCabinet.generateWith(design)(c.params, c.structuralInputs);
-      if (!made.ok) throw new Error(c.name);
-      const panel = made.output.design.parts.find((q) => q.id === 'door-panel');
-      const tongue = (panel?.stock.thickness ?? 0) - 2 * (panel?.rabbets[0]?.depth ?? 0);
-      expect(tongue).toBeCloseTo(c.params.tenonThickness, 9);
-    }
-  });
-
-  it('refuses every draw whose door frame is thinner than the door', () => {
-    expect(thinFrame.length).toBeGreaterThan(0);
-    for (const c of thinFrame) {
-      expect(() => generate(c.params, c.structuralInputs)).toThrow(/not in one plane/);
-    }
-  });
-
-  it('refuses every draw whose mortise the template puts outside the leg', () => {
-    expect(outside.length).toBeGreaterThan(0);
-    for (const c of outside) {
-      expect(() => generate(c.params, c.structuralInputs)).toThrow(/runs past the housing/);
-    }
-  });
-
   it('matches the template in every draw', () => {
     const results = parity(template, generate, cases, { shown: false });
     expect(results.filter((r) => r.mismatches.length > 0)).toEqual([]);
   });
 
-  it('shows the same plan in every twentieth draw', () => {
+  it('shows the same plan in every tenth draw', () => {
     const results = parity(
       template,
       generate,
-      cases.filter((_, i) => i % 20 === 0),
+      cases.filter((_, i) => i % 10 === 0),
     );
     expect(results.filter((r) => r.mismatches.length > 0)).toEqual([]);
   });
