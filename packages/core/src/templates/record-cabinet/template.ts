@@ -16,11 +16,14 @@ export const TEMPLATE_ID = 'record-cabinet';
  * Version 13 names the structural input behind each entered quantity in the working, so a
  * suggested value can say so (#417); no number changes. Version 14 changes only how its build
  * steps read: with no method fitting, a step lists every method closest to the owner's tools
- * first, and says when the toolbox is empty (#459). Stored output is the same. Version 15 names
- * the screw length to buy, from the cleat and case bottom, and carries each item's notes to its
- * shopping line (#449).
+ * first, and says when the toolbox is empty (#459). Stored output is the same. Version 15 changes
+ * only how its build steps read: every power-tool method says to wear eye protection, and hearing
+ * protection for saws, routers, jointers and planers, and the leg taper cut with a circular saw
+ * says to let the blade stop before lifting the saw (#457). Stored output is the same.
+ * Version 16 names the screw length to buy, from the cleat and case bottom, and carries each
+ * item's notes to its shopping line (#449).
  */
-export const TEMPLATE_VERSION = 15;
+export const TEMPLATE_VERSION = 16;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,

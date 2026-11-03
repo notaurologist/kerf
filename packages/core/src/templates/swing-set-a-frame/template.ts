@@ -66,11 +66,14 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 20 rewords the leg's flush-cut note to give one measurement for each mark and to call the
  * cut a taper, as its build step does (#455); its board drawings show each piece's end angles, and
  * its cut details name each leg's ends. No number changes.
- * Version 21 gives each bolt the length to buy, from its grip, two USS flat washers, and a
+ * Version 21 changes only how its build steps read: every power-tool method says to wear eye
+ * protection, and hearing protection for saws, routers, jointers and planers, and the leg taper
+ * cut with a circular saw says to let the blade stop before lifting the saw (#457).
+ * Version 22 gives each bolt the length to buy, from its grip, two USS flat washers, and a
  * nylon-insert locknut, names each bolt's shopping line by it, carries each item's notes to its
  * line, and names the fastener materials IRC 2021 R317.3.1 allows in treated lumber (#449).
  */
-export const TEMPLATE_VERSION = 21;
+export const TEMPLATE_VERSION = 22;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

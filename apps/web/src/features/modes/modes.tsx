@@ -36,6 +36,7 @@ import {
 } from '../../ui/index.ts';
 import { EmptyToolbox } from '../build-steps/BuildSteps.tsx';
 import { DrawingsWaiting } from '../diagrams/Diagrams.tsx';
+import { ResetNotes, replacementsOf } from '../project/ResetNotes.tsx';
 import {
   projectStoreReadings,
   readingHref,
@@ -127,6 +128,8 @@ export function ModeView(props: {
           meta={`${summary.shopping.done} of ${summary.shopping.total} bought.`}
         />
         {flash && <StatusLine>{flash}</StatusLine>}
+        <ResetNotes project={project} only={(n) => n.kind === 'shopping-line' || !!n.replacement} />
+        <Replacements resets={project.resets} />
         {shoppingGroups(plan.plan).map((group) => (
           <Stack key={group.title} gap="xs">
             <Cluster spread>
@@ -272,29 +275,61 @@ export function ModeView(props: {
     piece: (stepId: string, part: string) =>
       href({ screen: 'build-part', id: project.id, step: stepId, part }),
   };
+  const stepNotes = <ResetNotes project={project} only={(n) => n.stepIds.includes(step.id)} />;
   if (route.screen === 'build-part') {
     return frame(
-      <CutCard
-        step={step}
-        number={at + 1}
-        total={steps.length}
-        partId={route.part}
+      <>
+        {stepNotes}
+        <CutCard
+          step={step}
+          number={at + 1}
+          total={steps.length}
+          partId={route.part}
+          plan={plan.plan}
+          drawings={drawings}
+          ticks={ticks}
+          links={links}
+        />
+      </>,
+    );
+  }
+  return frame(
+    <>
+      {stepNotes}
+      <StepScreen
+        steps={steps}
+        at={at}
         plan={plan.plan}
         drawings={drawings}
         ticks={ticks}
         links={links}
-      />,
-    );
-  }
-  return frame(
-    <StepScreen
-      steps={steps}
-      at={at}
-      plan={plan.plan}
-      drawings={drawings}
-      ticks={ticks}
-      links={links}
-    />,
+      />
+    </>,
+  );
+}
+
+/**
+ * Boards to buy for pieces cut shorter than the plan now needs (#444). Not ticked: the note that
+ * names each one is dismissed once it is bought.
+ */
+function Replacements(props: { resets: Project['resets'] }) {
+  const boards = replacementsOf(props.resets);
+  if (boards.length === 0) return null;
+  return (
+    <Stack gap="xs">
+      <h2>
+        <Material kind="wood" />
+        Replacements
+      </h2>
+      <PlainList>
+        {boards.map((b) => (
+          <li key={b.piece}>
+            <b>1</b> × {b.nominal}, <Measured text={formatBoardLength(b.feet)} />, for{' '}
+            <Measured text={b.piece} />
+          </li>
+        ))}
+      </PlainList>
+    </Stack>
   );
 }
 

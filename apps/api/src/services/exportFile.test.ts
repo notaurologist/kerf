@@ -13,6 +13,7 @@ const project = {
   updatedAt: '2026-10-02T00:00:00.000Z',
   snapshot: { outputs: { parts: [1, 2] } },
   ticks: [],
+  resets: [],
 };
 
 function exported(

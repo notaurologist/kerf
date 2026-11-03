@@ -88,6 +88,7 @@ describe('previewState', () => {
         snapshot: snapshotOf({ ...params, beamLength: 132 }),
         changes: [{ path: 'cutList[0].length', before: '120"', after: '132"' }],
         truncated: false,
+        progressReset: [],
       },
     });
     expect(state.kind).toBe('ready');
@@ -99,7 +100,13 @@ describe('previewState', () => {
 
 describe('pendingState', () => {
   const plan = planFrom(project.snapshot as { outputs: unknown });
-  const ready: ReadyPreview = { kind: 'ready', plan, changes: indexChanges([]), truncated: false };
+  const ready: ReadyPreview = {
+    kind: 'ready',
+    plan,
+    changes: indexChanges([]),
+    truncated: false,
+    resets: [],
+  };
   const ask = { kind: 'ask' as const, body: { params: {}, structuralInputs: {} } };
 
   it('marks a preview on screen as for the earlier values when a new request is pending', () => {
@@ -154,6 +161,7 @@ describe('the preview pane', () => {
         { path: 'checks[0].margin', before: 1.0796947718059655, after: preview.checks[0] },
       ]),
       truncated: false,
+      resets: [],
     };
     const html = render(<PreviewPane saved={saved} state={state} />);
     const text = renderText(<PreviewPane saved={saved} state={state} />);
@@ -171,6 +179,7 @@ describe('the preview pane', () => {
       plan,
       changes: indexChanges([]),
       truncated: false,
+      resets: [],
     };
     const after = pendingState(previous, {
       kind: 'ask',
@@ -210,7 +219,13 @@ describe("a new project's preview pane", () => {
 
   it('shows the previewed plan, labeled, with nothing marked as changed', () => {
     const plan = planFrom(project.snapshot as { outputs: unknown });
-    const state = { kind: 'ready' as const, plan, changes: indexChanges([]), truncated: false };
+    const state = {
+      kind: 'ready' as const,
+      plan,
+      changes: indexChanges([]),
+      truncated: false,
+      resets: [],
+    };
     const html = render(<PreviewPane saved={null} state={state} />);
     const text = renderText(<PreviewPane saved={null} state={state} />);
     expect(text).toContain('Preview, not saved');
@@ -241,6 +256,7 @@ describe('what changes', () => {
     plan: planFrom(taller),
     changes: indexChanges(compared.changes),
     truncated: compared.truncated,
+    resets: [],
   };
 
   it('lists only the changed numbers, each with the saved one', () => {

@@ -74,14 +74,21 @@ export const SOURCES = {
     publisher: 'U.S. Department of Labor, Occupational Safety and Health Administration',
     edition: '2002 (Revised)',
     url: 'https://www.osha.gov/sites/default/files/publications/osha3080.pdf',
-    note: 'For guards, clamping the work, and unplugging a tool to change a blade or bit.',
+    note: 'For guards, eye protection, clamping the work, and unplugging a tool to change a blade or bit.',
   },
   'osha-woodworking-etool': {
     title: 'Woodworking eTool',
     publisher: 'U.S. Department of Labor, Occupational Safety and Health Administration',
     edition: 'Web pages, read October 2026 (undated)',
     url: 'https://www.osha.gov/etools/woodworking',
-    note: 'For kickback, supporting the work, and the guards on saws, routers, and jointers.',
+    note: 'For kickback, supporting the work, the guards on saws, routers, and jointers, and hearing protection.',
+  },
+  'pti-circular-saws': {
+    title: 'Circular Saws',
+    publisher: 'Power Tool Institute',
+    edition: 'PDF of November 2025',
+    url: 'https://www.powertoolinstitute.com/wp-content/uploads/2025/10/PTI_Circular-Saws.pdf',
+    note: 'For letting the blade stop before lifting the saw out of a partial cut.',
   },
   'osha-wood-dust': {
     title: 'Wood Dust: Overview',

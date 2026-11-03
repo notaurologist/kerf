@@ -145,6 +145,29 @@ export const projectProgress = pgTable(
   ],
 );
 
+// Ticks a save cleared, with what each item was when it was ticked (#444): core's `ResetRecord`.
+// The work behind a tick is still done after the plan changes, so each row stays until the owner
+// dismisses it. An item cleared again replaces its row and its time.
+export const projectResets = pgTable(
+  'project_resets',
+  {
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: PROGRESS_KINDS }).notNull(),
+    key: text('key').notNull(),
+    record: jsonb('record').notNull(),
+    resetAt: timestamp('reset_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.projectId, t.kind, t.key] }),
+    check(
+      'project_resets_kind',
+      sql`${t.kind} in ('shopping-line', 'board', 'part', 'step', 'flag', 'checklist-item')`,
+    ),
+  ],
+);
+
 // Login sessions (decision 0007). The cookie holds a random token; only its SHA-256 hash is
 // stored, so reading this table does not give anyone a working session.
 export const sessions = pgTable(

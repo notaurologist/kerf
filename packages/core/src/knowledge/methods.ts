@@ -284,6 +284,37 @@ export function fillMethodText(text: string, op: Operation): string {
 const ETOOL_CIRCULAR =
   'https://www.osha.gov/etools/woodworking/production/machines-tools/handheld-circular-saws';
 
+const EYE_PROTECTION = {
+  text: 'Wear safety glasses or goggles while the tool runs. It can throw chips, splinters, and dust toward your face.',
+  sources: [
+    {
+      source: 'osha-3080',
+      locator: 'Purpose, p. 1, and Power tools, general precautions, p. 4',
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const HEARING_PROTECTION = {
+  text: 'Wear hearing protection while the tool runs. The motor and the cutting edge in the wood make enough noise to harm your hearing.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Noise: source controls and hearing protection',
+      url: 'https://www.osha.gov/etools/woodworking/health-hazards/noise',
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const STOPPED_CUT = {
+  text: 'Lifting a circular saw out of the wood while the blade still turns can let a tooth grab the board and throw the saw. Where a cut stops partway, let go of the switch and hold the saw still in the cut until the blade stops.',
+  sources: [
+    {
+      source: 'pti-circular-saws',
+      locator: 'While Cutting, p. 2',
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
 const CIRCULAR_SAW_KICKBACK = {
   text: 'A circular saw kicks back toward you when the blade pinches in the cut. Support the board and both pieces of it, so neither drops into the blade as the cut finishes, and keep your hands out of the line of the cut.',
   sources: [
@@ -479,7 +510,7 @@ export const METHODS = [
     mistakes: [
       'Cutting on the mark makes the part short by the width of the blade. Put the blade on the waste side of the mark.',
     ],
-    safety: [GUARDS_STAY_ON, UNPLUG_TO_CHANGE],
+    safety: [GUARDS_STAY_ON, UNPLUG_TO_CHANGE, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [],
     easierThan: ['crosscut-circular-saw', 'crosscut-circular-saw-two-faces', 'crosscut-hand-saw'],
     moreAccurateThan: [
@@ -520,7 +551,14 @@ export const METHODS = [
     mistakes: [
       'Letting the saw drift away from the square bends the cut and can bind the blade. Keep the base tight to the square for the whole cut.',
     ],
-    safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CIRCULAR_SAW_GUARD,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
     flags: [],
     easierThan: ['crosscut-circular-saw-two-faces', 'crosscut-hand-saw'],
     moreAccurateThan: ['crosscut-circular-saw-two-faces', 'crosscut-hand-saw'],
@@ -566,7 +604,14 @@ export const METHODS = [
     mistakes: [
       'Lines that do not meet at the corners leave a step where the two cuts meet. Square every line from the same edge and face, and check that the last line meets the first.',
     ],
-    safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CIRCULAR_SAW_GUARD,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
     flags: [],
     easierThan: ['crosscut-hand-saw'],
     moreAccurateThan: [],
@@ -629,7 +674,7 @@ export const METHODS = [
       'Turning the saw the wrong way cuts the mirror image of the end in the cut detail. Check the direction against the cut detail before each cut.',
       'A saw turned to an angle cuts across less than it does square, so the cut can stop short of the far edge. Make the test cut first.',
     ],
-    safety: [GUARDS_STAY_ON, UNPLUG_TO_CHANGE],
+    safety: [GUARDS_STAY_ON, UNPLUG_TO_CHANGE, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [],
     easierThan: ['miter-circular-saw', 'miter-circular-saw-two-faces', 'miter-hand-saw'],
     moreAccurateThan: ['miter-circular-saw', 'miter-circular-saw-two-faces', 'miter-hand-saw'],
@@ -677,7 +722,14 @@ export const METHODS = [
       'Measuring {offset} away from the rest of the part makes the line lean the wrong way. Measure toward the rest of the part, so the long point is the end of the board.',
       'Setting a guide by eye from an angle scale gives an angle you cannot check. Lay the line out from the two points, and check the first cut against the cut detail.',
     ],
-    safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CIRCULAR_SAW_GUARD,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
     flags: [],
     easierThan: ['miter-circular-saw-two-faces', 'miter-hand-saw'],
     moreAccurateThan: ['miter-circular-saw-two-faces', 'miter-hand-saw'],
@@ -728,7 +780,14 @@ export const METHODS = [
     mistakes: [
       'Joining the points on the second face from the wrong ends makes a line that crosses the first one. Carry each point down its own edge and join those two marks.',
     ],
-    safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CIRCULAR_SAW_GUARD,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
     flags: [],
     easierThan: ['miter-hand-saw'],
     moreAccurateThan: [],
@@ -801,7 +860,7 @@ export const METHODS = [
     mistakes: [
       'A jigsaw blade bends in stock {thickness} thick, so the cut wanders off the line on the far face. Feed slowly, check the far face as you go, and leave the cut proud of the line to plane down.',
     ],
-    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [],
     easierThan: ['taper-circular-saw', 'taper-hand-saw'],
     moreAccurateThan: ['taper-hand-saw'],
@@ -843,16 +902,25 @@ export const METHODS = [
     technique: [
       "Mark the taper's two points from its note in the cut list, and join them with a straightedge. The line is {length} long, at {angleToEdge} to the edge.",
       'Square each point across to the other face and join them there too.',
-      'Clamp a straight board beside the line as a guide, and cut from the end of the part along the waste side of the line until the blade reaches the far point.',
-      'Turn the part over and cut along the line on the other face.',
+      'Mark on the guide where the front of the blade must stop, so the cut reaches the far point and no further.',
+      'Clamp a straight board beside the line as a guide, and cut from the end of the part along the waste side of the line until the blade reaches the stop mark. Let go of the switch there, and hold the saw still in the cut until the blade stops before you lift it out.',
+      'Turn the part over and cut along the line on the other face the same way.',
       'Finish the cut with a hand saw where the round blade stopped short of the point.',
       'Plane or pare the cut down to the line on both faces.',
       'Cut {count} this way.',
     ],
     mistakes: [
-      'Running the saw past the far point cuts into the part beyond the taper. Mark where the blade must stop on the guide, and stop the saw there.',
+      'Running the saw past the far point cuts a kerf into the part beyond the taper, in wood the finished part keeps. Stop at the mark on the guide, and finish the last of the cut with the hand saw.',
     ],
-    safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      STOPPED_CUT,
+      CIRCULAR_SAW_GUARD,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
     flags: [],
     easierThan: ['taper-hand-saw'],
     moreAccurateThan: ['taper-hand-saw'],
@@ -923,7 +991,7 @@ export const METHODS = [
       'Feeding fast crushes the wood and leaves a shiny edge that glue does not soak into. Feed slowly enough that the knives cut cleanly.',
       'A slight hollow or hump in an edge leaves a gap in the glue line. Hold each pair of mating edges together against a light and look for gaps before you glue.',
     ],
-    safety: [JOINTER_GUARD, UNPLUG_TO_CHANGE],
+    safety: [JOINTER_GUARD, UNPLUG_TO_CHANGE, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('jointer-planer-lathe')],
     easierThan: [],
     moreAccurateThan: ['joint-edges-table-saw', 'joint-edges-track-saw'],
@@ -946,7 +1014,7 @@ export const METHODS = [
     mistakes: [
       'An edge sawn with its other edge against the fence is only as straight as that edge. Rip with the straighter edge against the fence first.',
     ],
-    safety: [TABLE_SAW_KICKBACK, RIP_BLADE, GUARDS_STAY_ON],
+    safety: [TABLE_SAW_KICKBACK, RIP_BLADE, GUARDS_STAY_ON, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('table-saw')],
     easierThan: [],
     moreAccurateThan: ['joint-edges-track-saw'],
@@ -975,7 +1043,13 @@ export const METHODS = [
     mistakes: [
       'A rail that shifts during the cut leaves a curve in the edge. Clamp the board and keep the saw against the rail for the whole cut.',
     ],
-    safety: [CIRCULAR_SAW_KICKBACK, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
     flags: [],
     easierThan: ['joint-edges-jointer', 'joint-edges-table-saw'],
     moreAccurateThan: [],
@@ -1077,7 +1151,7 @@ export const METHODS = [
       'Planing the day after glue-up leaves glue lines that sink below the surface as the joints dry. Wait several days.',
       'Dried glue left on the faces dulls the knives. Scrape it off first.',
     ],
-    safety: [PLANER_ROLLS],
+    safety: [PLANER_ROLLS, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('jointer-planer-lathe')],
     easierThan: ['flatten-sander'],
     moreAccurateThan: ['flatten-sander'],
@@ -1100,7 +1174,7 @@ export const METHODS = [
     mistakes: [
       'Holding the sander on a joint digs a hollow beside it. Keep the sander moving over a wide area.',
     ],
-    safety: [WOOD_DUST, CLAMP_THE_WORK],
+    safety: [WOOD_DUST, CLAMP_THE_WORK, EYE_PROTECTION],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
@@ -1123,7 +1197,7 @@ export const METHODS = [
     mistakes: [
       'Letting the board drift away from the fence tapers the part and can pinch the blade. Keep it tight to the fence until it is past the blade.',
     ],
-    safety: [TABLE_SAW_KICKBACK, RIP_BLADE, GUARDS_STAY_ON],
+    safety: [TABLE_SAW_KICKBACK, RIP_BLADE, GUARDS_STAY_ON, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('table-saw')],
     easierThan: ['rip-circular-saw'],
     moreAccurateThan: ['rip-track-saw', 'rip-circular-saw'],
@@ -1143,7 +1217,13 @@ export const METHODS = [
     mistakes: [
       'Setting the rail on the wrong side of the marks makes the part narrow by the width of the blade. Keep the blade on the waste side.',
     ],
-    safety: [CIRCULAR_SAW_KICKBACK, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
     flags: [],
     easierThan: ['rip-table-saw', 'rip-circular-saw'],
     moreAccurateThan: ['rip-circular-saw'],
@@ -1176,7 +1256,14 @@ export const METHODS = [
     mistakes: [
       'A guide that is not straight puts its curve in the part. Sight along the guide board, or use a factory edge.',
     ],
-    safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CIRCULAR_SAW_GUARD,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
@@ -1205,7 +1292,7 @@ export const METHODS = [
       'Feeding so the bit pulls the base away from the guide wanders the dado off its line. Feed so the bit pulls the base against the guide.',
       'A dado cut to its full width at once is often too wide for the part it houses. Cut it narrower, then move the guide over and test the fit.',
     ],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: ['dado-circular-saw', 'dado-hand-saw'],
     moreAccurateThan: ['dado-circular-saw', 'dado-hand-saw'],
@@ -1240,7 +1327,14 @@ export const METHODS = [
     mistakes: [
       'A blade set deeper than the dado weakens the part and shows on the edges. Set the depth on scrap first.',
     ],
-    safety: [CIRCULAR_SAW_KICKBACK, CIRCULAR_SAW_GUARD, CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CIRCULAR_SAW_GUARD,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
     flags: [],
     easierThan: ['dado-hand-saw'],
     moreAccurateThan: ['dado-hand-saw'],
@@ -1301,7 +1395,7 @@ export const METHODS = [
     mistakes: [
       'Routing past the stop line shows at the edge the dado was meant to hide. Clamp the stop before you start, and check it with the router unplugged.',
     ],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: ['stopped-dado-hand-saw'],
     moreAccurateThan: ['stopped-dado-hand-saw'],
@@ -1363,7 +1457,7 @@ export const METHODS = [
     mistakes: [
       'Routing past the stop line shows at the edge the rabbet was meant to hide. Clamp the stop before you start, and check it with the router unplugged.',
     ],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: ['stopped-rabbet-hand-saw'],
     moreAccurateThan: ['stopped-rabbet-hand-saw'],
@@ -1424,7 +1518,7 @@ export const METHODS = [
     mistakes: [
       'Routing past a stop leaves a gap beyond the part that fits there. Clamp both stops before you start, and check them with the router unplugged.',
     ],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: ['double-stopped-dado-drill-and-chisel'],
     moreAccurateThan: ['double-stopped-dado-drill-and-chisel'],
@@ -1459,7 +1553,7 @@ export const METHODS = [
     mistakes: [
       'Drilling at a lean makes the dado wider at the bottom or wanders off the line. Keep the bit upright, checking from two sides.',
     ],
-    safety: [CLAMP_THE_WORK],
+    safety: [CLAMP_THE_WORK, EYE_PROTECTION],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
@@ -1481,7 +1575,7 @@ export const METHODS = [
     mistakes: [
       'Backing the board out of a long cut can pull the blade off its wheels. Make the shorter cut first, then the longer one to meet it.',
     ],
-    safety: [BAND_SAW_GUARD],
+    safety: [BAND_SAW_GUARD, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [],
     easierThan: ['notch-jigsaw', 'notch-hand-saw'],
     moreAccurateThan: ['notch-jigsaw', 'notch-hand-saw'],
@@ -1509,7 +1603,7 @@ export const METHODS = [
     mistakes: [
       'A blade that bends in the cut leaves the notch out of square on the far face. Feed slowly and check the far face.',
     ],
-    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [],
     easierThan: ['notch-hand-saw'],
     moreAccurateThan: ['notch-hand-saw'],
@@ -1552,7 +1646,7 @@ export const METHODS = [
     mistakes: [
       'Turning the board too tightly for the blade twists it in the cut. Cut gentle curves to remove the waste first, then square the corners.',
     ],
-    safety: [BAND_SAW_GUARD],
+    safety: [BAND_SAW_GUARD, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [],
     easierThan: ['cutout-jigsaw'],
     moreAccurateThan: ['cutout-jigsaw'],
@@ -1583,7 +1677,7 @@ export const METHODS = [
     mistakes: [
       'A blade that bends in the cut leaves the far face out of line. Feed slowly and check the far face.',
     ],
-    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
@@ -1622,7 +1716,7 @@ export const METHODS = [
       'Drilling at a lean makes the mortise wider at the bottom or out of line. Keep the bit upright, checking from two sides.',
       'Prying with the chisel against a wall crushes the edge. Pare a little at a time, and lever only on the waste.',
     ],
-    safety: [CLAMP_THE_WORK],
+    safety: [CLAMP_THE_WORK, EYE_PROTECTION],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
@@ -1654,7 +1748,7 @@ export const METHODS = [
       'Routing the full depth at once makes the bit wander and burn. Go a little deeper each time.',
       'Feeding so the bit pulls the router off the guide makes the mortise crooked. Feed so it pulls the router against the guide.',
     ],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: ['mortise-drill-and-chisel'],
     moreAccurateThan: ['mortise-drill-and-chisel'],
@@ -1720,7 +1814,7 @@ export const METHODS = [
       'Routing without support beside the part tips the router and gouges the cheek. Clamp a scrap of the same thickness beside it.',
       'Setting the bit for both cheeks at once leaves the tenon off center. Set it for each cheek in turn.',
     ],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: [],
     moreAccurateThan: ['tenon-hand-saw'],
@@ -1754,7 +1848,7 @@ export const METHODS = [
       'A slot run the wrong way stops the part from moving, which can split it. Check which way each slot runs before you drill.',
       'Driving a screw in a slot tight pins the part. Turn it until it is snug, so its head can still slide.',
     ],
-    safety: [CLAMP_THE_WORK],
+    safety: [CLAMP_THE_WORK, EYE_PROTECTION],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
@@ -1788,7 +1882,7 @@ export const METHODS = [
       'A slot run the wrong way stops the part from moving, which can split it. Check which way each slot runs before you rout.',
       'Driving a screw in a slot tight pins the part. Turn it until it is snug, so its head can still slide.',
     ],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: [],
     moreAccurateThan: ['screw-holes-drill'],
@@ -1813,7 +1907,7 @@ export const METHODS = [
     mistakes: [
       'A router tipping on a narrow edge cuts the groove crooked. Clamp scraps flush on both sides so the base sits flat.',
     ],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: ['groove-table-saw'],
     moreAccurateThan: [],
@@ -1835,7 +1929,7 @@ export const METHODS = [
     mistakes: [
       'Letting the part drift from the fence widens the groove unevenly. Keep it pressed against the fence the whole length.',
     ],
-    safety: [TABLE_SAW_KICKBACK, RIP_BLADE],
+    safety: [TABLE_SAW_KICKBACK, RIP_BLADE, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('table-saw')],
     easierThan: [],
     moreAccurateThan: ['groove-router'],
@@ -1859,7 +1953,7 @@ export const METHODS = [
     mistakes: [
       'Routing across the grain at an end tears out the far corner. Rout the ends first, then the long edges.',
     ],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: ['rabbet-table-saw'],
     moreAccurateThan: [],
@@ -1881,7 +1975,7 @@ export const METHODS = [
     mistakes: [
       'Letting the cut-off strip sit between the blade and the fence can throw it back. Set the fence so the strip falls away from the fence side.',
     ],
-    safety: [TABLE_SAW_KICKBACK, RIP_BLADE],
+    safety: [TABLE_SAW_KICKBACK, RIP_BLADE, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('table-saw')],
     easierThan: [],
     moreAccurateThan: ['rabbet-router'],
@@ -1903,7 +1997,7 @@ export const METHODS = [
       'Cut {count} this way.',
     ],
     mistakes: ['Routing past a stop leaves a slot that shows. Clamp the stops before you start.'],
-    safety: [ROUTER_BIT, ROUTER_FEED],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
     flags: [categoryFlag('router')],
     easierThan: ['finger-recess-chisel'],
     moreAccurateThan: ['finger-recess-chisel'],
@@ -1959,7 +2053,7 @@ export const METHODS = [
       'Unclamping the parts before every hole is drilled lets them shift, so later holes do not line up. Drill all the holes in a joint before you unclamp it.',
       'Letting the drill tilt puts the exit hole off its mark on the far face. Check square from two directions as the bit starts.',
     ],
-    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, BOLT_HOLE_SIZE],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, BOLT_HOLE_SIZE, EYE_PROTECTION],
     flags: [],
     easierThan: [
       'bolt-holes-spade-one-side',
@@ -2004,7 +2098,7 @@ export const METHODS = [
       'Unclamping the parts before every hole is drilled lets them shift, so later holes do not line up. Drill all the holes in a joint before you unclamp it.',
       'Pushing the bit out through the far face tears out the wood around the hole. Slow down as the point comes through, and finish from the far side if it splinters.',
     ],
-    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, BOLT_HOLE_SIZE],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, BOLT_HOLE_SIZE, EYE_PROTECTION],
     flags: [],
     easierThan: ['bolt-holes-auger-both-sides', 'bolt-holes-spade-both-sides'],
     moreAccurateThan: ['bolt-holes-auger-both-sides', 'bolt-holes-spade-both-sides'],
@@ -2043,7 +2137,7 @@ export const METHODS = [
     mistakes: [
       'Marking the two faces from different references makes the holes miss in the middle. Measure both marks from the same end and the same edge, and square across from one to find the other where you can.',
     ],
-    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, BOLT_HOLE_SIZE],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, BOLT_HOLE_SIZE, EYE_PROTECTION],
     flags: [],
     easierThan: ['bolt-holes-spade-both-sides'],
     moreAccurateThan: ['bolt-holes-spade-both-sides'],
@@ -2082,7 +2176,7 @@ export const METHODS = [
     mistakes: [
       'Marking the two faces from different references makes the holes miss in the middle. Measure both marks from the same end and the same edge, and square across from one to find the other where you can.',
     ],
-    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, BOLT_HOLE_SIZE],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, BOLT_HOLE_SIZE, EYE_PROTECTION],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
@@ -2105,7 +2199,7 @@ export const METHODS = [
     mistakes: [
       'Holding the sander in one place on an edge cuts a flat or a dip. Keep it moving along the whole edge.',
     ],
-    safety: [WOOD_DUST, UNPLUG_TO_CHANGE],
+    safety: [WOOD_DUST, UNPLUG_TO_CHANGE, EYE_PROTECTION],
     flags: [DUST_FLAG],
     easierThan: ['ease-edges-block-plane'],
     moreAccurateThan: [],
@@ -2334,7 +2428,7 @@ export const METHODS = [
       'Driving a screw in a slot tight pins the part, which can split it as it moves. Stop when the head is snug.',
       'A screw driven at full speed strips its hole. Drive the last turns slowly.',
     ],
-    safety: [CLAMP_THE_WORK],
+    safety: [CLAMP_THE_WORK, EYE_PROTECTION],
     flags: [],
     easierThan: [],
     moreAccurateThan: ['fasten-impact-driver'],
@@ -2355,7 +2449,7 @@ export const METHODS = [
     mistakes: [
       'An impact driver drives a screw too far before you can stop it. Finish each one by hand, or in short bursts.',
     ],
-    safety: [CLAMP_THE_WORK],
+    safety: [CLAMP_THE_WORK, EYE_PROTECTION],
     flags: [],
     easierThan: ['fasten-drill-driver'],
     moreAccurateThan: [],
@@ -2382,7 +2476,7 @@ export const METHODS = [
       'Sanding across the grain leaves scratches that the finish makes stand out. Sand with the grain.',
       'A thick coat dries soft and sticky. Wipe on thin coats and wipe off the excess.',
     ],
-    safety: [OILY_RAGS, WOOD_DUST],
+    safety: [OILY_RAGS, WOOD_DUST, EYE_PROTECTION],
     flags: [categoryFlag('finishes')],
     easierThan: ['finish-hand-sanded'],
     moreAccurateThan: [],

@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 21,
+    "templateVersion": 22,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -3569,7 +3569,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 21,
+    "templateVersion": 22,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -7290,7 +7290,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 21,
+    "templateVersion": 22,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,

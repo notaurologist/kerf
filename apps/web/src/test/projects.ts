@@ -57,6 +57,7 @@ export function projectFrom(
     // As the API sends them: chosen from the inventory, here with no tools.
     steps: snapshot ? stepsFor(snapshot, { tools: [] }) : null,
     ticks: [],
+    resets: [],
     progress: snapshot ? summaryFor(snapshot, overrides.ticks ?? []) : null,
     ...overrides,
   } as Project;

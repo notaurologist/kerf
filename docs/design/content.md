@@ -84,6 +84,10 @@ Everything a person acts on (steps, methods, flags, checklist items, errors, but
 
 Text marks only the first use of a term on a screen, not every use. Each plan section, each Building step, and each other screen is its own screen for this. The text that takes part: section intros, flags, check names and load cases, the confirmation checklist, the cut list's end cuts, the shopping list's notes and board selection guides, and method setup, technique, and common mistakes. Text inside a closed disclosure, such as "Show the working", is not marked, so it cannot claim a first use while hidden. A term inside a tool's name ("miter saw", "sliding bevel") is the tool, not the term, and is never marked. Tools are not glossary terms: each has its own page under Tools, and a method's tool names link to it. A word with an everyday or other Kerf meaning ("check", "grade", "level", "split", "square") is a term only inside a longer phrase, such as "grade stamp" or "level cut". On paper no definition can open, so the printed plan ends with "Terms used in this plan": every term its text uses, alphabetical, with its definition.
 
+**Reset notes.** When a change clears a tick on work already done (#444), the note names the item as the plan does, then what it was done to and what the plan has now, then what to do, each from core.
+
+> C Front leg (downhill), piece 1: cut at 138-3/8", now 140-3/16". It is 1-7/8" short. Cut a new one from another board: the shopping list adds a 4x4 × 12' 0" for it.
+
 **Headings.** Nouns for what the section holds: "Cut list", "Structural review", "Beam".
 
 ## Word list

@@ -16,7 +16,9 @@ import {
   progressId,
   progressSummary,
   projectDrawings,
+  type ResetNote,
   readSnapshot,
+  resetNotes,
   type SuggestedValue,
   suggestedAfter,
   suggestedFor,
@@ -29,12 +31,18 @@ import type { Database } from '../db/client.ts';
 import { projects } from '../db/schema.ts';
 import { writeHistory } from './history.ts';
 import {
+  dismissResets,
   itemsOf,
   type ProgressChanges,
   type ProgressEntry,
+  type ResetDismissals,
   readAllProgress,
+  readAllResets,
   readProgress,
+  readResets,
   resetProgress,
+  resetsFor,
+  type StoredReset,
   statusAfterTicks,
   writeProgress,
 } from './progress.ts';
@@ -83,7 +91,7 @@ export interface TrashedProject extends ProjectSummary {
 }
 
 /** Raised when the backup file's shape changes, so a reader can tell which shape it holds. */
-export const EXPORT_FORMAT_VERSION = 2;
+export const EXPORT_FORMAT_VERSION = 3;
 
 export interface ProjectsExport {
   kind: 'kerf-export';
@@ -99,6 +107,8 @@ export interface ProjectsExport {
 export type ExportedProject = Omit<ProjectSummary, 'templateBehind' | 'progress'> & {
   snapshot: unknown;
   ticks: ProgressEntry[];
+  /** Ticks cleared by a change and not yet dismissed, as stored (#444). */
+  resets: { record: unknown; resetAt: string }[];
 };
 
 export interface Project extends ProjectSummary {
@@ -120,11 +130,19 @@ export interface Project extends ProjectSummary {
   /** What has been ticked off (#57), so the plan and its modes need no other request. */
   ticks: ProgressEntry[];
   /**
+   * Ticks cleared by earlier saves and not yet dismissed (#444), each read against the current
+   * plan, with when it was cleared. Empty when the snapshot cannot be read.
+   */
+  resets: ProjectReset[];
+  /**
    * After a save that regenerated the snapshot: the ticks it cleared because their item is gone
    * or has other numbers (#57). Absent when nothing was regenerated.
    */
   progressReset?: ProgressReset[];
 }
+
+/** A reset as the owner reads it, and when it was made, which dismissing it names. */
+export type ProjectReset = ResetNote & { resetAt: string };
 
 /** A snapshot generated from proposed changes and not saved, with what it changes. */
 export interface Preview {
@@ -132,6 +150,8 @@ export interface Preview {
   /** Paths in the template's plan whose values differ from the stored snapshot's. */
   changes: Change[];
   truncated: boolean;
+  /** The ticks saving would clear, each against the previewed plan (#444). */
+  progressReset: ResetNote[];
 }
 
 /**
@@ -257,9 +277,23 @@ export function createProjectService(deps: {
     }
   }
 
+  /** The recorded resets as notes against the stored plan, or none if they cannot be read. */
+  function notesOf(row: Row, stored: Stored, resets: readonly StoredReset[]): ProjectReset[] {
+    if (!stored.ok || resets.length === 0) return [];
+    const notes = drawn(row, 'the reset notes', () =>
+      resetNotes(
+        stored.template,
+        stored.outputs,
+        resets.map((r) => r.record),
+      ),
+    );
+    return (notes ?? []).map((note, i) => ({ ...note, resetAt: resets[i]?.resetAt ?? '' }));
+  }
+
   async function view(row: Row): Promise<Result<Project>> {
     const stored = readStored(row);
     const ticks = await readProgress(db, row.id);
+    const resets = notesOf(row, stored, await readResets(db, row.id));
     if (!stored.ok) {
       return {
         ok: true,
@@ -270,6 +304,7 @@ export function createProjectService(deps: {
           version: null,
           steps: null,
           ticks,
+          resets,
         },
       };
     }
@@ -280,6 +315,7 @@ export function createProjectService(deps: {
       value: {
         ...summary(row, ticks, stored),
         ticks,
+        resets,
         snapshot,
         version: drawn(row, 'the version report', () => compareWithCurrent(template, snapshot)),
         steps: drawn(row, 'the build steps', () => planSteps(template, outputs, inventory)),
@@ -489,7 +525,7 @@ export function createProjectService(deps: {
         // A name or status change keeps the snapshot, so its history and progress stand.
         if (saved && before) {
           await writeHistory(tx, saved.template, id, saved.snapshot, at);
-          progressReset = await resetProgress(tx, id, before, saved);
+          progressReset = await resetProgress(tx, id, before, saved, at);
         }
         return updated;
       });
@@ -513,9 +549,20 @@ export function createProjectService(deps: {
       const generated = generate(row.templateId, values.params, values.structuralInputs);
       if (!generated.ok) return generated;
       const snapshot = carried(template, stored.snapshot, generated.snapshot);
+      const { records } = await resetsFor(
+        db,
+        id,
+        { template, snapshot: stored.snapshot },
+        { template, snapshot },
+      );
+      const outputs = template.storedOutputs.parse(snapshot.outputs);
       return {
         ok: true,
-        value: { snapshot, ...compareSnapshots(template, stored.snapshot, snapshot) },
+        value: {
+          snapshot,
+          ...compareSnapshots(template, stored.snapshot, snapshot),
+          progressReset: resetNotes(template, outputs, records),
+        },
       };
     },
 
@@ -526,7 +573,10 @@ export function createProjectService(deps: {
     previewNew(input: NewProjectPreview): Result<Preview> {
       const generated = generateNew(input);
       if (!generated.ok) return generated;
-      return { ok: true, value: { snapshot: generated.snapshot, changes: [], truncated: false } };
+      return {
+        ok: true,
+        value: { snapshot: generated.snapshot, changes: [], truncated: false, progressReset: [] },
+      };
     },
 
     /**
@@ -569,6 +619,7 @@ export function createProjectService(deps: {
           id,
           { snapshot: stored.snapshot, template: generated.template },
           { snapshot, template: generated.template },
+          at,
         );
         return updated;
       });
@@ -628,6 +679,17 @@ export function createProjectService(deps: {
         }
         return { ok: true, value: { ticks, status } };
       });
+    },
+
+    /**
+     * Dismisses recorded resets (#444). Changes no number, so it takes no revision: each names
+     * the time it was made, so a dismissal sent from an older view cannot clear a later reset.
+     */
+    async dismissResets(id: string, request: ResetDismissals): Promise<Result<ProjectReset[]>> {
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      await dismissResets(db, id, request.resets);
+      return { ok: true, value: notesOf(row, readStored(row), await readResets(db, id)) };
     },
 
     /**
@@ -710,13 +772,14 @@ export function createProjectService(deps: {
     },
 
     /**
-     * Every project, trashed ones apart in `deletedProjects`, as stored, with its ticks, and the
+     * Every project, trashed ones apart in `deletedProjects`, as stored, with its ticks and resets, and the
      * tool rows as stored: a copy the owner keeps, since the free database restores only the last
      * few hours (#21).
      */
     async exportAll(): Promise<ProjectsExport> {
       const rows = await db.select().from(projects).orderBy(desc(projects.updatedAt));
       const ticks = await readAllProgress(db);
+      const resets = await readAllResets(db);
       const exported = (row: (typeof rows)[number]): ExportedProject => ({
         id: row.id,
         name: row.name,
@@ -728,6 +791,7 @@ export function createProjectService(deps: {
         updatedAt: row.updatedAt.toISOString(),
         snapshot: row.snapshot,
         ticks: ticks.get(row.id) ?? [],
+        resets: resets.get(row.id) ?? [],
       });
       return {
         kind: 'kerf-export',

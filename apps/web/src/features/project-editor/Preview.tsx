@@ -5,6 +5,7 @@ import {
   type FormValues,
   formatBoardLength,
   type Plan,
+  type ResetNote,
   type SuggestedValue,
   structural,
   type TemplateDefinition,
@@ -19,6 +20,7 @@ import {
   CheckStatus,
   Cluster,
   type Failure,
+  InfoNotice,
   Length,
   LiveRegion,
   Measured,
@@ -34,6 +36,7 @@ import {
 } from '../../ui/index.ts';
 import { sameJson } from '../../ui/sameJson.ts';
 import { CutList } from '../cut-list/CutList.tsx';
+import { ResetLine } from '../project/ResetNotes.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
 import { editorValues } from './save.ts';
 
@@ -88,7 +91,14 @@ export function previewRequest(
   return { kind: 'ask', body: { params: builtParams, structuralInputs: builtInputs } };
 }
 
-export type ReadyPreview = { kind: 'ready'; plan: Plan; changes: Changes; truncated: boolean };
+export type ReadyPreview = {
+  kind: 'ready';
+  plan: Plan;
+  changes: Changes;
+  truncated: boolean;
+  /** What saving would clear that is marked done (#444). */
+  resets: readonly ResetNote[];
+};
 
 export type PreviewState =
   | { kind: 'saved' }
@@ -154,6 +164,7 @@ type PreviewResult = ApiResult<{
   snapshot: { outputs: unknown; suggested?: readonly SuggestedValue[] };
   changes: Change[];
   truncated: boolean;
+  progressReset: ResetNote[];
 }>;
 
 /** A preview response as something to show. */
@@ -170,6 +181,7 @@ export function previewState(templateId: string, result: PreviewResult): Preview
     plan: plan.plan,
     changes: indexChanges(result.value.changes),
     truncated: result.value.truncated,
+    resets: result.value.progressReset,
   };
 }
 
@@ -202,6 +214,7 @@ export const PreviewPane = memo(function PreviewPane(props: {
         <LiveRegion>
           <PreviewStatus state={state} isNew={isNew} />
         </LiveRegion>
+        {preview && <ClearedBySaving resets={preview.resets} />}
         {plan && <PlanOutputs plan={plan} changes={changes} />}
       </Stack>
     </section>
@@ -217,7 +230,7 @@ export function WhatChanges(props: { state: PreviewState }) {
   const preview =
     state.kind === 'ready' ? state : state.kind === 'updating' ? state.previous : null;
   const lines = preview ? changedNumbers(preview.plan, preview.changes) : [];
-  if (!preview || lines.length === 0) return null;
+  if (!preview || (lines.length === 0 && preview.resets.length === 0)) return null;
   return (
     <section aria-labelledby="what-changes-heading">
       <Stack gap="xs">
@@ -227,19 +240,49 @@ export function WhatChanges(props: { state: PreviewState }) {
             {state.kind === 'updating' ? 'Earlier values, not saved' : 'Preview, not saved'}
           </StateTag>
         </Cluster>
-        <PlainList gap="xs">
-          {lines.map((line) => (
-            <li key={line.path}>
-              <b>{line.label}</b> {line.value}
-            </li>
-          ))}
-        </PlainList>
+        <ClearedBySaving resets={preview.resets} />
+        {lines.length > 0 && (
+          <PlainList gap="xs">
+            {lines.map((line) => (
+              <li key={line.path}>
+                <b>{line.label}</b> {line.value}
+              </li>
+            ))}
+          </PlainList>
+        )}
         <Text tone="muted">
           {preview.truncated && 'More values changed than the preview can list. '}The full preview
           follows the form.
         </Text>
       </Stack>
     </section>
+  );
+}
+
+/**
+ * What is marked done that saving would clear, each with what it was done to and what the plan
+ * would have (#444). Nothing when saving clears nothing.
+ */
+function ClearedBySaving(props: { resets: readonly ResetNote[] }) {
+  if (props.resets.length === 0) return null;
+  return (
+    <InfoNotice>
+      <Stack gap="xs">
+        <Text>
+          <b>
+            Saving clears {props.resets.length === 1 ? 'a mark' : 'marks'} on work already done.
+          </b>{' '}
+          The plan lists {props.resets.length === 1 ? 'it' : 'them'} until you dismiss the note.
+        </Text>
+        <PlainList gap="xs">
+          {props.resets.map((note) => (
+            <li key={`${note.kind}:${note.key}`}>
+              <ResetLine note={note} />
+            </li>
+          ))}
+        </PlainList>
+      </Stack>
+    </InfoNotice>
   );
 }
 

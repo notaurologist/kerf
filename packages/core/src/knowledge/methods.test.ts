@@ -13,7 +13,7 @@ import {
   placeholders,
 } from './methods.ts';
 import { findSkill, SKILLS, Skill } from './skills.ts';
-import { findToolType } from './tools.ts';
+import { findToolType, type Protection } from './tools.ts';
 
 const methods = METHODS.map((m) => Method.parse(m));
 // METHOD_VALUES's type requires a key for every operation type.
@@ -95,6 +95,34 @@ describe('methods', () => {
   it('cites a source for every safety note', () => {
     for (const m of methods)
       for (const s of m.safety) expect(s.sources.length, m.id).toBeGreaterThan(0);
+  });
+
+  // OSHA 3080, p. 1 and p. 4; OSHA Woodworking eTool, Noise. The note is the same object in
+  // every method, so its text and sources stay in one place.
+  it('tells every method that uses a tool to wear the protection the tool calls for', () => {
+    const notes: Record<Protection, string> = {
+      eyes: 'safety glasses',
+      hearing: 'hearing protection',
+    };
+    for (const want of ['eyes', 'hearing'] as const) {
+      const uses = methods.filter((m) =>
+        m.tools.some((r) => r.anyOf.some((c) => findToolType(c.tool)?.protection.includes(want))),
+      );
+      expect(uses.length, want).toBeGreaterThan(0);
+      const note = uses[0]?.safety.find((s) => s.text.includes(notes[want]));
+      expect(note, want).toBeDefined();
+      for (const m of uses) expect(m.safety, `${m.id}: ${want}`).toContainEqual(note);
+      for (const m of methods.filter((x) => !uses.includes(x)))
+        expect(m.safety, `${m.id}: ${want}`).not.toContainEqual(note);
+    }
+  });
+
+  it('has the stopped circular-saw cut wait for the blade to stop before lifting the saw', () => {
+    const taper = methods.find((m) => m.id === 'taper-circular-saw');
+    expect(taper?.technique.join(' ')).toMatch(
+      /stop mark.*hold the saw still.*until the blade stops/,
+    );
+    expect(taper?.safety.map((s) => s.sources[0]?.source)).toContain('pti-circular-saws');
   });
 
   // docs/design/content.md, Word list.
