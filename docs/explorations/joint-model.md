@@ -1,6 +1,6 @@
 # Joint-based model: design proposal
 
-Status: Proposed (November 3, 2026). Waiting on the owner's choice. Issue #548, part of #543.
+Status: Accepted (November 3, 2026). The owner chose option C. Issue #548, part of #543.
 
 ## The problem
 
@@ -68,9 +68,9 @@ This option teaches the parts of the field Kerf can use: frame algebra (part fra
 
 A numerical solver can still come later, in tests only. Given only the declared joints, it would check that a template's placements satisfy them, independently of the template's formulas. It would be a second check on the hand-derived trigonometry and would never supply a number. That is a separate experiment, filed if the owner wants it.
 
-## Recommendation
+## Decision
 
-Option C. Option A conflicts with hard rules 1, 4, and 9 as Kerf applies them, and option B moves code without removing any.
+Option C, chosen by the owner on November 3, 2026. Option A conflicts with hard rules 1, 4, and 9 as Kerf applies them, and option B moves code without removing any.
 
 ## What stays in template code
 
@@ -100,7 +100,7 @@ For every worked example in both template specs, and every parameter set in the 
 
 A joint type counts as done when both templates reach parity with it in place.
 
-## Order of work, if option C is chosen
+## Order of work
 
 1. Package skeleton and the parity harness, comparing each template with itself so the harness is proven before anything changes.
 2. Trim planes: swing-set legs, crossbars, and gussets.
@@ -111,8 +111,7 @@ A joint type counts as done when both templates reach parity with it in place.
 
 Each step is its own issue and pull request into `explore/joint-model`.
 
-## Questions for the owner
+## Still open
 
-1. Option C, or another option?
-2. Is the parity test's tolerance (exact display, 1e-9 before display) the right bar?
-3. Should the test-only solver be filed now as its own exploration, or left until option C is further along?
+- The parity test's tolerance (exact display, 1e-9 before display) is used as written until the owner changes it.
+- The test-only solver is not filed. It can be once option C is further along.
