@@ -4,7 +4,7 @@ import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { byText, click, mount, settle } from '../../test/dom.tsx';
 import { projectFrom } from '../../test/projects.ts';
-import { EditProjectScreen } from './ProjectEditor.tsx';
+import { EditProjectScreen } from './EditProject.tsx';
 
 // Two devices editing one project (#207): a save refused because another device saved first
 // keeps what was typed, and offers both ways on.

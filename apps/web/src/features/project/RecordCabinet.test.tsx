@@ -4,7 +4,7 @@ import type { Project } from '../../lib/types.ts';
 import { loadedDrawings, projectFrom } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
 import { ModeView } from '../modes/modes.tsx';
-import { startValues } from '../project-editor/ProjectEditor.tsx';
+import { startValues } from '../project-editor/start.ts';
 import { ProjectView } from './ProjectScreen.tsx';
 
 // The record cabinet's worked example through the screens: the panels, wood movement, elevations,

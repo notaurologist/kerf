@@ -11,8 +11,11 @@ import { fieldId } from '../../lib/fieldIds.ts';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, renderText, textOf } from '../../test/render.tsx';
+import { EditProject } from './EditProject.tsx';
 import { placeIssues, schemaIssues } from './issues.ts';
-import { changesFor, EditProject, ProjectEditor, startValues } from './ProjectEditor.tsx';
+import { ProjectEditor } from './ProjectEditor.tsx';
+import { changesFor } from './save.ts';
+import { startValues } from './start.ts';
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const { params: sections } = template.form;
