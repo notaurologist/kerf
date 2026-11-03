@@ -72,6 +72,18 @@ export function maxShear(L: number, loads: SpanLoads): number {
   return Math.max(left, right);
 }
 
+/**
+ * Shear just left and just right of x: R1 − w·x less the point loads left of x, and less any
+ * load at x too on the right.
+ */
+export function shearBeside(L: number, loads: SpanLoads, x: number): Reactions {
+  let left = reactions(L, loads).left - loads.w * x;
+  for (const { a, P } of loads.points) if (a < x) left -= P;
+  let right = left;
+  for (const { a, P } of loads.points) if (a === x) right -= P;
+  return { left, right };
+}
+
 type Quartic = [number, number, number, number, number];
 
 /**

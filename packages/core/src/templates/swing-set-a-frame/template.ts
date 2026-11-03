@@ -114,11 +114,16 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * Version 34 checks the longer leg as a column in compression (NDS 2024 3.6.3 and 3.7.1), with
  * the legs' species, grade, and incising as structural inputs (#468). The ground anchor check's
  * note on the legs' weight now names what is missing for it. No other output changes.
- * Version 35 measures the leg's end distance and bolt spacing along its grain at the gusset joint,
+ * Version 35 measures the spacing of the crossbar and gusset bolts along the leg as spacing between
+ * rows (Table 12.5.1D), since across the leg's grain each bolt is its own row (#524).
+ * Version 36 takes the beam's shear beside each swing hanger as well: on the net section a bolt
+ * down through the beam leaves (NDS 2024 3.1.2.1), or on the depth below bolts across it that the
+ * seat hangs from (3.4.4.1), and a plan with another mounting gives no shear (#526).
+ * Version 37 measures the leg's end distance and bolt spacing along its grain at the gusset joint,
  * where the beam's weight loads the leg at α to its grain (NDS 2024 12.5.1.2, Tables 12.5.1A and
  * 12.5.1B; #536). No part, cut, or bolt moves.
  */
-export const TEMPLATE_VERSION = 35;
+export const TEMPLATE_VERSION = 37;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

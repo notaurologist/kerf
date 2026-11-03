@@ -277,7 +277,7 @@ function supportAssumptions(supports: ReturnType<typeof beamSupports>): string[]
   ];
 }
 
-/** The hanger mounting's field label, which bending names while it is needed. */
+/** The hanger mounting's field label, which bending and shear name while it is needed. */
 export const HANGER_MOUNTING_LABEL = 'Swing hanger mounting';
 const HANGER_MOUNTING = { key: 'hardware.hangerMounting', label: HANGER_MOUNTING_LABEL };
 
@@ -293,7 +293,7 @@ function hangerHoles(output: SwingSetOutput): MemberHoles {
   if (m.kind === 'other') {
     return {
       reason:
-        'The swing hangers are fastened some other way than with bolts, so Kerf cannot work out how much of the beam their holes remove at each hanger, where the moment is largest. NDS 2024 3.1.2.1 takes bending on that net section. Ask an experienced builder to check the beam at the hangers.',
+        'The swing hangers are fastened some other way than with bolts, so Kerf cannot work out how much of the beam their holes remove at each hanger, where the moment is largest and, at the outer hangers, the shear nearly so. NDS 2024 3.1.2.1 takes bending and shear on that net section. Ask an experienced builder to check the beam at the hangers.',
     };
   }
   const D = boltHoleDiameter(m.diameter);
@@ -307,6 +307,10 @@ function hangerHoles(output: SwingSetOutput): MemberHoles {
       x,
       label: `${HANGER_LABELS[i] ?? `Hanger ${i + 1}`} hole`,
       hole,
+      // The seat hangs from bolts across the beam; a bolt down through it bears on the top instead.
+      ...(m.kind === 'horizontal-bolts'
+        ? { hung: { fromEnd: Math.min(x, p.beamLength - x) } }
+        : {}),
     })),
   };
 }
@@ -318,8 +322,8 @@ function hangerHoleAssumptions(output: SwingSetOutput): string[] {
   const hole = formatLength(boltHoleDiameter(m.diameter));
   const where =
     m.kind === 'vertical-bolt'
-      ? `Each hanger's bolt goes down through the beam on its centerline, in a ${hole} hole (the bolt plus 1/16", NDS 2024 12.1.3.2).`
-      : `Each hanger's bolts cross the beam in one row, ${formatLength(m.holeHeight)} above its bottom, in ${hole} holes (the bolt plus 1/16", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.`;
+      ? `Each hanger's bolt goes down through the beam on its centerline, in a ${hole} hole (the bolt plus 1/16", NDS 2024 12.1.3.2). Its washer bears on the beam's top, so bending and shear are taken on the net section there.`
+      : `Each hanger's bolts cross the beam in one row, ${formatLength(m.holeHeight)} above its bottom, in ${hole} holes (the bolt plus 1/16", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered. The seat hangs from the bolts, so shear there is taken on the beam's depth below them (NDS 2024 3.4.4.1).`;
   return [
     where,
     ...(p.beamPlies > 1 && m.kind === 'vertical-bolt'
@@ -924,7 +928,7 @@ const inputs = (...paths: (keyof typeof STRUCTURAL_INPUT_LABELS | `riderWeights.
 /**
  * The fields each check changes with (`TemplateDefinition.checkFields`): for the top beam, its
  * size, its span between the gussets (or the bolts, with no gusset under it), where the hangers
- * hang on it and, for bending, how they are fastened, then the inputs its material and loads come
+ * hang on it and, for bending and shear, how they are fastened, then the inputs its material and loads come
  * from; for the legs, their size, the frame's shape, and the loads the beam brings them; for a
  * hanger, its loads and its rating; for a ground anchor, the frame's shape, the
  * anchors, and the inputs behind the beam's weight. The beam's size also changes its weight, but
@@ -959,7 +963,7 @@ export function checkFields(check: { kind: CheckKind; subject: string }): FieldR
   return [
     ...params('beamStock', 'beamPlies', 'beamLength', 'frameInset', 'gussetStock', 'legStock'),
     ...params('swings.centers.0', 'swings.centers.1', 'swings.hangerSpacing'),
-    ...(check.kind === 'beam-bending'
+    ...(check.kind === 'beam-bending' || check.kind === 'beam-shear'
       ? params(
           'hardware.hangerMounting.kind',
           'hardware.hangerMounting.diameter',
@@ -1032,7 +1036,9 @@ function checklist(output: SwingSetOutput): ChecklistItem[] {
           : []),
       ],
       confirm:
-        'Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.',
+        p.hardware.hangerMounting?.kind === 'horizontal-bolts'
+          ? 'Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger and no lower in the beam than the bending and shear checks take.'
+          : 'Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending and shear checks take.',
       why: "The hanger margin uses the manufacturer's rating, which holds only for its specified installation.",
     },
     {

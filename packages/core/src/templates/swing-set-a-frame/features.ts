@@ -413,7 +413,20 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
           ]
         : []),
       edgeDistance('Leg', dims.w / 2, D, 'perpendicular', lOverD),
-      ...(n > 1 ? [spacingInRow('Leg', rowSpacing / Math.cos(a), D, 'perpendicular')] : []),
+      // Across the leg's grain the bolts lie along the leg, across the load, so each is its own
+      // row (12.1.2.4, Figure 12G) and their spacing is between rows.
+      ...(n > 1
+        ? [
+            spacingBetweenRows(
+              'Leg',
+              rowSpacing / Math.cos(a),
+              D,
+              'perpendicular',
+              lOverD,
+              'Spacing between rows, along the leg',
+            ),
+          ]
+        : []),
       ...underBeam,
     ];
     return {
@@ -428,7 +441,7 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
           ? `The ${member.toLowerCase()} runs ${formatLength(b.pastLeg)} past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.`
           : `The leg is wide enough for 7D of end distance with the ${member.toLowerCase()} flush with it.`,
         `End distance is measured along the grain on each bolt's line; the end is cut at ${angle} from square, parallel to the leg.`,
-        `Assumed: load along the ${member.toLowerCase()}'s grain, and across the leg's grain, which the ${member.toLowerCase()} meets at ${across}. Softwood lumber.`,
+        `Assumed: load along the ${member.toLowerCase()}'s grain, and across the leg's grain, which the ${member.toLowerCase()} meets at ${across}. Across the leg's grain, each bolt is a row of its own. Softwood lumber.`,
         ...(carriesBeam
           ? [
               `The ${member.toLowerCase()} also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at ${angle} to the load.`,

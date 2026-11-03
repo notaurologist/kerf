@@ -70,6 +70,7 @@ describe('glossary terms in the plan (#178)', () => {
       'tamped',
       'backfill',
       'bending',
+      'shear',
       'knots',
       'midspan',
       'grain',

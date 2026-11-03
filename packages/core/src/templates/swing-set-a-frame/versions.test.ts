@@ -3,6 +3,7 @@ import type { TemplateDefinition } from '../../model/definition.ts';
 import type { Operation } from '../../model/operations.ts';
 import { diff } from '../../snapshot/diff.ts';
 import { createSnapshot, type ProjectSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
+import type { BoltJoint } from '../../structural/boltDistances.ts';
 import { swingSetAFrame } from './definition.ts';
 import v1 from './snapshots/v1.json' with { type: 'json' };
 import v2 from './snapshots/v2.json' with { type: 'json' };
@@ -37,6 +38,8 @@ import v31 from './snapshots/v31.json' with { type: 'json' };
 import v32 from './snapshots/v32.json' with { type: 'json' };
 import v33 from './snapshots/v33.json' with { type: 'json' };
 import v34 from './snapshots/v34.json' with { type: 'json' };
+import v35 from './snapshots/v35.json' with { type: 'json' };
+import v36 from './snapshots/v36.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -198,10 +201,49 @@ const isVersion34 = (c: { path: string; before?: unknown; after?: unknown }) =>
     !String(c.after).includes('species'));
 
 /**
- * Version 35's changes (#536): the leg's distances along its grain under the beam's weight, added
+ * Version 35's changes (#524): the bolts' spacing along the leg measured between rows (Table
+ * 12.5.1D) instead of in a row (Table 12.5.1B), and the assumed note saying each bolt is its own
+ * row across the leg's grain. The distance itself does not move. Set aside like version 18's.
+ */
+const SPACING_ALONG_LEG = /^design\.boltLayout\[\d+\]\.distances\[\d+\]\./;
+const isVersion35 = (c: { path: string; before?: unknown; after?: unknown }) => {
+  if (SPACING_ALONG_LEG.test(c.path)) {
+    const field = c.path.replace(SPACING_ALONG_LEG, '');
+    if (field === 'label') {
+      return (
+        c.before === 'Spacing between bolts in a row' &&
+        c.after === 'Spacing between rows, along the leg'
+      );
+    }
+    if (field === 'requirements[0].citation.locator') {
+      return String(c.after).startsWith('Table 12.5.1D');
+    }
+    if (field === 'requirements[0].condition') {
+      return String(c.after).startsWith('load perpendicular to grain, ');
+    }
+    return field === 'requirements[0].multiple' || field === 'requirements[0].value';
+  }
+  return (
+    /^design\.boltLayout\[\d+\]\.notes\[\d+\]$/.test(c.path) &&
+    String(c.after).replace(" Across the leg's grain, each bolt is a row of its own.", '') ===
+      c.before
+  );
+};
+
+/**
+ * Version 36's changes (#526): shear beside the hangers' holes, and the hanger checklist item's
+ * wording. Set aside like version 18's.
+ */
+const isVersion36 = (c: { path: string; before?: unknown }) =>
+  /^structuralReview\.beam\.shear(\.|\[|$)/.test(c.path) ||
+  (/^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) &&
+    String(c.before).startsWith('Hangers rated for swing use'));
+
+/**
+ * Version 37's changes (#536): the leg's distances along its grain under the beam's weight, added
  * after the gusset joint's other rows, and a note saying why. Set aside like version 18's.
  */
-const isVersion35 = (c: { path: string; before?: unknown; after?: unknown }) =>
+const isVersion37 = (c: { path: string; before?: unknown; after?: unknown }) =>
   c.before === undefined &&
   ((/^design\.boltLayout\[\d+\]\.distances\[\d+\]$/.test(c.path) &&
     (c.after as { member?: unknown }).member === 'Leg' &&
@@ -231,6 +273,8 @@ function regenerated(
   keepVersion33 = false,
   keepVersion34 = false,
   keepVersion35 = false,
+  keepVersion36 = false,
+  keepVersion37 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -253,7 +297,9 @@ function regenerated(
         (keepVersion32 || !isVersion32(c)) &&
         (keepVersion33 || later !== undefined || !isVersion33(c)) &&
         (keepVersion34 || !isVersion34(c)) &&
-        (keepVersion35 || !isVersion35(c)),
+        (keepVersion35 || !isVersion35(c)) &&
+        (keepVersion36 || later !== undefined || !isVersion36(c)) &&
+        (keepVersion37 || !isVersion37(c)),
     ),
   };
   return keepVersion18
@@ -775,7 +821,9 @@ describe('swing-set template versions', () => {
           !isVersion32(c) &&
           !isVersion33(c) &&
           !isVersion34(c) &&
-          !isVersion35(c),
+          !isVersion35(c) &&
+          !isVersion36(c) &&
+          !isVersion37(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1184,20 +1232,86 @@ describe('swing-set template versions', () => {
       expect(legs[0]?.after).toMatchObject({ kind: 'column' });
     }
   });
-  // Hand check in features.test.ts: the bolts' line meets the flush cut 1.75 / sin 20° = 5.1167
-  // above the beam's underside, so the top gusset bolt, 1.8125 below it, is 6.9292 / cos 20° =
-  // 7.3739 (14.7D) from the end along the grain; the bolts are 3.625 / cos 20° = 3.8576 apart.
-  it("version 35 measures the leg along its grain under the beam's weight, and changes nothing else (#536)", () => {
-    const keep35 = [...Array(10).fill(false), undefined, ...Array(4).fill(false), true] as const;
+
+  // Hand check in the spec, Bolt layout: ℓ is the lesser of the leg's 3.5 and the board's 1.5, so
+  // ℓ/D = 3 for 1/2" bolts and Table 12.5.1D gives (5·1.5 + 10·0.5) / 8 = 1.5625. The bolts stay
+  // 2.75 / cos 20° = 2.9265 (crossbar) and 3.625 / cos 20° = 3.8576 (gusset) apart along the leg.
+  it("version 35 measures the bolts' spacing along the leg between rows, and changes nothing else (#524)", () => {
+    const keep35 = [...Array(10).fill(false), undefined, false, false, false, false, true] as const;
     for (const stored of v34) {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(34);
       const { changes } = regenerated(snapshot, ...keep35);
+      expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion35(c))).toEqual([]);
+    }
+    const layout = at(fresh(read(v34[0])), 'design.boltLayout') as BoltJoint[];
+    const alongLeg = layout.flatMap((j) =>
+      j.distances
+        .filter((d) => d.label === 'Spacing between rows, along the leg')
+        .map((d) => [
+          j.title,
+          Number(d.value.toFixed(4)),
+          d.requirements.map((r) => [r.multiple, r.value, r.citation.locator]),
+        ]),
+    );
+    expect(alongLeg).toEqual([
+      [
+        'Crossbar to leg',
+        2.9265,
+        [['(5ℓ + 10D) / 8', 1.5625, 'Table 12.5.1D, Spacing Requirements Between Rows, p. 99']],
+      ],
+      [
+        'Gusset to leg',
+        3.8576,
+        [['(5ℓ + 10D) / 8', 1.5625, 'Table 12.5.1D, Spacing Requirements Between Rows, p. 99']],
+      ],
+    ]);
+  });
+
+  // Hand check in the spec, Structural model, example 1: just inside the left outer hanger the
+  // shear is 621.15 − 0.433798·18.75 = 613.01, and its 9/16" hole leaves A_v = 2.9375·5.5, so
+  // f_v = 3·613.01 / (2·16.15625) = 56.91 and the margin 169.75 / 56.91 = 2.98, against 3.51.
+  it('version 36 takes shear beside the hanger holes, and changes nothing else (#526)', () => {
+    const keep36 = [
+      ...Array(10).fill(false),
+      undefined,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+    ] as const;
+    for (const stored of v35) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(35);
+      // An example without the structural inputs has no shear to change.
+      const { changes } = regenerated(snapshot, ...keep36);
+      expect(changes.filter((c) => !isVersion36(c))).toEqual([]);
+    }
+    type Shear = { margin: number; computed: { label: string } };
+    const shear = (outputs: unknown) =>
+      (outputs as { structuralReview: { beam: { shear: Shear } } }).structuralReview.beam.shear;
+    expect(shear(read(v35[0]).outputs).margin).toBeCloseTo(3.5072, 4);
+    const now = shear(fresh(read(v35[0])));
+    expect(now.margin).toBeCloseTo(2.98256, 4);
+    expect(now.computed.label).toBe('Shear stress at left swing, left hanger hole, net section');
+  });
+  // Hand check in features.test.ts: the bolts' line meets the flush cut 1.75 / sin 20° = 5.1167
+  // above the beam's underside, so the top gusset bolt, 1.8125 below it, is 6.9292 / cos 20° =
+  // 7.3739 (14.7D) from the end along the grain; the bolts are 3.625 / cos 20° = 3.8576 apart.
+  it("version 37 measures the leg along its grain under the beam's weight, and changes nothing else (#536)", () => {
+    const keep37 = [...Array(10).fill(false), undefined, ...Array(6).fill(false), true] as const;
+    for (const stored of v36) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(36);
+      const { changes } = regenerated(snapshot, ...keep37);
+      expect(changes.filter((c) => !isVersion37(c))).toEqual([]);
       // Two distances and a note on the gusset joint; no flag, since both are over every row.
       expect(changes).toHaveLength(3);
     }
-    const added = regenerated(read(v34[0]), ...keep35)
+    const added = regenerated(read(v36[0]), ...keep37)
       .changes.filter((c) => /\.distances\[\d+\]$/.test(c.path))
       .map((c) => c.after as { label: string; value: number });
     expect(added.map((d) => [d.label.split(',')[0], Number(d.value.toFixed(4))])).toEqual([

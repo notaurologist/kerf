@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { netSection } from './netSection.ts';
+import { netSection, shearSection } from './netSection.ts';
 
 // Net sections at a bored hole (NDS 2024 3.1.2.1), computed by hand.
 
@@ -50,6 +50,49 @@ describe('a hole across the breadth', () => {
   it('refuses a hole past the top or bottom', () => {
     expect(netSection(3.5, 5.5, 1, { kind: 'through-breadth', diameter: 0.5, height: 5.4 })).toBe(
       'The hole reaches past the top or bottom of the member.',
+    );
+  });
+});
+
+describe('the section that resists shear at a hole', () => {
+  const A = (r: ReturnType<typeof shearSection>) => {
+    if (typeof r === 'string') throw new Error(r);
+    return r.A;
+  };
+
+  it('down through the depth is the net section: 4x6 with a 9/16" hole, 2.9375·5.5 = 16.15625', () => {
+    expect(
+      A(shearSection(3.5, 5.5, 1, { kind: 'through-depth', diameter: 0.5625, center: 1.75 })),
+    ).toBeCloseTo(16.15625, 9);
+  });
+
+  it('down through the seam of two plies takes half the hole from each: 1.21875·5.5', () => {
+    expect(
+      A(shearSection(1.5, 5.5, 2, { kind: 'through-depth', diameter: 0.5625, center: 1.5 })),
+    ).toBeCloseTo(6.703125, 9);
+  });
+
+  // NDS 2024 3.4.4.1, Figure 3E: with the load hanging from the bolts, the unloaded edge is the
+  // top, so d_e = d − (d − h) = h.
+  const hung = { kind: 'through-breadth', diameter: 0.5625, height: 2 } as const;
+
+  it('across the breadth, at least 5d from the end: b·d_e = 3.5·2 = 7 (Eq. 3.4-9)', () => {
+    expect(A(shearSection(3.5, 5.5, 1, hung, { fromEnd: 27.5 }))).toBeCloseTo(7, 9);
+  });
+
+  it('across the breadth, within 5d of the end: b·d_e·(d_e/d)² = 7·(2/5.5)² = 0.92562 (Eq. 3.4-8)', () => {
+    expect(A(shearSection(3.5, 5.5, 1, hung, { fromEnd: 27.4 }))).toBeCloseTo(0.92562, 6);
+  });
+
+  it('is not worked out across the breadth where no load hangs from the hole', () => {
+    expect(shearSection(3.5, 5.5, 1, hung)).toBe(
+      'Kerf does not work out shear at a hole across the member that no load hangs from.',
+    );
+  });
+
+  it('refuses a hole past the member, as the net section does', () => {
+    expect(shearSection(3.5, 5.5, 1, { kind: 'through-depth', diameter: 0.5, center: 0.2 })).toBe(
+      'The hole reaches past the side of the member.',
     );
   });
 });
