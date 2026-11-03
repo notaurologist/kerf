@@ -48,7 +48,10 @@ export function WorkshopScreen(props: {
             <a href="/api/export" download onClick={onDownload}>
               Download a backup
             </a>
-            <Text tone="muted">Every project and your tools, as one file to keep.</Text>
+            <Text tone="muted">
+              Every project, including deleted ones still in the trash, and your tools, as one file
+              to keep.
+            </Text>
             {backup.state === 'preparing' && <Text tone="muted">Preparing the backup…</Text>}
             {backup.state === 'ready' && (
               <Text>The backup is ready. Tap Download a backup again to save it.</Text>

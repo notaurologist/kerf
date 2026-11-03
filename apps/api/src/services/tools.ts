@@ -1,5 +1,6 @@
 import { Inventory, readStoredTools } from '@kerf/core';
 import { asc, sql } from 'drizzle-orm';
+import { z } from 'zod';
 import type { Database } from '../db/client.ts';
 import { tools } from '../db/schema.ts';
 
@@ -38,4 +39,28 @@ export async function replaceInventory(db: Database, inventory: Inventory, now: 
       );
     }
   });
+}
+
+// A tool row as stored, for the backup. Loose on purpose: `getInventory` leaves out rows whose type
+// the library no longer has, and a backup must not drop them silently.
+const StoredToolRow = z.object({
+  toolTypeId: z.string(),
+  name: z.string(),
+  position: z.number().int(),
+  capabilities: z.unknown(),
+});
+export type StoredToolRow = z.infer<typeof StoredToolRow>;
+
+/** Every stored tool row, unfiltered, in position order. */
+export async function exportTools(db: Database): Promise<{ tools: StoredToolRow[] }> {
+  const rows = await db
+    .select({
+      toolTypeId: tools.toolTypeId,
+      name: tools.name,
+      position: tools.position,
+      capabilities: tools.capabilities,
+    })
+    .from(tools)
+    .orderBy(asc(tools.position));
+  return { tools: z.array(StoredToolRow).parse(rows) };
 }

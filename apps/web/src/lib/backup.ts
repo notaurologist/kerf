@@ -61,7 +61,7 @@ const INCOMPLETE: Failure = {
 };
 
 /**
- * Fetches every project and the tools as the backup file. The API streams it, so a connection
+ * Fetches every project, trashed ones included, and the tool rows as the backup file. The API streams it, so a connection
  * lost partway leaves text that does not parse, and that is reported rather than saved.
  */
 export async function fetchBackup(

@@ -603,9 +603,13 @@ describe('deleting, the trash, and restoring (#21)', () => {
 });
 
 describe('GET /api/export (#21)', () => {
-  it('downloads every project as stored, with its ticks and the tool list, leaving out the trash', async () => {
-    const { authed } = await createTestApp();
+  it('downloads every project as stored, with its ticks, the trash apart, and the tool rows as stored', async () => {
+    const { authed, client } = await createTestApp();
     const { body } = await create(authed);
+    await client.query(
+      `insert into tools (position, tool_type_id, name, capabilities)
+       values (0, 'retired-tool-type', 'Old saw', '{"kept": true}')`,
+    );
     const gone = await create(authed, { ...newProject, name: 'Gone' });
     await authed(`/api/projects/${gone.body.id}`, { method: 'DELETE', body: {} });
 
@@ -616,12 +620,33 @@ describe('GET /api/export (#21)', () => {
     );
     const exported = (await res.json()) as Json;
     expect(exported.kind).toBe('kerf-export');
-    expect(exported.formatVersion).toBe(1);
+    expect(exported.formatVersion).toBe(2);
     expect(exported.exportedAt).toBe('2026-10-28T12:00:00.000Z');
     expect(exported.projects.map((p: Json) => p.id)).toEqual([body.id]);
     expect(exported.projects[0].snapshot).toEqual(body.snapshot);
     expect(exported.projects[0].ticks).toEqual([]);
-    expect(exported.tools).toHaveProperty('tools');
+    expect(exported.deletedProjects.map((p: Json) => p.id)).toEqual([gone.body.id]);
+    expect(exported.deletedProjects[0].deletedAt).toBe('2026-10-28T12:00:00.000Z');
+    expect(exported.deletedProjects[0].snapshot).toEqual(gone.body.snapshot);
+    expect(exported.tools.tools).toEqual([
+      {
+        toolTypeId: 'retired-tool-type',
+        name: 'Old saw',
+        position: 0,
+        capabilities: { kept: true },
+      },
+    ]);
+  });
+
+  it('leaves a purged project out', async () => {
+    const { authed } = await createTestApp();
+    const gone = await create(authed, { ...newProject, name: 'Gone' });
+    await authed(`/api/projects/${gone.body.id}`, { method: 'DELETE', body: {} });
+    await authed(`/api/trash/${gone.body.id}`, { method: 'DELETE', body: {} });
+
+    const exported = (await (await authed('/api/export')).json()) as Json;
+    expect(exported.projects).toEqual([]);
+    expect(exported.deletedProjects).toEqual([]);
   });
 
   it('streams a backup larger than the 4.5 MB Vercel allows an unstreamed response', async () => {
@@ -654,7 +679,7 @@ describe('GET /api/export (#21)', () => {
     expect(new TextEncoder().encode(text).length).toBeGreaterThan(LIMIT);
     expect(pieces).toBeGreaterThan(copies);
     const exported = JSON.parse(text) as Json;
-    expect(exported).toMatchObject({ kind: 'kerf-export', formatVersion: 1 });
+    expect(exported).toMatchObject({ kind: 'kerf-export', formatVersion: 2 });
     expect(exported.projects).toHaveLength(copies + 1);
     expect(exported.projects.at(-1).snapshot).toEqual(body.snapshot);
   });
