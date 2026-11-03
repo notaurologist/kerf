@@ -10,7 +10,7 @@ import {
   visibleFields,
 } from '@kerf/core';
 import { type FormEvent, type ReactNode, useState } from 'react';
-import type { FieldIssue } from '../../lib/api.ts';
+import { api, type FieldIssue, failureOf, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { href } from '../../lib/route.ts';
 import {
@@ -18,8 +18,10 @@ import {
   ButtonLink,
   Cluster,
   ErrorSummary,
+  type Failure,
   FieldGroup,
   InfoNotice,
+  SaveFailed,
   ScreenHeader,
   Stack,
   Text,
@@ -29,10 +31,10 @@ import {
 import { leaveGate } from '../../ui/leave.ts';
 import { type FormIssues, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 
-// A new project started from a few plain questions (#163). The template asks them as form data
-// and suggests starting values from the answers with core's pure function; the editor then opens
-// filled in, with the preview, and each suggested value says where it came from. Nothing is
-// saved until Create.
+// A new project started from a few plain questions (#163). The template asks them as form data;
+// the API suggests starting values from the answers with core's function, since a template may
+// generate to make them. The editor then opens filled in, with the preview, and each suggested
+// value says where it came from. Nothing is saved until Create.
 
 /** The editor's starting values from a set of answers. */
 export interface FromAnswers {
@@ -42,14 +44,13 @@ export interface FromAnswers {
 }
 
 /**
- * The answers' problems in the form's words, or the suggestions. Text Kerf cannot read says what
- * to type; the answers schema reports the rest.
+ * The answers' problems in the form's words, or the answers read from the form. Text Kerf cannot
+ * read says what to type; the answers schema reports the rest.
  */
 export function answer(
-  template: TemplateDefinition,
   questions: StartingQuestions,
   values: FormValues,
-): { ok: true; value: FromAnswers } | { ok: false; issues: FieldIssue[] } {
+): { ok: true; answers: unknown } | { ok: false; issues: FieldIssue[] } {
   const unread = entryProblems(questions.form, values);
   const unreadFields = new Set(unread.map((u) => u.field));
   const parsed = questions.answers.safeParse(buildFromForm(questions.form, values));
@@ -62,7 +63,7 @@ export function answer(
         )),
   ];
   if (issues.length > 0 || !parsed.success) return { ok: false, issues };
-  return { ok: true, value: suggestedValues(template.form, questions.suggest(parsed.data)) };
+  return { ok: true, answers: parsed.data };
 }
 
 export function StartQuestions(props: {
@@ -77,6 +78,8 @@ export function StartQuestions(props: {
   const [empty] = useState(() => formValues(questions.form, {}));
   const { issues, attempt, report } = useFormIssues<FormIssues>(NO_ISSUES);
   const [suggested, setSuggested] = useState<FromAnswers | null>(null);
+  const [asking, setAsking] = useState(false);
+  const [failure, setFailure] = useState<Failure | null>(null);
   const {
     draft: values,
     setDraft: setValues,
@@ -104,14 +107,33 @@ export function StartQuestions(props: {
     );
   }
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const result = answer(template, questions, values);
+    const checked = answer(questions, values);
+    if (!checked.ok) {
+      report(placeIssues(questions.form, values, checked.issues), true);
+      return;
+    }
+    setAsking(true);
+    setFailure(null);
+    const result = await send(
+      api.api.templates[':id'].suggestions.$post({
+        param: { id: template.id },
+        json: { answers: checked.answers },
+      }),
+    );
+    setAsking(false);
     if (result.ok) {
       report(NO_ISSUES, false);
-      setSuggested(result.value);
+      setSuggested(suggestedValues(template.form, result.value.suggestions));
+    } else if (result.error.kind === 'invalid') {
+      const issues = result.error.issues.map((i) => ({
+        ...i,
+        field: i.field.replace(/^answers\.?/, ''),
+      }));
+      report(placeIssues(questions.form, values, issues), true);
     } else {
-      report(placeIssues(questions.form, values, result.issues), true);
+      setFailure(failureOf(result.error));
     }
   };
 
@@ -136,6 +158,13 @@ export function StartQuestions(props: {
           example and stated rules of thumb, and you can change any value before creating the
           project.
         </Text>
+        {failure && (
+          <SaveFailed
+            failure={failure}
+            title="No suggestions."
+            kept="Your answers are still here."
+          />
+        )}
         {questions.form.map((section) => (
           <FieldGroup key={section.title} legend={section.title} help={section.help}>
             {section.fields
@@ -153,7 +182,9 @@ export function StartQuestions(props: {
           </FieldGroup>
         ))}
         <Cluster>
-          <Button type="submit">Suggest dimensions</Button>
+          <Button type="submit" busy={asking} busyLabel="Suggesting…">
+            Suggest dimensions
+          </Button>
           <ButtonLink variant="secondary" href={href({ screen: 'projects' })}>
             Cancel
           </ButtonLink>

@@ -1,8 +1,10 @@
 import {
   confirmedPaths,
+  type FormValues,
   findTemplate,
   formValues,
   type StartingQuestions,
+  suggestedValues,
   type TemplateDefinition,
 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
@@ -10,7 +12,8 @@ import { render, renderText } from '../../test/render.tsx';
 import { ProjectEditor } from './ProjectEditor.tsx';
 import { answer, StartQuestions } from './StartQuestions.tsx';
 
-// Starting a new project from a few questions (#163).
+// Starting a new project from a few questions (#163). The API makes the suggestions; here core
+// makes them as the API would, to render the editor they fill in.
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const questions = template.questions as StartingQuestions;
@@ -25,6 +28,13 @@ const answers = {
   'ground.slope': '',
   feet: 'buried',
 };
+
+/** The editor's starting values from the answers, as the API's suggestions give them. */
+function suggested(values: FormValues) {
+  const result = answer(questions, values);
+  if (!result.ok) throw new Error(JSON.stringify(result.issues));
+  return suggestedValues(template.form, questions.suggest(result.answers));
+}
 
 describe('the starting questions', () => {
   const screen = (
@@ -50,25 +60,22 @@ describe('the starting questions', () => {
   });
 
   it('says what is missing or cannot be read', () => {
-    const result = answer(template, questions, { ...answers, 'area.depth': '28 6', riders: '' });
+    const result = answer(questions, { ...answers, 'area.depth': '28 6', riders: '' });
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.issues.map((i) => i.field).sort()).toEqual(['area.depth', 'riders']);
   });
 
   it('suggests values from complete answers', () => {
-    const result = answer(template, questions, answers);
-    if (!result.ok) throw new Error(JSON.stringify(result.issues));
-    expect(result.value.params.beamHeight).toBe('84');
-    expect(result.value.params.beamLength).toBe('108');
-    expect(result.value.inputs['riderWeights.0']).toBe('200');
+    const { params, inputs } = suggested(answers);
+    expect(params.beamHeight).toBe('84');
+    expect(params.beamLength).toBe('108');
+    expect(inputs['riderWeights.0']).toBe('200');
   });
 });
 
 describe('the form filled in from the answers', () => {
-  const result = answer(template, questions, answers);
-  if (!result.ok) throw new Error('answers refused');
-  const { params, inputs, about } = result.value;
+  const { params, inputs, about } = suggested(answers);
   const editor = (
     <ProjectEditor template={template} initial={{ name: '', params, inputs }} suggested={about} />
   );

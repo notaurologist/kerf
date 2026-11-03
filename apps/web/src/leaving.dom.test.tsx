@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { findTemplate } from '@kerf/core';
 import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App.tsx';
@@ -29,6 +30,12 @@ function server() {
     const body = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
     if (path === '/api/session') return json({ expiresAt: '2026-11-04T12:00:00.000Z' });
     if (path === '/api/templates') return json({ templates: [] });
+    // Suggests as the API does, from core.
+    if (path === `/api/templates/${project.templateId}/suggestions`) {
+      return json({
+        suggestions: findTemplate(project.templateId)?.questions?.suggest(body.answers),
+      });
+    }
     if (path === '/api/tools') {
       if (method === 'PUT') tools = { ...tools, ...body, revision: tools.revision + 1 };
       return json(tools);
