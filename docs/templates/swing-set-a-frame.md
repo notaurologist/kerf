@@ -47,6 +47,8 @@ Template version 19 (#459) changes only how the build steps read, a change in ge
 
 Template version 20 (#455) rewords the leg's flush-cut note: it calls the cut a taper, as its build step does, and gives one measurement for each mark (the top cut's mark along the top cut from the corner, without the same point measured square from the edge). Board drawings now draw each piece's angled ends, and the legs' cut details name their ends Top and Foot. No number changes.
 
+Template version 21 (#457) changes only how the build steps read, a change in generic code: every method that uses a power tool says to wear eye protection, and hearing protection too for saws, routers, jointers and planers, and the leg taper cut with a circular saw marks where the blade stops and says to let the blade stop before lifting the saw. Stored output is the same.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates

@@ -62,6 +62,9 @@ export const CapabilityField = z
   });
 export type CapabilityField = z.infer<typeof CapabilityField>;
 
+export const Protection = z.enum(['eyes', 'hearing']);
+export type Protection = z.infer<typeof Protection>;
+
 export const ToolType = z
   .object({
     id: z.string().regex(ID, 'must be a lowercase ID like miter-saw'),
@@ -70,6 +73,11 @@ export const ToolType = z
     /** What the tool is, and what Kerf's methods use it for, for the tool's page. */
     description: z.string().min(1),
     group: ToolGroup,
+    /**
+     * What to wear while it runs. Every method that uses the tool carries the matching shared
+     * safety note (knowledge/methods.ts), with its source.
+     */
+    protection: z.array(Protection),
     capabilities: z.array(CapabilityField),
   })
   .refine((t) => new Set(t.capabilities.map((c) => c.id)).size === t.capabilities.length, {
@@ -97,6 +105,7 @@ export const TOOL_TYPES = [
     description:
       "A steel tape that pulls out of its case and locks, for measuring lengths. Kerf's methods use it to measure and mark parts.",
     group: 'measuring-and-marking',
+    protection: [],
     capabilities: [],
   },
   {
@@ -105,6 +114,7 @@ export const TOOL_TYPES = [
     description:
       "A meter that reads how much water is in a board, through pins pushed into it or a pad laid on it. Kerf's methods use it to tell when lumber has settled indoors.",
     group: 'measuring-and-marking',
+    protection: [],
     capabilities: [],
   },
   {
@@ -113,6 +123,7 @@ export const TOOL_TYPES = [
     description:
       "A ruler with a sliding head that holds it square to a board's edge, for marking square lines and checking cuts.",
     group: 'measuring-and-marking',
+    protection: [],
     capabilities: [],
   },
   {
@@ -122,6 +133,7 @@ export const TOOL_TYPES = [
     description:
       'A thick triangular square with a lip along one edge that hooks over a board, for marking square and angled lines and guiding a circular saw.',
     group: 'measuring-and-marking',
+    protection: [],
     capabilities: [],
   },
   {
@@ -130,6 +142,7 @@ export const TOOL_TYPES = [
     description:
       'A blade on a handle that locks at any angle, for copying an angle or laying it out on a board.',
     group: 'measuring-and-marking',
+    protection: [],
     capabilities: [],
   },
   {
@@ -138,6 +151,7 @@ export const TOOL_TYPES = [
     description:
       'A string coated in chalk on a reel. Pulled tight and snapped, it marks a long straight line.',
     group: 'measuring-and-marking',
+    protection: [],
     capabilities: [],
   },
   {
@@ -145,6 +159,7 @@ export const TOOL_TYPES = [
     name: 'Level',
     description: 'A straight bar with bubble vials that shows whether a surface is level or plumb.',
     group: 'measuring-and-marking',
+    protection: [],
     capabilities: [],
   },
   {
@@ -153,6 +168,7 @@ export const TOOL_TYPES = [
     description:
       'String stretched tight between stakes, for laying out straight lines and points on the site, such as where holes go.',
     group: 'measuring-and-marking',
+    protection: [],
     capabilities: [],
   },
   {
@@ -161,6 +177,7 @@ export const TOOL_TYPES = [
     description:
       'A small bubble vial that hangs on a string line to show when the string is level, for checking heights across the site.',
     group: 'measuring-and-marking',
+    protection: [],
     capabilities: [],
   },
 
@@ -171,6 +188,7 @@ export const TOOL_TYPES = [
     description:
       "A handheld power saw with a round blade, guided along a line or a straight board. Kerf's methods use it for crosscuts and angled cuts.",
     group: 'cutting',
+    protection: ['eyes', 'hearing'],
     capabilities: [
       {
         id: 'depthOfCut',
@@ -189,6 +207,7 @@ export const TOOL_TYPES = [
     description:
       'A round blade on a pivoting arm over a table with a fence, set to an angle by its scales. It cuts boards to length, square or angled.',
     group: 'cutting',
+    protection: ['eyes', 'hearing'],
     capabilities: [
       {
         id: 'crosscutWidth',
@@ -225,6 +244,7 @@ export const TOOL_TYPES = [
     description:
       'A round blade that rises through a table, with the board pushed across it, mostly for ripping.',
     group: 'cutting',
+    protection: ['eyes', 'hearing'],
     capabilities: [],
   },
   {
@@ -233,6 +253,7 @@ export const TOOL_TYPES = [
     description:
       'A circular saw that runs along a guide rail laid on the board, for long straight cuts.',
     group: 'cutting',
+    protection: ['eyes', 'hearing'],
     capabilities: [],
   },
   {
@@ -241,6 +262,7 @@ export const TOOL_TYPES = [
     description:
       'A thin blade in a loop that runs down through a table, for curves and cuts through thick stock.',
     group: 'cutting',
+    protection: ['eyes', 'hearing'],
     capabilities: [],
   },
   {
@@ -249,6 +271,7 @@ export const TOOL_TYPES = [
     description:
       "A saw pushed and pulled by hand. Kerf's methods use it where a power saw cannot reach and to finish a cut made from two faces.",
     group: 'cutting',
+    protection: [],
     capabilities: [],
   },
   {
@@ -257,6 +280,7 @@ export const TOOL_TYPES = [
     description:
       'A handheld power saw with a short blade that moves up and down, for curves and cuts other saws cannot reach.',
     group: 'cutting',
+    protection: ['eyes', 'hearing'],
     capabilities: [
       {
         id: 'depthOfCut',
@@ -277,6 +301,7 @@ export const TOOL_TYPES = [
     description:
       "A drill with a clutch, for drilling holes and driving screws. Kerf's methods use it with spade and auger bits for bolt holes.",
     group: 'drilling-and-driving',
+    protection: ['eyes'],
     capabilities: [],
   },
   {
@@ -285,6 +310,7 @@ export const TOOL_TYPES = [
     description:
       'A driver that adds rapid blows to its turning, for driving long screws and lag screws.',
     group: 'drilling-and-driving',
+    protection: ['eyes'],
     capabilities: [],
   },
   {
@@ -292,6 +318,7 @@ export const TOOL_TYPES = [
     name: 'Drill press',
     description: 'A drill mounted on a column over a table, so holes go straight into the work.',
     group: 'drilling-and-driving',
+    protection: ['eyes'],
     capabilities: [],
   },
   {
@@ -300,6 +327,7 @@ export const TOOL_TYPES = [
     description:
       'Flat drill bits with a center point and two cutting edges, for fast, rough holes in wood.',
     group: 'drilling-and-driving',
+    protection: [],
     capabilities: [
       {
         id: 'reach',
@@ -318,6 +346,7 @@ export const TOOL_TYPES = [
     description:
       'Drill bits with a screw tip and a spiral that pulls them through deep wood and clears the chips, for long bolt holes.',
     group: 'drilling-and-driving',
+    protection: [],
     capabilities: [
       {
         id: 'reach',
@@ -335,6 +364,7 @@ export const TOOL_TYPES = [
     name: 'Socket wrench',
     description: 'A handle with sockets that fit over nuts and bolt heads, for tightening bolts.',
     group: 'drilling-and-driving',
+    protection: [],
     capabilities: [],
   },
 
@@ -345,6 +375,7 @@ export const TOOL_TYPES = [
     description:
       'Tools that hold a board to a bench, or parts to each other, while you cut, drill, or fasten.',
     group: 'clamping-and-holding',
+    protection: [],
     capabilities: [
       {
         id: 'maxOpening',
@@ -365,6 +396,7 @@ export const TOOL_TYPES = [
     description:
       'A motor that spins a shaped bit, for rounding edges, cutting grooves, and trimming.',
     group: 'shaping',
+    protection: ['eyes', 'hearing'],
     capabilities: [],
   },
   {
@@ -373,6 +405,7 @@ export const TOOL_TYPES = [
     description:
       'A machine with a spinning cutterhead between two tables, for planing an edge or face straight and flat.',
     group: 'shaping',
+    protection: ['eyes', 'hearing'],
     capabilities: [],
   },
   {
@@ -380,6 +413,7 @@ export const TOOL_TYPES = [
     name: 'Thickness planer',
     description: 'A machine that planes a board to an even thickness, a thin layer at a time.',
     group: 'shaping',
+    protection: ['eyes', 'hearing'],
     capabilities: [
       {
         id: 'maxWidth',
@@ -398,6 +432,7 @@ export const TOOL_TYPES = [
     description:
       "A steel blade sharpened at its end, pushed or tapped to pare wood. Kerf's methods use it to bring a cut down to its line.",
     group: 'shaping',
+    protection: [],
     capabilities: [],
   },
   {
@@ -405,6 +440,7 @@ export const TOOL_TYPES = [
     name: 'Block plane',
     description: 'A small hand plane held in one hand, for trimming end grain and easing edges.',
     group: 'shaping',
+    protection: [],
     capabilities: [],
   },
   {
@@ -412,6 +448,7 @@ export const TOOL_TYPES = [
     name: 'Sander',
     description: 'A power tool that moves sandpaper fast, for smoothing faces and rounding edges.',
     group: 'shaping',
+    protection: ['eyes'],
     capabilities: [],
   },
 
@@ -422,6 +459,7 @@ export const TOOL_TYPES = [
     description:
       'Two hinged blades on long handles that dig and lift soil out of a narrow, deep hole.',
     group: 'digging-and-setting',
+    protection: [],
     capabilities: [],
   },
   {
@@ -429,6 +467,7 @@ export const TOOL_TYPES = [
     name: 'Shovel',
     description: 'A blade on a long handle, for digging and moving soil.',
     group: 'digging-and-setting',
+    protection: [],
     capabilities: [],
   },
   {
@@ -436,6 +475,7 @@ export const TOOL_TYPES = [
     name: 'Tamper',
     description: 'A heavy flat plate on a handle, for tamping soil and gravel firm.',
     group: 'digging-and-setting',
+    protection: [],
     capabilities: [],
   },
 ] as const satisfies readonly z.input<typeof ToolType>[];
