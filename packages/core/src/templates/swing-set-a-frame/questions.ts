@@ -154,7 +154,7 @@ const LARGEST_SWING: SuggestionBasis = {
 const FIBER_SATURATION: SuggestionBasis = {
   kind: 'source',
   citation:
-    'Simpson, Specific Gravity, Moisture Content, and Density Relationship for Wood (FPL-GTR-76, 1993), Equation 4, wood at its fiber saturation point, about 30%',
+    'William T. Simpson, Specific Gravity, Moisture Content, and Density Relationship for Wood (FPL-GTR-76, 1993), Equation 4, wood at its fiber saturation point, about 30%',
 };
 
 const EXAMPLE: SuggestionBasis = { kind: 'example' };
@@ -329,4 +329,30 @@ export const SWING_SET_QUESTIONS = startingQuestions({
   form: QUESTIONS,
   answers: SwingSetAnswers,
   suggest,
+  examples: [
+    // Room for the usual beam, on pads and level ground.
+    {
+      riders: 'kids',
+      riderWeights: [90, 110],
+      area: { length: 360, depth: 480 },
+      ground: { kind: 'level' },
+      feet: 'pads',
+    },
+    // Room for a shorter, lower beam than usual, buried in sloped ground.
+    {
+      riders: 'kids-and-adults',
+      riderWeights: [200, 90],
+      area: { length: 252, depth: 336 },
+      ground: { kind: 'sloped', slope: 1 },
+      feet: 'buried',
+    },
+    // Too little room for any beam the template draws.
+    {
+      riders: 'kids',
+      riderWeights: [90, 0],
+      area: { length: 240, depth: 192 },
+      ground: { kind: 'level' },
+      feet: 'pads',
+    },
+  ],
 });

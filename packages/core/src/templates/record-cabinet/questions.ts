@@ -160,7 +160,7 @@ const SHELF_DEFLECTION: SuggestionBasis = {
 const PANEL_RULES = {
   'allowances.jointPerEdge': {
     value: 0.0625,
-    rule: 'one or two jointer passes on each glued edge',
+    rule: 'one or two light cuts on the jointer for each glued edge',
   },
   'allowances.rip': { value: 0.5, rule: 'about 1/2" of extra width, ripped off after glue-up' },
   'allowances.trimPerEnd': {
@@ -408,4 +408,24 @@ export const CABINET_QUESTIONS = startingQuestions({
   form: QUESTIONS,
   answers: CabinetAnswers,
   suggest,
+  examples: [
+    // Under a window, so the top item stands above the stool, with boards from a store.
+    {
+      window: {
+        stoolHeight: 22,
+        stoolDepth: 2.5,
+        apronBottom: 18,
+        casingWidth: 54,
+        stoolWidth: 56,
+      },
+      topItem: { width: 16.5, depth: 13.5, height: 15 },
+      lumber: { source: 'store' },
+    },
+    // A high window, wider than the template covers, with boards from a dealer.
+    {
+      window: { stoolHeight: 40, stoolDepth: 1, apronBottom: 36, casingWidth: 80, stoolWidth: 84 },
+      topItem: { width: 12, depth: 12, height: 4 },
+      lumber: { source: 'dealer' },
+    },
+  ],
 });

@@ -1,4 +1,4 @@
-import { GLOSSARY } from '@kerf/core';
+import { createSnapshot, GLOSSARY, readSnapshot, TEMPLATES } from '@kerf/core';
 import {
   BRAND_EXCEPTIONS,
   BRAND_NAMES,
@@ -8,17 +8,42 @@ import {
 import { describe, expect, it } from 'vitest';
 import { GlossaryScreen } from './features/glossary/GlossaryScreen.tsx';
 import { ProjectView } from './features/project/ProjectScreen.tsx';
+import type { Project } from './lib/types.ts';
 import { projectFrom, storedSnapshots } from './test/projects.ts';
 import { renderText } from './test/render.tsx';
 
-// Hard rules 2 and 11 over everything a reader sees: the whole plan for each worked example (its
-// build steps, flags, board guides, hardware notes and review) and every glossary page.
+// Hard rules 2 and 11 over everything a reader sees: the whole plan (its build steps, flags, board
+// guides, hardware notes and review) for each stored swing set fixture and for every template's
+// worked examples at its current version, and every glossary page.
+
+/** A worked example as the API returns it: generated, stored as JSON, and read back. */
+function currentSnapshot(t: (typeof TEMPLATES)[number], e: (typeof t.examples)[number]) {
+  const made = createSnapshot(t, e.params, e.structuralInputs);
+  if (!made.ok) throw new Error(JSON.stringify(made.issues));
+  const read = readSnapshot(TEMPLATES, JSON.parse(JSON.stringify(made.output)));
+  if (!read.ok) throw new Error(read.message);
+  return read.snapshot as NonNullable<Project['snapshot']>;
+}
 
 const pages = [
   ...storedSnapshots.map((snapshot, i) => ({
-    name: `the plan for worked example ${i}`,
+    name: `the plan for stored example ${i}`,
     text: renderText(<ProjectView project={projectFrom(snapshot)} />),
   })),
+  ...TEMPLATES.flatMap((t) =>
+    t.examples.map((e) => ({
+      name: `the plan for ${t.id}, ${e.name}`,
+      text: renderText(
+        <ProjectView
+          project={projectFrom(currentSnapshot(t, e), {
+            templateId: t.id,
+            templateVersion: t.version,
+            version: { status: 'current', version: t.version },
+          })}
+        />,
+      ),
+    })),
+  ),
   { name: 'the glossary index', text: renderText(<GlossaryScreen />) },
   ...GLOSSARY.map((entry) => ({
     name: `the glossary entry ${entry.id}`,

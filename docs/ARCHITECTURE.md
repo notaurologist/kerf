@@ -280,7 +280,7 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 | Area | What tests must cover |
 |---|---|
 | `units/` | Fraction rounding at every 1/32 boundary, feet-inches display, angle convention conversions |
-| `templates/` | Hand-checked worked examples; fit tests (`DOMAIN.md`, Verification); validation of contradictory parameters; a version-bump test listing changed outputs; every template's examples parse with its strict `outputs` and read back unchanged (`contract.test.ts`); every stored fixture's plan fills in what generic code reads |
+| `templates/` | Hand-checked worked examples; fit tests (`DOMAIN.md`, Verification); validation of contradictory parameters; a version-bump test listing changed outputs; every template's examples parse with its strict `outputs` and read back unchanged, and no text a template gives the reader has verdict words or brands (`contract.test.ts`); every stored fixture's plan fills in what generic code reads |
 | `structural/` | Hand-checked worked examples for each check, including the symmetric hand-check cases and an asymmetric case; missing inputs produce "input needed" |
 | `outputs/` | Board grouping including kerf and trim; nothing silently dropped when a part is longer than any buyable length |
 | `knowledge/`, `design-values/` | Every entry parses; every reference resolves; every design value has a source |

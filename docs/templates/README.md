@@ -38,7 +38,7 @@ The contract is `TemplateDefinition` in `packages/core/src/model/definition.ts`.
 | `drawings`, `assembly`, `steps` | Made from stored outputs on each read, not stored: the template's drawings, the 3D scene and how parts pull apart, and the order of build steps |
 | `examples` | The worked examples from the spec. One with `start` is offered as a new project's starting point, with its parameters only |
 | `snapshotVersion`, `snapshotUpgrades` | The stored shape, and how each older shape becomes the next (step 5) |
-| `questions` | Optional starting questions (`model/questions.ts`) that suggest parameters, never hardware. A structural input is suggested only from the owner's answers or a cited source, for the owner to check |
+| `questions` | Optional starting questions (`model/questions.ts`) that suggest parameters, never hardware, with `examples`: answer sets that reach the suggestions' notes, for the contract test. A structural input is suggested only from the owner's answers or a cited source, for the owner to check |
 
 Generic code already makes the cut list, shopping list, hardware list, operations, structural checks, drawings, and build steps from what `generate` returns. Use it: `cutList`, `hardwareList`, and `planLumber` from `outputs/`, `withLetters` from `model/letters.ts`, the structural checks from `structural/`, and the view functions from `geometry/`. The swing set's `definition.ts` and `template.ts` show how they fit together.
 
@@ -51,7 +51,7 @@ Register the template in `templates/index.ts`: add its definition to `TEMPLATES`
 | Worked examples | the template's folder, like `swing-set-a-frame/template.test.ts` | Every number in the spec's hand-checked examples |
 | Fit | the template's folder, like `placements.test.ts` | The parts meet where the spec says they do (`DOMAIN.md`, Verification) |
 | Structural | the template's folder, like `structural.test.ts` | Each computed check against the hand-checked working, and "input needed" when an input is missing |
-| Contract | `templates/contract.test.ts` (runs for every registered template) | Each example's outputs parse with `outputs` and read back unchanged through `storedOutputs` and `readSnapshot`; `ownWords` is set |
+| Contract | `templates/contract.test.ts` (runs for every registered template) | Each example's outputs parse with `outputs` and read back unchanged through `storedOutputs` and `readSnapshot`; `ownWords` is set; no verdict words or brands in the outputs, plan, build steps, form, starting questions and what they suggest for `questions.examples`, or store readings (hard rules 2 and 11) |
 | Snapshot fixtures | the template's `snapshots.test.ts`, and `apps/api/scripts/snapshot-fixtures.test.ts` | Step 5 |
 | Generic code | `apps/web/src/generic.test.ts`, `templateFolders.test.ts`, `generation.test.ts` | Step 6 |
 

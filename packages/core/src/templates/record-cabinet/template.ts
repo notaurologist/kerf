@@ -12,7 +12,7 @@ import type { Allowances } from './structural.ts';
 // parts in cut-list order, placements, operations, and hardware. Pure.
 
 export const TEMPLATE_ID = 'record-cabinet';
-export const TEMPLATE_VERSION = 9;
+export const TEMPLATE_VERSION = 10;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
@@ -109,7 +109,7 @@ export function generate(
       quantity: screwCount,
       structural: false,
       notes: [
-        'Long enough to pass through a cleat and about two-thirds of the way into the case bottom, but not out its top. Confirm the size with an experienced builder.',
+        'Long enough to go through a cleat and about two-thirds of the way into the case bottom, but not out its top. Confirm the size with an experienced builder.',
       ],
       group: 'Screws',
     },

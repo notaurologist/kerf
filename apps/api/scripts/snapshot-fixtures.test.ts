@@ -37,6 +37,7 @@ const PINNED: Record<string, Record<string, string>> = {
     'v6.json': '8f0336e901e22239df262c585553b10a32ad71b9a589a2417374613e2dbafb16',
     'v7.json': '56e64e14015ee9fb7b93dbcec35949c8b2466dbd499514ae4744c2dc737ebaed',
     'v8.json': 'e34faba148be69e8b31e88a45be644f90c748e49463716ca1de78872c353ccb8',
+    'v9.json': '7c3e99f07738708f26e0acc4b254ffbe3b9a6f3c8a2c246e75da9f9427c2e922',
   },
 };
 
