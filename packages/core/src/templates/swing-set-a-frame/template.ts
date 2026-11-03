@@ -114,8 +114,11 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * Version 34 checks the longer leg as a column in compression (NDS 2024 3.6.3 and 3.7.1), with
  * the legs' species, grade, and incising as structural inputs (#468). The ground anchor check's
  * note on the legs' weight now names what is missing for it. No other output changes.
+ * Version 35 measures the leg's end distance and bolt spacing along its grain at the gusset joint,
+ * where the beam's weight loads the leg at α to its grain (NDS 2024 12.5.1.2, Tables 12.5.1A and
+ * 12.5.1B; #536). No part, cut, or bolt moves.
  */
-export const TEMPLATE_VERSION = 34;
+export const TEMPLATE_VERSION = 35;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

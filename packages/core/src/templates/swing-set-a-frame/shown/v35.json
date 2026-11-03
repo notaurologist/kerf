@@ -2868,6 +2868,64 @@
                   }
                 }
               ]
+            },
+            {
+              "member": "Leg",
+              "label": "End distance under the beam's weight, from the top bolt up the bolts' line",
+              "value": 7.373855606624032,
+              "requirements": [
+                {
+                  "condition": "bolt bearing away from the end",
+                  "multiple": "2D",
+                  "value": 1,
+                  "gives": "reduced design value (C∆ = 0.5)",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                },
+                {
+                  "condition": "bolt bearing away from the end",
+                  "multiple": "4D",
+                  "value": 2,
+                  "gives": "full design value (C∆ = 1.0)",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                }
+              ]
+            },
+            {
+              "member": "Leg",
+              "label": "Spacing between bolts in a row under the beam's weight, along the grain",
+              "value": 3.8576444252251814,
+              "requirements": [
+                {
+                  "condition": "load parallel to grain",
+                  "multiple": "3D",
+                  "value": 1.5,
+                  "gives": "minimum",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                },
+                {
+                  "condition": "load parallel to grain",
+                  "multiple": "4D",
+                  "value": 2,
+                  "gives": "full design value (C∆ = 1.0)",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                }
+              ]
             }
           ],
           "notes": [
@@ -2875,7 +2933,8 @@
             "The gusset runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
             "End distance is measured along the grain on each bolt's line; the end is cut at 20.0° from square, parallel to the leg.",
             "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Softwood lumber.",
-            "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 20.0° to the load."
+            "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 20.0° to the load.",
+            "In the leg the beam's weight acts at 20.0° to the grain, mostly along it, so the leg is also measured for load along its grain. Its bolts bear down, away from its top; the wood above the top bolt ends at the flush cut or the top cut."
           ]
         },
         {
@@ -13790,6 +13849,64 @@
                   }
                 }
               ]
+            },
+            {
+              "member": "Leg",
+              "label": "End distance under the beam's weight, from the top bolt up the bolts' line",
+              "value": 7.373855606624032,
+              "requirements": [
+                {
+                  "condition": "bolt bearing away from the end",
+                  "multiple": "2D",
+                  "value": 1,
+                  "gives": "reduced design value (C∆ = 0.5)",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                },
+                {
+                  "condition": "bolt bearing away from the end",
+                  "multiple": "4D",
+                  "value": 2,
+                  "gives": "full design value (C∆ = 1.0)",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                }
+              ]
+            },
+            {
+              "member": "Leg",
+              "label": "Spacing between bolts in a row under the beam's weight, along the grain",
+              "value": 3.8576444252251814,
+              "requirements": [
+                {
+                  "condition": "load parallel to grain",
+                  "multiple": "3D",
+                  "value": 1.5,
+                  "gives": "minimum",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                },
+                {
+                  "condition": "load parallel to grain",
+                  "multiple": "4D",
+                  "value": 2,
+                  "gives": "full design value (C∆ = 1.0)",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                }
+              ]
             }
           ],
           "notes": [
@@ -13797,7 +13914,8 @@
             "The gusset runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
             "End distance is measured along the grain on each bolt's line; the end is cut at 20.0° from square, parallel to the leg.",
             "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Softwood lumber.",
-            "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 20.0° to the load."
+            "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 20.0° to the load.",
+            "In the leg the beam's weight acts at 20.0° to the grain, mostly along it, so the leg is also measured for load along its grain. Its bolts bear down, away from its top; the wood above the top bolt ends at the flush cut or the top cut."
           ]
         },
         {
@@ -26794,6 +26912,64 @@
                   }
                 }
               ]
+            },
+            {
+              "member": "Leg",
+              "label": "End distance under the beam's weight, from the top bolt up the bolts' line",
+              "value": 7.392451737936093,
+              "requirements": [
+                {
+                  "condition": "bolt bearing away from the end",
+                  "multiple": "2D",
+                  "value": 1,
+                  "gives": "reduced design value (C∆ = 0.5)",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                },
+                {
+                  "condition": "bolt bearing away from the end",
+                  "multiple": "4D",
+                  "value": 2,
+                  "gives": "full design value (C∆ = 1.0)",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                }
+              ]
+            },
+            {
+              "member": "Leg",
+              "label": "Spacing between bolts in a row under the beam's weight, along the grain",
+              "value": 3.8555342927626683,
+              "requirements": [
+                {
+                  "condition": "load parallel to grain",
+                  "multiple": "3D",
+                  "value": 1.5,
+                  "gives": "minimum",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                },
+                {
+                  "condition": "load parallel to grain",
+                  "multiple": "4D",
+                  "value": 2,
+                  "gives": "full design value (C∆ = 1.0)",
+                  "citation": {
+                    "source": "nds-2024",
+                    "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
+                    "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                  }
+                }
+              ]
             }
           ],
           "notes": [
@@ -26801,7 +26977,8 @@
             "The gusset runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
             "End distance is measured along the grain on each bolt's line; the end is cut at 19.9° from square, parallel to the leg.",
             "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.1°. Softwood lumber.",
-            "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 19.9° to the load."
+            "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 19.9° to the load.",
+            "In the leg the beam's weight acts at 19.9° to the grain, mostly along it, so the leg is also measured for load along its grain. Its bolts bear down, away from its top; the wood above the top bolt ends at the flush cut or the top cut."
           ]
         },
         {
