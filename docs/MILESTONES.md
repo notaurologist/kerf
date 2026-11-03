@@ -169,3 +169,7 @@ From three audits of November 2, 2026, run alongside the second engineering revi
 - Owner decisions on showing deeper beam stock (#466), the fore-and-aft swing force against the anchors (#467), corner braces and a column check for the legs (#468), and a shorter printed set (#469).
 
 **Accept when:** every High and Medium finding is fixed or closed with a recorded reason; structural changes have hand-checked worked examples and bump the template version; the printed plan and the phone screens are checked for both templates; and the decisions are recorded.
+
+## Explorations
+
+Outside the order above. Educational directions beyond the MVP, listed with how they stay apart from the deployed app in `EXPLORATIONS.md`. Agents do not pick these issues up unless the owner names one. Issues #543 to #548.
