@@ -55,7 +55,9 @@ Template version 22 (#449) gives each bolt the length to buy (Hardware, below) a
 
 Template version 24 (#514) keeps each bolt's range of lengths that fit, and each bolt line's bolt and the items on it, so a bolt bought before a change can be compared with the new grip (`progress/resets.ts`). No number changes.
 
-Template version 25 (#464) changes words only. The buried-legs flag and the ground-contact board guide ask whether the legs need AWPA use category UC4B (heavy duty) rather than UC4A: AWPA U1-25 lists UC4A for ground-contact parts that are not critical and UC4B for parts that are critical or hard to replace, or where wood decays fast (`DOMAIN.md`, source 20). The buried-legs checklist item also asks what each leg's end stands on and whether the backfill or concrete sheds water from the wood; no extension or treated-wood council source for figures was found, so it gives none. The C_D reason cites Table 2.3.2, footnote 2, beside 4.3.13: NDS 2024 states the 1.6 cap in both. No number changes.
+Template version 25 (#450) moves the note about a shorter board onto its lumber line, and gives each lumber line what else to buy when the store has none of its boards (Not in stock, below). No part, cut, or check changes.
+
+Template version 26 (#464) changes words only. The buried-legs flag and the ground-contact board guide ask whether the legs need AWPA use category UC4B (heavy duty) rather than UC4A: AWPA U1-25 lists UC4A for ground-contact parts that are not critical and UC4B for parts that are critical or hard to replace, or where wood decays fast (`DOMAIN.md`, source 20). The buried-legs checklist item also asks what each leg's end stands on and whether the backfill or concrete sheds water from the wood; no extension or treated-wood council source for figures was found, so it gives none. The C_D reason cites Table 2.3.2, footnote 2, beside 4.3.13: NDS 2024 states the 1.6 cap in both. No number changes.
 
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
@@ -305,6 +307,12 @@ Each part lists the board selection guides that apply to it, from the knowledge 
 | Beam | every board that carries load; across a span; joined with bolts | It spans between the frames and is bolted to the legs. |
 | Legs | every board that carries load; along its length; joined with bolts; in or on the ground | They carry the beam down to the ground and are bolted at the top. A leg stands in or on the ground whether it is buried or on a pad, so it always gets the ground-contact guide. |
 | Crossbars, gussets | every board that carries load; joined with bolts | They are bolted across the legs. |
+
+### Not in stock
+
+Each lumber line lists what else to buy when the store has none of its boards (version 25, #450). Generic code gives the other lengths (`DOMAIN.md`, Buyable lengths). The template gives one stock parameter, the beam's, since the beam is the one member a check computes. The beam checks also read the legs' and gussets' sizes, through the span between the gussets, but a margin from them says nothing about whether a leg or gusset is strong enough, so those parts and the crossbars get no other size. A beam size is offered when the whole plan generates with it and the lowest margin among the beam checks is no lower than the plan's now, with that margin; while those checks need structural inputs, the line says another size changes the plan and its margin follows once they are entered. Changing a size changes the plan, so it opens the field in Edit.
+
+Worked example (`lists.test.ts`, every input entered): the beam's 12' line also takes a 10' board that measures at least 121-1/8", a 14', or a 4x8 beam (margin 1.6x, bending, against 0.98 with the 4x6); the legs' line takes 14' boards; the crossbars' 10' line takes two 8's or a 12'; the gussets' 8' line a 10'. A 4x4 or 6x6 beam lowers the margin and is not offered.
 
 ### Drawings
 

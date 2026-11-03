@@ -126,7 +126,7 @@ const SLOT_MARGIN = 1 / 16;
 const PANEL_MARGIN = 1 / 32;
 
 export const RecordCabinetReview = z.object({
-  /** Missing from plans made before template version 17, which did not check it. */
+  /** Missing from plans made before template version 18, which did not check it. */
   bottom: BeamChecks.optional(),
   apron: BeamChecks,
   top: BeamChecks,

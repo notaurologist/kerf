@@ -22,8 +22,10 @@ export const TEMPLATE_ID = 'record-cabinet';
  * says to let the blade stop before lifting the saw (#457). Stored output is the same.
  * Version 16 names the screw length to buy, from the cleat and case bottom, and carries each
  * item's notes to its shopping line (#449).
+ * Version 17 gives each lumber line its own notes and the boards that hold its pieces when the
+ * store has none of its own (#450). No number changes.
  */
-export const TEMPLATE_VERSION = 17;
+export const TEMPLATE_VERSION = 18;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,

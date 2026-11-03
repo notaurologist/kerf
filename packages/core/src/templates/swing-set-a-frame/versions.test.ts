@@ -26,6 +26,7 @@ import v21 from './snapshots/v21.json' with { type: 'json' };
 import v22 from './snapshots/v22.json' with { type: 'json' };
 import v23 from './snapshots/v23.json' with { type: 'json' };
 import v24 from './snapshots/v24.json' with { type: 'json' };
+import v25 from './snapshots/v25.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -75,10 +76,19 @@ const isVersion24 = (c: { path: string }) =>
   /^design\.hardware\[\d+\]\.bolt\.fits$/.test(c.path) || /^hardware\[\d+\]\.bolt$/.test(c.path);
 
 /**
- * Version 25's changes (#464): the buried-legs flag and checklist item ask about UC4B and what each
+ * Version 25's changes (#450): each lumber line's notes and what else to buy, and the note about a
+ * shorter board taken out of the list's notes, since it moved to its line. Set aside like 20's.
+ */
+const isVersion25 = (c: { path: string; before?: unknown }) =>
+  /^lumber\.lines\[\d+\]\.(notes|alternatives)\[\d+\]$/.test(c.path) ||
+  (/^lumber\.notes\[\d+\]$/.test(c.path) &&
+    String(c.before).includes(' to leave room for trimming'));
+
+/**
+ * Version 26's changes (#464): the buried-legs flag and checklist item ask about UC4B and what each
  * leg stands on, and the beam's C_D reason cites Table 2.3.2, footnote 2. Set aside like version 18's.
  */
-const isVersion25 = (c: { path: string; after?: unknown }) =>
+const isVersion26 = (c: { path: string; after?: unknown }) =>
   (/^(design\.flags\[\d+\]\.(ask|why)|structuralReview\.checklist\[\d+\]\.confirm)$/.test(c.path) &&
     String(c.after).includes('UC4B')) ||
   (/^structuralReview\.beam\.(bending|shear)\.factors\[\d+\]\.reason$/.test(c.path) &&
@@ -92,6 +102,7 @@ function regenerated(
   keepVersion23 = false,
   keepVersion24 = false,
   keepVersion25 = false,
+  keepVersion26 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -106,7 +117,8 @@ function regenerated(
         (keepVersion22 || !isVersion22(c)) &&
         (keepVersion23 || !isVersion23(c)) &&
         (keepVersion24 || !isVersion24(c)) &&
-        (keepVersion25 || !isVersion25(c)),
+        (keepVersion25 || !isVersion25(c)) &&
+        (keepVersion26 || !isVersion26(c)),
     ),
   };
   return keepVersion18
@@ -588,7 +600,12 @@ describe('swing-set template versions', () => {
       const json = (value: unknown) => JSON.parse(JSON.stringify(value));
       const outputs = template.storedOutputs.parse(current.output.outputs);
       const changes = diff(json(read.snapshot.outputs), json(outputs), 1000).changes.filter(
-        (c) => !isVersion22(c) && !isVersion23(c) && !isVersion24(c) && !isVersion25(c),
+        (c) =>
+          !isVersion22(c) &&
+          !isVersion23(c) &&
+          !isVersion24(c) &&
+          !isVersion25(c) &&
+          !isVersion26(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -672,7 +689,10 @@ describe('swing-set template versions', () => {
     });
   });
 
-  it('version 25 asks about UC4B and what each buried leg stands on, and changes no number (#464)', () => {
+  // Hand check in lists.test.ts: the worked example's beam fits a 10' board that measures
+  // 121-1/8", or a 14', or a 4x8 beam; its legs a 14'; its crossbars two 8's or a 12'; its
+  // gussets a 10'.
+  it('version 25 moves the shorter-board note to its line and adds what else to buy (#450)', () => {
     for (const stored of v24) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
@@ -680,10 +700,35 @@ describe('swing-set template versions', () => {
       const { changes } = regenerated(read.snapshot, false, false, false, false, true);
       expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion25(c))).toEqual([]);
+      // The note moves whole: the same text, now on its line.
+      const removed = changes.filter((c) => c.path.startsWith('lumber.notes'));
+      const added = changes.filter((c) => /^lumber\.lines\[\d+\]\.notes/.test(c.path));
+      expect(added.map((c) => c.after)).toEqual(removed.map((c) => c.before));
     }
     const first = readSnapshot([template], v24[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const { changes } = regenerated(first.snapshot, false, false, false, false, true);
+    const beam = regenerated(first.snapshot, false, false, false, false, true).changes.filter((c) =>
+      c.path.startsWith('lumber.lines[0].alternatives'),
+    );
+    expect(beam.map((c) => c.after)).toEqual([
+      { kind: 'measured', feet: 10, count: 1, atLeast: 121.125 },
+      { kind: 'lengths', boards: [{ feet: 14, count: 1 }] },
+      expect.objectContaining({ kind: 'stock', name: 'Beam', field: 'beamStock', nominal: '4x8' }),
+    ]);
+  });
+
+  it('version 26 asks about UC4B and what each buried leg stands on, and changes no number (#464)', () => {
+    for (const stored of v25) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(25);
+      const { changes } = regenerated(read.snapshot, false, false, false, false, false, true);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion26(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v25[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const { changes } = regenerated(first.snapshot, false, false, false, false, false, true);
     expect(changes.map((c) => c.path).sort()).toEqual([
       'design.flags[2].ask',
       'design.flags[2].why',

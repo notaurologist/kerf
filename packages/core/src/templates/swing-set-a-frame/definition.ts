@@ -1,8 +1,11 @@
+import { NOMINAL_SIZES } from '../../lumber/stock.ts';
 import type { SnapshotUpgrade, TemplateDefinition } from '../../model/definition.ts';
 import { withLetters } from '../../model/letters.ts';
+import type { GenerateResult } from '../../model/types.ts';
 import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { DEFAULT_BOARD_OPTIONS, planLumber } from '../../outputs/shoppingList.ts';
+import { withStockAlternatives } from '../../outputs/stockAlternatives.ts';
 import { noSuggestions } from '../../snapshot/snapshot.ts';
 import { assembly, drawings } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
@@ -12,7 +15,12 @@ import { SwingSetParams } from './params.ts';
 import { SWING_SET_QUESTIONS } from './questions.ts';
 import { stepOutline } from './steps.ts';
 import { STORE_READINGS } from './storeReadings.ts';
-import { checkFields, SwingSetStructuralInputs, structuralReview } from './structural.ts';
+import {
+  checkFields,
+  SwingSetStructuralInputs,
+  type SwingSetStructuralReview,
+  structuralReview,
+} from './structural.ts';
 import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
 
 /**
@@ -88,6 +96,49 @@ const addHoleSizes: SnapshotUpgrade = (snapshot) => {
   };
 };
 
+/** The plan's checks, in the order the structural review lists them. */
+function reviewChecks(review: Pick<SwingSetStructuralReview, 'beam' | 'hanger'>) {
+  return [review.beam.bending, review.beam.shear, review.beam.deflection, review.hanger];
+}
+
+/** Everything but each line's other stock sizes, which take this to work out. */
+function outputsFor(
+  params: SwingSetParams,
+  structuralInputs: SwingSetStructuralInputs,
+): GenerateResult<SwingSetOutputs> {
+  const design = generate(params);
+  if (!design.ok) return design;
+  const review = structuralReview(design.output, structuralInputs);
+  if (!review.ok) return review;
+  return {
+    ok: true,
+    output: {
+      design: design.output,
+      cutList: cutList(design.output.parts),
+      lumber: planLumber(design.output.parts),
+      hardware: hardwareList(design.output.hardware),
+      structuralReview: review.review,
+    },
+  };
+}
+
+/**
+ * The stock parameters whose other sizes the plan can give a margin for (#450): only the beam's,
+ * the one member a check computes. The beam checks read the legs' and gussets' sizes too, through
+ * the span, but say nothing of whether those parts are strong enough, so they get no other size.
+ */
+function stockFields(params: SwingSetParams) {
+  return [
+    {
+      path: 'beamStock',
+      name: params.beamPlies > 1 ? 'Beam plies' : 'Beam',
+      partIds: ['beam'],
+      current: params.beamStock,
+      options: NOMINAL_SIZES,
+    },
+  ];
+}
+
 export const swingSetAFrame: TemplateDefinition<
   SwingSetParams,
   SwingSetStructuralInputs,
@@ -159,7 +210,7 @@ export const swingSetAFrame: TemplateDefinition<
       hardware: outputs.hardware,
       hardwareNotes: outputs.design.hardwareNotes,
       flags: outputs.design.flags.map(withConcerns),
-      checks: [review.beam.bending, review.beam.shear, review.beam.deflection, review.hanger],
+      checks: reviewChecks(review),
       movement: [],
       checklist: review.checklist.map(withConcerns),
       boltLayout: outputs.design.boltLayout ?? [],
@@ -177,19 +228,18 @@ export const swingSetAFrame: TemplateDefinition<
   drawings,
   assembly,
   generate(params, structuralInputs) {
-    const design = generate(params);
-    if (!design.ok) return design;
-    const review = structuralReview(design.output, structuralInputs);
-    if (!review.ok) return review;
-    return {
-      ok: true,
-      output: {
-        design: design.output,
-        cutList: cutList(design.output.parts),
-        lumber: planLumber(design.output.parts),
-        hardware: hardwareList(design.output.hardware),
-        structuralReview: review.review,
+    const made = outputsFor(params, structuralInputs);
+    if (!made.ok) return made;
+    const lumber = withStockAlternatives(
+      made.output.lumber,
+      reviewChecks(made.output.structuralReview),
+      stockFields(params),
+      checkFields,
+      (path, nominal) => {
+        const other = outputsFor({ ...params, [path]: nominal }, structuralInputs);
+        return other.ok ? reviewChecks(other.output.structuralReview) : null;
       },
-    };
+    );
+    return { ok: true, output: { ...made.output, lumber } };
   },
 };

@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { type BoardStock, isBoardStock, isPanel } from '../lumber/panel.ts';
 import { Issue, type Part } from '../model/types.ts';
-import { formatLength } from '../units/length.ts';
+import { formatMargin } from '../structural/types.ts';
+import { formatBoardLength, formatLength, formatLimit } from '../units/length.ts';
 
 // Groups parts into boards to buy (PRODUCT.md, MVP feature 4; DOMAIN.md, Buyable lengths).
 // This is simple grouping, not optimization: first-fit decreasing into the longest board, then
@@ -42,12 +43,73 @@ export const PlannedBoard = z.object({
 });
 export type PlannedBoard = z.infer<typeof PlannedBoard>;
 
+/**
+ * What else holds a line's pieces when the store has none of its boards (#450), worked out when
+ * the plan is made so it is there at the store without a signal (decision 0005).
+ */
+export const LumberAlternative = z.discriminatedUnion('kind', [
+  /** Boards of other lengths that hold the same pieces, such as two 8' boards for one 14'. */
+  z.object({
+    kind: z.literal('lengths'),
+    boards: z.array(z.object({ feet: z.number(), count: z.number().int() })),
+  }),
+  /** Boards one buyable length shorter, if each measures at least `atLeast` inches. */
+  z.object({
+    kind: z.literal('measured'),
+    feet: z.number(),
+    count: z.number().int(),
+    atLeast: z.number(),
+  }),
+  /**
+   * Another stock size for the parts a parameter sizes, which changes the plan, with the lowest
+   * margin among the checks that read that parameter (`withStockAlternatives`).
+   */
+  z.object({
+    kind: z.literal('stock'),
+    /** The parts, as the alternative names them, such as "Legs". */
+    name: z.string(),
+    /** The parameter to change, by its form path. */
+    field: z.string(),
+    nominal: z.string(),
+    margin: z.number(),
+    check: z.object({ title: z.string(), subject: z.string() }),
+  }),
+  /** Another stock size, whose margins need the structural inputs before they can be given. */
+  z.object({ kind: z.literal('stock-needs-inputs'), name: z.string(), field: z.string() }),
+]);
+export type LumberAlternative = z.infer<typeof LumberAlternative>;
+
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
+
+/** An alternative as Shopping mode lists it under its line's "Not in stock?" (#450). */
+export function describeLumberAlternative(
+  alternative: LumberAlternative,
+  line: Pick<ShoppingLine, 'nominal'>,
+): string {
+  const boards = (count: number, feet: number) =>
+    `${count} × ${line.nominal}, ${formatBoardLength(feet)}`;
+  switch (alternative.kind) {
+    case 'lengths':
+      return `${alternative.boards.map((b) => boards(b.count, b.feet)).join(' and ')}.`;
+    case 'measured':
+      return `${boards(alternative.count, alternative.feet)}, if ${alternative.count === 1 ? 'it measures' : 'each measures'} at least ${formatLimit(alternative.atLeast, 'min')}.`;
+    case 'stock':
+      return `${alternative.name} in ${alternative.nominal}, which changes the plan: ${formatMargin(alternative.margin)} under these assumptions (${lowerFirst(alternative.check.title)}, ${lowerFirst(alternative.check.subject)}).`;
+    case 'stock-needs-inputs':
+      return `${alternative.name} in another size changes the plan. Each size's margin is given once the structural inputs are entered.`;
+  }
+}
+
 export const ShoppingLine = z.object({
   nominal: Nominal,
   feet: z.number(),
   count: z.number().int(),
   /** For stock sold by the board foot: the board feet these boards make, with the waste added. */
   boardFeet: z.number().optional(),
+  /** Notes about this line's boards, such as a shorter length that works. */
+  notes: z.array(z.string()).default([]),
+  /** What to buy instead when the store has none of these boards. */
+  alternatives: z.array(LumberAlternative).default([]),
 });
 export type ShoppingLine = z.infer<typeof ShoppingLine>;
 
@@ -61,7 +123,7 @@ export const LumberPlan = z.object({
   kerf: z.number(),
   trimPerEnd: z.number(),
   lines: z.array(ShoppingLine),
-  /** Assumptions and tips to show with the list. */
+  /** Assumptions and tips for the whole list. Each line has its own notes too. */
   notes: z.array(z.string()),
   /** Parts that fit no buyable board. They are never dropped silently. */
   issues: z.array(Issue),
@@ -98,6 +160,102 @@ function used(pieces: readonly PlannedPiece[], options: BoardOptions): number {
   return (
     2 * options.trimPerEnd + pieces.reduce((sum, piece) => sum + piece.length + options.kerf, 0)
   );
+}
+
+type FittedBoard = { feet: number; pieces: PlannedPiece[]; need: number; offcut: number };
+
+/**
+ * First-fit decreasing into the longest length, then each board shortened to the smallest length
+ * that still holds its pieces. Pieces no length holds are returned apart.
+ */
+function fitBoards(
+  pieces: readonly PlannedPiece[],
+  feet: readonly number[],
+  options: BoardOptions,
+): { fitted: FittedBoard[]; unfit: PlannedPiece[] } {
+  const lengths = [...feet].sort((a, b) => a - b);
+  const longestFeet = lengths[lengths.length - 1] ?? 0;
+  const open: PlannedPiece[][] = [];
+  const unfit: PlannedPiece[] = [];
+  for (const piece of [...pieces].sort((a, b) => b.length - a.length)) {
+    if (used([piece], options) > longestFeet * 12) {
+      unfit.push(piece);
+      continue;
+    }
+    const fit = open.find((board) => used([...board, piece], options) <= longestFeet * 12);
+    if (fit) fit.push(piece);
+    else open.push([piece]);
+  }
+  const fitted = open.map((boardPieces) => {
+    const need = used(boardPieces, options);
+    const boardFeet = lengths.find((f) => f * 12 >= need) ?? longestFeet;
+    return { feet: boardFeet, pieces: boardPieces, need, offcut: boardFeet * 12 - need };
+  });
+  return { fitted, unfit };
+}
+
+/** The longest buyable length under `feet`, if any. */
+function shorterThan(lengths: readonly number[], feet: number): number | undefined {
+  return [...lengths]
+    .sort((a, b) => a - b)
+    .filter((f) => f < feet)
+    .at(-1);
+}
+
+/** True when a board's pieces miss a `shorter` board by no more than its trim and one kerf. */
+function justMisses(board: { need: number }, shorter: number, options: BoardOptions): boolean {
+  return board.need - shorter * 12 <= 2 * options.trimPerEnd + options.kerf;
+}
+
+/** Boards counted by length, longest first. */
+function byLength(feet: readonly number[]): { feet: number; count: number }[] {
+  const counts = new Map<number, number>();
+  for (const f of [...feet].sort((a, b) => b - a)) counts.set(f, (counts.get(f) ?? 0) + 1);
+  return [...counts].map(([f, count]) => ({ feet: f, count }));
+}
+
+/**
+ * What else holds a line's pieces when the store has none of its boards (#450): boards one
+ * length shorter that measure long enough, the pieces fitted onto shorter lengths only, and the
+ * next longer length. Other lines are left as planned.
+ */
+function lengthAlternatives(
+  line: Pick<ShoppingLine, 'nominal' | 'feet' | 'count'>,
+  boards: readonly PlannedBoard[],
+  lengths: readonly number[],
+  options: BoardOptions,
+): LumberAlternative[] {
+  const own = boards.filter((b) => b.nominal === line.nominal && b.feet === line.feet);
+  const alternatives: LumberAlternative[] = [];
+
+  const shorter = shorterThan(lengths, line.feet);
+  const needs = own.map((b) => ({ need: used(b.pieces, options) }));
+  if (shorter !== undefined && needs.every((b) => justMisses(b, shorter, options))) {
+    alternatives.push({
+      kind: 'measured',
+      feet: shorter,
+      count: line.count,
+      atLeast: Math.max(...needs.map((b) => b.need)),
+    });
+  }
+
+  const shorterLengths = lengths.filter((f) => f < line.feet);
+  if (shorterLengths.length > 0) {
+    const { fitted, unfit } = fitBoards(
+      own.flatMap((b) => b.pieces),
+      shorterLengths,
+      options,
+    );
+    if (unfit.length === 0) {
+      alternatives.push({ kind: 'lengths', boards: byLength(fitted.map((b) => b.feet)) });
+    }
+  }
+
+  const longer = [...lengths].sort((a, b) => a - b).find((f) => f > line.feet);
+  if (longer !== undefined) {
+    alternatives.push({ kind: 'lengths', boards: [{ feet: longer, count: line.count }] });
+  }
+  return alternatives;
 }
 
 export function planLumber(
@@ -172,39 +330,31 @@ export function planLumber(
   }
 
   const boards: PlannedBoard[] = [];
+  const lineNotes = new Map<string, string[]>();
   for (const [nominal, group] of byStock) {
-    const lengths = [...group.feet].sort((a, b) => a - b);
-    const longestFeet = lengths[lengths.length - 1] ?? 0;
-    const pieces = group.pieces.sort((a, b) => b.length - a.length);
-    const open: PlannedPiece[][] = [];
-    for (const piece of pieces) {
-      if (used([piece], options) > longestFeet * 12) {
-        issues.push({
-          code: 'part-longer-than-any-board',
-          message: `${piece.name} (${formatLength(piece.length)}) is longer than the longest ${nominal} board available (${longestFeet}' after trim and kerf).`,
-          params: [],
-        });
-        continue;
-      }
-      const fit = open.find((board) => used([...board, piece], options) <= longestFeet * 12);
-      if (fit) fit.push(piece);
-      else open.push([piece]);
+    const { fitted, unfit } = fitBoards(group.pieces, group.feet, options);
+    for (const piece of unfit) {
+      issues.push({
+        code: 'part-longer-than-any-board',
+        message: `${piece.name} (${formatLength(piece.length)}) is longer than the longest ${nominal} board available (${Math.max(...group.feet)}' after trim and kerf).`,
+        params: [],
+      });
     }
-    for (const boardPieces of open) {
-      const need = used(boardPieces, options);
-      const feet = lengths.find((f) => f * 12 >= need) ?? longestFeet;
-      boards.push({ nominal, feet, pieces: boardPieces, offcut: feet * 12 - need });
+    for (const board of fitted) {
+      boards.push({ nominal, feet: board.feet, pieces: board.pieces, offcut: board.offcut });
 
       // A single piece that just misses a shorter board: store boards often run a little long.
-      const shorter = lengths.filter((f) => f < feet).at(-1);
+      const shorter = shorterThan(group.feet, board.feet);
       if (
-        boardPieces.length === 1 &&
+        board.pieces.length === 1 &&
         shorter !== undefined &&
-        need - shorter * 12 <= 2 * options.trimPerEnd + options.kerf
+        justMisses(board, shorter, options)
       ) {
-        notes.push(
-          `${boardPieces[0]?.name}: listed as ${feet}' to leave room for trimming the ends. A ${shorter}' board works if it measures at least ${formatLength(need)}.`,
-        );
+        const key = lumberLineKey({ nominal, feet: board.feet });
+        lineNotes.set(key, [
+          ...(lineNotes.get(key) ?? []),
+          `${board.pieces[0]?.name}: listed as ${board.feet}' to leave room for trimming the ends. A ${shorter}' board works if it measures at least ${formatLength(board.need)}.`,
+        ]);
       }
     }
   }
@@ -214,7 +364,13 @@ export function planLumber(
   const counts = new Map<string, ShoppingLine>();
   for (const board of boards) {
     const key = `${board.nominal}/${board.feet}`;
-    const line = counts.get(key) ?? { nominal: board.nominal, feet: board.feet, count: 0 };
+    const line = counts.get(key) ?? {
+      nominal: board.nominal,
+      feet: board.feet,
+      count: 0,
+      notes: lineNotes.get(key) ?? [],
+      alternatives: [],
+    };
     line.count += 1;
     const sold = byStock.get(board.nominal)?.byBoardFoot;
     if (sold) {
@@ -238,7 +394,15 @@ export function planLumber(
     boards,
     kerf: options.kerf,
     trimPerEnd: options.trimPerEnd,
-    lines: [...counts.values()],
+    lines: [...counts.values()].map((line) => ({
+      ...line,
+      alternatives: lengthAlternatives(
+        line,
+        boards,
+        byStock.get(line.nominal)?.feet ?? [],
+        options,
+      ),
+    })),
     notes,
     issues,
     selection,

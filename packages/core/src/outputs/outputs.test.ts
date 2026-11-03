@@ -106,13 +106,36 @@ describe('planLumber, edge cases', () => {
   });
 
   it('charges kerf and trim, so a piece exactly a board long needs the next size', () => {
-    expect(planLumber([piece(96)]).lines).toEqual([{ nominal: '2x4', feet: 10, count: 1 }]);
-    expect(planLumber([piece(94.875)]).lines).toEqual([{ nominal: '2x4', feet: 8, count: 1 }]);
+    expect(planLumber([piece(96)]).lines).toMatchObject([{ nominal: '2x4', feet: 10, count: 1 }]);
+    expect(planLumber([piece(94.875)]).lines).toMatchObject([
+      { nominal: '2x4', feet: 8, count: 1 },
+    ]);
+  });
+
+  // Two 40" pieces need 1 + 2 x 40.125 = 81.25 on an 8'; a 6' (72) misses by 9.25, more than the
+  // 1-1/8" of trim and kerf, so no measured board, but each piece alone needs 41.125, so two 6's.
+  // A piece of 70 needs 71.125, under 72, so it is planned on a 6' and needs no other length;
+  // one of 72 needs 73.125 and misses a 6' by 1.125, so a 6' that measures 73-1/8" holds it.
+  it('says what else holds a line when the store has none of its boards (#450)', () => {
+    const options = { kerf: 0.125, trimPerEnd: 0.5, buyableFeet: [6, 8] };
+    expect(planLumber([piece(40, 2)], options).lines[0]?.alternatives).toEqual([
+      { kind: 'lengths', boards: [{ feet: 6, count: 2 }] },
+    ]);
+    expect(planLumber([piece(70)], options).lines[0]?.alternatives).toEqual([
+      { kind: 'lengths', boards: [{ feet: 8, count: 1 }] },
+    ]);
+    const long = planLumber([piece(72)], options);
+    expect(long.lines[0]?.alternatives).toEqual([
+      { kind: 'measured', feet: 6, count: 1, atLeast: 73.125 },
+    ]);
+    expect(long.lines[0]?.notes).toEqual([
+      `Test piece: listed as 8' to leave room for trimming the ends. A 6' board works if it measures at least 73-1/8".`,
+    ]);
   });
 
   it('uses the given kerf, trim, and lengths', () => {
     const plan = planLumber([piece(30, 3)], { kerf: 0, trimPerEnd: 0, buyableFeet: [6, 8] });
-    expect(plan.lines).toEqual([{ nominal: '2x4', feet: 8, count: 1 }]);
+    expect(plan.lines).toMatchObject([{ nominal: '2x4', feet: 8, count: 1 }]);
     expect(plan.boards[0]?.offcut).toBe(6);
   });
 });
@@ -218,13 +241,27 @@ describe('panels', () => {
     // and leave 8.75; five would take 108.8125". The other two take 44.125", which fits a 4' board
     // (48") and leaves 3.875.
     const plan = planLumber([panel('side', 15, 2)]);
-    expect(plan.lines).toEqual([
+    expect(plan.lines).toMatchObject([
       { nominal: '1x6 cherry', feet: 8, count: 1 },
       { nominal: '1x6 cherry', feet: 4, count: 1 },
     ]);
     expect(plan.boards.map((b) => [b.pieces.length, b.offcut])).toEqual([
       [4, 8.75],
       [2, 3.875],
+    ]);
+    // With no 8' board (#450): a 6' holds three pieces (1 + 3 x 21.5625 = 65.6875, under 72) and
+    // the fourth needs 22.5625, so a 4'. No longer board is sold. The 4' line can only go longer.
+    expect(plan.lines.map((l) => l.alternatives)).toEqual([
+      [
+        {
+          kind: 'lengths',
+          boards: [
+            { feet: 6, count: 1 },
+            { feet: 4, count: 1 },
+          ],
+        },
+      ],
+      [{ kind: 'lengths', boards: [{ feet: 6, count: 1 }] }],
     ]);
     expect(plan.boards[0]?.pieces[0]).toEqual({
       partId: 'side',
@@ -236,7 +273,7 @@ describe('panels', () => {
   it('plans dimension lumber and board stock separately', () => {
     const post = { ...panel('post', 15, 1), id: 'post', stock: stock('2x4'), length: 30 };
     const plan = planLumber([post, panel('side', 15, 1)]);
-    expect(plan.lines).toEqual([
+    expect(plan.lines).toMatchObject([
       { nominal: '2x4', feet: 8, count: 1 },
       { nominal: '1x6 cherry', feet: 6, count: 1 },
     ]);
@@ -408,7 +445,7 @@ describe('parts cut straight from board stock', () => {
 
   it('plans them on the stock’s own lengths', () => {
     const plan = planLumber([leg]);
-    expect(plan.lines).toEqual([{ nominal: '1-1/2" x 1-1/2"', feet: 3, count: 1 }]);
+    expect(plan.lines).toMatchObject([{ nominal: '1-1/2" x 1-1/2"', feet: 3, count: 1 }]);
     expect(plan.boards[0]?.offcut).toBe(4.5);
   });
 

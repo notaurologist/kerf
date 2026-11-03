@@ -63,6 +63,29 @@ describe('Shopping mode', () => {
     expect(html.match(/checked=""/g)).toHaveLength(1);
   });
 
+  it("shows each lumber line's notes, what else to buy, and the list's allowances (#450)", () => {
+    const p = project();
+    const html = render(
+      <ModeView route={{ screen: 'shop', id: p.id }} project={p} drawings={loadedDrawings(p)} />,
+    );
+    const text = renderText(
+      <ModeView route={{ screen: 'shop', id: p.id }} project={p} drawings={loadedDrawings(p)} />,
+    );
+    // The beam's line: its note, then what else holds the beam (lists.test.ts hand-checks these).
+    expect(text).toContain(
+      `incised: No. Change Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8". Not in stock? Buy one of these instead: 1 × 4x6, 10' 0", if it measures at least 121-1/8". 1 × 4x6, 14' 0". Beam in 4x8, which changes the plan: margin 1.6x under these assumptions (bending, top beam, 4x8). Change it in Edit The board`,
+    );
+    expect(text).toContain(
+      `1 × 2x6, 10' 0" Not in stock? Buy one of these instead: 2 × 2x6, 8' 0". 1 × 2x6, 12' 0". The board`,
+    );
+    expect(html.match(/<summary><span>Not in stock\?<\/span>/g)).toHaveLength(4);
+    expect(html).toContain(`href="#/projects/${p.id}/edit?from=shop&amp;field=`);
+    // The allowances, once, after the lumber.
+    expect(
+      text.match(/Allows 1\/8" for each saw cut and trims 1\/2" off each factory end\./g),
+    ).toHaveLength(1);
+  });
+
   it('groups the list by where things are in the store, each with its own count (#59)', () => {
     const p = project([
       { kind: 'shopping-line', key: 'lumber/2x6/10' },
@@ -91,7 +114,9 @@ describe('board cards (#59)', () => {
 
   it('open under each lumber line', () => {
     expect(text.match(/The boards?, and what to look for/g)).toHaveLength(4);
-    expect(text).toContain(`4 × 4x4, 12' 0" The boards, and what to look for`);
+    expect(text).toContain(
+      `4 × 4x4, 12' 0" Not in stock? Buy one of these instead: 4 × 4x4, 14' 0". The boards, and what to look for`,
+    );
   });
 
   it('draw each board of the line with its pieces and offcut', () => {
