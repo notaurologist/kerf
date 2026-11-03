@@ -26,6 +26,8 @@ import v21 from './snapshots/v21.json' with { type: 'json' };
 import v22 from './snapshots/v22.json' with { type: 'json' };
 import v23 from './snapshots/v23.json' with { type: 'json' };
 import v24 from './snapshots/v24.json' with { type: 'json' };
+import v25 from './snapshots/v25.json' with { type: 'json' };
+import v26 from './snapshots/v26.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -83,7 +85,20 @@ const isVersion25 = (c: { path: string; before?: unknown }) =>
   (/^lumber\.notes\[\d+\]$/.test(c.path) &&
     String(c.before).includes(' to leave room for trimming'));
 
-/** What regenerating with the current version changes in the stored outputs, field by field. */
+/**
+ * Version 26's changes (#446): bending at the hangers' holes, which a plan made before it has not
+ * entered, so its bending says the mounting is needed; the hanger checklist item's wording; and
+ * the beam's other sizes, which wait for bending's margin. Set aside like 18's.
+ */
+const isVersion26 = (c: { path: string }) =>
+  /^structuralReview\.beam\.bending(\.|\[|$)/.test(c.path) ||
+  /^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) ||
+  /^lumber\.lines\[\d+\]\.alternatives(\[|$)/.test(c.path);
+
+/**
+ * What regenerating with the current version changes in the stored outputs, field by field; or,
+ * given `later`, a later version's fixture of the same example, what that version changed.
+ */
 function regenerated(
   snapshot: ProjectSnapshot,
   keepVersion18 = false,
@@ -91,11 +106,11 @@ function regenerated(
   keepVersion23 = false,
   keepVersion24 = false,
   keepVersion25 = false,
+  keepVersion26 = false,
+  later?: unknown,
 ) {
-  const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
-  if (!current.ok) throw new Error('worked example no longer generates');
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
-  const outputs = template.storedOutputs.parse(current.output.outputs);
+  const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
   const found = diff(json(snapshot.outputs), json(outputs), 1000);
   const result = {
     ...found,
@@ -105,12 +120,25 @@ function regenerated(
         (keepVersion22 || !isVersion22(c)) &&
         (keepVersion23 || !isVersion23(c)) &&
         (keepVersion24 || !isVersion24(c)) &&
-        (keepVersion25 || !isVersion25(c)),
+        (keepVersion25 || !isVersion25(c)) &&
+        (keepVersion26 || later !== undefined || !isVersion26(c)),
     ),
   };
   return keepVersion18
     ? result
     : { ...result, changes: result.changes.filter((c) => !isVersion18(c)) };
+}
+
+function fresh(snapshot: ProjectSnapshot) {
+  const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
+  if (!current.ok) throw new Error('worked example no longer generates');
+  return template.storedOutputs.parse(current.output.outputs);
+}
+
+function read(stored: unknown): ProjectSnapshot {
+  const result = readSnapshot([template], stored);
+  if (!result.ok) throw new Error(JSON.stringify(result));
+  return result.snapshot;
 }
 
 /** The value at an outputs path such as 'structuralReview.beam.bending.inputs[1]'. */
@@ -443,11 +471,21 @@ describe('swing-set template versions', () => {
 
   it("version 13 gives the largest moment's position its own step, in inches", () => {
     let checked = 0;
-    for (const stored of v12) {
+    for (const [i, stored] of v12.entries()) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(12);
-      const changes = regenerated(read.snapshot).changes.filter(notVersion14);
+      // Against version 25's plan, the last before version 26 took bending at the hanger holes.
+      const changes = regenerated(
+        read.snapshot,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        v25[i],
+      ).changes.filter(notVersion14);
       expect(changes.filter(notVersion13)).toEqual([]);
       for (const label of changes.filter((c) => c.path.endsWith('.label'))) {
         // The label loses its three-decimal position and nothing else.
@@ -587,7 +625,12 @@ describe('swing-set template versions', () => {
       const json = (value: unknown) => JSON.parse(JSON.stringify(value));
       const outputs = template.storedOutputs.parse(current.output.outputs);
       const changes = diff(json(read.snapshot.outputs), json(outputs), 1000).changes.filter(
-        (c) => !isVersion22(c) && !isVersion23(c) && !isVersion24(c) && !isVersion25(c),
+        (c) =>
+          !isVersion22(c) &&
+          !isVersion23(c) &&
+          !isVersion24(c) &&
+          !isVersion25(c) &&
+          !isVersion26(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -638,7 +681,16 @@ describe('swing-set template versions', () => {
     }
     const first = readSnapshot([template], v22[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const { changes } = regenerated(first.snapshot, false, false, true);
+    const { changes } = regenerated(
+      first.snapshot,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      v25[0],
+    );
     expect(changes.length).toBeGreaterThan(0);
     const span = changes.find((c) => c.path === 'structuralReview.beam.bending.inputs[0].value');
     expect(span).toMatchObject({ before: 92.5, after: 97.5 });
@@ -675,11 +727,20 @@ describe('swing-set template versions', () => {
   // 121-1/8", or a 14', or a 4x8 beam; its legs a 14'; its crossbars two 8's or a 12'; its
   // gussets a 10'.
   it('version 25 moves the shorter-board note to its line and adds what else to buy (#450)', () => {
-    for (const stored of v24) {
+    for (const [i, stored] of v24.entries()) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(24);
-      const { changes } = regenerated(read.snapshot, false, false, false, false, true);
+      const { changes } = regenerated(
+        read.snapshot,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        v25[i],
+      );
       expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion25(c))).toEqual([]);
       // The note moves whole: the same text, now on its line.
@@ -689,13 +750,50 @@ describe('swing-set template versions', () => {
     }
     const first = readSnapshot([template], v24[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
-    const beam = regenerated(first.snapshot, false, false, false, false, true).changes.filter((c) =>
-      c.path.startsWith('lumber.lines[0].alternatives'),
-    );
+    const beam = regenerated(
+      first.snapshot,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      v25[0],
+    ).changes.filter((c) => c.path.startsWith('lumber.lines[0].alternatives'));
     expect(beam.map((c) => c.after)).toEqual([
       { kind: 'measured', feet: 10, count: 1, atLeast: 121.125 },
       { kind: 'lengths', boards: [{ feet: 14, count: 1 }] },
       expect.objectContaining({ kind: 'stock', name: 'Beam', field: 'beamStock', nominal: '4x8' }),
     ]);
+  });
+
+  // Hand check in the spec, Structural model, example 1: a 1/2" hanger bolt down through the 4x6
+  // in a 9/16" hole leaves S_net = 2.9375·5.5²/6 = 14.8099, and M at the inner hangers 17,743.78
+  // gives f_b = 1198.10, margin 991.59 / 1198.10 = 0.8276, against 0.9849 on the gross section.
+  it('version 26 takes bending at the hanger holes, which a plan without a mounting waits for (#446)', () => {
+    for (const stored of v25) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(25);
+      const { changes } = regenerated(snapshot, false, false, false, false, false, true);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion26(c))).toEqual([]);
+      const bending = (fresh(snapshot) as { structuralReview: { beam: { bending: unknown } } })
+        .structuralReview.beam.bending;
+      expect(bending).toMatchObject({
+        status: 'input-needed',
+        missing: expect.arrayContaining([
+          { key: 'hardware.hangerMounting', label: 'Swing hanger mounting' },
+        ]),
+      });
+    }
+    type Bending = { status: string; margin: number; computed: { label: string } };
+    const margin = (stored: unknown) =>
+      (read(stored).outputs as { structuralReview: { beam: { bending: Bending } } })
+        .structuralReview.beam.bending;
+    expect(margin(v25[0]).margin).toBeCloseTo(0.98491, 4);
+    expect(margin(v26[0]).margin).toBeCloseTo(0.82763, 4);
+    expect(margin(v26[0]).computed.label).toBe(
+      'Bending stress at left swing, right hanger hole, net section',
+    );
   });
 });

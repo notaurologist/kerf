@@ -1,4 +1,5 @@
 import type { HardwareItem, Issue } from '../../model/types.ts';
+import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import { boltLength } from '../../structural/boltLength.ts';
 import { formatLength, formatLimit } from '../../units/length.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
@@ -26,8 +27,19 @@ const JOINTS = 4;
 const FEET = 4;
 
 /** Inputs the hardware needs that depend on other choices. */
-export function validateHardware(p: SwingSetParams): Issue[] {
+export function validateHardware(p: SwingSetParams, dims: Dimensions): Issue[] {
   const issues: Issue[] = [];
+  const m = p.hardware.hangerMounting;
+  if (m?.kind === 'horizontal-bolts') {
+    const r = boltHoleDiameter(m.diameter) / 2;
+    if (m.holeHeight - r <= 0 || m.holeHeight + r >= dims.bd) {
+      issues.push({
+        code: 'hanger-holes-outside-beam',
+        message: `The swing hanger bolt holes, ${formatLength(boltHoleDiameter(m.diameter))} across, must fit within the beam's ${formatLength(dims.bd)} depth at that height.`,
+        params: ['hardware'],
+      });
+    }
+  }
   if (p.beamPlies > 1 && p.hardware.plyBolts === undefined) {
     issues.push({
       code: 'ply-bolts-missing',
@@ -70,6 +82,38 @@ function bolts(
   };
 }
 
+/** The hanger bolts' ID, which the beam's holes and structural checks refer to. */
+export const HANGER_BOLTS = 'hanger-bolts';
+
+const HANGERS_COUNT = 4;
+
+/**
+ * The bolts that fasten the hangers, when they are bolted. The hanger's own plate or bracket is
+ * part of the grip and only the hanger says how thick it is, so the line gives the wood's grip and
+ * says to add it, with no length to buy.
+ */
+function hangerBolts(p: SwingSetParams, dims: Dimensions): HardwareItem | undefined {
+  const m = p.hardware.hangerMounting;
+  if (m === undefined || m.kind === 'other') return undefined;
+  const vertical = m.kind === 'vertical-bolt';
+  const grip = vertical ? dims.bd : dims.bw;
+  const what = vertical
+    ? "the beam's depth, plus the hanger's plate under it"
+    : "the beam's breadth, plus the two sides of the hanger's bracket";
+  return {
+    id: HANGER_BOLTS,
+    name: 'Swing hanger bolts',
+    quantity: HANGERS_COUNT * (vertical ? 1 : m.perHanger),
+    bolt: { diameter: m.diameter, grip, washers: 2, nut: 'locking', cap: true },
+    structural: true,
+    notes: [
+      `Grip ${formatLength(grip)}: ${what}. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than ${formatLength(m.diameter)} past the nut (CPSC Pub. 324, p. 3).`,
+      'Many hangers come with their bolts: check those against this length.',
+    ],
+    group: GROUPS.bolts,
+  };
+}
+
 /**
  * Notes for the hardware shopping list (spec, Hardware). The second follows IRC 2021 R317.3.1 and
  * its exception 2, read November 2026. Its exception 1 lets steel bolts 1/2" and larger go
@@ -105,11 +149,13 @@ export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry):
       bolts('ply-bolts', 'Beam ply bolts', h.plyBolts.count, h.plyBolts.diameter, dims.bw),
     );
   }
+  const forHangers = hangerBolts(p, dims);
+  if (forHangers) items.push(forHangers);
   items.push(
     {
       id: 'swing-hangers',
       name: HANGERS,
-      quantity: 4,
+      quantity: HANGERS_COUNT,
       structural: true,
       notes: ['Rated for swing use. The rating is checked in the structural review.'],
       group: GROUPS.swing,

@@ -12,6 +12,7 @@ import {
   Placement,
 } from '../../model/types.ts';
 import { BoltJoint } from '../../structural/boltDistances.ts';
+import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
 import {
@@ -31,7 +32,7 @@ import {
   legsReachGround,
   splayForFootprint,
 } from './geometry.ts';
-import { HARDWARE_NOTES, hardware, validateHardware } from './hardware.ts';
+import { HANGER_BOLTS, HARDWARE_NOTES, hardware, validateHardware } from './hardware.ts';
 import { SiteLayout, SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
 import { placements } from './placements.ts';
@@ -79,8 +80,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 25 moves the note about a shorter board onto its lumber line, and gives each line what
  * else to buy when the store has none of its boards: other lengths, and other beam sizes that keep
  * the beam checks' margin, each with its margin (#450). No number changes.
+ * Version 26 takes the beam's bending at each swing hanger on the net section its mounting holes
+ * leave (NDS 2024 3.1.2.1), lists the bolts that mount the hangers, and drills their holes (#446).
  */
-export const TEMPLATE_VERSION = 25;
+export const TEMPLATE_VERSION = 26;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
@@ -185,12 +188,14 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       markLengths: [],
       ends: [square, square],
       endsParallel: true,
-      notes:
-        p.beamPlies > 1
+      notes: [
+        ...(p.beamPlies > 1
           ? [
               `${p.beamPlies} plies fastened face to face make one ${formatLength(dims.bw)} wide beam.`,
             ]
-          : [],
+          : []),
+        ...hangerHoleNotes(p),
+      ],
       ...f.beam,
     },
     leg('back'),
@@ -232,6 +237,22 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       ],
       ...f.gusset,
     },
+  ];
+}
+
+/** Where the hanger bolts' holes go in the beam (spec, Hardware), once the mounting is entered. */
+function hangerHoleNotes(p: SwingSetParams): string[] {
+  const m = p.hardware.hangerMounting;
+  if (m === undefined || m.kind === 'other') return [];
+  const hole = formatLength(boltHoleDiameter(m.diameter));
+  if (m.kind === 'vertical-bolt') {
+    const xs = swingGeometry(p).hangersX.map((x) => formatLength(x));
+    return [
+      `Swing hanger holes: ${hole}, down through the beam on its centerline, ${xs.join(', ')} from the left end.`,
+    ];
+  }
+  return [
+    `Swing hanger holes: ${hole}, across the beam ${formatLength(m.holeHeight)} up from its bottom edge. Hold each hanger's bracket at its mark and drill through the bracket's holes.`,
   ];
 }
 
@@ -284,7 +305,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
   const issues = [
     ...frameIssues,
     ...(fits ? validateSwings(dims, swings) : []),
-    ...validateHardware(p),
+    ...validateHardware(p, dims),
   ];
   if (issues.length > 0) return { ok: false, issues };
 
@@ -304,7 +325,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       hardwareNotes: HARDWARE_NOTES,
       flags: [...flags(dims, g), ...boltFlags(joints), ...projectionFlags(boardBolts(p, dims, g))],
       boltLayout: joints.map((j) => j.joint),
-      operations: operations(madeParts, madeHardware, dims.d),
+      operations: operations(p, dims, madeParts, madeHardware),
     },
   };
 }
@@ -314,7 +335,13 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
  * the edges of every part, since children touch every surface (DOMAIN.md, Lumber and finish); and
  * the legs' holes (buried) or pads (d = 0).
  */
-function operations(madeParts: readonly Part[], items: readonly HardwareItem[], d: number) {
+function operations(
+  p: SwingSetParams,
+  dims: Dimensions,
+  madeParts: readonly Part[],
+  items: readonly HardwareItem[],
+) {
+  const d = dims.d;
   const legs = madeParts
     .filter((part) => part.role === 'leg')
     .reduce((n, part) => n + part.quantity, 0);
@@ -322,8 +349,26 @@ function operations(madeParts: readonly Part[], items: readonly HardwareItem[], 
     d > 0
       ? { id: 'site/dig-holes', type: 'dig-holes', count: legs, depth: d }
       : { id: 'site/level-pads', type: 'level-pads', count: legs };
+  // Horizontal hanger bolts have no placed holes (features.ts), so their operation is made here.
+  const hangerBolts = items.find((item) => item.id === HANGER_BOLTS);
+  const horizontal: Operation[] =
+    p.hardware.hangerMounting?.kind === 'horizontal-bolts' && hangerBolts?.bolt
+      ? [
+          {
+            id: `${HANGER_BOLTS}/holes`,
+            type: 'bolt-holes',
+            hardwareId: HANGER_BOLTS,
+            partIds: ['beam'],
+            count: hangerBolts.quantity ?? 0,
+            boltDiameter: hangerBolts.bolt.diameter,
+            holeDiameter: boltHoleDiameter(hangerBolts.bolt.diameter),
+            depth: dims.bw,
+          },
+        ]
+      : [];
   return [
     ...cutAndDrillOperations(madeParts, items),
+    ...horizontal,
     ...madeParts.map(
       (part): Operation => ({
         id: `${part.id}/ease-edges`,

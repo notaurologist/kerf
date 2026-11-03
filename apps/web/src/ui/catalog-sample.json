@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 25,
+    "templateVersion": 26,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -34,6 +34,10 @@
         "gussetBolts": {
           "diameter": 0.5,
           "perJoint": 2
+        },
+        "hangerMounting": {
+          "kind": "vertical-bolt",
+          "diameter": 0.5
         }
       }
     },
@@ -81,6 +85,10 @@
             "gussetBolts": {
               "diameter": 0.5,
               "perJoint": 2
+            },
+            "hangerMounting": {
+              "kind": "vertical-bolt",
+              "diameter": 0.5
             }
           }
         },
@@ -198,6 +206,9 @@
               }
             ],
             "endsParallel": true,
+            "notes": [
+              "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+            ],
             "referenceEdge": "bottom edge",
             "holes": [
               {
@@ -231,6 +242,70 @@
                   "n": 1
                 },
                 "length": 3.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 30,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 50,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 70,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 90,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
               }
             ],
             "letter": "A"
@@ -1006,6 +1081,24 @@
             "group": "Bolts and fittings"
           },
           {
+            "id": "hanger-bolts",
+            "name": "Swing hanger bolts",
+            "quantity": 4,
+            "bolt": {
+              "diameter": 0.5,
+              "grip": 5.5,
+              "washers": 2,
+              "nut": "locking",
+              "cap": true
+            },
+            "structural": true,
+            "notes": [
+              "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+              "Many hangers come with their bolts: check those against this length."
+            ],
+            "group": "Bolts and fittings"
+          },
+          {
             "id": "swing-hangers",
             "name": "Swing hangers",
             "quantity": 4,
@@ -1627,6 +1720,16 @@
             "depth": 5
           },
           {
+            "id": "hanger-bolts/holes",
+            "type": "bolt-holes",
+            "hardwareId": "hanger-bolts",
+            "partIds": ["beam"],
+            "count": 4,
+            "boltDiameter": 0.5,
+            "holeDiameter": 0.5625,
+            "depth": 5.5
+          },
+          {
             "id": "beam/ease-edges",
             "type": "ease-edges",
             "partId": "beam",
@@ -1675,7 +1778,9 @@
           "ends": ["Square", "Square"],
           "endsParallel": true,
           "marks": [],
-          "notes": []
+          "notes": [
+            "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+          ]
         },
         {
           "partId": "leg-back",
@@ -1906,7 +2011,7 @@
                 "name": "Beam",
                 "field": "beamStock",
                 "nominal": "4x8",
-                "margin": 1.564950475890361,
+                "margin": 1.3155384003110364,
                 "check": {
                   "title": "Bending",
                   "subject": "Top beam, 4x8"
@@ -2035,18 +2140,32 @@
           }
         },
         {
+          "description": "1/2\" through-bolt, grip 5-1/2\"",
+          "quantity": 4,
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+            "Many hangers come with their bolts: check those against this length."
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5.5,
+            "items": ["hanger-bolts"]
+          }
+        },
+        {
           "description": "1/2\" flat washers",
-          "quantity": 36,
+          "quantity": 44,
           "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" locking nuts",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" bolt caps",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings"
         },
         {
@@ -2373,6 +2492,8 @@
             "assumptions": [
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -2385,7 +2506,7 @@
               "key": "dynamicFactor",
               "symbol": "C_dyn",
               "label": "Dynamic factor",
-              "value": 1.9689253208922757
+              "value": 1.6454005556671611
             },
             "formulas": [
               "Each point load P = C_dyn · its load before the factor; the uniform load w is not multiplied",
@@ -2393,6 +2514,8 @@
               "M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign",
               "S = b·d² / 6",
               "f_b = M / S",
+              "At each hole, S_net is the section modulus of the gross section less the hole, and f_b = M(x) / S_net there",
+              "f_b = the largest of these",
               "Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r",
               "margin = Fb' / f_b"
             ],
@@ -2482,6 +2605,162 @@
                 "symbol": "x_M",
                 "label": "Position of largest moment",
                 "value": 60.00000000000011,
+                "unit": "in"
+              },
+              {
+                "symbol": "f_b,M",
+                "label": "Bending stress at the largest moment, M / S",
+                "value": 1006.7801248215713,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h1",
+                "label": "Left swing, left hanger hole, position",
+                "value": 30,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h1",
+                "label": "Left swing, left hanger hole, moment",
+                "value": 11570.265088881462,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,1",
+                "label": "Left swing, left hanger hole, hole diameter",
+                "value": 0.5625,
+                "unit": "in"
+              },
+              {
+                "symbol": "b_net,1",
+                "label": "Left swing, left hanger hole, net breadth",
+                "value": 2.9375,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,1",
+                "label": "Left swing, left hanger hole, net section modulus, b_net·d² / 6",
+                "value": 14.809895833333334,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,1",
+                "label": "Left swing, left hanger hole, bending stress",
+                "value": 781.252293675133,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h2",
+                "label": "Left swing, right hanger hole, position",
+                "value": 50,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h2",
+                "label": "Left swing, right hanger hole, moment",
+                "value": 17743.78437513258,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,2",
+                "label": "Left swing, right hanger hole, hole diameter",
+                "value": 0.5625,
+                "unit": "in"
+              },
+              {
+                "symbol": "b_net,2",
+                "label": "Left swing, right hanger hole, net breadth",
+                "value": 2.9375,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,2",
+                "label": "Left swing, right hanger hole, net section modulus, b_net·d² / 6",
+                "value": 14.809895833333334,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,2",
+                "label": "Left swing, right hanger hole, bending stress",
+                "value": 1198.103253042186,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h3",
+                "label": "Right swing, left hanger hole, position",
+                "value": 70,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h3",
+                "label": "Right swing, left hanger hole, moment",
+                "value": 17743.784375132578,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,3",
+                "label": "Right swing, left hanger hole, hole diameter",
+                "value": 0.5625,
+                "unit": "in"
+              },
+              {
+                "symbol": "b_net,3",
+                "label": "Right swing, left hanger hole, net breadth",
+                "value": 2.9375,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,3",
+                "label": "Right swing, left hanger hole, net section modulus, b_net·d² / 6",
+                "value": 14.809895833333334,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,3",
+                "label": "Right swing, left hanger hole, bending stress",
+                "value": 1198.1032530421855,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h4",
+                "label": "Right swing, right hanger hole, position",
+                "value": 90,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h4",
+                "label": "Right swing, right hanger hole, moment",
+                "value": 11570.265088881468,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,4",
+                "label": "Right swing, right hanger hole, hole diameter",
+                "value": 0.5625,
+                "unit": "in"
+              },
+              {
+                "symbol": "b_net,4",
+                "label": "Right swing, right hanger hole, net breadth",
+                "value": 2.9375,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,4",
+                "label": "Right swing, right hanger hole, net section modulus, b_net·d² / 6",
+                "value": 14.809895833333334,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,4",
+                "label": "Right swing, right hanger hole, bending stress",
+                "value": 781.2522936751334,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_f",
+                "label": "Position of the largest bending stress",
+                "value": 50,
                 "unit": "in"
               }
             ],
@@ -2620,12 +2899,17 @@
                 "source": "nds-2024",
                 "locator": "3.3.2, Eq. 3.3-2 and 3.3-4, p. 17",
                 "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+              },
+              {
+                "source": "nds-2024",
+                "locator": "3.1.2.1, p. 16",
+                "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
               }
             ],
             "computed": {
               "symbol": "f_b",
-              "label": "Bending stress",
-              "value": 1006.7801248215713,
+              "label": "Bending stress at left swing, right hanger hole, net section",
+              "value": 1198.103253042186,
               "unit": "psi"
             },
             "allowable": {
@@ -2634,7 +2918,7 @@
               "value": 991.5913206296021,
               "unit": "psi"
             },
-            "margin": 0.9849134842678176
+            "margin": 0.8276342778569249
           },
           "shear": {
             "kind": "beam-shear",
@@ -2933,6 +3217,8 @@
             "assumptions": [
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -3368,6 +3654,8 @@
             "assumptions": [
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -3648,8 +3936,8 @@
             "category": "bolted-connections",
             "element": "Swing hangers",
             "partIds": ["beam"],
-            "hardwareIds": ["swing-hangers"],
-            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies.",
+            "hardwareIds": ["swing-hangers", "hanger-bolts"],
+            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
             "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation."
           },
           {
@@ -3674,7 +3962,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 25,
+    "templateVersion": 26,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -3712,7 +4000,13 @@
           "diameter": 0.5,
           "count": 6
         },
-        "anchorsPerFoot": 1
+        "anchorsPerFoot": 1,
+        "hangerMounting": {
+          "kind": "horizontal-bolts",
+          "diameter": 0.375,
+          "perHanger": 2,
+          "holeHeight": 1.5
+        }
       }
     },
     "structuralInputs": {
@@ -3764,7 +4058,13 @@
               "diameter": 0.5,
               "count": 6
             },
-            "anchorsPerFoot": 1
+            "anchorsPerFoot": 1,
+            "hangerMounting": {
+              "kind": "horizontal-bolts",
+              "diameter": 0.375,
+              "perHanger": 2,
+              "holeHeight": 1.5
+            }
           }
         },
         "geometry": {
@@ -3881,7 +4181,10 @@
               }
             ],
             "endsParallel": true,
-            "notes": ["2 plies fastened face to face make one 3\" wide beam."],
+            "notes": [
+              "2 plies fastened face to face make one 3\" wide beam.",
+              "Swing hanger holes: 7/16\", across the beam 1-1/2\" up from its bottom edge. Hold each hanger's bracket at its mark and drill through the bracket's holes."
+            ],
             "referenceEdge": "bottom edge",
             "holes": [
               {
@@ -4760,6 +5063,24 @@
             "group": "Bolts and fittings"
           },
           {
+            "id": "hanger-bolts",
+            "name": "Swing hanger bolts",
+            "quantity": 8,
+            "bolt": {
+              "diameter": 0.375,
+              "grip": 3,
+              "washers": 2,
+              "nut": "locking",
+              "cap": true
+            },
+            "structural": true,
+            "notes": [
+              "Grip 3\": the beam's breadth, plus the two sides of the hanger's bracket. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 3/8\" past the nut (CPSC Pub. 324, p. 3).",
+              "Many hangers come with their bolts: check those against this length."
+            ],
+            "group": "Bolts and fittings"
+          },
+          {
             "id": "swing-hangers",
             "name": "Swing hangers",
             "quantity": 4,
@@ -5399,6 +5720,16 @@
             "depth": 3
           },
           {
+            "id": "hanger-bolts/holes",
+            "type": "bolt-holes",
+            "hardwareId": "hanger-bolts",
+            "partIds": ["beam"],
+            "count": 8,
+            "boltDiameter": 0.375,
+            "holeDiameter": 0.4375,
+            "depth": 3
+          },
+          {
             "id": "beam/ease-edges",
             "type": "ease-edges",
             "partId": "beam",
@@ -5446,7 +5777,10 @@
           "ends": ["Square", "Square"],
           "endsParallel": true,
           "marks": [],
-          "notes": ["2 plies fastened face to face make one 3\" wide beam."]
+          "notes": [
+            "2 plies fastened face to face make one 3\" wide beam.",
+            "Swing hanger holes: 7/16\", across the beam 1-1/2\" up from its bottom edge. Hold each hanger's bracket at its mark and drill through the bracket's holes."
+          ]
         },
         {
           "partId": "leg-back",
@@ -5675,7 +6009,7 @@
                 "name": "Beam plies",
                 "field": "beamStock",
                 "nominal": "2x8",
-                "margin": 1.1264487123192335,
+                "margin": 1.0148652620007972,
                 "check": {
                   "title": "Bending",
                   "subject": "Top beam, 2 plies of 2x8"
@@ -5795,6 +6129,35 @@
             },
             "items": ["ply-bolts"]
           }
+        },
+        {
+          "description": "3/8\" through-bolt, grip 3\"",
+          "quantity": 8,
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 3\": the beam's breadth, plus the two sides of the hanger's bracket. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 3/8\" past the nut (CPSC Pub. 324, p. 3).",
+            "Many hangers come with their bolts: check those against this length."
+          ],
+          "bolt": {
+            "diameter": 0.375,
+            "grip": 3,
+            "items": ["hanger-bolts"]
+          }
+        },
+        {
+          "description": "3/8\" flat washers",
+          "quantity": 16,
+          "group": "Bolts and fittings"
+        },
+        {
+          "description": "3/8\" locking nuts",
+          "quantity": 8,
+          "group": "Bolts and fittings"
+        },
+        {
+          "description": "3/8\" bolt caps",
+          "quantity": 8,
+          "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" flat washers",
@@ -6148,6 +6511,8 @@
               "Each ply carries an equal share of every load (decision 0013).",
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -6160,7 +6525,7 @@
               "key": "dynamicFactor",
               "symbol": "C_dyn",
               "label": "Dynamic factor",
-              "value": 1.5115359688960188
+              "value": 1.3733200229165963
             },
             "formulas": [
               "Each point load P = C_dyn · its load before the factor; the uniform load w is not multiplied",
@@ -6169,6 +6534,8 @@
               "M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign",
               "S = b·d² / 6",
               "f_b = M / S",
+              "At each hole, S_net is the section modulus of the gross section less the hole, and f_b = M(x) / S_net there",
+              "f_b = the largest of these",
               "Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r",
               "margin = Fb' / f_b"
             ],
@@ -6264,6 +6631,234 @@
                 "symbol": "x_M",
                 "label": "Position of largest moment per ply",
                 "value": 59.99999999999993,
+                "unit": "in"
+              },
+              {
+                "symbol": "f_b,M",
+                "label": "Bending stress at the largest moment, M / S",
+                "value": 1169.7081059313703,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h1",
+                "label": "Left swing, left hanger hole, position",
+                "value": 30,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h1",
+                "label": "Left swing, left hanger hole, moment per ply",
+                "value": 5762.2564666634835,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,1",
+                "label": "Left swing, left hanger hole, hole diameter",
+                "value": 0.4375,
+                "unit": "in"
+              },
+              {
+                "symbol": "h,1",
+                "label": "Left swing, left hanger hole, hole center above the member's bottom",
+                "value": 1.5,
+                "unit": "in"
+              },
+              {
+                "symbol": "ȳ,1",
+                "label": "Left swing, left hanger hole, neutral axis above the bottom, net section of one ply",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "I_net,1",
+                "label": "Left swing, left hanger hole, net moment of inertia of one ply",
+                "value": 19.672402841073495,
+                "unit": "in⁴"
+              },
+              {
+                "symbol": "c,1",
+                "label": "Left swing, left hanger hole, neutral axis to the farther face",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,1",
+                "label": "Left swing, left hanger hole, net section modulus, I_net / c",
+                "value": 6.883216544824852,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,1",
+                "label": "Left swing, left hanger hole, bending stress",
+                "value": 837.1458938039422,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h2",
+                "label": "Left swing, right hanger hole, position",
+                "value": 50,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h2",
+                "label": "Left swing, right hanger hole, moment per ply",
+                "value": 8836.62187505682,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,2",
+                "label": "Left swing, right hanger hole, hole diameter",
+                "value": 0.4375,
+                "unit": "in"
+              },
+              {
+                "symbol": "h,2",
+                "label": "Left swing, right hanger hole, hole center above the member's bottom",
+                "value": 1.5,
+                "unit": "in"
+              },
+              {
+                "symbol": "ȳ,2",
+                "label": "Left swing, right hanger hole, neutral axis above the bottom, net section of one ply",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "I_net,2",
+                "label": "Left swing, right hanger hole, net moment of inertia of one ply",
+                "value": 19.672402841073495,
+                "unit": "in⁴"
+              },
+              {
+                "symbol": "c,2",
+                "label": "Left swing, right hanger hole, neutral axis to the farther face",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,2",
+                "label": "Left swing, right hanger hole, net section modulus, I_net / c",
+                "value": 6.883216544824852,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,2",
+                "label": "Left swing, right hanger hole, bending stress",
+                "value": 1283.7925143733328,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h3",
+                "label": "Right swing, left hanger hole, position",
+                "value": 70,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h3",
+                "label": "Right swing, left hanger hole, moment per ply",
+                "value": 8836.621875056815,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,3",
+                "label": "Right swing, left hanger hole, hole diameter",
+                "value": 0.4375,
+                "unit": "in"
+              },
+              {
+                "symbol": "h,3",
+                "label": "Right swing, left hanger hole, hole center above the member's bottom",
+                "value": 1.5,
+                "unit": "in"
+              },
+              {
+                "symbol": "ȳ,3",
+                "label": "Right swing, left hanger hole, neutral axis above the bottom, net section of one ply",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "I_net,3",
+                "label": "Right swing, left hanger hole, net moment of inertia of one ply",
+                "value": 19.672402841073495,
+                "unit": "in⁴"
+              },
+              {
+                "symbol": "c,3",
+                "label": "Right swing, left hanger hole, neutral axis to the farther face",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,3",
+                "label": "Right swing, left hanger hole, net section modulus, I_net / c",
+                "value": 6.883216544824852,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,3",
+                "label": "Right swing, left hanger hole, bending stress",
+                "value": 1283.7925143733319,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h4",
+                "label": "Right swing, right hanger hole, position",
+                "value": 90,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h4",
+                "label": "Right swing, right hanger hole, moment per ply",
+                "value": 5762.256466663483,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,4",
+                "label": "Right swing, right hanger hole, hole diameter",
+                "value": 0.4375,
+                "unit": "in"
+              },
+              {
+                "symbol": "h,4",
+                "label": "Right swing, right hanger hole, hole center above the member's bottom",
+                "value": 1.5,
+                "unit": "in"
+              },
+              {
+                "symbol": "ȳ,4",
+                "label": "Right swing, right hanger hole, neutral axis above the bottom, net section of one ply",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "I_net,4",
+                "label": "Right swing, right hanger hole, net moment of inertia of one ply",
+                "value": 19.672402841073495,
+                "unit": "in⁴"
+              },
+              {
+                "symbol": "c,4",
+                "label": "Right swing, right hanger hole, neutral axis to the farther face",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,4",
+                "label": "Right swing, right hanger hole, net section modulus, I_net / c",
+                "value": 6.883216544824852,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,4",
+                "label": "Right swing, right hanger hole, bending stress",
+                "value": 837.145893803942,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_f",
+                "label": "Position of the largest bending stress",
+                "value": 50,
                 "unit": "in"
               }
             ],
@@ -6402,12 +6997,17 @@
                 "source": "nds-2024",
                 "locator": "3.3.2, Eq. 3.3-2 and 3.3-4, p. 17",
                 "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+              },
+              {
+                "source": "nds-2024",
+                "locator": "3.1.2.1, p. 16",
+                "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
               }
             ],
             "computed": {
               "symbol": "f_b",
-              "label": "Bending stress",
-              "value": 1169.7081059313703,
+              "label": "Bending stress at left swing, right hanger hole, net section",
+              "value": 1283.7925143733328,
               "unit": "psi"
             },
             "allowable": {
@@ -6416,7 +7016,7 @@
               "value": 891.1625014175299,
               "unit": "psi"
             },
-            "margin": 0.7618674239313313
+            "margin": 0.6941639645348296
           },
           "shear": {
             "kind": "beam-shear",
@@ -6722,6 +7322,8 @@
               "Each ply carries an equal share of every load (decision 0013).",
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -7171,6 +7773,8 @@
               "Each ply carries an equal share of every load (decision 0013).",
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -7435,7 +8039,7 @@
             "element": "Beam plies (2 x 2x6)",
             "partIds": ["beam"],
             "hardwareIds": ["ply-bolts", "swing-hangers"],
-            "confirm": "Ply bolt pattern and spacing (6 bolts entered), and that every hanger bolts through all 2 plies.",
+            "confirm": "Ply bolt pattern and spacing (6 bolts entered), and that every hanger's load reaches all 2 plies.",
             "why": "The checks assume each ply carries an equal share of every load (decision 0013); that holds only if the plies are fastened together and every load reaches every ply."
           },
           {
@@ -7466,8 +8070,8 @@
             "category": "bolted-connections",
             "element": "Swing hangers",
             "partIds": ["beam"],
-            "hardwareIds": ["swing-hangers"],
-            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies.",
+            "hardwareIds": ["swing-hangers", "hanger-bolts"],
+            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
             "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation."
           },
           {
@@ -7492,7 +8096,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 25,
+    "templateVersion": 26,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -7525,6 +8129,10 @@
         "gussetBolts": {
           "diameter": 0.5,
           "perJoint": 2
+        },
+        "hangerMounting": {
+          "kind": "vertical-bolt",
+          "diameter": 0.5
         }
       }
     },
@@ -7563,6 +8171,10 @@
             "gussetBolts": {
               "diameter": 0.5,
               "perJoint": 2
+            },
+            "hangerMounting": {
+              "kind": "vertical-bolt",
+              "diameter": 0.5
             }
           }
         },
@@ -7680,6 +8292,9 @@
               }
             ],
             "endsParallel": true,
+            "notes": [
+              "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+            ],
             "referenceEdge": "bottom edge",
             "holes": [
               {
@@ -7713,6 +8328,70 @@
                   "n": 1
                 },
                 "length": 3.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 30,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 50,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 70,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 90,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
               }
             ],
             "letter": "A"
@@ -8488,6 +9167,24 @@
             "group": "Bolts and fittings"
           },
           {
+            "id": "hanger-bolts",
+            "name": "Swing hanger bolts",
+            "quantity": 4,
+            "bolt": {
+              "diameter": 0.5,
+              "grip": 5.5,
+              "washers": 2,
+              "nut": "locking",
+              "cap": true
+            },
+            "structural": true,
+            "notes": [
+              "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+              "Many hangers come with their bolts: check those against this length."
+            ],
+            "group": "Bolts and fittings"
+          },
+          {
             "id": "swing-hangers",
             "name": "Swing hangers",
             "quantity": 4,
@@ -9109,6 +9806,16 @@
             "depth": 5
           },
           {
+            "id": "hanger-bolts/holes",
+            "type": "bolt-holes",
+            "hardwareId": "hanger-bolts",
+            "partIds": ["beam"],
+            "count": 4,
+            "boltDiameter": 0.5,
+            "holeDiameter": 0.5625,
+            "depth": 5.5
+          },
+          {
             "id": "beam/ease-edges",
             "type": "ease-edges",
             "partId": "beam",
@@ -9157,7 +9864,9 @@
           "ends": ["Square", "Square"],
           "endsParallel": true,
           "marks": [],
-          "notes": []
+          "notes": [
+            "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+          ]
         },
         {
           "partId": "leg-back",
@@ -9511,18 +10220,32 @@
           }
         },
         {
+          "description": "1/2\" through-bolt, grip 5-1/2\"",
+          "quantity": 4,
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+            "Many hangers come with their bolts: check those against this length."
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5.5,
+            "items": ["hanger-bolts"]
+          }
+        },
+        {
           "description": "1/2\" flat washers",
-          "quantity": 36,
+          "quantity": 44,
           "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" locking nuts",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" bolt caps",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings"
         },
         {
@@ -9705,8 +10428,8 @@
             "category": "bolted-connections",
             "element": "Swing hangers",
             "partIds": ["beam"],
-            "hardwareIds": ["swing-hangers"],
-            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies.",
+            "hardwareIds": ["swing-hangers", "hanger-bolts"],
+            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
             "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation."
           },
           {
@@ -29797,11 +30520,11 @@
       {
         "title": "A · Beam",
         "partId": "beam",
-        "description": "Cut detail for A, Beam: 120\" overall, ends square, 2 holes.",
+        "description": "Cut detail for A, Beam: 120\" overall, ends square, 6 holes.",
         "bounds": {
           "x": -1.65,
           "y": -11.700000000000001,
-          "width": 45.099999999999994,
+          "width": 123.30000000000001,
           "height": 22.150000000000002
         },
         "primitives": [
@@ -29814,11 +30537,11 @@
                 "y": 0
               },
               {
-                "x": 19.25,
+                "x": 120,
                 "y": 0
               },
               {
-                "x": 19.25,
+                "x": 120,
                 "y": -5.5
               },
               {
@@ -29827,104 +30550,6 @@
               }
             ],
             "fill": 2,
-            "part": {
-              "partId": "beam",
-              "instance": 0,
-              "letter": "A"
-            }
-          },
-          {
-            "kind": "polygon",
-            "role": "visible",
-            "points": [
-              {
-                "x": 22.549999999999997,
-                "y": 0
-              },
-              {
-                "x": 41.8,
-                "y": 0
-              },
-              {
-                "x": 41.8,
-                "y": -5.5
-              },
-              {
-                "x": 22.549999999999997,
-                "y": -5.5
-              }
-            ],
-            "fill": 2,
-            "part": {
-              "partId": "beam",
-              "instance": 0,
-              "letter": "A"
-            }
-          },
-          {
-            "kind": "line",
-            "role": "break",
-            "points": [
-              {
-                "x": 19.25,
-                "y": 0.825
-              },
-              {
-                "x": 19.25,
-                "y": -2.2
-              },
-              {
-                "x": 18.59,
-                "y": -2.75
-              },
-              {
-                "x": 19.91,
-                "y": -3.3
-              },
-              {
-                "x": 19.25,
-                "y": -3.8499999999999996
-              },
-              {
-                "x": 19.25,
-                "y": -6.324999999999999
-              }
-            ],
-            "part": {
-              "partId": "beam",
-              "instance": 0,
-              "letter": "A"
-            }
-          },
-          {
-            "kind": "line",
-            "role": "break",
-            "points": [
-              {
-                "x": 22.55,
-                "y": 0.825
-              },
-              {
-                "x": 22.55,
-                "y": -2.2
-              },
-              {
-                "x": 21.89,
-                "y": -2.75
-              },
-              {
-                "x": 23.21,
-                "y": -3.3
-              },
-              {
-                "x": 22.55,
-                "y": -3.8499999999999996
-              },
-              {
-                "x": 22.55,
-                "y": -6.324999999999999
-              }
-            ],
             "part": {
               "partId": "beam",
               "instance": 0,
@@ -29987,7 +30612,7 @@
             "kind": "circle",
             "role": "visible",
             "center": {
-              "x": 28.05,
+              "x": 106.25,
               "y": -2.75
             },
             "radius": 0.28125,
@@ -30002,11 +30627,11 @@
             "role": "center",
             "points": [
               {
-                "x": 27.4875,
+                "x": 105.6875,
                 "y": -2.75
               },
               {
-                "x": 28.6125,
+                "x": 106.8125,
                 "y": -2.75
               }
             ],
@@ -30021,12 +30646,240 @@
             "role": "center",
             "points": [
               {
-                "x": 28.05,
+                "x": 106.25,
                 "y": -3.3125
               },
               {
-                "x": 28.05,
+                "x": 106.25,
                 "y": -2.1875
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "hidden",
+            "points": [
+              {
+                "x": 30.28125,
+                "y": -5.5
+              },
+              {
+                "x": 30.28125,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "hidden",
+            "points": [
+              {
+                "x": 29.71875,
+                "y": -5.5
+              },
+              {
+                "x": 29.71875,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "center",
+            "points": [
+              {
+                "x": 30,
+                "y": -5.5
+              },
+              {
+                "x": 30,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "hidden",
+            "points": [
+              {
+                "x": 50.28125,
+                "y": -5.5
+              },
+              {
+                "x": 50.28125,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "hidden",
+            "points": [
+              {
+                "x": 49.71875,
+                "y": -5.5
+              },
+              {
+                "x": 49.71875,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "center",
+            "points": [
+              {
+                "x": 50,
+                "y": -5.5
+              },
+              {
+                "x": 50,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "hidden",
+            "points": [
+              {
+                "x": 70.28125,
+                "y": -5.5
+              },
+              {
+                "x": 70.28125,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "hidden",
+            "points": [
+              {
+                "x": 69.71875,
+                "y": -5.5
+              },
+              {
+                "x": 69.71875,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "center",
+            "points": [
+              {
+                "x": 70,
+                "y": -5.5
+              },
+              {
+                "x": 70,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "hidden",
+            "points": [
+              {
+                "x": 90.28125,
+                "y": -5.5
+              },
+              {
+                "x": 90.28125,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "hidden",
+            "points": [
+              {
+                "x": 89.71875,
+                "y": -5.5
+              },
+              {
+                "x": 89.71875,
+                "y": 0
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "center",
+            "points": [
+              {
+                "x": 90,
+                "y": -5.5
+              },
+              {
+                "x": 90,
+                "y": 0
               }
             ],
             "part": {
@@ -30059,11 +30912,11 @@
             "role": "extension",
             "points": [
               {
-                "x": 41.8,
+                "x": 120,
                 "y": -5.5
               },
               {
-                "x": 41.8,
+                "x": 120,
                 "y": -10.05
               }
             ],
@@ -30082,7 +30935,7 @@
                 "y": -9.9
               },
               {
-                "x": 41.8,
+                "x": 120,
                 "y": -9.9
               }
             ],
@@ -30097,7 +30950,7 @@
             "kind": "text",
             "role": "dimension",
             "at": {
-              "x": 20.9,
+              "x": 60,
               "y": -9.9
             },
             "text": "120\"",
@@ -30110,22 +30963,6 @@
             }
           },
           {
-            "kind": "text",
-            "role": "note",
-            "at": {
-              "x": 20.9,
-              "y": -9.9
-            },
-            "text": "Not to scale between the breaks",
-            "anchor": "middle",
-            "side": "above",
-            "part": {
-              "partId": "beam",
-              "instance": 0,
-              "letter": "A"
-            }
-          },
-          {
             "kind": "line",
             "role": "extension",
             "points": [
@@ -30149,11 +30986,11 @@
             "role": "extension",
             "points": [
               {
-                "x": 41.8,
+                "x": 120,
                 "y": 0
               },
               {
-                "x": 41.8,
+                "x": 120,
                 "y": 4.550000000000001
               }
             ],
@@ -30172,7 +31009,7 @@
                 "y": 4.4
               },
               {
-                "x": 41.8,
+                "x": 120,
                 "y": 4.4
               }
             ],
@@ -30187,7 +31024,7 @@
             "kind": "text",
             "role": "dimension",
             "at": {
-              "x": 20.9,
+              "x": 60,
               "y": 4.4
             },
             "text": "120\"",
@@ -30239,11 +31076,11 @@
             "role": "extension",
             "points": [
               {
-                "x": 28.05,
+                "x": 106.25,
                 "y": -2.4125
               },
               {
-                "x": 28.05,
+                "x": 106.25,
                 "y": 8.25
               }
             ],
@@ -30257,10 +31094,150 @@
             "kind": "text",
             "role": "dimension",
             "at": {
-              "x": 28.05,
+              "x": 106.25,
               "y": 8.8
             },
             "text": "106-1/4\"",
+            "anchor": "end",
+            "rotate": -90,
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "extension",
+            "points": [
+              {
+                "x": 30,
+                "y": -5.1625
+              },
+              {
+                "x": 30,
+                "y": 8.25
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "dimension",
+            "at": {
+              "x": 30,
+              "y": 8.8
+            },
+            "text": "30\"",
+            "anchor": "end",
+            "rotate": -90,
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "extension",
+            "points": [
+              {
+                "x": 50,
+                "y": -5.1625
+              },
+              {
+                "x": 50,
+                "y": 8.25
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "dimension",
+            "at": {
+              "x": 50,
+              "y": 8.8
+            },
+            "text": "50\"",
+            "anchor": "end",
+            "rotate": -90,
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "extension",
+            "points": [
+              {
+                "x": 70,
+                "y": -5.1625
+              },
+              {
+                "x": 70,
+                "y": 8.25
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "dimension",
+            "at": {
+              "x": 70,
+              "y": 8.8
+            },
+            "text": "70\"",
+            "anchor": "end",
+            "rotate": -90,
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "line",
+            "role": "extension",
+            "points": [
+              {
+                "x": 90,
+                "y": -5.1625
+              },
+              {
+                "x": 90,
+                "y": 8.25
+              }
+            ],
+            "part": {
+              "partId": "beam",
+              "instance": 0,
+              "letter": "A"
+            }
+          },
+          {
+            "kind": "text",
+            "role": "dimension",
+            "at": {
+              "x": 90,
+              "y": 8.8
+            },
+            "text": "90\"",
             "anchor": "end",
             "rotate": -90,
             "part": {
@@ -30290,59 +31267,59 @@
             "role": "leader",
             "points": [
               {
-                "x": 4.8125,
+                "x": 60,
                 "y": -4.015000000000001
               },
               {
-                "x": 5.1425,
+                "x": 60.33,
                 "y": -3.8823651497465947
               },
               {
-                "x": 5.38407676649773,
+                "x": 60.57157676649773,
                 "y": -3.5200000000000005
               },
               {
-                "x": 5.4725,
+                "x": 60.66,
                 "y": -3.0250000000000004
               },
               {
-                "x": 5.38407676649773,
+                "x": 60.57157676649773,
                 "y": -2.5300000000000007
               },
               {
-                "x": 5.1425,
+                "x": 60.33,
                 "y": -2.167634850253406
               },
               {
-                "x": 4.8125,
+                "x": 60,
                 "y": -2.035
               },
               {
-                "x": 4.4825,
+                "x": 59.67,
                 "y": -2.167634850253406
               },
               {
-                "x": 4.24092323350227,
+                "x": 59.42842323350227,
                 "y": -2.53
               },
               {
-                "x": 4.1525,
+                "x": 59.34,
                 "y": -3.0250000000000004
               },
               {
-                "x": 4.24092323350227,
+                "x": 59.42842323350227,
                 "y": -3.5200000000000005
               },
               {
-                "x": 4.4825,
+                "x": 59.67,
                 "y": -3.8823651497465943
               },
               {
-                "x": 4.8125,
+                "x": 60,
                 "y": -4.015000000000001
               },
               {
-                "x": 4.8125,
+                "x": 60,
                 "y": 0
               }
             ],
@@ -30357,11 +31334,11 @@
             "role": "leader",
             "points": [
               {
-                "x": 32.8625,
+                "x": 35.875,
                 "y": -4.51
               },
               {
-                "x": 41.1125,
+                "x": 44.125,
                 "y": -4.51
               }
             ],
@@ -30376,7 +31353,7 @@
             "kind": "text",
             "role": "note",
             "at": {
-              "x": 36.9875,
+              "x": 40,
               "y": -4.84
             },
             "text": "Grain",

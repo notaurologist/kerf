@@ -258,6 +258,34 @@ describe('cut details', () => {
     expect(texts(detail.primitives, 'dimension')).toContain(formatLength(120));
   });
 
+  // A 120" beam, 5-1/2" deep, square ends, holes at 13.75, 30, 50, 70, 90, and 106.25: one window
+  // (no gap over 11). The loop goes at 60, and every other point tried (30, 90) is on a hole, so
+  // the arrow goes in the middle of the longest clear stretch, 30 to 50: at 40.
+  it('puts the grain arrow clear of every hole when each point tried has one', () => {
+    const hole = (u: number) => ({
+      hardwareId: 'bolts',
+      diameter: 0.5625,
+      boltDiameter: 0.5,
+      entry: { u, v: 5.5, n: 1.75 },
+      direction: { u: 0, v: -1, n: 0 },
+      length: 5.5,
+    });
+    const detail = cutDetail(
+      board({
+        stock: stock('4x6'),
+        length: 120,
+        ends: [
+          { setting: 0, description: 'Square', measuredFrom: 'reference-edge' },
+          { setting: 0, description: 'Square', measuredFrom: 'reference-edge' },
+        ],
+        endsParallel: true,
+        holes: [13.75, 30, 50, 70, 90, 106.25].map(hole),
+      }),
+    );
+    const grain = detail.primitives.find((p) => p.kind === 'text' && p.text === 'Grain');
+    expect(grain?.kind === 'text' && grain.at.x).toBeCloseTo(40, 9);
+  });
+
   it('draws a taper’s waste dashed', () => {
     const detail = cutDetail(
       board({
