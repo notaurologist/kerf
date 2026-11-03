@@ -27,12 +27,30 @@ type Riders = (typeof RIDERS)[number];
 export const SwingSetAnswers = z.object({
   riders: z.enum(RIDERS),
   riderWeights: SwingSetStructuralInputs.shape.riderWeights.unwrap(),
-  area: z.object({
-    /** Open space along the beam, inches. */
-    length: z.number().positive(),
-    /** Open space front to back, inches. */
-    depth: z.number().positive(),
-  }),
+  area: z
+    .object({
+      /** Open space along the beam, inches. */
+      length: z.number().positive(),
+      /** Open space front to back, inches. */
+      depth: z.number().positive(),
+    })
+    .superRefine((area, ctx) => {
+      const smallest = smallestSpace();
+      if (area.length < smallest.length) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['length'],
+          message: `Length along the beam must be at least ${ft(smallest.length)} for two swings and their clear area.`,
+        });
+      }
+      if (area.depth < smallest.depth) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['depth'],
+          message: `Depth, front to back, must be at least ${ft(smallest.depth)} for the swing zones of the lowest beam Kerf draws, ${ft(BEAM_HEIGHT.min)}.`,
+        });
+      }
+    }),
   ground: z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('level') }),
     /** Inches the ground falls per foot toward the front, as the parameter. */
@@ -177,75 +195,65 @@ export function shortestBeam(): number {
   return 3 * Math.max(gap + swings.seatWidth / 2 + frameInset + leg, gap + swings.seatWidth);
 }
 
-function beamHeight(answers: SwingSetAnswers): Suggestion {
+/**
+ * The smallest space the answers may give: room along the beam for the shortest beam, rounded up
+ * to a whole inch as the suggestion is, with the clear area at each end, and room front to back
+ * for the swing zones of the lowest beam the template draws.
+ */
+export function smallestSpace(): { length: number; depth: number } {
+  return {
+    length: Math.ceil(shortestBeam()) + 2 * clear.value,
+    depth: depthFor(BEAM_HEIGHT.min),
+  };
+}
+
+function beamHeight(answers: SwingSetAnswers): Suggestion & { value: number } {
   const usual = RULE_HEIGHT[answers.riders];
   const tallest = Math.floor(answers.area.depth / (2 * zones.value));
   const base = { from: 'params', path: 'beamHeight' } as const;
   if (tallest >= usual.inches) {
     return { ...base, value: usual.inches, basis: { kind: 'rule-of-thumb', rule: usual.rule } };
   }
-  const short = `The usual height is ${ft(usual.inches)}, and its swing zones need ${ft(depthFor(usual.inches))} front to back.`;
-  if (tallest < BEAM_HEIGHT.min) {
-    return {
-      ...base,
-      value: null,
-      basis: { kind: 'source', citation: zones.source },
-      note: `${short} Even the lowest beam Kerf draws, ${ft(BEAM_HEIGHT.min)}, needs ${ft(depthFor(BEAM_HEIGHT.min))}.`,
-    };
-  }
   return {
     ...base,
     value: tallest,
     basis: { kind: 'source', citation: zones.source },
-    note: `${short} Your ${ft(answers.area.depth)} fits a beam up to ${ft(tallest)}.`,
+    note: `Lowered to fit your ${ft(answers.area.depth)} depth. The usual height, ${ft(usual.inches)}, needs ${ft(depthFor(usual.inches))} front to back for its swing zones.`,
   };
 }
 
 function beamLengthAndSwings(answers: SwingSetAnswers): Suggestion[] {
   const usual = WORKED_EXAMPLE.beamLength;
   const longest = Math.floor(answers.area.length - 2 * clear.value);
-  const shortest = shortestBeam();
   const base = { from: 'params', path: 'beamLength' } as const;
-  const centers = (length: number | null): Suggestion[] =>
+  const centers = (length: number): Suggestion[] =>
     [1, 2].map((third, i) => ({
       from: 'params',
       path: `swings.centers.${i}`,
-      value: length === null ? null : sixteenth((length * third) / 3),
+      value: sixteenth((length * third) / 3),
       basis: { kind: 'rule-of-thumb', rule: "each swing at a third of the beam's length" },
     }));
   if (longest >= usual) {
     return [{ ...base, value: usual, basis: EXAMPLE }, ...centers(usual)];
-  }
-  const short = `The worked example's beam is ${ft(usual)}, which needs ${ft(usual + 2 * clear.value)} along the beam with the clear area at each end.`;
-  if (longest < Math.ceil(shortest)) {
-    return [
-      {
-        ...base,
-        value: null,
-        basis: { kind: 'source', citation: clear.source },
-        note: `${short} Two swings need a beam of at least ${ft(Math.ceil(shortest))}, so ${ft(Math.ceil(shortest) + 2 * clear.value)}.`,
-      },
-      ...centers(null),
-    ];
   }
   return [
     {
       ...base,
       value: longest,
       basis: { kind: 'source', citation: clear.source },
-      note: `${short} Your ${ft(answers.area.length)} fits a beam up to ${ft(longest)}.`,
+      note: `Shortened to fit your ${ft(answers.area.length)} length along the beam. The worked example's beam, ${ft(usual)}, needs ${ft(usual + 2 * clear.value)} with the clear area at each end.`,
     },
     ...centers(longest),
   ];
 }
 
 /** The crossbar's top at the worked example's share of the beam height (40" of 96"). */
-function crossbarHeight(height: number | null): Suggestion {
+function crossbarHeight(height: number): Suggestion {
   const share = WORKED_EXAMPLE.crossbarHeight / WORKED_EXAMPLE.beamHeight;
   return {
     from: 'params',
     path: 'crossbarHeight',
-    value: height === null ? null : Math.floor(height * share),
+    value: Math.floor(height * share),
     basis: {
       kind: 'rule-of-thumb',
       rule: `the same share of the beam height as the worked example, ${ft(WORKED_EXAMPLE.crossbarHeight)} of ${ft(WORKED_EXAMPLE.beamHeight)}`,
@@ -279,7 +287,7 @@ function suggestWithoutBolts(answers: SwingSetAnswers): Suggestion[] {
     param('frameInset', ex.frameInset, EXAMPLE),
     param('legStock', ex.legStock, EXAMPLE, stockNote),
     param('crossbarStock', ex.crossbarStock, EXAMPLE),
-    crossbarHeight(typeof height.value === 'number' ? height.value : null),
+    crossbarHeight(height.value),
     param('gussetStock', ex.gussetStock, EXAMPLE),
     param('groundSlope', answers.ground.kind === 'sloped' ? answers.ground.slope : 0, ANSWER),
     answers.feet === 'pads'
@@ -348,14 +356,6 @@ export const SWING_SET_QUESTIONS = startingQuestions({
       area: { length: 252, depth: 336 },
       ground: { kind: 'sloped', slope: 1 },
       feet: 'buried',
-    },
-    // Too little room for any beam the template draws.
-    {
-      riders: 'kids',
-      riderWeights: [90, 0],
-      area: { length: 240, depth: 192 },
-      ground: { kind: 'level' },
-      feet: 'pads',
     },
   ],
 });
