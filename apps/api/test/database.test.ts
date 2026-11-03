@@ -14,6 +14,7 @@ describe('createTestDatabase', () => {
       'projects',
       'sessions',
       'tools',
+      'tools_revision',
     ]);
     await close();
   });

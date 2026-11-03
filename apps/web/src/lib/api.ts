@@ -41,7 +41,7 @@ export type ApiError =
       items?: { kind: string; key: string }[];
     }
   | { kind: 'not-found' }
-  /** The project changed on another device since it was read; `revision` is the current one. */
+  /** The project or tool list changed on another device since it was read; `revision` is the current one. */
   | { kind: 'stale'; revision: number }
   | { kind: 'failed'; status: number; message: string };
 
@@ -111,7 +111,11 @@ async function toError(res: Response): Promise<ApiError> {
     case 404:
       return { kind: 'not-found' };
     case 409:
-      if (code === 'stale-project' && isRecord(body) && typeof body.revision === 'number') {
+      if (
+        (code === 'stale-project' || code === 'stale-tools') &&
+        isRecord(body) &&
+        typeof body.revision === 'number'
+      ) {
         return { kind: 'stale', revision: body.revision };
       }
       return { kind: 'failed', status: 409, message: code || 'The request failed.' };
@@ -193,7 +197,7 @@ export function describeError(error: ApiError): string {
     case 'not-found':
       return 'Not found.';
     case 'stale':
-      return 'This project was changed on another device.';
+      return 'This was changed on another device.';
     case 'failed':
       return error.status === 0 ? error.message : `The server answered ${error.status}.`;
   }

@@ -5,7 +5,7 @@ import { createTestApp } from '../../test/app.ts';
 describe('/api/tools', () => {
   it('starts empty', async () => {
     const { authed } = await createTestApp();
-    expect(await (await authed('/api/tools')).json()).toEqual({ tools: [] });
+    expect(await (await authed('/api/tools')).json()).toEqual({ tools: [], revision: 1 });
   });
 
   it('replaces the whole inventory and reads it back', async () => {
@@ -18,26 +18,72 @@ describe('/api/tools', () => {
         { toolTypeId: 'clamps', name: 'Short', capabilities: {} },
       ],
     };
-    const put = await authed('/api/tools', { method: 'PUT', body: first });
+    const put = await authed('/api/tools', { method: 'PUT', body: { ...first, revision: 1 } });
     expect(put.status).toBe(200);
-    expect(await put.json()).toEqual(first);
+    expect(await put.json()).toEqual({ ...first, revision: 2 });
 
     const second = { tools: [{ toolTypeId: 'rafter-square', capabilities: {} }] };
-    await authed('/api/tools', { method: 'PUT', body: second });
-    expect(await (await authed('/api/tools')).json()).toEqual(second);
+    await authed('/api/tools', { method: 'PUT', body: { ...second, revision: 2 } });
+    expect(await (await authed('/api/tools')).json()).toEqual({ ...second, revision: 3 });
   });
 
-  it('takes saves sent at the same moment one after the other, the last one kept', async () => {
+  it('refuses a save made on an older list with 409, saving nothing and keeping the revision (#426)', async () => {
+    const { authed } = await createTestApp();
+    const mine = { tools: [{ toolTypeId: 'level', capabilities: {} }] };
+    const theirs = { tools: [{ toolTypeId: 'jigsaw', capabilities: {} }] };
+    await authed('/api/tools', { method: 'PUT', body: { ...theirs, revision: 1 } });
+
+    const stale = await authed('/api/tools', { method: 'PUT', body: { ...mine, revision: 1 } });
+    expect(stale.status).toBe(409);
+    expect(await stale.json()).toEqual({ error: 'stale-tools', revision: 2 });
+    expect(await (await authed('/api/tools')).json()).toEqual({ ...theirs, revision: 2 });
+
+    // A revision from the future is refused the same way.
+    const ahead = await authed('/api/tools', { method: 'PUT', body: { ...mine, revision: 3 } });
+    expect(ahead.status).toBe(409);
+
+    // Naming the current revision saves over the newer list.
+    const over = await authed('/api/tools', { method: 'PUT', body: { ...mine, revision: 2 } });
+    expect(await over.json()).toEqual({ ...mine, revision: 3 });
+  });
+
+  it('requires the revision', async () => {
+    const { authed } = await createTestApp();
+    const put = await authed('/api/tools', { method: 'PUT', body: { tools: [] } });
+    expect(put.status).toBe(400);
+  });
+
+  it('needs a session to read or save', async () => {
+    const { app } = await createTestApp();
+    const headers = { 'content-type': 'application/json' };
+    expect((await app.request('/api/tools')).status).toBe(401);
+    const put = await app.request('/api/tools', {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ tools: [], revision: 1 }),
+    });
+    expect(put.status).toBe(401);
+  });
+
+  it('starts at revision 1 for a database whose revision row was never written', async () => {
+    const { authed, client } = await createTestApp();
+    await client.query('delete from tools_revision');
+    expect(await (await authed('/api/tools')).json()).toEqual({ tools: [], revision: 1 });
+    const put = await authed('/api/tools', { method: 'PUT', body: { tools: [], revision: 1 } });
+    expect(await put.json()).toEqual({ tools: [], revision: 2 });
+  });
+
+  it('lets one of several saves made on the same revision through, and refuses the rest', async () => {
     const { app, sessionCookie } = await createTestApp();
     const cookie = await sessionCookie();
     const put = (toolTypeId: string) =>
       app.request('/api/tools', {
         method: 'PUT',
         headers: { cookie, 'content-type': 'application/json' },
-        body: JSON.stringify({ tools: [{ toolTypeId, capabilities: {} }] }),
+        body: JSON.stringify({ tools: [{ toolTypeId, capabilities: {} }], revision: 1 }),
       });
     const results = await Promise.all(['hand-saw', 'jigsaw', 'level'].map(put));
-    expect(results.map((r) => r.status)).toEqual([200, 200, 200]);
+    expect(results.map((r) => r.status).sort()).toEqual([200, 409, 409]);
     const stored = (await (await app.request('/api/tools', { headers: { cookie } })).json()) as {
       tools: unknown[];
     };
@@ -57,7 +103,8 @@ describe('/api/tools', () => {
 
   it('rejects unnamed repeats, IDs not in the library, and capabilities out of range, changing nothing', async () => {
     const { authed } = await createTestApp();
-    const put = (body: unknown) => authed('/api/tools', { method: 'PUT', body });
+    const put = (body: object) =>
+      authed('/api/tools', { method: 'PUT', body: { ...body, revision: 1 } });
     const dup = {
       tools: [
         { toolTypeId: 'drill-driver', capabilities: {} },
@@ -76,7 +123,7 @@ describe('/api/tools', () => {
     const range = { tools: [{ toolTypeId: 'miter-saw', capabilities: { maxMiter: 120 } }] };
     expect((await put(range)).status).toBe(400);
     expect((await put({})).status).toBe(400);
-    expect(await (await authed('/api/tools')).json()).toEqual({ tools: [] });
+    expect(await (await authed('/api/tools')).json()).toEqual({ tools: [], revision: 1 });
   });
 
   it('reads an inventory stored before the library, leaving out what no method can use (#363)', async () => {
@@ -89,6 +136,7 @@ describe('/api/tools', () => {
     );
     expect(await (await authed('/api/tools')).json()).toEqual({
       tools: [{ toolTypeId: 'circular-saw', capabilities: { depthOfCut: 2.375 } }],
+      revision: 1,
     });
     const stored = await client.query('select tool_type_id from tools order by position');
     expect(stored.rows).toEqual([{ tool_type_id: 'circular-saw' }, { tool_type_id: 'lathe' }]);

@@ -1,6 +1,6 @@
 # 0018: Project revisions: a save or tick made on an older plan is refused
 
-Status: Accepted (October 2026). Decided by the owner on #207.
+Status: Accepted (October 2026). Decided by the owner on #207. Extended to the tool list, and delete and permanent delete left unchecked, on #426.
 
 ## Context
 Kerf is used on several devices: the laptop for planning and editing, the phone in the store and the garage. Saves and ticks had no concurrency control.
@@ -22,3 +22,11 @@ The other option was to record last-write-wins and only read the row inside the 
 - Two saves against the same revision: one succeeds and one gets 409. Checked against local Postgres 18 with eight saves sent at once (one 200, seven 409); without the row lock, two to eight went through. PGlite runs one transaction at a time, so its tests check the rule, not the race.
 - A tick made just before another device's save is lost, with a message, rather than applied to a plan it was not made on.
 - A save that changes nothing sends nothing, so it cannot be refused.
+
+## The tool list, delete, and permanent delete (#426)
+The tool list is replaced whole by `PUT /api/tools`, so a save from a device with an older list would silently undo another device's changes, as a project save once could.
+- **The tool list has one revision**, in a one-row table (`tools_revision`, migration 0015), starting at 1. Every save of the list raises it. `GET /api/tools` returns it, and `PUT /api/tools` must send it. Under the table lock the save already takes, a mismatch answers 409 `stale-tools` with the current revision and saves nothing.
+- **The tools screen** keeps the owner's edits, says "Changed on another device", and stops saving until the owner loads the newer list or saves the edits over it, which sends them against the newer revision. Its own saves go one at a time, each naming the revision the last one left, so autosave cannot refuse itself.
+- **`DELETE /api/projects/:id` takes no revision.** The project goes to the trash and can be restored for 30 days, so a delete made from an older view loses nothing that cannot be undone.
+- **`DELETE /api/trash/:id` takes no revision.** It is a deliberate act on a project in the trash, and a trashed project cannot change: every other route answers 404 for it, so there is no newer version to overwrite.
+- Migration 0015 adds a table the previous deploy ignores (0014), and inserts the row so existing databases need no backfill. The service also inserts it if missing.

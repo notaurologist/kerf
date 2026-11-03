@@ -133,7 +133,7 @@ describe('body size', () => {
     const res = await app.request('/api/tools', {
       method: 'PUT',
       headers: { cookie: await sessionCookie(), 'content-type': 'application/json' },
-      body: JSON.stringify({ tools: [], padding: 'x'.repeat(BODY_LIMIT_BYTES) }),
+      body: JSON.stringify({ tools: [], revision: 1, padding: 'x'.repeat(BODY_LIMIT_BYTES) }),
     });
     expect(res.status).toBe(413);
     expect(await res.json()).toEqual({ error: 'request-refused' });

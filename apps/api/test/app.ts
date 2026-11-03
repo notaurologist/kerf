@@ -51,6 +51,12 @@ export async function createTestApp(
     });
   };
 
+  /** Replaces the tool list on top of whatever revision it is at. */
+  const putTools = async (inventory: object) => {
+    const { revision } = (await (await authed('/api/tools')).json()) as { revision: number };
+    return authed('/api/tools', { method: 'PUT', body: { ...inventory, revision } });
+  };
+
   const { db, client, close } = database;
-  return { app, clock, login, sessionCookie, authed, db, client, close };
+  return { app, clock, login, sessionCookie, authed, putTools, db, client, close };
 }
