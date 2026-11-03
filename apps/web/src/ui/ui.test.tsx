@@ -46,6 +46,7 @@ import {
   Material,
   Measured,
   MeasureTable,
+  MenuButton,
   ModeFrame,
   Notice,
   OneLine,
@@ -956,6 +957,34 @@ describe('lists of core sentences', () => {
   });
 });
 
+describe('MenuButton', () => {
+  const html = render(
+    <MenuButton
+      icon="print"
+      label="Print"
+      actions={[
+        { label: 'Print the shop set', detail: 'The cut list.', onSelect: () => {} },
+        { label: 'Print the whole plan', detail: 'Every section.', onSelect: () => {} },
+      ]}
+    />,
+  );
+
+  it('is an icon button named for screen readers that opens its actions in a popover', () => {
+    expect(html).toMatch(
+      /<button type="button" class="k-button" data-variant="quiet"[^>]*popoverTarget="([^"]+)" aria-expanded="false" title="Print">/,
+    );
+    const target = /popoverTarget="([^"]+)"/.exec(html)?.[1];
+    expect(html).toContain(`id="${target}" popover="auto" class="k-popover"`);
+  });
+
+  it('gives each action a button that says what it does, with what it covers under it', () => {
+    expect(textOf(html)).toBe(
+      'Print Print the shop set The cut list. Print the whole plan Every section.',
+    );
+    expect(html.match(/data-variant="secondary"/g)).toHaveLength(2);
+  });
+});
+
 describe('PlanSection', () => {
   it('puts its intro under the heading, in the muted tone', () => {
     const html = render(
@@ -974,7 +1003,7 @@ describe('PlanSection', () => {
       </PlanSection>,
     );
     expect(html).toMatch(
-      /^<section id="boards" class="k-section" aria-labelledby="boards-heading" hidden="">/,
+      /^<section id="boards" class="k-section" aria-labelledby="boards-heading" data-sets="whole" hidden="">/,
     );
   });
 });
@@ -1002,7 +1031,7 @@ describe('Term', () => {
         long points
       </Term>,
     );
-    const [, target] = html.match(/popovertarget="([^"]+)"/i) ?? [];
+    const [, target] = html.match(/popoverTarget="([^"]+)"/i) ?? [];
     expect(target).toBeTruthy();
     expect(html).toMatch(
       /<button type="button" class="k-term__button" popovertarget="[^"]+" aria-expanded="false">long points<\/button>/i,

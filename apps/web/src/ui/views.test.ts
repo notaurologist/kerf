@@ -67,6 +67,28 @@ describe('the plan on paper', () => {
   it('leaves out popover triggers and screen-only lines', () => {
     expect(propertyOf(print, '.k-info', 'display')).toBe('none');
     expect(propertyOf(print, '[data-screen-only]', 'display')).toBe('none');
+    expect(propertyOf(print, '.k-menu', 'display')).toBe('none');
+  });
+});
+
+describe('the shop set on paper (#469)', () => {
+  const shop = ':root[data-print="shop"]';
+
+  it('prints only the sections in it, and the whole plan leaves out the shop set’s own', () => {
+    expect(propertyOf(print, '.k-section[data-sets="shop"]', 'display')).toBe('none');
+    expect(propertyOf(print, `${shop} .k-section[data-sets="whole"]`, 'display')).toBe('none');
+    expect(propertyOf(print, `${shop} .k-section[data-sets="shop"]`, 'display')).toBe('grid');
+  });
+
+  it('starts its first section on the header’s page', () => {
+    const first = `${shop} .k-section[data-sets="both"]:not([data-sets="both"] ~ .k-section)`;
+    expect(propertyOf(print, first, 'break-before')).toBe('auto');
+  });
+
+  it('prints its own line, and no sources', () => {
+    expect(propertyOf(screen, '.k-text[data-shop-set-only]', 'display')).toBe('none');
+    expect(propertyOf(print, `${shop} .k-text[data-shop-set-only]`, 'display')).toBe('block');
+    expect(propertyOf(print, `${shop} .k-disclosure[data-size="small"]`, 'display')).toBe('none');
   });
 });
 
