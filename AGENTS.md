@@ -11,6 +11,7 @@ Kerf is a personal planning tool for woodworking projects. Pick a template, set 
 | `docs/ARCHITECTURE.md` | Any code change. |
 | `docs/templates/` | Any change to a template. Each spec is the source of truth for its template's geometry and worked examples. `README.md` is how to write a new one. The `kerf-template` skill (`.claude/skills/kerf-template/SKILL.md`) is the order to work in and where to stop for the owner. |
 | `docs/MILESTONES.md` | Picking up or scoping work. |
+| `docs/EXPLORATIONS.md` | Working on an issue labeled `exploration`. |
 | `docs/decisions/` | Before changing a technology or pattern. Do not relitigate recorded decisions without asking. |
 
 ## Hard rules
@@ -77,5 +78,6 @@ Work is tracked in GitHub issues, grouped into milestones that match `docs/MILES
 - Pick up the lowest-numbered open issue in the earliest open milestone, skipping any that say "Blocked by #n" while #n is open. Issue bodies list docs to read and acceptance criteria.
 - Issues labeled `decision` need the owner's call. Research and propose; do not decide.
 - Issues labeled `owner-only` need the owner in person, on a real device, in the garage, or at the store. They sit outside milestones. Do not work on them, list them in status updates, or suggest them as next steps until the owner explicitly says to.
+- Issues labeled `exploration` are educational experiments in the Explorations milestone, outside the milestone order. Do not pick them up unless the owner names one. Their code stays on its `explore/<name>` branch and is not imported by the apps (`docs/EXPLORATIONS.md`).
 - Reference the issue in the pull request with `Closes #n`.
 - If work turns up a new task or question, open an issue for it instead of expanding the current pull request.
