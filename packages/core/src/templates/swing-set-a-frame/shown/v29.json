@@ -15,7 +15,9 @@
           ],
           "endsParallel": true,
           "marks": [],
-          "notes": [],
+          "notes": [
+            "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+          ],
           "settings": [
             "0.0°",
             "0.0°"
@@ -266,7 +268,7 @@
                 "name": "Beam",
                 "field": "beamStock",
                 "nominal": "4x8",
-                "margin": 1.564950475890361,
+                "margin": 1.3155384003110364,
                 "check": {
                   "title": "Bending",
                   "subject": "Top beam, 4x8"
@@ -425,20 +427,36 @@
           }
         },
         {
+          "description": "1/2\" through-bolt, grip 5-1/2\"",
+          "quantity": 4,
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+            "Many hangers come with their bolts: check those against this length."
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5.5,
+            "items": [
+              "hanger-bolts"
+            ]
+          }
+        },
+        {
           "description": "1/2\" flat washers",
-          "quantity": 36,
+          "quantity": 44,
           "group": "Bolts and fittings",
           "notes": []
         },
         {
           "description": "1/2\" locking nuts",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings",
           "notes": []
         },
         {
           "description": "1/2\" bolt caps",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings",
           "notes": []
         },
@@ -847,6 +865,8 @@
             "M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign",
             "S = b·d² / 6",
             "f_b = M / S",
+            "At each hole, S_net is the section modulus of the gross section less the hole, and f_b = M(x) / S_net there",
+            "f_b = the largest of these",
             "Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r",
             "margin = Fb' / f_b"
           ],
@@ -936,6 +956,162 @@
               "symbol": "x_M",
               "label": "Position of largest moment",
               "value": 60.00000000000011,
+              "unit": "in"
+            },
+            {
+              "symbol": "f_b,M",
+              "label": "Bending stress at the largest moment, M / S",
+              "value": 1006.7801248215713,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h1",
+              "label": "Left swing, left hanger hole, position",
+              "value": 30,
+              "unit": "in"
+            },
+            {
+              "symbol": "M_h1",
+              "label": "Left swing, left hanger hole, moment",
+              "value": 11570.265088881462,
+              "unit": "lb·in"
+            },
+            {
+              "symbol": "D_h,1",
+              "label": "Left swing, left hanger hole, hole diameter",
+              "value": 0.5625,
+              "unit": "in"
+            },
+            {
+              "symbol": "b_net,1",
+              "label": "Left swing, left hanger hole, net breadth",
+              "value": 2.9375,
+              "unit": "in"
+            },
+            {
+              "symbol": "S_net,1",
+              "label": "Left swing, left hanger hole, net section modulus, b_net·d² / 6",
+              "value": 14.809895833333334,
+              "unit": "in³"
+            },
+            {
+              "symbol": "f_b,1",
+              "label": "Left swing, left hanger hole, bending stress",
+              "value": 781.252293675133,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h2",
+              "label": "Left swing, right hanger hole, position",
+              "value": 50,
+              "unit": "in"
+            },
+            {
+              "symbol": "M_h2",
+              "label": "Left swing, right hanger hole, moment",
+              "value": 17743.78437513258,
+              "unit": "lb·in"
+            },
+            {
+              "symbol": "D_h,2",
+              "label": "Left swing, right hanger hole, hole diameter",
+              "value": 0.5625,
+              "unit": "in"
+            },
+            {
+              "symbol": "b_net,2",
+              "label": "Left swing, right hanger hole, net breadth",
+              "value": 2.9375,
+              "unit": "in"
+            },
+            {
+              "symbol": "S_net,2",
+              "label": "Left swing, right hanger hole, net section modulus, b_net·d² / 6",
+              "value": 14.809895833333334,
+              "unit": "in³"
+            },
+            {
+              "symbol": "f_b,2",
+              "label": "Left swing, right hanger hole, bending stress",
+              "value": 1198.103253042186,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h3",
+              "label": "Right swing, left hanger hole, position",
+              "value": 70,
+              "unit": "in"
+            },
+            {
+              "symbol": "M_h3",
+              "label": "Right swing, left hanger hole, moment",
+              "value": 17743.784375132578,
+              "unit": "lb·in"
+            },
+            {
+              "symbol": "D_h,3",
+              "label": "Right swing, left hanger hole, hole diameter",
+              "value": 0.5625,
+              "unit": "in"
+            },
+            {
+              "symbol": "b_net,3",
+              "label": "Right swing, left hanger hole, net breadth",
+              "value": 2.9375,
+              "unit": "in"
+            },
+            {
+              "symbol": "S_net,3",
+              "label": "Right swing, left hanger hole, net section modulus, b_net·d² / 6",
+              "value": 14.809895833333334,
+              "unit": "in³"
+            },
+            {
+              "symbol": "f_b,3",
+              "label": "Right swing, left hanger hole, bending stress",
+              "value": 1198.1032530421855,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h4",
+              "label": "Right swing, right hanger hole, position",
+              "value": 90,
+              "unit": "in"
+            },
+            {
+              "symbol": "M_h4",
+              "label": "Right swing, right hanger hole, moment",
+              "value": 11570.265088881468,
+              "unit": "lb·in"
+            },
+            {
+              "symbol": "D_h,4",
+              "label": "Right swing, right hanger hole, hole diameter",
+              "value": 0.5625,
+              "unit": "in"
+            },
+            {
+              "symbol": "b_net,4",
+              "label": "Right swing, right hanger hole, net breadth",
+              "value": 2.9375,
+              "unit": "in"
+            },
+            {
+              "symbol": "S_net,4",
+              "label": "Right swing, right hanger hole, net section modulus, b_net·d² / 6",
+              "value": 14.809895833333334,
+              "unit": "in³"
+            },
+            {
+              "symbol": "f_b,4",
+              "label": "Right swing, right hanger hole, bending stress",
+              "value": 781.2522936751334,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_f",
+              "label": "Position of the largest bending stress",
+              "value": 50,
               "unit": "in"
             }
           ],
@@ -1079,6 +1255,8 @@
           "assumptions": [
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+            "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+            "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -1104,12 +1282,17 @@
               "source": "nds-2024",
               "locator": "3.3.2, Eq. 3.3-2 and 3.3-4, p. 17",
               "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "3.1.2.1, p. 16",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
             }
           ],
           "computed": {
             "symbol": "f_b",
-            "label": "Bending stress",
-            "value": 1006.7801248215713,
+            "label": "Bending stress at left swing, right hanger hole, net section",
+            "value": 1198.103253042186,
             "unit": "psi"
           },
           "allowable": {
@@ -1118,12 +1301,12 @@
             "value": 991.5913206296021,
             "unit": "psi"
           },
-          "margin": 0.9849134842678176,
+          "margin": 0.8276342778569249,
           "breakEven": {
             "key": "dynamicFactor",
             "symbol": "C_dyn",
             "label": "Dynamic factor",
-            "value": 1.9689253208922757
+            "value": 1.6454005556671611
           }
         },
         {
@@ -1524,6 +1707,8 @@
           "assumptions": [
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+            "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+            "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -1955,6 +2140,8 @@
           "assumptions": [
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+            "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+            "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -2181,13 +2368,14 @@
         {
           "category": "bolted-connections",
           "element": "Swing hangers",
-          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies.",
+          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
           "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation.",
           "partIds": [
             "beam"
           ],
           "hardwareIds": [
-            "swing-hangers"
+            "swing-hangers",
+            "hanger-bolts"
           ]
         },
         {
@@ -2870,6 +3058,18 @@
           "depth": 5
         },
         {
+          "id": "hanger-bolts/holes",
+          "count": 4,
+          "type": "bolt-holes",
+          "hardwareId": "hanger-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "boltDiameter": 0.5,
+          "holeDiameter": 0.5625,
+          "depth": 5.5
+        },
+        {
           "id": "beam/ease-edges",
           "count": 1,
           "partId": "beam",
@@ -2978,6 +3178,17 @@
           ],
           "holeDiameter": 0.5625,
           "depth": 5
+        },
+        {
+          "id": "hanger-bolts/treat-holes",
+          "count": 4,
+          "type": "treat-holes",
+          "hardwareId": "hanger-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 5.5
         }
       ],
       "cutEnds": [
@@ -3099,6 +3310,18 @@
         ],
         "categories": [
           "load-bearing"
+        ]
+      },
+      {
+        "id": "hanger-holes",
+        "title": "Drill the swing hanger holes in the beam",
+        "operationIds": [
+          "hanger-bolts/holes",
+          "hanger-bolts/treat-holes"
+        ],
+        "categories": [
+          "load-bearing",
+          "dynamic-loads"
         ]
       },
       {
@@ -7246,6 +7469,254 @@
             ]
           },
           {
+            "id": "hanger-holes",
+            "title": "Drill the swing hanger holes in the beam",
+            "operations": [
+              {
+                "operation": {
+                  "id": "hanger-bolts/holes",
+                  "count": 4,
+                  "type": "bolt-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5,
+                  "holeDiameter": 0.5625,
+                  "depth": 5.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "bolt-holes-auger-one-side",
+                    "methodName": "With an auger bit, from one side",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Auger bits with deepest hole from one side at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "bolt-holes-spade-one-side",
+                    "methodName": "With a spade bit, from one side",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Spade bits with deepest hole from one side at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "bolt-holes-auger-both-sides",
+                    "methodName": "With an auger bit, from both sides",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Auger bits with deepest hole from one side at least 2-3/4\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "bolt-holes-spade-both-sides",
+                    "methodName": "With a spade bit, from both sides",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Spade bits with deepest hole from one side at least 2-3/4\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/treat-holes",
+                  "count": 4,
+                  "type": "treat-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5-1/2\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 4 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              },
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -10382,6 +10853,204 @@
             ]
           },
           {
+            "id": "hanger-holes",
+            "title": "Drill the swing hanger holes in the beam",
+            "operations": [
+              {
+                "operation": {
+                  "id": "hanger-bolts/holes",
+                  "count": 4,
+                  "type": "bolt-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5,
+                  "holeDiameter": 0.5625,
+                  "depth": 5.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "bolt-holes-spade-one-side",
+                  "name": "With a spade bit, from one side",
+                  "tools": [
+                    {
+                      "use": "drilling",
+                      "toolTypeId": "drill-driver"
+                    },
+                    {
+                      "use": "boring the hole",
+                      "toolTypeId": "spade-bits"
+                    },
+                    {
+                      "use": "holding the parts in place",
+                      "toolTypeId": "clamps"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    }
+                  ],
+                  "setup": [
+                    "Clamp the parts together in their positions from the plan.",
+                    "Chuck a 9/16\" bit, for the 1/2\" bolts, with an extension if the bit alone does not reach 5-1/2\"."
+                  ],
+                  "technique": [
+                    "Mark each hole center from the cut detail on the face you drill from.",
+                    "Start the bit at low speed so its point does not wander, then drill square to the face, 5-1/2\" through every part.",
+                    "Back the bit out often to clear the chips. A spade bit does not pull them out on its own.",
+                    "Drill 4 holes this way."
+                  ],
+                  "mistakes": [
+                    "Unclamping the parts before every hole is drilled lets them shift, so later holes do not line up. Drill all the holes in a joint before you unclamp it.",
+                    "Pushing the bit out through the far face tears out the wood around the hole. Slow down as the point comes through, and finish from the far side if it splinters."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Unplug the tool, or take out its battery, before you change a blade or bit.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Drill 9/16\" for a 1/2\" bolt. A hole a little larger than the bolt lets it go in without being driven.",
+                      "sources": [
+                        {
+                          "source": "nds-2024",
+                          "locator": "Section 12.1.3.2"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Wear safety glasses or goggles while the tool runs. It can throw chips, splinters, and dust toward your face.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Purpose, p. 1, and Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "clamp-parts-in-place",
+                  "measure-and-mark",
+                  "drill-straight"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": [
+                  {
+                    "methodId": "bolt-holes-auger-one-side",
+                    "methodName": "With an auger bit, from one side",
+                    "gaps": [
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Auger bits with deepest hole from one side at least 5-1/2\""
+                        ]
+                      }
+                    ],
+                    "better": [
+                      "easier",
+                      "more accurate"
+                    ]
+                  }
+                ]
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/treat-holes",
+                  "count": 4,
+                  "type": "treat-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5-1/2\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 4 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              },
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -10638,7 +11307,11 @@
           "120\"",
           "120\"",
           "13-3/4\"",
-          "106-1/4\""
+          "106-1/4\"",
+          "30\"",
+          "50\"",
+          "70\"",
+          "90\""
         ]
       },
       {
@@ -10768,7 +11441,9 @@
           ],
           "endsParallel": true,
           "marks": [],
-          "notes": [],
+          "notes": [
+            "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+          ],
           "settings": [
             "0.0°",
             "0.0°"
@@ -11172,20 +11847,36 @@
           }
         },
         {
+          "description": "1/2\" through-bolt, grip 5-1/2\"",
+          "quantity": 4,
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+            "Many hangers come with their bolts: check those against this length."
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5.5,
+            "items": [
+              "hanger-bolts"
+            ]
+          }
+        },
+        {
           "description": "1/2\" flat washers",
-          "quantity": 36,
+          "quantity": 44,
           "group": "Bolts and fittings",
           "notes": []
         },
         {
           "description": "1/2\" locking nuts",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings",
           "notes": []
         },
         {
           "description": "1/2\" bolt caps",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings",
           "notes": []
         },
@@ -11479,13 +12170,14 @@
         {
           "category": "bolted-connections",
           "element": "Swing hangers",
-          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies.",
+          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
           "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation.",
           "partIds": [
             "beam"
           ],
           "hardwareIds": [
-            "swing-hangers"
+            "swing-hangers",
+            "hanger-bolts"
           ]
         },
         {
@@ -12168,6 +12860,18 @@
           "depth": 5
         },
         {
+          "id": "hanger-bolts/holes",
+          "count": 4,
+          "type": "bolt-holes",
+          "hardwareId": "hanger-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "boltDiameter": 0.5,
+          "holeDiameter": 0.5625,
+          "depth": 5.5
+        },
+        {
           "id": "beam/ease-edges",
           "count": 1,
           "partId": "beam",
@@ -12276,6 +12980,17 @@
           ],
           "holeDiameter": 0.5625,
           "depth": 5
+        },
+        {
+          "id": "hanger-bolts/treat-holes",
+          "count": 4,
+          "type": "treat-holes",
+          "hardwareId": "hanger-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 5.5
         }
       ],
       "cutEnds": [
@@ -12397,6 +13112,18 @@
         ],
         "categories": [
           "load-bearing"
+        ]
+      },
+      {
+        "id": "hanger-holes",
+        "title": "Drill the swing hanger holes in the beam",
+        "operationIds": [
+          "hanger-bolts/holes",
+          "hanger-bolts/treat-holes"
+        ],
+        "categories": [
+          "load-bearing",
+          "dynamic-loads"
         ]
       },
       {
@@ -16544,6 +17271,254 @@
             ]
           },
           {
+            "id": "hanger-holes",
+            "title": "Drill the swing hanger holes in the beam",
+            "operations": [
+              {
+                "operation": {
+                  "id": "hanger-bolts/holes",
+                  "count": 4,
+                  "type": "bolt-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5,
+                  "holeDiameter": 0.5625,
+                  "depth": 5.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "bolt-holes-auger-one-side",
+                    "methodName": "With an auger bit, from one side",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Auger bits with deepest hole from one side at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "bolt-holes-spade-one-side",
+                    "methodName": "With a spade bit, from one side",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Spade bits with deepest hole from one side at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "bolt-holes-auger-both-sides",
+                    "methodName": "With an auger bit, from both sides",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Auger bits with deepest hole from one side at least 2-3/4\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "bolt-holes-spade-both-sides",
+                    "methodName": "With a spade bit, from both sides",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Spade bits with deepest hole from one side at least 2-3/4\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 5-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/treat-holes",
+                  "count": 4,
+                  "type": "treat-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5-1/2\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 4 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              },
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -19680,6 +20655,204 @@
             ]
           },
           {
+            "id": "hanger-holes",
+            "title": "Drill the swing hanger holes in the beam",
+            "operations": [
+              {
+                "operation": {
+                  "id": "hanger-bolts/holes",
+                  "count": 4,
+                  "type": "bolt-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.5,
+                  "holeDiameter": 0.5625,
+                  "depth": 5.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "bolt-holes-spade-one-side",
+                  "name": "With a spade bit, from one side",
+                  "tools": [
+                    {
+                      "use": "drilling",
+                      "toolTypeId": "drill-driver"
+                    },
+                    {
+                      "use": "boring the hole",
+                      "toolTypeId": "spade-bits"
+                    },
+                    {
+                      "use": "holding the parts in place",
+                      "toolTypeId": "clamps"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    }
+                  ],
+                  "setup": [
+                    "Clamp the parts together in their positions from the plan.",
+                    "Chuck a 9/16\" bit, for the 1/2\" bolts, with an extension if the bit alone does not reach 5-1/2\"."
+                  ],
+                  "technique": [
+                    "Mark each hole center from the cut detail on the face you drill from.",
+                    "Start the bit at low speed so its point does not wander, then drill square to the face, 5-1/2\" through every part.",
+                    "Back the bit out often to clear the chips. A spade bit does not pull them out on its own.",
+                    "Drill 4 holes this way."
+                  ],
+                  "mistakes": [
+                    "Unclamping the parts before every hole is drilled lets them shift, so later holes do not line up. Drill all the holes in a joint before you unclamp it.",
+                    "Pushing the bit out through the far face tears out the wood around the hole. Slow down as the point comes through, and finish from the far side if it splinters."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Unplug the tool, or take out its battery, before you change a blade or bit.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Drill 9/16\" for a 1/2\" bolt. A hole a little larger than the bolt lets it go in without being driven.",
+                      "sources": [
+                        {
+                          "source": "nds-2024",
+                          "locator": "Section 12.1.3.2"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Wear safety glasses or goggles while the tool runs. It can throw chips, splinters, and dust toward your face.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Purpose, p. 1, and Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "clamp-parts-in-place",
+                  "measure-and-mark",
+                  "drill-straight"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": [
+                  {
+                    "methodId": "bolt-holes-auger-one-side",
+                    "methodName": "With an auger bit, from one side",
+                    "gaps": [
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Auger bits with deepest hole from one side at least 5-1/2\""
+                        ]
+                      }
+                    ],
+                    "better": [
+                      "easier",
+                      "more accurate"
+                    ]
+                  }
+                ]
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/treat-holes",
+                  "count": 4,
+                  "type": "treat-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5.5
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5-1/2\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 4 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              },
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -19936,7 +21109,11 @@
           "120\"",
           "120\"",
           "13-3/4\"",
-          "106-1/4\""
+          "106-1/4\"",
+          "30\"",
+          "50\"",
+          "70\"",
+          "90\""
         ]
       },
       {
@@ -20067,7 +21244,8 @@
           "endsParallel": true,
           "marks": [],
           "notes": [
-            "2 plies fastened face to face make one 3\" wide beam."
+            "2 plies fastened face to face make one 3\" wide beam.",
+            "Swing hanger holes: 7/16\", across the beam 1-1/2\" up from its bottom edge. Hold each hanger's bracket at its mark and drill through the bracket's holes."
           ],
           "settings": [
             "0.0°",
@@ -20318,7 +21496,7 @@
                 "name": "Beam plies",
                 "field": "beamStock",
                 "nominal": "2x8",
-                "margin": 1.1264487123192335,
+                "margin": 1.0148652620007972,
                 "check": {
                   "title": "Bending",
                   "subject": "Top beam, 2 plies of 2x8"
@@ -20469,6 +21647,40 @@
               "ply-bolts"
             ]
           }
+        },
+        {
+          "description": "3/8\" through-bolt, grip 3\"",
+          "quantity": 8,
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 3\": the beam's breadth, plus the two sides of the hanger's bracket. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 3/8\" past the nut (CPSC Pub. 324, p. 3).",
+            "Many hangers come with their bolts: check those against this length."
+          ],
+          "bolt": {
+            "diameter": 0.375,
+            "grip": 3,
+            "items": [
+              "hanger-bolts"
+            ]
+          }
+        },
+        {
+          "description": "3/8\" flat washers",
+          "quantity": 16,
+          "group": "Bolts and fittings",
+          "notes": []
+        },
+        {
+          "description": "3/8\" locking nuts",
+          "quantity": 8,
+          "group": "Bolts and fittings",
+          "notes": []
+        },
+        {
+          "description": "3/8\" bolt caps",
+          "quantity": 8,
+          "group": "Bolts and fittings",
+          "notes": []
         },
         {
           "description": "1/2\" flat washers",
@@ -20911,6 +22123,8 @@
             "M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign",
             "S = b·d² / 6",
             "f_b = M / S",
+            "At each hole, S_net is the section modulus of the gross section less the hole, and f_b = M(x) / S_net there",
+            "f_b = the largest of these",
             "Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r",
             "margin = Fb' / f_b"
           ],
@@ -21006,6 +22220,234 @@
               "symbol": "x_M",
               "label": "Position of largest moment per ply",
               "value": 59.99999999999993,
+              "unit": "in"
+            },
+            {
+              "symbol": "f_b,M",
+              "label": "Bending stress at the largest moment, M / S",
+              "value": 1169.7081059313703,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h1",
+              "label": "Left swing, left hanger hole, position",
+              "value": 30,
+              "unit": "in"
+            },
+            {
+              "symbol": "M_h1",
+              "label": "Left swing, left hanger hole, moment per ply",
+              "value": 5762.2564666634835,
+              "unit": "lb·in"
+            },
+            {
+              "symbol": "D_h,1",
+              "label": "Left swing, left hanger hole, hole diameter",
+              "value": 0.4375,
+              "unit": "in"
+            },
+            {
+              "symbol": "h,1",
+              "label": "Left swing, left hanger hole, hole center above the member's bottom",
+              "value": 1.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "ȳ,1",
+              "label": "Left swing, left hanger hole, neutral axis above the bottom, net section of one ply",
+              "value": 2.8580246913580245,
+              "unit": "in"
+            },
+            {
+              "symbol": "I_net,1",
+              "label": "Left swing, left hanger hole, net moment of inertia of one ply",
+              "value": 19.672402841073495,
+              "unit": "in⁴"
+            },
+            {
+              "symbol": "c,1",
+              "label": "Left swing, left hanger hole, neutral axis to the farther face",
+              "value": 2.8580246913580245,
+              "unit": "in"
+            },
+            {
+              "symbol": "S_net,1",
+              "label": "Left swing, left hanger hole, net section modulus, I_net / c",
+              "value": 6.883216544824852,
+              "unit": "in³"
+            },
+            {
+              "symbol": "f_b,1",
+              "label": "Left swing, left hanger hole, bending stress",
+              "value": 837.1458938039422,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h2",
+              "label": "Left swing, right hanger hole, position",
+              "value": 50,
+              "unit": "in"
+            },
+            {
+              "symbol": "M_h2",
+              "label": "Left swing, right hanger hole, moment per ply",
+              "value": 8836.62187505682,
+              "unit": "lb·in"
+            },
+            {
+              "symbol": "D_h,2",
+              "label": "Left swing, right hanger hole, hole diameter",
+              "value": 0.4375,
+              "unit": "in"
+            },
+            {
+              "symbol": "h,2",
+              "label": "Left swing, right hanger hole, hole center above the member's bottom",
+              "value": 1.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "ȳ,2",
+              "label": "Left swing, right hanger hole, neutral axis above the bottom, net section of one ply",
+              "value": 2.8580246913580245,
+              "unit": "in"
+            },
+            {
+              "symbol": "I_net,2",
+              "label": "Left swing, right hanger hole, net moment of inertia of one ply",
+              "value": 19.672402841073495,
+              "unit": "in⁴"
+            },
+            {
+              "symbol": "c,2",
+              "label": "Left swing, right hanger hole, neutral axis to the farther face",
+              "value": 2.8580246913580245,
+              "unit": "in"
+            },
+            {
+              "symbol": "S_net,2",
+              "label": "Left swing, right hanger hole, net section modulus, I_net / c",
+              "value": 6.883216544824852,
+              "unit": "in³"
+            },
+            {
+              "symbol": "f_b,2",
+              "label": "Left swing, right hanger hole, bending stress",
+              "value": 1283.7925143733328,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h3",
+              "label": "Right swing, left hanger hole, position",
+              "value": 70,
+              "unit": "in"
+            },
+            {
+              "symbol": "M_h3",
+              "label": "Right swing, left hanger hole, moment per ply",
+              "value": 8836.621875056815,
+              "unit": "lb·in"
+            },
+            {
+              "symbol": "D_h,3",
+              "label": "Right swing, left hanger hole, hole diameter",
+              "value": 0.4375,
+              "unit": "in"
+            },
+            {
+              "symbol": "h,3",
+              "label": "Right swing, left hanger hole, hole center above the member's bottom",
+              "value": 1.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "ȳ,3",
+              "label": "Right swing, left hanger hole, neutral axis above the bottom, net section of one ply",
+              "value": 2.8580246913580245,
+              "unit": "in"
+            },
+            {
+              "symbol": "I_net,3",
+              "label": "Right swing, left hanger hole, net moment of inertia of one ply",
+              "value": 19.672402841073495,
+              "unit": "in⁴"
+            },
+            {
+              "symbol": "c,3",
+              "label": "Right swing, left hanger hole, neutral axis to the farther face",
+              "value": 2.8580246913580245,
+              "unit": "in"
+            },
+            {
+              "symbol": "S_net,3",
+              "label": "Right swing, left hanger hole, net section modulus, I_net / c",
+              "value": 6.883216544824852,
+              "unit": "in³"
+            },
+            {
+              "symbol": "f_b,3",
+              "label": "Right swing, left hanger hole, bending stress",
+              "value": 1283.7925143733319,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h4",
+              "label": "Right swing, right hanger hole, position",
+              "value": 90,
+              "unit": "in"
+            },
+            {
+              "symbol": "M_h4",
+              "label": "Right swing, right hanger hole, moment per ply",
+              "value": 5762.256466663483,
+              "unit": "lb·in"
+            },
+            {
+              "symbol": "D_h,4",
+              "label": "Right swing, right hanger hole, hole diameter",
+              "value": 0.4375,
+              "unit": "in"
+            },
+            {
+              "symbol": "h,4",
+              "label": "Right swing, right hanger hole, hole center above the member's bottom",
+              "value": 1.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "ȳ,4",
+              "label": "Right swing, right hanger hole, neutral axis above the bottom, net section of one ply",
+              "value": 2.8580246913580245,
+              "unit": "in"
+            },
+            {
+              "symbol": "I_net,4",
+              "label": "Right swing, right hanger hole, net moment of inertia of one ply",
+              "value": 19.672402841073495,
+              "unit": "in⁴"
+            },
+            {
+              "symbol": "c,4",
+              "label": "Right swing, right hanger hole, neutral axis to the farther face",
+              "value": 2.8580246913580245,
+              "unit": "in"
+            },
+            {
+              "symbol": "S_net,4",
+              "label": "Right swing, right hanger hole, net section modulus, I_net / c",
+              "value": 6.883216544824852,
+              "unit": "in³"
+            },
+            {
+              "symbol": "f_b,4",
+              "label": "Right swing, right hanger hole, bending stress",
+              "value": 837.145893803942,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_f",
+              "label": "Position of the largest bending stress",
+              "value": 50,
               "unit": "in"
             }
           ],
@@ -21150,6 +22592,8 @@
             "Each ply carries an equal share of every load (decision 0013).",
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+            "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+            "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -21175,12 +22619,17 @@
               "source": "nds-2024",
               "locator": "3.3.2, Eq. 3.3-2 and 3.3-4, p. 17",
               "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "3.1.2.1, p. 16",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
             }
           ],
           "computed": {
             "symbol": "f_b",
-            "label": "Bending stress",
-            "value": 1169.7081059313703,
+            "label": "Bending stress at left swing, right hanger hole, net section",
+            "value": 1283.7925143733328,
             "unit": "psi"
           },
           "allowable": {
@@ -21189,12 +22638,12 @@
             "value": 891.1625014175299,
             "unit": "psi"
           },
-          "margin": 0.7618674239313313,
+          "margin": 0.6941639645348296,
           "breakEven": {
             "key": "dynamicFactor",
             "symbol": "C_dyn",
             "label": "Dynamic factor",
-            "value": 1.5115359688960188
+            "value": 1.3733200229165963
           }
         },
         {
@@ -21609,6 +23058,8 @@
             "Each ply carries an equal share of every load (decision 0013).",
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+            "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+            "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -22054,6 +23505,8 @@
             "Each ply carries an equal share of every load (decision 0013).",
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+            "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+            "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
             "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -22241,7 +23694,7 @@
         {
           "category": "bolted-connections",
           "element": "Beam plies (2 x 2x6)",
-          "confirm": "Ply bolt pattern and spacing (6 bolts entered), and that every hanger bolts through all 2 plies.",
+          "confirm": "Ply bolt pattern and spacing (6 bolts entered), and that every hanger's load reaches all 2 plies.",
           "why": "The checks assume each ply carries an equal share of every load (decision 0013); that holds only if the plies are fastened together and every load reaches every ply.",
           "partIds": [
             "beam"
@@ -22295,13 +23748,14 @@
         {
           "category": "bolted-connections",
           "element": "Swing hangers",
-          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies.",
+          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
           "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation.",
           "partIds": [
             "beam"
           ],
           "hardwareIds": [
-            "swing-hangers"
+            "swing-hangers",
+            "hanger-bolts"
           ]
         },
         {
@@ -22996,6 +24450,18 @@
           "depth": 3
         },
         {
+          "id": "hanger-bolts/holes",
+          "count": 8,
+          "type": "bolt-holes",
+          "hardwareId": "hanger-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "boltDiameter": 0.375,
+          "holeDiameter": 0.4375,
+          "depth": 3
+        },
+        {
           "id": "beam/ease-edges",
           "count": 2,
           "partId": "beam",
@@ -23113,6 +24579,17 @@
             "beam"
           ],
           "holeDiameter": 0.5625,
+          "depth": 3
+        },
+        {
+          "id": "hanger-bolts/treat-holes",
+          "count": 8,
+          "type": "treat-holes",
+          "hardwareId": "hanger-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "holeDiameter": 0.4375,
           "depth": 3
         }
       ],
@@ -23235,6 +24712,18 @@
         ],
         "categories": [
           "load-bearing"
+        ]
+      },
+      {
+        "id": "hanger-holes",
+        "title": "Drill the swing hanger holes in the beam",
+        "operationIds": [
+          "hanger-bolts/holes",
+          "hanger-bolts/treat-holes"
+        ],
+        "categories": [
+          "load-bearing",
+          "dynamic-loads"
         ]
       },
       {
@@ -27962,6 +29451,254 @@
             ]
           },
           {
+            "id": "hanger-holes",
+            "title": "Drill the swing hanger holes in the beam",
+            "operations": [
+              {
+                "operation": {
+                  "id": "hanger-bolts/holes",
+                  "count": 8,
+                  "type": "bolt-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.375,
+                  "holeDiameter": 0.4375,
+                  "depth": 3
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "bolt-holes-auger-one-side",
+                    "methodName": "With an auger bit, from one side",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Auger bits with deepest hole from one side at least 3\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 3\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "bolt-holes-spade-one-side",
+                    "methodName": "With a spade bit, from one side",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Spade bits with deepest hole from one side at least 3\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 3\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "bolt-holes-auger-both-sides",
+                    "methodName": "With an auger bit, from both sides",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Auger bits with deepest hole from one side at least 1-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 3\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "bolt-holes-spade-both-sides",
+                    "methodName": "With a spade bit, from both sides",
+                    "gaps": [
+                      {
+                        "use": "drilling",
+                        "anyOf": [
+                          "Drill/driver"
+                        ]
+                      },
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Spade bits with deepest hole from one side at least 1-1/2\""
+                        ]
+                      },
+                      {
+                        "use": "holding the parts in place",
+                        "anyOf": [
+                          "Clamps with widest opening at least 3\""
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "holeDiameter": 0.4375,
+                  "depth": 3
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 7/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 3\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              },
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "id": "beam",
             "title": "Bolt the beam between the leg tops",
             "operations": [
@@ -31678,6 +33415,204 @@
                 "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
                 "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
                 "sources": []
+              }
+            ]
+          },
+          {
+            "id": "hanger-holes",
+            "title": "Drill the swing hanger holes in the beam",
+            "operations": [
+              {
+                "operation": {
+                  "id": "hanger-bolts/holes",
+                  "count": 8,
+                  "type": "bolt-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "boltDiameter": 0.375,
+                  "holeDiameter": 0.4375,
+                  "depth": 3
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "bolt-holes-spade-one-side",
+                  "name": "With a spade bit, from one side",
+                  "tools": [
+                    {
+                      "use": "drilling",
+                      "toolTypeId": "drill-driver"
+                    },
+                    {
+                      "use": "boring the hole",
+                      "toolTypeId": "spade-bits"
+                    },
+                    {
+                      "use": "holding the parts in place",
+                      "toolTypeId": "clamps"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    }
+                  ],
+                  "setup": [
+                    "Clamp the parts together in their positions from the plan.",
+                    "Chuck a 7/16\" bit, for the 3/8\" bolts, with an extension if the bit alone does not reach 3\"."
+                  ],
+                  "technique": [
+                    "Mark each hole center from the cut detail on the face you drill from.",
+                    "Start the bit at low speed so its point does not wander, then drill square to the face, 3\" through every part.",
+                    "Back the bit out often to clear the chips. A spade bit does not pull them out on its own.",
+                    "Drill 8 holes this way."
+                  ],
+                  "mistakes": [
+                    "Unclamping the parts before every hole is drilled lets them shift, so later holes do not line up. Drill all the holes in a joint before you unclamp it.",
+                    "Pushing the bit out through the far face tears out the wood around the hole. Slow down as the point comes through, and finish from the far side if it splinters."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Unplug the tool, or take out its battery, before you change a blade or bit.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Drill 7/16\" for a 3/8\" bolt. A hole a little larger than the bolt lets it go in without being driven.",
+                      "sources": [
+                        {
+                          "source": "nds-2024",
+                          "locator": "Section 12.1.3.2"
+                        }
+                      ]
+                    },
+                    {
+                      "text": "Wear safety glasses or goggles while the tool runs. It can throw chips, splinters, and dust toward your face.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Purpose, p. 1, and Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "clamp-parts-in-place",
+                  "measure-and-mark",
+                  "drill-straight"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": [
+                  {
+                    "methodId": "bolt-holes-auger-one-side",
+                    "methodName": "With an auger bit, from one side",
+                    "gaps": [
+                      {
+                        "use": "boring the hole",
+                        "anyOf": [
+                          "Auger bits with deepest hole from one side at least 3\""
+                        ]
+                      }
+                    ],
+                    "better": [
+                      "easier",
+                      "more accurate"
+                    ]
+                  }
+                ]
+              },
+              {
+                "operation": {
+                  "id": "hanger-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "hanger-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "holeDiameter": 0.4375,
+                  "depth": 3
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 7/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 3\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam"
+            ],
+            "flags": [
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder to look over the structural checks and the checklist, with the margins and assumptions they list.",
+                "why": "A part that breaks, sags, or tips under a person can hurt them, and Kerf checks only part of what holds a structure up.",
+                "sources": []
+              },
+              {
+                "category": "dynamic-loads",
+                "ask": "Ask an experienced builder whether the loads the structural checks use match how the structure will be used.",
+                "why": "A load moving along an arc pulls harder than its weight at the bottom of the arc.",
+                "sources": [
+                  {
+                    "source": "openstax-university-physics-1",
+                    "locator": "Section 6.3, Centripetal Force"
+                  }
+                ]
               }
             ]
           },

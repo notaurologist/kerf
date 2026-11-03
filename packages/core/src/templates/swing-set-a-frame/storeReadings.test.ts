@@ -53,12 +53,20 @@ describe('the swing set store readings', () => {
     }
   });
 
-  it('asks for the hanger rating beside the hangers; nothing is entered yet', () => {
+  it('asks for the hanger rating and mounting beside the hangers; no rating is entered yet', () => {
     const { readings } = placed(empty);
     const hangers = readingsBesideHardware(readings, { description: 'Swing hangers' });
-    expect(paths(hangers)).toEqual(['hangerRating']);
+    expect(paths(hangers)).toEqual([
+      'hangerRating',
+      'hardware.hangerMounting.kind',
+      'hardware.hangerMounting.diameter',
+    ]);
     expect(hangers[0]?.entered).toBeNull();
     expect(hangers[0]?.label).toBe('Swing hanger rated working load');
+    expect(hangers.slice(1).map((p) => p.entered)).toEqual([
+      'One bolt down through the beam',
+      '1/2"',
+    ]);
     expect([...readings.lumber.values()].flat().every((p) => p.entered === null)).toBe(true);
   });
 
@@ -69,6 +77,20 @@ describe('the swing set store readings', () => {
     expect(readingsBesideHardware(readings, { description: 'Swing hangers' })[0]?.entered).toBe(
       '1200 lb',
     );
+  });
+
+  it('asks how many bolts and how high for a bracket bolted sideways', () => {
+    const hangers = readingsBesideHardware(placed(onPads).readings, {
+      description: 'Swing hangers',
+    });
+    expect(paths(hangers)).toEqual([
+      'hangerRating',
+      'hardware.hangerMounting.kind',
+      'hardware.hangerMounting.diameter',
+      'hardware.hangerMounting.perHanger',
+      'hardware.hangerMounting.holeHeight',
+    ]);
+    expect(hangers.slice(3).map((p) => p.entered)).toEqual(['2', '1-1/2"']);
   });
 
   it('asks for anchors per leg foot only on pads, beside the anchors', () => {

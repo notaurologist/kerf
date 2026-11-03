@@ -42,6 +42,12 @@ describe('inputFieldId', () => {
     }
   });
 
+  it('finds a parameter a check names as missing, such as the hanger mounting', () => {
+    expect(inputFieldId(form('swing-set-a-frame'), 'hardware.hangerMounting')).toBe(
+      'p-hardware.hangerMounting.kind',
+    );
+  });
+
   it('gives nothing for a key the form does not have', () => {
     expect(inputFieldId(form('swing-set-a-frame'), 'elsewhere')).toBeUndefined();
   });

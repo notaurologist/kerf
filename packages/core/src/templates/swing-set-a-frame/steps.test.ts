@@ -78,6 +78,7 @@ const TREATMENT: Record<string, string> = {
   'leg-beam-bolts/treat-holes': 'treat-holes-brush',
   'crossbar-bolts/treat-holes': 'treat-holes-brush',
   'gusset-bolts/treat-holes': 'treat-holes-brush',
+  'hanger-bolts/treat-holes': 'treat-holes-brush',
 };
 
 describe('swing-set build steps (#105)', () => {
@@ -105,6 +106,7 @@ describe('swing-set build steps (#105)', () => {
       ['treat-cuts', 'Treat every cut with preservative', []],
       ['site', 'Dig the leg holes', []],
       ['frames', 'Bolt the crossbars and gussets across the legs', []],
+      ['hanger-holes', 'Drill the swing hanger holes in the beam', []],
       ['beam', 'Bolt the beam between the leg tops', []],
     ]);
     const board = (n: number) => built[n - 1]?.board;
@@ -137,6 +139,7 @@ describe('swing-set build steps (#105)', () => {
       'gusset-bolts/holes',
       'gusset-bolts/treat-holes',
     ]);
+    expect(ids('hanger-holes')).toEqual(['hanger-bolts/holes', 'hanger-bolts/treat-holes']);
     expect(ids('beam')).toEqual(['leg-beam-bolts/holes', 'leg-beam-bolts/treat-holes']);
   });
 
@@ -164,6 +167,7 @@ describe('swing-set build steps (#105)', () => {
       'crossbar-bolts/holes': 'bolt-holes-auger-one-side',
       'gusset-bolts/holes': 'bolt-holes-auger-one-side',
       'leg-beam-bolts/holes': 'bolt-holes-auger-one-side',
+      'hanger-bolts/holes': 'bolt-holes-auger-one-side',
     });
   });
 
@@ -191,6 +195,8 @@ describe('swing-set build steps (#105)', () => {
       'crossbar-bolts/holes': 'bolt-holes-spade-one-side',
       'gusset-bolts/holes': 'bolt-holes-spade-one-side',
       'leg-beam-bolts/holes': 'bolt-holes-spade-both-sides',
+      // 5-1/2" down through the beam, within the 6" spade bits' reach.
+      'hanger-bolts/holes': 'bolt-holes-spade-one-side',
     });
   });
 
@@ -281,6 +287,7 @@ describe('swing-set build steps (#105)', () => {
         'treat-cuts': [],
         site: ['load-bearing'],
         frames: ['load-bearing', 'load-bearing', 'load-bearing', 'load-bearing'],
+        'hanger-holes': ['load-bearing', 'dynamic-loads'],
         beam: ['load-bearing', 'load-bearing', 'dynamic-loads'],
       });
     }

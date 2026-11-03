@@ -52,7 +52,7 @@ describe('the swing-set form', () => {
     expect([...confirmedPaths(SWING_SET_FORM.params)]).toEqual(
       fields.filter((p) => p.startsWith('hardware.')),
     );
-    expect(fields.filter((p) => p.startsWith('hardware.'))).toHaveLength(8);
+    expect(fields.filter((p) => p.startsWith('hardware.'))).toHaveLength(12);
   });
 
   it('starts with every field empty, so nothing is entered for the owner', () => {

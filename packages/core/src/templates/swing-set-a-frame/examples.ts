@@ -24,6 +24,7 @@ export const WORKED_EXAMPLE: SwingSetParams = {
     legBoltDiameter: 0.5,
     crossbarBolts: { diameter: 0.5, perJoint: 2 },
     gussetBolts: { diameter: 0.5, perJoint: 2 },
+    hangerMounting: { kind: 'vertical-bolt', diameter: 0.5 },
   },
 };
 
@@ -65,6 +66,12 @@ export const EXAMPLES: readonly {
         ...WORKED_EXAMPLE.hardware,
         plyBolts: { diameter: 0.5, count: 6 },
         anchorsPerFoot: 1,
+        hangerMounting: {
+          kind: 'horizontal-bolts',
+          diameter: 0.375,
+          perHanger: 2,
+          holeHeight: 1.5,
+        },
       },
     },
     structuralInputs: allInputs,
