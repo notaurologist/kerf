@@ -72,8 +72,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 22 gives each bolt the length to buy, from its grip, two USS flat washers, and a
  * nylon-insert locknut, names each bolt's shopping line by it, carries each item's notes to its
  * line, and names the fastener materials IRC 2021 R317.3.1 allows in treated lumber (#449).
+ * Version 23 keeps the lengths that fit each bolt, and each bolt line's bolt and items, so a bolt
+ * bought before a change can be compared with the new grip (#514). No number changes.
  */
-export const TEMPLATE_VERSION = 22;
+export const TEMPLATE_VERSION = 23;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

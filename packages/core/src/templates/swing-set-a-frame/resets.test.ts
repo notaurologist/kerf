@@ -77,13 +77,31 @@ describe('a deeper beam after a front leg is cut and the beam and bolts are boug
     });
   });
 
-  // The leg bolts' grip falls by 1.75 · tan 20° = 0.637, to 8.310, so they fit from
-  // 8.310 + 2 × 0.132 + 0.609 = 9.183 to 9.683: the line becomes 1/2" × 9-1/2" (#449).
-  it('keeps a record of the beam and bolts bought, which the plan no longer has', () => {
-    expect(notes.slice(1).map(({ item, change }) => ({ item, change }))).toEqual([
-      { item: '4x6 × 12\' 0"', change: 'bought 1; no longer in the plan' },
-      { item: '1/2" × 10" through-bolt', change: 'bought 2; no longer in the plan' },
-    ]);
+  it('keeps a record of the beam bought, which the plan no longer has', () => {
+    expect(notes[1]).toMatchObject({
+      item: '4x6 × 12\' 0"',
+      change: 'bought 1; no longer in the plan',
+    });
+  });
+
+  // With the 4x6, the leg bolts' grip is 8.947 (8-15/16"), so a bolt fits from
+  // 8.947 + 2 × 0.132 + 0.609 = 9.820 to 9.820 + 0.5 = 10.320, and 10" was bought (#449). The 4x8
+  // lowers the grip by 1.75 · tan 20° = 0.637, to 8.310 (8-5/16"), so a bolt fits from
+  // 8.310 + 0.264 + 0.609 = 9.183 to 9.683, shown rounded inward as 9-3/16" to 9-5/8". 10" is past
+  // 9.683, and the line becomes 1/2" × 9-1/2".
+  it('says the bolts bought are too long for the new grip, with the lengths that fit', () => {
+    expect(records[2]).toMatchObject({
+      was: { quantity: 2, bolt: { diameter: 0.5, length: 10, items: ['leg-beam-bolts'] } },
+    });
+    expect(notes[2]).toEqual({
+      kind: 'shopping-line',
+      key: 'hardware/1/2" × 10" through-bolt',
+      item: '1/2" × 10" through-bolt',
+      change: 'bought 2; now 1/2" × 9-1/2" through-bolt',
+      action:
+        'A 10" bolt is too long for grip 8-5/16": any length from 9-3/16" to 9-5/8" fits. Buy the 1/2" × 9-1/2" through-bolt instead.',
+      stepIds: [],
+    });
   });
 
   it('stores records that read back through their schema', () => {
@@ -103,6 +121,62 @@ describe('a shallower beam after a front leg is cut', () => {
       stepIds: ['board-3'],
     });
     expect(notes[0]?.replacement).toBeUndefined();
+  });
+});
+
+describe('bolts bought for the 4x8 beam, after it changes to a 4x6', () => {
+  // The 4x8's leg bolts are 9-1/2" (above). With the 4x6 a bolt fits from 9.820 to 10.320, shown
+  // as 9-7/8" to 10-5/16", and 9.5 is short of 9.820.
+  it('says they are too short', () => {
+    const { notes } = change(with4x8, with4x6, [
+      { kind: 'shopping-line', key: 'hardware/1/2" × 9-1/2" through-bolt' },
+    ]);
+    expect(notes[0]).toMatchObject({
+      change: 'bought 2; now 1/2" × 10" through-bolt',
+      action:
+        'A 9-1/2" bolt is too short for grip 8-15/16": any length from 9-7/8" to 10-5/16" fits. Buy the 1/2" × 10" through-bolt instead.',
+    });
+  });
+});
+
+describe('bolts bought at a length that still fits', () => {
+  it('says to use them', () => {
+    // Written by hand: with 1/2" bolts the range that fits is as wide as the half-inch step the
+    // length to buy is taken on, so no change to the worked example leaves a bought length fitting.
+    const record = ResetRecord.parse({
+      kind: 'shopping-line',
+      key: 'hardware/1/2" × 9-5/8" through-bolt',
+      reason: 'changed',
+      was: {
+        description: '1/2" × 9-5/8" through-bolt',
+        quantity: 2,
+        bolt: { diameter: 0.5, length: 9.625, items: ['leg-beam-bolts'] },
+      },
+    });
+    // With the 4x8, 9.625 is within 9.183 to 9.683.
+    const [note] = resetNotes(swingSetAFrame, with4x8, [record]);
+    expect(note).toMatchObject({
+      change: 'bought 2; now 1/2" × 9-1/2" through-bolt',
+      action:
+        'A 9-5/8" bolt still fits grip 8-5/16": any length from 9-3/16" to 9-5/8" fits. Use the ones bought in place of the 1/2" × 9-1/2" through-bolt.',
+    });
+  });
+});
+
+describe('bolts bought, after the leg bolts change diameter', () => {
+  // A 5/8" leg bolt with the 4x6 fits from 8.947 + 2 × 0.160 + 0.765 = 10.032 to 10.657: 10-1/2".
+  it('names the new diameter', () => {
+    const with5_8 = generate({
+      beamStock: '4x6',
+      hardware: { ...example.params.hardware, legBoltDiameter: 0.625 },
+    });
+    const { notes } = change(with4x6, with5_8, [
+      { kind: 'shopping-line', key: 'hardware/1/2" × 10" through-bolt' },
+    ]);
+    expect(notes[0]).toMatchObject({
+      change: 'bought 2; now 5/8" × 10-1/2" through-bolt',
+      action: 'The bolts bought are 1/2"; the plan now takes 5/8".',
+    });
   });
 });
 

@@ -182,7 +182,7 @@ describe('hardwareList', () => {
   it('groups bolts by diameter and length and totals the fittings', () => {
     const bolts = 'Bolts and fittings';
     const swing = 'Swing hardware';
-    expect(list.map(({ notes, ...line }) => line)).toEqual([
+    expect(list.map(({ notes, bolt, ...line }) => line)).toEqual([
       { description: '1/2" × 10" through-bolt', quantity: 2, group: bolts },
       { description: '1/2" × 6" through-bolt', quantity: 16, group: bolts },
       { description: '1/2" flat washers', quantity: 36, group: bolts },
@@ -202,6 +202,15 @@ describe('hardwareList', () => {
     const legBolt = out.hardware.find((h) => h.id === 'leg-beam-bolts');
     expect(legBolt?.bolt?.grip).toBeCloseTo(8.947, 3);
     expect(legBolt?.bolt?.length).toBe(10);
+    expect(legBolt?.bolt?.fits?.min).toBeCloseTo(9.82, 3);
+    expect(legBolt?.bolt?.fits?.max).toBeCloseTo(10.32, 3);
+    expect(list[1]?.bolt).toEqual({
+      diameter: 0.5,
+      grip: 5,
+      length: 6,
+      fits: { min: expect.closeTo(5.873, 3), max: expect.closeTo(6.373, 3) },
+      items: ['crossbar-bolts', 'gusset-bolts'],
+    });
     expect(list[0]?.notes).toEqual([
       'Grip 8-15/16". Any length from 9-7/8" to 10-5/16" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2" past the nut (CPSC Pub. 324, p. 3).',
     ]);
