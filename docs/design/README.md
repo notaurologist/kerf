@@ -712,6 +712,8 @@ The owner took the suggestions for distances, the cut list, and paper (October 2
 
 Sizes in the distance table assume a digit is 0.7 of the font size; #42 redoes them for the chosen typeface.
 
+Fixed in #452 (November 2026), after the design audit printed both templates: the exploded view printed over the cut details, cut details split across pages with their headings left behind, formulas ran off the page, and lines that only make sense on a screen printed. On paper each view now leaves the cell the views share on screen and prints alone, with its heading on its landscape page; a cut detail or elevation keeps its heading, drawing, and notes on one page; headings stay with what follows; formulas wrap; and the drawings' "Tap a part…" line, the header's Next line, and its info button are left out. The printed-plan check for both templates is with the deploy steps in `ARCHITECTURE.md`. Checked in Chrome; Safari not checked.
+
 ## Stage 1b: the plan, one part at a time (#147)
 
 With all eight sections built (#119), the owner found the plan heavy: one long page, hard to find a part and stay on it even with the contents beside it. The owner did not want IA-1's tabs back. `plan-screen.html` drew three directions on the laptop and the phone with the worked example, and answered for each how you move, the address, links between sections, Edit, print, and accessibility.

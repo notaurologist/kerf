@@ -36,6 +36,38 @@ describe('views on paper', () => {
     expect(propertyOf(print, '.k-views__heading', 'display')).toBe('block');
     expect(propertyOf(print, '.k-views__view[hidden]', 'visibility')).toBe('visible');
   });
+
+  it('prints each view alone, out of the cell the views share on screen', () => {
+    expect(propertyOf(print, '.k-views__view', 'grid-area')).toBe('auto');
+  });
+
+  it('puts a landscape drawing on its own landscape page with its heading', () => {
+    for (const holder of ['.l-stack', '.k-views', '.k-views__view']) {
+      const page = `${holder}:has(> .k-diagram-wrap[data-page="landscape"])`;
+      expect(propertyOf(print, page, 'page')).toBe('landscape');
+      expect(propertyOf(print, page, 'break-before')).toBe('page');
+    }
+    expect(propertyOf(print, '.k-diagram-wrap[data-page="landscape"]', 'page')).toBeUndefined();
+  });
+});
+
+describe('the plan on paper', () => {
+  it('keeps a drawing with its heading and notes on one page, and a heading with what follows', () => {
+    expect(propertyOf(print, '.l-stack:has(> .k-diagram-wrap)', 'break-inside')).toBe('avoid');
+    expect(propertyOf(print, '.k-diagram-wrap', 'break-inside')).toBe('avoid');
+    for (const h of ['h2', 'h3', 'h4']) expect(propertyOf(print, h, 'break-after')).toBe('avoid');
+  });
+
+  it('wraps a formula, which scrolls sideways on screen', () => {
+    expect(propertyOf(screen, '.k-code', 'white-space')).toBe('nowrap');
+    expect(propertyOf(print, '.k-code', 'white-space')).toBe('normal');
+    expect(propertyOf(print, '.k-code', 'overflow-wrap')).toBe('anywhere');
+  });
+
+  it('leaves out popover triggers and screen-only lines', () => {
+    expect(propertyOf(print, '.k-info', 'display')).toBe('none');
+    expect(propertyOf(print, '[data-screen-only]', 'display')).toBe('none');
+  });
 });
 
 describe('the move between views', () => {
