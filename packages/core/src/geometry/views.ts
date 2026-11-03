@@ -2,6 +2,7 @@ import type { Part, Placement } from '../model/types.ts';
 import { formatLength } from '../units/length.ts';
 import { signedArea2 } from './clip.ts';
 import { convexPieces } from './convex.ts';
+import { letterColumn, letterRoom } from './letters.ts';
 import { partOutline, type UV } from './outline.ts';
 import type { Drawing, PartRef, Point2, Primitive, Stage, Tone } from './primitives.ts';
 import { boundsOf } from './primitives.ts';
@@ -311,13 +312,22 @@ function visibleRuns(
   return runs.map((points) => ({ kind: 'line', role: 'phantom', points }));
 }
 
+type Letter = Extract<Primitive, { kind: 'letter' }>;
+
 /**
  * Part letters (D2): one per part, its leader ending on the part's largest face that nothing
- * drawn later covers. Letters sit in a column on each side, sorted by height so leaders do not
- * cross.
+ * drawn later covers. Letters sit in a column on each side free of `dimensions`, each letter on
+ * the side of its part, or all in one column when dimensions take the other side
+ * (`letterColumn`).
  */
-function letters(faces: readonly Drawn[], primitives: readonly Primitive[]): Primitive[] {
+function letters(
+  faces: readonly Drawn[],
+  primitives: readonly Primitive[],
+  dimensions: readonly Primitive[] = [],
+): Primitive[] {
   const box = boundsOf(primitives);
+  const outer = boundsOf([...primitives, ...dimensions]);
+  const room = letterRoom([...primitives, ...dimensions]);
   const targets = new Map<string, { at: Point2; part: PartRef; area: number }>();
   faces.forEach((face, i) => {
     const at = centroid2(face.points);
@@ -332,18 +342,23 @@ function letters(faces: readonly Drawn[], primitives: readonly Primitive[]): Pri
   const middle = box.x + box.width / 2;
   const gap = Math.max(box.width, box.height) * 0.08;
   const spacing = box.height / 12;
-  const column = (side: 'left' | 'right') => {
-    const items = [...targets.values()]
-      .filter((t) => (side === 'left' ? t.at.x < middle : t.at.x >= middle))
-      .sort((a, b) => a.at.y - b.at.y);
-    const x = side === 'left' ? box.x - gap : box.x + box.width + gap;
-    let y = -Infinity;
-    return items.map((t): Primitive => {
-      y = Math.max(t.at.y, y + spacing);
-      return { kind: 'letter', at: { x, y }, target: t.at, letter: t.part.letter, part: t.part };
-    });
-  };
-  return [...column('left'), ...column('right')];
+  const all = [...targets.values()].map(
+    (t): Letter => ({
+      kind: 'letter',
+      at: t.at,
+      target: t.at,
+      letter: t.part.letter,
+      part: t.part,
+    }),
+  );
+  return room.sides.flatMap((side) => {
+    const mine =
+      room.sides.length === 1
+        ? all
+        : all.filter((l) => (side === 'left' ? l.target.x < middle : l.target.x >= middle));
+    const x = side === 'left' ? outer.x - gap : outer.x + outer.width + gap;
+    return letterColumn(mine, x, spacing, room);
+  });
 }
 
 export function isometricView(
@@ -647,8 +662,10 @@ function chains(
         kind: 'text',
         role: 'dimension',
         at: horizontal
-          ? { x: (p.x + q.x) / 2, y: line + (chain.side === 'below' ? 0.9 : -0.3) }
+          ? { x: (p.x + q.x) / 2, y: line }
           : { x: line + (chain.side === 'right' ? 0.3 : -0.3), y: (p.y + q.y) / 2 },
+        ...(horizontal ? { side: chain.side === 'below' ? 'below' : 'above' } : {}),
+        span: [from, to],
         text: formatLength(span),
         anchor: horizontal ? 'middle' : chain.side === 'right' ? 'start' : 'end',
       });
@@ -671,7 +688,8 @@ export function elevationView(
 ): Drawing {
   const { primitives, faces } = drawSolids(scene, view, placedSolids(scene));
   const box = boundsOf(primitives);
-  const all = [...primitives, ...chains(view, dimensions, box), ...letters(faces, primitives)];
+  const dims = chains(view, dimensions, box);
+  const all = [...primitives, ...dims, ...letters(faces, primitives, dims)];
   return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [] };
 }
 
@@ -701,6 +719,7 @@ export function sectionView(
   });
   const drawn = [...primitives, ...cuts];
   const box = boundsOf(drawn);
-  const all = [...drawn, ...chains(view, dimensions, box), ...letters(faces, drawn)];
+  const dims = chains(view, dimensions, box);
+  const all = [...drawn, ...dims, ...letters(faces, drawn, dims)];
   return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [] };
 }
