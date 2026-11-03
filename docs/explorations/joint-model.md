@@ -102,11 +102,11 @@ A joint type counts as done when both templates reach parity with it in place.
 
 ## Order of work
 
-1. Package skeleton and the parity harness, comparing each template with itself so the harness is proven before anything changes.
-2. Trim planes: swing-set legs, crossbars, and gussets.
-3. Bolted laps and hardware through one part: the swing set's holes and grips.
-4. Housed ends: the cabinet's dadoes and panel lengths.
-5. Mortise and tenon, floating panels, and screwed slots: the rest of the cabinet.
+1. Package skeleton and the parity harness, comparing each template with itself so the harness is proven before anything changes (#551).
+2. Trim planes: swing-set legs, crossbars, and gussets (#552).
+3. Bolted laps and hardware through one part: the swing set's holes and grips (#553).
+4. Housed ends: the cabinet's dadoes and panel lengths (#554).
+5. Mortise and tenon, floating panels, and screwed slots: the rest of the cabinet (#555).
 6. The owner decides whether to adopt it.
 
 Each step is its own issue and pull request into `explore/joint-model`.
