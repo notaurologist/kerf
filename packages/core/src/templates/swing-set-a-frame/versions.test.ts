@@ -96,6 +96,7 @@ const isVersion26 = (c: { path: string; after?: unknown }) =>
   (/^structuralReview\.beam\.(bending|shear)\.factors\[\d+\]\.reason$/.test(c.path) &&
     String(c.after).includes('Table 2.3.2, footnote 2'));
 
+/**
  * Version 27's changes (#446): bending at the hangers' holes, which a plan made before it has not
  * entered, so its bending says the mounting is needed; the hanger checklist item's wording; and
  * the beam's other sizes, which wait for bending's margin. Set aside like 18's.
@@ -643,7 +644,8 @@ describe('swing-set template versions', () => {
           !isVersion23(c) &&
           !isVersion24(c) &&
           !isVersion25(c) &&
-          !isVersion26(c),
+          !isVersion26(c) &&
+          !isVersion27(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
