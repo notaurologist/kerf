@@ -188,3 +188,62 @@ describe('/api/templates', () => {
     expect(await res.json()).toEqual({ error: 'not-found' });
   });
 });
+
+describe('/api/templates/:id/suggestions', () => {
+  const suggestions = (authed: Authed, id: string, body: unknown) =>
+    authed(`/api/templates/${id}/suggestions`, { method: 'POST', body });
+
+  it("suggests each template's starting values from core, for every answer set it gives", async () => {
+    const { authed } = await createTestApp();
+    const definitions: TemplateDefinition[] = [swingSetAFrame.definition, recordCabinet.definition];
+    for (const { id, questions } of definitions) {
+      if (!questions) throw new Error(`${id} asks no questions`);
+      for (const answers of questions.examples) {
+        const res = await suggestions(authed, id, { answers });
+        expect(res.status).toBe(200);
+        expect(await res.json()).toEqual(
+          JSON.parse(JSON.stringify({ suggestions: questions.suggest(answers) })),
+        );
+      }
+    }
+  });
+
+  it('sizes the swing set’s bolts, which generates the frame', async () => {
+    const { authed } = await createTestApp();
+    const answers = swingSetAFrame.definition.questions?.examples[0];
+    const res = await suggestions(authed, 'swing-set-a-frame', { answers });
+    const body = (await res.json()) as { suggestions: { path: string; value: unknown }[] };
+    const bolt = body.suggestions.find((s) => s.path === 'hardware.legBoltDiameter');
+    expect(typeof bolt?.value).toBe('number');
+  });
+
+  it("refuses answers the template's schema does not read, with each problem under answers", async () => {
+    const { authed } = await createTestApp();
+    const res = await suggestions(authed, 'swing-set-a-frame', { answers: { riders: 'kids' } });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string; issues: { path: string[] }[] };
+    expect(body.error).toBe('invalid-request');
+    expect(body.issues.length).toBeGreaterThan(0);
+    for (const issue of body.issues) expect(issue.path[0]).toBe('answers');
+    expect((await suggestions(authed, 'swing-set-a-frame', {})).status).toBe(400);
+  });
+
+  it('answers an unknown template with not-found', async () => {
+    const { authed } = await createTestApp();
+    const res = await suggestions(authed, 'shed', { answers: {} });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: 'not-found' });
+  });
+
+  it('needs a session', async () => {
+    const { app } = await createTestApp();
+    const res = await app.request('/api/templates/swing-set-a-frame/suggestions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ answers: swingSetAFrame.definition.questions?.examples[0] }),
+    });
+    expect(res.status).toBe(401);
+  });
+});
+
+type Authed = Awaited<ReturnType<typeof createTestApp>>['authed'];
