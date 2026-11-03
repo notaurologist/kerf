@@ -233,6 +233,32 @@ function ticksFor(projectId: string, seed: readonly Tick[], revision: number): T
 }
 
 /**
+ * Sends the queue's waiting changes when the page may have connection again. iOS fires `online`
+ * unreliably after a page resumes from the background, so coming back to the page (visible, or
+ * restored from the back-forward cache) also counts. Returns the function that stops listening.
+ */
+export function flushWhenBack(
+  queue: TickQueue,
+  win: Pick<EventTarget, 'addEventListener' | 'removeEventListener'>,
+  doc: Pick<EventTarget, 'addEventListener' | 'removeEventListener'> & {
+    visibilityState: string;
+  },
+): () => void {
+  const retry = () => void queue.flush();
+  const onVisible = () => {
+    if (doc.visibilityState === 'visible') retry();
+  };
+  win.addEventListener('online', retry);
+  win.addEventListener('pageshow', retry);
+  doc.addEventListener('visibilitychange', onVisible);
+  return () => {
+    win.removeEventListener('online', retry);
+    win.removeEventListener('pageshow', retry);
+    doc.removeEventListener('visibilitychange', onVisible);
+  };
+}
+
+/**
  * A project's ticks for a screen: what is done, what is waiting, and `set` to tick or clear an
  * item. `seed` is the ticks the project response carried; a fresh response replaces the saved
  * ticks, and waiting changes still count over them.
@@ -240,9 +266,7 @@ function ticksFor(projectId: string, seed: readonly Tick[], revision: number): T
 export function useTicks(projectId: string, seed: readonly Tick[], revision: number) {
   const queue = useMemo(() => ticksFor(projectId, seed, revision), [projectId, seed, revision]);
   useEffect(() => {
-    const retry = () => void queue.flush();
-    window.addEventListener('online', retry);
-    return () => window.removeEventListener('online', retry);
+    return flushWhenBack(queue, window, document);
   }, [queue]);
   const state = useSyncExternalStore(queue.subscribe, queue.getState, queue.getState);
   return {
