@@ -36,15 +36,31 @@ interface ListProps {
   ordered?: boolean;
   /** Mark the first use of each glossary term in `items` (`Term`). */
   terms?: boolean;
+  /** For each of `items`: whether the printed shop set leaves it out. */
+  shopSetLeavesOut?: readonly boolean[];
 }
 
 /** Core's sentences as list items, before any other children. */
-function Items(props: { items?: readonly string[]; terms?: boolean }) {
-  return props.items?.map((text) => (
-    <li key={text}>
+function Items(props: Pick<ListProps, 'items' | 'terms' | 'shopSetLeavesOut'>) {
+  return props.items?.map((text, i) => (
+    <li key={text} data-shop-set-out={props.shopSetLeavesOut?.[i] || undefined}>
       <Measured text={text} terms={props.terms} />
     </li>
   ));
+}
+
+/** One item of a `List` written as children, which the printed shop set can leave out. */
+export function ListItem(props: { shopSetLeavesOut?: boolean; children: ReactNode }) {
+  return <li data-shop-set-out={props.shopSetLeavesOut || undefined}>{props.children}</li>;
+}
+
+/**
+ * What the printed shop set leaves out when `when` is true, such as a method's lines it printed in
+ * full at an earlier step. Everywhere else it lays out as if it were not wrapped.
+ */
+export function ShopSetLeavesOut(props: { when: boolean; children: ReactNode }) {
+  if (!props.when) return props.children;
+  return <div className="k-shop-set-out">{props.children}</div>;
 }
 
 /** A list without bullets, its items stacked with the given gap. */
@@ -63,7 +79,7 @@ export function List(props: ListProps) {
   const Tag = props.ordered ? 'ol' : 'ul';
   return (
     <Tag className="k-list">
-      <Items items={props.items} terms={props.terms} />
+      <Items items={props.items} terms={props.terms} shopSetLeavesOut={props.shopSetLeavesOut} />
       {props.children}
     </Tag>
   );

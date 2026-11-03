@@ -772,6 +772,20 @@ Built in #469 (November 2026):
 - It ends with the terms its own sections use, not the whole plan's. Sources are left out of it; the whole plan prints each one open.
 - Page counts in Chrome 156 (headless, print to PDF, US Letter), on the same local projects, with a toolbox of a circular saw, drill/driver, clamps, and hand tools: the swing set's shop set is 37 pages and its whole plan 91; the record cabinet's shop set is 81 pages and its whole plan 149. Most of the cabinet's shop set is build steps, where each step prints its method's full setup, technique, mistakes, and safety, and the same method repeats from step to step. Not checked: Safari, and real paper.
 
+#534 asked how the shop set should print a method used on many steps, such as the square crosscut with a circular saw, which the cabinet's shop set printed 22 times. The options were printed in Chrome on both templates' first worked examples, and the owner chose the recommended one (November 2026). The options, the page counts, and the sources are on the issue.
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| A method used again | Printed in full the first time it does a kind of operation in the shop set. Later uses print a line saying where ("Setup, technique, and common mistakes as in step 2, except the lines below") and only the lines that differ, such as the count or the blade depth. | Folded to one line per operation, as on screen, with the text only in the whole plan: the fewest pages, but the shop set would no longer hold the technique or safety. Each method printed once at the back: every step means turning to the back, and safety is never on the step's page. As it was: mostly repeats. |
+| Its safety lines | On every step that uses the method, once within a step ("Safety: as above in this step"). ANSI Z535.6 puts a safety message in the procedure where its hazard is, and again where the same hazard comes up in a part a reader might skip to. | Every line on every use: a step with two crosscuts printed the same six lines twice. Only at the first use: someone who starts at a later step, or reads one page at the saw, does not see the kickback line on that page. |
+| Page breaks in the steps | An operation runs onto the next page, with each instruction kept whole. | An operation kept whole, as Paper above had it: each one that did not fit moved to the next page and left the foot of most step pages blank. |
+
+Built in #534 (November 2026):
+
+- Core's `methodRepeats` says, for each step's operations, where the method first did that kind of operation, which of its setup, technique, and mistakes lines that first use printed word for word, and which safety lines an earlier operation in the step printed. The plan's build steps mark those lines, and print.css leaves them out of the shop set only (`ShopSetLeavesOut`, `List shopSetLeavesOut`, `ListItem`). The whole plan and Building print and show every method in full, and nothing on screen changes.
+- In the shop set an operation's row may split across pages (`Rows splitInShopSet`), with each list item kept whole.
+- Page counts in Chrome, headless, print to PDF, US Letter, from a fresh local database with each template's first worked example and a toolbox of a circular saw, hand saw, drill/driver with spade bits, clamps, chisel, block plane, socket wrench, and layout and digging tools: the record cabinet's shop set went from 76 pages to 48, and the swing set's from 47 to 38. The whole plan did not change. Not checked: Safari, and real paper.
+
 ## Stage 1b: the plan, one part at a time (#147)
 
 With all eight sections built (#119), the owner found the plan heavy: one long page, hard to find a part and stay on it even with the contents beside it. The owner did not want IA-1's tabs back. `plan-screen.html` drew three directions on the laptop and the phone with the worked example, and answered for each how you move, the address, links between sections, Edit, print, and accessibility.

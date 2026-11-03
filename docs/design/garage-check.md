@@ -52,7 +52,7 @@ Do them in order. Say each task aloud as written, then do it. Stop the timer whe
 | D1 | Find the plan's lowest structural margin, and say what it depends on. | You say the margin, which check it is, and one assumption it rests on. |
 | D2 | Make the beam 12" longer. Before saving, say which numbers change. | You name at least the beam length and the shopping list's beam board from the preview, then leave without saving. |
 | D3 | Print the whole plan. | It prints in section order with a title block on each page. No cut detail or check splits across pages, and every "Show the working" is open. |
-| D4 | Print the shop set. | It holds the cut list, boards, and build steps, starting on the first page, with every part's details and every method open. |
+| D4 | Print the shop set. | It holds the cut list, boards, and build steps, starting on the first page, with every part's details open. Each method prints in full at its first use; a later use says where that was, prints only the lines that differ, and keeps its safety lines. |
 
 ### On paper (the printed plan from D3)
 

@@ -90,6 +90,19 @@ describe('the shop set on paper (#469)', () => {
     expect(propertyOf(print, `${shop} .k-text[data-shop-set-only]`, 'display')).toBe('block');
     expect(propertyOf(print, `${shop} .k-disclosure[data-size="small"]`, 'display')).toBe('none');
   });
+
+  it('leaves out a repeated method’s lines, which lay out as usual everywhere else (#534)', () => {
+    expect(propertyOf(screen, '.k-shop-set-out', 'display')).toBe('contents');
+    expect(propertyOf(print, `${shop} .k-shop-set-out`, 'display')).toBe('none');
+    expect(propertyOf(print, `${shop} .k-list > li[data-shop-set-out]`, 'display')).toBe('none');
+  });
+
+  it('lets an operation run onto the next page, each instruction kept whole (#534)', () => {
+    const rows = `${shop} .k-rows[data-shop-set-split] > .k-row`;
+    expect(propertyOf(print, '.k-row', 'break-inside')).toBe('avoid');
+    expect(propertyOf(print, rows, 'break-inside')).toBe('auto');
+    expect(propertyOf(print, `${rows} li`, 'break-inside')).toBe('avoid');
+  });
 });
 
 describe('the move between views', () => {

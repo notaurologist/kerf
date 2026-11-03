@@ -46,6 +46,13 @@
       display: block;
     }
 
+    /* A method's lines it printed in full at an earlier step, and safety lines printed earlier in
+       the same step. */
+    :root[data-print="shop"] .k-shop-set-out,
+    :root[data-print="shop"] .k-list > li[data-shop-set-out] {
+      display: none;
+    }
+
     /* The shop set leaves out sources; the whole plan prints each one open. */
     :root[data-print="shop"] .k-disclosure[data-size="small"] {
       display: none;
@@ -63,6 +70,16 @@
     .k-callout[data-tone="flag"],
     .k-definition,
     .k-table tr {
+      break-inside: avoid;
+    }
+
+    /* A whole operation that moved to the next page left blank space at the foot of most pages
+       of the shop set's steps, so there an operation runs on, with each instruction kept whole. */
+    :root[data-print="shop"] .k-rows[data-shop-set-split] > .k-row {
+      break-inside: auto;
+    }
+
+    :root[data-print="shop"] .k-rows[data-shop-set-split] > .k-row li {
       break-inside: avoid;
     }
 

@@ -19,6 +19,11 @@
     display: none;
   }
 
+  /* Left out of the printed shop set only (print.css). */
+  .k-shop-set-out {
+    display: contents;
+  }
+
   .k-visually-hidden {
     position: absolute;
     inline-size: 1px;
