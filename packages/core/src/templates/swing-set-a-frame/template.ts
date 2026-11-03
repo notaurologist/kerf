@@ -116,8 +116,11 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * note on the legs' weight now names what is missing for it. No other output changes.
  * Version 35 measures the spacing of the crossbar and gusset bolts along the leg as spacing between
  * rows (Table 12.5.1D), since across the leg's grain each bolt is its own row (#524).
+ * Version 36 takes the beam's shear beside each swing hanger as well: on the net section a bolt
+ * down through the beam leaves (NDS 2024 3.1.2.1), or on the depth below bolts across it that the
+ * seat hangs from (3.4.4.1), and a plan with another mounting gives no shear (#526).
  */
-export const TEMPLATE_VERSION = 35;
+export const TEMPLATE_VERSION = 36;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

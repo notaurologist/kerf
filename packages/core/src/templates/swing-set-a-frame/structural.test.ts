@@ -22,7 +22,8 @@ import { generate, type SwingSetOutput } from './template.ts';
 // Expected values were computed by hand, separately from the code (see the spec). The beam is at
 // 30% moisture content: Southern Pine density 38.940 lb/ft³, so a 4x6 weighs w = 0.433798 lb/in.
 // Each hanger hangs from a 1/2" bolt down through the beam, in a 9/16" hole, so bending at each
-// hanger is on a net breadth of 3.5 − 0.5625 = 2.9375: S_net = 2.9375·5.5²/6 = 14.809896.
+// hanger is on a net breadth of 3.5 − 0.5625 = 2.9375: S_net = 2.9375·5.5²/6 = 14.809896, and shear
+// beside each hanger on A_v = 2.9375·5.5 = 16.15625.
 
 const params: SwingSetParams = {
   beamLength: 120,
@@ -124,7 +125,7 @@ describe('example 1: 4x6 Southern Pine No.2, 150 lb riders on both swings, θ = 
   it('says where the hanger holes are and that deflection uses the gross section', () => {
     const b = computed(r.beam.bending);
     expect(b.assumptions).toContain(
-      'Each hanger\'s bolt goes down through the beam on its centerline, in a 9/16" hole (the bolt plus 1/16", NDS 2024 12.1.3.2).',
+      'Each hanger\'s bolt goes down through the beam on its centerline, in a 9/16" hole (the bolt plus 1/16", NDS 2024 12.1.3.2). Its washer bears on the beam\'s top, so bending and shear are taken on the net section there.',
     );
     expect(computed(r.beam.deflection).assumptions).toContain(
       "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
@@ -145,10 +146,23 @@ describe('example 1: 4x6 Southern Pine No.2, 150 lb riders on both swings, θ = 
     expect(b.inputs.find((q) => q.symbol === 'w')?.value).toBeCloseTo(0.433798, 6);
   });
 
-  it('shear: V = 600 + wL/2 = 621.15, f_v = 48.40, margin 3.51', () => {
+  // At the supports V = 600 + wL/2 = 621.15 on the gross section, f_v = 48.40. Just inside the left
+  // outer hanger (18.75 from the left support) V = 621.15 − 0.433798·18.75 = 613.01 on the net
+  // section, f_v = 3·613.01 / (2·16.15625) = 56.91, margin 169.75 / 56.91 = 2.98.
+  it('shear: 48.40 at the supports, 56.91 beside the outer hangers on the net section, margin 2.98', () => {
     const s = computed(r.beam.shear);
-    expect(s.computed.value).toBeCloseTo(48.4011, 3);
-    expect(s.margin).toBeCloseTo(3.50715, 4);
+    expect(step(s, 'V')).toBeCloseTo(621.1477, 3);
+    expect(step(s, 'f_v,V')).toBeCloseTo(48.4011, 3);
+    expect(step(s, 'x_h1')).toBeCloseTo(30, 9);
+    expect(step(s, 'V_h1')).toBeCloseTo(613.0139, 3);
+    expect(step(s, 'A_v,1')).toBeCloseTo(16.15625, 9);
+    expect(step(s, 'V_h2')).toBeCloseTo(304.3384, 3);
+    expect(s.computed).toMatchObject({
+      label: 'Shear stress at left swing, left hanger hole, net section',
+    });
+    expect(s.computed.value).toBeCloseTo(56.9145, 3);
+    expect(s.margin).toBeCloseTo(2.98256, 4);
+    expect(s.sources.map((c) => c.locator)).toContain('3.1.2.1, p. 16');
   });
 
   it('deflection: δ·EI = 8,629,492 + 5wL⁴/384 = 9,139,933, δ = 0.1495 at x = 60, margin 2.72', () => {
@@ -165,12 +179,13 @@ describe('example 1: 4x6 Southern Pine No.2, 150 lb riders on both swings, θ = 
 
   // At factor C, at the inner hangers, the hangers give 8,625·C and the beam's weight 493.78, which
   // the factor does not multiply: bending reaches Fb'·S_net = 991.5913 · 14.809896 = 14,685.37 at
-  // C = (14,685.37 − 493.78) / 8,625 = 1.6454. Shear reaches Fv'·2bd/3 = 2,178.46 at
-  // C = (2,178.46 − 21.15) / 300 = 7.1910. The hanger reaches 1,200 at C = 1,200 / 150 = 8.
+  // C = (14,685.37 − 493.78) / 8,625 = 1.6454. Shear beside the outer hangers reaches
+  // Fv'·2·A_v/3 = 1,828.35 at C = (1,828.35 − 21.15 + 8.13) / 300 = 6.0511, before the gross
+  // section's 7.1910 at the supports. The hanger reaches 1,200 at C = 1,200 / 150 = 8.
   it('reports the dynamic factor at which each strength check reaches margin 1.0 (#401)', () => {
     expect(computed(r.beam.bending).breakEven).toMatchObject({ key: 'dynamicFactor' });
     expect(computed(r.beam.bending).breakEven?.value).toBeCloseTo(1.6454, 4);
-    expect(computed(r.beam.shear).breakEven?.value).toBeCloseTo(7.191036, 5);
+    expect(computed(r.beam.shear).breakEven?.value).toBeCloseTo(6.051117, 5);
     expect(computed(r.hanger).breakEven?.value).toBeCloseTo(8, 9);
     // Not margin × factor (1.655): the beam's weight is not multiplied.
     expect(computed(r.beam.bending).breakEven?.value).not.toBeCloseTo(0.82763 * 2, 3);
@@ -237,7 +252,8 @@ describe('example 2: asymmetric, 200 lb on the left swing and 80 lb on the right
     expect(step(b, 'f_b,M')).toBeCloseTo(1020.5905, 3);
     expect(b.computed.value).toBeCloseTo(1216.02, 2);
     expect(b.margin).toBeCloseTo(0.81544, 4);
-    expect(computed(r.beam.shear).margin).toBeCloseTo(3.20546, 4);
+    // Just inside the left outer hanger, V = 679.61 − 0.433798·18.75 = 671.48, f_v = 62.34.
+    expect(computed(r.beam.shear).margin).toBeCloseTo(2.72288, 4);
     const d = computed(r.beam.deflection);
     expect(d.computed.value).toBeCloseTo(0.140282, 5);
     expect(step(d, 'x_max')).toBeCloseTo(58.2907, 3);
@@ -272,8 +288,11 @@ describe('example 3: two-ply 2x6 beam, same loads as example 1', () => {
     expect(b.margin).toBeCloseTo(0.61967, 4);
   });
 
+  // Per ply just inside the left outer hanger, V = 309.063 − 0.185914·18.75 = 305.577 on
+  // A_v = 1.21875·5.5 = 6.703125, f_v = 68.38, margin 2.48 (3.02 at the supports, gross).
   it('shear and deflection', () => {
-    expect(computed(r.beam.shear).margin).toBeCloseTo(3.02082, 4);
+    expect(computed(r.beam.shear).computed.value).toBeCloseTo(68.381, 3);
+    expect(computed(r.beam.shear).margin).toBeCloseTo(2.48242, 4);
     expect(computed(r.beam.deflection).computed.value).toBeCloseTo(0.173008, 5);
     expect(computed(r.beam.deflection).margin).toBeCloseTo(2.34816, 4);
   });
@@ -318,18 +337,56 @@ describe('bolts sideways through the beam, two-ply 2x6', () => {
       true,
     );
   });
+
+  // The seat hangs from the bolts, so NDS 2024 3.4.4.1 takes shear on the effective depth d_e, the
+  // depth less the unloaded (top) edge's distance to the bolts: 5.5 − 4 = 1.5. The outer hangers
+  // are 30 from the beam's ends, at least 5d = 27.5, so Eq. 3.4-9: A_v = b·d_e = 2.25 per ply. Per
+  // ply just inside the left outer hanger V = 305.577, f_v = 3·305.577 / (2·2.25) = 203.72,
+  // margin 169.75 / 203.72 = 0.83 (3.02 at the supports, gross).
+  it('takes shear on the depth below the bolts: A_v 2.25, margin 0.83', () => {
+    const s = computed(review(p, inputs).beam.shear);
+    expect(step(s, 'd_e,1')).toBeCloseTo(1.5, 9);
+    expect(step(s, 'x_e,1')).toBeCloseTo(30, 9);
+    expect(step(s, '5d,1')).toBeCloseTo(27.5, 9);
+    expect(step(s, 'A_v,1')).toBeCloseTo(2.25, 9);
+    expect(step(s, 'V_h1')).toBeCloseTo(305.5774, 3);
+    expect(s.computed).toMatchObject({
+      label: 'Shear stress at left swing, left hanger hole, effective depth',
+    });
+    expect(s.computed.value).toBeCloseTo(203.7183, 3);
+    expect(s.margin).toBeCloseTo(0.83326, 4);
+    expect(s.breakEven?.value).toBeCloseTo(1.660317, 5);
+    expect(s.sources.map((c) => c.locator)).toEqual(
+      expect.arrayContaining(['3.4.4.1, Eq. 3.4-8 and 3.4-9, Figure 3E, p. 21']),
+    );
+    expect(s.sources.map((c) => c.locator)).not.toContain('3.1.2.1, p. 16');
+  });
+
+  // Hangers at 25, 45, 75, 95 (swings centered at 35 and 85): the outer ones are 25 from the ends,
+  // within 5d = 27.5, so Eq. 3.4-8: A_v = 1.5·1.5·(1.5/5.5)² = 0.167355. Per ply just inside the
+  // left one (13.75 from the support), V = 309.063 − 0.185914·13.75 = 306.507, f_v = 2,747.25.
+  it("takes Eq. 3.4-8 for bolts within 5d of the beam's end", () => {
+    const near = { ...p, swings: { ...p.swings, centers: [35, 85] as [number, number] } };
+    const s = computed(review(near, inputs).beam.shear);
+    expect(step(s, 'x_e,1')).toBeCloseTo(25, 9);
+    expect(step(s, 'x_e,4')).toBeCloseTo(25, 9);
+    expect(step(s, 'A_v,1')).toBeCloseTo(0.167355, 6);
+    expect(s.computed.value).toBeCloseTo(2747.25, 1);
+    expect(s.formulas.some((f) => f.includes('Eq. 3.4-8'))).toBe(true);
+  });
 });
 
 describe('hanger mounting', () => {
-  it('holds bending, not shear or deflection, until the mounting is entered', () => {
+  it('holds bending and shear, not deflection, until the mounting is entered', () => {
     const { hangerMounting: _, ...hardware } = params.hardware;
     const r = review({ ...params, hardware }, inputs);
-    expect(r.beam.bending).toMatchObject({
-      status: 'input-needed',
-      missing: [{ key: 'hardware.hangerMounting', label: 'Swing hanger mounting' }],
-    });
-    expect(r.beam.bending).not.toHaveProperty('breakEven');
-    expect(r.beam.shear.status).toBe('computed');
+    for (const check of [r.beam.bending, r.beam.shear]) {
+      expect(check).toMatchObject({
+        status: 'input-needed',
+        missing: [{ key: 'hardware.hangerMounting', label: 'Swing hanger mounting' }],
+      });
+      expect(check).not.toHaveProperty('breakEven');
+    }
     expect(r.beam.deflection.status).toBe('computed');
   });
 
@@ -340,16 +397,18 @@ describe('hanger mounting', () => {
     expect(missing.map((m) => m.key)).toContain('hardware.hangerMounting');
   });
 
-  it('leaves bending not computed for another mounting, citing NDS 2024 3.1.2.1', () => {
+  it('leaves bending and shear not computed for another mounting, citing NDS 2024 3.1.2.1', () => {
     const r = review(
       { ...params, hardware: { ...params.hardware, hangerMounting: { kind: 'other' } } },
       inputs,
     );
-    expect(r.beam.bending).toMatchObject({ status: 'not-computed' });
-    if (r.beam.bending.status !== 'not-computed') return;
-    expect(r.beam.bending.reason).toMatch(/fastened some other way than with bolts/);
-    expect(r.beam.bending.sources.map((c) => c.locator)).toEqual(['3.1.2.1, p. 16']);
-    expect(r.beam.shear.status).toBe('computed');
+    for (const check of [r.beam.bending, r.beam.shear]) {
+      expect(check).toMatchObject({ status: 'not-computed' });
+      if (check.status !== 'not-computed') throw new Error('expected not computed');
+      expect(check.reason).toMatch(/fastened some other way than with bolts/);
+      expect(check.sources.map((c) => c.locator)).toEqual(['3.1.2.1, p. 16']);
+    }
+    expect(r.beam.deflection.status).toBe('computed');
   });
 });
 
