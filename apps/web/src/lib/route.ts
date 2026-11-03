@@ -1,6 +1,6 @@
 import { findGlossaryEntry, findToolType } from '@kerf/core';
 import { useEffect, useState } from 'react';
-import { leaveGate } from './leave.ts';
+import { leaveGate } from '../ui/leave.ts';
 import { isPlanSection, type PlanSectionId } from './sections.ts';
 
 /** Where Edit was opened from: a plan section, or Shopping mode for a value read at the store. */

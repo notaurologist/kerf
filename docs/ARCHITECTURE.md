@@ -62,8 +62,10 @@ The web app also imports `packages/core` for types, parameter schemas (to valida
 │           │                 # diagrams/, build-steps/, structural/, glossary/, inventory/,
 │           │                 # login/
 │           ├── ui/           # The design system: tokens, layout primitives, components,
-│           │                 # icons, fonts, and the catalog page (docs/design/system.md)
-│           ├── lib/          # API client, routes, display helpers
+│           │                 # icons, fonts, and the catalog page (docs/design/system.md);
+│           │                 # imports nothing from lib/ or features/ (ui/layers.test.ts)
+│           ├── lib/          # API client, routes, display helpers, and the components that
+│           │                 # join ui/ to them (Loaded, ErrorBoundary, FieldInput)
 │           └── main.tsx
 ├── packages/
 │   └── core/

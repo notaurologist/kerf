@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { HOLD_MS } from '../lib/moves.ts';
 import { mount } from '../test/dom.tsx';
+import { HOLD_MS } from './motion.ts';
 import { LONG_WAIT_MS, Skeleton, STUCK_MS } from './Skeleton.tsx';
 
 beforeEach(() => {

@@ -18,7 +18,6 @@ import {
   send,
   setLoginRequiredHandler,
 } from './lib/api.ts';
-import { leaveGate } from './lib/leave.ts';
 import { changeScreen } from './lib/moves.ts';
 import { href, isMode, type PlaceId, placeOf, type Route, useRoute } from './lib/route.ts';
 import { useScreenChange } from './lib/screenChange.ts';
@@ -36,6 +35,7 @@ import {
   TermScope,
   Wordmark,
 } from './ui/index.ts';
+import { leaveGate } from './ui/leave.ts';
 
 // The design system's catalog (#45), loaded only when opened: it carries the worked examples'
 // snapshots and drawings for its sample values.

@@ -25,7 +25,6 @@ import { readPlan } from '../../lib/plan.ts';
 import { describeReset } from '../../lib/progress.ts';
 import { projectStore } from '../../lib/projectStore.ts';
 import { type EditFrom, editReturn, href, navigate, type ProjectStart } from '../../lib/route.ts';
-import { sameJson } from '../../lib/sameJson.ts';
 import {
   type Project,
   type ProjectStatus,
@@ -59,6 +58,7 @@ import {
   useFrameProject,
   WithAside,
 } from '../../ui/index.ts';
+import { sameJson } from '../../ui/sameJson.ts';
 import { DeleteProject } from './DeleteProject.tsx';
 import { belongsTo, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
 import { PreviewPane, usePreview } from './Preview.tsx';

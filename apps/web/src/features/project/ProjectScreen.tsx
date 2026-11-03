@@ -13,7 +13,7 @@ import { href, redirect } from '../../lib/route.ts';
 import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
 import { cutDetailHeadingId, cutListPartId } from '../../lib/show.ts';
 import { useTicks } from '../../lib/ticks.ts';
-import type { Project } from '../../lib/types.ts';
+import { type Project, STATUS_LABELS } from '../../lib/types.ts';
 import { loadCornerViews } from '../../lib/views.ts';
 import {
   Definitions,
@@ -214,7 +214,7 @@ export function ProjectView(props: {
           }
           tags={
             <>
-              <StatusTag status={project.status} />
+              <StatusTag status={project.status}>{STATUS_LABELS[project.status]}</StatusTag>
               <InfoTip label="About this plan">
                 <b>Template</b> {template?.name ?? project.templateId}, version{' '}
                 {project.templateVersion}.

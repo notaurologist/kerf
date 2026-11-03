@@ -1,4 +1,5 @@
 import { flushSync } from 'react-dom';
+import { HOLD_MS, moving, playing } from '../ui/motion.ts';
 import { isMode, PLACES, placeOf, type Route, type RouteChange } from './route.ts';
 import { screenKey } from './screenChange.ts';
 import { PLAN_SECTIONS } from './sections.ts';
@@ -10,9 +11,6 @@ import { PLAN_SECTIONS } from './sections.ts';
 // reduced motion, or without view transitions, screens change at once.
 
 export type Move = 'forward' | 'back' | 'mode-in' | 'mode-out' | 'none';
-
-/** How long the old screen holds while the new one loads, before the new one shows its skeleton. */
-export const HOLD_MS = 300;
 
 const place = (route: Route) => PLACES.indexOf(placeOf(route));
 
@@ -85,13 +83,6 @@ function loadedOrAfter(ms: number): Promise<void> {
   });
 }
 
-let active: ViewTransition | null = null;
-
-/** True while a move is playing or holding the old screen. */
-export function moving(): boolean {
-  return active !== null;
-}
-
 const animates = () =>
   typeof document.startViewTransition === 'function' &&
   !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -110,14 +101,9 @@ function play(types: string[], update: () => void, hold: boolean) {
     types,
   });
   stall = setTimeout(() => transition.skipTransition(), STALL_MS);
-  active = transition;
-  // A skipped transition rejects these; the update has run all the same.
+  playing(transition);
+  // A skipped transition rejects this; the update has run all the same.
   transition.ready.catch(() => {});
-  transition.finished
-    .catch(() => {})
-    .finally(() => {
-      if (active === transition) active = null;
-    });
 }
 
 /** For `useRoute`: plays each screen change as its move. */
