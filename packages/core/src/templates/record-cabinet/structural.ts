@@ -212,6 +212,7 @@ export function structuralReview(
         'Taking the apron alone ignores the case bottom and sides above it, which stiffen it, so this overstates the sag.',
       ],
       limitRatio,
+      limitKey: 'deflectionLimit',
     },
     assumptions: [
       'Each apron is a simply supported span between its legs; the mortises and tenons hold its ends but are taken as pinned.',
@@ -241,6 +242,7 @@ export function structuralReview(
           'The top is continuous over the partitions; taking each span as simply supported overstates its deflection.',
         ],
         limitRatio,
+        limitKey: 'deflectionLimit',
       },
       assumptions: [],
     });
@@ -257,7 +259,7 @@ export function structuralReview(
   );
   const moisture = mapNeeded(need(inputs, STRUCTURAL_INPUT_LABELS, 'moisture'), (v) => v.moisture);
   const moves = (subject: string, width: number) =>
-    woodMovement({ subject, width, species, orientation, moisture });
+    woodMovement({ subject, width, species, orientation, moisture, moistureKey: 'moisture' });
   const movement = [
     moves('Top', g.topDepth),
     moves('Left and right sides', p.caseDepth),

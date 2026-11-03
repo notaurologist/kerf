@@ -15,6 +15,7 @@ import v9 from './snapshots/v9.json' with { type: 'json' };
 import v10 from './snapshots/v10.json' with { type: 'json' };
 import v11 from './snapshots/v11.json' with { type: 'json' };
 import v12 from './snapshots/v12.json' with { type: 'json' };
+import v13 from './snapshots/v13.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -235,5 +236,19 @@ describe('record-cabinet template versions', () => {
     expect(emptyPartLists(v11)).not.toEqual([]);
     expect(emptyPartLists(v12)).toEqual([]);
     expect(changes(v11, v12)).toEqual([]);
+  });
+
+  it('version 13 names the input behind each entered value, and changes nothing else (#417)', () => {
+    const list = changes(v12, v13);
+    expect(kinds(list)).toEqual([
+      'outputs.review.apron.deflection.inputs[].input',
+      'outputs.review.movement[].inputs[].input',
+      'outputs.review.top.deflection.inputs[].input',
+    ]);
+    expect([...new Set(list.map((c) => c.after))].sort()).toEqual([
+      'deflectionLimit',
+      'moisture.high',
+      'moisture.low',
+    ]);
   });
 });

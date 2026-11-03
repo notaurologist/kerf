@@ -86,6 +86,8 @@ describe('suggesting from the answers', () => {
     expect(opened?.about.get('params beamLength')?.about).toBe(
       "From the template's worked example.",
     );
+    // Create sends them on, so the server can tell which values are still suggestions (#417).
+    expect(opened?.answers).toEqual(questions.examples[0]);
   });
 
   it('places what the API refuses under the question it concerns', async () => {

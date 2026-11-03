@@ -11,6 +11,7 @@ function input(over: Partial<MovementInput> = {}): MovementInput {
     species: { value: 'black-cherry' },
     orientation: { value: 'flatsawn' },
     moisture: { value: { low: 6, high: 10 } },
+    moistureKey: 'moisture',
     ...over,
   };
 }

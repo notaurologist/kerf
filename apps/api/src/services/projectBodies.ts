@@ -1,3 +1,4 @@
+import { SuggestedChange } from '@kerf/core';
 import { z } from 'zod';
 import { PROJECT_STATUSES } from '../db/schema.ts';
 
@@ -13,6 +14,11 @@ export const NewProject = z.object({
   params: z.unknown(),
   /** Structural inputs have no defaults; an empty object leaves every check "input needed". */
   structuralInputs: z.unknown(),
+  /**
+   * The answers to the template's starting questions, when the project started from them. The
+   * server suggests from them again to record which values are still Kerf's suggestions (#417).
+   */
+  answers: z.unknown().optional(),
 });
 export type NewProject = z.infer<typeof NewProject>;
 
@@ -21,6 +27,7 @@ export const NewProjectPreview = NewProject.pick({
   templateId: true,
   params: true,
   structuralInputs: true,
+  answers: true,
 });
 export type NewProjectPreview = z.infer<typeof NewProjectPreview>;
 
@@ -51,6 +58,13 @@ export const ProjectSave = ProjectChanges.refine(
   (c) => !changesPlan(c) || c.revision !== undefined,
   { message: 'revision is required to change the name, parameters, or inputs', path: ['revision'] },
 );
+
+/** Suggestions confirmed or unconfirmed in the structural review, on one revision (#417). */
+export const SuggestedChanges = z.object({
+  revision: Revision,
+  changes: z.array(SuggestedChange).min(1).max(100),
+});
+export type SuggestedChanges = z.infer<typeof SuggestedChanges>;
 
 /** A regeneration names the revision whose version notice the owner was shown (#425). */
 export const ProjectRegenerate = z.object({ revision: Revision });

@@ -67,6 +67,8 @@ export interface ClearWoodDeflectionInput {
     working: Quantity[];
     assumptions: string[];
     limitRatio: Needed<number>;
+    /** The input the limit is entered in. */
+    limitKey: string;
   };
   assumptions: string[];
 }
@@ -205,6 +207,7 @@ export function clearWoodChecks(input: ClearWoodDeflectionInput): BeamChecks {
           value: N,
           unit: '',
           basis: 'Entered',
+          input: lc.limitKey,
         },
       ],
       assumptions: [

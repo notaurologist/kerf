@@ -12,11 +12,14 @@ import { SwingSetStructuralInputs } from './structural.ts';
 // Starting questions (#163; docs/templates/swing-set-a-frame.md, Starting questions). Kerf asks
 // only what it cannot know: who rides, how heavy the heaviest riders are, the open space, the
 // ground, and pads or burial. Everything else comes from the worked example or a stated rule of
-// thumb. Three structural inputs are suggested from a named source or a stated bound, shown as
-// suggestions until the owner saves the form (hard rule 3 as amended, #355): the deflection limit,
-// the swing angle, and the beam's moisture content. Hardware, the species and grade, incising,
-// the hanger rating, and the dynamic factor are left for the owner, and stock comes from the
-// worked example: Kerf never sizes lumber from loads.
+// thumb. Three structural inputs are suggested from a named source or a stated bound: the
+// deflection limit, the swing angle, and the beam's moisture content. The bolt sizes and counts
+// are suggested too (`boltSuggestions.ts`): the largest diameter whose layout keeps every
+// distance within NDS 2024, and the worked example's count. Each stays unconfirmed, with its
+// basis, until the owner ticks it in the structural review or changes it; saving the form does not
+// confirm it (hard rule 3 as amended, #355, #417). The species and grade, incising, the hanger
+// rating, and the dynamic factor are left for the owner, and stock comes from the worked example:
+// Kerf never sizes lumber from loads.
 
 const RIDERS = ['kids', 'kids-and-adults'] as const;
 type Riders = (typeof RIDERS)[number];

@@ -3,7 +3,7 @@
 // parameters from the answers with a pure function. Generic: nothing here knows what the
 // questions are about. Suggestions are template code, never AI (decision 0001).
 
-import type { z } from 'zod';
+import { z } from 'zod';
 import { lengthForEntry } from '../units/parse.ts';
 import type { FormField, FormSection, FormSource, FormValues, TemplateForm } from './form.ts';
 import { formValues } from './form.ts';
@@ -16,12 +16,14 @@ import { formValues } from './form.ts';
  * - `example`: the template's worked example.
  * - `rule-of-thumb`: a rule with nothing better behind it, said in a few words.
  */
-export type SuggestionBasis =
-  | { kind: 'answer' }
-  | { kind: 'source'; citation: string }
-  | { kind: 'convention'; name: string }
-  | { kind: 'example' }
-  | { kind: 'rule-of-thumb'; rule: string };
+export const SuggestionBasis = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('answer') }),
+  z.object({ kind: z.literal('source'), citation: z.string() }),
+  z.object({ kind: z.literal('convention'), name: z.string() }),
+  z.object({ kind: z.literal('example') }),
+  z.object({ kind: z.literal('rule-of-thumb'), rule: z.string() }),
+]);
+export type SuggestionBasis = z.infer<typeof SuggestionBasis>;
 
 export interface Suggestion {
   from: FormSource;
@@ -113,17 +115,36 @@ export function suggestedValues(
     values[s.from][s.path] = text;
     about.set(`${s.from} ${s.path}`, {
       text,
-      about: [describeBasis(s.basis), s.note].filter(Boolean).join(' '),
+      about: [
+        describeBasis(s.basis),
+        s.note,
+        s.value !== null && needsConfirming(form, s) ? UNTIL_CONFIRMED : undefined,
+      ]
+        .filter(Boolean)
+        .join(' '),
     });
   }
   return { params: values.params, inputs: values.structuralInputs, about };
 }
 
-function findField(sections: readonly FormSection[], path: string): FormField | undefined {
+/**
+ * Whether a suggestion for this field waits for the owner to confirm it: a structural input or a
+ * parameter the owner enters or confirms, suggested from anything but the owner's own answer.
+ */
+export function needsConfirming(form: TemplateForm, s: Omit<Suggestion, 'value'>): boolean {
+  if (s.basis.kind === 'answer') return false;
+  if (s.from === 'structuralInputs') return true;
+  return findField(form.params, s.path)?.confirmed === true;
+}
+
+const UNTIL_CONFIRMED =
+  'It stays a suggestion until you confirm it in the structural review or change it.';
+
+export function findField(sections: readonly FormSection[], path: string): FormField | undefined {
   return sections.flatMap((s) => s.fields).find((f) => f.path === path);
 }
 
-function entryText(field: FormField, value: string | number | boolean): string {
+export function entryText(field: FormField, value: string | number | boolean): string {
   return field.kind === 'length' && typeof value === 'number'
     ? lengthForEntry(value)
     : String(value);

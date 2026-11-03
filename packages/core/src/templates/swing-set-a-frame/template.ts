@@ -57,9 +57,12 @@ import { flags, validate, validateSwings } from './validate.ts';
  * strength check reaches margin 1.0 (#401), and lists the factor in the working after the loads it
  * multiplies; no margin changes. Version 16 plans legs on pads before the anchor count is entered
  * (#406), listing the anchors with the input their count waits for; parameters that generated
- * before give the same output.
+ * before give the same output. Version 17 leaves out each part list that is empty (#430). Version
+ * 18 names the structural input behind each entered quantity in the working, and the parameters
+ * behind each bolted joint's size and count, so a suggested value can say so (#417); the
+ * leg-to-beam checklist item no longer calls its bolt size entered. No number changes.
  */
-export const TEMPLATE_VERSION = 17;
+export const TEMPLATE_VERSION = 18;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

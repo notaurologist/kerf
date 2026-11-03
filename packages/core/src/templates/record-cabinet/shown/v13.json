@@ -986,7 +986,8 @@
               "label": "Deflection limit, span divided by",
               "value": 144,
               "unit": "",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "deflectionLimit"
             }
           ],
           "formulas": [
@@ -1168,7 +1169,8 @@
               "label": "Deflection limit, span divided by",
               "value": 144,
               "unit": "",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "deflectionLimit"
             }
           ],
           "formulas": [
@@ -1302,7 +1304,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -1316,7 +1319,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -1382,7 +1386,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -1396,7 +1401,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -1462,7 +1468,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -1476,7 +1483,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -1542,7 +1550,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -1556,7 +1565,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -1622,7 +1632,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -1636,7 +1647,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -1702,7 +1714,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -1716,7 +1729,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -52780,7 +52794,8 @@
               "label": "Deflection limit, span divided by",
               "value": 144,
               "unit": "",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "deflectionLimit"
             }
           ],
           "formulas": [
@@ -52962,7 +52977,8 @@
               "label": "Deflection limit, span divided by",
               "value": 144,
               "unit": "",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "deflectionLimit"
             }
           ],
           "formulas": [
@@ -53096,7 +53112,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -53110,7 +53127,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -53176,7 +53194,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -53190,7 +53209,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -53256,7 +53276,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -53270,7 +53291,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -53336,7 +53358,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -53350,7 +53373,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [
@@ -53416,7 +53440,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.low"
             },
             {
               "symbol": "M_F",
@@ -53430,7 +53455,8 @@
                   "locator": "Chapter 13, Table 13-2 and Fig. 13-1, p. 13-5",
                   "url": "https://research.fs.usda.gov/treesearch/62261"
                 }
-              ]
+              ],
+              "input": "moisture.high"
             }
           ],
           "formulas": [

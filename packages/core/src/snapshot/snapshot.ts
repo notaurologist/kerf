@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import type { TemplateDefinition } from '../model/definition.ts';
+import type { SnapshotUpgrade, TemplateDefinition } from '../model/definition.ts';
+import { SuggestedValue } from '../model/suggested.ts';
 import type { GenerateResult, Issue } from '../model/types.ts';
 import { leaveOutDefaults } from './defaults.ts';
 import { type Diff, diff } from './diff.ts';
@@ -7,7 +8,8 @@ import { type Diff, diff } from './diff.ts';
 const asJson = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
 
 // A project snapshot: the template and version that generated it, the shape it is stored in, the
-// parameters and structural inputs used, and every generated output, as one JSON value
+// parameters and structural inputs used, which of them are Kerf's suggestions, and every generated
+// output, as one JSON value
 // (ARCHITECTURE.md, Generation pipeline). The API stores it and reads it back with the template's
 // upgrades and schemas (decision 0014).
 
@@ -19,8 +21,19 @@ export interface ProjectSnapshot<Params = unknown, Inputs = unknown, Outputs = u
   snapshotVersion: number;
   params: Params;
   structuralInputs: Inputs;
+  /**
+   * The structural inputs and confirmed parameters Kerf suggested, with their basis and whether
+   * the owner confirmed them (#417). Every value not listed was entered.
+   */
+  suggested: SuggestedValue[];
   outputs: Outputs;
 }
+
+/**
+ * The upgrade to the shape that adds `suggested`, for every template: a plan stored before it
+ * holds only entered values.
+ */
+export const noSuggestions: SnapshotUpgrade = (snapshot) => ({ ...snapshot, suggested: [] });
 
 /** Same shape as a template's own issues: the top-level parameter or input name. */
 function zodIssues(error: z.ZodError): Issue[] {
@@ -60,12 +73,14 @@ function generateOrIssue(
 
 /**
  * Generates a snapshot with the template's current version, as stored: its outputs leave out each
- * field still at its schema default, which reading fills back in.
+ * field still at its schema default, which reading fills back in. `suggested` is computed by the
+ * caller (`suggestedFor`, `carrySuggested`); generating never depends on it.
  */
 export function createSnapshot(
   template: TemplateDefinition,
   params: unknown,
   structuralInputs: unknown,
+  suggested: readonly SuggestedValue[] = [],
 ): GenerateResult<ProjectSnapshot> {
   const p = template.params.safeParse(params);
   const i = template.structuralInputs.safeParse(structuralInputs);
@@ -85,6 +100,7 @@ export function createSnapshot(
       snapshotVersion: template.snapshotVersion,
       params: p.data,
       structuralInputs: i.data,
+      suggested: [...suggested],
       outputs: leaveOutDefaults(template.outputs, generated.output),
     },
   };
@@ -164,6 +180,7 @@ export function readSnapshot(
     snapshotVersion: z.literal(template.snapshotVersion),
     params: template.params,
     structuralInputs: template.structuralInputs,
+    suggested: z.array(SuggestedValue),
     outputs: template.storedOutputs,
   });
   const parsed = schema.safeParse(current);

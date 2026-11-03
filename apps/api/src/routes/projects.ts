@@ -11,6 +11,7 @@ import {
   ProjectChanges,
   ProjectRegenerate,
   ProjectSave,
+  SuggestedChanges,
 } from '../services/projectBodies.ts';
 import type { ProjectService, Result } from '../services/projects.ts';
 import { valid } from './validate.ts';
@@ -32,6 +33,8 @@ function failure(c: Context, result: Extract<Result<unknown>, { ok: false }>) {
       return c.json({ error: result.error, issues: result.issues }, 422);
     case 'unknown-progress':
       return c.json({ error: result.error, items: result.items }, 422);
+    case 'unknown-suggestion':
+      return c.json({ error: result.error, fields: result.fields }, 422);
     case 'stale-project':
       return c.json({ error: result.error, revision: result.revision }, 409);
   }
@@ -93,6 +96,18 @@ export function projectRoutes(projects: ProjectService) {
       valid('json', ProgressChanges),
       async (c) => {
         const result = await projects.setProgress(c.req.valid('param').id, c.req.valid('json'));
+        return result.ok ? c.json(result.value, 200) : failure(c, result);
+      },
+    )
+    .patch(
+      '/projects/:id/suggested',
+      valid('param', ById),
+      valid('json', SuggestedChanges),
+      async (c) => {
+        const result = await projects.confirmSuggested(
+          c.req.valid('param').id,
+          c.req.valid('json'),
+        );
         return result.ok ? c.json(result.value, 200) : failure(c, result);
       },
     )

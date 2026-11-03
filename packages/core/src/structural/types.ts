@@ -47,6 +47,11 @@ export const Quantity = z.object({
   /** How it was obtained: entered by the user, from the template, a table, or a formula. */
   basis: z.string().optional(),
   sources: z.array(Citation).optional(),
+  /**
+   * The structural input it is, by its path in the form, as in a missing input's key. A display
+   * reads it against the project's suggestions to say whether the value was entered or suggested.
+   */
+  input: z.string().optional(),
 });
 export type Quantity = z.infer<typeof Quantity>;
 

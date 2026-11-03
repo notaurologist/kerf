@@ -19,18 +19,33 @@ import v14 from './snapshots/v14.json' with { type: 'json' };
 import v15 from './snapshots/v15.json' with { type: 'json' };
 import v16 from './snapshots/v16.json' with { type: 'json' };
 import v17 from './snapshots/v17.json' with { type: 'json' };
+import v18 from './snapshots/v18.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
 const template = swingSetAFrame as TemplateDefinition;
 
+/**
+ * Version 18's changes (#417): the structural input behind each entered quantity, the parameters
+ * behind each bolted joint, and "entered" taken out of the leg-to-beam checklist item. Set aside
+ * in every comparison with the current version, as the earlier versions' lists are below.
+ */
+const isVersion18 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  /^structuralReview\..*\.input$/.test(c.path) ||
+  /^design\.boltLayout\[\d+\]\.params(\[\d+\])?$/.test(c.path) ||
+  (/^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) &&
+    String(c.before).replace(' entered, ', ', ') === c.after);
+
 /** What regenerating with the current version changes in the stored outputs, field by field. */
-function regenerated(snapshot: ProjectSnapshot) {
+function regenerated(snapshot: ProjectSnapshot, keepVersion18 = false) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = template.storedOutputs.parse(current.output.outputs);
-  return diff(json(snapshot.outputs), json(outputs), 1000);
+  const result = diff(json(snapshot.outputs), json(outputs), 1000);
+  return keepVersion18
+    ? result
+    : { ...result, changes: result.changes.filter((c) => !isVersion18(c)) };
 }
 
 /** The value at an outputs path such as 'structuralReview.beam.bending.inputs[1]'. */
@@ -470,5 +485,22 @@ describe('swing-set template versions', () => {
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(regenerated(read.snapshot).changes).toEqual([]);
     }
+  });
+
+  it('version 18 names the input behind each entered value, and changes no number (#417)', () => {
+    let named = 0;
+    for (const stored of v17) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.suggested).toEqual([]);
+      const { changes } = regenerated(read.snapshot, true);
+      expect(changes.every(isVersion18)).toBe(true);
+      named += changes.filter((c) => c.path.endsWith('.input')).length;
+    }
+    expect(named).toBeGreaterThan(0);
+    // The leg-to-beam bolt is no longer called entered: it may be Kerf's suggestion.
+    const first = readSnapshot([template], v18[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    expect(JSON.stringify(first.snapshot.outputs)).not.toMatch(/" entered,/);
   });
 });
