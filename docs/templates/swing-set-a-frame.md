@@ -307,7 +307,7 @@ A new project can start from a few plain questions (#163). Kerf asks only what i
 | Ground: level, or sloped front to back and by how much | Ground slope g (0 for level) |
 | Leg feet: on pads or buried | Burial depth d |
 
-Three structural inputs are suggested with no question, each shown with its basis until the form is saved (hard rule 3 as amended in #355; #388):
+Three structural inputs are suggested with no question, each stored with its basis and unconfirmed until the owner ticks it in the structural review or changes it (hard rule 3 as amended in #355 and #417; #388). Saving the form does not confirm them. The bolt sizes the bolt layout check suggests are treated the same way.
 
 | Input | Suggested | Basis |
 |---|---|---|

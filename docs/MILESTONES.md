@@ -143,3 +143,29 @@ From the owner's walkthrough of November 1, 2026. Issues #351 to #364.
 - My toolbox (#363), and diagrams from any corner (#364).
 
 **Accept when:** the decisions are recorded; each reworked screen was chosen from at least two sketched directions and is built on the design system; and the diagrams and reworked screens are checked at 375 px and on the laptop.
+
+## Hardening 2
+
+From the five-lens engineering review of November 2, 2026, after the second template and the amendment to hard rule 3. The review found the app's layers sound, and its gaps where code, gates, and decisions written for one template and the old rule 3 were not revisited. Issues #417 to #442.
+
+- Suggested structural inputs stored with their basis and confirmed in the structural review (#417, owner's decision recorded in 0001), and snapshot upgrades that stop inventing parameter values (#429).
+- Gates that cover every template: wording and brands (#418), template words in generic code (#419), generation in the browser (#420), and the numbers an old plan shows when read (#431).
+- Generation bounded in time and part count (#421), project responses and the backup kept under Vercel's response limit (#422, #423), and regenerate checking the revision (#425).
+- Owner decisions on what a backup holds (#424), revisions for delete and the tool save (#426), decision 0005 at the lumber store (#427), and the record cabinet's screw sizes (#438).
+- Fixes and cleanups: #428, #430, #432 to #437, and #439 to #442.
+
+**Accept when:** every High and Medium finding is fixed or closed with a recorded reason; each fix the review marked as enforceable has its test or check; and the decisions are recorded.
+
+## Domain, usability and design audits
+
+From three audits of November 2, 2026, run alongside the second engineering review: a timber engineer and builder's read of the structural model and methods, a task-based usability walkthrough, and a design review of the rendered app and the printed plan. Findings already tracked in Hardening 2 or elsewhere were not filed again. Issues #444 to #469.
+
+- The swing set's structural model: beam supports at the gusset bearing (#445), the net section at the hanger holes (#446), and gusset bolt distances across the grain (#456).
+- Building from the plan: field-treating cuts in treated lumber (#447), the steps from raising the frame to hanging the swings (#451), protective equipment and the stopped circular-saw cut (#457), and smaller domain fixes and source checks (#464).
+- No recut and one store trip: naming done items a change affects (#444), what a margin under 1.0 means (#448), hardware lengths and notes on the shopping lists (#449), and Shopping mode's lumber notes and a path when a board is not in stock (#450).
+- Drawings and print: the printed plan (#452) and the record cabinet's elevations (#453).
+- The phone: the project header (#454), cut details and saw settings (#455), Edit opened from Shopping (#461), and the Home Screen app's status bar (#462).
+- Smaller flow and design fixes: #458 to #460, #463, and #465.
+- Owner decisions on showing deeper beam stock (#466), the fore-and-aft swing force against the anchors (#467), corner braces and a column check for the legs (#468), and a shorter printed set (#469).
+
+**Accept when:** every High and Medium finding is fixed or closed with a recorded reason; structural changes have hand-checked worked examples and bump the template version; the printed plan and the phone screens are checked for both templates; and the decisions are recorded.
