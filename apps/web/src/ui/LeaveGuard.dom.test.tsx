@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { act } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useRoute } from '../lib/route.ts';
 import { byText, click, goTo, mount } from '../test/dom.tsx';
@@ -46,6 +47,16 @@ describe('the leave guard', () => {
     await click(byText(container, 'button', 'Keep editing'));
     expect(dialog().open).toBe(false);
     expect(screen()).toBe('projects');
+  });
+
+  it('asks again on the next link after the browser closes the dialog on a second Escape', async () => {
+    const { container } = mount(<Screen />);
+    await click(byText(container, 'button', 'Change'));
+    await click(byText(container, 'a', 'Tools'));
+    await act(async () => dialog().close());
+    await click(byText(container, 'a', 'Tools'));
+    expect(dialog().open).toBe(true);
+    expect(window.location.hash).toBe('#/projects');
   });
 
   it('follows the link once the owner chooses to leave', async () => {
