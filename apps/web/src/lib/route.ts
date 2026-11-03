@@ -3,15 +3,15 @@ import { useEffect, useState } from 'react';
 import { leaveGate } from '../ui/leave.ts';
 import { isPlanSection, type PlanSectionId } from './sections.ts';
 
-/** Where Edit was opened from: a plan section, or Shopping mode for a value read at the store. */
-export type EditFrom = PlanSectionId | 'shop';
+/** Where Edit was opened from: a plan section, or Shopping or Building mode. */
+export type EditFrom = PlanSectionId | 'shop' | 'build';
 
-/** The screen Edit's Save and Cancel go back to. */
+/** The screen Edit's Save, Cancel, and back link go back to. */
 export function editReturn(
   id: string,
   from: EditFrom | undefined,
-): Extract<Route, { screen: 'shop' | 'project' }> {
-  if (from === 'shop') return { screen: 'shop', id };
+): Extract<Route, { screen: 'shop' | 'build' | 'project' }> {
+  if (from === 'shop' || from === 'build') return { screen: from, id };
   return from ? { screen: 'project', id, section: from } : { screen: 'project', id };
 }
 
@@ -29,7 +29,8 @@ export type Route =
   // `part` is the part selected in the drawings and the cut list, kept in the address so a reload
   // keeps it.
   | { screen: 'project'; id: string; section?: PlanSectionId; part?: string }
-  // `from` is the section Edit was opened from, or Shopping mode, which Save and Cancel return to.
+  // `from` is the section Edit was opened from, or Shopping or Building mode, which Save, Cancel,
+  // and the back link return to.
   // `field` is the id of a field to start on, such as an input a check needs.
   | { screen: 'edit-project'; id: string; from?: EditFrom; field?: string }
   // Shopping and Building, full-screen modes launched from the plan (#61). The URL carries the
@@ -102,7 +103,7 @@ export function parseRoute(hash: string): Route {
     return {
       screen: 'edit-project',
       id: second,
-      ...(isPlanSection(from) || from === 'shop' ? { from } : {}),
+      ...(isPlanSection(from) || from === 'shop' || from === 'build' ? { from } : {}),
       ...(field ? { field } : {}),
     };
   }

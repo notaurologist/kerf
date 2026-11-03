@@ -199,6 +199,18 @@ describe('WithAside', () => {
       '<div class="l-with-aside"><div><div><p>Form</p></div><div><div class="l-with-aside__head"><p>Create</p></div><p>Preview</p></div></div></div>',
     );
   });
+
+  it('puts the lead before both columns, for while the aside is out of sight', () => {
+    const html = render(
+      <WithAside lead={<p>What changes</p>}>
+        <p>Form</p>
+        <p>Preview</p>
+      </WithAside>,
+    );
+    expect(html).toBe(
+      '<div class="l-with-aside"><div class="l-with-aside__lead"><p>What changes</p></div><div><div><p>Form</p></div><div><p>Preview</p></div></div></div>',
+    );
+  });
 });
 
 describe('Select', () => {

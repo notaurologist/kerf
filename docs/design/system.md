@@ -18,7 +18,7 @@ Kerf's screens are built from one design system in `apps/web/src/ui`. The choice
   - `Grid` for as many columns as fit;
   - `Switcher` for side by side, switching to a column all at once;
   - `Sidebar` for a narrow side beside a wide main;
-  - `WithAside` for a main column at a form's width with an aside that stays in view beside it from 60rem, such as the editor's preview; narrower, the aside follows;
+  - `WithAside` for a main column at a form's width with an aside that stays in view beside it from 60rem, such as the editor's preview; narrower, the aside follows, and an optional `lead`, such as the editor's "What changes", comes first;
   - `Center` for a readable measure.
 
   Gaps are steps of the spacing scale (`3xs` to `xl`), never lengths. So are widths: `Grid`'s `min`, `Center`'s `max`, `Sidebar`'s `sideWidth` and `Switcher`'s `threshold` take a step of the width scale (`xs` 12rem, `s` 14rem, `m` 16rem, `l` 24rem, `xl` 37.5rem, `2xl` 60rem, tokens `--width-*`). Add a step to the scale rather than a length to a screen.

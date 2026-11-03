@@ -99,5 +99,20 @@ describe('frameFor', () => {
       top: false,
       back: 'project',
     });
+    expect(frameFor({ screen: 'edit-project', id: 'p1', from: 'cut-list' })).toEqual({
+      place: 'projects',
+      top: false,
+      back: 'project',
+    });
+    expect(frameFor({ screen: 'edit-project', id: 'p1', from: 'shop' })).toEqual({
+      place: 'projects',
+      top: false,
+      back: { label: 'Shopping', href: '#/projects/p1/shop' },
+    });
+    expect(frameFor({ screen: 'edit-project', id: 'p1', from: 'build' })).toEqual({
+      place: 'projects',
+      top: false,
+      back: { label: 'Building', href: '#/projects/p1/build' },
+    });
   });
 });

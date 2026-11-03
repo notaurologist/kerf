@@ -1,7 +1,7 @@
 import { findTemplate, formValues, suggestedFields } from '@kerf/core';
 import { api, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
-import { type EditFrom, href } from '../../lib/route.ts';
+import { type EditFrom, editReturn, href } from '../../lib/route.ts';
 import type { Project } from '../../lib/types.ts';
 import { useLoad } from '../../lib/useLoad.ts';
 import { ProblemScreen, Stack, useFrameProject } from '../../ui/index.ts';
@@ -9,8 +9,8 @@ import { DeleteProject } from './DeleteProject.tsx';
 import { ProjectEditor } from './ProjectEditor.tsx';
 
 /**
- * `from` is the plan's section Edit was opened from, or Shopping mode: Save and Cancel go back to
- * it (#156, #390).
+ * `from` is the plan's section Edit was opened from, or Shopping or Building mode: Save, Cancel,
+ * and the back link go back to it (#156, #390).
  */
 export function EditProjectScreen(props: { id: string; from?: EditFrom; field?: string }) {
   const { loaded, reload } = useLoad(
@@ -58,8 +58,8 @@ function EditProjectForm(props: {
 }) {
   const { project } = props;
   const template = findTemplate(project.templateId);
-  const back = { href: href({ screen: 'project', id: project.id }), label: project.name };
-  // The title bar's back link names the project (#265).
+  const back = { href: href(editReturn(project.id, props.from)), label: project.name };
+  // The title bar's back link names the project (#265) and goes back where Edit was opened.
   useFrameProject({ name: back.label, href: back.href });
   if (!template) {
     return (
