@@ -10,7 +10,7 @@ import type {
   Tenon,
   Vec3,
 } from '../../model/types.ts';
-import { formatLength } from '../../units/length.ts';
+import { formatLength, formatLimit } from '../../units/length.ts';
 import { type CabinetGeometry, RECESS } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
 import type { Allowances } from './structural.ts';
@@ -173,6 +173,22 @@ export function cabinetParts(
   ) {
     return { ok: false, issues };
   }
+  // The doors are as thick as the board, so a stile or rail glued up from narrower strips, and
+  // flattened thinner, would not fit the tracks or meet the rest of its frame (#563).
+  if (
+    sizes &&
+    doorStock?.stile &&
+    doorStock.rail &&
+    (doorStock.stile.boards > 1 || doorStock.rail.boards > 1)
+  ) {
+    const most = board.width - p.allowances.rip;
+    issues.push({
+      code: 'door-frame-wider-than-board',
+      message: `Each door's stiles and rails are ripped from one board. A ${formatLength(sizes.frameWidth)} frame needs ${formatLength(sizes.frameWidth + p.allowances.rip)} of board with the ${formatLength(p.allowances.rip)} rip allowance, and the boards are ${formatLength(board.width)} wide. Make the frame ${formatLength(most)} wide or less, or use wider boards.`,
+      params: ['door.frameWidth', 'board', 'allowances'],
+    });
+    return { ok: false, issues };
+  }
   // A rail, apron, or cleat of one board is not flattened, so it is as thick as the board.
   const r = railStock.thickness;
   const ta = longApronStock.thickness;
@@ -180,6 +196,37 @@ export function cabinetParts(
   // Each side and partition runs from the bottom of the case bottom's dado to the top of the top's.
   const z0 = zb + t - j;
 
+  // The mortise's inside wall is s − r_a − (t_a + t_t)/2 from the leg's other inside face.
+  const centered = (ta + p.tenonThickness) / 2;
+  if (p.apronSetback + centered >= s) {
+    const setback = s - centered;
+    const fixes = [
+      `use legs larger than ${formatLimit(p.apronSetback + centered, 'min')}`,
+      ...(setback > 0 ? [`set the aprons back less than ${formatLimit(setback, 'max')}`] : []),
+      'use thinner boards',
+    ];
+    issues.push({
+      code: 'mortise-off-leg',
+      message: `Aprons ${formatLength(ta)} thick, set back ${formatLength(p.apronSetback)} on ${formatLength(s)} legs, would put each mortise past the leg's inside face. To fix it, ${fixes.join(', or ')}.`,
+      params: ['legStock.size', 'apronSetback', 'board', 'tenonThickness'],
+    });
+    return { ok: false, issues };
+  }
+  // An apron past the leg's inside face meets the other apron in the corner, and the cleat's end.
+  if (p.apronSetback + ta > s) {
+    const setback = s - ta;
+    const fixes = [
+      `use legs at least ${formatLimit(p.apronSetback + ta, 'min')}`,
+      ...(setback >= 0 ? [`set the aprons back at most ${formatLimit(setback, 'max')}`] : []),
+      'use thinner boards',
+    ];
+    issues.push({
+      code: 'apron-past-leg',
+      message: `Aprons ${formatLength(ta)} thick, set back ${formatLength(p.apronSetback)} on ${formatLength(s)} legs, would stand past the leg's inside face, where the two aprons at each leg would run into each other. To fix it, ${fixes.join(', or ')}.`,
+      params: ['legStock.size', 'apronSetback', 'board'],
+    });
+    return { ok: false, issues };
+  }
   if (door && partitionDepth - r < p.jacket) {
     issues.push({
       code: 'records-behind-tracks',
@@ -322,7 +369,8 @@ export function cabinetParts(
       referenceEdge: 'edge away from the panel',
       grooves: [groove(door.height)],
     };
-    const tongue = (p.panelThickness - p.tenonThickness) / 2;
+    // A one-board panel keeps its board's thickness, so the tongue is sized from the panel's stock.
+    const tongue = (doorStock.panel.thickness - p.tenonThickness) / 2;
     return [
       {
         ...stile,
@@ -546,12 +594,13 @@ export function cabinetParts(
   // A cleat inside each side apron, lying flat and flush with its top.
   place('cleat', 0, at(xl + r0 + ta, s, zb), Y, X, minusZ);
   place('cleat', 1, at(xr - r0 - ta, s, zb - tc), Y, minusX, Z);
-  if (door && sizes) {
+  if (door && sizes && doorStock?.panel) {
     const ws = sizes.frameWidth;
     const gs = sizes.grooveDepth;
     // The left door runs in the front track and the right door in the back one, each against its
     // side when closed, centered in its track, and seated d_b in the bottom track.
     const td = door.thickness;
+    const tp = doorStock.panel.thickness;
     const x1 = (g.panelX[0] as number) + t;
     const x2 = g.panelX[p.bays] as number;
     const z = zb + t - sizes.bottomDepth;
@@ -577,7 +626,7 @@ export function cabinetParts(
       place(
         'door-panel',
         k,
-        at(xr0 + panelGap.length, y + (td - t) / 2, z + ws - gs + end),
+        at(xr0 + panelGap.length, y + (td - tp) / 2, z + ws - gs + end),
         Z,
         X,
         Y,

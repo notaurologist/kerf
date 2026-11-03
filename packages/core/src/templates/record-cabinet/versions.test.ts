@@ -21,6 +21,7 @@ import v15 from './snapshots/v15.json' with { type: 'json' };
 import v16 from './snapshots/v16.json' with { type: 'json' };
 import v17 from './snapshots/v17.json' with { type: 'json' };
 import v18 from './snapshots/v18.json' with { type: 'json' };
+import v19 from './snapshots/v19.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -305,5 +306,11 @@ describe('record-cabinet template versions', () => {
         (c.after as { deflection: { computed?: { value: number } } }).deflection.computed?.value,
     );
     expect(sag).toEqual([expect.closeTo(0.0064733, 6), undefined, expect.closeTo(0.0011882, 6)]);
+  });
+
+  // Hand check in template.test.ts: a one-board door panel 1" thick, against t = 3/4, is rabbeted
+  // 3/8 deep on each face, to a 1/4 tongue. Every worked example's door panel is glued up.
+  it('version 19 sizes a one-board door panel’s tongue from its stock, which no example has (#562)', () => {
+    expect(changes(v18, v19)).toEqual([]);
   });
 });

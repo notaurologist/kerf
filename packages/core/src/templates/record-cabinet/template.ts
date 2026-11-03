@@ -24,8 +24,11 @@ export const TEMPLATE_ID = 'record-cabinet';
  * item's notes to its shopping line (#449).
  * Version 17 gives each lumber line its own notes and the boards that hold its pieces when the
  * store has none of its own (#450). No number changes.
+ * Version 19 sizes a door panel's tongue rabbets and its place in the door from the panel's
+ * stock, so a one-board panel thicker than the panel thickness still leaves a tongue as thick as
+ * the groove (#562). The worked examples' panels are glued up, so their output is the same.
  */
-export const TEMPLATE_VERSION = 18;
+export const TEMPLATE_VERSION = 19;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
