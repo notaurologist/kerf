@@ -431,6 +431,10 @@ describe('the corner the views are seen from (#364)', () => {
     expect(container.textContent).toContain(
       'The view from that corner could not be drawn. Offline.',
     );
+    const status = [...container.querySelectorAll('[role="status"]')].find((s) =>
+      s.textContent?.includes('could not be drawn'),
+    );
+    expect(status?.getAttribute('data-tone')).toBe('error');
   });
 
   it('goes back to the front left when the plan changes', async () => {

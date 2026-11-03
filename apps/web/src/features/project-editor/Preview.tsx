@@ -261,7 +261,7 @@ function PreviewStatus(props: { state: PreviewState; isNew: boolean }) {
       );
     case 'rejected':
       return (
-        <Notice>
+        <Notice alert={false}>
           <b>No preview for these values.</b> {state.messages.join(' ')}
         </Notice>
       );

@@ -300,9 +300,13 @@ function useCorner(drawings: Drawings, corners: Parameters<typeof Diagrams>[0]['
     views: current,
     status:
       failure !== null ? (
-        <StatusLine>The view from that corner could not be drawn. {failure}</StatusLine>
+        <StatusLine tone="error">
+          The view from that corner could not be drawn. {failure}
+        </StatusLine>
       ) : asked !== shown ? (
-        <StatusLine>Drawing the view {CORNER_LABELS[asked].toLowerCase()}…</StatusLine>
+        <StatusLine tone="working">
+          Drawing the view {CORNER_LABELS[asked].toLowerCase()}…
+        </StatusLine>
       ) : null,
   };
 }

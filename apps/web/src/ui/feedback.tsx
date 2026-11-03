@@ -139,10 +139,22 @@ export function ExpertCheck(props: { label?: string; children: ReactNode; why?: 
   );
 }
 
-/** A problem that is not about a field, such as a lost connection: what happened and what to do. */
-export function Notice(props: { children: ReactNode; icon?: 'connection' | 'error' }) {
+/**
+ * A problem that is not about a field, such as a lost connection: what happened and what to do.
+ * Announced as an alert, unless `alert` is false for one inside a polite live region that changes
+ * while the owner types.
+ */
+export function Notice(props: {
+  children: ReactNode;
+  icon?: 'connection' | 'error';
+  alert?: boolean;
+}) {
   return (
-    <div className="k-callout" data-tone="notice" role="alert">
+    <div
+      className="k-callout"
+      data-tone="notice"
+      role={props.alert === false ? undefined : 'alert'}
+    >
       <Icon name={props.icon ?? 'error'} />
       <span>{props.children}</span>
     </div>
@@ -219,11 +231,16 @@ export function LiveRegion(props: { children: ReactNode }) {
   return <div aria-live="polite">{props.children}</div>;
 }
 
-/** A line that says what just happened, such as "Saved.", and stays until the next action. */
-export function StatusLine(props: { children: ReactNode }) {
+/**
+ * A line that says what just happened, such as "Saved.", and stays until the next action. The
+ * check mark is for something done; `tone` gives a failure the error icon, and something still
+ * under way no icon.
+ */
+export function StatusLine(props: { children: ReactNode; tone?: 'done' | 'error' | 'working' }) {
+  const tone = props.tone ?? 'done';
   return (
-    <p className="k-status" role="status">
-      <Icon name="done" />
+    <p className="k-status" data-tone={tone} role="status">
+      {tone !== 'working' && <Icon name={tone} />}
       <span>{props.children}</span>
     </p>
   );

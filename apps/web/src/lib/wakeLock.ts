@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 
 /** The parts of the browser this needs, so tests can pass their own. */
 interface Lock {
+  readonly released: boolean;
   release(): Promise<void>;
   addEventListener(type: 'release', listener: () => void): void;
 }
@@ -22,26 +23,39 @@ export function holdWakeLock(host: WakeLockHost): () => void {
   const { wakeLock, document } = host;
   if (!wakeLock) return () => {};
   let lock: Lock | null = null;
+  // One request at a time: a second one out at once would leave its lock held after the mode
+  // closes, since only the last lock is kept to let go.
+  let asking = false;
   let stopped = false;
 
   const request = async () => {
-    if (stopped || lock || document.visibilityState !== 'visible') return;
+    if (stopped || lock || asking || document.visibilityState !== 'visible') return;
+    asking = true;
+    let granted: Lock;
     try {
-      const granted = await wakeLock.request('screen');
-      // Closed while the request was out: let go at once.
-      if (stopped) {
-        void granted.release().catch(() => {});
-        return;
-      }
-      lock = granted;
-      granted.addEventListener('release', () => {
-        if (lock !== granted) return;
-        lock = null;
-        void request();
-      });
+      granted = await wakeLock.request('screen');
     } catch {
       // Refused: the screen sleeps as usual.
+      return;
+    } finally {
+      asking = false;
     }
+    // Closed while the request was out: let go at once.
+    if (stopped) {
+      void granted.release().catch(() => {});
+      return;
+    }
+    // Released before it arrived, as when the page was hidden and shown again meanwhile.
+    if (granted.released) {
+      void request();
+      return;
+    }
+    lock = granted;
+    granted.addEventListener('release', () => {
+      if (lock !== granted) return;
+      lock = null;
+      void request();
+    });
   };
   const onVisibility = () => {
     // Hiding the page releases the lock; ask again when it is shown.

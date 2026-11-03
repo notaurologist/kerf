@@ -51,12 +51,13 @@ export function FieldInput(props: {
     >
       {(c) =>
         field.kind === 'yes-no' ? (
-          <YesNo {...c} value={text} onChange={props.onChange} />
+          <YesNo {...c} value={text} onChange={props.onChange} readOnly={props.readOnly} />
         ) : field.kind === 'choice' ? (
           <Select
             {...c}
             value={text}
             onChange={props.onChange}
+            readOnly={props.readOnly}
             options={(field.options ?? []).map((o) => ({ value: String(o.value), label: o.label }))}
           />
         ) : (

@@ -1,7 +1,17 @@
 import { type BackupHost, useBackup } from '../../lib/backup.ts';
 import { href } from '../../lib/route.ts';
 import { ThemeSwitch } from '../../lib/theme.tsx';
-import { Button, Cluster, Notice, Row, Rows, ScreenHeader, Stack, Text } from '../../ui/index.ts';
+import {
+  Button,
+  Cluster,
+  LiveRegion,
+  Notice,
+  Row,
+  Rows,
+  ScreenHeader,
+  Stack,
+  Text,
+} from '../../ui/index.ts';
 
 // Stage 12's Workshop (#356): what is not one project, out of the way of the plan. The glossary is
 // mostly read from a marked term (#178), so here it is one way in of several.
@@ -52,10 +62,12 @@ export function WorkshopScreen(props: {
               Every project, including deleted ones still in the trash, and your tools, as one file
               to keep.
             </Text>
-            {backup.state === 'preparing' && <Text tone="muted">Preparing the backup…</Text>}
-            {backup.state === 'ready' && (
-              <Text>The backup is ready. Tap Download a backup again to save it.</Text>
-            )}
+            <LiveRegion>
+              {backup.state === 'preparing' && <Text tone="muted">Preparing the backup…</Text>}
+              {backup.state === 'ready' && (
+                <Text>The backup is ready. Tap Download a backup again to save it.</Text>
+              )}
+            </LiveRegion>
             {backup.state === 'failed' && (
               <Notice icon={backup.failure.connection ? 'connection' : 'error'}>
                 {backup.failure.message}

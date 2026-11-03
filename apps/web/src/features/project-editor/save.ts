@@ -25,7 +25,12 @@ export function changesFor(project: Project, edited: Edited) {
   };
 }
 
-/** Saves the changed fields against `revision`; another device's other changes stand. */
+/**
+ * Saves what changed against `revision`. Name and status go on their own, but parameters and
+ * structural inputs each go whole when any value in them changed. So saving over another device's
+ * save keeps its name or status unless this one changed it, and replaces all of its parameters or
+ * structural inputs when this one changed any.
+ */
 export async function save(project: Project, revision: number, edited: Edited) {
   const changes = changesFor(project, edited);
   if (Object.keys(changes).length === 0) return { ok: true as const, value: project };
