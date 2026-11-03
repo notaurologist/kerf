@@ -70,9 +70,9 @@ describe('the form’s layout (#164)', () => {
   });
 
   it('says how much is entered and which parts have empty fields, linking to the first of each', () => {
-    // The worked example's start: 32 fields shown, its 5 hardware fields and 9 structural
-    // inputs left empty (spec, Parameters; rule 3).
-    expect(text).toContain('18 of 32 entered');
+    // The worked example's start: 33 fields shown, its 6 hardware fields (the hanger mounting's
+    // diameter waits for its kind) and 9 structural inputs left empty (spec, Parameters; rule 3).
+    expect(text).toContain('18 of 33 entered');
     expect(text).toContain('Still empty: Beam, Legs, Crossbars, Gussets, Swings, and Loads.');
     expect(html).toContain('href="#s-beamSpeciesGrade"');
     expect(html).toContain('href="#p-hardware.legBoltDiameter"');
@@ -196,8 +196,12 @@ describe('starting a new project (#98)', () => {
     expect(html).toMatch(
       /Leg-to-beam bolt diameter<\/span><span class="k-tag" data-tone="needed">Copied, confirm/,
     );
-    // Every shown hardware field and every entered structural input, and nothing else.
-    const hardware = [...confirmedPaths(sections)].filter((p) => html.includes(`id="p-${p}"`));
+    // Every shown hardware field the earlier plan had, and every entered structural input, and
+    // nothing else. A plan made before the hanger mounting was asked has none to copy.
+    const hardware = [...confirmedPaths(sections)].filter(
+      (p) => html.includes(`id="p-${p}"`) && start.initial.params[p] !== '',
+    );
+    expect(hardware).not.toContain('hardware.hangerMounting.kind');
     const inputs = Object.values(start.initial.inputs).filter((v) => v !== '').length;
     expect(html.match(/class="k-tag" data-tone="needed">Copied, confirm/g)).toHaveLength(
       hardware.length + inputs,
@@ -234,9 +238,21 @@ describe('an existing project in the form', () => {
 });
 
 describe('a structural input with a break-even value (#401)', () => {
-  // A plan made now: the stored fixture predates the break-even factor.
+  // A plan made now: the stored fixture predates the break-even factor, and the hanger mounting,
+  // entered here as the worked example's.
   const [stored] = storedSnapshots;
-  const made = createSnapshot(template, stored?.params, stored?.structuralInputs);
+  const storedParams = stored?.params as { hardware: object };
+  const made = createSnapshot(
+    template,
+    {
+      ...storedParams,
+      hardware: {
+        ...storedParams.hardware,
+        hangerMounting: { kind: 'vertical-bolt', diameter: 0.5 },
+      },
+    },
+    stored?.structuralInputs,
+  );
   if (!made.ok) throw new Error('worked example should generate');
   const complete = JSON.parse(JSON.stringify(made.output));
   const project = projectFrom(complete);
@@ -252,7 +268,7 @@ describe('a structural input with a break-even value (#401)', () => {
     />,
   );
 
-  // The worked example's break-even factors: 1.969, 7.191, and 8.0 (spec, Structural model).
+  // The worked example's break-even factors: 1.645, 7.191, and 8.0 (spec, Structural model).
   it('shows under the dynamic factor where each strength check reaches margin 1.0', () => {
     const id = fieldId('structuralInputs', 'dynamicFactor');
     expect(html).toMatch(new RegExp(`id="${id}"[^>]*aria-describedby="[^"]*${id}-compare`));
@@ -265,7 +281,7 @@ describe('a structural input with a break-even value (#401)', () => {
     const rows = [...table.matchAll(/<tr[^>]*>(.*?)<\/tr>/g)].map((m) => textOf(m[1] ?? ''));
     expect(rows).toEqual([
       'Check Dynamic factor',
-      'Top beam, 4x6, bending 1.9 or less',
+      'Top beam, 4x6, bending 1.6 or less',
       'Top beam, 4x6, shear 7.1 or less',
       'Swing hanger, rated load 8.0 or less',
     ]);

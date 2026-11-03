@@ -1,8 +1,16 @@
 import { z } from 'zod';
 import { referenceRow, type SpeciesGradeId, speciesGrade } from '../design-values/sawnLumber.ts';
 import { type Citation, SOURCE_LINKS } from '../design-values/sources.ts';
-import { maxDeflectionTimesEI, maxMoment, maxShear, reactions, type SpanLoads } from './beam.ts';
+import {
+  maxDeflectionTimesEI,
+  maxMoment,
+  maxShear,
+  momentAt,
+  reactions,
+  type SpanLoads,
+} from './beam.ts';
 import { type AdjustedValues, adjustedValues, type ServiceConditions } from './factors.ts';
+import { netSection, type SectionHole } from './netSection.ts';
 import {
   type BreakEven,
   type CheckKind,
@@ -92,6 +100,22 @@ export interface LoadCase {
   assumptions: string[];
 }
 
+/** A section along the member where a bored hole reduces it. */
+interface HoleSection {
+  /** In the same coordinates as the loads. */
+  x: number;
+  /** Named by the template, such as what the hole is for. */
+  label: string;
+  hole: SectionHole;
+}
+
+/**
+ * The member's bored holes between its supports, which bending checks at their net section
+ * (NDS 2024 3.1.2.1); or why their net section cannot be worked out, which leaves bending not
+ * computed.
+ */
+export type MemberHoles = Needed<HoleSection[]> | { reason: string };
+
 export interface BeamCheckInput {
   member: BeamMember;
   material: Needed<MaterialInput>;
@@ -102,6 +126,8 @@ export interface BeamCheckInput {
   deflection: LoadCase & { limitRatio: Needed<number>; limitKey: string };
   /** The template's assumptions about the member and its supports. */
   assumptions: string[];
+  /** Holes bored through the member. With none, bending uses the gross section. */
+  holes?: MemberHoles;
 }
 
 export const BeamChecks = z.object({
@@ -127,6 +153,7 @@ const SOURCES = {
   deflection: nds('3.5.1, p. 22', SOURCE_LINKS.ndsChapter3),
   apparentE: nds('Appendix F.3.1, p. 181', SOURCE_LINKS.ndsAppendix),
   span: nds('3.2.1, p. 17', SOURCE_LINKS.ndsChapter3),
+  netSection: nds('3.1.2.1, p. 16', SOURCE_LINKS.ndsChapter3),
   pressureTreated: [
     nds('4.3.13, p. 32', SOURCE_LINKS.ndsChapter4),
     nds('Table 2.3.2, footnote 2, p. 13', SOURCE_LINKS.ndsChapter2),
@@ -250,6 +277,32 @@ function materialQuantities(m: MaterialInput, member: BeamMember): Quantity[] | 
 }
 
 export function beamChecks(input: BeamCheckInput): BeamChecks {
+  const result = checksOf(input);
+  const holes = input.holes;
+  if (holes && 'reason' in holes && result.bending.status !== 'not-computed') {
+    const { kind, title, subject, loadCase } = result.bending;
+    return {
+      ...result,
+      bending: {
+        kind,
+        title,
+        subject,
+        loadCase,
+        status: 'not-computed',
+        reason: holes.reason,
+        sources: [SOURCES.netSection],
+      },
+    };
+  }
+  return result;
+}
+
+/** What bending needs from the holes: their sections, when they are still to be entered. */
+function holeNeeds(input: BeamCheckInput): Needed<unknown>[] {
+  return input.holes && 'missing' in input.holes ? [input.holes] : [];
+}
+
+function checksOf(input: BeamCheckInput): BeamChecks {
   const { member } = input;
   const s = input.strength;
   const d = input.deflection;
@@ -271,7 +324,7 @@ export function beamChecks(input: BeamCheckInput): BeamChecks {
       bending: {
         ...h.bending,
         status: 'input-needed',
-        missing: missingFrom(m, ...strengthNeeds(s)),
+        missing: missingFrom(m, ...strengthNeeds(s), ...holeNeeds(input)),
       },
       shear: { ...h.shear, status: 'input-needed', missing: missingFrom(m, ...strengthNeeds(s)) },
       deflection: {
@@ -384,6 +437,27 @@ function factorsFor(adjusted: AdjustedValues, value: 'Fb' | 'Fv' | 'E') {
   return adjusted.factors.filter((f) => f.appliesTo.includes(value));
 }
 
+/**
+ * The net section at each hole between the supports, positioned from the left support, or why
+ * one cannot be worked out.
+ */
+function netSections(
+  input: BeamCheckInput,
+): { a: number; label: string; S: number; steps: Quantity[] }[] | string {
+  const holes = input.holes;
+  if (!holes || !('value' in holes)) return [];
+  const { plyBreadth: b, depth: d, plies, supportsX } = input.member;
+  const [x0, x1] = supportsX;
+  const found: { a: number; label: string; S: number; steps: Quantity[] }[] = [];
+  for (const h of holes.value) {
+    if (h.x <= x0 || h.x >= x1) continue;
+    const net = netSection(b, d, plies, h.hole);
+    if (typeof net === 'string') return `${h.label}: ${net}`;
+    found.push({ a: h.x - x0, label: h.label, ...net });
+  }
+  return found;
+}
+
 function strengthCheck(
   which: 'bending' | 'shear',
   head: ReturnType<typeof header>,
@@ -393,13 +467,18 @@ function strengthCheck(
   assumptions: string[],
 ): CheckResult {
   const lc = input.strength;
-  if (isMissing(lc.loads)) {
-    return { ...head, status: 'input-needed', missing: missingFrom(...strengthNeeds(lc)) };
+  const needs =
+    which === 'bending' ? [...strengthNeeds(lc), ...holeNeeds(input)] : strengthNeeds(lc);
+  if (isMissing(lc.loads) || (which === 'bending' && holeNeeds(input).length > 0)) {
+    return { ...head, status: 'input-needed', missing: missingFrom(...needs) };
   }
   const unfactored = prepare(input.member, lc.loads.value);
   if (typeof unfactored === 'string')
     return { ...head, status: 'not-computed', reason: unfactored, sources: [] };
   const { plyBreadth: b, depth: dd } = input.member;
+  const sections = which === 'bending' ? netSections(input) : [];
+  if (typeof sections === 'string')
+    return { ...head, status: 'not-computed', reason: sections, sources: [SOURCES.netSection] };
   const allowed = which === 'bending' ? adjusted.Fb : adjusted.Fv;
   const factor = lc.factor;
   const atMarginOne =
@@ -409,7 +488,10 @@ function strengthCheck(
       factorAtMarginOne((C) => {
         const loads = scaled(unfactored.plyLoads, C);
         return which === 'bending'
-          ? maxMoment(unfactored.L, loads).M / ((b * dd * dd) / 6)
+          ? Math.max(
+              maxMoment(unfactored.L, loads).M / ((b * dd * dd) / 6),
+              ...sections.map((sec) => momentAt(unfactored.L, loads, sec.a) / sec.S),
+            )
           : (3 * maxShear(unfactored.L, loads)) / (2 * b * dd);
       }, allowed),
     );
@@ -456,7 +538,40 @@ function strengthCheck(
   if (which === 'bending') {
     const { M, x } = maxMoment(L, plyLoads);
     const S = (b * dd * dd) / 6;
-    const fb = M / S;
+    const x0 = input.member.supportsX[0];
+    // Bending at each hole, on its net section (NDS 2024 3.1.2.1).
+    const atHoles = sections.map((sec, i) => {
+      const n = i + 1;
+      const Mh = momentAt(L, plyLoads, sec.a);
+      const fb = Mh / sec.S;
+      return {
+        ...sec,
+        fb,
+        steps: [
+          { symbol: `x_h${n}`, label: `${sec.label}, position`, value: sec.a + x0, unit: 'in' },
+          { symbol: `M_h${n}`, label: `${sec.label}, moment${per}`, value: Mh, unit: 'lb·in' },
+          ...sec.steps.map((q) => ({
+            ...q,
+            symbol: `${q.symbol},${n}`,
+            label: `${sec.label}, ${q.label.charAt(0).toLowerCase()}${q.label.slice(1)}`,
+          })),
+          { symbol: `f_b,${n}`, label: `${sec.label}, bending stress`, value: fb, unit: 'psi' },
+        ],
+      };
+    });
+    const gross = { fb: M / S, label: 'Bending stress', x: x + x0 };
+    const governing = atHoles.reduce(
+      (worst, h) =>
+        h.fb > worst.fb
+          ? {
+              fb: h.fb,
+              label: `Bending stress at ${h.label.charAt(0).toLowerCase()}${h.label.slice(1)}, net section`,
+              x: h.a + x0,
+            }
+          : worst,
+      gross,
+    );
+    const holed = atHoles.length > 0;
     const result: ComputedCheck = {
       ...common,
       formulas: [
@@ -466,6 +581,12 @@ function strengthCheck(
         'M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign',
         'S = b·d² / 6',
         'f_b = M / S',
+        ...(holed
+          ? [
+              'At each hole, S_net is the section modulus of the gross section less the hole, and f_b = M(x) / S_net there',
+              'f_b = the largest of these',
+            ]
+          : []),
         "Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r",
         "margin = Fb' / f_b",
       ],
@@ -478,20 +599,37 @@ function strengthCheck(
         {
           symbol: 'x_M',
           label: `Position of largest moment${per}`,
-          value: x + input.member.supportsX[0],
+          value: x + x0,
           unit: 'in',
         },
+        ...(holed
+          ? [
+              {
+                symbol: 'f_b,M',
+                label: 'Bending stress at the largest moment, M / S',
+                value: gross.fb,
+                unit: 'psi',
+              },
+              ...atHoles.flatMap((h) => h.steps),
+              {
+                symbol: 'x_f',
+                label: 'Position of the largest bending stress',
+                value: governing.x,
+                unit: 'in',
+              },
+            ]
+          : []),
       ],
       factors: factorsFor(adjusted, 'Fb'),
-      sources: [...SOURCES.superposition, SOURCES.bending],
-      computed: { symbol: 'f_b', label: 'Bending stress', value: fb, unit: 'psi' },
+      sources: [...SOURCES.superposition, SOURCES.bending, ...(holed ? [SOURCES.netSection] : [])],
+      computed: { symbol: 'f_b', label: governing.label, value: governing.fb, unit: 'psi' },
       allowable: {
         symbol: "Fb'",
         label: 'Adjusted bending design value',
         value: adjusted.Fb,
         unit: 'psi',
       },
-      margin: adjusted.Fb / fb,
+      margin: adjusted.Fb / governing.fb,
     };
     return result;
   }

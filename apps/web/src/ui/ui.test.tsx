@@ -1290,7 +1290,7 @@ describe('the catalog', () => {
 
   it("uses the worked example's values, formatted by core", () => {
     expect(text).toContain('131-1/2"');
-    expect(text).toContain('margin 1.0x under these assumptions');
+    expect(text).toContain('margin 0.8x under these assumptions');
     expect(text).toContain(`Beam height must be from 5' 0" to 12' 0".`);
   });
 

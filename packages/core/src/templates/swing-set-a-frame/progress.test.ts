@@ -40,6 +40,7 @@ describe('progress items for the worked example', () => {
       'lumber/2x8/8',
       'hardware/1/2" × 10" through-bolt',
       'hardware/1/2" × 6" through-bolt',
+      'hardware/1/2" through-bolt, grip 5-1/2"',
       'hardware/1/2" flat washers',
       'hardware/1/2" locking nuts',
       'hardware/1/2" bolt caps',
@@ -75,6 +76,7 @@ describe('progress items for the worked example', () => {
       'treat-cuts',
       'site',
       'frames',
+      'hanger-holes',
       'beam',
     ]);
     // Expert checks by category and what to ask, which carries the design's numbers.
