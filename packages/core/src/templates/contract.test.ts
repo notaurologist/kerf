@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { solid } from '../geometry/solid.ts';
-import { describeBasis } from '../model/questions.ts';
+import { buildFromForm, confirmedPaths } from '../model/form.ts';
+import { describeBasis, needsConfirming, suggestedValues } from '../model/questions.ts';
+import { exampleStart } from '../model/start.ts';
+import {
+  confirmSuggested,
+  type SuggestedValue,
+  suggestedFor,
+  suggestionsUsed,
+  withSuggested,
+} from '../model/suggested.ts';
 import { ChecklistItem, Flag } from '../model/types.ts';
 import { LumberPlan } from '../outputs/shoppingList.ts';
 import { leaveOutDefaults } from '../snapshot/defaults.ts';
@@ -273,4 +282,126 @@ describe('every template stays readable (decision 0014)', () => {
       }
     },
   );
+});
+
+type Template = (typeof TEMPLATES)[number];
+
+/**
+ * A project created from each answer set of the template's questions, as the server creates one
+ * when the form is left as suggested: the suggestions, with the first worked example's structural
+ * inputs filling in those Kerf does not suggest, so the checks compute. Answer sets whose
+ * suggestions do not make a plan, such as a yard too small for any frame, are left out.
+ */
+function fromQuestions(t: Template) {
+  const questions = t.questions;
+  if (!questions) return [];
+  return questions.examples.flatMap((answers) => {
+    const suggestions = questions.suggest(answers);
+    const text = suggestedValues(t.form, suggestions);
+    const params = buildFromForm(t.form.params, text.params);
+    const structuralInputs = {
+      ...(t.examples[0]?.structuralInputs as object),
+      ...buildFromForm(t.form.structuralInputs, text.inputs),
+    };
+    const found = suggestedFor(t, answers, params, structuralInputs);
+    if (!found.ok) throw new Error(JSON.stringify(found.issues));
+    const made = createSnapshot(t, params, structuralInputs, found.suggested);
+    if (!made.ok) return [];
+    const outputs = t.storedOutputs.parse(asJson(made.output.outputs));
+    return [{ suggestions, snapshot: made.output, plan: t.plan(outputs) }];
+  });
+}
+
+/** Every quantity in the computed checks and estimates, with the result it belongs to. */
+function workings(plan: ReturnType<Template['plan']>) {
+  return [...plan.checks, ...plan.movement].flatMap((r) =>
+    r.status === 'computed'
+      ? ('steps' in r ? [...r.inputs, ...r.steps] : r.inputs).map((q) => ({ r, q }))
+      : [],
+  );
+}
+
+const withQuestions = TEMPLATES.filter((t) => t.questions).map((t) => [t.id, t] as const);
+
+describe('every template keeps suggested values unconfirmed until the owner confirms them (#417)', () => {
+  it.each(withQuestions)('%s: makes a plan from its questions', (_, t) => {
+    expect(fromQuestions(t).length).toBeGreaterThan(0);
+  });
+
+  it.each(withQuestions)('%s: stores each suggestion unconfirmed, with its basis', (_, t) => {
+    for (const { suggestions, snapshot } of fromQuestions(t)) {
+      const expected: SuggestedValue[] = suggestions
+        .filter((s) => s.value !== null && needsConfirming(t.form, s))
+        .map(({ from, path, basis }) => ({ from, path, basis, confirmed: false }));
+      expect(expected.length).toBeGreaterThan(0);
+      expect(snapshot.suggested).toEqual(expected);
+    }
+  });
+
+  it.each(withQuestions)('%s: never calls an unconfirmed suggestion entered', (_, t) => {
+    let labeled = 0;
+    for (const { snapshot, plan } of fromQuestions(t)) {
+      const shown = withSuggested(plan, snapshot.suggested);
+      for (const { r, q } of workings(shown)) {
+        const s = snapshot.suggested.find(
+          (v) => v.from === 'structuralInputs' && v.path === q.input,
+        );
+        if (!s) continue;
+        labeled += 1;
+        expect(q.basis).not.toMatch(/entered/i);
+        expect(q.basis).toContain('not confirmed yet');
+        expect(q.basis).toContain(describeBasis(s.basis));
+        expect(suggestionsUsed(r, snapshot.suggested)).toContain(s);
+      }
+    }
+    expect(labeled).toBeGreaterThan(0);
+  });
+
+  it.each(withQuestions)('%s: reports each as confirmed after its tick', (_, t) => {
+    for (const { snapshot, plan } of fromQuestions(t)) {
+      const ticked = confirmSuggested(
+        snapshot.suggested,
+        snapshot.suggested.map(({ from, path }) => ({ from, path, confirmed: true })),
+      );
+      if (!ticked.ok) throw new Error(JSON.stringify(ticked.unknown));
+      expect(ticked.suggested.every((s) => s.confirmed)).toBe(true);
+      const shown = withSuggested(plan, ticked.suggested);
+      for (const { q } of workings(shown)) {
+        if (ticked.suggested.some((s) => s.from === 'structuralInputs' && s.path === q.input)) {
+          expect(q.basis).toContain('confirmed by you');
+        }
+      }
+      // Where a value came from changes no number.
+      expect(asJson(shown.checks.map((c) => c.status === 'computed' && c.margin))).toEqual(
+        asJson(plan.checks.map((c) => c.status === 'computed' && c.margin)),
+      );
+    }
+  });
+});
+
+describe('every template leaves structural inputs to the owner (hard rule 3)', () => {
+  it.each(examples)('%s, %s: computes nothing with no structural inputs', (_, __, t, e) => {
+    const made = createSnapshot(t, e.params, {});
+    if (!made.ok) throw new Error(JSON.stringify(made.issues));
+    const plan = t.plan(t.storedOutputs.parse(asJson(made.output.outputs)));
+    const results = [...plan.checks, ...plan.movement];
+    // A check with no design values for its lumber is not computed whatever is entered.
+    expect(results.filter((r) => r.status === 'computed')).toEqual([]);
+    expect(results.some((r) => r.status === 'input-needed')).toBe(true);
+  });
+
+  it.each(examples)('%s, %s: a start from it fills no input or confirmed value', (_, __, t, e) => {
+    const start = exampleStart(t, t.examples.indexOf(e));
+    if (!e.start) {
+      expect(start).toBeNull();
+      return;
+    }
+    if (!start) throw new Error('no start');
+    expect(Object.values(start.inputs).filter((text) => text !== '')).toEqual([]);
+    const confirmed = confirmedPaths(t.form.params);
+    expect(Object.entries(start.params).filter(([p, v]) => confirmed.has(p) && v !== '')).toEqual(
+      [],
+    );
+    expect(Object.values(start.params).some((text) => text !== '')).toBe(true);
+  });
 });

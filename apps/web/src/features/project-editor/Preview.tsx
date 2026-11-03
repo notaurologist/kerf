@@ -4,6 +4,7 @@ import {
   entryProblems,
   type FormValues,
   type Plan,
+  type SuggestedValue,
   structural,
   type TemplateDefinition,
 } from '@kerf/core';
@@ -113,6 +114,8 @@ export function usePreview(
   inputs: FormValues,
   /** Asks for nothing, such as while the saved plan cannot be read. */
   off = false,
+  /** A new project's starting answers, so its preview says which values are suggestions. */
+  answers?: unknown,
 ): PreviewState {
   const request: PreviewRequest = off
     ? { kind: 'saved' }
@@ -129,7 +132,9 @@ export function usePreview(
       const result = await send(
         project
           ? api.api.projects[':id'].preview.$post({ param: { id: project.id }, json: request.body })
-          : api.api.projects.preview.$post({ json: { templateId: template.id, ...request.body } }),
+          : api.api.projects.preview.$post({
+              json: { templateId: template.id, ...request.body, answers },
+            }),
       );
       if (!isLatest()) return;
       setState(previewState(template.id, result));
@@ -140,7 +145,7 @@ export function usePreview(
 }
 
 type PreviewResult = ApiResult<{
-  snapshot: { outputs: unknown };
+  snapshot: { outputs: unknown; suggested?: readonly SuggestedValue[] };
   changes: Change[];
   truncated: boolean;
 }>;
@@ -152,7 +157,7 @@ export function previewState(templateId: string, result: PreviewResult): Preview
       ? { kind: 'rejected', messages: result.error.issues.map((i) => i.message) }
       : { kind: 'failed', failure: failureOf(result.error) };
   }
-  const plan = planOf(templateId, result.value.snapshot.outputs);
+  const plan = planOf(templateId, result.value.snapshot.outputs, result.value.snapshot.suggested);
   if (!plan.ok) return { kind: 'failed', failure: { message: plan.message, connection: false } };
   return {
     kind: 'ready',

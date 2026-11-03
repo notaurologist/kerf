@@ -25,6 +25,7 @@ function shelf(species: string, span: number, over: Partial<ClearWoodDeflectionI
       working: [],
       assumptions: [],
       limitRatio: { value: 144 },
+      limitKey: 'deflectionLimit',
     },
     assumptions: [],
     ...over,
@@ -81,6 +82,7 @@ describe('clearWoodChecks', () => {
         working: [],
         assumptions: [],
         limitRatio: { value: 144 },
+        limitKey: 'deflectionLimit',
       },
     });
     expect(deflection(noLongTerm).total).toBeCloseTo(5_529_600 / 261_495_000, 12);
@@ -117,6 +119,7 @@ describe('clearWoodChecks', () => {
         working: [],
         assumptions: [],
         limitRatio: { value: 144 },
+        limitKey: 'deflectionLimit',
       },
     });
     expect(checks.deflection.status).toBe('not-computed');

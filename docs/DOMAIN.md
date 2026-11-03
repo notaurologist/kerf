@@ -120,7 +120,7 @@ Generic categories; each template lists the specific items for its design.
 
 ### Inputs
 
-Generic inputs, entered or confirmed by the user, never defaulted:
+Generic inputs, entered or confirmed by the user, never defaulted. A template may suggest one from a named source or a stated rule of thumb; the project stores it with its basis, and it stays a suggestion until the user ticks it in the structural review or changes it. A result computed with one not yet confirmed still shows its margin, labeled as using a suggested value, with the basis (hard rule 3, #417):
 
 - Species and grade of each structural member (determines design values), and whether the lumber is incised (NDS 4.3.8; pressure-treated lumber sometimes is).
 - Hardware rated loads, from manufacturer specifications.

@@ -12,7 +12,11 @@ import type { Allowances } from './structural.ts';
 // parts in cut-list order, placements, operations, and hardware. Pure.
 
 export const TEMPLATE_ID = 'record-cabinet';
-export const TEMPLATE_VERSION = 12;
+/**
+ * Version 13 names the structural input behind each entered quantity in the working, so a
+ * suggested value can say so (#417); no number changes.
+ */
+export const TEMPLATE_VERSION = 13;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,

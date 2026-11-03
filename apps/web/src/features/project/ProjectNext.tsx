@@ -6,8 +6,8 @@ import type { Project } from '../../lib/types.ts';
 import { Text } from '../../ui/index.ts';
 
 // The project header's line of what is next (#356), on every section: the next build step, the
-// structural inputs still needed, and the expert checks not yet asked (#393), each a way to where it
-// is dealt with.
+// structural inputs still needed, the suggested values not yet confirmed (#417), and the expert
+// checks not yet asked (#393), each a way to where it is dealt with.
 
 /** The structural inputs the plan's checks and estimates are waiting for, each counted once. */
 export function inputsNeeded(plan: Pick<Plan, 'checks' | 'movement'>): number {
@@ -33,12 +33,18 @@ export function ProjectNext(props: {
   const { nextStep, steps } = summarizeProgress(plan, props.steps, ticked);
   const inputs = inputsNeeded(plan);
   const flags = summarizeReview(plan, ticked).flags.open;
+  const toConfirm = (project.snapshot?.suggested ?? []).filter((s) => !s.confirmed).length;
   const parts = [
     nextStep && <span key="step">Next: {nextStep.title}</span>,
     !nextStep && steps.total > 0 && <span key="step">Every step done</span>,
     inputs > 0 && (
       <a key="inputs" href={props.reviewHref}>
         {count(inputs, 'input needed', 'inputs needed')}
+      </a>
+    ),
+    toConfirm > 0 && (
+      <a key="suggested" href={props.reviewHref}>
+        {count(toConfirm, 'suggested value to confirm', 'suggested values to confirm')}
       </a>
     ),
     flags > 0 && (

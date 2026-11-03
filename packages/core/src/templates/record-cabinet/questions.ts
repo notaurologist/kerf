@@ -9,8 +9,9 @@ import { RecordCabinetParams } from './params.ts';
 // the cabinet stands under, and the largest item on the top (#331). The height and width follow the
 // owner's choices for this cabinet; the rest of the case comes from the worked example. The board
 // stock, allowances, and joint sizes come from a standard and rules of thumb (#317). The moisture
-// range and deflection limit are suggested from their sources for the owner to check; the other
-// structural inputs are left for the owner (hard rule 3).
+// range and deflection limit are suggested from their sources, and stay unconfirmed until the owner
+// ticks them in the structural review or changes them (#417); the other structural inputs are left
+// for the owner (hard rule 3).
 
 const range = (key: 'width') => {
   const field = RecordCabinetParams.shape[key];

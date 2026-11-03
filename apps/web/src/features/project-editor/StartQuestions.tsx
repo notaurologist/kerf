@@ -41,6 +41,8 @@ export interface FromAnswers {
   params: FormValues;
   inputs: FormValues;
   about: ReadonlyMap<string, SuggestedField>;
+  /** The answers the suggestions came from, which Create sends (#417). */
+  answers: unknown;
 }
 
 /**
@@ -93,8 +95,9 @@ export function StartQuestions(props: {
         <Stack gap="xs">
           <Text>
             Filled in from your answers. Each suggested value says where it came from; change any of
-            them. Check any structural input suggested from a source; hardware and the other
-            structural inputs are yours to enter.
+            them. A suggested structural input or bolt size stays a suggestion until you confirm it
+            in the structural review or change it. The structural inputs Kerf does not suggest are
+            yours to enter.
           </Text>
           <Cluster>
             {/* The editor's draft holds the gate while it has changes, so this asks first. */}
@@ -125,7 +128,10 @@ export function StartQuestions(props: {
     setAsking(false);
     if (result.ok) {
       report(NO_ISSUES, false);
-      setSuggested(suggestedValues(template.form, result.value.suggestions));
+      setSuggested({
+        ...suggestedValues(template.form, result.value.suggestions),
+        answers: checked.answers,
+      });
     } else if (result.error.kind === 'invalid') {
       const issues = result.error.issues.map((i) => ({
         ...i,

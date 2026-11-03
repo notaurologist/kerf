@@ -134,6 +134,7 @@ function swingLoads(riderWeights: [number, number], maxSwingAngle: number): Swin
         value: riderWeights[0],
         unit: 'lb',
         basis: 'Entered',
+        input: 'riderWeights.0',
       },
       {
         symbol: 'W2',
@@ -141,6 +142,7 @@ function swingLoads(riderWeights: [number, number], maxSwingAngle: number): Swin
         value: riderWeights[1],
         unit: 'lb',
         basis: 'Entered',
+        input: 'riderWeights.1',
       },
       {
         symbol: 'θ',
@@ -148,6 +150,7 @@ function swingLoads(riderWeights: [number, number], maxSwingAngle: number): Swin
         value: maxSwingAngle,
         unit: '°',
         basis: 'Entered',
+        input: 'maxSwingAngle',
       },
       {
         symbol: '3 − 2·cos θ',
@@ -266,6 +269,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
           value: v.beamMoistureContent,
           unit: '%',
           basis: 'Entered',
+          input: 'beamMoistureContent',
         },
         {
           symbol: 'G',
@@ -306,7 +310,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
       "The dynamic factor covers snap loads from slack chains, which exceed the smooth pendulum load. It is not applied to the beam's own weight.",
     ],
   };
-  const deflection: LoadCase & { limitRatio: Needed<number> } = {
+  const deflection: LoadCase & { limitRatio: Needed<number>; limitKey: string } = {
     name: LOAD_CASES.deflection,
     loads: mapNeeded(swingBeam, ({ points, uniform }) => ({ points, uniform })),
     working: 'value' in swingBeam ? swingBeam.value.working : [],
@@ -318,6 +322,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
       need(inputs, STRUCTURAL_INPUT_LABELS, 'deflectionLimit'),
       (v) => v.deflectionLimit,
     ),
+    limitKey: 'deflectionLimit',
   };
 
   const beamResult = beamChecks({
@@ -388,7 +393,7 @@ function checklist(output: SwingSetOutput): ChecklistItem[] {
       element: 'Leg-to-beam bolt and gusset, each frame',
       partIds: [...LEG_IDS, 'beam', 'gusset'],
       hardwareIds: ['leg-beam-bolts', 'gusset-bolts'],
-      confirm: `Bolt size (${formatLength(h.legBoltDiameter)} entered, ${formatLength(g.boltGrip)} grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.`,
+      confirm: `Bolt size (${formatLength(h.legBoltDiameter)}, ${formatLength(g.boltGrip)} grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.`,
       why: 'Each frame carries half of every swing load into the legs through this joint; connections are not computed.',
     },
     {

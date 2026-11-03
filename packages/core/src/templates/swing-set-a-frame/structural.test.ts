@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { type SuggestedValue, withSuggested } from '../../model/suggested.ts';
+import { createSnapshot } from '../../snapshot/snapshot.ts';
 import type { CheckResult, ComputedCheck } from '../../structural/types.ts';
 import { VERDICT_WORDS } from '../../testing.ts';
+import { swingSetAFrame } from './definition.ts';
 import type { SwingSetParams } from './params.ts';
+import { suggest } from './questions.ts';
 import { pendulumFactor, type SwingSetStructuralReview, structuralReview } from './structural.ts';
 import { generate, type SwingSetOutput } from './template.ts';
 
@@ -298,5 +302,58 @@ describe('wording', () => {
   it('never says safe, unsafe, pass, or fail', () => {
     const text = JSON.stringify([review(params, inputs), review(twoPly, {})]);
     expect(text).not.toMatch(VERDICT_WORDS);
+  });
+});
+
+describe('example 1 with suggested inputs (#417)', () => {
+  // The same values as example 1, with the deflection limit and moisture content suggested from
+  // their sources: L/240 = 92.5 / 240 = 0.385417", against δ = 0.123284", margin 3.12625, whether
+  // the 240 was entered, suggested, or suggested and confirmed.
+  const { deflectionLimit: _, beamMoistureContent: __, ...rest } = inputs;
+  const suggested = suggest({
+    riders: 'kids-and-adults',
+    riderWeights: [150, 150],
+    area: { length: 360, depth: 480 },
+    ground: { kind: 'level' },
+    feet: 'buried',
+  }).filter((s) => s.path === 'deflectionLimit' || s.path === 'beamMoistureContent');
+  const values = Object.fromEntries(suggested.map((s) => [s.path, s.value]));
+  const plan = (as: SuggestedValue[]) => {
+    const made = createSnapshot(swingSetAFrame, params, { ...rest, ...values }, as);
+    if (!made.ok) throw new Error(JSON.stringify(made.issues));
+    const outputs = swingSetAFrame.storedOutputs.parse(
+      JSON.parse(JSON.stringify(made.output.outputs)),
+    );
+    return withSuggested(swingSetAFrame.plan(outputs), made.output.suggested);
+  };
+  const as = (confirmed: boolean): SuggestedValue[] =>
+    suggested.map(({ from, path, basis }) => ({ from, path, basis, confirmed }));
+  const deflection = (p: ReturnType<typeof plan>) => {
+    const d = p.checks.find((c) => c.kind === 'beam-deflection');
+    if (d?.status !== 'computed') throw new Error('no deflection');
+    return d;
+  };
+
+  it('suggests 240 and 30%, the values example 1 enters', () => {
+    expect(values).toEqual({ deflectionLimit: 240, beamMoistureContent: 30 });
+  });
+
+  it('gives margin 3.13 entered, suggested, and confirmed', () => {
+    for (const p of [plan([]), plan(as(false)), plan(as(true))]) {
+      const d = deflection(p);
+      expect(d.allowable.value).toBeCloseTo(0.385417, 5);
+      expect(d.computed.value).toBeCloseTo(0.123284, 5);
+      expect(d.margin).toBeCloseTo(3.12625, 4);
+    }
+  });
+
+  it('says where the limit came from', () => {
+    const limit = (p: ReturnType<typeof plan>) =>
+      deflection(p).inputs.find((q) => q.input === 'deflectionLimit')?.basis;
+    expect(limit(plan([]))).toBe('Entered');
+    expect(limit(plan(as(false)))).toMatch(
+      /^Suggested by Kerf, not confirmed yet\. Source: International Building Code \(2021\), Table 1604\.3/,
+    );
+    expect(limit(plan(as(true)))).toMatch(/^Suggested by Kerf, confirmed by you\. Source: /);
   });
 });
