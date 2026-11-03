@@ -47,6 +47,11 @@ describe('toSixteenths', () => {
     expect(toSixteenths(10 + 5 / 32)).toBe(163);
   });
 
+  it('rounds a value within float error of a half up, as the exact value', () => {
+    expect(toSixteenths(13.031249999999998)).toBe(209);
+    expect(toSixteenths(13.0312)).toBe(208);
+  });
+
   it('rejects negative and non-finite lengths', () => {
     expect(() => toSixteenths(-0.01)).toThrow(RangeError);
     expect(() => toSixteenths(Number.NaN)).toThrow(RangeError);

@@ -45,4 +45,12 @@ describe('formatAngle', () => {
   ])('%s shows as %s', (degrees, text) => {
     expect(formatAngle(degrees)).toBe(text);
   });
+
+  it('rounds a value within float error of a half step as the exact value', () => {
+    // 17.25° back from its tangent is 17.249999999999996.
+    const roundTrip = (Math.atan(Math.tan((17.25 * Math.PI) / 180)) * 180) / Math.PI;
+    expect(roundTrip).not.toBe(17.25);
+    expect(formatAngle(roundTrip)).toBe('17.3°');
+    expect(formatAngle(17.2499)).toBe('17.2°');
+  });
 });
