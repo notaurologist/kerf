@@ -4,7 +4,7 @@ import { ChecklistItem, Flag } from '../../model/types.ts';
 import { MovementResult, RingOrientation, woodMovement } from '../../movement/movement.ts';
 import { BeamChecks } from '../../structural/checks.ts';
 import { clearWoodChecks } from '../../structural/clearWood.ts';
-import type { MissingInput, Needed, Quantity } from '../../structural/types.ts';
+import { mapNeeded, type Needed, need, type Quantity } from '../../structural/types.ts';
 import { formatLength } from '../../units/length.ts';
 import type { CabinetGeometry } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
@@ -44,15 +44,6 @@ export const STRUCTURAL_INPUT_LABELS = {
 } as const satisfies Record<keyof RecordCabinetStructuralInputs, string>;
 
 type Inputs = RecordCabinetStructuralInputs;
-
-function need<K extends keyof Inputs>(inputs: Inputs, key: K): Needed<NonNullable<Inputs[K]>> {
-  const value = inputs[key];
-  if (value === undefined) {
-    const missing: MissingInput[] = [{ key, label: STRUCTURAL_INPUT_LABELS[key] }];
-    return { missing };
-  }
-  return { value: value as NonNullable<Inputs[K]> };
-}
 
 /** How much longer each slot under the case bottom is than its round hole, and why (#338). */
 interface Slot {
@@ -152,8 +143,11 @@ export function structuralReview(
   const t = p.panelThickness;
   // Each span between the centerlines of the panels on either side (spec, Structural model).
   const span = g.bayWidth + t;
-  const species = need(inputs, 'species');
-  const limitRatio = need(inputs, 'deflectionLimit');
+  const species = mapNeeded(need(inputs, STRUCTURAL_INPUT_LABELS, 'species'), (v) => v.species);
+  const limitRatio = mapNeeded(
+    need(inputs, STRUCTURAL_INPUT_LABELS, 'deflectionLimit'),
+    (v) => v.deflectionLimit,
+  );
   const spanWorking: Quantity = {
     symbol: 'L',
     label: 'Span, between the centerlines of the panels on either side',
@@ -161,8 +155,11 @@ export function structuralReview(
     unit: 'in',
     basis: 'b + t, from the template geometry',
   };
-  const records = need(inputs, 'recordLoad');
-  const topLoad = need(inputs, 'topLoad');
+  const records = mapNeeded(
+    need(inputs, STRUCTURAL_INPUT_LABELS, 'recordLoad'),
+    (v) => v.recordLoad,
+  );
+  const topLoad = mapNeeded(need(inputs, STRUCTURAL_INPUT_LABELS, 'topLoad'), (v) => v.topLoad);
   // Each front and back apron between the legs (spec, The Shaker-modern base), carrying half of
   // the records along every bay and everything on the top, spread along it.
   const L = g.caseWidth - 2 * p.legStock.size;
@@ -247,11 +244,18 @@ export function structuralReview(
       },
       assumptions: [],
     });
-  const top = onTop('Top', need(inputs, 'topLoad'), 'Everything on the top');
+  const top = onTop(
+    'Top',
+    mapNeeded(need(inputs, STRUCTURAL_INPUT_LABELS, 'topLoad'), (v) => v.topLoad),
+    'Everything on the top',
+  );
 
   // Wood movement across each part's grain (#284): its width is what moves.
-  const orientation = need(inputs, 'orientation');
-  const moisture = need(inputs, 'moisture');
+  const orientation = mapNeeded(
+    need(inputs, STRUCTURAL_INPUT_LABELS, 'orientation'),
+    (v) => v.orientation,
+  );
+  const moisture = mapNeeded(need(inputs, STRUCTURAL_INPUT_LABELS, 'moisture'), (v) => v.moisture);
   const moves = (subject: string, width: number) =>
     woodMovement({ subject, width, species, orientation, moisture });
   const movement = [

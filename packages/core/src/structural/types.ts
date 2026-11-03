@@ -21,6 +21,23 @@ export function isMissing<T>(n: Needed<T>): n is { missing: MissingInput[] } {
   return 'missing' in n;
 }
 
+/** The entered inputs `keys` names, or each one not entered with its label. */
+export function need<I extends object, K extends keyof I & string>(
+  inputs: I,
+  labels: Readonly<Record<keyof I, string>>,
+  ...keys: K[]
+): Needed<{ [P in K]: NonNullable<I[P]> }> {
+  const missing: MissingInput[] = keys
+    .filter((k) => inputs[k] === undefined)
+    .map((k) => ({ key: k, label: labels[k] }));
+  if (missing.length > 0) return { missing };
+  return { value: inputs as { [P in K]: NonNullable<I[P]> } };
+}
+
+export function mapNeeded<T, U>(n: Needed<T>, f: (value: T) => U): Needed<U> {
+  return 'value' in n ? { value: f(n.value) } : n;
+}
+
 /** A named number in the working, with where it came from. */
 export const Quantity = z.object({
   symbol: z.string(),
