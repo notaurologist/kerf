@@ -34,8 +34,8 @@ export const BOARD_GUIDES = [
     title: 'Every board that carries load',
     checks: [
       {
-        look: 'Read the grade stamp. Confirm the species and grade match what you entered for the structural checks.',
-        why: 'The structural checks use the design values for that species and grade.',
+        look: 'Read the grade stamp. Confirm the species and grade match what you entered for the structural checks. If the stamp names a species or grade the structural inputs do not list, choose another board, or ask an experienced builder whether this one will do.',
+        why: 'The structural checks use the design values for that species and grade, and have none for a species or grade they do not list.',
         sources: [],
       },
       {

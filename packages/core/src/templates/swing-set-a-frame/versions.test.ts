@@ -25,6 +25,7 @@ import v20 from './snapshots/v20.json' with { type: 'json' };
 import v21 from './snapshots/v21.json' with { type: 'json' };
 import v22 from './snapshots/v22.json' with { type: 'json' };
 import v23 from './snapshots/v23.json' with { type: 'json' };
+import v24 from './snapshots/v24.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -73,6 +74,15 @@ const isVersion23 = (c: { path: string }) =>
 const isVersion24 = (c: { path: string }) =>
   /^design\.hardware\[\d+\]\.bolt\.fits$/.test(c.path) || /^hardware\[\d+\]\.bolt$/.test(c.path);
 
+/**
+ * Version 25's changes (#450): each lumber line's notes and what else to buy, and the note about a
+ * shorter board taken out of the list's notes, since it moved to its line. Set aside like 20's.
+ */
+const isVersion25 = (c: { path: string; before?: unknown }) =>
+  /^lumber\.lines\[\d+\]\.(notes|alternatives)\[\d+\]$/.test(c.path) ||
+  (/^lumber\.notes\[\d+\]$/.test(c.path) &&
+    String(c.before).includes(' to leave room for trimming'));
+
 /** What regenerating with the current version changes in the stored outputs, field by field. */
 function regenerated(
   snapshot: ProjectSnapshot,
@@ -80,6 +90,7 @@ function regenerated(
   keepVersion22 = false,
   keepVersion23 = false,
   keepVersion24 = false,
+  keepVersion25 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -93,7 +104,8 @@ function regenerated(
         !isVersion20(c) &&
         (keepVersion22 || !isVersion22(c)) &&
         (keepVersion23 || !isVersion23(c)) &&
-        (keepVersion24 || !isVersion24(c)),
+        (keepVersion24 || !isVersion24(c)) &&
+        (keepVersion25 || !isVersion25(c)),
     ),
   };
   return keepVersion18
@@ -575,7 +587,7 @@ describe('swing-set template versions', () => {
       const json = (value: unknown) => JSON.parse(JSON.stringify(value));
       const outputs = template.storedOutputs.parse(current.output.outputs);
       const changes = diff(json(read.snapshot.outputs), json(outputs), 1000).changes.filter(
-        (c) => !isVersion22(c) && !isVersion23(c) && !isVersion24(c),
+        (c) => !isVersion22(c) && !isVersion23(c) && !isVersion24(c) && !isVersion25(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -657,5 +669,33 @@ describe('swing-set template versions', () => {
       fits: { min: expect.closeTo(9.82, 3), max: expect.closeTo(10.32, 3) },
       items: ['leg-beam-bolts'],
     });
+  });
+
+  // Hand check in lists.test.ts: the worked example's beam fits a 10' board that measures
+  // 121-1/8", or a 14', or a 4x8 beam; its legs a 14'; its crossbars two 8's or a 12'; its
+  // gussets a 10'.
+  it('version 25 moves the shorter-board note to its line and adds what else to buy (#450)', () => {
+    for (const stored of v24) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(24);
+      const { changes } = regenerated(read.snapshot, false, false, false, false, true);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion25(c))).toEqual([]);
+      // The note moves whole: the same text, now on its line.
+      const removed = changes.filter((c) => c.path.startsWith('lumber.notes'));
+      const added = changes.filter((c) => /^lumber\.lines\[\d+\]\.notes/.test(c.path));
+      expect(added.map((c) => c.after)).toEqual(removed.map((c) => c.before));
+    }
+    const first = readSnapshot([template], v24[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const beam = regenerated(first.snapshot, false, false, false, false, true).changes.filter((c) =>
+      c.path.startsWith('lumber.lines[0].alternatives'),
+    );
+    expect(beam.map((c) => c.after)).toEqual([
+      { kind: 'measured', feet: 10, count: 1, atLeast: 121.125 },
+      { kind: 'lengths', boards: [{ feet: 14, count: 1 }] },
+      expect.objectContaining({ kind: 'stock', name: 'Beam', field: 'beamStock', nominal: '4x8' }),
+    ]);
   });
 });

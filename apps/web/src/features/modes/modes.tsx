@@ -1,5 +1,7 @@
 import {
+  describeLumberAlternative,
   formatBoardLength,
+  type LumberAlternative,
   readingsBesideHardware,
   readingsBesideLumber,
   type ShoppingGroup,
@@ -8,6 +10,7 @@ import {
 } from '@kerf/core';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { type DrawingsState, useDrawings } from '../../lib/drawings.ts';
+import { fieldId } from '../../lib/fieldIds.ts';
 import { takeFlashText } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
@@ -179,6 +182,14 @@ export function ModeView(props: {
                   {'description' in line && line.notes.length > 0 && (
                     <PlainList gap="xs" items={line.notes} terms />
                   )}
+                  {'nominal' in line && line.notes.length > 0 && (
+                    <PlainList gap="xs" items={line.notes} terms />
+                  )}
+                  {'nominal' in line && line.alternatives.length > 0 && (
+                    <Disclosure summary="Not in stock?">
+                      <NotInStock line={line} editHref={(path) => editHref(project, path)} />
+                    </Disclosure>
+                  )}
                   {'nominal' in line && (
                     <Disclosure
                       summary={
@@ -198,6 +209,9 @@ export function ModeView(props: {
                 </li>
               ))}
             </PlainList>
+            {/* The allowances the whole list was planned with, after the lumber (#450). */}
+            {group.lines.some(({ line }) => 'nominal' in line) &&
+              plan.plan.lumber.notes.length > 0 && <List items={plan.plan.lumber.notes} terms />}
           </Stack>
         ))}
         {plan.plan.hardwareNotes.length > 0 && <List items={plan.plan.hardwareNotes} terms />}
@@ -312,6 +326,45 @@ export function ModeView(props: {
  * Boards to buy for pieces cut shorter than the plan now needs (#444). Not ticked: the note that
  * names each one is dismissed once it is bought.
  */
+/** Where a parameter opens in Edit, returning to Shopping on Save or Cancel. */
+function editHref(project: Pick<Project, 'id'>, path: string) {
+  return href({
+    screen: 'edit-project',
+    id: project.id,
+    from: 'shop',
+    field: fieldId('params', path),
+  });
+}
+
+/**
+ * What else to buy when the store has none of a line's boards (#450), as core worked it out when
+ * the plan was made. Another size changes the plan, so it opens its field in Edit.
+ */
+function NotInStock(props: {
+  line: { nominal: string; alternatives: readonly LumberAlternative[] };
+  editHref: (path: string) => string;
+}) {
+  const { line } = props;
+  return (
+    <Stack gap="xs">
+      <Text>Buy one of these instead:</Text>
+      <PlainList gap="xs">
+        {line.alternatives.map((alternative) => (
+          <li key={describeLumberAlternative(alternative, line)}>
+            <Measured text={describeLumberAlternative(alternative, line)} />
+            {'field' in alternative && (
+              <>
+                {' '}
+                <a href={props.editHref(alternative.field)}>Change it in Edit</a>
+              </>
+            )}
+          </li>
+        ))}
+      </PlainList>
+    </Stack>
+  );
+}
+
 function Replacements(props: { resets: Project['resets'] }) {
   const boards = replacementsOf(props.resets);
   if (boards.length === 0) return null;

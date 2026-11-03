@@ -12,6 +12,8 @@ export {
   type BoardOptions,
   boardIds,
   DEFAULT_BOARD_OPTIONS,
+  describeLumberAlternative,
+  LumberAlternative,
   LumberPlan,
   lumberLineKey,
   PlannedBoard,

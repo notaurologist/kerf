@@ -53,8 +53,8 @@ const plan: Pick<Plan, 'lumber' | 'hardware'> = {
     kerf: 0.125,
     trimPerEnd: 0.5,
     lines: [
-      { nominal: '1x6', feet: 8, count: 2 },
-      { nominal: '1x4', feet: 6, count: 1 },
+      { nominal: '1x6', feet: 8, count: 2, notes: [], alternatives: [] },
+      { nominal: '1x4', feet: 6, count: 1, notes: [], alternatives: [] },
     ],
     notes: [],
     issues: [],

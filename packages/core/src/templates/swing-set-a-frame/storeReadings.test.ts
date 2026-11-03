@@ -86,4 +86,11 @@ describe('the swing set store readings', () => {
     }
     expect(swingSetAFrame.storeReadings?.[0]?.illustration).toBe('grade-stamp');
   });
+
+  // The species list has only what Kerf has design values for (#450).
+  it('says what to do when the stamp names a species the list does not have', () => {
+    expect(swingSetAFrame.storeReadings?.[0]?.how).toContain(
+      'If the list does not have them, the checks have no design values for these boards: choose boards whose stamp the list has, or ask an experienced builder whether these will do.',
+    );
+  });
 });

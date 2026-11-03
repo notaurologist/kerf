@@ -1,18 +1,20 @@
-import type { LumberPlan } from '@kerf/core';
+import type { LumberPlan, ShoppingLine } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { render, renderText } from '../../test/render.tsx';
 import { ShoppingList } from './ShoppingList.tsx';
 
-const plan = (lines: LumberPlan['lines']): LumberPlan => ({
+type Line = Omit<ShoppingLine, 'notes' | 'alternatives'> &
+  Partial<Pick<ShoppingLine, 'notes' | 'alternatives'>>;
+const plan = (lines: Line[]): LumberPlan => ({
   boards: [],
   kerf: 0.125,
   trimPerEnd: 0.5,
-  lines,
+  lines: lines.map((l) => ({ notes: [], alternatives: [], ...l })),
   notes: [],
   issues: [],
   selection: [],
 });
-const shown = (lines: LumberPlan['lines']) =>
+const shown = (lines: Line[]) =>
   renderText(<ShoppingList lumber={plan(lines)} hardware={[]} hardwareNotes={[]} />);
 
 describe('ShoppingList', () => {
@@ -114,6 +116,22 @@ describe('ShoppingList', () => {
       /2 1\/2" × 10" through-bolt .*1\/2" × 10" through-bolt: Grip 8-15\/16"\. Swing/,
     );
     expect(text).toContain('Swing hangers: Rated.');
+  });
+});
+
+describe("each lumber line's notes (#450)", () => {
+  it('lists them with the notes for the whole list', () => {
+    const text = renderText(
+      <ShoppingList
+        lumber={{
+          ...plan([{ nominal: '4x6', feet: 12, count: 1, notes: ["Beam: listed as 12'."] }]),
+          notes: ['Allows 1/8" for each saw cut.'],
+        }}
+        hardware={[]}
+        hardwareNotes={[]}
+      />,
+    );
+    expect(text).toMatch(/Beam: listed as 12'\. .*Allows 1\/8" for each saw cut\./);
   });
 });
 

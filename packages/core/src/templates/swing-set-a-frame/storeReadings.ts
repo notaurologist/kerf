@@ -11,7 +11,7 @@ export const STORE_READINGS: readonly StoreReading[] = [
     path: 'beamSpeciesGrade',
     beside: { part: 'beam' },
     prompt: 'Read the grade stamp on the beam boards.',
-    how: 'The grade stamp is inked on a face of each board. Choose the species and the grade it shows, such as No.\u00a02.',
+    how: 'The grade stamp is inked on a face of each board. Choose the species and the grade it shows, such as No.\u00a02. If the list does not have them, the checks have no design values for these boards: choose boards whose stamp the list has, or ask an experienced builder whether these will do.',
     illustration: 'grade-stamp',
   },
   {

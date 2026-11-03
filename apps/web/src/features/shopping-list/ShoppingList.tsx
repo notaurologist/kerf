@@ -108,7 +108,12 @@ export function ShoppingList(props: {
             narrow
             rows={lumber.lines}
             rowKey={(l) => `${l.nominal}/${l.feet}`}
-            rowChanged={(l) => changes.under(line(l, lumber.lines, 'lumber.lines'))}
+            // What to buy instead (#450) changes with the margins, which the review marks.
+            rowChanged={(l) =>
+              ['count', 'nominal', 'feet', 'boardFeet', 'notes'].some((key) =>
+                changes.under(`${line(l, lumber.lines, 'lumber.lines')}.${key}`),
+              )
+            }
             columns={lumberColumns}
           />
           {readings && (
@@ -141,7 +146,7 @@ export function ShoppingList(props: {
               .
             </Text>
           )}
-          <List items={lumber.notes} terms />
+          <List items={[...lumber.lines.flatMap((l) => l.notes), ...lumber.notes]} terms />
         </Stack>
 
         <Stack>

@@ -76,8 +76,11 @@ import { flags, validate, validateSwings } from './validate.ts';
  * at the frame centerlines, which lengthens the span by one leg's plus one gusset's thickness (#445).
  * Version 24 keeps the lengths that fit each bolt, and each bolt line's bolt and items, so a bolt
  * bought before a change can be compared with the new grip (#514). No number changes.
+ * Version 25 moves the note about a shorter board onto its lumber line, and gives each line what
+ * else to buy when the store has none of its boards: other lengths, and other beam sizes that keep
+ * the beam checks' margin, each with its margin (#450). No number changes.
  */
-export const TEMPLATE_VERSION = 24;
+export const TEMPLATE_VERSION = 25;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

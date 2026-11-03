@@ -266,12 +266,17 @@ describe('compareSnapshots', () => {
     );
     const { changes, truncated } = compareSnapshots(t, saved, preview);
     expect(truncated).toBe(false);
-    expect(changes.filter((c) => !c.path.startsWith('checks'))).toEqual([
+    // What else to buy (#450) follows the beam's length and margins; it is checked in lists.test.ts.
+    const alternatives = /^lumber\.lines\[\d+\]\.alternatives/;
+    expect(
+      changes.filter((c) => !c.path.startsWith('checks') && !alternatives.test(c.path)),
+    ).toEqual([
       { path: 'cutList[0].length', before: '120"', after: '132"' },
       { path: 'lumber.boards[0].pieces[0].length', before: 120, after: 132 },
       { path: 'lumber.boards[0].offcut', before: 22.875, after: 10.875 },
-      { path: 'lumber.notes[1]', before: expect.stringContaining("Beam: listed as 12'") },
+      { path: 'lumber.lines[0].notes[0]', before: expect.stringContaining("Beam: listed as 12'") },
     ]);
+    expect(changes.some((c) => alternatives.test(c.path))).toBe(true);
     // A longer span between the same loads raises the bending moment, so the margin drops.
     const bending = changes.find((c) => c.path === 'checks[0].margin');
     expect(bending?.after).toBeLessThan(bending?.before as number);
