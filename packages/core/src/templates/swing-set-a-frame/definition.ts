@@ -121,8 +121,10 @@ export const swingSetAFrame: TemplateDefinition<
   // dadoes, notches, and cutouts (#300), optional: a swing set has none, so an older part reads as
   // having none. Shape 14 adds the dynamic factor at which each strength check reaches margin 1.0
   // (#401), optional. Shape 15 lets a hardware item and line wait for their quantity (#406): an
-  // optional quantity and the input it waits for. Every stored plan has its quantities.
-  snapshotVersion: 15,
+  // optional quantity and the input it waits for. Every stored plan has its quantities. Shape 16
+  // leaves out each part list that is empty (#430); reading fills it back in, so older shapes
+  // read unchanged.
+  snapshotVersion: 16,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -138,6 +140,7 @@ export const swingSetAFrame: TemplateDefinition<
     12: (snapshot) => snapshot,
     13: (snapshot) => snapshot,
     14: (snapshot) => snapshot,
+    15: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   questions: SWING_SET_QUESTIONS,

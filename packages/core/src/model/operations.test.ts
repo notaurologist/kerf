@@ -28,6 +28,12 @@ const post: Part = {
   dadoes: [],
   notches: [],
   cutouts: [],
+  mortises: [],
+  tenons: [],
+  screwHoles: [],
+  grooves: [],
+  rabbets: [],
+  recesses: [],
 };
 const rail: Part = {
   ...post,

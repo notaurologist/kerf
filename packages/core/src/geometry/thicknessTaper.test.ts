@@ -47,6 +47,12 @@ const leg: Part = {
   dadoes: [],
   notches: [],
   cutouts: [],
+  mortises: [],
+  tenons: [],
+  screwHoles: [],
+  grooves: [],
+  rabbets: [],
+  recesses: [],
 };
 const pl: Placement = {
   partId: 'leg',

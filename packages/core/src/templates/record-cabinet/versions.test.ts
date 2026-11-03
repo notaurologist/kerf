@@ -14,6 +14,7 @@ import v8 from './snapshots/v8.json' with { type: 'json' };
 import v9 from './snapshots/v9.json' with { type: 'json' };
 import v10 from './snapshots/v10.json' with { type: 'json' };
 import v11 from './snapshots/v11.json' with { type: 'json' };
+import v12 from './snapshots/v12.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -45,6 +46,15 @@ function changes(before: readonly unknown[], after: readonly unknown[]): Change[
 /** The changed paths, with list positions taken out: 'outputs.cutList[].stock'. */
 const kinds = (list: readonly Change[]) =>
   [...new Set(list.map((c) => c.path.replace(/\[\d+\]/g, '[]')))].sort();
+
+/** Every list a stored part holds, by name, that is empty. */
+const emptyPartLists = (fixture: readonly unknown[]) =>
+  fixture.flatMap((stored) =>
+    (stored as { outputs: { design: { parts: Record<string, unknown>[] } } }).outputs.design.parts
+      .flatMap((part) => Object.entries(part))
+      .filter(([, value]) => Array.isArray(value) && value.length === 0)
+      .map(([key]) => key),
+  );
 
 describe('record-cabinet template versions', () => {
   it('version 2 adds flattening, so the examples glue 3/4" panels from thicker boards (#319)', () => {
@@ -219,5 +229,11 @@ describe('record-cabinet template versions', () => {
   it('version 11 rewrites the screws note to say how to find the size, and changes nothing else (#438)', () => {
     const list = changes(v10, v11);
     expect(kinds(list)).toEqual(['outputs.design.hardware[].notes[]']);
+  });
+
+  it('version 12 leaves out each empty part list, and reads the same as before (#430)', () => {
+    expect(emptyPartLists(v11)).not.toEqual([]);
+    expect(emptyPartLists(v12)).toEqual([]);
+    expect(changes(v11, v12)).toEqual([]);
   });
 });

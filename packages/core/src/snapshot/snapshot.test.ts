@@ -7,6 +7,7 @@ import previousVersion from '../templates/swing-set-a-frame/snapshots/v11.json' 
   type: 'json',
 };
 import type { SwingSetStructuralInputs } from '../templates/swing-set-a-frame/structural.ts';
+import { leaveOutDefaults } from './defaults.ts';
 import {
   compareSnapshots,
   compareWithCurrent,
@@ -100,10 +101,13 @@ describe('createSnapshot', () => {
 });
 
 describe('readSnapshot', () => {
-  it('reads back exactly what was stored, through JSON', () => {
+  it('reads back exactly what was stored, through JSON, with left-out defaults filled in', () => {
     const s = snapshot(swingSetAFrame, params, inputs);
     const read = readSnapshot(templates, stored(s));
-    expect(read).toEqual({ ok: true, snapshot: stored(s) });
+    if (!read.ok) throw new Error(read.message);
+    const outputs = leaveOutDefaults(swingSetAFrame.outputs, read.snapshot.outputs);
+    expect(stored({ ...read.snapshot, outputs })).toEqual(stored(s));
+    expect(read.snapshot.outputs).toEqual(swingSetAFrame.storedOutputs.parse(s.outputs));
   });
 
   it('reads back a snapshot whose checks are waiting on inputs', () => {

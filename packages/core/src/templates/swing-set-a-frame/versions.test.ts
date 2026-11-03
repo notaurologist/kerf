@@ -17,6 +17,8 @@ import v12 from './snapshots/v12.json' with { type: 'json' };
 import v13 from './snapshots/v13.json' with { type: 'json' };
 import v14 from './snapshots/v14.json' with { type: 'json' };
 import v15 from './snapshots/v15.json' with { type: 'json' };
+import v16 from './snapshots/v16.json' with { type: 'json' };
+import v17 from './snapshots/v17.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -27,7 +29,8 @@ function regenerated(snapshot: ProjectSnapshot) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
-  return diff(json(snapshot.outputs), json(current.output.outputs), 1000);
+  const outputs = template.storedOutputs.parse(current.output.outputs);
+  return diff(json(snapshot.outputs), json(outputs), 1000);
 }
 
 /** The value at an outputs path such as 'structuralReview.beam.bending.inputs[1]'. */
@@ -125,6 +128,15 @@ const notVersion14 = (c: { path: string }) =>
   ![...VERSION_14, ...VERSION_15].some((r) => r.test(c.path));
 const notVersion15 = (c: { path: string }) => !VERSION_15.some((r) => r.test(c.path));
 
+/** Every list a stored part holds, by name, that is empty. */
+const emptyPartLists = (fixture: readonly unknown[]) =>
+  fixture.flatMap((stored) =>
+    (stored as { outputs: { design: { parts: Record<string, unknown>[] } } }).outputs.design.parts
+      .flatMap((part) => Object.entries(part))
+      .filter(([, value]) => Array.isArray(value) && value.length === 0)
+      .map(([key]) => key),
+  );
+
 describe('swing-set template versions', () => {
   it('version 2 adds sources and bases to the structural working, and changes no number (#36)', () => {
     const cited = new Set<string>();
@@ -185,9 +197,10 @@ describe('swing-set template versions', () => {
           expect(String(change.before)).toContain('below the top cut');
           expect(String(change.after)).toContain('down from the top corner');
         } else {
-          // Everything else is a new field on a part or an end cut.
+          // Everything else is a new field on a part or an end cut, or a feature in a list that
+          // reads as empty when a plan left it out.
           expect(change.path).toMatch(
-            /^design\.parts\[\d\]\.(referenceEdge|holes|boltAreas|tapers|ends\[\d\]\.measuredFrom)$/,
+            /^design\.parts\[\d\]\.(referenceEdge|(holes|boltAreas|tapers)\[\d+\]|ends\[\d\]\.measuredFrom)$/,
           );
         }
       }
@@ -370,17 +383,20 @@ describe('swing-set template versions', () => {
   });
 
   it('version 14 adds empty dadoes, notches, and cutouts to every part, and changes nothing else (#300)', () => {
+    // Stored as version 14 made them; read, a list a plan left out is already empty.
+    const lists = (fixture: readonly unknown[]) =>
+      fixture.flatMap((stored) =>
+        (
+          stored as { outputs: { design: { parts: Record<string, unknown>[] } } }
+        ).outputs.design.parts.flatMap((part) => [part.dadoes, part.notches, part.cutouts]),
+      );
+    expect(lists(v13).every((list) => list === undefined)).toBe(true);
+    expect(lists(v14).every((list) => Array.isArray(list) && list.length === 0)).toBe(true);
     for (const stored of v13) {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(13);
-      const changes = regenerated(read.snapshot).changes.filter(notVersion15);
-      expect(changes.length).toBeGreaterThan(0);
-      expect(changes.filter(notVersion14)).toEqual([]);
-      for (const c of changes) {
-        expect(c.before).toBeUndefined();
-        expect(c.after).toEqual([]);
-      }
+      expect(regenerated(read.snapshot).changes.filter(notVersion15)).toEqual([]);
     }
   });
 
@@ -441,6 +457,17 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(15);
+      expect(regenerated(read.snapshot).changes).toEqual([]);
+    }
+  });
+
+  // Version 17 stores the same plans, leaving out each part list that is empty (#430).
+  it('version 17 leaves out each empty part list, and changes nothing a plan reads (#430)', () => {
+    expect(emptyPartLists(v16)).not.toEqual([]);
+    expect(emptyPartLists(v17)).toEqual([]);
+    for (const stored of v16) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
       expect(regenerated(read.snapshot).changes).toEqual([]);
     }
   });

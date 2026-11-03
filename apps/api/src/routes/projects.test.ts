@@ -6,6 +6,7 @@ import {
   type Inventory,
   inventoryKey,
   projectDrawings,
+  readSnapshot,
   swingSetAFrame,
   TEMPLATES,
   type TemplateDefinition,
@@ -39,6 +40,8 @@ async function create(
 
 describe('POST /api/projects', () => {
   it('stores the snapshot core generates, and reads it back unchanged (round trip)', async () => {
+    // Stored as core makes it, with each empty part list left out; returned as read, with each
+    // filled back in.
     const { authed, client } = await createTestApp();
     const created = await create(authed);
     expect(created.status).toBe(201);
@@ -50,18 +53,21 @@ describe('POST /api/projects', () => {
     );
     if (!expected.ok) throw new Error('worked example should generate');
     const asJson = JSON.parse(JSON.stringify(expected.output));
-    expect(created.body.snapshot).toEqual(asJson);
+    const asRead = readSnapshot(TEMPLATES, asJson);
+    if (!asRead.ok) throw new Error(asRead.message);
+    const readJson = JSON.parse(JSON.stringify(asRead.snapshot));
+    expect(created.body.snapshot).toEqual(readJson);
 
     // Stored as a JSON object, not a JSON string.
-    const { rows } = await client.query<{ type: string }>(
-      'select jsonb_typeof(snapshot) as type from projects',
+    const { rows } = await client.query<{ type: string; snapshot: unknown }>(
+      'select jsonb_typeof(snapshot) as type, snapshot from projects',
     );
-    expect(rows).toEqual([{ type: 'object' }]);
+    expect(rows).toEqual([{ type: 'object', snapshot: asJson }]);
 
     const read = await authed(`/api/projects/${created.body.id}`);
     expect(read.status).toBe(200);
     const project = (await read.json()) as Json;
-    expect(project.snapshot).toEqual(asJson);
+    expect(project.snapshot).toEqual(readJson);
     expect(project).toMatchObject({
       name: 'Backyard swing set',
       status: 'planned',
@@ -619,15 +625,21 @@ describe('GET /api/export (#21)', () => {
       'attachment; filename="kerf-2026-10-28.json"',
     );
     const exported = (await res.json()) as Json;
+    const stored = async (id: string) =>
+      (
+        await client.query<{ snapshot: unknown }>('select snapshot from projects where id = $1', [
+          id,
+        ])
+      ).rows[0]?.snapshot;
     expect(exported.kind).toBe('kerf-export');
     expect(exported.formatVersion).toBe(2);
     expect(exported.exportedAt).toBe('2026-10-28T12:00:00.000Z');
     expect(exported.projects.map((p: Json) => p.id)).toEqual([body.id]);
-    expect(exported.projects[0].snapshot).toEqual(body.snapshot);
+    expect(exported.projects[0].snapshot).toEqual(await stored(body.id));
     expect(exported.projects[0].ticks).toEqual([]);
     expect(exported.deletedProjects.map((p: Json) => p.id)).toEqual([gone.body.id]);
     expect(exported.deletedProjects[0].deletedAt).toBe('2026-10-28T12:00:00.000Z');
-    expect(exported.deletedProjects[0].snapshot).toEqual(gone.body.snapshot);
+    expect(exported.deletedProjects[0].snapshot).toEqual(await stored(gone.body.id));
     expect(exported.tools.tools).toEqual([
       {
         toolTypeId: 'retired-tool-type',
@@ -681,7 +693,11 @@ describe('GET /api/export (#21)', () => {
     const exported = JSON.parse(text) as Json;
     expect(exported).toMatchObject({ kind: 'kerf-export', formatVersion: 2 });
     expect(exported.projects).toHaveLength(copies + 1);
-    expect(exported.projects.at(-1).snapshot).toEqual(body.snapshot);
+    const { rows } = await client.query<{ snapshot: unknown }>(
+      'select snapshot from projects where id = $1',
+      [body.id],
+    );
+    expect(exported.projects.at(-1).snapshot).toEqual(rows[0]?.snapshot);
   });
 });
 

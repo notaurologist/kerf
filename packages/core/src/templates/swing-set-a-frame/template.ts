@@ -59,7 +59,7 @@ import { flags, validate, validateSwings } from './validate.ts';
  * (#406), listing the anchors with the input their count waits for; parameters that generated
  * before give the same output.
  */
-export const TEMPLATE_VERSION = 16;
+export const TEMPLATE_VERSION = 17;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

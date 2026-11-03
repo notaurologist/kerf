@@ -39,6 +39,12 @@ const board = (over: Partial<Part> = {}): Part => ({
   dadoes: [],
   notches: [],
   cutouts: [],
+  mortises: [],
+  tenons: [],
+  screwHoles: [],
+  grooves: [],
+  rabbets: [],
+  recesses: [],
   ...over,
 });
 

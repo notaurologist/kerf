@@ -35,6 +35,12 @@ const side = (over: Partial<Part> = {}): Part => ({
   dadoes: [],
   notches: [{ end: 1, edge: 'far', along: 0.1875, across: 0.5 }],
   cutouts: [{ end: 0, v0: 1.5, v1: 4, depth: 1 }],
+  mortises: [],
+  tenons: [],
+  screwHoles: [],
+  grooves: [],
+  rabbets: [],
+  recesses: [],
   ...over,
 });
 

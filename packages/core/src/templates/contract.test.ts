@@ -10,6 +10,13 @@ import { TEMPLATES } from './index.ts';
 
 const asJson = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
 
+/** What a template generates for a worked example, before a snapshot leaves out its defaults. */
+function generated(t: (typeof TEMPLATES)[number], e: (typeof t.examples)[number]): unknown {
+  const made = t.generate(t.params.parse(e.params), t.structuralInputs.parse(e.structuralInputs));
+  if (!made.ok) throw new Error(JSON.stringify(made.issues));
+  return made.output;
+}
+
 const examples = TEMPLATES.flatMap((t) => t.examples.map((e) => [t.id, e.name, t, e] as const));
 
 /** Every string in a value, at any depth. */
@@ -49,17 +56,16 @@ function templateText(t: (typeof TEMPLATES)[number]): string[] {
 
 describe('every template', () => {
   it.each(examples)('%s, %s: generates what its outputs schema requires', (_, __, t, e) => {
-    const made = createSnapshot(t, e.params, e.structuralInputs);
-    if (!made.ok) throw new Error(JSON.stringify(made.issues));
-    const outputs = asJson(made.output.outputs);
+    const outputs = asJson(generated(t, e));
     expect(t.outputs.parse(outputs)).toEqual(outputs);
   });
 
   it.each(examples)('%s, %s: reads what it generates back unchanged', (_, __, t, e) => {
+    // The snapshot leaves out what is still at its default; reading fills it back in.
+    const outputs = asJson(generated(t, e));
     const made = createSnapshot(t, e.params, e.structuralInputs);
     if (!made.ok) throw new Error(JSON.stringify(made.issues));
-    const outputs = asJson(made.output.outputs);
-    expect(t.storedOutputs.parse(outputs)).toEqual(outputs);
+    expect(t.storedOutputs.parse(asJson(made.output.outputs))).toEqual(outputs);
     const read = readSnapshot(TEMPLATES, asJson(made.output));
     expect(read.ok && asJson(read.snapshot.outputs)).toEqual(outputs);
   });

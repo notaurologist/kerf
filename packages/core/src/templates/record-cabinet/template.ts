@@ -12,7 +12,7 @@ import type { Allowances } from './structural.ts';
 // parts in cut-list order, placements, operations, and hardware. Pure.
 
 export const TEMPLATE_ID = 'record-cabinet';
-export const TEMPLATE_VERSION = 11;
+export const TEMPLATE_VERSION = 12;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
@@ -55,7 +55,7 @@ export function generate(
   const topJoins = has(['top', 'side-left', 'side-right', 'partition']);
   // Each door's frame is glued around its panel, which floats unglued.
   const doorParts = has(['door-stile-outer', 'door-stile-inner', 'door-rail', 'door-panel']);
-  const screws = parts.flatMap((part) => (part.screwHoles ?? []).map(() => part.quantity));
+  const screws = parts.flatMap((part) => part.screwHoles.map(() => part.quantity));
   const screwCount = screws.reduce((a, b) => a + b, 0);
   const ta = parts.find((part) => part.id === 'apron-short')?.stock.thickness ?? 0;
   const tc = parts.find((part) => part.id === 'cleat')?.stock.width ?? 0;

@@ -233,7 +233,7 @@ export const recordCabinet: TemplateDefinition<
   outputs: RecordCabinetOutputs,
   storedOutputs: StoredRecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
-  snapshotVersion: 9,
+  snapshotVersion: 10,
   // Shape 3 to 4 adds assembly and finish operations, which older plans simply do not have.
   snapshotUpgrades: {
     1: addFlattening,
@@ -245,6 +245,8 @@ export const recordCabinet: TemplateDefinition<
     6: toTopItem,
     7: toLegBase,
     8: toDoors,
+    // Shape 9 to 10 leaves out each part list that is empty (#430); reading fills it back in.
+    9: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,

@@ -240,6 +240,10 @@ export const FingerRecess = z.object({
 });
 export type FingerRecess = z.infer<typeof FingerRecess>;
 
+/**
+ * Every list defaults to empty. A stored snapshot leaves out an empty one (`snapshot/defaults.ts`)
+ * and reading fills it back in, so a list added later changes nothing a template already stores.
+ */
 export const Part = z.object({
   id: z.string(),
   /** Names the part in the cut list and every drawing, assigned in cut-list order (#66). */
@@ -252,34 +256,33 @@ export const Part = z.object({
   /** Overall length, long point to long point: the stock each piece needs. */
   length: z.number(),
   /** Other lengths to mark, such as each edge of an angled part. */
-  markLengths: z.array(z.object({ label: z.string(), value: z.number() })),
+  markLengths: z.array(z.object({ label: z.string(), value: z.number() })).default([]),
   ends: z.tuple([EndCut, EndCut]),
   /**
    * True when the two end cuts are parallel (the part is a parallelogram, like a sloped post
    * with level cuts at both ends); false when they angle in opposite directions (a trapezoid).
    */
   endsParallel: z.boolean(),
-  notes: z.array(z.string()),
+  notes: z.array(z.string()).default([]),
   /**
    * What to look for when choosing its board: IDs of guides in the knowledge base
    * (knowledge/boardSelection.ts), most general first.
    */
-  selection: z.array(z.string()),
+  selection: z.array(z.string()).default([]),
   /** The edge `across` starts from (Placement), in words, such as "inner edge, against the beam". */
   referenceEdge: z.string(),
-  holes: z.array(Hole),
-  boltAreas: z.array(BoltArea),
-  tapers: z.array(Taper),
-  dadoes: z.array(Dado),
-  notches: z.array(Notch),
-  cutouts: z.array(Cutout),
-  /** Left out when there are none, so parts stored before them read unchanged. */
-  mortises: z.array(Mortise).optional(),
-  tenons: z.array(Tenon).optional(),
-  screwHoles: z.array(ScrewHole).optional(),
-  grooves: z.array(EdgeGroove).optional(),
-  rabbets: z.array(EdgeRabbet).optional(),
-  recesses: z.array(FingerRecess).optional(),
+  holes: z.array(Hole).default([]),
+  boltAreas: z.array(BoltArea).default([]),
+  tapers: z.array(Taper).default([]),
+  dadoes: z.array(Dado).default([]),
+  notches: z.array(Notch).default([]),
+  cutouts: z.array(Cutout).default([]),
+  mortises: z.array(Mortise).default([]),
+  tenons: z.array(Tenon).default([]),
+  screwHoles: z.array(ScrewHole).default([]),
+  grooves: z.array(EdgeGroove).default([]),
+  rabbets: z.array(EdgeRabbet).default([]),
+  recesses: z.array(FingerRecess).default([]),
 });
 export type Part = z.infer<typeof Part>;
 

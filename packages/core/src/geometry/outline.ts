@@ -83,7 +83,7 @@ function endPath(part: Part, end: 0 | 1, corner: UV): UV[] | null {
  */
 function shoulders(part: Part): Notch[] {
   const W = part.stock.width;
-  return (part.tenons ?? []).flatMap((t) => [
+  return part.tenons.flatMap((t) => [
     ...(t.v0 > 1e-9
       ? [{ end: t.end, edge: 'reference' as const, along: t.length, across: t.v0 }]
       : []),

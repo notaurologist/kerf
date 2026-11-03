@@ -25,6 +25,12 @@ const base = {
   dadoes: [],
   notches: [],
   cutouts: [],
+  mortises: [],
+  tenons: [],
+  screwHoles: [],
+  grooves: [],
+  rabbets: [],
+  recesses: [],
   stock: stock('2x4'),
 };
 const stile: Part = {

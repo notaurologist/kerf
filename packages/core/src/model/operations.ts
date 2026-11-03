@@ -324,7 +324,7 @@ export function cutAndDrillOperations(
         thickness,
       });
     });
-    (part.mortises ?? []).forEach((m, i) => {
+    part.mortises.forEach((m, i) => {
       ops.push({
         id: `${part.id}/mortise-${i}`,
         type: 'mortise',
@@ -336,7 +336,7 @@ export function cutAndDrillOperations(
         depth: m.depth,
       });
     });
-    (part.tenons ?? []).forEach((t, i) => {
+    part.tenons.forEach((t, i) => {
       if (part.ends[t.end].setting !== 0)
         throw new Error(`${part.id}/tenon-${i} is on an angled end`);
       ops.push({
@@ -356,7 +356,7 @@ export function cutAndDrillOperations(
         shoulderFar: width - t.v0 - t.width,
       });
     });
-    (part.grooves ?? []).forEach((g, i) => {
+    part.grooves.forEach((g, i) => {
       const L = part.length;
       ops.push({
         id: `${part.id}/groove-${i}`,
@@ -370,7 +370,7 @@ export function cutAndDrillOperations(
         stopped: g.u0 > AT_EDGE || g.u1 < L - AT_EDGE,
       });
     });
-    (part.rabbets ?? []).forEach((r, i) => {
+    part.rabbets.forEach((r, i) => {
       ops.push({
         id: `${part.id}/rabbet-${i}`,
         type: 'rabbet',
@@ -382,7 +382,7 @@ export function cutAndDrillOperations(
         depth: r.depth,
       });
     });
-    (part.recesses ?? []).forEach((r, i) => {
+    part.recesses.forEach((r, i) => {
       ops.push({
         id: `${part.id}/finger-recess-${i}`,
         type: 'finger-recess',
@@ -394,7 +394,7 @@ export function cutAndDrillOperations(
         depth: r.depth,
       });
     });
-    const screws = part.screwHoles ?? [];
+    const screws = part.screwHoles;
     if (screws.length > 0) {
       const slots = screws.filter((h) => h.slot > 0);
       ops.push({

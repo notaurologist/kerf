@@ -1,8 +1,8 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 16,
-    "snapshotVersion": 15,
+    "templateVersion": 17,
+    "snapshotVersion": 16,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -184,7 +184,6 @@
             },
             "quantity": 1,
             "length": 120,
-            "markLengths": [],
             "ends": [
               {
                 "setting": 0,
@@ -198,7 +197,6 @@
               }
             ],
             "endsParallel": true,
-            "notes": [],
             "referenceEdge": "bottom edge",
             "holes": [
               {
@@ -234,11 +232,6 @@
                 "length": 3.5
               }
             ],
-            "boltAreas": [],
-            "tapers": [],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "A"
           },
           {
@@ -359,7 +352,6 @@
                 "length": 3.5
               }
             ],
-            "boltAreas": [],
             "tapers": [
               {
                 "description": "Flush cut",
@@ -374,9 +366,6 @@
                 "angleToEdge": 20
               }
             ],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "B"
           },
           {
@@ -497,7 +486,6 @@
                 "length": 3.5
               }
             ],
-            "boltAreas": [],
             "tapers": [
               {
                 "description": "Flush cut",
@@ -512,9 +500,6 @@
                 "angleToEdge": 20
               }
             ],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "C"
           },
           {
@@ -623,11 +608,6 @@
                 "length": 1.5
               }
             ],
-            "boltAreas": [],
-            "tapers": [],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "D"
           },
           {
@@ -736,11 +716,6 @@
                 "length": 1.5
               }
             ],
-            "boltAreas": [],
-            "tapers": [],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "E"
           }
         ],
@@ -3558,8 +3533,8 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 16,
-    "snapshotVersion": 15,
+    "templateVersion": 17,
+    "snapshotVersion": 16,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -3751,7 +3726,6 @@
             },
             "quantity": 2,
             "length": 120,
-            "markLengths": [],
             "ends": [
               {
                 "setting": 0,
@@ -3827,10 +3801,6 @@
                 ]
               }
             ],
-            "tapers": [],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "A"
           },
           {
@@ -3950,7 +3920,6 @@
                 "length": 3.5
               }
             ],
-            "boltAreas": [],
             "tapers": [
               {
                 "description": "Flush cut",
@@ -3965,9 +3934,6 @@
                 "angleToEdge": 19.913665975879688
               }
             ],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "B"
           },
           {
@@ -4087,7 +4053,6 @@
                 "length": 3.5
               }
             ],
-            "boltAreas": [],
             "tapers": [
               {
                 "description": "Flush cut",
@@ -4102,9 +4067,6 @@
                 "angleToEdge": 19.913665975879688
               }
             ],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "C"
           },
           {
@@ -4213,11 +4175,6 @@
                 "length": 1.5
               }
             ],
-            "boltAreas": [],
-            "tapers": [],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "D"
           },
           {
@@ -4326,11 +4283,6 @@
                 "length": 1.5
               }
             ],
-            "boltAreas": [],
-            "tapers": [],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "E"
           }
         ],
@@ -7261,8 +7213,8 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 16,
-    "snapshotVersion": 15,
+    "templateVersion": 17,
+    "snapshotVersion": 16,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -7435,7 +7387,6 @@
             },
             "quantity": 1,
             "length": 120,
-            "markLengths": [],
             "ends": [
               {
                 "setting": 0,
@@ -7449,7 +7400,6 @@
               }
             ],
             "endsParallel": true,
-            "notes": [],
             "referenceEdge": "bottom edge",
             "holes": [
               {
@@ -7485,11 +7435,6 @@
                 "length": 3.5
               }
             ],
-            "boltAreas": [],
-            "tapers": [],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "A"
           },
           {
@@ -7610,7 +7555,6 @@
                 "length": 3.5
               }
             ],
-            "boltAreas": [],
             "tapers": [
               {
                 "description": "Flush cut",
@@ -7625,9 +7569,6 @@
                 "angleToEdge": 20
               }
             ],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "B"
           },
           {
@@ -7748,7 +7689,6 @@
                 "length": 3.5
               }
             ],
-            "boltAreas": [],
             "tapers": [
               {
                 "description": "Flush cut",
@@ -7763,9 +7703,6 @@
                 "angleToEdge": 20
               }
             ],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "C"
           },
           {
@@ -7874,11 +7811,6 @@
                 "length": 1.5
               }
             ],
-            "boltAreas": [],
-            "tapers": [],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "D"
           },
           {
@@ -7987,11 +7919,6 @@
                 "length": 1.5
               }
             ],
-            "boltAreas": [],
-            "tapers": [],
-            "dadoes": [],
-            "notches": [],
-            "cutouts": [],
             "letter": "E"
           }
         ],
