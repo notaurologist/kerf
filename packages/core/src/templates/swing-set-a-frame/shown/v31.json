@@ -1307,7 +1307,29 @@
             "symbol": "C_dyn",
             "label": "Dynamic factor",
             "value": 1.6454005556671611
-          }
+          },
+          "deeperStock": [
+            {
+              "subject": "Top beam, 4x8",
+              "margin": 1.3155384003110364,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2.654889343562836
+              }
+            },
+            {
+              "subject": "Top beam, 3 plies of 2x8",
+              "margin": 1.0411890268770343,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2.0863745513648992
+              }
+            }
+          ]
         },
         {
           "kind": "beam-shear",
@@ -22644,7 +22666,39 @@
             "symbol": "C_dyn",
             "label": "Dynamic factor",
             "value": 1.3733200229165963
-          }
+          },
+          "deeperStock": [
+            {
+              "subject": "Top beam, 2 plies of 2x8",
+              "margin": 1.0148652620007972,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2.0306920905250916
+              }
+            },
+            {
+              "subject": "Top beam, 4x8",
+              "margin": 1.4102412349685771,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 2.8514418936210264
+              }
+            },
+            {
+              "subject": "Top beam, 3 plies of 2x8",
+              "margin": 1.4988192958287112,
+              "breakEven": {
+                "key": "dynamicFactor",
+                "symbol": "C_dyn",
+                "label": "Dynamic factor",
+                "value": 3.046038135787637
+              }
+            }
+          ]
         },
         {
           "kind": "beam-shear",

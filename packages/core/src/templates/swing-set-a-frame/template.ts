@@ -98,8 +98,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * leave (NDS 2024 3.1.2.1), lists the bolts that mount the hangers, and drills their holes (#446).
  * Version 30 writes each bolt flag's count and size as the bolt layout does, "2 × 1/2\" bolts",
  * which read as 2-1/2" before (#493). No number changes.
+ * Version 31 gives bending in the next deeper beam stock, with its margin and break-even dynamic
+ * factor, so the stock can be chosen against them (#466). The plan's own numbers do not change.
  */
-export const TEMPLATE_VERSION = 30;
+export const TEMPLATE_VERSION = 31;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

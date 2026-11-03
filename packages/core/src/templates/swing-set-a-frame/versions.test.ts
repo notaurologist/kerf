@@ -32,6 +32,7 @@ import v26 from './snapshots/v26.json' with { type: 'json' };
 import v27 from './snapshots/v27.json' with { type: 'json' };
 import v28 from './snapshots/v28.json' with { type: 'json' };
 import v29 from './snapshots/v29.json' with { type: 'json' };
+import v30 from './snapshots/v30.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -151,6 +152,10 @@ const isVersion30 = (c: { path: string; before?: unknown; after?: unknown }) =>
   /^design\.flags\[\d+\]\.ask$/.test(c.path) &&
   String(c.after).replace(/^([^,:]+, \d+) × /, '$1 ') === c.before;
 
+/** Version 31's change (#466): bending in the next deeper beam stock, added beside the plan's. */
+const isVersion31 = (c: { path: string }) =>
+  /^structuralReview\.beam\.bending\.deeperStock(\.|\[|$)/.test(c.path);
+
 /**
  * What regenerating with the current version changes in the stored outputs, field by field; or,
  * given `later`, a later version's fixture of the same example, what that version changed.
@@ -167,6 +172,7 @@ function regenerated(
   keepVersion28 = false,
   keepVersion29 = false,
   keepVersion30 = false,
+  keepVersion31 = false,
   later?: unknown,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
@@ -185,7 +191,8 @@ function regenerated(
         (keepVersion27 || !isVersion27(c)) &&
         (keepVersion28 || !isVersion28(c)) &&
         (keepVersion29 || later !== undefined || !isVersion29(c)) &&
-        (keepVersion30 || !isVersion30(c)),
+        (keepVersion30 || !isVersion30(c)) &&
+        (keepVersion31 || !isVersion31(c)),
     ),
   };
   return keepVersion18
@@ -552,6 +559,7 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
+        false,
         v25[i],
       ).changes.filter(notVersion14);
       expect(changes.filter(notVersion13)).toEqual([]);
@@ -702,7 +710,8 @@ describe('swing-set template versions', () => {
           !isVersion27(c) &&
           !isVersion28(c) &&
           !isVersion29(c) &&
-          !isVersion30(c),
+          !isVersion30(c) &&
+          !isVersion31(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -765,6 +774,7 @@ describe('swing-set template versions', () => {
       false,
       false,
       false,
+      false,
       v25[0],
     );
     expect(changes.length).toBeGreaterThan(0);
@@ -819,6 +829,7 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
+        false,
         v25[i],
       );
       expect(changes.length).toBeGreaterThan(0);
@@ -837,6 +848,7 @@ describe('swing-set template versions', () => {
       false,
       false,
       true,
+      false,
       false,
       false,
       false,
@@ -868,6 +880,7 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
+        false,
         v26[i],
       );
       expect(changes.length).toBeGreaterThan(0);
@@ -883,6 +896,7 @@ describe('swing-set template versions', () => {
       false,
       false,
       true,
+      false,
       false,
       false,
       false,
@@ -1026,5 +1040,26 @@ describe('swing-set template versions', () => {
       (c) => String(c.after).split(':')[0],
     );
     expect(asks).toEqual(['Crossbar to leg, 2 × 1/2" bolts', 'Gusset to leg, 2 × 1/2" bolts']);
+  });
+
+  // Hand check in the spec, Structural model, example 1: the 4x8's break-even factor 2.655 and
+  // three plies of 2x8's 2.086, against the 4x6's own 1.645, which does not change.
+  it('version 31 adds bending in the next deeper stock, and changes nothing else (#466)', () => {
+    const keep31 = [false, false, false, false, false, false, false, false, false, false, true];
+    for (const stored of v30) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(30);
+      const { changes } = regenerated(snapshot, ...(keep31 as Parameters<typeof regenerated>[1][]));
+      expect(changes.filter((c) => !isVersion31(c))).toEqual([]);
+      expect(changes.every((c) => c.before === undefined)).toBe(true);
+    }
+    const deeper = at(fresh(read(v30[0])), 'structuralReview.beam.bending.deeperStock') as {
+      subject: string;
+      breakEven: { value: number };
+    }[];
+    expect(deeper.map((d) => [d.subject, Number(d.breakEven.value.toFixed(3))])).toEqual([
+      ['Top beam, 4x8', 2.655],
+      ['Top beam, 3 plies of 2x8', 2.086],
+    ]);
   });
 });

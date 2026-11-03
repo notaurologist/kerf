@@ -179,8 +179,9 @@ export const swingSetAFrame: TemplateDefinition<
   // optional quantity and the input it waits for. Every stored plan has its quantities. Shape 16
   // leaves out each part list that is empty (#430); reading fills it back in, so older shapes
   // read unchanged. Shape 17 adds the project's suggested values (#417); every older plan's
-  // values were entered, so it reads with none.
-  snapshotVersion: 17,
+  // values were entered, so it reads with none. Shape 18 adds a check's results in the next deeper
+  // stock (#466), optional.
+  snapshotVersion: 18,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -198,6 +199,7 @@ export const swingSetAFrame: TemplateDefinition<
     14: (snapshot) => snapshot,
     15: (snapshot) => snapshot,
     16: noSuggestions,
+    17: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   questions: SWING_SET_QUESTIONS,
