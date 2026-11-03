@@ -14,7 +14,7 @@ import { getInventory } from './tools.ts';
 // at release for projects stored before history existed (decision 0014).
 
 /** A snapshot's build steps for an inventory, from its template; read already, so it parses. */
-export function snapshotSteps(
+function snapshotSteps(
   template: TemplateDefinition,
   snapshot: ProjectSnapshot,
   inventory: Inventory,

@@ -7,7 +7,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import { setFlash } from '../../lib/flash.ts';
 import { readPlan } from '../../lib/plan.ts';
-import { projectFrom, storedSnapshots } from '../../test/projects.ts';
+import { loadedDrawings, projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, renderText, sectionOf, textOf } from '../../test/render.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
@@ -21,7 +21,12 @@ const outputs = workedExample.outputs as {
 };
 
 describe('ProjectView, from a stored snapshot', () => {
-  const text = renderText(<ProjectView project={projectFrom(workedExample)} />);
+  const text = renderText(
+    <ProjectView
+      project={projectFrom(workedExample)}
+      drawings={loadedDrawings(projectFrom(workedExample))}
+    />,
+  );
 
   it('shows every cut-list length and end cut exactly as stored', () => {
     for (const row of outputs.cutList) {
@@ -39,13 +44,23 @@ describe('ProjectView, from a stored snapshot', () => {
     expect(text).toContain('A Beam');
     expect(text).toContain('B Back leg (uphill)');
     expect(text).toContain('E Gusset');
-    expect(render(<ProjectView project={projectFrom(workedExample)} />)).toContain(
-      '<span class="k-part-letter">A</span>',
-    );
+    expect(
+      render(
+        <ProjectView
+          project={projectFrom(workedExample)}
+          drawings={loadedDrawings(projectFrom(workedExample))}
+        />,
+      ),
+    ).toContain('<span class="k-part-letter">A</span>');
   });
 
   it('keeps the cut list’s short columns narrow, with the stock under the part (#158, #360)', () => {
-    const html = render(<ProjectView project={projectFrom(workedExample)} />);
+    const html = render(
+      <ProjectView
+        project={projectFrom(workedExample)}
+        drawings={loadedDrawings(projectFrom(workedExample))}
+      />,
+    );
     const header = (label: string) => new RegExp(`<th scope="col"[^>]*>(?:<span[^>]*>)?${label}<`);
     const width = (label: string) =>
       header(label)
@@ -74,7 +89,15 @@ describe('ProjectView, from a stored snapshot', () => {
 
   it('shows which pieces come from which board in its own section (#119)', () => {
     const boards = textOf(
-      sectionOf(render(<ProjectView project={projectFrom(workedExample)} />), 'boards'),
+      sectionOf(
+        render(
+          <ProjectView
+            project={projectFrom(workedExample)}
+            drawings={loadedDrawings(projectFrom(workedExample))}
+          />,
+        ),
+        'boards',
+      ),
     );
     expect(boards).toContain(`trims 1/2" off each factory end and allows 1/8" for each saw cut`);
     expect(boards).toContain(`A Beam 120" Offcut 22-7/8".`);
@@ -131,6 +154,12 @@ describe('ProjectView, when the plan cannot be shown', () => {
           unreadable: { reason: 'malformed', message: 'The stored snapshot is not a snapshot.' },
           version: null,
         })}
+        drawings={loadedDrawings(
+          projectFrom(null, {
+            unreadable: { reason: 'malformed', message: 'The stored snapshot is not a snapshot.' },
+            version: null,
+          }),
+        )}
       />,
     );
     expect(text).toContain(
@@ -143,9 +172,14 @@ describe('ProjectView, when the plan cannot be shown', () => {
 
   it('refuses outputs that do not match the template’s schema', () => {
     const damaged = { ...workedExample, outputs: { cutList: 'damaged' } };
-    expect(renderText(<ProjectView project={projectFrom(damaged)} />)).toContain(
-      'does not match this template’s shape',
-    );
+    expect(
+      renderText(
+        <ProjectView
+          project={projectFrom(damaged)}
+          drawings={loadedDrawings(projectFrom(damaged))}
+        />,
+      ),
+    ).toContain('does not match this template’s shape');
   });
 });
 
@@ -153,11 +187,13 @@ describe('ProjectView, as a document (#40, #41)', () => {
   const project = projectFrom(workedExample);
 
   it('leaves Delete to the Edit screen, away from Previous and Next', () => {
-    expect(renderText(<ProjectView project={project} />)).not.toContain('Delete');
+    expect(
+      renderText(<ProjectView project={project} drawings={loadedDrawings(project)} />),
+    ).not.toContain('Delete');
   });
 
   it('reads in section order A: diagrams, structural review, cut list, shopping list', () => {
-    const text = renderText(<ProjectView project={project} />);
+    const text = renderText(<ProjectView project={project} drawings={loadedDrawings(project)} />);
     const at = (s: string) => text.indexOf(`${s} ${s}`);
     // Each section's printed title block names it, then its heading does.
     expect(at('Diagrams')).toBeGreaterThan(0);
@@ -167,14 +203,18 @@ describe('ProjectView, as a document (#40, #41)', () => {
   });
 
   it('gives each section a title block for print, naming the project', () => {
-    const html = render(<ProjectView project={project} />);
+    const html = render(<ProjectView project={project} drawings={loadedDrawings(project)} />);
     expect(html).toContain('<b>Kerf</b> · Backyard swing set · Cut list');
   });
 
   it('says "Saved." once after the editor saves, and not again', () => {
     setFlash('Saved.');
-    expect(renderText(<ProjectView project={project} />)).toContain('Saved.');
-    expect(renderText(<ProjectView project={project} />)).not.toContain('Saved.');
+    expect(
+      renderText(<ProjectView project={project} drawings={loadedDrawings(project)} />),
+    ).toContain('Saved.');
+    expect(
+      renderText(<ProjectView project={project} drawings={loadedDrawings(project)} />),
+    ).not.toContain('Saved.');
   });
 });
 
@@ -185,8 +225,8 @@ describe('the diagrams in the plan (#91)', () => {
   const made = createSnapshot(template, example?.params, example?.structuralInputs);
   if (!made.ok) throw new Error('worked example should generate');
   const project = projectFrom(JSON.parse(JSON.stringify(made.output)));
-  const html = render(<ProjectView project={project} />);
-  const text = renderText(<ProjectView project={project} />);
+  const html = render(<ProjectView project={project} drawings={loadedDrawings(project)} />);
+  const text = renderText(<ProjectView project={project} drawings={loadedDrawings(project)} />);
 
   it('draws the assembled and exploded views, a cut detail per part, and the site layout', () => {
     expect(text).toContain('Assembled');
@@ -218,14 +258,22 @@ describe('the diagrams in the plan (#91)', () => {
   });
 
   it('shows a plan made before placements with its cut details and site layout only', () => {
-    const old = render(<ProjectView project={projectFrom(workedExample)} />);
+    const old = render(
+      <ProjectView
+        project={projectFrom(workedExample)}
+        drawings={loadedDrawings(projectFrom(workedExample))}
+      />,
+    );
     expect(sectionOf(old, 'diagrams').match(/<svg[^>]*role="img"/g)).toHaveLength(6);
     expect(old).not.toContain('Isometric view');
   });
 
   it('shows no diagrams section when the API sent no drawings', () => {
     const none = renderText(
-      <ProjectView project={projectFrom(workedExample, { drawings: null })} />,
+      <ProjectView
+        project={projectFrom(workedExample)}
+        drawings={loadedDrawings(projectFrom(workedExample), null)}
+      />,
     );
     expect(none).not.toContain('Diagrams Diagrams');
   });

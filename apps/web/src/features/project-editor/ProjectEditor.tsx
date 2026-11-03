@@ -14,7 +14,7 @@ import {
   type TemplateDefinition,
   visibleFields,
 } from '@kerf/core';
-import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { fieldId } from '../../lib/fieldIds.ts';
@@ -497,7 +497,8 @@ export function ProjectEditor(props: {
   );
 
   // A saved project's output shows beside the form, previewed before saving (#39, L-A; #56).
-  const saved = project ? readPlan(project) : null;
+  // Read once per saved project, not per keystroke, so the preview pane keeps its saved plan.
+  const saved = useMemo(() => (project ? readPlan(project) : null), [project]);
   const showsPlan = saved?.ok || !project;
   const preview = usePreview(template, project ?? null, params, inputs, !showsPlan);
   // The plan for the values in the form, when there is one: for comparing a value against.

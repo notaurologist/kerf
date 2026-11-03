@@ -1,6 +1,6 @@
 import { createSnapshot, findTemplate, type TemplateDefinition } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { projectFrom, storedSnapshots } from '../../test/projects.ts';
+import { loadedDrawings, projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from './ProjectScreen.tsx';
 
@@ -11,7 +11,13 @@ import { ProjectView } from './ProjectScreen.tsx';
 
 const [complete, noInputs] = storedSnapshots;
 if (!complete || !noInputs) throw new Error('fixture has the worked examples');
-const html = (snapshot: typeof complete) => render(<ProjectView project={projectFrom(snapshot)} />);
+const html = (snapshot: typeof complete) =>
+  render(
+    <ProjectView
+      project={projectFrom(snapshot)}
+      drawings={loadedDrawings(projectFrom(snapshot))}
+    />,
+  );
 const section = (snapshot: typeof complete, id: string) => textOf(sectionOf(html(snapshot), id));
 
 describe('the plan’s header (#356)', () => {
@@ -55,7 +61,10 @@ describe('the plan’s contents', () => {
   const made = createSnapshot(template, example?.params, example?.structuralInputs);
   if (!made.ok) throw new Error('worked example should generate');
   const page = render(
-    <ProjectView project={projectFrom(JSON.parse(JSON.stringify(made.output)))} />,
+    <ProjectView
+      project={projectFrom(JSON.parse(JSON.stringify(made.output)))}
+      drawings={loadedDrawings(projectFrom(JSON.parse(JSON.stringify(made.output))))}
+    />,
   );
   const contents = page.slice(page.indexOf('<nav class="k-contents"'), page.indexOf('</nav>'));
 
@@ -83,7 +92,12 @@ describe('the plan’s contents', () => {
   });
 
   it('leaves out sections the plan does not have', () => {
-    const none = render(<ProjectView project={projectFrom(complete, { drawings: null })} />);
+    const none = render(
+      <ProjectView
+        project={projectFrom(complete)}
+        drawings={loadedDrawings(projectFrom(complete), null)}
+      />,
+    );
     const list = none.slice(none.indexOf('<nav class="k-contents"'), none.indexOf('</nav>'));
     expect(textOf(list.slice(list.indexOf('<ol')))).toMatch(/^Structural review Cut list/);
     expect(textOf(list)).toMatch(/^1 of 4 · Structural review/);

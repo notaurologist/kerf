@@ -1,13 +1,18 @@
 import { type CutListRow, geometry } from '@kerf/core';
-import { useEffect, useRef, useState } from 'react';
-import { type ApiResult, describeError } from '../../lib/api.ts';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { type ApiResult, CONNECTION_MESSAGE, describeError, failureOf } from '../../lib/api.ts';
+import type { DrawingsState } from '../../lib/drawings.ts';
 import { useLatest } from '../../lib/latest.ts';
 import { cutDetailHeadingId, cutDetailId } from '../../lib/show.ts';
 import type { CornerViews } from '../../lib/views.ts';
 import {
+  Button,
+  Cluster,
   CompactSelect,
   Diagram,
   drawingInMove,
+  Notice,
+  Skeleton,
   Stack,
   StatusLine,
   sharedFrame,
@@ -67,11 +72,15 @@ export function Diagrams(props: {
   const corner = useCorner(props.drawings, props.corners);
   const drawings = { ...props.drawings, ...corner.views };
   const motion = useAssemblyMotion(drawings.exploded?.stages);
-  // Both views at one scale, so a part can slide from one to the other.
-  const frame =
-    drawings.isometric && drawings.exploded
-      ? sharedFrame(drawings.isometric.bounds, drawings.exploded.bounds)
-      : undefined;
+  // Both views at one scale, so a part can slide from one to the other. Kept between renders, so
+  // a stage of the move redraws only the two views that move.
+  const isometricBounds = drawings.isometric?.bounds;
+  const explodedBounds = drawings.exploded?.bounds;
+  const frame = useMemo(
+    () =>
+      isometricBounds && explodedBounds ? sharedFrame(isometricBounds, explodedBounds) : undefined,
+    [isometricBounds, explodedBounds],
+  );
   const assembled: View | null = drawings.isometric && {
     id: 'assembled',
     label: 'Assembled',
@@ -184,6 +193,29 @@ export function Diagrams(props: {
       )}
     </Stack>
   );
+}
+
+/** Where the drawings go while they load, or why they did not, with a way to ask again. */
+export function DrawingsWaiting(props: { state: DrawingsState }) {
+  const { state } = props;
+  if (state.state === 'ready') return null;
+  const retry = (problem: ReactNode, connection: boolean) => (
+    <Stack gap="xs">
+      <Notice icon={connection ? 'connection' : 'error'}>{problem}</Notice>
+      {state.retry && (
+        <Cluster>
+          <Button onClick={state.retry}>Try again</Button>
+        </Cluster>
+      )}
+    </Stack>
+  );
+  if (state.state === 'loading') {
+    return (
+      <Skeleton label="Loading drawings…" stuck={retry(CONNECTION_MESSAGE, true)} shape="page" />
+    );
+  }
+  const failure = failureOf(state.error);
+  return retry(`The drawings could not be loaded. ${failure.message}`, failure.connection);
 }
 
 const CORNER_LABELS: Record<geometry.Corner, string> = {

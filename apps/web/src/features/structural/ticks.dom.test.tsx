@@ -3,7 +3,7 @@ import { flagProgressKey } from '@kerf/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readPlan } from '../../lib/plan.ts';
 import { click, mount, settle } from '../../test/dom.tsx';
-import { projectFrom, storedSnapshots } from '../../test/projects.ts';
+import { loadedDrawings, projectFrom, storedSnapshots } from '../../test/projects.ts';
 import { ProjectView } from '../project/ProjectScreen.tsx';
 
 // Ticking the To do band's expert checks and checklist items (#393): each tick is saved with the
@@ -46,7 +46,13 @@ afterEach(() => {
 describe('ticking the structural review', () => {
   it('saves an expert check as asked, counts it off, and clears it again', async () => {
     const sent = server();
-    const { container } = mount(<ProjectView project={project} section="structural-review" />);
+    const { container } = mount(
+      <ProjectView
+        project={project}
+        drawings={loadedDrawings(project)}
+        section="structural-review"
+      />,
+    );
     const heading = () =>
       [...container.querySelectorAll('h3')].find((h) => h.textContent?.startsWith('To do'));
     const all = flags.length + checklist.length;
