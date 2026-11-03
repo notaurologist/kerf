@@ -68,6 +68,18 @@ const circularSawKit = inventory(
   ['string-line'],
 );
 
+/** Field treatment uses no tool from the library, so every inventory brushes it on. */
+const TREATMENT: Record<string, string> = {
+  'beam/treat-cuts': 'treat-cuts-brush',
+  'leg-back/treat-cuts': 'treat-cuts-brush',
+  'leg-front/treat-cuts': 'treat-cuts-brush',
+  'crossbar/treat-cuts': 'treat-cuts-brush',
+  'gusset/treat-cuts': 'treat-cuts-brush',
+  'leg-beam-bolts/treat-holes': 'treat-holes-brush',
+  'crossbar-bolts/treat-holes': 'treat-holes-brush',
+  'gusset-bolts/treat-holes': 'treat-holes-brush',
+};
+
 describe('swing-set build steps (#105)', () => {
   // The board plan, by hand (1/2" trim per end, 1/8" kerf per piece): the 120" beam on a 12' 4x6
   // leaves 144 − (1 + 120.125) = 22.875. The front legs (138.354) and back legs (131.510) take a
@@ -90,6 +102,7 @@ describe('swing-set build steps (#105)', () => {
       ['board-6', "2x6 10'", ['crossbar 0', 'crossbar 1']],
       ['board-7', "2x8 8'", ['gusset 0', 'gusset 1']],
       ['ease-edges', 'Ease the edges of every part', []],
+      ['treat-cuts', 'Treat every cut with preservative', []],
       ['site', 'Dig the leg holes', []],
       ['frames', 'Bolt the crossbars and gussets across the legs', []],
       ['beam', 'Bolt the beam between the leg tops', []],
@@ -115,6 +128,16 @@ describe('swing-set build steps (#105)', () => {
     expect(built[1]?.operations[0]?.method?.technique).toContain('Cut 1 this way.');
     expect(built.find((s) => s.id === 'site')?.title).toBe('Dig the leg holes');
     expect(built.find((s) => s.id === 'beam')?.partIds).toEqual(['beam', 'leg-back', 'leg-front']);
+    // Each bolt's holes are treated as soon as they are drilled, before the bolt goes in.
+    const ids = (id: string) =>
+      built.find((s) => s.id === id)?.operations.map((o) => o.operation.id);
+    expect(ids('frames')).toEqual([
+      'crossbar-bolts/holes',
+      'crossbar-bolts/treat-holes',
+      'gusset-bolts/holes',
+      'gusset-bolts/treat-holes',
+    ]);
+    expect(ids('beam')).toEqual(['leg-beam-bolts/holes', 'leg-beam-bolts/treat-holes']);
   });
 
   it('chooses the stationary saw, jigsaw, and auger bits from the full shop', () => {
@@ -137,6 +160,7 @@ describe('swing-set build steps (#105)', () => {
       'crossbar/ease-edges': 'ease-edges-sander',
       'gusset/ease-edges': 'ease-edges-sander',
       'site/dig-holes': 'dig-holes-post-hole-digger',
+      ...TREATMENT,
       'crossbar-bolts/holes': 'bolt-holes-auger-one-side',
       'gusset-bolts/holes': 'bolt-holes-auger-one-side',
       'leg-beam-bolts/holes': 'bolt-holes-auger-one-side',
@@ -163,6 +187,7 @@ describe('swing-set build steps (#105)', () => {
       'crossbar/ease-edges': 'ease-edges-block-plane',
       'gusset/ease-edges': 'ease-edges-block-plane',
       'site/dig-holes': 'dig-holes-shovel',
+      ...TREATMENT,
       'crossbar-bolts/holes': 'bolt-holes-spade-one-side',
       'gusset-bolts/holes': 'bolt-holes-spade-one-side',
       'leg-beam-bolts/holes': 'bolt-holes-spade-both-sides',
@@ -206,6 +231,11 @@ describe('swing-set build steps (#105)', () => {
   it('with no tools, gives every operation a step that names the tools it needs', () => {
     const built = steps(inventory());
     for (const op of built.flatMap((s) => s.operations)) {
+      // Field treatment uses no tool from the library, so it always has a method.
+      if (op.operation.id in TREATMENT) {
+        expect(op.method?.id, op.operation.id).toBe(TREATMENT[op.operation.id]);
+        continue;
+      }
       expect(op.method, op.operation.id).toBeUndefined();
       expect(op.alternatives[0]?.gaps.length, op.operation.id).toBeGreaterThan(0);
     }
@@ -248,6 +278,7 @@ describe('swing-set build steps (#105)', () => {
         'board-6': [],
         'board-7': [],
         'ease-edges': ['dust-and-species'],
+        'treat-cuts': [],
         site: ['load-bearing'],
         frames: ['load-bearing', 'load-bearing', 'load-bearing', 'load-bearing'],
         beam: ['load-bearing', 'load-bearing', 'dynamic-loads'],

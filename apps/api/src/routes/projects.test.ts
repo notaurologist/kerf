@@ -190,9 +190,14 @@ describe('GET /api/projects/:id build steps (#52)', () => {
     expect([...new Set(stepped.map((o: Json) => o.operation.id))].sort()).toEqual(
       operations.map((o: Json) => o.id).sort(),
     );
-    expect(stepped.every((o: Json) => o.method === undefined && o.alternatives.length > 0)).toBe(
-      true,
-    );
+    // With no tools, only field treatment, which needs none, has a method.
+    const toolFree = (o: Json) => o.operation.type.startsWith('treat-');
+    expect(stepped.filter(toolFree).every((o: Json) => o.method !== undefined)).toBe(true);
+    expect(
+      stepped
+        .filter((o: Json) => !toolFree(o))
+        .every((o: Json) => o.method === undefined && o.alternatives.length > 0),
+    ).toBe(true);
     expect(before.steps.toolboxEmpty).toBe(true);
 
     // With a miter saw that cuts a 4x6, the beam's ends get the miter-saw method, and the key
@@ -249,8 +254,11 @@ describe('project history (#106)', () => {
     expect(rows.map((r) => [r.operation_id, r.operation]).sort()).toEqual(
       operations.map((o) => [o.id, o.type]).sort(),
     );
-    // No tools yet: no method, no skills, and the empty inventory's key.
-    expect(rows.every((r) => r.method_id === null && r.skills.length === 0)).toBe(true);
+    // No tools yet: no method and no skills, except field treatment, which needs no tools; and the
+    // empty inventory's key.
+    const needTools = rows.filter((r) => !r.operation.startsWith('treat-'));
+    expect(needTools.every((r) => r.method_id === null && r.skills.length === 0)).toBe(true);
+    expect(rows.length - needTools.length).toBe(8);
     expect(new Set(rows.map((r) => r.inventory_key))).toEqual(
       new Set([inventoryKey({ tools: [] })]),
     );
@@ -292,7 +300,9 @@ describe('project history (#106)', () => {
     });
     expect(regenerated.status).toBe(200);
     const again = await history(client, body.id);
-    expect(again.every((r) => r.method_id === null)).toBe(true);
+    expect(
+      again.filter((r) => !r.operation.startsWith('treat-')).every((r) => r.method_id === null),
+    ).toBe(true);
   });
 
   it('backfills rows at release for projects that have none, and keeps rows that exist', async () => {

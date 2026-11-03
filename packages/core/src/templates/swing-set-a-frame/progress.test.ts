@@ -45,6 +45,7 @@ describe('progress items for the worked example', () => {
       'hardware/1/2" bolt caps',
       'hardware/Swing hangers',
       'hardware/Swing seats with chain',
+      'hardware/Wood preservative for cut ends',
     ]);
     // The spec's boards: the beam on a 12' 4x6, each leg on its own 12' 4x4, both crossbars on a
     // 10' 2x6, both gussets on an 8' 2x8.
@@ -71,6 +72,7 @@ describe('progress items for the worked example', () => {
     expect(keys('step')).toEqual([
       ...[1, 2, 3, 4, 5, 6, 7].map((n) => `board-${n}`),
       'ease-edges',
+      'treat-cuts',
       'site',
       'frames',
       'beam',
@@ -132,6 +134,7 @@ describe('progress items for the worked example', () => {
       'step board-5',
       'step board-6',
       'step ease-edges',
+      'step treat-cuts',
       'step frames',
       'step beam',
     ]);

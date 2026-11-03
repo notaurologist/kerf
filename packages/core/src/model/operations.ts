@@ -218,6 +218,24 @@ export const Operation = z.discriminatedUnion('type', [
     height: z.number(),
     depth: z.number(),
   }),
+  /**
+   * Coat every cut in a piece of treated lumber (Part.treated) with preservative: its ends and any
+   * taper, notch, or other cut into it, `cuts` of them on each piece (IRC 2021 R317.1.1).
+   */
+  z.object({ ...onPart, type: z.literal('treat-cuts'), cuts: z.number().int().positive() }),
+  /**
+   * Coat the inside of one through-bolt item's holes with preservative where they pass through
+   * treated parts (IRC 2021 R317.1.1), after they are drilled and before the bolts go in.
+   */
+  z.object({
+    ...base,
+    type: z.literal('treat-holes'),
+    hardwareId: z.string(),
+    /** The treated parts the holes pass through, in the order of the parts list. */
+    partIds: z.array(z.string()).min(1),
+    holeDiameter: z.number(),
+    depth: z.number(),
+  }),
   /** Round over sharp edges and sand off splinters on every face a person can touch. */
   z.object({ ...onPart, type: z.literal('ease-edges') }),
   /**
@@ -447,6 +465,56 @@ export function cutAndDrillOperations(
   return ops;
 }
 
+/**
+ * Field treatment for treated parts (IRC 2021 R317.1.1, AWPA M4-06 6.1): a coat of preservative on
+ * every cut in each piece, and inside every bolt hole in `ops` where it passes through treated
+ * wood. Only bolt holes are treated: no treated part has screw holes yet. A template adds these
+ * after its other operations; `templates/contract.test.ts` checks every treated part has them.
+ */
+export function treatmentOperations(
+  parts: readonly Part[],
+  ops: readonly Operation[],
+): Operation[] {
+  const treated = parts.filter((p) => p.treated);
+  const treatedIds = new Set(treated.map((p) => p.id));
+  const cuts = treated.map(
+    (part): Operation => ({
+      id: `${part.id}/treat-cuts`,
+      type: 'treat-cuts',
+      partId: part.id,
+      count: part.quantity,
+      cuts:
+        part.ends.length +
+        part.tapers.length +
+        part.notches.length +
+        part.cutouts.length +
+        part.dadoes.length +
+        part.mortises.length +
+        part.tenons.length +
+        part.grooves.length +
+        part.rabbets.length +
+        part.recesses.length,
+    }),
+  );
+  const holes = ops.flatMap((op): Operation[] => {
+    if (op.type !== 'bolt-holes') return [];
+    const partIds = op.partIds.filter((id) => treatedIds.has(id));
+    if (partIds.length === 0) return [];
+    return [
+      {
+        id: `${op.hardwareId}/treat-holes`,
+        type: 'treat-holes',
+        hardwareId: op.hardwareId,
+        partIds,
+        count: op.count,
+        holeDiameter: op.holeDiameter,
+        depth: op.depth,
+      },
+    ];
+  });
+  return [...cuts, ...holes];
+}
+
 /** Distances within this of an edge are taken as reaching it. */
 const AT_EDGE = 1e-9;
 
@@ -604,6 +672,8 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   rabbet: 'Rabbet',
   'finger-recess': 'Finger recess',
   'bolt-holes': 'Bolt holes',
+  'treat-cuts': 'Treat cuts',
+  'treat-holes': 'Treat bolt holes',
   'ease-edges': 'Ease edges',
   'dry-fit': 'Dry-fit',
   'glue-assembly': 'Glue and clamp',
