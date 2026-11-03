@@ -280,11 +280,12 @@ export function features(
 
 /**
  * The flush cut as marks a builder can measure (#50): a point on the inner edge from the top
- * corner, a point on the top cut from the same corner, and a line between them.
+ * corner, a point on the top cut from the same corner, and a line between them. One measurement
+ * for each mark, and named as the build step names the operation, a taper (#455).
  */
-export function flushCutNote(cut: Taper, angle: string, depthSquare: number): string {
+export function flushCutNote(cut: Taper, angle: string): string {
   const alongTopCut = Math.hypot(cut.end.u, cut.end.v);
-  return `Flush cut on the inside face at the top: mark the inner edge ${formatLength(cut.start.u)} down from the top corner, and the top cut ${formatLength(alongTopCut)} from that corner (${formatLength(depthSquare)} in from the edge, square to it). Cut along the line between the marks, through the leg; it runs at ${angle} to the inner edge.`;
+  return `Taper the inside face at the top, so it sits flush against the beam: mark the inner edge ${formatLength(cut.start.u)} down from the top corner, and the top cut ${formatLength(alongTopCut)} along it from that corner. Cut along the line between the marks, through the leg; it runs at ${angle} to the inner edge.`;
 }
 
 /** A bolted joint with the parts it joins and its bolts, for its flag (#51). */

@@ -337,6 +337,7 @@ export function ProjectView(props: {
               <BuildSteps
                 steps={steps?.steps ?? []}
                 rows={plan.plan.cutList}
+                cutEnds={plan.plan.cutEnds}
                 pieceHref={hasDrawings ? (partId) => at('diagrams', partId) : undefined}
               />
             </PlanSection>
