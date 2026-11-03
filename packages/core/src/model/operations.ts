@@ -82,7 +82,7 @@ export const Operation = z.discriminatedUnion('type', [
    */
   z.object({ ...onPart, type: z.literal('stopped-rabbet'), ...dadoFields }),
   /**
-   * A dado that reaches no edge, stopped short at both ends, such as a sliding door's track.
+   * A dado that reaches no edge, stopped short at both ends, such as a track for a sliding panel.
    * `length` is its long way.
    */
   z.object({ ...onPart, type: z.literal('double-stopped-dado'), ...dadoFields }),
