@@ -59,8 +59,8 @@ describe('the starting questions', () => {
   it('suggests values from complete answers', () => {
     const result = answer(template, questions, answers);
     if (!result.ok) throw new Error(JSON.stringify(result.issues));
-    expect(result.value.params['beamHeight']).toBe('84');
-    expect(result.value.params['beamLength']).toBe('108');
+    expect(result.value.params.beamHeight).toBe('84');
+    expect(result.value.params.beamLength).toBe('108');
     expect(result.value.inputs['riderWeights.0']).toBe('200');
   });
 });

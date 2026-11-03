@@ -72,7 +72,9 @@ export async function readAllProgress(db: Database): Promise<Map<string, Progres
     .orderBy(...ORDER);
   const byProject = new Map<string, ProgressEntry[]>();
   for (const row of rows) {
-    byProject.set(row.projectId, [...(byProject.get(row.projectId) ?? []), entry(row)]);
+    const ticks = byProject.get(row.projectId);
+    if (ticks) ticks.push(entry(row));
+    else byProject.set(row.projectId, [entry(row)]);
   }
   return byProject;
 }
