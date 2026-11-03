@@ -45,10 +45,11 @@ export function generate(
   const issues = validate(params, g);
   // At its narrowest, each door panel must still reach into its grooves.
   const gap = allowances.panelGap.length;
-  if (g.door && 2 * gap - 1 / 32 >= params.door.grooveDepth) {
+  const grooveDepth = params.door?.grooveDepth;
+  if (g.door && grooveDepth !== undefined && 2 * gap - 1 / 32 >= grooveDepth) {
     issues.push({
       code: 'panel-out-of-groove',
-      message: `At its narrowest, each door panel would pull out of its ${formatLength(params.door.grooveDepth)} grooves.`,
+      message: `At its narrowest, each door panel would pull out of its ${formatLength(grooveDepth)} grooves.`,
       params: ['door.grooveDepth', 'door.frameWidth'],
     });
   }

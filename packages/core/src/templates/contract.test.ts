@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { solid } from '../geometry/solid.ts';
-import { buildFromForm, confirmedPaths, readPath } from '../model/form.ts';
+import { buildFromForm, confirmedPaths, formValues, readPath } from '../model/form.ts';
 import { describeBasis, needsConfirming, suggestedValues } from '../model/questions.ts';
 import { exampleStart } from '../model/start.ts';
 import {
@@ -155,6 +155,18 @@ describe('every template', () => {
     expect(t.storedOutputs.parse(asJson(made.output.outputs))).toEqual(outputs);
     const read = readSnapshot(TEMPLATES, asJson(made.output));
     expect(read.ok && asJson(read.snapshot.outputs)).toEqual(outputs);
+  });
+
+  it.each(examples)('%s, %s: parses as the editor builds it from its form', (_, __, t, e) => {
+    // The editor sends only the fields it shows, so a value only a hidden field holds cannot be
+    // required (#501).
+    for (const [sections, schema, values] of [
+      [t.form.params, t.params, e.params],
+      [t.form.structuralInputs, t.structuralInputs, e.structuralInputs],
+    ] as const) {
+      const built = buildFromForm(sections, formValues(sections, values));
+      expect(schema.safeParse(built).error).toBeUndefined();
+    }
   });
 
   it.each(examples)('%s, %s: draws every face of every part facing a direction', (_, __, t, e) => {

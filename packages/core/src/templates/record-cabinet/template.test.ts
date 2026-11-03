@@ -7,6 +7,7 @@ import { createSnapshot } from '../../snapshot/snapshot.ts';
 import { recordCabinet } from './definition.ts';
 import { EXAMPLES, WORKED_EXAMPLE } from './examples.ts';
 import type { RecordCabinetOutputs } from './outputs.ts';
+import type { RecordCabinetParams } from './params.ts';
 
 // docs/templates/record-cabinet.md: every number here is from the spec's hand-checked worked
 // examples (Worked example, Edge of range, Structural model, The Shaker-modern base, Sliding doors
@@ -339,7 +340,7 @@ describe('the edge of the range (spec, Edge of range)', () => {
 });
 
 describe('refusals (spec, Validation)', () => {
-  const refused = (over: Partial<typeof WORKED_EXAMPLE>) => {
+  const refused = (over: Partial<RecordCabinetParams>) => {
     const result = recordCabinet.generate({ ...WORKED_EXAMPLE, ...over }, {});
     return result.ok ? [] : result.issues.map((i) => i.code);
   };
@@ -384,6 +385,27 @@ describe('refusals (spec, Validation)', () => {
     const door = { ...WORKED_EXAMPLE.door, grooveDepth: 0.25, overlap: 2 };
     expect(refused({ door })).toEqual(['panel-out-of-groove']);
     expect(refused({ door: { ...door, overlap: 0.5 } })).toEqual([]);
+  });
+});
+
+describe('a cabinet with no doors (#501)', () => {
+  const { door: _, ...noSizes } = { ...WORKED_EXAMPLE, caseDepth: 15, doors: 'none' as const };
+
+  it('needs no door sizes, and makes the same plan without them', () => {
+    const plan = (params: RecordCabinetParams) => {
+      const made = recordCabinet.generate(params, {});
+      if (!made.ok) throw new Error(JSON.stringify(made.issues));
+      const { params: echoed, ...design } = made.output.design;
+      return { echoed, output: { ...made.output, design } };
+    };
+    const without = plan(recordCabinet.params.parse(noSizes));
+    expect(without.echoed.door).toBeUndefined();
+    expect(without.output).toEqual(plan({ ...noSizes, door: WORKED_EXAMPLE.door }).output);
+  });
+
+  it('asks for the door sizes when the doors slide', () => {
+    const parsed = recordCabinet.params.safeParse({ ...noSizes, doors: 'sliding' });
+    expect(parsed.error?.issues.map((i) => i.path)).toEqual([['door']]);
   });
 });
 
