@@ -76,7 +76,7 @@ describe('the structural review, worked example with every input', () => {
       html.indexOf('Deflection: Top beam, 4x6'),
     );
     expect(textOf(bending)).toContain(
-      'Changes with these values in Edit: Beam stock, Beam plies, Beam length, Frame inset, Leg stock, Left swing center, Right swing center, Hanger spacing, Beam species and grade, Whether the beam lumber is incised, Beam moisture content, Heaviest rider on the left swing, with seat and chain, Heaviest rider on the right swing, with seat and chain, Maximum swing angle, Dynamic factor.',
+      'Changes with these values in Edit: Beam stock, Beam plies, Beam length, Frame inset, Gusset stock, Leg stock, Left swing center, Right swing center, Hanger spacing, Beam species and grade, Whether the beam lumber is incised, Beam moisture content, Heaviest rider on the left swing, with seat and chain, Heaviest rider on the right swing, with seat and chain, Maximum swing angle, Dynamic factor.',
     );
     expect(bending).toContain(`${edit('p-beamStock')}Beam stock</a>`);
     expect(bending).toContain(`${edit('s-beamSpeciesGrade')}Beam species and grade</a>`);
@@ -128,7 +128,7 @@ describe('the structural review, worked example with every input', () => {
     if (!made.ok) throw new Error('worked example should generate');
     const review = text(JSON.parse(JSON.stringify(made.output)));
     expect(review).toContain(
-      'With the other inputs as entered: margin 1.0 or more while the dynamic factor is 2.1 or less.',
+      'With the other inputs as entered: margin 1.0 or more while the dynamic factor is 1.9 or less.',
     );
     expect(review).toContain(
       'With the other inputs as entered: margin 1.0 or more while the dynamic factor is 8.0 or less.',

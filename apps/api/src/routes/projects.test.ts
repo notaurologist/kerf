@@ -76,8 +76,8 @@ describe('POST /api/projects', () => {
       templateBehind: false,
       version: { status: 'current', version: CURRENT },
     });
-    // The structural review is in the snapshot: the worked example's bending margin is 1.08.
-    expect(project.snapshot.outputs.structuralReview.beam.bending.margin).toBeCloseTo(1.08, 2);
+    // The structural review is in the snapshot: the worked example's bending margin is 0.985.
+    expect(project.snapshot.outputs.structuralReview.beam.bending.margin).toBeCloseTo(0.985, 3);
   });
 
   it('stores a project with no structural inputs, its checks waiting on input', async () => {

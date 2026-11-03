@@ -6,11 +6,17 @@ import { VERDICT_WORDS } from '../../testing.ts';
 import { swingSetAFrame } from './definition.ts';
 import type { SwingSetParams } from './params.ts';
 import { suggest } from './questions.ts';
-import { pendulumFactor, type SwingSetStructuralReview, structuralReview } from './structural.ts';
+import {
+  beamSupports,
+  pendulumFactor,
+  type SwingSetStructuralReview,
+  structuralReview,
+} from './structural.ts';
 import { generate, type SwingSetOutput } from './template.ts';
 
 // Worked examples from docs/templates/swing-set-a-frame.md, Structural model. The geometry is the
-// spec's worked example: supports at 13.75 and 106.25 (span 92.5), hangers at 30, 50, 70, 90.
+// spec's worked example: the beam bears on the middle of each gusset's top edge, at
+// 12 − 1.5/2 = 11.25 and 120 − 11.25 = 108.75 (span 97.5), hangers at 30, 50, 70, 90.
 // Expected values were computed by hand, separately from the code (see the spec). The beam is at
 // 30% moisture content: Southern Pine density 38.940 lb/ft³, so a 4x6 weighs w = 0.433798 lb/in.
 
@@ -84,13 +90,25 @@ describe('example 1: 4x6 Southern Pine No.2, 150 lb riders on both swings, θ = 
   // T = 150·2 = 300 per swing; per hanger 150 (deflection), 300 (strength).
   const r = review(params, inputs);
 
-  it('bending: M = 15,750 from the hangers + wL²/8 = 463.96 from the beam = 16,213.96, margin 1.08', () => {
+  // ℓu/d = 97.5/5.5 = 17.7 > 14.3, so ℓe = 1.84·97.5 = 179.4; R_B = √(179.4·5.5/3.5²) = 8.9748,
+  // F_bE = 1.20·459,000/8.9748² = 6,838.2, C_L = 0.99159, Fb' = 991.59.
+  it('bending: M = 17,250 from the hangers + wL²/8 = 515.47 from the beam = 17,765.47, margin 0.98', () => {
     const b = computed(r.beam.bending);
-    expect(step(b, 'R1')).toBeCloseTo(620.0632, 3);
-    expect(step(b, 'M')).toBeCloseTo(16213.961, 2);
-    expect(b.computed.value).toBeCloseTo(918.8549, 3);
-    expect(b.allowable.value).toBeCloseTo(992.0829, 3);
-    expect(b.margin).toBeCloseTo(1.07969, 4);
+    expect(b.inputs.find((q) => q.symbol === 'L')?.value).toBeCloseTo(97.5, 9);
+    expect(step(b, 'R1')).toBeCloseTo(621.1477, 3);
+    expect(step(b, 'M')).toBeCloseTo(17765.474, 2);
+    expect(b.factors.find((f) => f.symbol === 'C_L')?.value).toBeCloseTo(0.991591, 5);
+    expect(b.computed.value).toBeCloseTo(1006.7801, 3);
+    expect(b.allowable.value).toBeCloseTo(991.5913, 3);
+    expect(b.margin).toBeCloseTo(0.98491, 4);
+  });
+
+  it('says the beam bears on the gussets, and why that span (NDS 2024 3.2.1)', () => {
+    const b = computed(r.beam.bending);
+    expect(b.assumptions).toContain(
+      'Supported at the middle of each gusset\'s top edge under the beam, 11-1/4" and 108-3/4" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16" larger than the bolt, so the gussets take the beam\'s weight and the swing loads first.',
+    );
+    expect(b.assumptions.some((a) => a.startsWith('NDS 2024 3.2.1 takes the span'))).toBe(true);
   });
 
   it('shows the beam weight working', () => {
@@ -99,35 +117,35 @@ describe('example 1: 4x6 Southern Pine No.2, 150 lb riders on both swings, θ = 
     expect(b.inputs.find((q) => q.symbol === 'w')?.value).toBeCloseTo(0.433798, 6);
   });
 
-  it('shear: V = 600 + wL/2 = 620.06, f_v = 48.32, margin 3.51', () => {
+  it('shear: V = 600 + wL/2 = 621.15, f_v = 48.40, margin 3.51', () => {
     const s = computed(r.beam.shear);
-    expect(s.computed.value).toBeCloseTo(48.3166, 3);
-    expect(s.margin).toBeCloseTo(3.51328, 4);
+    expect(s.computed.value).toBeCloseTo(48.4011, 3);
+    expect(s.margin).toBeCloseTo(3.50715, 4);
   });
 
-  it('deflection: δ·EI = 7,124,414 + 5wL⁴/384 = 7,537,931, δ = 0.1233 at x = 60, margin 3.13', () => {
+  it('deflection: δ·EI = 8,629,492 + 5wL⁴/384 = 9,139,933, δ = 0.1495 at x = 60, margin 2.72', () => {
     const d = computed(r.beam.deflection);
-    expect(d.computed.value).toBeCloseTo(0.123284, 5);
+    expect(d.computed.value).toBeCloseTo(0.149485, 5);
     expect(step(d, 'x_max')).toBeCloseTo(60, 6);
-    expect(d.allowable.value).toBeCloseTo(0.385417, 5);
-    expect(d.margin).toBeCloseTo(3.12625, 4);
+    expect(d.allowable.value).toBeCloseTo(0.40625, 5);
+    expect(d.margin).toBeCloseTo(2.71766, 4);
   });
 
   it('hanger: 300 lb on each hanger against a 1200 lb rating, margin 4.0', () => {
     expect(computed(r.hanger).margin).toBeCloseTo(4, 9);
   });
 
-  // At factor C the hangers give 7,875·C and the beam's weight 463.96, which the factor does not
-  // multiply: bending reaches Fb'·S = 992.0829 · 17.645833 = 17,506.13 at
-  // C = (17,506.13 − 463.96) / 7,875 = 2.1641. Shear reaches Fv'·2bd/3 = 2,178.46 at
-  // C = (2,178.46 − 20.06) / 300 = 7.1947. The hanger reaches 1,200 at C = 1,200 / 150 = 8.
+  // At factor C the hangers give 8,625·C and the beam's weight 515.47, which the factor does not
+  // multiply: bending reaches Fb'·S = 991.5913 · 17.645833 = 17,497.46 at
+  // C = (17,497.46 − 515.47) / 8,625 = 1.9689. Shear reaches Fv'·2bd/3 = 2,178.46 at
+  // C = (2,178.46 − 21.15) / 300 = 7.1910. The hanger reaches 1,200 at C = 1,200 / 150 = 8.
   it('reports the dynamic factor at which each strength check reaches margin 1.0 (#401)', () => {
     expect(computed(r.beam.bending).breakEven).toMatchObject({ key: 'dynamicFactor' });
-    expect(computed(r.beam.bending).breakEven?.value).toBeCloseTo(2.164085, 5);
-    expect(computed(r.beam.shear).breakEven?.value).toBeCloseTo(7.194651, 5);
+    expect(computed(r.beam.bending).breakEven?.value).toBeCloseTo(1.968925, 5);
+    expect(computed(r.beam.shear).breakEven?.value).toBeCloseTo(7.191036, 5);
     expect(computed(r.hanger).breakEven?.value).toBeCloseTo(8, 9);
-    // Not margin × factor (2.159): the beam's weight is not multiplied.
-    expect(computed(r.beam.bending).breakEven?.value).not.toBeCloseTo(1.07969 * 2, 3);
+    // Not margin × factor (1.970): the beam's weight is not multiplied.
+    expect(computed(r.beam.bending).breakEven?.value).not.toBeCloseTo(0.98491 * 2, 3);
     expect(computed(r.beam.deflection).breakEven).toBeUndefined();
   });
 
@@ -152,22 +170,47 @@ describe('example 1: 4x6 Southern Pine No.2, 150 lb riders on both swings, θ = 
   });
 });
 
+describe('where the beam bears on each frame', () => {
+  // The gusset (a 2x8, 1.5 thick) sits on each frame's outside face, from e − 1.5 to e.
+  it('bears on the whole gusset when the frame inset is at least its thickness: 11.25, 108.75', () => {
+    expect(beamSupports(output(params))).toEqual({ x: [11.25, 108.75], on: 'gusset' });
+  });
+
+  it('bears on the part of the gusset under the beam when the inset is less: 0.5, 119.5', () => {
+    // e = 1: the gusset runs from −0.5 to 1, so the beam bears from 0 to 1.
+    expect(beamSupports(output({ ...params, frameInset: 1 }))).toEqual({
+      x: [0.5, 119.5],
+      on: 'gusset',
+    });
+  });
+
+  it('hangs on the leg-to-beam bolts with no gusset under the beam: 1.75, 118.25', () => {
+    // e = 0: the gusset is past the beam's end; the bolts are at e + 3.5/2.
+    const p = { ...params, frameInset: 0 };
+    expect(beamSupports(output(p))).toEqual({ x: [1.75, 118.25], on: 'bolt' });
+    expect(computed(review(p, inputs).beam.bending).assumptions[0]).toMatch(
+      /^Supported at the leg-to-beam bolts, 1-3\/4" and 118-1\/4" from the left end\./,
+    );
+  });
+});
+
 describe('example 2: asymmetric, 200 lb on the left swing and 80 lb on the right', () => {
-  // Strength hanger loads 400, 400, 160, 160. R1 = (400·132.5 + 160·52.5)/92.5 + wL/2 = 683.847;
-  // M under the second hanger = 683.847·36.25 − 400·20 − w·36.25²/2 = 16,504.44.
+  // Strength hanger loads 400, 400, 160, 160, at 18.75, 38.75, 58.75, 78.75 from the left
+  // support. R1 = (400·137.5 + 160·57.5)/97.5 + wL/2 = 658.462 + 21.148 = 679.609; M under the
+  // second hanger = 679.609·38.75 − 400·20 − w·38.75²/2 = 18,009.17.
   const r = review(params, { ...inputs, riderWeights: [200, 80] });
 
   it('matches the hand calculation', () => {
     const b = computed(r.beam.bending);
-    expect(step(b, 'R1')).toBeCloseTo(683.847, 3);
-    expect(step(b, 'R2')).toBeCloseTo(476.2794, 3);
-    expect(step(b, 'M')).toBeCloseTo(16504.436, 2);
-    expect(b.margin).toBeCloseTo(1.06069, 4);
-    expect(computed(r.beam.shear).margin).toBeCloseTo(3.18559, 4);
+    expect(step(b, 'R1')).toBeCloseTo(679.6092, 3);
+    expect(step(b, 'R2')).toBeCloseTo(482.6861, 3);
+    expect(step(b, 'M')).toBeCloseTo(18009.169, 2);
+    expect(b.margin).toBeCloseTo(0.97159, 4);
+    expect(computed(r.beam.shear).margin).toBeCloseTo(3.20546, 4);
     const d = computed(r.beam.deflection);
-    expect(d.computed.value).toBeCloseTo(0.115693, 5);
-    expect(step(d, 'x_max')).toBeCloseTo(58.3415, 2);
-    expect(d.margin).toBeCloseTo(3.33136, 4);
+    expect(d.computed.value).toBeCloseTo(0.140282, 5);
+    expect(step(d, 'x_max')).toBeCloseTo(58.2907, 3);
+    expect(d.margin).toBeCloseTo(2.89594, 4);
   });
 
   it('checks the most loaded hanger: 400 lb, margin 3.0', () => {
@@ -179,27 +222,28 @@ describe('example 2: asymmetric, 200 lb on the left swing and 80 lb on the right
 
 describe('example 3: two-ply 2x6 beam, same loads as example 1', () => {
   // Each ply carries half of every load, including half the beam's weight (w = 0.371827 lb/in for
-  // both plies): M = 7875 + 0.185914·92.5²/8 = 8073.84 per ply, S = 7.5625, C_L = 0.9031.
+  // both plies): M = 8625 + 0.185914·97.5²/8 = 8845.92 per ply, S = 7.5625. R_B = √(179.4·5.5/1.5²)
+  // = 20.9412, F_bE = 1.20·459,000/20.9412² = 1,256.0, C_L = 0.89116, Fb' = 891.16.
   const r = review(twoPly, inputs);
 
-  it('bending margin is below 1 for these inputs: 0.85', () => {
+  it('bending margin is below 1 for these inputs: 0.76', () => {
     const b = computed(r.beam.bending);
-    expect(step(b, 'M')).toBeCloseTo(8073.84, 2);
-    expect(b.computed.value).toBeCloseTo(1067.6152, 3);
-    expect(b.factors.find((f) => f.symbol === 'C_L')?.value).toBeCloseTo(0.903093, 5);
-    expect(b.margin).toBeCloseTo(0.8459, 4);
+    expect(step(b, 'M')).toBeCloseTo(8845.918, 2);
+    expect(b.computed.value).toBeCloseTo(1169.7081, 3);
+    expect(b.factors.find((f) => f.symbol === 'C_L')?.value).toBeCloseTo(0.891163, 5);
+    expect(b.margin).toBeCloseTo(0.76187, 4);
   });
 
   it('shear and deflection', () => {
-    expect(computed(r.beam.shear).margin).toBeCloseTo(3.02537, 4);
-    expect(computed(r.beam.deflection).computed.value).toBeCloseTo(0.142704, 5);
-    expect(computed(r.beam.deflection).margin).toBeCloseTo(2.70081, 4);
+    expect(computed(r.beam.shear).margin).toBeCloseTo(3.02082, 4);
+    expect(computed(r.beam.deflection).computed.value).toBeCloseTo(0.173008, 5);
+    expect(computed(r.beam.deflection).margin).toBeCloseTo(2.34816, 4);
   });
 
-  // Per ply: the hangers give 3,937.5·C and the weight 198.84; Fb'·S = 903.093 · 7.5625 =
-  // 6,829.64, reached at C = (6,829.64 − 198.84) / 3,937.5 = 1.6840.
-  it('reaches margin 1.0 in bending at a dynamic factor of 1.684', () => {
-    expect(computed(r.beam.bending).breakEven?.value).toBeCloseTo(1.684013, 4);
+  // Per ply: the hangers give 4,312.5·C and the weight 220.92; Fb'·S = 891.1625 · 7.5625 =
+  // 6,739.42, reached at C = (6,739.42 − 220.92) / 4,312.5 = 1.5115.
+  it('reaches margin 1.0 in bending at a dynamic factor of 1.512', () => {
+    expect(computed(r.beam.bending).breakEven?.value).toBeCloseTo(1.511536, 4);
   });
 
   it('puts ply fastening on the checklist', () => {
@@ -307,7 +351,7 @@ describe('wording', () => {
 
 describe('example 1 with suggested inputs (#417)', () => {
   // The same values as example 1, with the deflection limit and moisture content suggested from
-  // their sources: L/240 = 92.5 / 240 = 0.385417", against δ = 0.123284", margin 3.12625, whether
+  // their sources: L/240 = 97.5 / 240 = 0.40625", against δ = 0.149485", margin 2.71766, whether
   // the 240 was entered, suggested, or suggested and confirmed.
   const { deflectionLimit: _, beamMoistureContent: __, ...rest } = inputs;
   const suggested = suggest({
@@ -338,12 +382,12 @@ describe('example 1 with suggested inputs (#417)', () => {
     expect(values).toEqual({ deflectionLimit: 240, beamMoistureContent: 30 });
   });
 
-  it('gives margin 3.13 entered, suggested, and confirmed', () => {
+  it('gives margin 2.72 entered, suggested, and confirmed', () => {
     for (const p of [plan([]), plan(as(false)), plan(as(true))]) {
       const d = deflection(p);
-      expect(d.allowable.value).toBeCloseTo(0.385417, 5);
-      expect(d.computed.value).toBeCloseTo(0.123284, 5);
-      expect(d.margin).toBeCloseTo(3.12625, 4);
+      expect(d.allowable.value).toBeCloseTo(0.40625, 5);
+      expect(d.computed.value).toBeCloseTo(0.149485, 5);
+      expect(d.margin).toBeCloseTo(2.71766, 4);
     }
   });
 

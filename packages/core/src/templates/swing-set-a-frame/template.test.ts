@@ -89,7 +89,7 @@ describe('worked example, buried legs', () => {
     expect(g.gusset.height).toBe(7.25);
   });
 
-  it('puts the supports at the frame centerlines', () => {
+  it('puts the leg-to-beam bolts at the frame centerlines', () => {
     expect(g.supportsX).toEqual([13.75, 106.25]);
   });
 });

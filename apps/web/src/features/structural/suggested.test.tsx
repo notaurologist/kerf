@@ -65,7 +65,7 @@ describe('the structural review with suggested values', () => {
   });
 
   it('labels the deflection margin as using a suggested value, and gives its basis in the working', () => {
-    expect(html).toContain('margin 3.1x, with a suggested value');
+    expect(html).toContain('margin 2.7x, with a suggested value');
     expect(text).toContain(
       'Uses a suggested value not confirmed yet: Deflection limit (span divided by), 240.',
     );
@@ -73,7 +73,7 @@ describe('the structural review with suggested values', () => {
       'Deflection limit, span divided by (Suggested by Kerf, not confirmed yet. Source: International Building Code (2021), Table 1604.3.)',
     );
     // The strength checks do not use the limit.
-    expect(html).toContain('margin 1.1x</span>');
+    expect(html).toContain('margin 1.0x</span>');
   });
 
   it('marks the leg-to-beam bolt as suggested in the bolt layout', () => {
