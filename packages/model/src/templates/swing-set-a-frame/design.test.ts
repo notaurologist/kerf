@@ -64,7 +64,11 @@ const cases = [...parityCases(template, FIXTURES), ...more];
 
 describe('the swing set from joints', () => {
   it('matches the template in every case', () => {
-    for (const c of more) expect(template.generate(c.params, c.structuralInputs).ok).toBe(true);
+    for (const c of more) {
+      // The definition's generate takes parsed parameters, so each is parsed here first.
+      expect(template.params.safeParse(c.params).success).toBe(true);
+      expect(template.generate(c.params, c.structuralInputs).ok).toBe(true);
+    }
     const results = parity(template, swingSetAFrame.generateWith(design) as Generator, cases);
     expect(results.length).toBe(cases.length);
     expect(results.filter((r) => r.mismatches.length > 0)).toEqual([]);

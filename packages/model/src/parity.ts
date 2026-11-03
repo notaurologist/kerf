@@ -6,6 +6,7 @@ import {
   type TemplateDefinition,
 } from '@kerf/core';
 import { compare, type Mismatch } from './compare.ts';
+import { type Random, seeded } from './random.ts';
 
 // The parity test (docs/explorations/joint-model.md): a candidate generator matches a template's
 // own `generate` when, for every case, both give the same result and the same plan when read.
@@ -65,17 +66,22 @@ export function parityCases(
 
 const key = (c: ParityCase) => JSON.stringify([c.params, c.structuralInputs]);
 
-/** Each case's mismatches between the template's own output and the candidate's. */
+/**
+ * Each case's mismatches between the template's own output and the candidate's. `shown: false`
+ * compares the results only, for a sweep of many cases: what a plan shows when read is made from
+ * them.
+ */
 export function parity(
   template: TemplateDefinition,
   candidate: Generator,
   cases: readonly ParityCase[],
+  { shown = true }: { shown?: boolean } = {},
 ): CaseResult[] {
   return cases.map((c) => {
     const current = template.generate(c.params, c.structuralInputs);
     const made = candidate(c.params, c.structuralInputs);
     const mismatches = compare(current, made, 'result');
-    if (current.ok && made.ok) {
+    if (shown && current.ok && made.ok) {
       mismatches.push(
         ...compare(
           shownOnRead(template, current.output),
@@ -86,4 +92,26 @@ export function parity(
     }
     return { name: c.name, mismatches };
   });
+}
+
+/**
+ * Cases drawn at random for a sweep: `count` draws from `sample`, a template's parameters and
+ * structural inputs, keeping those its schemas accept. The same seed gives the same cases.
+ */
+export function sampledCases<Params, Inputs>(
+  template: Pick<TemplateDefinition<Params, Inputs>, 'params' | 'structuralInputs'>,
+  sample: (random: Random) => { params: unknown; structuralInputs: unknown },
+  count: number,
+  seed: number,
+): (ParityCase & { params: Params; structuralInputs: Inputs })[] {
+  const random = seeded(seed);
+  return Array.from({ length: count }, (_, i) => ({ i, drawn: sample(random) })).flatMap(
+    ({ i, drawn }) => {
+      const params = template.params.safeParse(drawn.params);
+      const inputs = template.structuralInputs.safeParse(drawn.structuralInputs);
+      return params.success && inputs.success
+        ? [{ name: `seed ${seed}, draw ${i}`, params: params.data, structuralInputs: inputs.data }]
+        : [];
+    },
+  );
 }
