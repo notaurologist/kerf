@@ -188,6 +188,12 @@ describe('the preview pane', () => {
     );
     expect(text).toContain('No preview for these values. Too short.');
     expect(text).toContain('Saved plan');
+    // Inside the pane's polite live region, so a rejection while typing does not interrupt.
+    const html = render(
+      <PreviewPane saved={saved} state={{ kind: 'rejected', messages: ['Too short.'] }} />,
+    );
+    expect(html).toContain('aria-live="polite"');
+    expect(html).not.toContain('role="alert"');
   });
 });
 

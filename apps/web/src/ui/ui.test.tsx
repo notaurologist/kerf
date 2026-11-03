@@ -424,6 +424,16 @@ describe('notices', () => {
   it('announces status without moving focus, and problems as alerts', () => {
     expect(render(<StatusLine>Saved.</StatusLine>)).toContain('role="status"');
     expect(render(<Notice>Not saved.</Notice>)).toContain('role="alert"');
+    expect(render(<Notice alert={false}>No preview.</Notice>)).not.toContain('role=');
+  });
+
+  it('marks a status line done, failed, or under way, with a check mark only when done', () => {
+    const icons = (html: string) => html.match(/<svg/g)?.length ?? 0;
+    expect(render(<StatusLine>Saved.</StatusLine>)).toContain('data-tone="done"');
+    const failed = render(<StatusLine tone="error">Not drawn.</StatusLine>);
+    expect(failed).toContain('data-tone="error"');
+    expect(icons(failed)).toBe(1);
+    expect(icons(render(<StatusLine tone="working">Drawing…</StatusLine>))).toBe(0);
   });
 
   it('share one callout box, told apart by tone', () => {

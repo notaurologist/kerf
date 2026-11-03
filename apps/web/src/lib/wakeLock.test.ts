@@ -6,7 +6,7 @@ import { holdWakeLock, type WakeLockHost } from './wakeLock.ts';
 
 const settle = () => new Promise((r) => setTimeout(r, 0));
 
-function fakeHost(options: { refuse?: boolean } = {}) {
+function fakeHost(options: { refuse?: boolean; firstArrivesReleased?: boolean } = {}) {
   const log: string[] = [];
   let listener: (() => void) | null = null;
   const document = {
@@ -29,7 +29,9 @@ function fakeHost(options: { refuse?: boolean } = {}) {
         const id = n;
         const onRelease: (() => void)[] = [];
         const lock = {
+          released: id === 1 && options.firstArrivesReleased === true,
           release: async () => {
+            lock.released = true;
             log.push(`release ${id}`);
             for (const fn of onRelease) fn();
           },
@@ -88,6 +90,28 @@ describe('holdWakeLock', () => {
     stop();
     await settle();
     expect(log.at(-1)).toBe('release 2');
+  });
+
+  it('asks once when the page is hidden and shown while the first request is out', async () => {
+    const { host, log, setVisible } = fakeHost();
+    const stop = holdWakeLock(host);
+    setVisible(false);
+    setVisible(true);
+    await settle();
+    expect(log).toEqual(['request 1']);
+    stop();
+    await settle();
+    expect(log).toEqual(['request 1', 'release 1']);
+  });
+
+  it('asks again when the lock arrives already released', async () => {
+    const { host, log } = fakeHost({ firstArrivesReleased: true });
+    const stop = holdWakeLock(host);
+    await settle();
+    expect(log).toEqual(['request 1', 'request 2']);
+    stop();
+    await settle();
+    expect(log).toEqual(['request 1', 'request 2', 'release 2']);
   });
 
   it('lets go at once when the mode closes before the lock arrives', async () => {

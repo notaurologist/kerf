@@ -1,11 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createClient } from './api.ts';
-import { fetchBackup, shareBackup } from './backup.ts';
+import { browserHost, fetchBackup, shareBackup } from './backup.ts';
 
 const file = new File(['{}'], 'kerf-2026-11-02.json', { type: 'application/json' });
 
 function host(share: (data: ShareData) => Promise<void>, canShare = true) {
-  return { standalone: true, canShare: () => canShare, share: vi.fn(share) };
+  return { canShare: () => canShare, share: vi.fn(share) };
 }
 
 describe('shareBackup', () => {
@@ -29,14 +29,47 @@ describe('shareBackup', () => {
     expect(await shareBackup(h, file)).toEqual({ state: 'ready', file });
   });
 
-  it('says to use Safari when the device cannot share the file', async () => {
+  it('says to use Safari, and to log in there, when the device cannot share the file', async () => {
     const result = await shareBackup(
       host(async () => {}, false),
       file,
     );
     expect(result).toMatchObject({ state: 'failed', failure: { connection: false } });
-    if (result.state === 'failed') expect(result.failure.message).toContain('Safari');
-    expect(await shareBackup({ standalone: true }, file)).toMatchObject({ state: 'failed' });
+    if (result.state === 'failed') {
+      expect(result.failure.message).toContain('Open Kerf in Safari');
+      expect(result.failure.message).toContain('Safari has its own login, so log in there too.');
+    }
+    expect(await shareBackup({}, file)).toMatchObject({ state: 'failed' });
+  });
+});
+
+describe('browserHost', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const stub = (standalone: boolean | undefined, displayMode: boolean) => {
+    vi.stubGlobal('navigator', standalone === undefined ? {} : { standalone });
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: displayMode && query === '(display-mode: standalone)',
+    }));
+  };
+
+  it("is the Home Screen app when Safari's own flag says so", () => {
+    stub(true, false);
+    expect(browserHost().standalone).toBe(true);
+  });
+
+  it('is the Home Screen app when the page shows in standalone display mode', () => {
+    stub(undefined, true);
+    expect(browserHost().standalone).toBe(true);
+  });
+
+  it('is a browser otherwise', () => {
+    stub(false, false);
+    expect(browserHost().standalone).toBe(false);
+    stub(undefined, false);
+    expect(browserHost().standalone).toBe(false);
   });
 });
 
