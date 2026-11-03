@@ -22,6 +22,7 @@ import v16 from './snapshots/v16.json' with { type: 'json' };
 import v17 from './snapshots/v17.json' with { type: 'json' };
 import v18 from './snapshots/v18.json' with { type: 'json' };
 import v19 from './snapshots/v19.json' with { type: 'json' };
+import v20 from './snapshots/v20.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -312,5 +313,11 @@ describe('record-cabinet template versions', () => {
   // 3/8 deep on each face, to a 1/4 tongue. Every worked example's door panel is glued up.
   it('version 19 sizes a one-board door panel’s tongue from its stock, which no example has (#562)', () => {
     expect(changes(v18, v19)).toEqual([]);
+  });
+
+  // Hand check in template.test.ts: from 3-1/2" boards with a 1/2" rip allowance, a 3" frame is
+  // made and a 3-1/16" one refused. Every worked example's frame comes from one board.
+  it('version 20 refuses a door frame wider than one board gives, which no example has (#563)', () => {
+    expect(changes(v19, v20)).toEqual([]);
   });
 });

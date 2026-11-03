@@ -172,23 +172,28 @@ describe('response sizes', () => {
 
   // Narrower boards make more board drawings. The most boards found within the ranges: the
   // narrowest boards a panel accepts, the most jointing allowance, 2' lengths (the shortest that
-  // hold the pieces), and the largest four-bay case.
-  it('keeps a record cabinet of its narrowest boards under budget', async () => {
+  // hold the pieces), and the largest four-bay case. Doors need boards a stile can be ripped from
+  // (#563), so the narrowest boards have none, and the narrowest that allow a 1-1/2" frame, 2", do.
+  it.each([
+    { width: 1.5, doors: 'none' as const, boards: 110 },
+    { width: 2, doors: 'sliding' as const, boards: 100 },
+  ])('keeps a record cabinet of $width" boards, doors $doors, under budget', async (c) => {
     const template = recordCabinet.definition;
     const [example] = template.examples;
     if (!example) throw new Error('no worked example');
-    const narrowest = 1.5;
     const withBoards = (width: number) => ({
       ...example.params,
       width: 72,
       bays: 4,
       caseDepth: 20,
       bayHeight: 18,
+      doors: c.doors,
+      door: { ...example.params.door, frameWidth: 1.5 },
       board: { source: 'store' as const, thickness: 0.8125, width, lengths: [2] },
       allowances: { ...example.params.allowances, jointPerEdge: 0.25 },
     });
-    expect(template.params.safeParse(withBoards(narrowest)).success).toBe(true);
-    expect(template.params.safeParse(withBoards(narrowest - 0.0625)).success).toBe(false);
+    expect(template.params.safeParse(withBoards(1.5)).success).toBe(true);
+    expect(template.params.safeParse(withBoards(1.5 - 0.0625)).success).toBe(false);
 
     const { authed, close } = await createTestApp();
     const created = await authed('/api/projects', {
@@ -196,7 +201,7 @@ describe('response sizes', () => {
       body: {
         name: 'Narrow boards',
         templateId: template.id,
-        params: withBoards(narrowest),
+        params: withBoards(c.width),
         structuralInputs: example.structuralInputs,
       },
     });
@@ -206,7 +211,7 @@ describe('response sizes', () => {
     expect(drawings.status).toBe(200);
     const text = await drawings.text();
     const { drawings: drawn } = JSON.parse(text) as { drawings: { boards: unknown[] } };
-    expect(drawn.boards.length).toBeGreaterThan(150);
+    expect(drawn.boards.length).toBeGreaterThan(c.boards);
     expect(bytes(text)).toBeLessThan(DRAWINGS_BUDGET);
     await close();
   });

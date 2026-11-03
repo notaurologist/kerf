@@ -405,6 +405,23 @@ describe('refusals (spec, Validation)', () => {
     ).toEqual(['recess-into-groove']);
   });
 
+  it('refuses a door frame wider than one board gives (#563)', () => {
+    // From 3-1/2" boards with the 1/2" rip allowance, a stile or rail is at most 3" wide. Wider,
+    // it would be glued up and flattened thinner than the door the tracks are cut for.
+    const narrow = { ...WORKED_EXAMPLE.board, width: 3.5 };
+    const door = (frameWidth: number) => ({ ...WORKED_EXAMPLE.door, frameWidth });
+    expect(refused({ board: narrow, door: door(3) })).toEqual([]);
+    expect(refused({ board: narrow, door: door(3.0625) })).toEqual(['door-frame-wider-than-board']);
+    expect(refused({ board: narrow, door: door(3.0625), doors: 'none' })).toEqual([]);
+    const made = recordCabinet.generate(
+      { ...WORKED_EXAMPLE, board: narrow, door: door(3.0625) },
+      {},
+    );
+    expect(!made.ok && made.issues[0]?.message).toContain(
+      'Make the frame 3" wide or less, or use wider boards.',
+    );
+  });
+
   it('refuses a panel that would pull out of its grooves at its narrowest', () => {
     // No species entered: span 17.75 + 1.5 − 4 + 0.5 = 15.75, so a gap of
     // 15.75 × 0.00376 × 4 / 2 + 1/32 = 0.1497 at each edge, and 2 × 0.1497 − 1/32 ≥ 1/4.
@@ -619,10 +636,12 @@ describe('ranges that bound generation (spec, Ranges that bound generation)', ()
   });
 
   it('glues the top from 18 boards at the narrowest board and the most jointing', () => {
-    // ⌈(17-3/4 + 1/2 − 2 × 1/4) / (1-1/2 − 2 × 1/4)⌉ = ⌈17.75⌉ = 18.
+    // ⌈(17-3/4 + 1/2 − 2 × 1/4) / (1-1/2 − 2 × 1/4)⌉ = ⌈17.75⌉ = 18. No doors: a 2" frame can't
+    // be ripped from 1-1/2" boards (#563).
     const result = recordCabinet.generate(
       {
         ...WORKED_EXAMPLE,
+        doors: 'none',
         board: { ...store, width: 1.5 },
         allowances: { ...WORKED_EXAMPLE.allowances, jointPerEdge: 0.25 },
       },

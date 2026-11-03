@@ -84,7 +84,7 @@ Stage 2 of the Shaker-modern cabinet. The owner chose on November 1, 2026: two *
 - **Tracks:** two grooves along the case bottom's top face and two along the top's underside, between the sides, at the front. The front track holds the left door and the rear track the right, so the doors pass each other and both end bays can be open at once. With both closed, the middle bay stays open.
 - **The partitions stop short of the front** by the track zone d_t, so the doors run in front of them. The sides run the full depth, and each door stops against its side.
 - **Lifting a door in:** the top's grooves are deeper than the bottom's. A door is lifted up into the top groove, swung in at the bottom, and dropped into the bottom groove.
-- **Doors** are as thick as the board stock, so they come from the same lumber without planing. Each is two stiles and two rails, joined with stub tenons in grooves, around a solid panel. The panel's edges are rabbeted to a tongue that floats in the grooves, unglued, with its gap from the movement estimate (`DOMAIN.md`, Joints that let wood move).
+- **Doors** are as thick as the board stock, so they come from the same lumber without planing. Each stile and rail is ripped from one board, and a frame wider than a board gives is refused (#563). Each is two stiles and two rails, joined with stub tenons in grooves, around a solid panel. The panel's edges are rabbeted to a tongue that floats in the grooves, unglued, with its gap from the movement estimate (`DOMAIN.md`, Joints that let wood move).
 - **Pull:** a shallow recess routed into each door's face near its outer stile, so nothing stands proud to catch the other door.
 - **Records still fit:** the track zone comes off the bays' depth, so the case gets deeper. Records need D_c − d_t − r ≥ the jacket, where r is the back rail's thickness.
 
@@ -248,6 +248,7 @@ Refused:
 - The largest item on the top when I_w > W or I_d > D_t
 - h_c ≥ h_f, or 2·f_w ≥ D_c
 - 2·j ≥ t (no wood left between a partition's dadoes), or s_d ≥ D_c
+- With sliding doors, a stile or rail that can't be ripped from one board: w_s + the rip allowance > the board's width (template version 20, #563). Glued up and flattened, it would be thinner than the board, which the door's thickness, its tracks, and its parts' places are taken from.
 
 Flags (`DOMAIN.md`, Expert-check categories):
 - **Router technique** and **table saw operations:** dadoes and stopped dadoes.

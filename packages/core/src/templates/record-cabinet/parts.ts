@@ -173,6 +173,22 @@ export function cabinetParts(
   ) {
     return { ok: false, issues };
   }
+  // The doors are as thick as the board, so a stile or rail glued up from narrower strips, and
+  // flattened thinner, would not fit the tracks or meet the rest of its frame (#563).
+  if (
+    sizes &&
+    doorStock?.stile &&
+    doorStock.rail &&
+    (doorStock.stile.boards > 1 || doorStock.rail.boards > 1)
+  ) {
+    const most = board.width - p.allowances.rip;
+    issues.push({
+      code: 'door-frame-wider-than-board',
+      message: `Each door's stiles and rails are ripped from one board. A ${formatLength(sizes.frameWidth)} frame needs ${formatLength(sizes.frameWidth + p.allowances.rip)} of board with the ${formatLength(p.allowances.rip)} rip allowance, and the boards are ${formatLength(board.width)} wide. Make the frame ${formatLength(most)} wide or less, or use wider boards.`,
+      params: ['door.frameWidth', 'board', 'allowances'],
+    });
+    return { ok: false, issues };
+  }
   // A rail, apron, or cleat of one board is not flattened, so it is as thick as the board.
   const r = railStock.thickness;
   const ta = longApronStock.thickness;

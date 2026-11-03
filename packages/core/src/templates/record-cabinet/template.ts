@@ -27,8 +27,11 @@ export const TEMPLATE_ID = 'record-cabinet';
  * Version 19 sizes a door panel's tongue rabbets and its place in the door from the panel's
  * stock, so a one-board panel thicker than the panel thickness still leaves a tongue as thick as
  * the groove (#562). The worked examples' panels are glued up, so their output is the same.
+ * Version 20 refuses a door whose stiles and rails can't each be ripped from one board (#563): glued
+ * up and flattened, they were thinner than the door the tracks were cut for. The worked examples'
+ * frames come from one board, so their output is the same.
  */
-export const TEMPLATE_VERSION = 19;
+export const TEMPLATE_VERSION = 20;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
