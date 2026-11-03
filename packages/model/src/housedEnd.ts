@@ -118,15 +118,23 @@ export function entering(
     return { ok: false, message: "The housed end is not square to the housing's edges." };
   }
   const across = onFace ? housing.part.stock.width : housing.part.stock.thickness;
-  if (
-    u0 < -EPSILON ||
-    a0 < -EPSILON ||
-    u1 > housing.part.length + EPSILON ||
-    a1 > across + EPSILON
-  ) {
+  const length = housing.part.length;
+  if (u0 < -EPSILON || a0 < -EPSILON || u1 > length + EPSILON || a1 > across + EPSILON) {
     return { ok: false, message: 'The housed end runs past the housing.' };
   }
-  return { ok: true, entering: { side, u0, u1, a0, a1 } };
+  // An outline that reaches an edge of the housing is on it, not a float error past it: a length
+  // a hair below zero cannot be shown.
+  const onEdge = (value: number, edge: number) => (same(value, edge) ? edge : value);
+  return {
+    ok: true,
+    entering: {
+      side,
+      u0: onEdge(u0, 0),
+      u1: onEdge(u1, length),
+      a0: onEdge(a0, 0),
+      a1: onEdge(a1, across),
+    },
+  };
 }
 
 export interface HousedEnd {

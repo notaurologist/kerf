@@ -322,6 +322,32 @@ describe('sliding doors (spec, Sliding doors on the end bays)', () => {
     expect(door.partitionDepth - part(worked, 'rail').stock.thickness).toBe(13.6875);
   });
 
+  it('rabbets a one-board panel from its own thickness, to a tongue as thick as the groove', () => {
+    // A 42" case of 1" x 11-1/4" boards: bays (42 − 4 × 3/4 − 2 × 3/4) / 3 = 12-1/2, doors
+    // 12-1/2 + 3/4 + 1/2 = 13-3/4 wide, the panel span 13-3/4 − 2 × 2 + 2 × 3/8 = 10-1/2, and the
+    // panel 10.5 − 2 × (10.5 × 0.00248 × 4 / 2 + 1/32) = 10-1/3 wide, under the board's 11-1/8
+    // after jointing: one board, not flattened, so 1" thick against t = 3/4.
+    const board = { source: 'store' as const, thickness: 1, width: 11.25, lengths: [4, 6, 8] };
+    const result = recordCabinet.generate(
+      { ...p, width: 42, board },
+      EXAMPLES[0]?.structuralInputs ?? {},
+    );
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    const one = result.output;
+    const panel = part(one, 'door-panel');
+    expect(panel.stock.width).toBeCloseTo(10.5 - 2 * ((10.5 * 0.00248 * 4) / 2 + 1 / 32), 12);
+    expect(panel.stock.thickness).toBe(1);
+    // (1 − 1/4) / 2 = 3/8 on each face, not (3/4 − 1/4) / 2 = 1/4, which left a 1/2 tongue.
+    expect(new Set(panel.rabbets?.map((r) => `${r.width} ${r.depth}`))).toEqual(
+      new Set(['0.375 0.375']),
+    );
+    expect(1 - 2 * 0.375).toBe(p.tenonThickness);
+    // The frame is the same 1" board, so the panel is flush with the door's front face, at
+    // 1/4 + 1/32, not 1/8 behind it.
+    expect(world(placed(one, 'door-stile-outer', 0), 0, 0, 1).y).toBe(0.28125);
+    expect(world(placed(one, 'door-panel', 0), 0, 0, 0).y).toBe(0.28125);
+  });
+
   it('has no doors and full-depth partitions in the edge of range', () => {
     expect(edge.design.geometry.door).toBeUndefined();
     expect(edge.design.parts.filter((x) => x.id.startsWith('door'))).toEqual([]);
@@ -356,6 +382,54 @@ describe('refusals (spec, Validation)', () => {
     expect(refused({ apronSetback: 1.25 })).toEqual(['apron-off-leg']);
   });
 
+  it('refuses aprons that put the mortises outside the leg', () => {
+    const board = (thickness: number) => ({ ...WORKED_EXAMPLE.board, thickness });
+    // #561, draw 31: the mortise starts 1.0625 − 0.8125 − (1.1873 + 0.1875)/2 = −0.437 from the
+    // leg's inside face and ends at −0.250, entirely outside the leg.
+    const outside = {
+      legStock: { size: 1.0625, lengths: [3] },
+      footSize: 0.6875,
+      apronSetback: 0.8125,
+      board: board(1.1873),
+      tenonThickness: 0.1875,
+    };
+    expect(refused(outside)).toEqual(['mortise-off-leg']);
+    const result = recordCabinet.generate({ ...WORKED_EXAMPLE, ...outside }, {});
+    expect(result.ok ? [] : result.issues[0]?.message).toBe(
+      `Aprons 1-3/16" thick, set back 13/16" on 1-1/16" legs, would put each mortise past the leg's inside face. To fix it, use legs larger than 1-1/2", or set the aprons back less than 3/8", or use thinner boards.`,
+    );
+    // #561, draw 25: 1.1875 − 0.5625 − (1.25 + 0.25)/2 = −0.125 to 0.125, half outside.
+    const half = {
+      legStock: { size: 1.1875, lengths: [3] },
+      footSize: 0.75,
+      apronSetback: 0.5625,
+      board: board(1.25),
+    };
+    expect(refused(half)).toEqual(['mortise-off-leg']);
+    // A mortise whose wall is flush with the inside face is open there: 1.1875 − 0.4375 − 0.75 = 0.
+    expect(refused({ ...half, apronSetback: 0.4375 })).toEqual(['mortise-off-leg']);
+  });
+
+  it("refuses aprons that stand past the leg's inside face", () => {
+    const legs = { legStock: { size: 1.1875, lengths: [3] }, footSize: 0.75 };
+    // 13/16 aprons on 1-3/16 legs: 3/8 + 13/16 = 1-3/16 is flush with the inside face.
+    expect(refused({ ...legs, apronSetback: 0.375 })).toEqual([]);
+    expect(refused({ ...legs, apronSetback: 0.4375 })).toEqual(['apron-past-leg']);
+    // #561, draw 25 with the mortise back in the leg: 3/8 + 1-1/4 = 1-5/8, past the 1-3/16 leg.
+    const result = recordCabinet.generate(
+      {
+        ...WORKED_EXAMPLE,
+        ...legs,
+        apronSetback: 0.375,
+        board: { ...WORKED_EXAMPLE.board, thickness: 1.25 },
+      },
+      {},
+    );
+    expect(result.ok ? [] : result.issues.map((i) => i.message)).toEqual([
+      `Aprons 1-1/4" thick, set back 3/8" on 1-3/16" legs, would stand past the leg's inside face, where the two aprons at each leg would run into each other. To fix it, use legs at least 1-5/8", or use thinner boards.`,
+    ]);
+  });
+
   it('refuses a largest item wider than the 54" top or deeper than its 17-3/4"', () => {
     const item = WORKED_EXAMPLE.topItem;
     expect(refused({ topItem: { ...item, width: 54.0625 } })).toEqual(['top-item-too-wide']);
@@ -377,6 +451,23 @@ describe('refusals (spec, Validation)', () => {
     expect(
       refused({ door: { ...door, frameWidth: 1.5, grooveDepth: 0.5 }, tenonThickness: 0.375 }),
     ).toEqual(['recess-into-groove']);
+  });
+
+  it('refuses a door frame wider than one board gives (#563)', () => {
+    // From 3-1/2" boards with the 1/2" rip allowance, a stile or rail is at most 3" wide. Wider,
+    // it would be glued up and flattened thinner than the door the tracks are cut for.
+    const narrow = { ...WORKED_EXAMPLE.board, width: 3.5 };
+    const door = (frameWidth: number) => ({ ...WORKED_EXAMPLE.door, frameWidth });
+    expect(refused({ board: narrow, door: door(3) })).toEqual([]);
+    expect(refused({ board: narrow, door: door(3.0625) })).toEqual(['door-frame-wider-than-board']);
+    expect(refused({ board: narrow, door: door(3.0625), doors: 'none' })).toEqual([]);
+    const made = recordCabinet.generate(
+      { ...WORKED_EXAMPLE, board: narrow, door: door(3.0625) },
+      {},
+    );
+    expect(!made.ok && made.issues[0]?.message).toContain(
+      'Make the frame 3" wide or less, or use wider boards.',
+    );
   });
 
   it('refuses a panel that would pull out of its grooves at its narrowest', () => {
@@ -593,10 +684,12 @@ describe('ranges that bound generation (spec, Ranges that bound generation)', ()
   });
 
   it('glues the top from 18 boards at the narrowest board and the most jointing', () => {
-    // ⌈(17-3/4 + 1/2 − 2 × 1/4) / (1-1/2 − 2 × 1/4)⌉ = ⌈17.75⌉ = 18.
+    // ⌈(17-3/4 + 1/2 − 2 × 1/4) / (1-1/2 − 2 × 1/4)⌉ = ⌈17.75⌉ = 18. No doors: a 2" frame can't
+    // be ripped from 1-1/2" boards (#563).
     const result = recordCabinet.generate(
       {
         ...WORKED_EXAMPLE,
+        doors: 'none',
         board: { ...store, width: 1.5 },
         allowances: { ...WORKED_EXAMPLE.allowances, jointPerEdge: 0.25 },
       },

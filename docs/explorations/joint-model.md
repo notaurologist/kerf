@@ -138,7 +138,7 @@ The record cabinet's joint-based design adds the aprons' tenons and the legs' mo
 
 ## Parity sweep
 
-The hand-picked cases cover 13 parameter sets for the swing set and 8 for the cabinet. The sweep (`packages/model/src/templates/<template-id>/sweep.test.ts`) draws 800 more for each from a fixed seed, every parameter within its schema's range, half of them on a 1/16" step as an owner would type them. It keeps those the schema accepts: over 300 for the swing set, of which over 150 make a plan, and over 600 for the cabinet, of which over 180 do. Every draw's result is compared, refusals issue for issue, and every twentieth draw's shown plan. `random.ts` is the seeded source; `sampledCases` in `parity.ts` draws the cases.
+The hand-picked cases cover 13 parameter sets for the swing set and 8 for the cabinet. The sweep (`packages/model/src/templates/<template-id>/sweep.test.ts`) draws 800 more for each from a fixed seed, every parameter within its schema's range, half of them on a 1/16" step as an owner would type them. It keeps those the schema accepts: over 300 for the swing set, of which over 150 make a plan, and over 600 for the cabinet, of which over 180 do. Every draw's result is compared, refusals issue for issue, and every tenth draw's shown plan. `random.ts` is the seeded source; `sampledCases` in `parity.ts` draws the cases.
 
 It found four things the hand-picked cases missed.
 
@@ -147,7 +147,9 @@ It found four things the hand-picked cases missed.
 3. **The record cabinet sizes a one-board door panel's tongue from `panelThickness`**, not from the board, so the tongue is too thick for its groove (#562). The floating-panel joint sizes it from the stock.
 4. **The record cabinet's door thickness and tracks come from the board** even when the stiles and rails are glued up and flattened thinner (#563). The tracks are too wide and the frame's parts are placed on different planes. The floating-panel joint refuses a frame whose grooves are not in one plane.
 
-The last three are bugs in the template on `main`, filed as issues. The sweep leaves out the draws each one affects, found from the template's own output, and checks that the joints refuse them or, for the panel, give a tongue that fits.
+The last three were bugs in the template on `main`. They are fixed there (#565, #566, #567), and with `main` merged in, the sweep runs every draw with nothing left out.
+
+A fifth came up once those draws were back: a dado that starts at the very end of its housing, such as the case bottom's for the left side, came out at −1.1e-16 instead of 0. That is inside the tolerance, so the results matched, but the cut detail could not show a negative length. Only the shown plan of that draw caught it. `entering` now puts an outline that reaches an edge of the housing on the edge. The sweep compares the shown plan on every tenth draw, and a one-off run on every draw (about 15 s) found nothing more.
 
 ## Where it ended, November 3, 2026
 
@@ -164,7 +166,7 @@ One inconsistency surfaced: the cabinet's leg mortises record `withPart: 'apron'
 1. **A decision record.** It changes how templates are written (0008), so it is the owner's call (rule 13).
 2. **Move the joints into core,** under `packages/core/src/joints/`. They are generic already; the generic-code scan covers them where they are.
 3. **Rewrite each template's parts and placements as joint declarations,** from its joint-based design here, and delete the per-part features and formulas the joints replace. The template specs would describe the joints, and their hand-checked worked examples stay.
-4. **Fix #561 to #563 on `main` first,** so the joint-based versions and the templates agree everywhere the sweep draws.
+4. ~~Fix #561 to #563 on `main` first.~~ Done (#565, #566, #567).
 5. **Decide what "the same output" means for the swing set.** The cabinet's joint-based output is identical to the last bit for its worked examples, since its sizes are binary fractions. The swing set's differs in the last bits in 33 values per worked example (part lengths, marked edges, hole positions, origins), because its trigonometry is computed another way. Core's fixture lock compares exactly, so adopting it as is means a template version bump (0008). Every stored swing-set plan would then say the current template gives different numbers, with no difference anyone can see. Three ways out:
    - accept the bump
    - have the version report ignore differences below the display's rounding
