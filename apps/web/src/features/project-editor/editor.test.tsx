@@ -4,9 +4,12 @@ import {
   createSnapshot,
   findTemplate,
   formValues,
+  readSnapshot,
+  TEMPLATES,
   type TemplateDefinition,
 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
+import cabinetV7 from '../../../../../packages/core/src/templates/record-cabinet/snapshots/v7.json';
 import { fieldId } from '../../lib/fieldIds.ts';
 import type { Project } from '../../lib/types.ts';
 import { projectFrom, storedSnapshots } from '../../test/projects.ts';
@@ -14,7 +17,7 @@ import { render, renderText, textOf } from '../../test/render.tsx';
 import { EditProject } from './EditProject.tsx';
 import { placeIssues, schemaIssues } from './issues.ts';
 import { ProjectEditor } from './ProjectEditor.tsx';
-import { changesFor } from './save.ts';
+import { changesFor, editorValues } from './save.ts';
 import { startValues } from './start.ts';
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
@@ -452,5 +455,40 @@ describe('changesFor', () => {
       example.structuralInputs,
     );
     expect(Object.keys(changesFor(project, edited('Backyard', p, i)))).toEqual(['params']);
+  });
+});
+
+describe('editing a plan stored before a parameter existed (#429)', () => {
+  const read = readSnapshot(TEMPLATES, cabinetV7[0]);
+  if (!read.ok) throw new Error(read.message);
+  const project = projectFrom(read.snapshot as NonNullable<Project['snapshot']>, {
+    name: 'Record cabinet',
+    templateId: 'record-cabinet',
+  });
+
+  it('starts the leg base from Kerf’s suggestions, saying so under each field', () => {
+    expect(read.snapshot.params).not.toHaveProperty('legShowing');
+    const text = renderText(<EditProject project={project} onReload={() => {}} />);
+    expect(text).toContain(
+      'Rule of thumb: about 5" of leg below the aprons, the owner\'s choice for this cabinet. Your plan was saved before Kerf asked for this, so Kerf suggests it.',
+    );
+    const html = render(<EditProject project={project} onReload={() => {}} />);
+    const input = html.match(
+      new RegExp(`<input[^>]*id="${fieldId('params', 'legShowing')}"[^>]*>`),
+    );
+    expect(input?.[0]).toContain('value="5"');
+  });
+
+  it('sends nothing but the name for a rename, so the stored plan is kept', () => {
+    const values = editorValues(project);
+    if (!values) throw new Error('readable');
+    expect(values.params).toMatchObject({ legShowing: 5, tenonLength: 1 });
+    const edited = {
+      name: 'Hall cabinet',
+      status: project.status,
+      params: values.params as Record<string, unknown>,
+      inputs: values.structuralInputs as Record<string, unknown>,
+    };
+    expect(changesFor(project, edited)).toEqual({ name: 'Hall cabinet' });
   });
 });

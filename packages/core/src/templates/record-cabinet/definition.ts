@@ -8,8 +8,8 @@ import { EXAMPLES } from './examples.ts';
 import { RECORD_CABINET_FORM } from './form.ts';
 import { cabinetGeometry } from './geometry.ts';
 import { RecordCabinetOutputs, StoredRecordCabinetOutputs } from './outputs.ts';
-import { RecordCabinetParams } from './params.ts';
-import { CABINET_QUESTIONS, SUGGESTED_DOOR } from './questions.ts';
+import { RecordCabinetParams, StoredRecordCabinetParams } from './params.ts';
+import { CABINET_QUESTIONS, suggestMissing } from './questions.ts';
 import { stepOutline } from './steps.ts';
 import { allowancesFor, RecordCabinetStructuralInputs, structuralReview } from './structural.ts';
 import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
@@ -90,8 +90,10 @@ const addBoardSource: SnapshotUpgrade = (snapshot) => {
 
 /**
  * Shape 6 to 7: the turntable and speaker become the largest item on the top and the weight on it
- * (#331). The turntable was the largest item in every stored plan's layout, the weight is what
- * stood on the top (the speaker's only when it was there), and the turntable's check is the top's.
+ * (#331). The turntable was the largest item in every stored plan's layout, and the turntable's
+ * check is the top's. Where only the turntable stood on the top, its weight is the weight on the
+ * top. Where the speaker stood there too, the weight on the top is left for the owner: no one
+ * entered the sum of the two.
  */
 const toTopItem: SnapshotUpgrade = (snapshot) => {
   type Old = Stored & {
@@ -106,15 +108,12 @@ const toTopItem: SnapshotUpgrade = (snapshot) => {
     };
   };
   const old = snapshot.params as Old;
-  const { turntableWeight, speakerWeight, ...inputs } = snapshot.structuralInputs as Stored & {
-    turntableWeight?: number;
-    speakerWeight?: number;
-  };
-  const onTop = old.speaker.place === 'top';
-  const topLoad =
-    turntableWeight === undefined || (onTop && speakerWeight === undefined)
-      ? undefined
-      : turntableWeight + (onTop ? (speakerWeight as number) : 0);
+  const {
+    turntableWeight,
+    speakerWeight: _,
+    ...inputs
+  } = snapshot.structuralInputs as Stored & { turntableWeight?: number; speakerWeight?: number };
+  const onlyTurntable = old.speaker.place !== 'top' && turntableWeight !== undefined;
   const outputs = snapshot.outputs as {
     design: { params: Old };
     review: Stored & { topTurntable: unknown };
@@ -123,7 +122,7 @@ const toTopItem: SnapshotUpgrade = (snapshot) => {
   return {
     ...snapshot,
     params: params(old),
-    structuralInputs: { ...inputs, ...(topLoad === undefined ? {} : { topLoad }) },
+    structuralInputs: { ...inputs, ...(onlyTurntable ? { topLoad: turntableWeight } : {}) },
     outputs: {
       ...outputs,
       design: { ...outputs.design, params: params(outputs.design.params) },
@@ -134,17 +133,13 @@ const toTopItem: SnapshotUpgrade = (snapshot) => {
 
 /**
  * Shape 7 to 8: the leg base (#338). A stored plan keeps its parts, drawings, and numbers as they
- * were; its bay height carries over, and its base height and overall height are its shelf height
- * and height. The base's new parameters, which an older plan never had, take the values the
- * starting questions suggest, so the editor shows them if the owner regenerates. Its shelf's
- * check becomes the slot the aprons' check now fills.
+ * were; its bay height carries over from its geometry, and its base height and overall height are
+ * its shelf height and height. The base's own sizes, which an older plan never had, stay missing.
+ * Its shelf's check becomes the slot the
+ * aprons' check now fills.
  */
 const toLegBase: SnapshotUpgrade = (snapshot) => {
-  type Old = Stored & {
-    height: number;
-    shelfHeight: number;
-    board: { source: string; thickness?: number; surfaced?: number };
-  };
+  type Old = Stored & { height: number; shelfHeight: number };
   const old = snapshot.params as Old;
   const outputs = snapshot.outputs as {
     design: { params: Old; geometry: Stored & { bayHeight: number; shelfLength: number } };
@@ -153,18 +148,7 @@ const toLegBase: SnapshotUpgrade = (snapshot) => {
   const { shelfLength, ...geometry } = outputs.design.geometry;
   const params = (o: Old) => {
     const { height: _, shelfHeight: __, cutoutHeight: ___, footWidth: ____, ...rest } = o;
-    const board = o.board.source === 'store' ? (o.board.thickness ?? 0) : (o.board.surfaced ?? 0);
-    return {
-      ...rest,
-      bayHeight: geometry.bayHeight,
-      legShowing: 5,
-      apronHeight: 2.5,
-      legStock: { size: 1.5, lengths: [3, 4] },
-      footSize: 1,
-      apronSetback: 0.125,
-      tenonThickness: Math.floor((board / 3) * 16) / 16,
-      tenonLength: 1,
-    };
+    return { ...rest, bayHeight: geometry.bayHeight };
   };
   const { shelf, ...review } = outputs.review;
   return {
@@ -189,11 +173,10 @@ const toLegBase: SnapshotUpgrade = (snapshot) => {
 
 /**
  * Shape 8 to 9: sliding doors (#339). A stored plan has no doors, and keeps its parts, drawings,
- * and numbers as they were. The doors' parameters, which an older plan never had, take the values
- * the starting questions suggest, so the editor shows them if the owner turns the doors on.
+ * and numbers as they were. The doors' sizes, which an older plan never had, stay missing.
  */
 const toDoors: SnapshotUpgrade = (snapshot) => {
-  const params = (o: unknown) => ({ ...(o as Stored), doors: 'none', door: { ...SUGGESTED_DOOR } });
+  const params = (o: unknown) => ({ ...(o as Stored), doors: 'none' });
   const outputs = snapshot.outputs as { design: { params: Stored } };
   return {
     ...snapshot,
@@ -230,6 +213,8 @@ export const recordCabinet: TemplateDefinition<
     'speakers',
   ],
   params: RecordCabinetParams,
+  storedParams: StoredRecordCabinetParams,
+  suggestMissing,
   structuralInputs: RecordCabinetStructuralInputs,
   outputs: RecordCabinetOutputs,
   storedOutputs: StoredRecordCabinetOutputs,

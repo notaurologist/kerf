@@ -153,10 +153,11 @@ describe('record-cabinet template versions', () => {
   });
 
   it('version 7 asks for the largest item and the weight on the top, not a turntable and speaker (#331)', () => {
-    // The stored turntable became the largest item, and its 20 lb with the 13.89 lb speaker on
-    // the top became 33.89 lb on the top; the examples now carry an illustrative 35 lb.
+    // The stored turntable became the largest item. Its 20 lb and the 13.89 lb speaker on the
+    // top were entered apart, and no one entered their sum, so a stored plan has no weight on the
+    // top until the owner enters one (#429); the examples now carry an illustrative 35 lb.
     const [stored] = current(v6) as { structuralInputs: { topLoad?: number } }[];
-    expect(stored?.structuralInputs.topLoad).toBeCloseTo(33.89, 12);
+    expect(stored?.structuralInputs.topLoad).toBeUndefined();
     const list = changes(v6, v7);
     expect(
       list.every((c) =>

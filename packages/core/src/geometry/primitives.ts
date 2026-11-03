@@ -89,7 +89,8 @@ export const Primitive = z.discriminatedUnion('kind', [
    * Text from core's formatters. `rotate` in degrees, for text written along a line. `side` sets
    * the text clear of `at` on that side, as a dimension's figure sits on its line, and is the way
    * a display moves it if it lands on other text; text is sized only when it is shown, so core
-   * cannot space it in drawing units.
+   * cannot space it in drawing units. `span`, on a dimension's figure, is the two ends of its
+   * dimension line, so a display can set the figure outside them when it does not fit between.
    */
   z.object({
     kind: z.literal('text'),
@@ -99,6 +100,7 @@ export const Primitive = z.discriminatedUnion('kind', [
     anchor: z.enum(['start', 'middle', 'end']),
     rotate: z.number().optional(),
     side: z.enum(['above', 'below']).optional(),
+    span: z.tuple([Point2, Point2]).optional(),
     ...part,
   }),
   /** A part letter in its rounded square, tied to `target` on the part by a leader. */
