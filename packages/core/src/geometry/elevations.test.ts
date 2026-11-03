@@ -74,6 +74,48 @@ describe('orthographic views', () => {
     );
     expect(texts).toEqual([formatLength(8), formatLength(12)]);
   });
+
+  it('letters each part on the side and at heights no dimension takes', () => {
+    // Two boards 10" apart: A's front edge left of the middle, B's right of it, both 0 to 1-1/2"
+    // up, so at page y 0 to −1.5.
+    const scene = {
+      parts: [board('left', 'A'), board('right', 'B')],
+      placements: [flat('left'), flat('right', at(30, 0, 0))],
+    };
+    const letters = (dimensions: Parameters<typeof elevationView>[4]) =>
+      elevationView(scene, front, 'Two boards.', 'Front elevation', dimensions).primitives.flatMap(
+        (p) => (p.kind === 'letter' ? [{ letter: p.letter, x: p.at.x, y: p.at.y }] : []),
+      );
+    const open = letters([]);
+    expect(open.find((l) => l.letter === 'A')?.x).toBeLessThan(0);
+    expect(open.find((l) => l.letter === 'B')?.x).toBeGreaterThan(50);
+    const taken = letters([
+      { points: [at(50, 0, 0), at(50, 0, 1.5)], side: 'right', offset: 2 },
+      { points: [at(0, 0, 0), at(50, 0, 0)], side: 'below', offset: 2 },
+    ]);
+    expect(taken.map((l) => l.x < 0)).toEqual([true, true]);
+    expect(Math.max(...taken.map((l) => l.y))).toBeLessThanOrEqual(0);
+  });
+
+  it('gives each dimension figure the ends of its line, and sets it clear of a horizontal one', () => {
+    const drawing = elevationView(
+      { parts: [board('shelf', 'A')], placements: [flat('shelf')] },
+      front,
+      'A shelf from the front.',
+      'Front elevation',
+      [{ points: [at(0, 0, 0), at(20, 0, 0)], side: 'below', offset: 2 }],
+    );
+    const figure = drawing.primitives.find((p) => p.kind === 'text' && p.role === 'dimension');
+    // The shelf's front edge runs from page y −1.5 to 0, so the line is 2 below, at y = 2.
+    expect(figure).toMatchObject({
+      at: { x: 10, y: 2 },
+      side: 'below',
+      span: [
+        { x: 0, y: 2 },
+        { x: 20, y: 2 },
+      ],
+    });
+  });
 });
 
 describe('section cuts', () => {

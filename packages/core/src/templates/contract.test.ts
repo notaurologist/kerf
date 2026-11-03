@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { solid } from '../geometry/solid.ts';
-import { buildFromForm, confirmedPaths } from '../model/form.ts';
+import { buildFromForm, confirmedPaths, readPath } from '../model/form.ts';
 import { describeBasis, needsConfirming, suggestedValues } from '../model/questions.ts';
 import { exampleStart } from '../model/start.ts';
 import {
   confirmSuggested,
+  fillMissing,
   type SuggestedValue,
   suggestedFor,
   suggestionsUsed,
@@ -106,6 +107,35 @@ const SHOWN = (() => {
   }
   return byTemplate;
 })();
+
+/**
+ * What each template's upgrades write into parameters and structural inputs, by the shape they
+ * upgrade from: a value the snapshot already held, moved or renamed (`from`, a path in the snapshot
+ * before the upgrade), or a fact about every plan of that shape (`value`, with `because`). An
+ * upgrade writes nothing else there (decision 0014). A template whose upgrades write none has no
+ * file.
+ */
+type UpgradeWrite = { path: string } & ({ from: string } | { value: unknown; because: string });
+const UPGRADE_WRITES = (() => {
+  const files = import.meta.glob<Record<string, UpgradeWrite[]>>('./*/upgrade-writes.json', {
+    eager: true,
+    import: 'default',
+  });
+  const byTemplate: Record<string, Record<string, UpgradeWrite[]>> = {};
+  for (const [path, writes] of Object.entries(files)) {
+    const [, id] = path.match(/^\.\/([^/]+)\/upgrade-writes\.json$/) ?? [];
+    if (!id) throw new Error(`Unexpected file ${path}`);
+    byTemplate[id] = writes;
+  }
+  return byTemplate;
+})();
+
+/** Every value in parameters and structural inputs that is not an object or array, by path. */
+function leaves(value: unknown, path: string): [string, unknown][] {
+  return typeof value === 'object' && value !== null
+    ? Object.entries(value).flatMap(([key, v]) => leaves(v, `${path}.${key}`))
+    : [[path, value]];
+}
 
 const storedFixtures = TEMPLATES.flatMap((t) =>
   Object.entries(fixturesOf(t)).map(([version, fixture]) => [t.id, version, t, fixture] as const),
@@ -248,6 +278,57 @@ describe('every template stays readable (decision 0014)', () => {
         expect(read.snapshot.templateVersion).toBe(
           (stored as { templateVersion: number }).templateVersion,
         );
+      }
+    },
+  );
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))(
+    '%s upgrades write no parameter or structural input the snapshot did not hold',
+    (id, t) => {
+      const listed = UPGRADE_WRITES[id] ?? {};
+      expect(Object.keys(listed).every((n) => Number(n) in t.snapshotUpgrades)).toBe(true);
+      const made: string[] = [];
+      for (const stored of Object.values(fixturesOf(t)).flat()) {
+        let before = stored as Record<string, unknown>;
+        for (let n = before.snapshotVersion as number; n < t.snapshotVersion; n++) {
+          const upgrade = t.snapshotUpgrades[n];
+          if (!upgrade) throw new Error(`No upgrade from shape ${n}`);
+          const after = upgrade(before);
+          const written = [
+            ...leaves(after.params, 'params'),
+            ...leaves(after.structuralInputs, 'structuralInputs'),
+          ].filter(([path, value]) => readPath(before, path) !== value);
+          for (const [path, value] of written) {
+            const write = listed[n]?.find((w) => w.path === path);
+            const expected =
+              write && ('from' in write ? readPath(before, write.from) : write.value);
+            if (!write || expected !== value) {
+              made.push(`shape ${n}: ${path} = ${JSON.stringify(value)}`);
+            }
+          }
+          before = { ...after, snapshotVersion: n + 1 };
+        }
+      }
+      expect(
+        made,
+        'An upgrade wrote a value the stored plan never held. Leave a new parameter out of the ' +
+          "upgrade, relax the template's storedParams, and suggest it in suggestMissing; list a " +
+          'rename or a fact about every plan of that shape in upgrade-writes.json.',
+      ).toEqual([]);
+    },
+  );
+
+  it.each(storedFixtures)(
+    '%s has every parameter once what a plan stored at v%s lacks is filled',
+    (_, __, t, fixture) => {
+      for (const stored of fixture) {
+        const read = readSnapshot([t], stored);
+        if (!read.ok) throw new Error(read.message);
+        const filled = fillMissing(t, read.snapshot);
+        expect(t.params.safeParse(filled.params).error).toBeUndefined();
+        for (const s of filled.filled) {
+          expect(readPath(read.snapshot[s.from], s.path)).toBeUndefined();
+        }
       }
     },
   );

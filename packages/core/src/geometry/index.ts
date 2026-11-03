@@ -1,5 +1,6 @@
 export { boardDrawings } from './boards.ts';
 export { cutDetail } from './cutDetail.ts';
+export { crosses, type LetterRoom, letterColumn, letterRoom } from './letters.ts';
 export { blankOutline, edgeLengths, partOutline } from './outline.ts';
 export { type PlanArea, type PlanLine, planView } from './planView.ts';
 export {
