@@ -109,6 +109,27 @@ export const SOURCES = {
     url: 'https://www.nist.gov/document/ps-20-25-final',
     note: 'For what a grade stamp shows.',
   },
+  'asme-b18-21-1-2009': {
+    title: 'ASME B18.21.1, Washers (Inch Series): USS flat washers',
+    publisher: 'ASME',
+    edition: '2009',
+    url: 'https://www.tannerbolt.com/media/akeneo_connector/WashersUSS.pdf',
+    note: 'The standard is sold, not free to read. The link is a fastener supplier’s catalog page that reproduces its table of USS flat washers.',
+  },
+  'asme-b18-16-6-2008': {
+    title: 'ASME B18.16.6, Nylon Insert Locknuts (Inch Series)',
+    publisher: 'ASME',
+    edition: '2008',
+    url: 'https://boltingspecialist.com/dimensions/asme-b18-16-6-nylon-insert-lock-nuts/index.html',
+    note: 'The standard is sold, not free to read. The link reproduces its Table 1; the minimum heights also match the copy at fasten.it.',
+  },
+  'irc-2021': {
+    title: 'International Residential Code',
+    publisher: 'International Code Council',
+    edition: '2021',
+    url: 'https://codes.iccsafe.org/content/IRC2021P2/chapter-3-building-planning',
+    note: 'A code for houses, not play sets. Kerf follows it where it names materials for treated lumber.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

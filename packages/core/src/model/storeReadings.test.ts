@@ -60,7 +60,7 @@ const plan: Pick<Plan, 'lumber' | 'hardware'> = {
     issues: [],
     selection: [],
   },
-  hardware: [{ description: 'Clips', quantity: 8 }],
+  hardware: [{ description: 'Clips', quantity: 8, notes: [] }],
 };
 
 const readings = [

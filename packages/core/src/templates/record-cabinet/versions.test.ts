@@ -16,6 +16,8 @@ import v10 from './snapshots/v10.json' with { type: 'json' };
 import v11 from './snapshots/v11.json' with { type: 'json' };
 import v12 from './snapshots/v12.json' with { type: 'json' };
 import v13 from './snapshots/v13.json' with { type: 'json' };
+import v14 from './snapshots/v14.json' with { type: 'json' };
+import v15 from './snapshots/v15.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -250,6 +252,25 @@ describe('record-cabinet template versions', () => {
       'deflectionLimit',
       'moisture.high',
       'moisture.low',
+    ]);
+  });
+
+  it('version 14 changes no stored output (#459)', () => {
+    expect(changes(v13, v14)).toEqual([]);
+  });
+
+  it('version 15 names the screw length and carries each item’s notes to its line (#449)', () => {
+    const list = changes(v14, v15);
+    expect(kinds(list)).toEqual([
+      'outputs.design.hardware[].name',
+      'outputs.design.hardware[].notes[]',
+      'outputs.hardware[].description',
+      'outputs.hardware[].notes[]',
+    ]);
+    const named = list.filter((c) => c.path.endsWith('.name') || c.path.endsWith('.description'));
+    expect(named.map((c) => [c.before, c.after])).toContainEqual([
+      'Wood screws',
+      'Wood screws, 1-1/4" long',
     ]);
   });
 });

@@ -47,7 +47,7 @@ describe('ShoppingList', () => {
       <ShoppingList
         lumber={plan([])}
         hardware={[
-          { description: 'Swing hangers', quantity: 4, group: 'Swing hardware' },
+          { description: 'Swing hangers', quantity: 4, group: 'Swing hardware', notes: [] },
           {
             description: 'Ground anchors',
             quantityNeeded: {
@@ -55,6 +55,7 @@ describe('ShoppingList', () => {
               label: 'Ground anchors per leg foot',
             },
             group: 'Ground anchors',
+            notes: [],
           },
         ]}
         hardwareNotes={[]}
@@ -63,6 +64,29 @@ describe('ShoppingList', () => {
     expect(text).toContain('4 Swing hangers');
     expect(text).toContain('Input needed Ground anchors');
     expect(text).not.toContain('undefined');
+  });
+
+  it("lists each hardware line's notes under its group, named by the line (#449)", () => {
+    const text = renderText(
+      <ShoppingList
+        lumber={plan([])}
+        hardware={[
+          {
+            description: '1/2" × 10" through-bolt',
+            quantity: 2,
+            group: 'Bolts',
+            notes: ['Grip 8-15/16".'],
+          },
+          { description: '1/2" flat washers', quantity: 4, group: 'Bolts', notes: [] },
+          { description: 'Swing hangers', quantity: 4, group: 'Swing', notes: ['Rated.'] },
+        ]}
+        hardwareNotes={[]}
+      />,
+    );
+    expect(text).toMatch(
+      /2 1\/2" × 10" through-bolt .*1\/2" × 10" through-bolt: Grip 8-15\/16"\. Swing/,
+    );
+    expect(text).toContain('Swing hangers: Rated.');
   });
 });
 
@@ -105,7 +129,7 @@ describe('values read at the store in the plan (#390)', () => {
   const list = (entered: string | null) => (
     <ShoppingList
       lumber={lumber}
-      hardware={[{ description: 'Clips', quantity: 4 }]}
+      hardware={[{ description: 'Clips', quantity: 4, notes: [] }]}
       hardwareNotes={[]}
       readings={{
         byLine: {

@@ -154,7 +154,8 @@ The swing set's structural model, supplied by its template to the generic checks
 ### Hardware
 
 - Swing hangers and other suspension hardware should be rated for swing use, with manufacturer specifications followed for installation and load. The app computes a margin between the per-hanger load and the manufacturer's rating (see Structural checks) but does not certify loads. **Expert check.**
-- Fasteners for outdoor structures must be corrosion-resistant and compatible with the lumber treatment used. **Expert check** when using pressure-treated lumber.
+- Fasteners for outdoor structures must be corrosion-resistant and compatible with the lumber treatment used. **Expert check** when using pressure-treated lumber. For fasteners in preservative-treated wood, the IRC names the materials: hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, for the nuts and washers too, with mechanically galvanized steel to ASTM B695 Class 55 or heavier allowed for fasteners other than nails, staples, and timber rivets. It exempts steel bolts 1/2" and larger, which the swing set does not use, since CPSC asks for corrosion-resistant hardware. [18, R317.3.1]
+- **Bolt length to buy.** A through-bolt passes through the grip, its washers, and its nut, and the template says how far past the nut it may stand (for the swing set, one diameter, CPSC p. 3). Kerf takes USS flat washers at their largest thickness [16] and nylon-insert locknuts at their largest height [17], and lists the shortest half-inch length in that range, or quarter inch when no half inch is in it (`structural/boltLength.ts`, #449). The note gives the range, rounded inward to the 1/16, so any bolt the store has in it fits.
 
 ### Lumber and finish
 
@@ -227,6 +228,9 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 13. OSHA, Wood Dust: Overview, read October 2026: https://www.osha.gov/wood-dust
 14. U.S. Fire Administration, Pictograph: Store Oily and Solvent-Wet Rags in a Metal Container, last reviewed January 9, 2022: https://www.usfa.fema.gov/gallery/pictographs/pictograph98.html
 15. Common Ground Alliance, 811 Before You Dig, read October 2026: https://811beforeyoudig.com/
+16. ASME B18.21.1-2009, USS flat washers: thickness, maximum (3/8": 0.104; 1/2": 0.132; 5/8": 0.160; 3/4": 0.177). The standard is sold; read November 2026 in a supplier catalog page that reproduces its table: https://www.tannerbolt.com/media/akeneo_connector/WashersUSS.pdf
+17. ASME B18.16.6-2008, nylon insert locknuts, Table 1, height D, maximum (3/8": 0.468; 1/2": 0.609; 5/8": 0.765; 3/4": 0.890). The standard is sold; read November 2026 in a reproduction of its table, whose minimum heights match a second copy at fasten.it: https://boltingspecialist.com/dimensions/asme-b18-16-6-nylon-insert-lock-nuts/index.html
+18. International Code Council, International Residential Code, 2021, Section R317.3 (fasteners and connectors in contact with preservative-treated wood), read November 2026: https://codes.iccsafe.org/content/IRC2021P2/chapter-3-building-planning
 
 Actual (dressed) lumber sizes come from NDS Supplement Table 1B (source 4), whose sizes conform to the American Softwood Lumber Standard, PS 20-20 (Supplement 3.1).
 

@@ -3,10 +3,11 @@ import type { HardwareItem } from '../model/types.ts';
 import { MissingInput } from '../structural/types.ts';
 import { formatLength, toSixteenths } from '../units/length.ts';
 
-// Hardware lines for the shopping list (PRODUCT.md, MVP feature 4). Bolts with the same diameter
-// and grip share a line, and the fittings each bolt calls for (washers, nuts, caps) are totaled
-// per diameter. Which fittings a bolt needs, which store group each item is in, and any notes for
-// the list come from the template. Lines in different groups never share.
+// Hardware lines for the shopping list (PRODUCT.md, MVP feature 4). Bolts with the same diameter,
+// length, and grip share a line, named by the length to buy, and the fittings each bolt calls for
+// (washers, nuts, caps) are totaled per diameter. Which fittings a bolt needs, which store group
+// each item is in, and each item's notes come from the template; a line shows the notes of every
+// item on it, once each. Lines in different groups never share.
 
 export const HardwareLine = z.object({
   description: z.string(),
@@ -15,6 +16,8 @@ export const HardwareLine = z.object({
   quantityNeeded: MissingInput.optional(),
   /** The item's store group (`HardwareItem.group`); a fitting takes its bolt's. */
   group: z.string().optional(),
+  /** The notes of the items on the line (`HardwareItem.notes`). A fitting has none. */
+  notes: z.array(z.string()).default([]),
 });
 export type HardwareLine = z.infer<typeof HardwareLine>;
 
@@ -40,18 +43,24 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
         ...(quantity === undefined ? {} : { quantity }),
         ...(item.quantityNeeded ? { quantityNeeded: item.quantityNeeded } : {}),
         group: item.group,
+        notes: item.notes,
       });
       continue;
     }
-    const { diameter, grip, washers, nut, cap } = item.bolt;
+    const { diameter, grip, length, washers, nut, cap } = item.bolt;
     // Grip is grouped as displayed, so two bolts that print the same share one line.
-    const key = `${item.group}/${diameter}/${toSixteenths(grip)}`;
+    const key = `${item.group}/${diameter}/${length}/${toSixteenths(grip)}`;
     const line = boltLines.get(key) ?? {
-      description: `${formatLength(diameter)} through-bolt, grip ${formatLength(grip)}`,
+      description:
+        length === undefined
+          ? `${formatLength(diameter)} through-bolt, grip ${formatLength(grip)}`
+          : `${formatLength(diameter)} × ${formatLength(length)} through-bolt`,
       quantity: 0,
       group: item.group,
+      notes: [],
     };
     line.quantity = (line.quantity ?? 0) + quantity;
+    line.notes = [...new Set([...line.notes, ...item.notes])];
     boltLines.set(key, line);
 
     const fittingKey = `${item.group}/${diameter}`;
@@ -75,7 +84,12 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
     const size = formatLength(f.diameter);
     const add = (description: string, quantity: number) => {
       if (quantity > 0) {
-        fittingLines.push({ description: `${size} ${description}`, quantity, group: f.group });
+        fittingLines.push({
+          description: `${size} ${description}`,
+          quantity,
+          group: f.group,
+          notes: [],
+        });
       }
     };
     add('flat washers', f.washers);

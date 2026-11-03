@@ -94,7 +94,9 @@ describe('glossary terms in the plan (#178)', () => {
     ]);
     // The hardware's notes sit beside the lumber, before the guidance on choosing boards (#361).
     expect(marked('shopping-list')).toEqual([
+      'through-bolt',
       'grip',
+      'pressure-treated',
       'grade stamp',
       'species and grade',
       'design values',

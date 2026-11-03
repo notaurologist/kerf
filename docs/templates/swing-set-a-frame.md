@@ -45,6 +45,8 @@ Template version 18 (#417) names, in the structural working, the input behind ea
 
 Template version 19 (#459) changes only how the build steps read, a change in generic code: when no method fits the owner's tools, a step lists every method for each operation, closest to the tools owned first, and the plan says when the toolbox is empty. Stored output is the same.
 
+Template version 20 (#449) gives each bolt the length to buy (Hardware, below) and names its shopping line by it ("1/2" × 10" through-bolt"), with the grip and the lengths that fit as the line's note. Each hardware line now carries its item's notes, which both shopping lists show, and the hardware notes name the fastener materials IRC 2021 R317.3.1 allows in treated lumber. No part, cut, or check changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -221,12 +223,14 @@ Every structural connection is a through-bolt with a flat washer at each end and
 | Gusset to leg | diameter, bolts per joint | 4 joints | gt + t |
 | Beam plies (built-up beams only) | diameter, total count | as entered | bw |
 
-- **Bolt length:** at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC p. 3). Washer and nut thickness vary by type, so the shopping list gives the grip and the rule rather than guessing a stock length.
+- **Bolt length** (version 20, #449): at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC p. 3). Kerf takes the washers as USS flat washers at their largest thickness (ASME B18.21.1-2009) and the nut as a nylon-insert locknut at its largest height (ASME B18.16.6-2008, Table 1), so L_min = grip + 2·washer + nut and L_max = L_min + D (`structural/boltLength.ts`). The length to buy is the shortest half inch from L_min to L_max, or the shortest quarter inch when no half inch is in it; for the diameters the form offers, a quarter inch always is, since D ≥ 3/8. The shopping line names the bolt by that length, and its note gives the grip and the range, rounded inward to the 1/16 (`formatLimit`), so any bolt the store has in that range fits. Worked example, 1/2" bolts (washer 0.132, nut 0.609): the leg-to-beam bolt's grip 8.947 gives 9.820 to 10.320, so 10", noted as 9-7/8" to 10-5/16"; the crossbar and gusset bolts' grip 5 gives 5.873 to 6.373, so 6". With 5/8" leg bolts (washer 0.160, nut 0.765): 10.032 to 10.657, so 10-1/2".
 - **Per bolt:** two flat washers, one locking nut, and one cap for the exposed end.
 - **Swing hangers:** 4, rated for swing use. Their rating is a structural input checked in M2.
 - **Swing seats:** 2, lightweight (CPSC p. 4), with chain set to the chain length.
 - **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none. Until the count is entered the anchors are listed with no quantity, marked as waiting for it (version 16, #406), so a plan on pads can be made before the store.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
+- **Treated lumber** (version 20, #449): IRC 2021 R317.3.1 requires fasteners, including nuts and washers, in preservative-treated wood to be hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, and its exception 2 allows mechanically galvanized steel to ASTM B695 Class 55 or heavier for fasteners other than nails, staples, and timber rivets. The hardware notes name these. Its exception 1 exempts steel bolts 1/2" and larger; Kerf does not use it, since CPSC asks for corrosion-resistant hardware on a play set. The IRC is a code for houses, read here as the reference for which materials suit treated lumber.
+- **Notes on the lines** (version 20): each item's notes are carried to its shopping line, and the plan's list and Shopping mode show them under it.
 - **Store groups** (version 12): the bolts and their washers, nuts, and caps are "Bolts and fittings"; the hangers and seats are "Swing hardware"; the ground anchors are "Ground anchors". The store checklist shows them in that order, after the lumber.
 - **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, and, on pads, the ground anchors per leg foot beside the anchors (`storeReadings.ts`). Each says where to look, and once entered, shows the value with a link to change it.
 

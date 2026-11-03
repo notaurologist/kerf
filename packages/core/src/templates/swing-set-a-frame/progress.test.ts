@@ -6,6 +6,7 @@ import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 import type { SwingSetParams } from './params.ts';
 import v11 from './snapshots/v11.json' with { type: 'json' };
+import v12 from './snapshots/v12.json' with { type: 'json' };
 
 // Saved progress across a regeneration (#57), on the spec's worked example. Ticks stay only on
 // items whose key is still in the plan with the same numbers.
@@ -37,8 +38,8 @@ describe('progress items for the worked example', () => {
       'lumber/4x4/12',
       'lumber/2x6/10',
       'lumber/2x8/8',
-      'hardware/1/2" through-bolt, grip 8-15/16"',
-      'hardware/1/2" through-bolt, grip 5"',
+      'hardware/1/2" × 10" through-bolt',
+      'hardware/1/2" × 6" through-bolt',
       'hardware/1/2" flat washers',
       'hardware/1/2" locking nuts',
       'hardware/1/2" bolt caps',
@@ -159,10 +160,14 @@ describe('progress items for the worked example', () => {
 
 describe('progress across the version 12 regeneration (#59)', () => {
   it('keeps ticks on shopping lines when only their store group is added', () => {
-    const read = readSnapshot([swingSetAFrame as TemplateDefinition], v11[0]);
-    if (!read.ok) throw new Error('v11 fixture does not read');
-    const stored = swingSetAFrame.storedOutputs.parse(read.snapshot.outputs);
-    const old = progressItems(swingSetAFrame, stored).filter((i) => i.kind === 'shopping-line');
-    expect(progressToReset(old, old, before)).toEqual([]);
+    // Against version 12's own plan: version 20 renames the bolt lines (#449).
+    const lines = (fixture: unknown) => {
+      const read = readSnapshot([swingSetAFrame as TemplateDefinition], fixture);
+      if (!read.ok) throw new Error('fixture does not read');
+      const stored = swingSetAFrame.storedOutputs.parse(read.snapshot.outputs);
+      return progressItems(swingSetAFrame, stored).filter((i) => i.kind === 'shopping-line');
+    };
+    const old = lines(v11[0]);
+    expect(progressToReset(old, old, lines(v12[0]))).toEqual([]);
   });
 });

@@ -328,13 +328,16 @@ export const HardwareItem = z.object({
    */
   quantityNeeded: MissingInput.optional(),
   /**
-   * Through-bolts only: diameter, grip (thickness of wood the bolt passes through), and the
-   * fittings each bolt takes. The template decides the fittings; shopping lists total them.
+   * Through-bolts only: diameter, grip (thickness of wood the bolt passes through), the length to
+   * buy, and the fittings each bolt takes. The template decides the fittings; shopping lists total
+   * them. `length` is absent for fittings `structural/boltLength.ts` has no sizes for, and in plans
+   * made before it was computed.
    */
   bolt: z
     .object({
       diameter: z.number(),
       grip: z.number(),
+      length: z.number().optional(),
       washers: z.number().int(),
       nut: z.enum(['locking', 'standard']),
       cap: z.boolean(),

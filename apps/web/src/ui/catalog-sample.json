@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 19,
+    "templateVersion": 20,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -946,13 +946,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 8.947408118867273,
+              "length": 10,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 8-15/16\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -963,13 +964,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 5,
+              "length": 6,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 5\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -980,13 +982,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 5,
+              "length": 6,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 5\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -1010,8 +1013,8 @@
           }
         ],
         "hardwareNotes": [
-          "Bolt length: at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC Pub. 324, p. 3).",
-          "All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC Pub. 324, p. 3)."
+          "All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC Pub. 324, p. 3).",
+          "Bolts, washers, and nuts in pressure-treated lumber: hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, or mechanically galvanized steel to ASTM B695 Class 55 or heavier (IRC 2021 R317.3.1)."
         ],
         "flags": [
           {
@@ -1914,14 +1917,20 @@
       },
       "hardware": [
         {
-          "description": "1/2\" through-bolt, grip 8-15/16\"",
+          "description": "1/2\" × 10\" through-bolt",
           "quantity": 2,
-          "group": "Bolts and fittings"
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
+          ]
         },
         {
-          "description": "1/2\" through-bolt, grip 5\"",
+          "description": "1/2\" × 6\" through-bolt",
           "quantity": 16,
-          "group": "Bolts and fittings"
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
+          ]
         },
         {
           "description": "1/2\" flat washers",
@@ -1941,12 +1950,16 @@
         {
           "description": "Swing hangers",
           "quantity": 4,
-          "group": "Swing hardware"
+          "group": "Swing hardware",
+          "notes": ["Rated for swing use. The rating is checked in the structural review."]
         },
         {
           "description": "Swing seats with chain",
           "quantity": 2,
-          "group": "Swing hardware"
+          "group": "Swing hardware",
+          "notes": [
+            "Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80\" from pivot to seat, less the hanger's drop."
+          ]
         }
       ],
       "structuralReview": {
@@ -3556,7 +3569,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 19,
+    "templateVersion": 20,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -4560,13 +4573,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 8.452713591586766,
+              "length": 9.5,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 8-7/16\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 8-7/16\". Any length from 9-3/8\" to 9-13/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -4577,13 +4591,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 5,
+              "length": 6,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 5\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -4594,13 +4609,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 5,
+              "length": 6,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 5\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -4611,13 +4627,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 3,
+              "length": 4,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 3\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 3\". Any length from 3-7/8\" to 4-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -4649,8 +4666,8 @@
           }
         ],
         "hardwareNotes": [
-          "Bolt length: at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC Pub. 324, p. 3).",
-          "All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC Pub. 324, p. 3)."
+          "All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC Pub. 324, p. 3).",
+          "Bolts, washers, and nuts in pressure-treated lumber: hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, or mechanically galvanized steel to ASTM B695 Class 55 or heavier (IRC 2021 R317.3.1)."
         ],
         "flags": [
           {
@@ -5557,19 +5574,28 @@
       },
       "hardware": [
         {
-          "description": "1/2\" through-bolt, grip 8-7/16\"",
+          "description": "1/2\" × 9-1/2\" through-bolt",
           "quantity": 2,
-          "group": "Bolts and fittings"
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 8-7/16\". Any length from 9-3/8\" to 9-13/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
+          ]
         },
         {
-          "description": "1/2\" through-bolt, grip 5\"",
+          "description": "1/2\" × 6\" through-bolt",
           "quantity": 16,
-          "group": "Bolts and fittings"
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
+          ]
         },
         {
-          "description": "1/2\" through-bolt, grip 3\"",
+          "description": "1/2\" × 4\" through-bolt",
           "quantity": 6,
-          "group": "Bolts and fittings"
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 3\". Any length from 3-7/8\" to 4-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
+          ]
         },
         {
           "description": "1/2\" flat washers",
@@ -5589,17 +5615,22 @@
         {
           "description": "Swing hangers",
           "quantity": 4,
-          "group": "Swing hardware"
+          "group": "Swing hardware",
+          "notes": ["Rated for swing use. The rating is checked in the structural review."]
         },
         {
           "description": "Swing seats with chain",
           "quantity": 2,
-          "group": "Swing hardware"
+          "group": "Swing hardware",
+          "notes": [
+            "Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80\" from pivot to seat, less the hanger's drop."
+          ]
         },
         {
           "description": "Ground anchors",
           "quantity": 4,
-          "group": "Ground anchors"
+          "group": "Ground anchors",
+          "notes": ["Bury or cover the anchors (CPSC Pub. 324, p. 4)."]
         }
       ],
       "structuralReview": {
@@ -7259,7 +7290,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 19,
+    "templateVersion": 20,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -8195,13 +8226,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 8.947408118867273,
+              "length": 10,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 8-15/16\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -8212,13 +8244,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 5,
+              "length": 6,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 5\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -8229,13 +8262,14 @@
             "bolt": {
               "diameter": 0.5,
               "grip": 5,
+              "length": 6,
               "washers": 2,
               "nut": "locking",
               "cap": true
             },
             "structural": true,
             "notes": [
-              "1/2\" through-bolt. Length: at least 5\" plus two washers and a locking nut, and no more than 1/2\" past the nut."
+              "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
             ],
             "group": "Bolts and fittings"
           },
@@ -8259,8 +8293,8 @@
           }
         ],
         "hardwareNotes": [
-          "Bolt length: at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC Pub. 324, p. 3).",
-          "All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC Pub. 324, p. 3)."
+          "All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC Pub. 324, p. 3).",
+          "Bolts, washers, and nuts in pressure-treated lumber: hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, or mechanically galvanized steel to ASTM B695 Class 55 or heavier (IRC 2021 R317.3.1)."
         ],
         "flags": [
           {
@@ -9163,14 +9197,20 @@
       },
       "hardware": [
         {
-          "description": "1/2\" through-bolt, grip 8-15/16\"",
+          "description": "1/2\" × 10\" through-bolt",
           "quantity": 2,
-          "group": "Bolts and fittings"
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 8-15/16\". Any length from 9-7/8\" to 10-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
+          ]
         },
         {
-          "description": "1/2\" through-bolt, grip 5\"",
+          "description": "1/2\" × 6\" through-bolt",
           "quantity": 16,
-          "group": "Bolts and fittings"
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 5\". Any length from 5-7/8\" to 6-5/16\" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3)."
+          ]
         },
         {
           "description": "1/2\" flat washers",
@@ -9190,12 +9230,16 @@
         {
           "description": "Swing hangers",
           "quantity": 4,
-          "group": "Swing hardware"
+          "group": "Swing hardware",
+          "notes": ["Rated for swing use. The rating is checked in the structural review."]
         },
         {
           "description": "Swing seats with chain",
           "quantity": 2,
-          "group": "Swing hardware"
+          "group": "Swing hardware",
+          "notes": [
+            "Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80\" from pivot to seat, less the hanger's drop."
+          ]
         }
       ],
       "structuralReview": {

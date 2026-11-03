@@ -20,6 +20,7 @@ import v15 from './snapshots/v15.json' with { type: 'json' };
 import v16 from './snapshots/v16.json' with { type: 'json' };
 import v17 from './snapshots/v17.json' with { type: 'json' };
 import v18 from './snapshots/v18.json' with { type: 'json' };
+import v19 from './snapshots/v19.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -36,16 +37,28 @@ const isVersion18 = (c: { path: string; before?: unknown; after?: unknown }) =>
   (/^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) &&
     String(c.before).replace(' entered, ', ', ') === c.after);
 
+/**
+ * Version 20's changes (#449): each bolt's length to buy and its notes, each shopping line's
+ * description and notes, and the hardware notes. Set aside like version 18's.
+ */
+const isVersion20 = (c: { path: string }) =>
+  /^design\.hardware\[\d+\]\.(bolt\.length|notes\[0\])$/.test(c.path) ||
+  /^design\.hardwareNotes\[\d+\]$/.test(c.path) ||
+  /^hardware\[\d+\]\.(description|notes(\[\d+\])?)$/.test(c.path);
+
 /** What regenerating with the current version changes in the stored outputs, field by field. */
-function regenerated(snapshot: ProjectSnapshot, keepVersion18 = false) {
+function regenerated(snapshot: ProjectSnapshot, keepVersion18 = false, keepVersion20 = false) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = template.storedOutputs.parse(current.output.outputs);
   const result = diff(json(snapshot.outputs), json(outputs), 1000);
-  return keepVersion18
-    ? result
-    : { ...result, changes: result.changes.filter((c) => !isVersion18(c)) };
+  return {
+    ...result,
+    changes: result.changes.filter(
+      (c) => (keepVersion18 || !isVersion18(c)) && (keepVersion20 || !isVersion20(c)),
+    ),
+  };
 }
 
 /** The value at an outputs path such as 'structuralReview.beam.bending.inputs[1]'. */
@@ -347,7 +360,10 @@ describe('swing-set template versions', () => {
   // A plan read from shape 11 shows its hardware as one list; regenerating puts each item and line
   // in its store group and rewords each bolt's note. No number changes.
   it('version 12 groups the hardware for the store and rewords the bolt notes (#59)', () => {
-    for (const stored of v11) {
+    type Stored = { outputs: { design: { hardware: { notes: string[] }[] } } };
+    const notesOf = (stored: unknown) =>
+      (stored as Stored).outputs.design.hardware.map((h) => h.notes[0]);
+    v11.forEach((stored, i) => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(11);
@@ -357,20 +373,20 @@ describe('swing-set template versions', () => {
       const groups = changes.filter((c) => c.path.endsWith('.group'));
       expect(groups.length).toBeGreaterThan(0);
       for (const change of groups) expect(change, change.path).not.toHaveProperty('before');
-      const notes = changes.filter((c) => c.path.endsWith('.notes[0]'));
-      expect(notes.length).toBeGreaterThan(0);
+      // Version 20 rewrote the bolt notes again, so version 12's wording is read from its fixture.
+      const before = notesOf(stored);
+      const after = notesOf(v12[i]);
       // The worked example's leg-to-beam bolt (spec, Hardware: grip 8.947).
-      if (stored === v11[0]) {
-        expect(notes[0]?.after).toBe(
+      if (i === 0) {
+        expect(after[0]).toBe(
           '1/2" through-bolt. Length: at least 8-15/16" plus two washers and a locking nut, and no more than 1/2" past the nut.',
         );
       }
       // Only the wording moves: the same numbers, in the same order.
-      for (const c of notes) {
-        const numbers = (text: unknown) => String(text).match(/[\d/-]+"/g);
-        expect(numbers(c.after), c.path).toEqual(numbers(c.before));
-      }
-    }
+      const numbers = (text: unknown) => String(text).match(/[\d/-]+"/g);
+      expect(after.map(numbers)).toEqual(before.map(numbers));
+      expect(after).not.toEqual(before);
+    });
   });
 
   it("version 13 gives the largest moment's position its own step, in inches", () => {
@@ -502,5 +518,27 @@ describe('swing-set template versions', () => {
     const first = readSnapshot([template], v18[0]);
     if (!first.ok) throw new Error(JSON.stringify(first));
     expect(JSON.stringify(first.snapshot.outputs)).not.toMatch(/" entered,/);
+  });
+
+  // Hand check in lists.test.ts: the worked example's 1/2" leg-to-beam bolt, grip 8.947, fits from
+  // 9.820 to 10.320, so 10"; the crossbar and gusset bolts, grip 5, fit from 5.873 to 6.373, so 6".
+  it('version 20 names each bolt by the length to buy, and changes nothing else (#449)', () => {
+    for (const stored of v19) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(19);
+      const { changes } = regenerated(read.snapshot, false, true);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion20(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v19[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const descriptions = regenerated(first.snapshot, false, true)
+      .changes.filter((c) => c.path.endsWith('.description'))
+      .map((c) => [c.before, c.after]);
+    expect(descriptions).toEqual([
+      ['1/2" through-bolt, grip 8-15/16"', '1/2" × 10" through-bolt'],
+      ['1/2" through-bolt, grip 5"', '1/2" × 6" through-bolt'],
+    ]);
   });
 });

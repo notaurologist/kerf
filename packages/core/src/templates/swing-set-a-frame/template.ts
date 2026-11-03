@@ -63,8 +63,11 @@ import { flags, validate, validateSwings } from './validate.ts';
  * leg-to-beam checklist item no longer calls its bolt size entered. No number changes. Version 19
  * changes only how its build steps read: with no method fitting, a step lists every method closest
  * to the owner's tools first, and says when the toolbox is empty (#459). Stored output is the same.
+ * Version 20 gives each bolt the length to buy, from its grip, two USS flat washers, and a
+ * nylon-insert locknut, names each bolt's shopping line by it, carries each item's notes to its
+ * line, and names the fastener materials IRC 2021 R317.3.1 allows in treated lumber (#449).
  */
-export const TEMPLATE_VERSION = 19;
+export const TEMPLATE_VERSION = 20;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

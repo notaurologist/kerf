@@ -177,6 +177,13 @@ export function ShoppingList(props: {
                   readingHref={readings.href}
                 />
               )}
+              {/* Each line's own notes, named by the line, as the lumber notes are (#449). */}
+              {group.lines.some((h) => h.notes.length > 0) && (
+                <List
+                  items={group.lines.flatMap((h) => h.notes.map((n) => `${h.description}: ${n}`))}
+                  terms
+                />
+              )}
             </Stack>
           ))}
           {removedHardware.length > 0 && (

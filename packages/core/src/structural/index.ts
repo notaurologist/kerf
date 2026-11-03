@@ -24,6 +24,7 @@ export {
   type Wood,
 } from './boltDistances.ts';
 export { BOLT_HOLE_OVERSIZE, boltHoleDiameter, holeWithinRange } from './boltHoles.ts';
+export { type BoltLength, boltLength } from './boltLength.ts';
 export {
   type BeamCheckInput,
   BeamChecks,
