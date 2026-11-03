@@ -1269,7 +1269,7 @@
           "assumptions": [
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
-            "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+            "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2). Its washer bears on the beam's top, so bending and shear are taken on the net section there.",
             "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
@@ -1644,8 +1644,11 @@
             "R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2",
             "V = larger of R1 and R2",
             "f_v = 3·V / (2·b·d)",
+            "At each hole, V_h = the larger shear just either side of it: R1 − w·x − Σ P over loads left of x, and less the load at the hole",
+            "A_v = b_net·d, the net section (NDS 2024 3.1.2.1)",
+            "f_v = 3·V_h / (2·A_v) there, and f_v = the largest of these",
             "Fv' = Fv · C_D · C_M · C_t · C_i",
-            "margin = Fv' / f_v (equal to Vr' / V, with Vr' = 2/3 · Fv' · b · d)"
+            "margin = Fv' / f_v (equal to Vr' / V, with Vr' = 2/3 · Fv' · b · d, or 2/3 · Fv' · A_v at a hole)"
           ],
           "steps": [
             {
@@ -1665,6 +1668,156 @@
               "label": "Largest shear",
               "value": 621.1476630118553,
               "unit": "lb"
+            },
+            {
+              "symbol": "f_v,V",
+              "label": "Shear stress at the largest shear, 3·V / (2·b·d)",
+              "value": 48.40111659832639,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h1",
+              "label": "Left swing, left hanger hole, position",
+              "value": 30,
+              "unit": "in"
+            },
+            {
+              "symbol": "V_h1",
+              "label": "Left swing, left hanger hole, larger shear on either side",
+              "value": 613.013946468834,
+              "unit": "lb"
+            },
+            {
+              "symbol": "D_h,1",
+              "label": "Left swing, left hanger hole, hole diameter",
+              "value": 0.5625,
+              "unit": "in"
+            },
+            {
+              "symbol": "b_net,1",
+              "label": "Left swing, left hanger hole, net breadth",
+              "value": 2.9375,
+              "unit": "in"
+            },
+            {
+              "symbol": "A_v,1",
+              "label": "Left swing, left hanger hole, shear area, b_net·d",
+              "value": 16.15625,
+              "unit": "in²"
+            },
+            {
+              "symbol": "f_v,1",
+              "label": "Left swing, left hanger hole, shear stress",
+              "value": 56.91425421760934,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h2",
+              "label": "Left swing, right hanger hole, position",
+              "value": 50,
+              "unit": "in"
+            },
+            {
+              "symbol": "V_h2",
+              "label": "Left swing, right hanger hole, larger shear on either side",
+              "value": 304.337982156278,
+              "unit": "lb"
+            },
+            {
+              "symbol": "D_h,2",
+              "label": "Left swing, right hanger hole, hole diameter",
+              "value": 0.5625,
+              "unit": "in"
+            },
+            {
+              "symbol": "b_net,2",
+              "label": "Left swing, right hanger hole, net breadth",
+              "value": 2.9375,
+              "unit": "in"
+            },
+            {
+              "symbol": "A_v,2",
+              "label": "Left swing, right hanger hole, shear area, b_net·d",
+              "value": 16.15625,
+              "unit": "in²"
+            },
+            {
+              "symbol": "f_v,2",
+              "label": "Left swing, right hanger hole, shear stress",
+              "value": 28.255750761124453,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h3",
+              "label": "Right swing, left hanger hole, position",
+              "value": 70,
+              "unit": "in"
+            },
+            {
+              "symbol": "V_h3",
+              "label": "Right swing, left hanger hole, larger shear on either side",
+              "value": 304.337982156278,
+              "unit": "lb"
+            },
+            {
+              "symbol": "D_h,3",
+              "label": "Right swing, left hanger hole, hole diameter",
+              "value": 0.5625,
+              "unit": "in"
+            },
+            {
+              "symbol": "b_net,3",
+              "label": "Right swing, left hanger hole, net breadth",
+              "value": 2.9375,
+              "unit": "in"
+            },
+            {
+              "symbol": "A_v,3",
+              "label": "Right swing, left hanger hole, shear area, b_net·d",
+              "value": 16.15625,
+              "unit": "in²"
+            },
+            {
+              "symbol": "f_v,3",
+              "label": "Right swing, left hanger hole, shear stress",
+              "value": 28.255750761124453,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h4",
+              "label": "Right swing, right hanger hole, position",
+              "value": 90,
+              "unit": "in"
+            },
+            {
+              "symbol": "V_h4",
+              "label": "Right swing, right hanger hole, larger shear on either side",
+              "value": 613.013946468834,
+              "unit": "lb"
+            },
+            {
+              "symbol": "D_h,4",
+              "label": "Right swing, right hanger hole, hole diameter",
+              "value": 0.5625,
+              "unit": "in"
+            },
+            {
+              "symbol": "b_net,4",
+              "label": "Right swing, right hanger hole, net breadth",
+              "value": 2.9375,
+              "unit": "in"
+            },
+            {
+              "symbol": "A_v,4",
+              "label": "Right swing, right hanger hole, shear area, b_net·d",
+              "value": 16.15625,
+              "unit": "in²"
+            },
+            {
+              "symbol": "f_v,4",
+              "label": "Right swing, right hanger hole, shear stress",
+              "value": 56.91425421760934,
+              "unit": "psi"
             }
           ],
           "factors": [
@@ -1743,7 +1896,7 @@
           "assumptions": [
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
-            "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+            "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2). Its washer bears on the beam's top, so bending and shear are taken on the net section there.",
             "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
@@ -1771,12 +1924,17 @@
               "source": "nds-2024",
               "locator": "3.4.1 and 3.4.2, Eq. 3.4-2, p. 19",
               "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "3.1.2.1, p. 16",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
             }
           ],
           "computed": {
             "symbol": "f_v",
-            "label": "Shear stress",
-            "value": 48.40111659832639,
+            "label": "Shear stress at left swing, left hanger hole, net section",
+            "value": 56.91425421760934,
             "unit": "psi"
           },
           "allowable": {
@@ -1785,12 +1943,12 @@
             "value": 169.75,
             "unit": "psi"
           },
-          "margin": 3.5071504942485068,
+          "margin": 2.982556871446787,
           "breakEven": {
             "key": "dynamicFactor",
             "symbol": "C_dyn",
             "label": "Dynamic factor",
-            "value": 7.191035567738261
+            "value": 6.051116706214998
           }
         },
         {
@@ -2176,7 +2334,7 @@
           "assumptions": [
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
-            "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+            "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2). Its washer bears on the beam's top, so bending and shear are taken on the net section there.",
             "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
@@ -2404,7 +2562,7 @@
         {
           "category": "bolted-connections",
           "element": "Swing hangers",
-          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
+          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending and shear checks take.",
           "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation.",
           "partIds": [
             "beam"
@@ -13306,7 +13464,7 @@
         {
           "category": "bolted-connections",
           "element": "Swing hangers",
-          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
+          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending and shear checks take.",
           "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation.",
           "partIds": [
             "beam"
@@ -23712,17 +23870,6 @@
                     "count": 1
                   }
                 ]
-              },
-              {
-                "kind": "stock",
-                "name": "Beam plies",
-                "field": "beamStock",
-                "nominal": "2x8",
-                "margin": 1.0148652620007972,
-                "check": {
-                  "title": "Bending",
-                  "subject": "Top beam, 2 plies of 2x8"
-                }
               }
             ]
           },
@@ -24828,7 +24975,7 @@
             "Each ply carries an equal share of every load (decision 0013).",
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
-            "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+            "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered. The seat hangs from the bolts, so shear there is taken on the beam's depth below them (NDS 2024 3.4.4.1).",
             "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
@@ -25220,8 +25367,11 @@
             "R1 = Σ P·(L − a) / L + w·L / 2, R2 = Σ P·a / L + w·L / 2",
             "V = larger of R1 and R2",
             "f_v = 3·V / (2·b·d)",
+            "At each hole, V_h = the larger shear just either side of it: R1 − w·x − Σ P over loads left of x, and less the load at the hole",
+            "A_v = b·d_e, the bolts being at least 5d from the member's end (NDS 2024 3.4.4.1, Eq. 3.4-9)",
+            "f_v = 3·V_h / (2·A_v) there, and f_v = the largest of these",
             "Fv' = Fv · C_D · C_M · C_t · C_i",
-            "margin = Fv' / f_v (equal to Vr' / V, with Vr' = 2/3 · Fv' · b · d)"
+            "margin = Fv' / f_v (equal to Vr' / V, with Vr' = 2/3 · Fv' · b · d, or 2/3 · Fv' · A_v at a hole)"
           ],
           "steps": [
             {
@@ -25247,6 +25397,204 @@
               "label": "Largest shear per ply",
               "value": 309.06328414793796,
               "unit": "lb"
+            },
+            {
+              "symbol": "f_v,V",
+              "label": "Shear stress at the largest shear, 3·V / (2·b·d)",
+              "value": 56.19332439053417,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h1",
+              "label": "Left swing, left hanger hole, position",
+              "value": 30,
+              "unit": "in"
+            },
+            {
+              "symbol": "V_h1",
+              "label": "Left swing, left hanger hole, larger shear on either side per ply",
+              "value": 305.5774056295003,
+              "unit": "lb"
+            },
+            {
+              "symbol": "D_h,1",
+              "label": "Left swing, left hanger hole, hole diameter",
+              "value": 0.4375,
+              "unit": "in"
+            },
+            {
+              "symbol": "d_e,1",
+              "label": "Left swing, left hanger hole, effective depth, the bolts' height above the bottom",
+              "value": 1.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "x_e,1",
+              "label": "Left swing, left hanger hole, distance from the member's nearer end",
+              "value": 30,
+              "unit": "in"
+            },
+            {
+              "symbol": "5d,1",
+              "label": "Left swing, left hanger hole, five times the depth",
+              "value": 27.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "A_v,1",
+              "label": "Left swing, left hanger hole, shear area, b·d_e",
+              "value": 2.25,
+              "unit": "in²"
+            },
+            {
+              "symbol": "f_v,1",
+              "label": "Left swing, left hanger hole, shear stress",
+              "value": 203.71827041966685,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h2",
+              "label": "Left swing, right hanger hole, position",
+              "value": 50,
+              "unit": "in"
+            },
+            {
+              "symbol": "V_h2",
+              "label": "Left swing, right hanger hole, larger shear on either side per ply",
+              "value": 151.8591352098334,
+              "unit": "lb"
+            },
+            {
+              "symbol": "D_h,2",
+              "label": "Left swing, right hanger hole, hole diameter",
+              "value": 0.4375,
+              "unit": "in"
+            },
+            {
+              "symbol": "d_e,2",
+              "label": "Left swing, right hanger hole, effective depth, the bolts' height above the bottom",
+              "value": 1.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "x_e,2",
+              "label": "Left swing, right hanger hole, distance from the member's nearer end",
+              "value": 50,
+              "unit": "in"
+            },
+            {
+              "symbol": "5d,2",
+              "label": "Left swing, right hanger hole, five times the depth",
+              "value": 27.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "A_v,2",
+              "label": "Left swing, right hanger hole, shear area, b·d_e",
+              "value": 2.25,
+              "unit": "in²"
+            },
+            {
+              "symbol": "f_v,2",
+              "label": "Left swing, right hanger hole, shear stress",
+              "value": 101.23942347322226,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h3",
+              "label": "Right swing, left hanger hole, position",
+              "value": 70,
+              "unit": "in"
+            },
+            {
+              "symbol": "V_h3",
+              "label": "Right swing, left hanger hole, larger shear on either side per ply",
+              "value": 151.85913520983345,
+              "unit": "lb"
+            },
+            {
+              "symbol": "D_h,3",
+              "label": "Right swing, left hanger hole, hole diameter",
+              "value": 0.4375,
+              "unit": "in"
+            },
+            {
+              "symbol": "d_e,3",
+              "label": "Right swing, left hanger hole, effective depth, the bolts' height above the bottom",
+              "value": 1.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "x_e,3",
+              "label": "Right swing, left hanger hole, distance from the member's nearer end",
+              "value": 50,
+              "unit": "in"
+            },
+            {
+              "symbol": "5d,3",
+              "label": "Right swing, left hanger hole, five times the depth",
+              "value": 27.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "A_v,3",
+              "label": "Right swing, left hanger hole, shear area, b·d_e",
+              "value": 2.25,
+              "unit": "in²"
+            },
+            {
+              "symbol": "f_v,3",
+              "label": "Right swing, left hanger hole, shear stress",
+              "value": 101.2394234732223,
+              "unit": "psi"
+            },
+            {
+              "symbol": "x_h4",
+              "label": "Right swing, right hanger hole, position",
+              "value": 90,
+              "unit": "in"
+            },
+            {
+              "symbol": "V_h4",
+              "label": "Right swing, right hanger hole, larger shear on either side per ply",
+              "value": 305.5774056295003,
+              "unit": "lb"
+            },
+            {
+              "symbol": "D_h,4",
+              "label": "Right swing, right hanger hole, hole diameter",
+              "value": 0.4375,
+              "unit": "in"
+            },
+            {
+              "symbol": "d_e,4",
+              "label": "Right swing, right hanger hole, effective depth, the bolts' height above the bottom",
+              "value": 1.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "x_e,4",
+              "label": "Right swing, right hanger hole, distance from the member's nearer end",
+              "value": 30,
+              "unit": "in"
+            },
+            {
+              "symbol": "5d,4",
+              "label": "Right swing, right hanger hole, five times the depth",
+              "value": 27.5,
+              "unit": "in"
+            },
+            {
+              "symbol": "A_v,4",
+              "label": "Right swing, right hanger hole, shear area, b·d_e",
+              "value": 2.25,
+              "unit": "in²"
+            },
+            {
+              "symbol": "f_v,4",
+              "label": "Right swing, right hanger hole, shear stress",
+              "value": 203.71827041966685,
+              "unit": "psi"
             }
           ],
           "factors": [
@@ -25326,7 +25674,7 @@
             "Each ply carries an equal share of every load (decision 0013).",
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
-            "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+            "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered. The seat hangs from the bolts, so shear there is taken on the beam's depth below them (NDS 2024 3.4.4.1).",
             "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
@@ -25354,12 +25702,17 @@
               "source": "nds-2024",
               "locator": "3.4.1 and 3.4.2, Eq. 3.4-2, p. 19",
               "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "3.4.4.1, Eq. 3.4-8 and 3.4-9, Figure 3E, p. 21",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
             }
           ],
           "computed": {
             "symbol": "f_v",
-            "label": "Shear stress",
-            "value": 56.19332439053417,
+            "label": "Shear stress at left swing, left hanger hole, effective depth",
+            "value": 203.71827041966685,
             "unit": "psi"
           },
           "allowable": {
@@ -25368,12 +25721,12 @@
             "value": 169.75,
             "unit": "psi"
           },
-          "margin": 3.0208214559485036,
+          "margin": 0.8332585960518366,
           "breakEven": {
             "key": "dynamicFactor",
             "symbol": "C_dyn",
             "label": "Dynamic factor",
-            "value": 6.16374477234708
+            "value": 1.6603172958033312
           }
         },
         {
@@ -25773,7 +26126,7 @@
             "Each ply carries an equal share of every load (decision 0013).",
             "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
             "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
-            "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+            "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered. The seat hangs from the bolts, so shear there is taken on the beam's depth below them (NDS 2024 3.4.4.1).",
             "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
             "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
             "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
@@ -26295,7 +26648,7 @@
         {
           "category": "bolted-connections",
           "element": "Swing hangers",
-          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
+          "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger and no lower in the beam than the bending and shear checks take.",
           "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation.",
           "partIds": [
             "beam"
