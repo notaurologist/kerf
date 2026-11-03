@@ -11,6 +11,7 @@ describe('createTestDatabase', () => {
       'login_failures',
       'project_history',
       'project_progress',
+      'project_resets',
       'projects',
       'sessions',
       'tools',

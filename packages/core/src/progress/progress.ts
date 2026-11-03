@@ -69,9 +69,9 @@ export const progressId = (item: Pick<ProgressItem, 'kind' | 'key'>) => `${item.
 export const partProgressKey = (partId: string, instance: number) => `${partId}/${instance}`;
 
 /** A shopping line's key; lumber and hardware lines never share one. */
-const lumberProgressKey = (line: Parameters<typeof lumberLineKey>[0]) =>
+export const lumberProgressKey = (line: Parameters<typeof lumberLineKey>[0]) =>
   `lumber/${lumberLineKey(line)}`;
-const hardwareProgressKey = (description: string) => `hardware/${description}`;
+export const hardwareProgressKey = (description: string) => `hardware/${description}`;
 
 /**
  * An expert check's key: its category and what to ask. The ask carries the design's numbers, so
