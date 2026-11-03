@@ -10,10 +10,17 @@ export function Text(props: {
   tone?: 'muted';
   size?: 'small';
   as?: 'p' | 'span';
+  /** Left off paper, such as a line about tapping a drawing. */
+  screenOnly?: boolean;
 }) {
   const Tag = props.as ?? 'p';
   return (
-    <Tag className="k-text" data-tone={props.tone} data-size={props.size}>
+    <Tag
+      className="k-text"
+      data-tone={props.tone}
+      data-size={props.size}
+      data-screen-only={props.screenOnly || undefined}
+    >
       {props.children}
     </Tag>
   );
@@ -59,9 +66,18 @@ export function List(props: ListProps) {
   );
 }
 
-/** Text kept to one line, cut short with an ellipsis, such as a summary of what a section holds in full. */
-export function OneLine(props: { children: ReactNode }) {
-  return <span className="k-one-line">{props.children}</span>;
+/**
+ * Text kept to one line, cut short with an ellipsis, such as a summary of what a section holds in
+ * full. `end` follows it whole, so only the text before it is cut, such as links after a title.
+ */
+export function OneLine(props: { children: ReactNode; end?: ReactNode }) {
+  if (props.end === undefined) return <span className="k-one-line">{props.children}</span>;
+  return (
+    <span className="k-one-line" data-end="">
+      <span className="k-one-line__cut">{props.children}</span>
+      <span className="k-one-line__end">{props.end}</span>
+    </span>
+  );
 }
 
 /** A formula or identifier, in the Mono, never wrapped (#42). */

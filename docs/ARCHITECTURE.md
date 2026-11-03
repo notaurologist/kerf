@@ -245,7 +245,7 @@ The likeliest mistake, deleting the wrong project, is covered by the trash: a de
 
 The file holds `projects`, `deletedProjects` (the trash, same shape plus `deletedAt`; purged projects are gone), and `tools`. The owner chose this in October 2026: a backup must not silently drop data. A project in the trash can still be restored, so it belongs in the copy. The tools are the stored rows (`toolTypeId`, `name`, `position`, `capabilities`) read without the filter that `getInventory` applies, so a row whose type the library no longer has is kept. Such a row is deleted from the database on the next `PUT /tools`, which replaces the whole inventory.
 
-Vercel limits a function's response to 4.5 MB unless the response is streamed, and snapshots measure 40 to 78 KB, so an unstreamed backup would fail with a 413 past roughly 55 projects. The route reads every row first, so a database error is still a 500, then streams the JSON one project at a time (`services/exportFile.ts`). A route test streams a backup past 4.5 MB. A connection lost partway leaves a file that does not parse: the share-sheet path in the Home Screen app checks this and says the backup came back incomplete, while a browser's own download may save the cut file, which shows as invalid JSON when opened.
+Vercel limits a function's response to 4.5 MB unless the response is streamed, and snapshots measure 40 to 78 KB, so an unstreamed backup would fail with a 413 past roughly 55 projects. The route reads every row first, so a database error is still a 500, then streams the JSON one project at a time (`services/exportFile.ts`). A route test streams a backup past 4.5 MB. A connection lost partway leaves a file that does not parse. The workshop screen fetches the backup and checks it before saving, so a cut file or an error response, such as a lost login, shows a notice instead of being saved. In a browser the checked file is then saved as a download; in the Home Screen app it goes to the share sheet.
 
 There are no scheduled backups. Neon's free plan restores only the last 6 hours, and the owner chose to take a dump by hand when it seems worth it (October 2026, #21, where the options are recorded). The dump keeps the structure of `sessions` and `login_failures` but not their rows, so no live session token is written to a file.
 
@@ -272,6 +272,21 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 4. **Environment variables, Production only, marked Sensitive:** `DATABASE_URL` (pooled), `DATABASE_URL_UNPOOLED` (direct), `PASSWORD_HASH`. Only `main` deploys (`git.deploymentEnabled` in `vercel.json`): a preview would get none of these, so its API would not start, and each one counts toward the Hobby plan's 100 deployments a day.
 5. **Deploy** `main`. The API's build log shows `release: migrations applied.`
 6. **Check:** `pnpm --filter @kerf/api check-deploy https://<project>.vercel.app` asks for the password without echo, then checks health, login, storing and reading a project, and logout. It leaves one project named "Deploy check".
+
+#### The printed plan (before a release that changes print or drawings)
+
+A manual check; nothing runs it for you. `ui/views.test.ts` checks that `print.css` keeps the rules below, but only a real print shows the pages. Print a project made from each template's first worked example (`docs/templates/`) to PDF on US Letter, with the browser's own headers and footers off, in Chrome and in Safari. Look at every page of the Diagrams section and the first page of each other section.
+
+1. **First page:** the title block and the Diagrams heading, with no "Tap a part…" line, no Next line or its links, and no info button.
+2. **Assembled and exploded views:** each on its own landscape page with its heading at the top, and nothing else drawn over it.
+3. **Cut details and elevations:** each with its heading, drawing, and notes on one page. No heading sits alone at the foot of a page.
+4. **Site layout** (swing set): on a landscape page with its heading.
+5. **Structural working:** every formula wraps inside the margin; none ends mid-word at the edge.
+
+| Date | Browser | Swing set | Record cabinet | Notes |
+|---|---|---|---|---|
+| 3 November 2026 (#452) | Chrome 156, headless, print to PDF | 1 to 5 as described | 1 to 3 and 5 as described | Run in a local copy of the app. The swing set's structural review still starts with its heading alone on a page, and its break-even lines run past the margin; both come from the structural review's own layout. |
+| 3 November 2026 (#452) | Safari | Not checked | Not checked | The owner's to run. |
 
 ## apps/web
 

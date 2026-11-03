@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import type { BackupHost } from '../../lib/backup.ts';
 import { byText, click, mount } from '../../test/dom.tsx';
@@ -8,7 +9,17 @@ const file = new File(['{}'], 'kerf-2026-11-02.json', { type: 'application/json'
 const fetched = async () => ({ ok: true as const, file });
 
 function homeScreen(share: (data: ShareData) => Promise<void>) {
-  const host: BackupHost = { standalone: true, canShare: () => true, share: vi.fn(share) };
+  const host: BackupHost = {
+    standalone: true,
+    save: vi.fn(),
+    canShare: () => true,
+    share: vi.fn(share),
+  };
+  return { host, backupHost: () => host };
+}
+
+function browser() {
+  const host: BackupHost = { standalone: false, save: vi.fn() };
   return { host, backupHost: () => host };
 }
 
@@ -59,17 +70,52 @@ describe('WorkshopScreen', () => {
     expect(onLogOut).toHaveBeenCalledOnce();
   });
 
-  it('downloads with the link in a browser', async () => {
+  it('in a browser, saves the fetched backup in place of following the link', async () => {
+    const { host, backupHost } = browser();
     const fetchBackup = vi.fn(fetched);
+    const { container } = mount(
+      <WorkshopScreen onLogOut={() => {}} backupHost={backupHost} fetchBackup={fetchBackup} />,
+    );
+    expect(await download(container)).toBe(true);
+    expect(fetchBackup).toHaveBeenCalledOnce();
+    expect(host.save).toHaveBeenCalledWith(file);
+    expect(container.textContent).not.toContain('Preparing');
+  });
+
+  it('in a browser, shows why and saves nothing when the backup cannot be fetched', async () => {
+    const { host, backupHost } = browser();
     const { container } = mount(
       <WorkshopScreen
         onLogOut={() => {}}
-        backupHost={() => ({ standalone: false })}
-        fetchBackup={fetchBackup}
+        backupHost={backupHost}
+        fetchBackup={async () => ({
+          ok: false as const,
+          failure: { message: 'Your login has ended. Log in again.', connection: false },
+        })}
       />,
     );
-    expect(await download(container)).toBe(false);
-    expect(fetchBackup).not.toHaveBeenCalled();
+    await download(container);
+    expect(host.save).not.toHaveBeenCalled();
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain('Log in again');
+  });
+
+  it('says it is preparing the backup in a live region', async () => {
+    let arrive: (value: Awaited<ReturnType<typeof fetched>>) => void = () => {};
+    const { host, backupHost } = browser();
+    const { container } = mount(
+      <WorkshopScreen
+        onLogOut={() => {}}
+        backupHost={backupHost}
+        fetchBackup={() => new Promise((resolve) => (arrive = resolve))}
+      />,
+    );
+    const live = container.querySelector('[aria-live="polite"]');
+    expect(live?.textContent).toBe('');
+    await download(container);
+    expect(live?.textContent).toBe('Preparing the backup…');
+    await act(async () => arrive({ ok: true, file }));
+    expect(live?.textContent).toBe('');
+    expect(host.save).toHaveBeenCalledOnce();
   });
 
   it('from the Home Screen, hands the backup to the share sheet in place of following the link', async () => {

@@ -4,7 +4,13 @@ import { describeBasis, type Suggestion, suggestedValues } from '../../model/que
 import { swingSetAFrame } from './definition.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';
-import { SWING_SET_QUESTIONS, type SwingSetAnswers, shortestBeam, suggest } from './questions.ts';
+import {
+  SWING_SET_QUESTIONS,
+  type SwingSetAnswers,
+  shortestBeam,
+  smallestSpace,
+  suggest,
+} from './questions.ts';
 import { pendulumFactor } from './structural.ts';
 
 // Starting questions (#163; spec, Starting questions). Each answer set's values are worked by
@@ -34,10 +40,11 @@ const smallYard: SwingSetAnswers = {
   feet: 'buried',
 };
 
-const tooSmall: SwingSetAnswers = {
+/** The smallest space the answers allow: 245 along the beam and 240 deep (spec, Rules). */
+const smallest: SwingSetAnswers = {
   riders: 'kids',
-  riderWeights: [90, 0],
-  area: { length: 240, depth: 192 },
+  riderWeights: [90, 110],
+  area: { length: 245, depth: 240 },
   ground: { kind: 'level' },
   feet: 'pads',
 };
@@ -71,7 +78,7 @@ describe('suggestions from the starting questions', () => {
     expect(valueAt(s, 'burialDepth')).toMatchObject({ value: 0, basis: { kind: 'answer' } });
     expect(valueAt(s, 'riderWeights.0')).toMatchObject({ from: 'structuralInputs', value: 90 });
     expect(valueAt(s, 'riderWeights.1')).toMatchObject({ from: 'structuralInputs', value: 110 });
-    expect(s.some((x) => x.note?.startsWith('The usual height'))).toBe(false);
+    expect(s.some((x) => x.note?.startsWith('Lowered'))).toBe(false);
   });
 
   it('works the kids-and-adults example, whose depth just fits 10 ft', () => {
@@ -95,12 +102,12 @@ describe('suggestions from the starting questions', () => {
     expect(valueAt(s, 'beamHeight')).toMatchObject({
       value: 84,
       basis: { kind: 'source' },
-      note: `The usual height is 10' 0", and its swing zones need 40' 0" front to back. Your 28' 0" fits a beam up to 7' 0".`,
+      note: `Lowered to fit your 28' 0" depth. The usual height, 10' 0", needs 40' 0" front to back for its swing zones.`,
     });
     // 252 − 2 · 72 = 108, under the example's 120 and over the 100.5 two swings need.
     expect(valueAt(s, 'beamLength')).toMatchObject({
       value: 108,
-      note: `The worked example's beam is 10' 0", which needs 22' 0" along the beam with the clear area at each end. Your 21' 0" fits a beam up to 9' 0".`,
+      note: `Shortened to fit your 21' 0" length along the beam. The worked example's beam, 10' 0", needs 22' 0" with the clear area at each end.`,
     });
     expect(valueAt(s, 'swings.centers.0')?.value).toBe(36);
     expect(valueAt(s, 'swings.centers.1')?.value).toBe(72);
@@ -108,15 +115,17 @@ describe('suggestions from the starting questions', () => {
     expect(valueAt(s, 'crossbarHeight')?.value).toBe(35);
   });
 
-  it('leaves the beam empty, saying why, when no beam fits', () => {
-    const s = suggest(tooSmall);
-    // 192 / 4 = 48, under the lowest beam, 60; 240 − 144 = 96, under the 101 two swings need.
-    expect(valueAt(s, 'beamHeight')).toMatchObject({ value: null });
-    expect(valueAt(s, 'beamHeight')?.note).toContain(`needs 20' 0"`);
-    expect(valueAt(s, 'beamLength')).toMatchObject({ value: null });
-    expect(valueAt(s, 'beamLength')?.note).toContain(`at least 8' 5", so 20' 5"`);
-    expect(valueAt(s, 'swings.centers.0')?.value).toBeNull();
-    expect(valueAt(s, 'crossbarHeight')?.value).toBeNull();
+  it('fits the shortest and lowest beam in the smallest space the answers allow', () => {
+    const s = suggest(smallest);
+    // floor(240 / 4) = 60, the lowest beam.
+    expect(valueAt(s, 'beamHeight')?.value).toBe(60);
+    // floor(245 − 144) = 101 = ceil(100.5), the shortest beam two swings fit.
+    expect(valueAt(s, 'beamLength')?.value).toBe(101);
+    // 101 / 3 = 33.667, to 33-11/16; 202 / 3 = 67.333, to 67-5/16.
+    expect(valueAt(s, 'swings.centers.0')?.value).toBe(33.6875);
+    expect(valueAt(s, 'swings.centers.1')?.value).toBe(67.3125);
+    // floor(60 · 40/96) = 25.
+    expect(valueAt(s, 'crossbarHeight')?.value).toBe(25);
   });
 
   it('keeps two swings at the thirds with the CPSC seat gaps from 100.5 inches', () => {
@@ -124,10 +133,16 @@ describe('suggestions from the starting questions', () => {
     expect(shortestBeam()).toBe(100.5);
   });
 
+  it('needs 245 inches along the beam and 240 front to back', () => {
+    // ceil(100.5) + 2 · 72 = 245, 20' 5"; 4 · 60 = 240, 20' 0".
+    expect(smallestSpace()).toEqual({ length: 245, depth: 240 });
+  });
+
   it.each([
     ['kids only', kidsOnly],
     ['kids and adults', kidsAndAdults],
     ['a small yard', smallYard],
+    ['the smallest space', smallest],
   ])('gives parameters the template accepts for %s, inside the space', (_name, answers) => {
     const params = paramsFrom(answers);
     const result = swingSetAFrame.generate(params as never, {});
@@ -148,7 +163,7 @@ describe('suggestions from the starting questions', () => {
     expect(anchors?.quantityNeeded?.key).toBe('hardware.anchorsPerFoot');
   });
 
-  it.each([kidsOnly, kidsAndAdults, smallYard, tooSmall])(
+  it.each([kidsOnly, kidsAndAdults, smallYard, smallest])(
     'suggests only the structural inputs and bolts with a source or a stated bound (rule 3, #355)',
     (answers) => {
       const s = suggest(answers);
@@ -234,5 +249,51 @@ describe('the starting questions form', () => {
     expect(
       SWING_SET_QUESTIONS.answers.safeParse({ ...kidsOnly, riderWeights: [0, 0] }).success,
     ).toBe(false);
+  });
+
+  it('asks for more room along the beam when two swings and their clear area do not fit (#458)', () => {
+    const issues = (area: SwingSetAnswers['area']) => {
+      const parsed = SWING_SET_QUESTIONS.answers.safeParse({ ...kidsOnly, area });
+      return parsed.success ? [] : parsed.error.issues.map((i) => [i.path.join('.'), i.message]);
+    };
+    // 245 − 1/16: floor(244.9375 − 144) = 100, under the 101 two swings need.
+    expect(issues({ length: 245 - 1 / 16, depth: 480 })).toEqual([
+      [
+        'area.length',
+        `Length along the beam must be at least 20' 5" for two swings and their clear area.`,
+      ],
+    ]);
+    expect(issues({ length: 245, depth: 480 })).toEqual([]);
+    expect(issues({ length: 245 + 1 / 16, depth: 480 })).toEqual([]);
+    // The audit's space: 14' along the beam, 168 − 144 = 24.
+    expect(issues({ length: 168, depth: 318 }).map(([path]) => path)).toEqual(['area.length']);
+  });
+
+  it('asks for more depth when the swing zones of the lowest beam do not fit (#458)', () => {
+    const issues = (depth: number) => {
+      const parsed = SWING_SET_QUESTIONS.answers.safeParse({
+        ...kidsOnly,
+        area: { length: 360, depth },
+      });
+      return parsed.success ? [] : parsed.error.issues.map((i) => [i.path.join('.'), i.message]);
+    };
+    // 240 − 1/16: floor(239.9375 / 4) = 59, under the lowest beam, 60.
+    expect(issues(240 - 1 / 16)).toEqual([
+      [
+        'area.depth',
+        `Depth, front to back, must be at least 20' 0" for the swing zones of the lowest beam Kerf draws, 5' 0".`,
+      ],
+    ]);
+    expect(issues(240)).toEqual([]);
+    expect(issues(240 + 1 / 16)).toEqual([]);
+  });
+
+  it('says a beam height lowered to fit the depth was lowered (#458)', () => {
+    // The audit's depth, 26' 6" = 318: floor(318 / 4) = 79, 6' 7".
+    const s = suggest({ ...kidsOnly, area: { length: 360, depth: 318 } });
+    expect(valueAt(s, 'beamHeight')).toMatchObject({
+      value: 79,
+      note: `Lowered to fit your 26' 6" depth. The usual height, 8' 0", needs 32' 0" front to back for its swing zones.`,
+    });
   });
 });

@@ -81,6 +81,7 @@ export function EditorFields(props: {
               {...c}
               value={status}
               onChange={setStatus}
+              readOnly={saving}
               placeholder={false}
               options={STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
             />

@@ -2,7 +2,7 @@ import { type BuildStep, type Plan, type ProgressSummary, summarizeProgress } fr
 import { href } from '../../lib/route.ts';
 import { useTicks } from '../../lib/ticks.ts';
 import type { Project, ProjectSummary } from '../../lib/types.ts';
-import { ButtonLink, Card, Cluster, Stack, Text } from '../../ui/index.ts';
+import { ButtonLink, Card, Cluster, EqualButtons, Stack, Text } from '../../ui/index.ts';
 
 // The ways into Shopping and Building (#61): two buttons in the project's header, each showing
 // progress (#356), and a Resume card on the projects list that goes straight to where you left off.
@@ -43,7 +43,7 @@ function buildingShort(s: ProgressSummary): string {
 /**
  * The ways into Shopping and Building in the project's header, on every section of the plan
  * (#356), each with its progress counted with ticks not sent yet. The mode to do next is the
- * screen's one primary button.
+ * screen's one primary button; the two are the same width, since neither outranks the other.
  */
 export function ModeButtons(props: { project: Project; plan: Plan; steps: readonly BuildStep[] }) {
   const { project } = props;
@@ -52,24 +52,26 @@ export function ModeButtons(props: { project: Project; plan: Plan; steps: readon
   const { shopping, steps } = summary;
   const next = steps.total > 0 && buildingIsNext(summary) ? 'building' : 'shopping';
   return (
-    <Cluster gap="xs">
+    <EqualButtons>
       <ButtonLink
         href={href({ screen: 'shop', id: project.id })}
         variant={next === 'shopping' ? 'primary' : 'secondary'}
         mode="shopping"
+        detail={shoppingShort(shopping)}
       >
-        Shop · {shoppingShort(shopping)}
+        Shop
       </ButtonLink>
       {steps.total > 0 && (
         <ButtonLink
           href={href({ screen: 'build', id: project.id })}
           variant={next === 'building' ? 'primary' : 'secondary'}
           mode="building"
+          detail={buildingShort(summary)}
         >
-          Build · {buildingShort(summary)}
+          Build
         </ButtonLink>
       )}
-    </Cluster>
+    </EqualButtons>
   );
 }
 

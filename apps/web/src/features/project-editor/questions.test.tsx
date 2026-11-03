@@ -66,6 +66,20 @@ describe('the starting questions', () => {
     expect(result.issues.map((i) => i.field).sort()).toEqual(['area.depth', 'riders']);
   });
 
+  it('asks for more room along the beam when two swings do not fit, on the field (#458)', () => {
+    // The audit's space: 14' along the beam, under the 20' 5" core computes.
+    const result = answer(questions, { ...answers, 'area.length': "14'", 'area.depth': "26' 6" });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.issues).toEqual([
+      {
+        field: 'area.length',
+        message: `Length along the beam must be at least 20' 5" for two swings and their clear area.`,
+      },
+    ]);
+    expect(answer(questions, { ...answers, 'area.length': "20' 5" }).ok).toBe(true);
+  });
+
   it('suggests values from complete answers', () => {
     const { params, inputs } = suggested(answers);
     expect(params.beamHeight).toBe('84');
@@ -84,7 +98,7 @@ describe('the form filled in from the answers', () => {
 
   it('says where each suggested value came from', () => {
     expect(text).toContain(
-      `Source: CPSC Outdoor Home Playground Safety Handbook (Pub. 324, 2005), pp. 2 and 7. The usual height is 10' 0"`,
+      `Source: CPSC Outdoor Home Playground Safety Handbook (Pub. 324, 2005), pp. 2 and 7. Lowered to fit your 28' 0" depth.`,
     );
     expect(text).toContain("From the template's worked example.");
     expect(text).toContain('Rule of thumb: each swing at a third of the beam');

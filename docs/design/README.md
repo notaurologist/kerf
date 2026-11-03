@@ -167,6 +167,12 @@ Built in #381 (November 2026): the summary is gone, with its key figures and its
 
 Built in #357 (November 2026): the projects list has one "New project" button, which opens a picker at `#/projects/new` listing every template with its name, a sentence on what it is, and its first worked example drawn assembled (from `GET /api/templates/:id/drawing`, loaded only on the picker). Each row shows the project's name, its status as a tag, its template, and when it was last updated; the template version is left to the project's own notice. Status is set by hand only in Edit (Stage 13, S-2). In Workshop, Trash is now "Deleted projects" and Download all projects is "Download a backup".
 
+Changed in November 2026 (#454): on a phone the header filled the first screen of every section, with the section's heading near the middle and the first drawing below it, and Shop and Build on two rows at different widths read as a main and a lesser choice. Kerf keeps the whole header on every section and makes it shorter. Shop and Build sit side by side at one width (`EqualButtons`); below 30rem each fills half the row with its progress under its name. The line of what is next is one line: the counts stay whole and the step is cut short with an ellipsis, since it is in full in the build steps; when inputs are needed and the counts would leave the step a few letters, the counts take a second line. At 375 × 812 with a two-word name, every section's heading now starts at about 407 px and its content at about 449 px, against 469 px and 512 px before.
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| A shorter header on a phone | The whole header on every section, shorter: Shop and Build side by side at one width, and Next on one line. | The full header only on the section a project opens on, with a one-line header elsewhere: Shop and Build would leave five of six sections, against N1's "on every section", and the header would change between sections, where it now stays still with the frame while only the section moves. |
+
 What does not change: IA-2 (the project is the plan, and Shopping and Building are full-screen modes launched from it), the Resume card on the projects list, the order of the remaining sections, and print, which still gives the whole plan in order. The glossary stays reachable from every marked term (#178, #192) as well as from Workshop.
 
 ## Stage 11: review for a second template (#71)
@@ -719,6 +725,8 @@ The owner took the suggestions for distances, the cut list, and paper (October 2
 | Paper | US Letter portrait with 1/2" margins; landscape Letter pages for the isometric, exploded, and site layout views (named pages). Checks, cut details, and steps do not split across pages when they fit on one. Everything expanded in print. | Tabloid and A4 remain possible later; only page size and diagram scale would change. |
 
 Sizes in the distance table assume a digit is 0.7 of the font size; #42 redoes them for the chosen typeface.
+
+Fixed in #452 (November 2026), after the design audit printed both templates: the exploded view printed over the cut details, cut details split across pages with their headings left behind, formulas ran off the page, and lines that only make sense on a screen printed. On paper each view now leaves the cell the views share on screen and prints alone, with its heading on its landscape page; a cut detail or elevation keeps its heading, drawing, and notes on one page; headings stay with what follows; formulas wrap; and the drawings' "Tap a part…" line, the header's Next line, and its info button are left out. The printed-plan check for both templates is with the deploy steps in `ARCHITECTURE.md`. Checked in Chrome; Safari not checked.
 
 ## Stage 1b: the plan, one part at a time (#147)
 

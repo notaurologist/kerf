@@ -120,7 +120,7 @@ export function Diagrams(props: {
     assembled && exploded ? ([assembled, exploded] as const) : lone && ([lone] as const);
   return (
     <Stack gap="l">
-      <Text tone="muted">
+      <Text tone="muted" screenOnly>
         Tap a part to select it in every drawing, then open it in the cut list. A part's name in the
         cut list opens it here.
       </Text>
@@ -300,9 +300,13 @@ function useCorner(drawings: Drawings, corners: Parameters<typeof Diagrams>[0]['
     views: current,
     status:
       failure !== null ? (
-        <StatusLine>The view from that corner could not be drawn. {failure}</StatusLine>
+        <StatusLine tone="error">
+          The view from that corner could not be drawn. {failure}
+        </StatusLine>
       ) : asked !== shown ? (
-        <StatusLine>Drawing the view {CORNER_LABELS[asked].toLowerCase()}…</StatusLine>
+        <StatusLine tone="working">
+          Drawing the view {CORNER_LABELS[asked].toLowerCase()}…
+        </StatusLine>
       ) : null,
   };
 }

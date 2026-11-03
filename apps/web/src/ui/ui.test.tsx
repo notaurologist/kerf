@@ -16,6 +16,7 @@ import { goToField, reported } from './feedback.tsx';
 import { ICON_NAMES } from './Icon.tsx';
 import {
   Button,
+  ButtonLink,
   Card,
   Changed,
   CheckStatus,
@@ -23,6 +24,7 @@ import {
   Definitions,
   Diagram,
   Disclosure,
+  EqualButtons,
   ErrorSummary,
   ErrorText,
   ExpertCheck,
@@ -63,6 +65,7 @@ import {
   StepLayout,
   Term,
   TermScope,
+  Text,
   TextInput,
   Tick,
   ToolIcon,
@@ -280,6 +283,35 @@ describe('IconButton', () => {
   });
 });
 
+describe('EqualButtons', () => {
+  it('says a button’s detail after its name, with the dot kept for screen readers', () => {
+    const html = render(
+      <EqualButtons>
+        <ButtonLink href="#/projects/1/shop" mode="shopping" detail="4 of 11 bought">
+          Shop
+        </ButtonLink>
+        <ButtonLink
+          href="#/projects/1/build"
+          variant="secondary"
+          mode="building"
+          detail="step 3 of 11"
+        >
+          Build
+        </ButtonLink>
+      </EqualButtons>,
+    );
+    expect(html).toMatch(/^<div class="k-equal-buttons"><div class="k-equal-buttons__row"><a /);
+    expect(html).toContain('<span class="k-button__sep"> · </span>');
+    expect(textOf(html)).toBe('Shop · 4 of 11 bought Build · step 3 of 11');
+  });
+
+  it('leaves a button with no detail as it was', () => {
+    expect(render(<ButtonLink href="#/catalog">Start building</ButtonLink>)).toBe(
+      '<a class="k-button" data-variant="primary" href="#/catalog">Start building</a>',
+    );
+  });
+});
+
 describe('IconSelect', () => {
   it('is a labeled native menu under an icon', () => {
     const html = render(
@@ -392,6 +424,16 @@ describe('notices', () => {
   it('announces status without moving focus, and problems as alerts', () => {
     expect(render(<StatusLine>Saved.</StatusLine>)).toContain('role="status"');
     expect(render(<Notice>Not saved.</Notice>)).toContain('role="alert"');
+    expect(render(<Notice alert={false}>No preview.</Notice>)).not.toContain('role=');
+  });
+
+  it('marks a status line done, failed, or under way, with a check mark only when done', () => {
+    const icons = (html: string) => html.match(/<svg/g)?.length ?? 0;
+    expect(render(<StatusLine>Saved.</StatusLine>)).toContain('data-tone="done"');
+    const failed = render(<StatusLine tone="error">Not drawn.</StatusLine>);
+    expect(failed).toContain('data-tone="error"');
+    expect(icons(failed)).toBe(1);
+    expect(icons(render(<StatusLine tone="working">Drawing…</StatusLine>))).toBe(0);
   });
 
   it('share one callout box, told apart by tone', () => {
@@ -823,6 +865,13 @@ describe('InfoNotice', () => {
   });
 });
 
+describe('Text', () => {
+  it('marks a screen-only line, which print leaves out, and no other', () => {
+    expect(render(<Text screenOnly>Tap a part.</Text>)).toContain('data-screen-only="true"');
+    expect(render(<Text>Tap a part.</Text>)).not.toContain('data-screen-only');
+  });
+});
+
 describe('InlineConfirm', () => {
   const confirm = (props: Partial<Parameters<typeof InlineConfirm>[0]> = {}) => (
     <InlineConfirm
@@ -1106,6 +1155,15 @@ describe('OneLine', () => {
   it('keeps the whole text in the page, for screen readers and copying', () => {
     expect(render(<OneLine>A long sentence.</OneLine>)).toBe(
       '<span class="k-one-line">A long sentence.</span>',
+    );
+  });
+
+  it('cuts only the text before its end', () => {
+    expect(
+      render(<OneLine end={<a href="#/glossary">Glossary</a>}>A long sentence.</OneLine>),
+    ).toBe(
+      '<span class="k-one-line" data-end=""><span class="k-one-line__cut">A long sentence.</span>' +
+        '<span class="k-one-line__end"><a href="#/glossary">Glossary</a></span></span>',
     );
   });
 });

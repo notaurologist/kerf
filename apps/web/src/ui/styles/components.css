@@ -133,6 +133,28 @@
     text-overflow: ellipsis;
   }
 
+  /* Only the text before the end is cut; the end, such as a link, stays whole and its focus ring
+     shows. Where the end would leave the text a few letters, the end goes to a line of its own. */
+  .k-one-line[data-end] {
+    display: flex;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .k-one-line__cut {
+    flex: 1 1 8em;
+    max-inline-size: max-content;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Never wider than the line: an end too long for one wraps within itself. */
+  .k-one-line__end {
+    flex: none;
+    max-inline-size: 100%;
+    white-space: normal;
+  }
+
   .k-section__title-block {
     display: none;
   }
@@ -237,6 +259,68 @@
      disabled (#67). */
   .k-button[aria-disabled="true"] {
     cursor: progress;
+  }
+
+  /* Siblings at one width: the widest's, or half the row each when narrow, where a button's
+     detail goes under its name and the dot is left for screen readers. */
+  .k-equal-buttons {
+    container-type: inline-size;
+  }
+
+  .k-equal-buttons__row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: var(--space-xs);
+  }
+
+  .k-equal-buttons__row:has(> :only-child) {
+    inline-size: fit-content;
+  }
+
+  .k-equal-buttons .k-button {
+    padding-block: var(--space-3xs);
+  }
+
+  .k-equal-buttons .k-button__label {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .k-equal-buttons .k-button__sep {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .k-equal-buttons .k-button__detail {
+    font-weight: 400;
+  }
+
+  @container (width >= 30rem) {
+    .k-equal-buttons__row {
+      inline-size: fit-content;
+    }
+
+    .k-equal-buttons .k-button__label {
+      display: inline;
+    }
+
+    .k-equal-buttons .k-button__sep {
+      position: static;
+      inline-size: auto;
+      block-size: auto;
+      overflow: visible;
+      clip-path: none;
+    }
+
+    .k-equal-buttons .k-button__detail {
+      font-weight: inherit;
+    }
   }
 
   /* ---------- Fields (#67) ---------- */
@@ -537,13 +621,18 @@
   }
 
   .k-status {
+    --status-icon: var(--done);
     display: flex;
     gap: var(--space-2xs);
     align-items: baseline;
   }
 
+  .k-status[data-tone="error"] {
+    --status-icon: var(--error);
+  }
+
   .k-status .k-icon {
-    color: var(--done);
+    color: var(--status-icon);
   }
 
   /* Progress saved on this phone and not yet sent (#57): a second, hollow mark and words. */

@@ -2,6 +2,7 @@ import {
   buildFromForm,
   entryProblems,
   type FormSection,
+  type FormSource,
   type FormValues,
   type SuggestedField,
   type TemplateDefinition,
@@ -83,23 +84,50 @@ export function ProjectEditor(props: {
     params: NO_ISSUES,
     inputs: NO_ISSUES,
   });
-  const [confirmed, setConfirmed] = useState(false);
+  // The copied fields the tick confirmed, by form and path: only those shown when it was ticked,
+  // so a copied field a later answer reveals still asks to be confirmed.
+  const [confirmed, setConfirmed] = useState<ReadonlySet<string>>(new Set());
   const [saveState, setSaveState] = useState<EditorSaveState>({ state: 'idle' });
   // Copied values the owner has neither changed nor confirmed, among the fields shown. Changing
   // one confirms it; clearing a structural input makes it input needed.
-  const waiting = (sections: readonly FormSection[], values: FormValues, from: FormValues) =>
+  const waiting = (
+    source: FormSource,
+    sections: readonly FormSection[],
+    values: FormValues,
+    from: FormValues,
+  ) =>
     new Set(
-      copied && !confirmed
+      copied
         ? visibleFields(sections, values)
             .map((f) => f.path)
-            .filter((path) => (values[path] ?? '').trim() !== '' && values[path] === from[path])
+            .filter(
+              (path) =>
+                (values[path] ?? '').trim() !== '' &&
+                values[path] === from[path] &&
+                !confirmed.has(`${source} ${path}`),
+            )
         : [],
     );
   const unconfirmed = {
-    params: waiting(form.params, params, copied?.params ?? {}),
-    structuralInputs: waiting(form.structuralInputs, inputs, copied?.inputs ?? {}),
+    params: waiting('params', form.params, params, copied?.params ?? {}),
+    structuralInputs: waiting(
+      'structuralInputs',
+      form.structuralInputs,
+      inputs,
+      copied?.inputs ?? {},
+    ),
   };
   const toConfirm = unconfirmed.params.size + unconfirmed.structuralInputs.size;
+  const confirm = (tick: boolean) =>
+    setConfirmed(
+      tick
+        ? new Set([
+            ...confirmed,
+            ...[...unconfirmed.params].map((path) => `params ${path}`),
+            ...[...unconfirmed.structuralInputs].map((path) => `structuralInputs ${path}`),
+          ])
+        : new Set(),
+    );
   const saving = saveState.state === 'saving';
 
   const show = (fieldIssues: FieldIssue[], nameIssue?: string, confirmIssue?: string) => {
@@ -277,9 +305,9 @@ export function ProjectEditor(props: {
             suggested={props.suggested}
             current={current}
             copied={copied}
-            confirmed={confirmed}
+            confirmed={confirmed.size > 0 && toConfirm === 0}
             toConfirm={toConfirm}
-            onConfirm={setConfirmed}
+            onConfirm={confirm}
           />
           {showsPlan && <PreviewPane saved={saved?.ok ? saved.plan : null} state={preview} />}
         </WithAside>

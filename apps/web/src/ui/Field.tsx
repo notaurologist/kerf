@@ -161,7 +161,8 @@ export interface Option {
 
 /**
  * A choice with nothing chosen at first, so no option is a stand-in value (hard rule 3), unless
- * the menu always has a value.
+ * the menu always has a value. A menu has no read-only state of its own, so `readOnly` keeps the
+ * value as it is, as a read-only text input does, while the menu stays focusable.
  */
 export function Select(
   props: ControlProps & {
@@ -170,12 +171,20 @@ export function Select(
     options: readonly Option[];
     /** False for a menu that always has a value, such as a capability's kind. */
     placeholder?: boolean;
+    readOnly?: boolean;
   },
 ) {
-  const { value, onChange, options, placeholder = true, ...rest } = props;
+  const { value, onChange, options, placeholder = true, readOnly, ...rest } = props;
   return (
     <SelectBox>
-      <select {...rest} value={value} onChange={(e) => onChange(e.target.value)}>
+      <select
+        {...rest}
+        aria-readonly={readOnly || undefined}
+        value={value}
+        onChange={(e) => {
+          if (!readOnly) onChange(e.target.value);
+        }}
+      >
         {placeholder && <option value="">Choose…</option>}
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -257,7 +266,9 @@ export function IconSelect<V extends string>(props: {
 }
 
 /** Yes or no, chosen explicitly: there is no unchecked default (core's `yes-no` field). */
-export function YesNo(props: ControlProps & { value: string; onChange: (value: string) => void }) {
+export function YesNo(
+  props: ControlProps & { value: string; onChange: (value: string) => void; readOnly?: boolean },
+) {
   return (
     <Select
       {...props}

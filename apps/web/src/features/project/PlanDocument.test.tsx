@@ -39,7 +39,7 @@ describe('the plan’s header (#356)', () => {
 
   it('has Shop on every section, in the shopping color', () => {
     expect(head(complete)).toMatch(
-      /<a class="k-button" data-variant="primary" data-mode="shopping" href="#\/projects\/[^/]+\/shop">Shop · 11 to buy<\/a>/,
+      /<a class="k-button" data-variant="primary" data-mode="shopping" href="#\/projects\/[^/]+\/shop"><span class="k-button__label"><span>Shop<\/span><span class="k-button__sep"> · <\/span><span class="k-button__detail">11 to buy<\/span><\/span><\/a>/,
     );
   });
 
