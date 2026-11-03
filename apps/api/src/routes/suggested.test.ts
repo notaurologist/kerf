@@ -5,6 +5,7 @@ import {
   type TemplateDefinition,
 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { createTestApp } from '../../test/app.ts';
 import { swingSetInputs } from '../../test/fixtures.ts';
 
@@ -200,5 +201,77 @@ describe('saving a project with suggestions', () => {
     });
     expect(res.status).toBe(200);
     expect(paths((await read()).snapshot.suggested)).toEqual(all);
+  });
+});
+
+describe('a plan stored before a parameter or input existed (#429)', () => {
+  const source = { kind: 'source', citation: 'A code, a table' } as const;
+  // The swing set as if it had since added the frame inset and the deflection limit.
+  const older: TemplateDefinition = {
+    ...template,
+    storedParams: z.looseObject({}),
+    suggestMissing: () => [
+      { from: 'structuralInputs', path: 'deflectionLimit', value: 240, basis: source },
+      {
+        from: 'params',
+        path: 'frameInset',
+        value: 12,
+        basis: { kind: 'rule-of-thumb', rule: 'a foot' },
+      },
+    ],
+  };
+
+  async function stored() {
+    const test = await setup();
+    const { frameInset: _, ...lacking } = params as Record<string, unknown>;
+    const { deflectionLimit: __, ...without } = inputs as Record<string, unknown>;
+    await test.client.query(
+      `update projects set snapshot = jsonb_set(jsonb_set(jsonb_set(snapshot, '{params}', $1::jsonb), '{structuralInputs}', $2::jsonb), '{suggested}', '[]'::jsonb) where id = $3`,
+      [JSON.stringify(lacking), JSON.stringify(without), test.created.id],
+    );
+    const served = await createTestApp({
+      templates: [older],
+      database: { db: test.db, client: test.client, close: test.close },
+    });
+    const read = async () => (await (await served.authed(test.path)).json()) as Json;
+    return { ...served, created: test.created, path: test.path, read };
+  }
+
+  it('reads it without making up the values it lacks', async () => {
+    const { read } = await stored();
+    const project = await read();
+    expect(project.snapshot.params).not.toHaveProperty('frameInset');
+    expect(project.snapshot.structuralInputs).not.toHaveProperty('deflectionLimit');
+  });
+
+  it('regenerates with them filled, a filled structural input an unconfirmed suggestion', async () => {
+    const { authed, created, path, read } = await stored();
+    const res = await authed(`${path}/regenerate`, {
+      method: 'POST',
+      body: { revision: created.revision },
+    });
+    expect(res.status).toBe(200);
+    const { snapshot } = await read();
+    expect(snapshot.params.frameInset).toBe(12);
+    expect(snapshot.structuralInputs.deflectionLimit).toBe(240);
+    expect(snapshot.suggested).toEqual([
+      { from: 'structuralInputs', path: 'deflectionLimit', basis: source, confirmed: false },
+    ]);
+  });
+
+  it('records a filled value the owner changed on saving as entered', async () => {
+    const { created, authed, path, read } = await stored();
+    const res = await authed(path, {
+      method: 'PUT',
+      body: {
+        revision: created.revision,
+        params: { ...(params as object), frameInset: 12 },
+        structuralInputs: { ...inputs, deflectionLimit: 360 },
+      },
+    });
+    expect(res.status).toBe(200);
+    const { snapshot } = await read();
+    expect(snapshot.structuralInputs.deflectionLimit).toBe(360);
+    expect(snapshot.suggested).toEqual([]);
   });
 });

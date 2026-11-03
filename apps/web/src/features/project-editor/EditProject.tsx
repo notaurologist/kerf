@@ -1,4 +1,4 @@
-import { findTemplate, formValues, suggestedFields } from '@kerf/core';
+import { filledFields, findTemplate, formValues, suggestedFields } from '@kerf/core';
 import { api, send } from '../../lib/api.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { type EditFrom, href } from '../../lib/route.ts';
@@ -7,6 +7,7 @@ import { useLoad } from '../../lib/useLoad.ts';
 import { ProblemScreen, Stack, useFrameProject } from '../../ui/index.ts';
 import { DeleteProject } from './DeleteProject.tsx';
 import { ProjectEditor } from './ProjectEditor.tsx';
+import { editorValues } from './save.ts';
 
 /**
  * `from` is the plan's section Edit was opened from, or Shopping mode: Save and Cancel go back to
@@ -76,6 +77,7 @@ function EditProjectForm(props: {
       </ProblemScreen>
     );
   }
+  const values = editorValues(project) ?? { ...project.snapshot, filled: [] };
   return (
     <ProjectEditor
       template={template}
@@ -86,10 +88,15 @@ function EditProjectForm(props: {
       initial={{
         name: project.name,
         status: project.status,
-        params: formValues(template.form.params, project.snapshot.params),
-        inputs: formValues(template.form.structuralInputs, project.snapshot.structuralInputs),
+        params: formValues(template.form.params, values.params),
+        inputs: formValues(template.form.structuralInputs, values.structuralInputs),
       }}
-      suggested={suggestedFields(template.form, project.snapshot)}
+      suggested={
+        new Map([
+          ...suggestedFields(template.form, project.snapshot),
+          ...filledFields(template.form, values.filled),
+        ])
+      }
     />
   );
 }

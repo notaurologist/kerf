@@ -2,10 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { swingSetAFrame } from '../templates/swing-set-a-frame/definition.ts';
 import { EXAMPLES } from '../templates/swing-set-a-frame/examples.ts';
 import type { TemplateDefinition } from './definition.ts';
+import type { Suggestion } from './questions.ts';
 import {
   carrySuggested,
   confirmSuggested,
+  filledFields,
+  fillMissing,
   type SuggestedValue,
+  suggestedAfter,
   suggestedFields,
   suggestedFor,
   suggestedItems,
@@ -129,5 +133,67 @@ describe('what the review and the editor say', () => {
       about:
         'Suggested by Kerf, not confirmed yet. Source: A code, a table. Confirm it in the structural review, or change it here.',
     });
+  });
+});
+
+describe('values an older plan lacks (#429)', () => {
+  const source = { kind: 'source', citation: 'A code, a table' } as const;
+  const missing: Suggestion[] = [
+    { from: 'structuralInputs', path: 'deflectionLimit', value: 240, basis: source },
+    { from: 'params', path: 'frameInset', value: 6, basis: { kind: 'rule-of-thumb', rule: 'six' } },
+    { from: 'params', path: 'hardware.legBoltDiameter', value: 0.5, basis: source },
+  ];
+  const older = { ...template, suggestMissing: () => missing };
+  const { frameInset: _, ...params } = example.params as Record<string, unknown> & {
+    hardware: Record<string, unknown>;
+  };
+  const { legBoltDiameter: __, ...hardware } = params.hardware;
+  const stored = {
+    params: { ...params, hardware },
+    structuralInputs: { maxSwingAngle: 90 },
+    suggested: [],
+  };
+
+  it('fills only what the plan lacks, saying so, and changes nothing it holds', () => {
+    const filled = fillMissing(older, stored);
+    expect(filled.params).toEqual({ ...example.params, frameInset: 6 });
+    expect(filled.structuralInputs).toEqual({ maxSwingAngle: 90, deflectionLimit: 240 });
+    expect(filled.filled.map((s) => s.path)).toEqual([
+      'deflectionLimit',
+      'frameInset',
+      'hardware.legBoltDiameter',
+    ]);
+    expect(stored.structuralInputs).toEqual({ maxSwingAngle: 90 });
+    const held = { ...stored, structuralInputs: { deflectionLimit: 360 } };
+    expect(fillMissing(older, held).structuralInputs).toEqual({ deflectionLimit: 360 });
+    expect(fillMissing(template, stored).filled).toEqual([]);
+  });
+
+  it('keeps a filled structural input or confirmed parameter as an unconfirmed suggestion', () => {
+    const filled = fillMissing(older, stored);
+    expect(suggestedAfter(older, stored, filled)).toEqual([
+      { from: 'structuralInputs', path: 'deflectionLimit', basis: source, confirmed: false },
+      { from: 'params', path: 'hardware.legBoltDiameter', basis: source, confirmed: false },
+    ]);
+  });
+
+  it('treats a filled value the owner changed as entered', () => {
+    const filled = fillMissing(older, stored);
+    const changed = { ...filled, structuralInputs: { maxSwingAngle: 90, deflectionLimit: 360 } };
+    expect(suggestedAfter(older, stored, changed).map((s) => s.path)).toEqual([
+      'hardware.legBoltDiameter',
+    ]);
+  });
+
+  it('says under each filled field where its value came from', () => {
+    const about = filledFields(older.form, fillMissing(older, stored).filled);
+    expect(about.get('structuralInputs deflectionLimit')).toEqual({
+      text: '240',
+      about:
+        'Source: A code, a table. Your plan was saved before Kerf asked for this, so Kerf suggests it. It stays a suggestion until you confirm it in the structural review or change it.',
+    });
+    expect(about.get('params frameInset')?.about).toBe(
+      'Rule of thumb: six. Your plan was saved before Kerf asked for this, so Kerf suggests it.',
+    );
   });
 });

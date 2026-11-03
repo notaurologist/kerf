@@ -9,6 +9,7 @@ import {
   type FormSection,
   type FormSource,
   formValues,
+  readPath,
   type TemplateForm,
 } from './form.ts';
 import {
@@ -17,7 +18,9 @@ import {
   findField,
   needsConfirming,
   type SuggestedField,
+  type Suggestion,
   SuggestionBasis,
+  suggestedValues,
 } from './questions.ts';
 import type { Issue } from './types.ts';
 
@@ -79,18 +82,99 @@ export function suggestedFor(
       ],
     };
   }
-  const values = { params, structuralInputs };
-  const suggested = questions.suggest(parsed.data).flatMap((s): SuggestedValue[] => {
-    const field = findField(template.form[s.from], s.path);
-    if (!field || s.value === null || !needsConfirming(template.form, s)) return [];
-    const stored = textAt(template.form[s.from], values[s.from], s.path);
-    if (stored !== entryText(field, s.value)) return [];
-    return [{ from: s.from, path: s.path, basis: s.basis, confirmed: false }];
-  });
-  return { ok: true, suggested };
+  return {
+    ok: true,
+    suggested: waiting(template.form, questions.suggest(parsed.data), { params, structuralInputs }),
+  };
 }
 
 type Values = { params: unknown; structuralInputs: unknown };
+
+/**
+ * Of these suggestions, those that wait for confirming and whose value is still the one suggested
+ * (read as form text, so a length written another way is the same value).
+ */
+function waiting(
+  form: TemplateForm,
+  suggestions: readonly Suggestion[],
+  values: Values,
+): SuggestedValue[] {
+  return suggestions.flatMap((s): SuggestedValue[] => {
+    const field = findField(form[s.from], s.path);
+    if (!field || s.value === null || !needsConfirming(form, s)) return [];
+    if (textAt(form[s.from], values[s.from], s.path) !== entryText(field, s.value)) return [];
+    return [{ from: s.from, path: s.path, basis: s.basis, confirmed: false }];
+  });
+}
+
+const FILLED = 'Your plan was saved before Kerf asked for this, so Kerf suggests it.';
+
+function writePath(object: Record<string, unknown>, path: string, value: unknown): void {
+  const keys = path.split('.');
+  let at: Record<string, unknown> = object;
+  keys.forEach((key, i) => {
+    if (i === keys.length - 1) {
+      at[key] = value;
+      return;
+    }
+    if (typeof at[key] !== 'object' || at[key] === null) {
+      at[key] = /^\d+$/.test(keys[i + 1] ?? '') ? [] : {};
+    }
+    at = at[key] as Record<string, unknown>;
+  });
+}
+
+const copy = (value: unknown): Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+    ? structuredClone(value as Record<string, unknown>)
+    : {};
+
+/**
+ * A stored plan's values with each field it lacks filled from the template's `suggestMissing`,
+ * and the suggestions filled. Upgrades never make up a value an older plan lacks, so the editor
+ * and a regeneration start from these. A filled structural input or confirmed parameter stays a
+ * suggestion until the owner confirms it; any other filled value is the owner's once saved, as a
+ * new project's suggestions are.
+ */
+export function fillMissing(
+  template: TemplateDefinition,
+  stored: Values,
+): Values & { filled: Suggestion[] } {
+  const values = { params: copy(stored.params), structuralInputs: copy(stored.structuralInputs) };
+  const filled = (template.suggestMissing?.(stored.params, stored.structuralInputs) ?? [])
+    .filter(
+      (s) =>
+        s.value !== null &&
+        findField(template.form[s.from], s.path) !== undefined &&
+        readPath(stored[s.from], s.path) === undefined,
+    )
+    .map((s) => ({ ...s, note: s.note ? `${FILLED} ${s.note}` : FILLED }));
+  for (const s of filled) writePath(values[s.from], s.path, s.value);
+  return { ...values, filled };
+}
+
+/**
+ * The suggestions a plan holds after a save or regeneration from `stored`: the stored ones it left
+ * as they were, and the filled ones that wait for confirming and were left as filled.
+ */
+export function suggestedAfter(
+  template: TemplateDefinition,
+  stored: Values & { suggested: readonly SuggestedValue[] },
+  after: Values,
+): SuggestedValue[] {
+  return [
+    ...carrySuggested(template.form, stored.suggested, stored, after),
+    ...waiting(template.form, fillMissing(template, stored).filled, after),
+  ];
+}
+
+/** What the editor says under each filled field, keyed `${from} ${path}`. */
+export function filledFields(
+  form: TemplateForm,
+  filled: readonly Suggestion[],
+): ReadonlyMap<string, SuggestedField> {
+  return suggestedValues(form, filled).about;
+}
 
 /**
  * The suggestions that stay after a save: each whose value the save left as it was. Changing a

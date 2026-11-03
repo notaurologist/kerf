@@ -30,6 +30,7 @@ import {
 import { sameJson } from '../../ui/sameJson.ts';
 import { CutList } from '../cut-list/CutList.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
+import { editorValues } from './save.ts';
 
 // The edit screen's output side (#39, L-A; #56): a moment after typing stops, the server
 // generates a snapshot from the form without saving it and says what differs from the saved
@@ -71,7 +72,7 @@ export function previewRequest(
   ) {
     return { kind: 'incomplete' };
   }
-  const stored = project?.snapshot;
+  const stored = project && editorValues(project);
   if (
     stored &&
     sameJson(builtParams, stored.params) &&

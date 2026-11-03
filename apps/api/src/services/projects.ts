@@ -1,12 +1,12 @@
 import {
   type BuildSteps,
   type Change,
-  carrySuggested,
   compareSnapshots,
   compareWithCurrent,
   confirmSuggested,
   cornerViews,
   createSnapshot,
+  fillMissing,
   type geometry,
   type Issue,
   type ProgressReset,
@@ -18,6 +18,7 @@ import {
   projectDrawings,
   readSnapshot,
   type SuggestedValue,
+  suggestedAfter,
   suggestedFor,
   type TemplateDefinition,
   type VersionReport,
@@ -316,15 +317,29 @@ export function createProjectService(deps: {
 
   /**
    * The suggestions a regenerated snapshot keeps from the stored one: those whose values it left as
-   * they were. Read from the row as locked, so a confirmation made since this save's revision
-   * stands.
+   * they were, and those filled for what the stored one lacked. Read from the row as locked, so a
+   * confirmation made since this save's revision stands.
    */
   function carried(
     template: TemplateDefinition,
     stored: ProjectSnapshot,
     next: ProjectSnapshot,
   ): ProjectSnapshot {
-    return { ...next, suggested: carrySuggested(template.form, stored.suggested, stored, next) };
+    return { ...next, suggested: suggestedAfter(template, stored, next) };
+  }
+
+  /** The values changed, and the stored ones for the rest, with what an older plan lacks filled. */
+  function valuesFor(
+    templateId: string,
+    stored: ProjectSnapshot,
+    changes: Pick<ProjectChanges, 'params' | 'structuralInputs'> = {},
+  ) {
+    const template = findTemplate(templateId);
+    const filled = template ? fillMissing(template, stored) : stored;
+    return {
+      params: changes.params ?? filled.params,
+      structuralInputs: changes.structuralInputs ?? filled.structuralInputs,
+    };
   }
 
   const snapshotColumns = (s: ProjectSnapshot) => ({
@@ -444,11 +459,8 @@ export function createProjectService(deps: {
         if (changes.revision !== row.revision) return stale(row);
         const stored = read(row);
         if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-        const generated = generate(
-          row.templateId,
-          changes.params ?? stored.snapshot.params,
-          changes.structuralInputs ?? stored.snapshot.structuralInputs,
-        );
+        const values = valuesFor(row.templateId, stored.snapshot, changes);
+        const generated = generate(row.templateId, values.params, values.structuralInputs);
         if (!generated.ok) return generated;
         saved = generated;
         before = { snapshot: stored.snapshot, template: generated.template };
@@ -497,11 +509,8 @@ export function createProjectService(deps: {
       if (!template) return { ok: false, error: 'missing-template' };
       const stored = read(row);
       if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-      const generated = generate(
-        row.templateId,
-        changes.params ?? stored.snapshot.params,
-        changes.structuralInputs ?? stored.snapshot.structuralInputs,
-      );
+      const values = valuesFor(row.templateId, stored.snapshot, changes);
+      const generated = generate(row.templateId, values.params, values.structuralInputs);
       if (!generated.ok) return generated;
       const snapshot = carried(template, stored.snapshot, generated.snapshot);
       return {
@@ -534,11 +543,8 @@ export function createProjectService(deps: {
       if (request.revision !== row.revision) return stale(row);
       const stored = read(row);
       if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-      const generated = generate(
-        row.templateId,
-        stored.snapshot.params,
-        stored.snapshot.structuralInputs,
-      );
+      const values = valuesFor(row.templateId, stored.snapshot);
+      const generated = generate(row.templateId, values.params, values.structuralInputs);
       if (!generated.ok) return generated;
       const outcome = await db.transaction(async (tx): Promise<Row | Failure> => {
         const locked = await lock(tx, id);

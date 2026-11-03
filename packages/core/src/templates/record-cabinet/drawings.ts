@@ -58,7 +58,8 @@ export function cabinetScene(outputs: StoredRecordCabinetOutputs): Scene {
 export function cabinetExplode(outputs: StoredRecordCabinetOutputs): Explode[] {
   const { params: p } = outputs.design;
   const gap = p.caseDepth / 2;
-  const base = p.legStock.size * 2;
+  // A plan from before the leg base has no aprons or cleats, so nothing moves by its leg size.
+  const base = (p.legStock?.size ?? 0) * 2;
   // The case and its doors rise off the base, which stays on the floor, so neither hides the other.
   const lift = gap;
   const offsets: Record<string, Vec3> = {
@@ -103,7 +104,7 @@ export function drawings(outputs: StoredRecordCabinetOutputs): Drawings {
     // A plan from before the leg base has no legs to dimension.
     points: [
       0,
-      ...(g.legLength === undefined ? [] : [p.legShowing]),
+      ...(p.legShowing === undefined ? [] : [p.legShowing]),
       g.baseHeight,
       g.baseHeight + t,
       g.height - t,

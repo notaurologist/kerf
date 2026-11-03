@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { SnapshotUpgrade, TemplateDefinition } from '../model/definition.ts';
-import { SuggestedValue } from '../model/suggested.ts';
+import { fillMissing, SuggestedValue } from '../model/suggested.ts';
 import type { GenerateResult, Issue } from '../model/types.ts';
 import { leaveOutDefaults } from './defaults.ts';
 import { type Diff, diff } from './diff.ts';
@@ -126,7 +126,8 @@ export type ReadResult =
 
 /**
  * Parses a stored snapshot, first upgrading it step by step if it was stored in an older shape
- * (decision 0014). Upgrades restructure only, so the plan keeps the numbers it was made with.
+ * (decision 0014). Upgrades restructure only, so the plan keeps the numbers it was made with, and
+ * a parameter added since stays missing.
  */
 export function readSnapshot(
   templates: readonly TemplateDefinition[],
@@ -178,7 +179,7 @@ export function readSnapshot(
     templateId: z.literal(template.id),
     templateVersion: z.number().int().positive(),
     snapshotVersion: z.literal(template.snapshotVersion),
-    params: template.params,
+    params: template.storedParams,
     structuralInputs: template.structuralInputs,
     suggested: z.array(SuggestedValue),
     outputs: template.storedOutputs,
@@ -214,7 +215,8 @@ export type VersionReport =
 
 /**
  * Compares a snapshot, already read (and so in the current shape), with what the template's
- * current version produces from the same parameters and inputs. The limit matches
+ * current version produces from the same parameters and inputs, with what an older plan lacks
+ * filled as regenerating would. The limit matches
  * `compareSnapshots`: a plan several versions behind can differ in more than a hundred places.
  */
 export function compareWithCurrent(
@@ -232,7 +234,8 @@ export function compareWithCurrent(
       currentVersion: template.version,
     };
   }
-  const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
+  const filled = fillMissing(template, snapshot);
+  const current = createSnapshot(template, filled.params, filled.structuralInputs);
   return {
     status: 'behind',
     storedVersion: snapshot.templateVersion,
