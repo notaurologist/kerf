@@ -63,6 +63,8 @@ The owner took the suggested option for each (November 2026).
 
 Built in #362 (November 2026), in `StepBody`, so the plan and Building mode match. A step keeps its title (what to do), then its board's pieces with each length and, where an end is not square, its saw settings (`SettingBox`). Operations of one type done the same way with the same numbers are one `ResultLine`: the type and how many ("Miter × 4"), what each works on, and the tools, opening to the method's setup, technique, mistakes, and safety. When no method fits, the step says so once with what each closest method lacks and a link to Tools, and its operation lines leave the result empty.
 
+Changed in November 2026 (#459): when no method fits, the step lists, for each kind of operation, every method in core's order, closest to the tools owned first, each with what it lacks. A circular saw that cuts past half a 4x4 puts the two-face method before the miter saw. With an empty toolbox, the plan's build steps and every Building step open with a notice and an Add tools button, and the project header's line of what is next says "Add your tools".
+
 ## Stage 17: usability pass, the shopping list (#361)
 
 On the laptop the shopping list's tables stretched across the page, so a row's stock, length, and count sat far apart, and the guidance on choosing boards ran on below them as dense paragraphs. `shopping-list.html` draws two directions, grouped the way a trip through the store goes.

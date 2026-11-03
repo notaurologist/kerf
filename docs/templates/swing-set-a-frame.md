@@ -43,6 +43,8 @@ Template version 17 (#430) stores a plan without the part lists it leaves empty,
 
 Template version 18 (#417) names, in the structural working, the input behind each entered value (the rider weights, swing angle, beam moisture content, dynamic factor, and deflection limit), and in the bolt layout the parameters behind each joint's bolt size and count, so a value Kerf suggested says so until the owner confirms it. The leg-to-beam checklist item no longer calls its bolt size entered. No number changes.
 
+Template version 19 (#459) changes only how the build steps read, a change in generic code: when no method fits the owner's tools, a step lists every method for each operation, closest to the tools owned first, and the plan says when the toolbox is empty. Stored output is the same.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates

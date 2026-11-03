@@ -33,6 +33,7 @@ import {
   Text,
   Tick,
 } from '../../ui/index.ts';
+import { EmptyToolbox } from '../build-steps/BuildSteps.tsx';
 import { DrawingsWaiting } from '../diagrams/Diagrams.tsx';
 import {
   projectStoreReadings,
@@ -103,6 +104,7 @@ export function ModeView(props: {
       <Stack>
         <Waiting ticks={ticks} />
         {props.drawings.state === 'error' && <DrawingsWaiting state={props.drawings} />}
+        {route.screen !== 'shop' && read.steps?.toolboxEmpty && <EmptyToolbox />}
         {children}
       </Stack>
     </ModeFrame>

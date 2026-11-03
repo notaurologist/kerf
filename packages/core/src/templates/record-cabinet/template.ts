@@ -14,9 +14,11 @@ import type { Allowances } from './structural.ts';
 export const TEMPLATE_ID = 'record-cabinet';
 /**
  * Version 13 names the structural input behind each entered quantity in the working, so a
- * suggested value can say so (#417); no number changes.
+ * suggested value can say so (#417); no number changes. Version 14 changes only how its build
+ * steps read: with no method fitting, a step lists every method closest to the owner's tools
+ * first, and says when the toolbox is empty (#459). Stored output is the same.
  */
-export const TEMPLATE_VERSION = 13;
+export const TEMPLATE_VERSION = 14;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
