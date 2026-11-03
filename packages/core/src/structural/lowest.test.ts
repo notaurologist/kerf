@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lowestMargin } from './lowest.ts';
+import { formatLowestMargin, lowestMargin } from './lowest.ts';
 import type { CheckResult } from './types.ts';
 
 // The lowest margin is given only when every check has a margin: a check without one could be
@@ -76,5 +76,13 @@ describe('lowestMargin', () => {
 
   it('says so when there are no checks', () => {
     expect(lowestMargin([])).toEqual({ status: 'no-checks' });
+  });
+});
+
+describe('formatLowestMargin', () => {
+  it('names the check and its member after the margin, as the header reads it (#448)', () => {
+    expect(formatLowestMargin({ title: 'Bending', subject: 'Top beam, 4x6', margin: 0.5123 })).toBe(
+      'Lowest margin 0.5x: bending, top beam, 4x6',
+    );
   });
 });

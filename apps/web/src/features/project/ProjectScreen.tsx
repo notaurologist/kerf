@@ -1,8 +1,8 @@
-import { findTemplate, planTerms } from '@kerf/core';
+import { fieldsIn, findTemplate, inputsNeeded, planTerms, type structural } from '@kerf/core';
 import { useCallback, useMemo, useState } from 'react';
 import { useArrowKeys } from '../../lib/arrowKeys.ts';
 import { type DrawingsState, useDrawings } from '../../lib/drawings.ts';
-import { inputFieldId } from '../../lib/fieldIds.ts';
+import { fieldId, inputFieldId } from '../../lib/fieldIds.ts';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
@@ -49,7 +49,7 @@ import {
   WOOD_MOVEMENT_INTRO,
 } from '../structural/StructuralReview.tsx';
 import { ParametersAndInputs } from './ParametersAndInputs.tsx';
-import { inputsNeeded, ProjectNext } from './ProjectNext.tsx';
+import { ProjectNext } from './ProjectNext.tsx';
 import { VersionNotice } from './VersionNotice.tsx';
 
 const VALUES_USED_ID = 'values-used';
@@ -176,6 +176,25 @@ export function ProjectView(props: {
     });
   };
 
+  // Each check links to the fields in Edit it changes with (#448), as the project stores them.
+  const checkFields = (check: structural.CheckResult) =>
+    template && project.snapshot
+      ? fieldsIn(
+          template.form,
+          template.checkFields(check),
+          project.snapshot.params,
+          project.snapshot.structuralInputs,
+        ).map((f) => ({
+          label: f.label,
+          href: href({
+            screen: 'edit-project',
+            id: project.id,
+            from: current.id,
+            field: fieldId(f.from, f.path),
+          }),
+        }))
+      : [];
+
   // After a move, focus goes to the section's heading; arriving with a part goes to it instead.
   usePlanMoves(
     current.id,
@@ -277,6 +296,7 @@ export function ProjectView(props: {
           <PlanSection {...section('structural-review')}>
             <StructuralReview
               inputHref={inputHref}
+              checkFields={checkFields}
               checks={plan.plan.checks}
               flags={plan.plan.flags}
               checklist={plan.plan.checklist}

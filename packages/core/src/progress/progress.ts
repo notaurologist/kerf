@@ -405,6 +405,47 @@ export function summarizeReview(
   };
 }
 
+/** The structural inputs a plan's checks and estimates are waiting for, each counted once. */
+export function inputsNeeded(plan: Pick<Plan, 'checks' | 'movement'>): number {
+  const keys = new Set(
+    [...plan.checks, ...plan.movement].flatMap((r) =>
+      r.status === 'input-needed' ? r.missing.map((m) => m.key) : [],
+    ),
+  );
+  return keys.size;
+}
+
+/** True once a step is done or a piece is cut (#135). */
+export const buildingStarted = (s: Pick<ProgressSummary, 'steps' | 'pieces'>) =>
+  s.steps.done > 0 || s.pieces.done > 0;
+
+/** Building comes next once it has started (a step done or a piece cut) or the shopping is done. */
+export const buildingIsNext = (s: Pick<ProgressSummary, 'steps' | 'pieces' | 'shopping'>) =>
+  buildingStarted(s) || s.shopping.done === s.shopping.total;
+
+/** What the project header names as next (#448). */
+export type NextUp =
+  /** The structural review's To do has something open. */
+  | { kind: 'review' }
+  | { kind: 'shopping'; toBuy: number }
+  | { kind: 'step'; step: SummaryStep }
+  | { kind: 'done' }
+  /** No steps and nothing open: an old plan with every line bought, or none to buy. */
+  | null;
+
+/**
+ * The review, then shopping, then building (#448): the structural review while its To do has
+ * anything open (`toDo`), so a design is settled before it is bought; then the shopping list,
+ * until building starts or every line is bought; then the first step not done.
+ */
+export function nextUp(progress: ProgressSummary, toDo: number): NextUp {
+  if (toDo > 0) return { kind: 'review' };
+  const { shopping, steps, nextStep } = progress;
+  if (!buildingIsNext(progress)) return { kind: 'shopping', toBuy: shopping.total - shopping.done };
+  if (nextStep) return { kind: 'step', step: nextStep };
+  return steps.total > 0 ? { kind: 'done' } : null;
+}
+
 /** The progress summary for a template's stored outputs. Draws nothing, so it is cheap to list. */
 export function progressSummary<O>(
   template: Pick<TemplateDefinition<unknown, unknown, O>, 'steps' | 'plan'>,

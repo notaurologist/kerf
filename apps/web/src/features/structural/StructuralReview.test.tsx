@@ -61,6 +61,30 @@ describe('the structural review, worked example with every input', () => {
     expect(html).toContain('<span class="k-result-line__result">margin 1.1x</span>');
   });
 
+  it('says what a margin under 1.0 means, once (#448)', () => {
+    expect(review).toContain(
+      'A margin is the allowable value divided by the computed one, under the assumptions listed with it, so under 1.0 the computed value is larger than the allowable one.',
+    );
+  });
+
+  it('links each check to the fields in Edit it changes with (#448)', () => {
+    const id = projectFrom(complete).id;
+    const edit = (field: string) =>
+      `<a href="#/projects/${id}/edit?from=diagrams&amp;field=${field}">`;
+    const bending = html.slice(
+      html.indexOf('Bending: Top beam, 4x6'),
+      html.indexOf('Deflection: Top beam, 4x6'),
+    );
+    expect(textOf(bending)).toContain(
+      'Changes with these values in Edit: Beam stock, Beam plies, Beam length, Frame inset, Leg stock, Left swing center, Right swing center, Hanger spacing, Beam species and grade, Whether the beam lumber is incised, Beam moisture content, Heaviest rider on the left swing, with seat and chain, Heaviest rider on the right swing, with seat and chain, Maximum swing angle, Dynamic factor.',
+    );
+    expect(bending).toContain(`${edit('p-beamStock')}Beam stock</a>`);
+    expect(bending).toContain(`${edit('s-beamSpeciesGrade')}Beam species and grade</a>`);
+    const hanger = html.slice(html.indexOf('Rated load: Swing hanger'));
+    expect(hanger).toContain(`${edit('s-hangerRating')}`);
+    expect(hanger).not.toContain(edit('p-beamStock'));
+  });
+
   it("shows each check's margin under its assumptions", () => {
     // Bending margin 1.08 (spec, Structural model, worked example).
     expect(review).toContain('Bending: Top beam, 4x6');

@@ -50,7 +50,7 @@ Everything a person acts on (steps, methods, flags, checklist items, errors, but
 
 **Checklist items.** The element, then what to confirm, then why: the three parts core already produces.
 
-**Margins.** "margin 1.1x under these assumptions", with no adjective, no color (#43, rule 1), and no comparison word such as "only" or "plenty". The page says once what a margin is.
+**Margins.** "margin 1.1x under these assumptions", with no adjective, no color (#43, rule 1), and no comparison word such as "only" or "plenty". The page says once what a margin is, and that under 1.0 the computed value is larger than the allowable one (#448). That is arithmetic, so it carries no verdict either.
 
 **Field help.** What the value is, then how to find it: where to read it ("Read it on the bolt package"), what to measure and how ("Stand on a bathroom scale holding…"), or whom to ask and the question to ask them, word for word. Every structural input and every hardware size or count the owner confirms has help (owner's rule, #403; `templates/fieldHelp.test.ts`). When there is no way to find it, say so and say what Kerf offers instead, such as a suggestion with its basis. "Choose it with an experienced builder" alone is not help. Generic, never a brand (hard rule 11). Tool capabilities say it the same way, in `readFrom`.
 

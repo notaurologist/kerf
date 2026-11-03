@@ -11,7 +11,12 @@ import { RecordCabinetOutputs, StoredRecordCabinetOutputs } from './outputs.ts';
 import { RecordCabinetParams } from './params.ts';
 import { CABINET_QUESTIONS, SUGGESTED_DOOR } from './questions.ts';
 import { stepOutline } from './steps.ts';
-import { allowancesFor, RecordCabinetStructuralInputs, structuralReview } from './structural.ts';
+import {
+  allowancesFor,
+  checkFields,
+  RecordCabinetStructuralInputs,
+  structuralReview,
+} from './structural.ts';
 import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
 
 type Stored = Record<string, unknown>;
@@ -234,6 +239,7 @@ export const recordCabinet: TemplateDefinition<
   outputs: RecordCabinetOutputs,
   storedOutputs: StoredRecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
+  checkFields,
   snapshotVersion: 11,
   // Shape 3 to 4 adds assembly and finish operations, which older plans simply do not have.
   snapshotUpgrades: {

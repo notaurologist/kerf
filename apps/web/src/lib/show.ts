@@ -11,3 +11,6 @@ export const cutListPartId = (partId: string) => `cut-list-part-${partId}`;
 
 /** The structural review's expert checks, which the summary's flags open (#156). */
 export const EXPERT_CHECKS_ID = 'expert-checks';
+
+/** The structural review's checks, lowest margin first, which the header's lowest margin opens. */
+export const CHECKS_ID = 'structural-checks';

@@ -12,7 +12,7 @@ import { SwingSetParams } from './params.ts';
 import { SWING_SET_QUESTIONS } from './questions.ts';
 import { stepOutline } from './steps.ts';
 import { STORE_READINGS } from './storeReadings.ts';
-import { SwingSetStructuralInputs, structuralReview } from './structural.ts';
+import { checkFields, SwingSetStructuralInputs, structuralReview } from './structural.ts';
 import { generate, TEMPLATE_ID, TEMPLATE_VERSION } from './template.ts';
 
 /**
@@ -105,6 +105,7 @@ export const swingSetAFrame: TemplateDefinition<
   outputs: SwingSetOutputs,
   storedOutputs: StoredSwingSetOutputs,
   form: SWING_SET_FORM,
+  checkFields,
   // One fixture per stored shape, snapshots/v<n>.json (decision 0014). Shape 2 adds sources to
   // the hanger check's inputs (#36). Shape 3 adds part placements (#49). Shape 4 adds holes,
   // bolt areas, tapers, reference edges, and each end cut's reference (#50). Those fields are

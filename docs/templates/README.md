@@ -32,6 +32,7 @@ The contract is `TemplateDefinition` in `packages/core/src/model/definition.ts`.
 | `ownWords` | Words that name what this template builds and no other template uses, such as its parts, lowercase, each plural listed. Generic members such as a leg or a beam do not belong. Generic code and other templates' folders may not use them (step 6) |
 | `params`, `structuralInputs` | Zod schemas. Every structural input is optional: missing means "input needed" |
 | `form` | How parameters and structural inputs are entered, as data (`model/form.ts`). Fields start empty; hardware is `confirmed` |
+| `checkFields` | The fields in the form each structural check changes with: the member's size and span, what loads it, and the structural inputs it reads. The review links each from its check (#448); `templates/checkFields.test.ts` checks every one names a field the form has |
 | `generate` | Pure: parameters and inputs to outputs, or issues. No clock, randomness, or I/O |
 | `outputs`, `storedOutputs` | What `generate` makes now, every field generic code reads required; and what a stored snapshot holds after upgrades. A template with one snapshot shape uses `outputs` for both |
 | `plan` | Outputs in the shape every display shares (`outputs/plan.ts`). Picks values out and fills in what an older snapshot lacks; never computes |

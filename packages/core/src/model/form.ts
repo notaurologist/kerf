@@ -80,6 +80,35 @@ export interface TemplateForm {
 /** Which object a field's value belongs to. */
 export type FormSource = 'params' | 'structuralInputs';
 
+/** A field in the form, by which object it belongs to and its path. */
+export interface FieldRef {
+  from: FormSource;
+  path: string;
+}
+
+/**
+ * The fields `refs` names that apply to stored parameters and inputs, in the order named, each
+ * with its label as the editor shows it. A field the form lacks or hides is left out, since there
+ * is nothing on screen to point at.
+ */
+export function fieldsIn(
+  form: TemplateForm,
+  refs: readonly FieldRef[],
+  params: unknown,
+  inputs: unknown,
+): (FieldRef & { label: string })[] {
+  const visible = (sections: readonly FormSection[], object: unknown) =>
+    visibleFields(sections, formValues(sections, object));
+  const shown = {
+    params: visible(form.params, params),
+    structuralInputs: visible(form.structuralInputs, inputs),
+  };
+  return refs.flatMap(({ from, path }) => {
+    const field = shown[from].find((f) => f.path === path);
+    return field ? [{ from, path, label: field.label }] : [];
+  });
+}
+
 /** A part of the project and its fields from both objects: parameters first, then inputs. */
 export interface FormPart {
   title: string;
