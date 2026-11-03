@@ -1,6 +1,7 @@
 export {
   CutListRow,
   cutList,
+  endName,
   type PlannedCutRow,
   panelMade,
   withSettings,

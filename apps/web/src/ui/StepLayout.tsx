@@ -22,3 +22,18 @@ export function StepLayout(props: {
     </div>
   );
 }
+
+/**
+ * A piece on a cutting step's board (#455): its tick, letter, and name, then its length and
+ * settings, then its action, such as Cut card, on a line of its own. The same grid for every piece,
+ * so the action keeps its place from piece to piece and step to step however long the name.
+ */
+export function PieceRow(props: { tick: ReactNode; action: ReactNode; children: ReactNode }) {
+  return (
+    <div className="k-piece">
+      {props.tick}
+      <div className="k-piece__detail">{props.children}</div>
+      <div className="k-piece__action">{props.action}</div>
+    </div>
+  );
+}

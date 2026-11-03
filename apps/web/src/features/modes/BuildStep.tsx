@@ -6,7 +6,6 @@ import {
   formatLength,
   type geometry,
   type Plan,
-  type PlannedCutRow,
   panelMade,
   partProgressKey,
 } from '@kerf/core';
@@ -22,6 +21,7 @@ import {
   Length,
   Measured,
   PartLetter,
+  PieceRow,
   PlainList,
   Readings,
   SawSetting,
@@ -133,12 +133,10 @@ export function StepScreen(props: {
       <ScreenHeading title={step.title} />
       {/* On a phone the drawing follows the pieces, or the title, before the methods (#134). */}
       <StepLayout
-        lead={
-          step.board && <BoardPieces step={step} rows={plan.cutList} ticks={ticks} links={links} />
-        }
+        lead={step.board && <BoardPieces step={step} plan={plan} ticks={ticks} links={links} />}
         drawing={drawing && <Diagram drawing={drawing} label={drawing.description} />}
       >
-        <StepBody step={step} rows={plan.cutList} withoutBoard />
+        <StepBody step={step} rows={plan.cutList} cutEnds={plan.cutEnds} withoutBoard />
       </StepLayout>
       {/* Undoing is a full-size control (#133), on its own line apart from Back and Next. */}
       {done && (
@@ -180,16 +178,11 @@ export function StepScreen(props: {
  * A cutting step's board (G-C): trim first, then each piece in the order it comes off, its length
  * at glance size, a tick for cutting it, and its cut card.
  */
-function BoardPieces(props: {
-  step: BuildStep;
-  rows: readonly PlannedCutRow[];
-  ticks: Ticks;
-  links: StepLinks;
-}) {
-  const { step, ticks } = props;
+function BoardPieces(props: { step: BuildStep; plan: Plan; ticks: Ticks; links: StepLinks }) {
+  const { step, ticks, plan } = props;
   const board = step.board;
   if (!board) return null;
-  const row = (partId: string) => props.rows.find((r) => r.partId === partId);
+  const row = (partId: string) => plan.cutList.find((r) => r.partId === partId);
   return (
     <Stack gap="s">
       <Text>
@@ -203,25 +196,29 @@ function BoardPieces(props: {
           const t = { kind: 'part' as const, key: partProgressKey(piece.partId, piece.instance) };
           return (
             <li key={t.key}>
-              <Stack gap="2xs">
-                <Tick
-                  done={ticks.isDone(t)}
-                  waiting={ticks.isWaiting(t)}
-                  onChange={(done) => ticks.set(t, done)}
-                >
-                  <PartLetter>{r?.letter ?? ''}</PartLetter> {r?.name ?? piece.partId}
-                  {pieceOf(piece.instance, r?.quantity)} cut
-                </Tick>
-                <Cluster spread>
-                  <Cluster gap="xs">
-                    <Glance>{formatLength(piece.length)}</Glance>
-                    <EndSettings settings={r?.settings} />
-                  </Cluster>
+              <PieceRow
+                tick={
+                  <Tick
+                    done={ticks.isDone(t)}
+                    waiting={ticks.isWaiting(t)}
+                    onChange={(done) => ticks.set(t, done)}
+                    letter={r?.letter ?? ''}
+                  >
+                    {r?.name ?? piece.partId}
+                    {pieceOf(piece.instance, r?.quantity)} cut
+                  </Tick>
+                }
+                action={
                   <ButtonLink variant="secondary" href={props.links.piece(step.id, piece.partId)}>
                     Cut card
                   </ButtonLink>
+                }
+              >
+                <Cluster gap="xs">
+                  <Glance>{formatLength(piece.length)}</Glance>
+                  <EndSettings row={r} cutEnds={plan.cutEnds} />
                 </Cluster>
-              </Stack>
+              </PieceRow>
             </li>
           );
         })}
@@ -321,9 +318,10 @@ export function CutCard(props: {
         ) : (
           <>
             <Text>
-              {row.stock}. Cut {row.quantity}.
-              {step.board &&
-                ` From board ${step.board.number}, a ${step.board.nominal} ${formatBoardLength(step.board.feet)} long.`}
+              {row.stock}.{' '}
+              {step.board
+                ? `Cut ${pieces.length} from this board${row.quantity > pieces.length ? ` (${row.quantity} in all)` : ''}.`
+                : `Cut ${row.quantity}.`}
             </Text>
             <Stack gap="3xs">
               <Text>Length, long point to long point</Text>

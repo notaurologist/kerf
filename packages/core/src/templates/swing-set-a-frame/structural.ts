@@ -3,6 +3,7 @@ import { DENSITY_SOURCES, woodDensity } from '../../design-values/density.ts';
 import { referenceRow, SPECIES_GRADE_IDS, speciesGrade } from '../../design-values/sawnLumber.ts';
 import type { Citation } from '../../design-values/sources.ts';
 import { STOCK_SIZE_SOURCES, stock } from '../../lumber/stock.ts';
+import type { FieldRef } from '../../model/form.ts';
 import { ChecklistItem, type Issue } from '../../model/types.ts';
 import {
   BeamChecks,
@@ -14,6 +15,7 @@ import {
 } from '../../structural/checks.ts';
 import type { ServiceConditions } from '../../structural/factors.ts';
 import {
+  type CheckKind,
   CheckResult,
   mapNeeded,
   type Needed,
@@ -380,6 +382,27 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
   });
 
   return { ok: true, review: { inputs, beam: beamResult, hanger, checklist: checklist(output) } };
+}
+
+const params = (...paths: string[]) => paths.map((path): FieldRef => ({ from: 'params', path }));
+const inputs = (...paths: (keyof typeof STRUCTURAL_INPUT_LABELS | `riderWeights.${0 | 1}`)[]) =>
+  paths.map((path): FieldRef => ({ from: 'structuralInputs', path }));
+
+/**
+ * The fields each check changes with (`TemplateDefinition.checkFields`): for the top beam, its
+ * size, its span between the frame centerlines, and where the hangers hang on it, then the inputs
+ * its material and loads come from; for a hanger, its loads and its rating.
+ */
+export function checkFields(check: { kind: CheckKind }): FieldRef[] {
+  const riders = inputs('riderWeights.0', 'riderWeights.1', 'maxSwingAngle');
+  if (check.kind === 'hardware') return [...riders, ...inputs('dynamicFactor', 'hangerRating')];
+  return [
+    ...params('beamStock', 'beamPlies', 'beamLength', 'frameInset', 'legStock'),
+    ...params('swings.centers.0', 'swings.centers.1', 'swings.hangerSpacing'),
+    ...inputs('beamSpeciesGrade', 'beamIncised', 'beamMoistureContent'),
+    ...riders,
+    ...inputs(check.kind === 'beam-deflection' ? 'deflectionLimit' : 'dynamicFactor'),
+  ];
 }
 
 /** Swing-set items to confirm with an experienced builder (DOMAIN.md, Swing set, Loads). */

@@ -678,6 +678,11 @@
     white-space: nowrap;
   }
 
+  .k-setting__end {
+    margin-inline-end: var(--space-3xs);
+    font-weight: 400;
+  }
+
   /* Side by side with room; stacked in a narrow column, so a phone's table never scrolls. */
   .k-settings {
     display: inline-flex;
@@ -1619,11 +1624,29 @@
     accent-color: var(--done);
   }
 
+  .k-tick > .k-part-letter {
+    flex: none;
+  }
+
   .k-tick__label {
+    flex: 1;
+    min-inline-size: 0;
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3xs) var(--space-xs);
     align-items: baseline;
+  }
+
+  /* A piece on a cutting step's board (#455): tick and name, length and settings, then the action,
+     each on its own line and indented past the checkbox, so nothing moves with the name's length. */
+  .k-piece {
+    display: grid;
+    gap: var(--space-2xs);
+  }
+
+  .k-piece__detail,
+  .k-piece__action {
+    padding-inline-start: calc(1.5em + var(--space-xs));
   }
 
   /* A Building step and its drawing (#134): stacked lead, drawing, rest on a phone; the drawing
@@ -1831,8 +1854,31 @@
     display: none;
   }
 
-  .k-diagram-wrap {
+  /* The drawing scrolls sideways in its own box, rather than shrink below its minimum width; the
+     notes under it stay in place. */
+  .k-diagram-scroll {
+    --fade: var(--space-l);
     overflow-x: auto;
+  }
+
+  /* A drawing wider than its box fades at the edge with more beyond it, so the rest is not missed
+     (#455). A mask uses only the alpha, so black stands for opaque, not a color. */
+  .k-diagram-scroll[data-hidden="end"] {
+    mask-image: linear-gradient(to right, black calc(100% - var(--fade)), transparent);
+  }
+
+  .k-diagram-scroll[data-hidden="start"] {
+    mask-image: linear-gradient(to left, black calc(100% - var(--fade)), transparent);
+  }
+
+  .k-diagram-scroll[data-hidden="both"] {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black var(--fade),
+      black calc(100% - var(--fade)),
+      transparent
+    );
   }
 
   .k-diagram svg * {

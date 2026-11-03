@@ -161,9 +161,18 @@ export function projectDrawings<O>(
   outputs: O,
 ): Drawings {
   const plan = template.plan(outputs);
+  const setting = (partId: string, end: number) => {
+    const op = plan.operations.find(
+      (o) => o.type === 'miter' && o.partId === partId && o.end === end,
+    );
+    return op?.type === 'miter' ? op.setting : 0;
+  };
+  const settings = new Map(
+    plan.cutList.map((r) => [r.partId, [setting(r.partId, 0), setting(r.partId, 1)] as const]),
+  );
   return {
     ...template.drawings(outputs),
-    boards: boardDrawings(plan.lumber, plan.cutList),
+    boards: boardDrawings(plan.lumber, plan.cutList, settings),
     steps: stepDrawings(template, outputs),
   };
 }

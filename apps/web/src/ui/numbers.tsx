@@ -112,10 +112,16 @@ export function SawSetting(props: { setting: string; toEdge: string }) {
 
 /**
  * A saw setting alone, boxed like `SawSetting`'s but at text size, for a table's narrow column
- * (#360). The angle to the edge goes with the row's details.
+ * (#360). The angle to the edge goes with the row's details. `end` names the end it is for, such
+ * as "Top", so a step's two settings cannot be swapped (#455).
  */
-export function SettingBox(props: { children: ReactNode }) {
-  return <span className="k-setting">{props.children}</span>;
+export function SettingBox(props: { end?: string; children: ReactNode }) {
+  return (
+    <span className="k-setting">
+      {props.end && <span className="k-setting__end">{props.end}</span>}
+      {props.children}
+    </span>
+  );
 }
 
 /** A part's end settings side by side, in end order. */

@@ -106,7 +106,7 @@ The checks are generic: they work on members, supports, and loads, and know noth
   - Most properties increase as moisture content falls below 12% (p. 5-34), so indoor furniture at 6% to 10% is stiffer than the value used.
   - Clear-wood strength (modulus of rupture) isn't an allowable stress, so bending and shear for these members go on the checklist instead of being computed (owner's decision on #275).
   - A member is described by its actual breadth and thickness, such as a 3/4" panel laid flat, rather than a nominal lumber size.
-- **Results** are reported as margins under stated assumptions ("margin 2.1x" means the adjusted allowable value is 2.1 times the computed value), never as "safe" or "pass." There is no separate user safety factor; the margin is the number to judge with an experienced builder.
+- **Results** are reported as margins under stated assumptions ("margin 2.1x" means the adjusted allowable value is 2.1 times the computed value), never as "safe" or "pass." Under 1.0, the computed value is larger than the allowable one; the review and the glossary say so, as arithmetic, not a verdict (#448). There is no separate user safety factor; the margin is the number to judge with an experienced builder.
 
 ### Checklist only (not computed)
 

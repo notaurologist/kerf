@@ -222,7 +222,7 @@ function baseSizes(boardThickness: number): Suggestion[] {
       from: 'params',
       path: 'legShowing',
       value: BASE.legShowing,
-      basis: rule('about 5" of leg below the aprons, the owner\'s choice for this cabinet'),
+      basis: rule('about 5" of leg below the aprons, as you chose for this cabinet'),
     },
     {
       from: 'params',
@@ -314,7 +314,7 @@ function suggest(a: CabinetAnswers): Suggestion[] {
       from: 'params',
       path: 'doors',
       value: 'sliding',
-      basis: rule('two sliding doors over the end bays, the owner’s choice for this cabinet'),
+      basis: rule('two sliding doors over the end bays, as you chose for this cabinet'),
     },
     ...DOOR_SIZES,
     within(
@@ -322,7 +322,7 @@ function suggest(a: CabinetAnswers): Suggestion[] {
       w.casingWidth,
       {
         kind: 'rule-of-thumb',
-        rule: "as wide as the window's casing, the owner's choice for this cabinet",
+        rule: "as wide as the window's casing, as you chose for this cabinet",
       },
       `The stool is ${formatLength(w.stoolWidth)} wide, for comparison.`,
     ),

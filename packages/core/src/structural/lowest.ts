@@ -1,7 +1,7 @@
-import type { CheckResult, ComputedCheck } from './types.ts';
+import { type CheckResult, type ComputedCheck, formatMargin } from './types.ts';
 
-// The lowest margin among a plan's structural checks, for the plan's summary (#119). Chosen here
-// rather than in a display (hard rule 6). A check with no margin could be the lowest, so the
+// The lowest margin among a plan's structural checks, for the project header (#119, #448). Chosen
+// here rather than in a display (hard rule 6). A check with no margin could be the lowest, so the
 // lowest is given only when every check has one; otherwise how many lack one, and why.
 
 export type LowestMargin =
@@ -22,4 +22,11 @@ export function lowestMargin(checks: readonly CheckResult[]): LowestMargin {
   const computed = checks.filter((c): c is ComputedCheck => c.status === 'computed');
   const lowest = computed.reduce((low, c) => (c.margin < low.margin ? c : low));
   return { status: 'computed', check: lowest };
+}
+
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
+
+/** The lowest margin as the project header reads it: "Lowest margin 0.5x: bending, top beam". */
+export function formatLowestMargin(check: Pick<ComputedCheck, 'title' | 'subject' | 'margin'>) {
+  return `Lowest ${formatMargin(check.margin)}: ${lowerFirst(check.title)}, ${lowerFirst(check.subject)}`;
 }

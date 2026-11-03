@@ -36,8 +36,11 @@ export function Field(props: {
    * control while the value is the suggestion.
    */
   about?: string;
-  /** What the current plan gives to compare this value against, such as a break-even factor. */
-  compare?: string;
+  /**
+   * What the current plan gives to compare this value against, such as a table of break-even
+   * factors.
+   */
+  compare?: ReactNode;
   /** Use a fixed id, so an error summary can link to the control. */
   id?: string;
   unit?: string;
@@ -107,9 +110,9 @@ export function Field(props: {
         </span>
       )}
       {props.compare && (
-        <span id={compareId} className="k-field__about">
+        <div id={compareId} className="k-field__about">
           {props.compare}
-        </span>
+        </div>
       )}
     </div>
   );

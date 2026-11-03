@@ -110,7 +110,22 @@ describe('projectDrawings', () => {
     const plan = swingSetAFrame.plan(generated.output);
     expect(all).toEqual({
       ...swingSetAFrame.drawings(generated.output),
-      boards: boardDrawings(plan.lumber, plan.cutList),
+      boards: boardDrawings(
+        plan.lumber,
+        plan.cutList,
+        // Each part's end settings, from its miter operations; square where it has none.
+        new Map(
+          plan.cutList.map((r) => {
+            const setting = (end: number) => {
+              const op = plan.operations.find(
+                (o) => o.type === 'miter' && o.partId === r.partId && o.end === end,
+              );
+              return op?.type === 'miter' ? op.setting : 0;
+            };
+            return [r.partId, [setting(0), setting(1)] as const];
+          }),
+        ),
+      ),
       steps: stepDrawings(swingSetAFrame, generated.output),
     });
     expect(all.boards).toHaveLength(plan.lumber.boards.length);

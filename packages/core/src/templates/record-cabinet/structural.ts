@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { WOOD_SPECIES, woodSpecies } from '../../design-values/woodSpecies.ts';
+import type { FieldRef } from '../../model/form.ts';
 import { ChecklistItem, Flag } from '../../model/types.ts';
 import { MovementResult, RingOrientation, woodMovement } from '../../movement/movement.ts';
 import { BeamChecks } from '../../structural/checks.ts';
@@ -135,6 +136,39 @@ export type RecordCabinetReview = z.infer<typeof RecordCabinetReview>;
 
 const concerns = (partIds: string[]) => ({ partIds, hardwareIds: [] });
 
+/** The members checked, by the subject their checks name. */
+const APRON = 'Front and back aprons';
+const TOP = 'Top';
+
+const params = (...paths: string[]) => paths.map((path): FieldRef => ({ from: 'params', path }));
+const inputs = (...paths: (keyof typeof STRUCTURAL_INPUT_LABELS)[]) =>
+  paths.map((path): FieldRef => ({ from: 'structuralInputs', path }));
+
+/**
+ * The fields each check changes with (`TemplateDefinition.checkFields`): the member's size and
+ * span, then the inputs its wood and loads come from. An apron spans between the legs and carries
+ * the records along every bay and everything on the top; the top spans one bay.
+ */
+export function checkFields(check: { subject: string }): FieldRef[] {
+  const span = params('width', 'endOverhang', 'bays', 'panelThickness');
+  if (check.subject === APRON) {
+    return [
+      ...params('apronHeight', 'board.source', 'board.thickness', 'board.surfaced'),
+      ...span,
+      ...params('legStock.size'),
+      ...inputs('species', 'recordLoad', 'topLoad', 'deflectionLimit'),
+    ];
+  }
+  if (check.subject === TOP) {
+    return [
+      ...span,
+      ...params('caseDepth', 'frontOverhang'),
+      ...inputs('species', 'topLoad', 'deflectionLimit'),
+    ];
+  }
+  return [];
+}
+
 export function structuralReview(
   p: RecordCabinetParams,
   g: CabinetGeometry,
@@ -179,7 +213,7 @@ export function structuralReview(
       : { missing: [records, topLoad].flatMap((n) => ('missing' in n ? n.missing : [])) };
   const apron = clearWoodChecks({
     member: {
-      subject: 'Front and back aprons',
+      subject: APRON,
       breadth: ta,
       depth: p.apronHeight,
       sizeBasis: 'One board, as thick as the board stock, from the template',
@@ -247,7 +281,7 @@ export function structuralReview(
       assumptions: [],
     });
   const top = onTop(
-    'Top',
+    TOP,
     mapNeeded(need(inputs, STRUCTURAL_INPUT_LABELS, 'topLoad'), (v) => v.topLoad),
     'Everything on the top',
   );
