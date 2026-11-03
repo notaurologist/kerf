@@ -73,6 +73,8 @@ Template version 32 (#466) gives the beam's bending in the next deeper stock, wi
 
 Template version 33 (#467) computes, for legs on pads, the fore-and-aft force the swings put on each frame and the uplift it gives at each foot, and checks the pull on one ground anchor against the anchor's rated pull-out, a new hardware input with no default (Structural model, below). The owner chose this on #467 (November 3, 2026); `PRODUCT.md` narrows its non-goal to match. The ground-anchor checklist item now asks about the soil, the anchors' fastening to the legs, and sliding, which stay uncomputed. No part, cut, or bolt moves.
 
+Template version 34 (#468) checks the longer leg as a column in compression parallel to grain (NDS 2024 3.6.3 and 3.7.1; Structural model, Legs, below), with the legs' species and grade and whether they are incised as new structural inputs, read at the store beside the leg boards. In the worked example, which has buried legs, the front leg's ℓe/d along the beam is 63.4. That is over the NDS limit of 50, so the check is not computed and says why. On pads no NDS end condition holds the legs along the beam, so it says that instead. The beam's other stock sizes are still offered against the beam and hanger checks alone. The ground anchor check's assumption about the legs' weight now says it is left out for want of a moisture content, not a species, since the legs now have one. No other output changes; a plan made before version 34 has no leg check until it is regenerated.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -270,7 +272,7 @@ Every structural connection is a through-bolt with a flat washer at each end and
 - **Preservative** (version 27, #447): one wood preservative for cut ends, in its own store group, "Paint and stain", for the field treatment below. Its notes say IRC 2021 R317.1.1 requires it, to choose one labeled for treating cuts in treated wood, and that copper naphthenate suits any treated lumber while boron is only for wood off the ground and out of the rain. They give AWPA M4-06's figures for copper naphthenate: at least 2.0% copper as metal, or 1.0% where that is not readily available (7.1.1). IRC 2021 refers to M4-15, which is sold and could not be read; the 2006 edition was read in full. Secondary summaries that give only 2% or only 1% each quote half of 7.1.1.
 - **Notes on the lines** (version 22): each item's notes are carried to its shopping line, and the plan's list and Shopping mode show them under it.
 - **Store groups** (version 12): the bolts and their washers, nuts, and caps are "Bolts and fittings"; the hangers and seats are "Swing hardware"; the ground anchors are "Ground anchors"; the preservative is "Paint and stain" (version 27). The store checklist shows them in that order, after the lumber.
-- **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, how the hangers mount (and, when bolted, the bolt diameter, and for sideways bolts the count and hole height) beside the swing hangers, and, on pads, the ground anchors per leg foot and one anchor's rated pull-out beside the anchors (`storeReadings.ts`). Each says where to look, and once entered, shows the value with a link to change it.
+- **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the legs' the same way beside the lines that hold the legs (version 34), the hanger rating beside the swing hangers, how the hangers mount (and, when bolted, the bolt diameter, and for sideways bolts the count and hole height) beside the swing hangers, and, on pads, the ground anchors per leg foot and one anchor's rated pull-out beside the anchors (`storeReadings.ts`). Each says where to look, and once entered, shows the value with a link to change it.
 
 ### Tools for the work
 
@@ -367,7 +369,7 @@ Each part lists the board selection guides that apply to it, from the knowledge 
 
 ### Not in stock
 
-Each lumber line lists what else to buy when the store has none of its boards (version 25, #450). Generic code gives the other lengths (`DOMAIN.md`, Buyable lengths). The template gives one stock parameter, the beam's, since the beam is the one member a check computes. The beam checks also read the legs' and gussets' sizes, through the span between the gussets, but a margin from them says nothing about whether a leg or gusset is strong enough, so those parts and the crossbars get no other size. A beam size is offered when the whole plan generates with it and the lowest margin among the beam checks is no lower than the plan's now, with that margin; while those checks need structural inputs, the line says another size changes the plan and its margin follows once they are entered. Changing a size changes the plan, so it opens the field in Edit.
+Each lumber line lists what else to buy when the store has none of its boards (version 25, #450). Generic code gives the other lengths (`DOMAIN.md`, Buyable lengths). The template gives one stock parameter, the beam's. The beam checks also read the legs' and gussets' sizes, through the span between the gussets, but a margin from them says nothing about whether a leg or gusset is strong enough, so those parts and the crossbars get no other size. The legs' check (version 34) reads the beam's size through its weight and width, but says nothing of the beam, so beam sizes are measured against the beam and hanger checks only, and the legs get no other size: their check is not computed in the worked example, so there is no margin to keep. A beam size is offered when the whole plan generates with it and the lowest margin among the beam checks is no lower than the plan's now, with that margin; while those checks need structural inputs, the line says another size changes the plan and its margin follows once they are entered. Changing a size changes the plan, so it opens the field in Edit.
 
 Worked example (`lists.test.ts`, every input entered): the beam's 12' line also takes a 10' board that measures at least 121-1/8", a 14', or a 4x8 beam (margin 1.6x, bending, against 0.98 with the 4x6); the legs' line takes 14' boards; the crossbars' 10' line takes two 8's or a 12'; the gussets' 8' line a 10'. A 4x4 or 6x6 beam lowers the margin and is not offered.
 
@@ -624,15 +626,17 @@ None has a default (decision 0001). A missing input makes every check that needs
 
 | Input | Used by |
 |---|---|
-| Beam species and grade (Southern Pine No.1 or No.2, NDS Supplement 2024 Table 4B) | Bending, shear, deflection |
+| Beam species and grade (Southern Pine No.1 or No.2, NDS Supplement 2024 Table 4B) | Bending, shear, deflection, legs (the beam's weight) |
 | Whether the beam lumber is incised | Bending, shear, deflection |
-| Beam moisture content in service, percent (for the beam's weight) | Bending, shear, deflection |
+| Beam moisture content in service, percent (for the beam's weight) | Bending, shear, deflection, legs |
 | Heaviest rider on each swing, including seat and chain (0 for an empty swing) | All |
 | Maximum swing angle θ from vertical | All |
-| Dynamic factor | Bending, shear, hanger |
+| Dynamic factor | Bending, shear, hanger, legs |
 | Deflection limit, span divided by N | Deflection |
 | Swing hanger rated working load, from the manufacturer | Hanger |
 | Swing hanger mounting, from its package (a hardware parameter, Hardware above) | Bending |
+| Leg species and grade (Southern Pine No.1 or No.2, NDS Supplement 2024 Table 4B) | Legs |
+| Whether the leg lumber is incised | Legs |
 
 On pads, the anchor check also needs two hardware parameters (Hardware, above): the ground anchors per leg foot and one anchor's rated pull-out. Like the inputs, neither has a default.
 
@@ -640,7 +644,7 @@ On pads, the anchor check also needs two hardware parameters (Hardware, above): 
 
 - **Swing load:** chain tension at the bottom of the arc T = W·(3 − 2·cos θ). For a pendulum of length r released from rest at θ, the speed at the bottom gives v² = 2·g·r·(1 − cos θ), and T = W + W·v²/(g·r) = W·(3 − 2·cos θ). It is 1·W at rest, 2·W at 60°, and 3·W at 90°.
 - **Per hanger:** T / 2, assuming a centered rider. Both swings are taken at the bottom of their arcs together.
-- **Strength** (bending, shear, hanger): per-hanger load times the dynamic factor.
+- **Strength** (bending, shear, hanger, legs): per-hanger load times the dynamic factor.
 - **Break-even dynamic factor** (#401): each strength check also reports the dynamic factor at which its margin reaches 1.0, with every other input as entered (`DOMAIN.md`, Structural checks). For the hanger it is the rating over the smooth-swing load on the most loaded hanger. For bending and shear it is solved from the check, since the beam's weight is not multiplied: C = (allowable − the weight's part) / the hangers' part at factor 1. It is shown with the check and under the dynamic factor's field in Edit, and it is reported while the factor is still missing; the checks stay "input needed" until the factor is entered.
 - **Deflection:** per-hanger load without the dynamic factor.
 - **Beam:** supported where it bears, with a point load at each hanger, `swings.hangersX`. The gusset is fitted with its top edge against the beam's underside, and the leg-to-beam bolt sits in a hole 1/16" over its size (Hole size, version 9), so the gusset is what the beam meets first. The bolt carries part of the reaction only if the gusset settles (its own bolts are in oversize holes too) or the wood crushes; that moves the support inward and shortens the span, so the gusset position is the longer of the two. Each support is at the middle of the part of the gusset's top edge under the beam, b_g = min(gt, e) long: x = e − b_g/2 and L − e + b_g/2 (`beamSupports` in `structural.ts`, version 23, #445). NDS 2024 3.2.1 (p. 17) takes a simple beam's span "from face to face of supports, plus ½ the required bearing length at each end". The faces are the gussets' inner faces, L − 2e apart, and the required bearing length can be no more than the bearing there is, b_g, so the span to the middle of each gusset, L − 2e + b_g, is the longest the clause allows. Kerf uses it rather than computing the required bearing length, which needs a bearing check it does not make; the longer span gives the larger moment and deflection. With e = 0 no gusset is under the beam, and it is supported at the bolts, `geometry.supportsX`. Before version 23 the supports were the frame centerlines, which put the span 2.5 short at each end in the worked example. The unbraced length for beam stability is the span, since each frame holds the beam against rotation (a checklist item). The beam's own weight is a uniform load over the span, not multiplied by the dynamic factor; the overhangs' weight is left out, which slightly raises the moment between the supports.
@@ -662,6 +666,17 @@ On pads, the anchor check also needs two hardware parameters (Hardware, above): 
 - **Service conditions:** wet service (outdoors, uncovered), C_t = 1.0 (no sustained heat above 100°F), C_D = 1.0 (the impact increase is not used, and the NDS bars factors above 1.6 for lumber treated with water-borne preservatives, 4.3.13 and Table 2.3.2, footnote 2), no repetitive member factor (one beam).
 - **Beam weight:** w = ρ·A / 1728 lb/in, with A the cross-section of all plies and ρ the density at the entered moisture content M from Simpson, FPL-GTR-76: G_b = G / (1 + 0.265·G) with G = 0.55 from Table 4B, then ρ = 62.4·G_b·(1 + M/100) at or above 30%, divided by (1 − 0.265·a·G_b) with a = (30 − M)/30 below 30%. The NDS Supplement 3.1.3 formula agrees within 0.3% up to 30%; above 30% it reads low, because it keeps shrinking the volume of wood that no longer swells.
 - **Built-up beam:** each ply carries an equal share of every load, including the beam's weight (decision 0013).
+
+### Legs
+
+Version 34 (#468) checks the leg that is longer above grade as a solid column (`DOMAIN.md`, Column compression). Both legs of a frame carry the same load, so the longer one, the downhill one, has the lower margin; on level ground the two are the same and the check names "Legs". NDS 2024 sections read for it: 3.6.3 (compression parallel to grain, net and gross section), 3.7.1.1 to 3.7.1.5 (effective length, slenderness, the limit of 50, Eq. 3.7-1), all p. 23; Appendix G, G.1 to G.4 and Table G1 (p. 183); Table 4.3.1 (p. 31), Table 4.3.8 (p. 32), and Table 2.3.3 (p. 13) for which factors apply to Fc; and Supplement Table 4B's wet service and size factors (p. 39): C_M = 0.8 for Fc unless Fc ≤ 750 psi, and C_F = 1.0 for every Southern Pine size Kerf offers.
+
+- **Load per leg:** P = (C · R_s + R_w) / (2 · cos α). R_s is the beam's larger support reaction under the swing loads alone, which the dynamic factor C multiplies. R_w = w · L_beam / 2 is half the beam's whole weight, overhangs included, which it does not. Each frame's load is shared equally by its two legs, along their axes. The legs', crossbars', and gussets' own weight is left out, and so is the swing's push toward the front and back, which loads one leg of a frame more than the other.
+- **In the A-frame's plane** (d = w, the leg's width toward the beam): the crossbar and gusset tie the splayed legs into triangles, so each holds the leg from moving sideways at the middle of its height, zc − cw/2 for the crossbar and H − gh/2 for the gusset. The leg is taken as free to turn there: Table G1 case d, Ke = 1.0. ℓ is the longer of (zc − cw/2 − z_g) / cos α, from the leg's centerline at the ground to the crossbar, and (H − gh/2 − zc + cw/2) / cos α, from the crossbar to the gusset.
+- **Along the beam** (d = t), buried legs (d > 0): the leg is taken as fixed at grade. At the top the frame can lean along the beam and turn about the single leg-to-beam bolt, so the top is free to move and to turn: Table G1 case e, a flagpole, Ke = 2.10. ℓ = (H − z_g) / cos α, from grade to the underside of the beam, where the gusset carries the beam into the legs. Soil near the surface gives, so the real point of fixity is below grade and the real effective length longer; the result says so.
+- **Along the beam on pads** (d = 0): each foot can turn on its pad and the frame can turn about the bolt, so no Table G1 case applies and the check is not computed. The reason it gives says that the ground anchors and how tightly the bolts clamp are what hold the frame along the beam, for an experienced builder to judge.
+- **Net area:** the crossbar and gusset bolts cross each leg along the beam, so the leg's net area is (w − D_h) · t, with D_h the larger of their holes (1/16" over the bolt). f_c = P / A_n is compared with Fc', which includes C_P. That is more cautious than NDS 3.6.3 asks, which uses the net area only where a hole is in the part most likely to buckle, and then compares it with Fc*.
+- **Conditions:** as the beam's (wet service, C_t = 1.0, C_D = 1.0, water-borne treatment).
 
 ### Checklist
 
@@ -767,6 +782,28 @@ The supports at the frame centerlines give a shorter span and so a larger margin
 | Largest fore-and-aft force, left frame | cos φ = (0.5 + √18.25) / 6 = 0.79535 (φ = 37.31°): 0.84016·164.615 = 138.30 lb |
 
 On level ground (g = 0) with θ = 90° the closed form checks the search. Example 1's riders (150 each, so W_f = 150 on each frame), 2 anchors per foot rated 250 lb, dynamic factor 2: b = 3.61232 + 96·0.36397 = 38.5535, h = 96 / 38.5535 = 2.49004, √(1 + h²) = 2.68334, so the minimum is 0.75·(1 − 2.68334) = −1.26251 at φ = 90° − 68.12°/2 = 55.94°. S = 150·1.26251 = 189.376, D / 2 = 13.014, uplift at every foot 2·189.376 − 13.014 = 365.74 lb, 182.87 per anchor against 250: margin 1.37; break-even (2·250 + 13.014) / 189.376 = 2.709. The largest fore-and-aft force on each frame is 1.5·150 = 225 lb, at φ = 45°.
+
+**Example 5, legs:** example 1's inputs, with the legs Southern Pine No.2, not incised. Fc = 1450, Emin = 510,000 psi (Table 4B, 2"–4" wide). Fc* = 1450 · 0.8 = 1160 psi; Emin' = 510,000 · 0.9 = 459,000 psi.
+
+Worked example geometry, buried: the front leg's centerline meets the ground at z_g = −3.3133 and the back leg's at 3.1182, so the front leg governs. Along the beam ℓ = (96 + 3.3133) / 0.939693 = 105.687 and ℓe/d = 2.10 · 105.687 / 3.5 = 63.4, over 50: not computed. (The back leg: 98.843 and 59.3.) In the frame's plane the front leg's longer stretch is the crossbar to the gusset, (92.375 − 37.25) / 0.939693 = 58.663, ℓe/d = 16.8. The same geometry on pads is not computed either, for want of an end condition along the beam.
+
+A lower frame, the worked example with H = 72, the crossbar's top at zc = 30, and level ground (both legs meet the ground at z_g = 0), is computed:
+
+| Quantity | Value |
+|---|---|
+| In the frame's plane: crossbar middle 30 − 2.75 = 27.25, gusset middle 72 − 3.625 = 68.375 | ℓ = max(27.25, 41.125) / 0.939693 = 43.764; ℓe/d = 43.764 / 3.5 = 12.50 |
+| Along the beam | ℓ = 72 / 0.939693 = 76.621; ℓe/d = 2.10 · 76.621 / 3.5 = 45.97, which governs |
+| F_cE = 0.822 · 459,000 / 45.972² | 178.52 psi; F_cE / Fc* = 0.15390 |
+| C_P = 1.15390/1.6 − √(0.72119² − 0.15390/0.8) | 0.72119 − 0.57249 = 0.14870 |
+| Fc' = 1160 · 0.14870 | 172.49 psi |
+| R_s, the swing loads on a frame at factor 1 (symmetric) | 300 lb |
+| R_w = 0.433798 · 120 / 2 | 26.028 lb |
+| P = (2 · 300 + 26.028) / (2 · 0.939693) | 333.10 lb |
+| A_n = (3.5 − 0.5625) · 3.5 | 10.28125 in² |
+| f_c = 333.10 / 10.28125 | 32.399 psi; margin 172.49 / 32.399 = 5.32 |
+| Break-even dynamic factor | (172.49 · 10.28125 · 2 · 0.939693 − 26.028) / 300 = 11.02 |
+
+Computed by hand and by a separate script before the code, and matched by `structural.test.ts`.
 
 These inputs are only for testing. The real values are the owner's to choose with an experienced builder.
 

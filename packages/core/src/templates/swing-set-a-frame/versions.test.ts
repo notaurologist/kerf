@@ -35,6 +35,7 @@ import v29 from './snapshots/v29.json' with { type: 'json' };
 import v30 from './snapshots/v30.json' with { type: 'json' };
 import v31 from './snapshots/v31.json' with { type: 'json' };
 import v32 from './snapshots/v32.json' with { type: 'json' };
+import v33 from './snapshots/v33.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -184,6 +185,17 @@ const isVersion33 = (c: { path: string; before?: unknown; after?: unknown }) =>
     String(c.after).startsWith('The anchor check gives the pull on one anchor'));
 
 /**
+ * Version 34's changes (#468): the legs' column check, new in the review with nothing before it,
+ * and the anchor check's assumption about the legs' weight, which no longer says no species is
+ * entered for them. Set aside like version 18's.
+ */
+const isVersion34 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  (c.path === 'structuralReview.legs' && c.before === undefined) ||
+  (/^structuralReview\.anchors\.assumptions\[\d+\]$/.test(c.path) &&
+    String(c.before).includes('no species is entered') &&
+    !String(c.after).includes('species'));
+
+/**
  * What regenerating with the current version changes in the stored outputs, field by field; or,
  * given `later`, a later version's fixture of the same example, what that version changed.
  */
@@ -203,6 +215,7 @@ function regenerated(
   keepVersion31 = false,
   keepVersion32 = false,
   keepVersion33 = false,
+  keepVersion34 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -223,7 +236,8 @@ function regenerated(
         (keepVersion30 || !isVersion30(c)) &&
         (keepVersion31 || !isVersion31(c)) &&
         (keepVersion32 || !isVersion32(c)) &&
-        (keepVersion33 || later !== undefined || !isVersion33(c)),
+        (keepVersion33 || later !== undefined || !isVersion33(c)) &&
+        (keepVersion34 || !isVersion34(c)),
     ),
   };
   return keepVersion18
@@ -743,7 +757,8 @@ describe('swing-set template versions', () => {
           !isVersion30(c) &&
           !isVersion31(c) &&
           !isVersion32(c) &&
-          !isVersion33(c),
+          !isVersion33(c) &&
+          !isVersion34(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1135,5 +1150,21 @@ describe('swing-set template versions', () => {
     }
     expect(added).toHaveLength(1);
     expect(added[0]).toMatchObject({ kind: 'hardware', subject: 'Ground anchor' });
+  });
+
+  // Hand check in structural.test.ts: the worked example's front leg runs (96 + 3.313) / cos 20° =
+  // 105.687 from grade to the beam, so ℓe/d = 2.10 · 105.687 / 3.5 = 63.4 along the beam, over 50.
+  it("version 34 adds the legs' column check, and changes nothing else (#468)", () => {
+    const keep34 = [...Array(10).fill(false), undefined, false, false, false, true] as const;
+    for (const stored of v33) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(33);
+      expect(snapshot.outputs).not.toHaveProperty('structuralReview.legs');
+      const { changes } = regenerated(snapshot, ...keep34);
+      expect(changes.filter((c) => !isVersion34(c))).toEqual([]);
+      const legs = changes.filter((c) => c.path === 'structuralReview.legs');
+      expect(legs).toHaveLength(1);
+      expect(legs[0]?.after).toMatchObject({ kind: 'column' });
+    }
   });
 });

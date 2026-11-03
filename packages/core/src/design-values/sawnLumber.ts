@@ -136,9 +136,11 @@ export const TABLE_4B_ADJUSTMENTS = {
     /**
      * Size factors are already in the tabulated values for most sizes, so C_F = 1.0, except: 4"
      * thick and 8" or wider, Fb may be multiplied by 1.1 (permitted, not required, and not
-     * taken here); wider than 12", the 12" values times 0.9 (no stock that wide is entered).
+     * taken here); wider than 12", the 12" values of Fb, Ft, and Fc times 0.9 (no stock that wide
+     * is entered).
      */
     Fb: 1.0,
+    Fc: 1.0,
     sources: [
       {
         source: 'nds-supplement-2024',

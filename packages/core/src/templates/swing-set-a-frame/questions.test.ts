@@ -192,7 +192,14 @@ describe('suggestions from the starting questions', () => {
         .filter(([, t]) => t === '')
         .map(([path]) => path);
       expect(empty.sort()).toEqual(
-        ['beamIncised', 'beamSpeciesGrade', 'dynamicFactor', 'hangerRating'].sort(),
+        [
+          'beamIncised',
+          'beamSpeciesGrade',
+          'dynamicFactor',
+          'hangerRating',
+          'legIncised',
+          'legSpeciesGrade',
+        ].sort(),
       );
     },
   );

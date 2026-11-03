@@ -2342,6 +2342,26 @@
             "label": "Dynamic factor",
             "value": 8.000000000000002
           }
+        },
+        {
+          "kind": "column",
+          "title": "Compression",
+          "subject": "Front legs, 4x4",
+          "loadCase": "Strength: swing load times the dynamic factor",
+          "status": "not-computed",
+          "reason": "ℓe/d is 63.4 along the beam, over 50, the NDS limit for a solid column. A buried leg is taken as fixed at grade. At the top the frame can lean along the beam and turn about the leg-to-beam bolt, so the leg's top is free to move and to turn (NDS Table G1, case e, Ke = 2.10). ℓ runs from grade to the underside of the beam, where the gusset carries the beam into the legs.",
+          "sources": [
+            {
+              "source": "nds-2024",
+              "locator": "3.7.1.4, p. 23",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "Appendix G and Table G1, p. 183",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Appendix.pdf"
+            }
+          ]
         }
       ],
       "movement": [],
@@ -13242,6 +13262,26 @@
             {
               "key": "hangerRating",
               "label": "Swing hanger rated working load"
+            }
+          ]
+        },
+        {
+          "kind": "column",
+          "title": "Compression",
+          "subject": "Front legs, 4x4",
+          "loadCase": "Strength: swing load times the dynamic factor",
+          "status": "not-computed",
+          "reason": "ℓe/d is 63.4 along the beam, over 50, the NDS limit for a solid column. A buried leg is taken as fixed at grade. At the top the frame can lean along the beam and turn about the leg-to-beam bolt, so the leg's top is free to move and to turn (NDS Table G1, case e, Ke = 2.10). ℓ runs from grade to the underside of the beam, where the gusset carries the beam into the legs.",
+          "sources": [
+            {
+              "source": "nds-2024",
+              "locator": "3.7.1.4, p. 23",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+            },
+            {
+              "source": "nds-2024",
+              "locator": "Appendix G and Table G1, p. 183",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Appendix.pdf"
             }
           ]
         }
@@ -26192,7 +26232,7 @@
             "Both swings are at the same angle at the same time (riders in sync), so their loads add.",
             "Each swing's load is split equally between its two hangers (a centered rider), and between the frames by the beam's span.",
             "The lifting foot bears nothing, so the whole fore-and-aft reaction is at the other foot. Moments about that foot give the pull.",
-            "The beam's weight holds the feet down. The legs, crossbars, and gussets would too, but no species is entered for them, so their weight is left out, which makes the uplift larger.",
+            "The beam's weight holds the feet down. The legs, crossbars, and gussets would too, but no moisture content is entered for them, so their weight is left out, which makes the uplift larger.",
             "The frame's own inertia is left out. Sliding along the ground is not computed.",
             "The dynamic factor multiplies the swing loads, not the weight.",
             "The anchor holds its rated pull-out in this soil, fastened to the leg as its maker specifies.",
@@ -26218,6 +26258,21 @@
             "label": "Dynamic factor",
             "value": 5.62220851481597
           }
+        },
+        {
+          "kind": "column",
+          "title": "Compression",
+          "subject": "Legs, 4x4",
+          "loadCase": "Strength: swing load times the dynamic factor",
+          "status": "not-computed",
+          "reason": "On pads, no end condition Kerf can count holds a leg along the beam: each foot can turn on its pad, and the frame can turn about the leg-to-beam bolt, so NDS Appendix G gives no buckling length. What holds the frame along the beam is the ground anchors and how tightly the bolts clamp, which an experienced builder judges.",
+          "sources": [
+            {
+              "source": "nds-2024",
+              "locator": "Appendix G and Table G1, p. 183",
+              "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Appendix.pdf"
+            }
+          ]
         }
       ],
       "movement": [],

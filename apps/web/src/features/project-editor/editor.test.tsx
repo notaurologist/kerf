@@ -72,7 +72,7 @@ describe('the form’s layout (#164)', () => {
   it('says how much is entered and which parts have empty fields, linking to the first of each', () => {
     // The worked example's start: 33 fields shown, its 6 hardware fields (the hanger mounting's
     // diameter waits for its kind) and 9 structural inputs left empty (spec, Parameters; rule 3).
-    expect(text).toContain('18 of 33 entered');
+    expect(text).toContain('18 of 35 entered');
     expect(text).toContain('Still empty: Beam, Legs, Crossbars, Gussets, Swings, and Loads.');
     expect(html).toContain('href="#s-beamSpeciesGrade"');
     expect(html).toContain('href="#p-hardware.legBoltDiameter"');

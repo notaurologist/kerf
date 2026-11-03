@@ -55,7 +55,7 @@ export const Quantity = z.object({
 });
 export type Quantity = z.infer<typeof Quantity>;
 
-export const DesignValueName = z.enum(['Fb', 'Fv', 'E', 'Emin']);
+export const DesignValueName = z.enum(['Fb', 'Fv', 'Fc', 'E', 'Emin']);
 export type DesignValueName = z.infer<typeof DesignValueName>;
 
 /** One adjustment factor as applied, including factors equal to 1.0, with the reason. */
@@ -69,7 +69,13 @@ export const AppliedFactor = z.object({
 });
 export type AppliedFactor = z.infer<typeof AppliedFactor>;
 
-export const CheckKind = z.enum(['beam-bending', 'beam-shear', 'beam-deflection', 'hardware']);
+export const CheckKind = z.enum([
+  'beam-bending',
+  'beam-shear',
+  'beam-deflection',
+  'column',
+  'hardware',
+]);
 export type CheckKind = z.infer<typeof CheckKind>;
 
 /**

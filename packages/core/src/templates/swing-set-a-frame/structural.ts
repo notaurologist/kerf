@@ -5,6 +5,7 @@ import type { Citation } from '../../design-values/sources.ts';
 import { STOCK_SIZE_SOURCES, stock } from '../../lumber/stock.ts';
 import type { FieldRef } from '../../model/form.ts';
 import { ChecklistItem, type Issue } from '../../model/types.ts';
+import { reactions } from '../../structural/beam.ts';
 import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import {
   BeamChecks,
@@ -15,6 +16,7 @@ import {
   type MemberHoles,
   type PointLoad,
 } from '../../structural/checks.ts';
+import { type AxialLoad, type ColumnAxis, columnCheck } from '../../structural/column.ts';
 import type { ServiceConditions } from '../../structural/factors.ts';
 import type { SectionHole } from '../../structural/netSection.ts';
 import {
@@ -67,6 +69,9 @@ export const SwingSetStructuralInputs = z
     deflectionLimit: z.number().min(60).max(1000),
     /** Manufacturer's rated working load for one swing hanger, pounds. */
     hangerRating: z.number().positive(),
+    legSpeciesGrade: z.enum(SPECIES_GRADE_IDS),
+    /** Whether the leg lumber is incised. */
+    legIncised: z.boolean(),
   })
   .partial();
 
@@ -82,6 +87,8 @@ export const STRUCTURAL_INPUT_LABELS = {
   dynamicFactor: 'Dynamic factor',
   deflectionLimit: 'Deflection limit (span divided by)',
   hangerRating: 'Swing hanger rated working load',
+  legSpeciesGrade: 'Leg species and grade',
+  legIncised: 'Whether the leg lumber is incised',
 } as const satisfies Record<keyof SwingSetStructuralInputs, string>;
 
 function combine<A, B, U>(a: Needed<A>, b: Needed<B>, f: (a: A, b: B) => U): Needed<U> {
@@ -210,6 +217,16 @@ const BEAM_CONDITIONS: ServiceConditions = {
   waterborneTreatment: true,
 };
 
+/** Conditions of use for the legs, which stand outdoors in or on the ground. */
+const LEG_CONDITIONS: ServiceConditions = {
+  ...BEAM_CONDITIONS,
+  wet: {
+    value: true,
+    reason:
+      'The legs are outdoors and stand in or on the ground, so their moisture content can stay above 19%.',
+  },
+};
+
 export const SwingSetStructuralReview = z.object({
   inputs: SwingSetStructuralInputs,
   beam: BeamChecks,
@@ -220,6 +237,8 @@ export const SwingSetStructuralReview = z.object({
    * 29). Absent for buried legs, and in plans stored before it.
    */
   anchors: CheckResult.optional(),
+  /** The longer leg as a column. Plans stored before this check have none. */
+  legs: CheckResult.optional(),
   checklist: z.array(ChecklistItem),
 });
 export type SwingSetStructuralReview = z.infer<typeof SwingSetStructuralReview>;
@@ -482,6 +501,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
     p.burialDepth === 0
       ? anchorCheck(output, inputs, supports.x, beamWeight, dynamicFactor)
       : undefined;
+  const legs = legColumn(output, inputs, swing, beamWeight, dynamicFactor);
 
   return {
     ok: true,
@@ -490,6 +510,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
       beam: beamResult,
       hanger,
       ...(anchors ? { anchors } : {}),
+      legs,
       checklist: checklist(output),
     },
   };
@@ -725,8 +746,8 @@ function anchorCheck(
           "Each swing's load is split equally between its two hangers (a centered rider), and between the frames by the beam's span.",
           'The lifting foot bears nothing, so the whole fore-and-aft reaction is at the other foot. Moments about that foot give the pull.',
           v.weight
-            ? "The beam's weight holds the feet down. The legs, crossbars, and gussets would too, but no species is entered for them, so their weight is left out, which makes the uplift larger."
-            : "No weight holds the feet down in this check: the beam's size has no design values, so it has no specific gravity, and no species is entered for the legs. That makes the uplift larger.",
+            ? "The beam's weight holds the feet down. The legs, crossbars, and gussets would too, but no moisture content is entered for them, so their weight is left out, which makes the uplift larger."
+            : "No weight holds the feet down in this check: the beam's size has no design values, so it has no specific gravity, and the legs' weight is left out. That makes the uplift larger.",
           "The frame's own inertia is left out. Sliding along the ground is not computed.",
           'The dynamic factor multiplies the swing loads, not the weight.',
           'The anchor holds its rated pull-out in this soil, fastened to the leg as its maker specifies.',
@@ -744,6 +765,158 @@ function anchorCheck(
   });
 }
 
+/**
+ * Each leg's unbraced lengths (spec, Structural model, Legs). In the A-frame's plane the crossbar
+ * and gusset hold the leg at the middle of each board's height; along the beam a buried leg is a
+ * post fixed at grade and free at the top, and a leg on a pad has no end condition Kerf can count.
+ */
+export function legLengths(output: SwingSetOutput, leg: 'back' | 'front') {
+  const p = output.params;
+  const g = output.geometry;
+  const cosA = Math.cos((g.splay * Math.PI) / 180);
+  const groundZ = g[leg].groundZ;
+  const crossbarMiddle = p.crossbarHeight - stock(p.crossbarStock).width / 2;
+  const gussetMiddle = p.beamHeight - stock(p.gussetStock).width / 2;
+  return {
+    toCrossbar: (crossbarMiddle - groundZ) / cosA,
+    crossbarToGusset: (gussetMiddle - crossbarMiddle) / cosA,
+    toBeam: (p.beamHeight - groundZ) / cosA,
+  };
+}
+
+function legColumn(
+  output: SwingSetOutput,
+  inputs: SwingSetStructuralInputs,
+  swing: Needed<SwingLoads>,
+  beamWeight: Needed<{ w: number; working: Quantity[] } | null>,
+  dynamicFactor: LoadFactor,
+): CheckResult {
+  const p = output.params;
+  const g = output.geometry;
+  const leg = stock(p.legStock);
+  // Both legs carry the same load, so the one longer above grade, the downhill one, governs.
+  const which = g.front.groundZ < g.back.groundZ ? 'front' : 'back';
+  const level = Math.abs(g.front.groundZ - g.back.groundZ) < 1e-9;
+  const subject = `${level ? 'Legs' : which === 'front' ? 'Front legs' : 'Back legs'}, ${p.legStock}`;
+  const lengths = legLengths(output, which);
+  const cosA = Math.cos((g.splay * Math.PI) / 180);
+
+  const inPlane: ColumnAxis = {
+    label: 'In the plane of the A-frame',
+    d: leg.width,
+    length: Math.max(lengths.toCrossbar, lengths.crossbarToGusset),
+    Ke: 1,
+    basis:
+      'The crossbar and gusset tie the splayed legs into triangles, so each holds the leg from moving sideways at the middle of its height, and the leg is taken as free to turn there (NDS Table G1, case d, Ke = 1.0). ℓ is the longer of the stretch from the ground to the middle of the crossbar and the stretch from there to the middle of the gusset.',
+  };
+  const alongBeam: ColumnAxis = {
+    label: 'Along the beam',
+    d: leg.thickness,
+    length: lengths.toBeam,
+    Ke: 2.1,
+    basis:
+      "A buried leg is taken as fixed at grade. At the top the frame can lean along the beam and turn about the leg-to-beam bolt, so the leg's top is free to move and to turn (NDS Table G1, case e, Ke = 2.10). ℓ runs from grade to the underside of the beam, where the gusset carries the beam into the legs.",
+  };
+  const hole = Math.max(
+    boltHoleDiameter(p.hardware.crossbarBolts.diameter),
+    boltHoleDiameter(p.hardware.gussetBolts.diameter),
+  );
+
+  const load = combine(swing, beamWeight, (s, weight): AxialLoad | null => {
+    if (!weight) return null;
+    const [x0, x1] = beamSupports(output).x;
+    const R = reactions(x1 - x0, {
+      points: output.swings.hangersX.map((x, i) => ({ a: x - x0, P: s.perHanger[i] ?? 0 })),
+      w: 0,
+    });
+    const Rs = Math.max(R.left, R.right);
+    const Rw = (weight.w * p.beamLength) / 2;
+    return {
+      // P = (C·R_s + R_w) / (2·cos α).
+      factored: Rs / (2 * cosA),
+      unfactored: Rw / (2 * cosA),
+      working: [
+        ...s.working,
+        ...weight.working,
+        {
+          symbol: 'R_s',
+          label: "Swing loads on the more loaded frame, the beam's larger support reaction",
+          value: Rs,
+          unit: 'lb',
+        },
+        {
+          symbol: 'R_w',
+          label: "Beam's weight on each frame, w · beam length / 2",
+          value: Rw,
+          unit: 'lb',
+        },
+        {
+          symbol: 'α',
+          label: 'Splay of each leg from vertical',
+          value: g.splay,
+          unit: '°',
+          basis: 'From the template geometry',
+        },
+      ],
+      assumptions: [
+        ...SWING_ASSUMPTIONS,
+        "The dynamic factor covers snap loads from slack chains. It is not applied to the beam's own weight.",
+        "Each frame's load is shared equally by its two legs, along each leg's axis: the frame's load divided by 2·cos α.",
+        "The beam's whole weight, its overhangs included, is split equally between the frames. The legs', crossbars', and gussets' own weight is left out.",
+        "The swing's push toward the front and back, which loads one leg of a frame more than the other, is not included.",
+      ],
+    };
+  });
+  if ('value' in load && load.value === null) {
+    return {
+      kind: 'column',
+      title: 'Compression',
+      subject,
+      loadCase: LOAD_CASES.strength,
+      status: 'not-computed',
+      reason: `No design values are entered for the beam's species and grade in ${p.beamStock}, so its weight on the legs is not known.`,
+      sources: [],
+    };
+  }
+
+  return columnCheck({
+    member: {
+      subject,
+      nominal: p.legStock,
+      breadth: leg.thickness,
+      depth: leg.width,
+      sizeSources: STOCK_SIZE_SOURCES,
+      axes:
+        p.burialDepth > 0
+          ? [inPlane, alongBeam]
+          : {
+              reason:
+                'On pads, no end condition Kerf can count holds a leg along the beam: each foot can turn on its pad, and the frame can turn about the leg-to-beam bolt, so NDS Appendix G gives no buckling length. What holds the frame along the beam is the ground anchors and how tightly the bolts clamp, which an experienced builder judges.',
+            },
+      netArea: {
+        value: (leg.width - hole) * leg.thickness,
+        basis: `The crossbar and gusset bolts pass through each leg along the beam, in holes up to ${formatLength(hole)} across, which leave (w − hole) · t (NDS 2024 3.1.2.1).`,
+      },
+    },
+    material: mapNeeded(
+      need(inputs, STRUCTURAL_INPUT_LABELS, 'legSpeciesGrade', 'legIncised'),
+      (v) => ({ speciesGrade: v.legSpeciesGrade, incised: v.legIncised }),
+    ),
+    conditions: LEG_CONDITIONS,
+    loadCase: LOAD_CASES.strength,
+    load: load as Needed<AxialLoad>,
+    factor: dynamicFactor,
+    assumptions: [
+      ...(p.burialDepth > 0
+        ? [
+            'A buried leg is taken as fixed at grade. Soil near the surface gives, so the real point of fixity is below grade, which makes the effective length along the beam longer than this.',
+          ]
+        : []),
+      'Only the longer leg is checked: both carry the same load, so the longer one has the lower margin.',
+    ],
+  });
+}
+
 const params = (...paths: string[]) => paths.map((path): FieldRef => ({ from: 'params', path }));
 const inputs = (...paths: (keyof typeof STRUCTURAL_INPUT_LABELS | `riderWeights.${0 | 1}`)[]) =>
   paths.map((path): FieldRef => ({ from: 'structuralInputs', path }));
@@ -752,7 +925,8 @@ const inputs = (...paths: (keyof typeof STRUCTURAL_INPUT_LABELS | `riderWeights.
  * The fields each check changes with (`TemplateDefinition.checkFields`): for the top beam, its
  * size, its span between the gussets (or the bolts, with no gusset under it), where the hangers
  * hang on it and, for bending, how they are fastened, then the inputs its material and loads come
- * from; for a hanger, its loads and its rating; for a ground anchor, the frame's shape, the
+ * from; for the legs, their size, the frame's shape, and the loads the beam brings them; for a
+ * hanger, its loads and its rating; for a ground anchor, the frame's shape, the
  * anchors, and the inputs behind the beam's weight. The beam's size also changes its weight, but
  * it is left out, so the beam's other sizes are offered against the beam checks alone (#450).
  */
@@ -766,6 +940,17 @@ export function checkFields(check: { kind: CheckKind; subject: string }): FieldR
       ...params('swings.centers.0', 'swings.centers.1', 'swings.hangerSpacing'),
       ...params('hardware.anchorsPerFoot', 'hardware.anchorRating'),
       ...inputs('beamSpeciesGrade', 'beamMoistureContent'),
+      ...riders,
+      ...inputs('dynamicFactor'),
+    ];
+  }
+  if (check.kind === 'column') {
+    return [
+      ...params('legStock', 'beamHeight', 'splay.kind', 'splay.degrees', 'splay.depth'),
+      ...params('groundSlope', 'burialDepth', 'crossbarStock', 'crossbarHeight', 'gussetStock'),
+      ...params('beamStock', 'beamPlies', 'beamLength', 'frameInset'),
+      ...params('swings.centers.0', 'swings.centers.1', 'swings.hangerSpacing'),
+      ...inputs('legSpeciesGrade', 'legIncised', 'beamSpeciesGrade', 'beamMoistureContent'),
       ...riders,
       ...inputs('dynamicFactor'),
     ];
