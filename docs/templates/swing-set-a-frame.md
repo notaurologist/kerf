@@ -323,7 +323,7 @@ Three structural inputs are suggested with no question, each stored with its bas
 
 The review in #355 proposed asking "Will the beam stand outdoors, uncovered?" to set the moisture. The plan already treats the beam as wet service whatever the answer, so the question would change only the beam's weight; it is left out until the wet-service factor follows an answer too.
 
-Bolts (#389): for each joint, the largest diameter the form offers (3/8" to 3/4") whose distances in the bolt layout below are all within NDS 2024 Tables 12.5.1A to 12.5.1D on the suggested frame, and two bolts per crossbar and gusset joint, the worked example's count. Basis: NDS 2024, those tables; note: Kerf computes no bolt capacity, so settle the size with an experienced builder. Hand check, worked example: a board's bolts are 3-1/2 / 2 = 1-3/4" from the leg's loaded edge, and 4D is 1-1/2" for 3/8" and 2" for 1/2", so 3/8" at the crossbars and gussets; the leg-to-beam bolt is 5-1/2 / 2 = 2-3/4" from the beam's edges, and 4D is 2-1/2" for 5/8" and 3" for 3/4", so 5/8". The two-ply 2x6 beam gives the same. With no frame (a yard too small for a beam), the sizes stay empty.
+Bolts (#389): for each joint, the largest diameter the form offers (3/8" to 3/4") whose distances in the bolt layout below are all within NDS 2024 Tables 12.5.1A to 12.5.1D on the suggested frame, and two bolts per crossbar and gusset joint, the worked example's count. Basis: NDS 2024, those tables; note: Kerf computes no bolt capacity, so settle the size with an experienced builder. Hand check, worked example: a board's bolts are 3-1/2 / 2 = 1-3/4" from the leg's loaded edge, and 4D is 1-1/2" for 3/8" and 2" for 1/2", so 3/8" at the crossbars and gussets; the leg-to-beam bolt is 5-1/2 / 2 = 2-3/4" from the beam's edges, and 4D is 2-1/2" for 5/8" and 3" for 3/4", so 5/8". The two-ply 2x6 beam gives the same. With no frame (parameters the template rejects), the sizes stay empty.
 
 Not suggested: ply bolts (no published schedule gives bolts; IRC 2021 R507.5 nails deck beam plies, two rows of 10d at 16" on center, and the help says so), ground anchors (the anchor maker's instructions), and the structural inputs only the owner or what they buy can say (species and grade, incised, hanger rating; #390 prompts for these at the store), and the dynamic factor, for which no published value was found; the review and the field show the factor at which each strength check reaches margin 1.0 instead (#401). Stock comes from the worked example and is never sized from the loads; the preview shows its margin under the owner's loads (`PRODUCT.md`, Non-goals).
 
@@ -331,8 +331,9 @@ Not suggested: ply bolts (no published schedule gives bolts; IRC 2021 R507.5 nai
 
 The space means open ground with nothing in it, so the CPSC clear area and swing zones (Site layout, `DOMAIN.md`, Layout and clearances) must fit inside it.
 
-- **Beam height H.** Rule of thumb: 96 (8 ft) for kids only, 120 (10 ft) with adults. No published source gives a conventional height for home swing sets; the owner accepted a labeled rule of thumb (October 30, 2026). What was looked at: kit listings around 8 ft tall and builders' write-ups of adult-use frames at about 10 ft. The swing zones run 2·H in front of the beam and 2·H behind, so the depth D allows at most H = floor(D / 4). If that is less than the rule of thumb, Kerf suggests floor(D / 4) and says why, citing the CPSC zones. If it is under the schema's lowest beam (60), the height stays empty, saying how much depth 60 needs.
-- **Beam length L.** The worked example's 120. The clear area adds 72 at each end, so the length A allows at most floor(A − 144). If that is less than 120, Kerf suggests it and says why. Two swings need at least shortestBeam = 3·max(8 + s_w/2 + e + t, 8 + s_w) = 3·max(8 + 10 + 12 + 3.5, 28) = 100.5 with the worked example's seats, inset, and legs (the CPSC 8" seat gaps, Validation); under ceil(100.5) = 101 the length and swing centers stay empty, saying how much length 101 needs.
+- **Beam height H.** Rule of thumb: 96 (8 ft) for kids only, 120 (10 ft) with adults. No published source gives a conventional height for home swing sets; the owner accepted a labeled rule of thumb (October 30, 2026). What was looked at: kit listings around 8 ft tall and builders' write-ups of adult-use frames at about 10 ft. The swing zones run 2·H in front of the beam and 2·H behind, so the depth D allows at most H = floor(D / 4). If that is less than the rule of thumb, Kerf suggests floor(D / 4) and says it was lowered to fit the depth, citing the CPSC zones.
+- **Beam length L.** The worked example's 120. The clear area adds 72 at each end, so the length A allows at most floor(A − 144). If that is less than 120, Kerf suggests it and says it was shortened to fit the length. Two swings need at least shortestBeam = 3·max(8 + s_w/2 + e + t, 8 + s_w) = 3·max(8 + 10 + 12 + 3.5, 28) = 100.5 with the worked example's seats, inset, and legs (the CPSC 8" seat gaps, Validation).
+- **Smallest space (#458).** The answers are refused, with the error on the field, when no beam fits. Along the beam the space must give the shortest beam rounded up as the suggestion is, ceil(100.5) = 101, plus the clear area at each end: 101 + 144 = 245 (20' 5"). Front to back it must give the swing zones of the schema's lowest beam: 4 · 60 = 240 (20' 0"). The errors read "Length along the beam must be at least 20' 5" for two swings and their clear area." and "Depth, front to back, must be at least 20' 0" for the swing zones of the lowest beam Kerf draws, 5' 0"."
 - **Swing centers.** Rule of thumb: at L/3 and 2·L/3, to the nearest 1/16. The worked example is the case L = 120: 40 and 80.
 - **Crossbar height zc.** Rule of thumb: the worked example's share of the beam height, floor(H · 40/96).
 - **Ground slope, burial depth.** g as answered (0 for level). Pads give d = 0; buried legs the worked example's 24, with a note to settle the depth with an experienced builder (the plan flags it).
@@ -342,18 +343,18 @@ The clear area stays inside the swing zones front to back for every suggestion: 
 
 ### Worked examples (hand-checked)
 
-| | Kids only | Kids and adults | A small yard | No beam fits |
+| | Kids only | Kids and adults | A small yard | The smallest space |
 |---|---|---|---|---|
-| Riders, weights | kids; 90, 110 | kids and adults; 220, 110 | kids and adults; 200, 90 | kids; 90, 0 |
-| Space, length × depth | 30' × 40' (360 × 480) | 30' × 40' | 21' × 28' (252 × 336) | 20' × 16' (240 × 192) |
+| Riders, weights | kids; 90, 110 | kids and adults; 220, 110 | kids and adults; 200, 90 | kids; 90, 110 |
+| Space, length × depth | 30' × 40' (360 × 480) | 30' × 40' | 21' × 28' (252 × 336) | 20' 5" × 20' 0" (245 × 240) |
 | Ground, feet | level, pads | sloped 1 in/ft, buried | level, buried | level, pads |
-| H: rule, floor(D/4) | 96; 120 → **96** | 120; 120 → **120** | 120; 84 → **84**, with a note | 96; 48 < 60 → empty |
-| L: floor(A − 144) | 216 → **120** | 216 → **120** | 108 → **108**, with a note | 96 < 101 → empty |
-| Swing centers | 40, 80 | 40, 80 | 36, 72 | empty |
-| Crossbar height | floor(96 · 40/96) = 40 | floor(120 · 40/96) = 50 | floor(84 · 40/96) = 35 | empty |
+| H: rule, floor(D/4) | 96; 120 → **96** | 120; 120 → **120** | 120; 84 → **84**, with a note | 96; 60 → **60**, with a note |
+| L: floor(A − 144) | 216 → **120** | 216 → **120** | 108 → **108**, with a note | 101 → **101**, with a note |
+| Swing centers | 40, 80 | 40, 80 | 36, 72 | 33-11/16, 67-5/16 |
+| Crossbar height | floor(96 · 40/96) = 40 | floor(120 · 40/96) = 50 | floor(84 · 40/96) = 35 | floor(60 · 40/96) = 25 |
 | g, d | 0, 0 | 1, 24 | 0, 24 | 0, 0 |
 
-The small yard's beam-height note: "The usual height is 10' 0", and its swing zones need 40' 0" front to back. Your 28' 0" fits a beam up to 7' 0"." Its seats at 108 are 36 − 10 − 15.5 = 10.5 from each frame and 72 − 36 − 20 = 16 apart, both over 8.
+The small yard's notes: "Lowered to fit your 28' 0" depth. The usual height, 10' 0", needs 40' 0" front to back for its swing zones." and "Shortened to fit your 21' 0" length along the beam. The worked example's beam, 10' 0", needs 22' 0" with the clear area at each end." Its seats at 108 are 36 − 10 − 15.5 = 10.5 from each frame and 72 − 36 − 20 = 16 apart, both over 8. The smallest space's centers are 101/3 = 33.667 and 202/3 = 67.333, to the nearest 1/16; its seats are 33-11/16 − 10 − 15.5 = 8-3/16 from each frame and 67-5/16 − 33-11/16 − 20 = 13-5/8 apart. One sixteenth less along the beam (244-15/16) or front to back (239-15/16) is refused with the error above; the usability audit's 14' × 26' 6" is refused along the beam, 168 < 245.
 
 ## Validation
 
