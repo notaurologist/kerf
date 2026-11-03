@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { solid } from '../geometry/solid.ts';
 import { describeBasis } from '../model/questions.ts';
+import { ChecklistItem, Flag } from '../model/types.ts';
+import { LumberPlan } from '../outputs/shoppingList.ts';
+import { leaveOutDefaults } from '../snapshot/defaults.ts';
+import { shapeOf } from '../snapshot/shape.ts';
 import { createSnapshot, readSnapshot } from '../snapshot/snapshot.ts';
 import { planSteps } from '../steps/build.ts';
 import { BRAND_NAMES, VERDICT_WORDS, withoutBrandExceptions } from '../testing.ts';
@@ -54,6 +58,30 @@ function templateText(t: (typeof TEMPLATES)[number]): string[] {
   );
 }
 
+/**
+ * Every committed snapshot fixture, by template ID and template version: the worked examples as
+ * that version stored them (decision 0014). Fixtures are never rewritten.
+ */
+const FIXTURES = (() => {
+  const files = import.meta.glob<readonly unknown[]>('./*/snapshots/v*.json', {
+    eager: true,
+    import: 'default',
+  });
+  const byTemplate: Record<string, Record<number, readonly unknown[]>> = {};
+  for (const [path, fixture] of Object.entries(files)) {
+    const [, id, version] = path.match(/^\.\/([^/]+)\/snapshots\/v(\d+)\.json$/) ?? [];
+    if (!id || !version) throw new Error(`Unexpected fixture path ${path}`);
+    byTemplate[id] = { ...byTemplate[id], [Number(version)]: fixture };
+  }
+  return byTemplate;
+})();
+
+const fixturesOf = (t: (typeof TEMPLATES)[number]) => FIXTURES[t.id] ?? {};
+
+const storedFixtures = TEMPLATES.flatMap((t) =>
+  Object.entries(fixturesOf(t)).map(([version, fixture]) => [t.id, version, t, fixture] as const),
+);
+
 describe('every template', () => {
   it.each(examples)('%s, %s: generates what its outputs schema requires', (_, __, t, e) => {
     const outputs = asJson(generated(t, e));
@@ -97,4 +125,111 @@ describe('every template', () => {
     expect(t.ownWords.length).toBeGreaterThan(0);
     expect(t.ownWords.every((w) => w === w.toLowerCase() && w.trim() === w)).toBe(true);
   });
+});
+
+describe('every template stays readable (decision 0014)', () => {
+  const upTo = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
+
+  /** The current version's snapshots of the worked examples, as stored. */
+  const current = (t: (typeof TEMPLATES)[number]) =>
+    t.examples.map((e) => {
+      const made = createSnapshot(t, e.params, e.structuralInputs);
+      if (!made.ok) throw new Error(e.name);
+      return asJson(made.output);
+    });
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))(
+    '%s has a fixture for every template version and every shape, and an upgrade between shapes',
+    (_, t) => {
+      const fixtures = fixturesOf(t);
+      expect(
+        Object.keys(fixtures)
+          .map(Number)
+          .sort((a, b) => a - b),
+      ).toEqual(upTo(t.version));
+      const shapes = Object.entries(fixtures).flatMap(([version, fixture]) =>
+        (fixture as { templateVersion: number; snapshotVersion: number }[]).map((s) => {
+          expect(s.templateVersion).toBe(Number(version));
+          return s.snapshotVersion;
+        }),
+      );
+      expect([...new Set(shapes)].sort((a, b) => a - b)).toEqual(upTo(t.snapshotVersion));
+      expect(Object.keys(t.snapshotUpgrades).map(Number)).toEqual(upTo(t.snapshotVersion - 1));
+    },
+  );
+
+  it.each(storedFixtures)('%s v%s holds one snapshot per worked example', (_, __, t, fixture) => {
+    expect(fixture).toHaveLength(t.examples.length);
+  });
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))(
+    '%s regenerates the fixture of its current version exactly',
+    (id, t) => {
+      expect(
+        current(t),
+        'The worked examples generate different output at the same template version. Bump the ' +
+          "template's version, and its snapshotVersion too if the stored shape changed (decision " +
+          `0008), then write the new fixture: pnpm --filter @kerf/api write-snapshot-fixture ${id} ` +
+          '(decision 0014).',
+      ).toEqual(fixturesOf(t)[t.version]);
+    },
+  );
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))(
+    '%s generates snapshots in the current shape',
+    (id, t) => {
+      expect(
+        shapeOf(current(t)),
+        'The stored shape changed. Bump snapshotVersion, add an upgrade from the previous shape, ' +
+          `and write the new fixture: pnpm --filter @kerf/api write-snapshot-fixture ${id} ` +
+          '(decision 0014).',
+      ).toEqual(shapeOf(fixturesOf(t)[t.version]));
+    },
+  );
+
+  it.each(storedFixtures)(
+    '%s reads every snapshot stored at v%s, keeping its template version',
+    (_, __, t, fixture) => {
+      for (const stored of fixture) {
+        const read = readSnapshot([t], stored);
+        expect(read.ok, JSON.stringify(read)).toBe(true);
+        if (!read.ok) continue;
+        // An upgrade restructures only: the plan keeps the template version its numbers came from.
+        expect(read.snapshot.templateVersion).toBe(
+          (stored as { templateVersion: number }).templateVersion,
+        );
+      }
+    },
+  );
+
+  it.each(storedFixtures)(
+    '%s fills in what generic code reads for a plan stored at v%s',
+    (_, __, t, fixture) => {
+      for (const stored of fixture) {
+        const read = readSnapshot([t], stored);
+        if (!read.ok) throw new Error(read.message);
+        const outputs = t.storedOutputs.parse(read.snapshot.outputs);
+        const plan = t.plan(outputs);
+        for (const flag of plan.flags) Flag.parse(flag);
+        for (const item of plan.checklist) ChecklistItem.parse(item);
+        LumberPlan.parse(plan.lumber);
+        expect(t.drawings(outputs).cutDetails).toHaveLength(plan.cutList.length);
+      }
+    },
+  );
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))(
+    '%s reads the current shape back exactly, dropping nothing',
+    (_, t) => {
+      const stored = fixturesOf(t)[t.version] ?? [];
+      expect(stored).not.toHaveLength(0);
+      for (const snapshot of stored) {
+        // Reading fills in each list the snapshot left out as empty; storing leaves it out again.
+        const read = readSnapshot([t], snapshot);
+        if (!read.ok) throw new Error(read.message);
+        const outputs = leaveOutDefaults(t.outputs, read.snapshot.outputs);
+        expect(asJson({ ...read.snapshot, outputs })).toEqual(snapshot);
+      }
+    },
+  );
 });
