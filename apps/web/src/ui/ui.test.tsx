@@ -63,6 +63,7 @@ import {
   StepLayout,
   Term,
   TermScope,
+  Text,
   TextInput,
   Tick,
   ToolIcon,
@@ -820,6 +821,13 @@ describe('InfoNotice', () => {
     expect(html).not.toContain('role="alert"');
     expect(html).toContain('aria-hidden="true"');
     expect(renderText(<InfoNotice>Shown as stored.</InfoNotice>)).toBe('Shown as stored.');
+  });
+});
+
+describe('Text', () => {
+  it('marks a screen-only line, which print leaves out, and no other', () => {
+    expect(render(<Text screenOnly>Tap a part.</Text>)).toContain('data-screen-only="true"');
+    expect(render(<Text>Tap a part.</Text>)).not.toContain('data-screen-only');
   });
 });
 

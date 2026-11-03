@@ -54,5 +54,5 @@ export function ProjectNext(props: {
     ),
   ].filter(Boolean);
   if (parts.length === 0) return null;
-  return <Text>{parts.flatMap((part, i) => (i === 0 ? [part] : [' · ', part]))}</Text>;
+  return <Text screenOnly>{parts.flatMap((part, i) => (i === 0 ? [part] : [' · ', part]))}</Text>;
 }

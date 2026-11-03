@@ -269,6 +269,21 @@ Checked October 30, 2026 with `pg_dump` 18.6: a dump and restore into an empty d
 5. **Deploy** `main`. The API's build log shows `release: migrations applied.`
 6. **Check:** `pnpm --filter @kerf/api check-deploy https://<project>.vercel.app` asks for the password without echo, then checks health, login, storing and reading a project, and logout. It leaves one project named "Deploy check".
 
+#### The printed plan (before a release that changes print or drawings)
+
+A manual check; nothing runs it for you. `ui/views.test.ts` checks that `print.css` keeps the rules below, but only a real print shows the pages. Print a project made from each template's first worked example (`docs/templates/`) to PDF on US Letter, with the browser's own headers and footers off, in Chrome and in Safari. Look at every page of the Diagrams section and the first page of each other section.
+
+1. **First page:** the title block and the Diagrams heading, with no "Tap a part…" line, no Next line or its links, and no info button.
+2. **Assembled and exploded views:** each on its own landscape page with its heading at the top, and nothing else drawn over it.
+3. **Cut details and elevations:** each with its heading, drawing, and notes on one page. No heading sits alone at the foot of a page.
+4. **Site layout** (swing set): on a landscape page with its heading.
+5. **Structural working:** every formula wraps inside the margin; none ends mid-word at the edge.
+
+| Date | Browser | Swing set | Record cabinet | Notes |
+|---|---|---|---|---|
+| 3 November 2026 (#452) | Chrome 156, headless, print to PDF | 1 to 5 as described | 1 to 3 and 5 as described | Run in a local copy of the app. The swing set's structural review still starts with its heading alone on a page, and its break-even lines run past the margin; both come from the structural review's own layout. |
+| 3 November 2026 (#452) | Safari | Not checked | Not checked | The owner's to run. |
+
 ## apps/web
 
 - Talks only to `/api/*` on its own origin, through the Hono typed client (`src/lib/api.ts`). One function, `send`, turns responses into results the UI shows; a 401 sends the owner to the login screen.
