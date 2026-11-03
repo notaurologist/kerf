@@ -98,6 +98,7 @@ export function cabinetParts(
     'side-right',
   ];
   const door = g.door;
+  const sizes = door && p.door;
   // With doors, the partitions start behind the tracks.
   const dt = door?.trackZone ?? 0;
   const partitionDepth = door?.partitionDepth ?? p.caseDepth;
@@ -117,25 +118,30 @@ export function cabinetParts(
       };
     });
   // Each door's track, between the sides' inside faces: the front one first.
-  const tracks = (face: Dado['face'], v: number, dx: number, depth: number): Dado[] =>
-    door
+  const tracks = (
+    face: Dado['face'],
+    v: number,
+    dx: number,
+    depth: 'topDepth' | 'bottomDepth',
+  ): Dado[] =>
+    door && sizes
       ? [0, 1].map((k) => ({
           withPart: 'door-rail',
           face,
           u0: (g.panelX[0] as number) + t - dx,
           u1: (g.panelX[p.bays] as number) - dx,
-          v0: v + p.door.land + k * (p.door.land + door.trackWidth),
-          v1: v + (k + 1) * (p.door.land + door.trackWidth),
-          depth,
+          v0: v + sizes.land + k * (sizes.land + door.trackWidth),
+          v1: v + (k + 1) * (sizes.land + door.trackWidth),
+          depth: sizes[depth],
         }))
       : [];
   const topDadoes = [
     ...housed('near', p.frontOverhang + p.stoppedSetback, g.topDepth, 0),
-    ...tracks('near', p.frontOverhang, 0, p.door.topDepth),
+    ...tracks('near', p.frontOverhang, 0, 'topDepth'),
   ];
   const bottomDadoes = [
     ...housed('far', p.stoppedSetback, p.caseDepth, p.endOverhang),
-    ...tracks('far', 0, p.endOverhang, p.door.bottomDepth),
+    ...tracks('far', 0, p.endOverhang, 'bottomDepth'),
   ];
 
   const topStock = stockFor(g.topDepth, p.width);
@@ -147,14 +153,13 @@ export function cabinetParts(
   const shortApronStock = stockFor(p.apronHeight, g.shortApron);
   const cleatStock = stockFor(CLEAT_WIDTH, g.cleatLength);
   // Each door's stiles and rails are ripped from one board; its panel is glued up like the others.
-  const ws = p.door.frameWidth;
-  const gs = p.door.grooveDepth;
   const panelWidth = (door?.panelSpan ?? 0) - 2 * panelGap.length;
-  const doorStock = door && {
-    stile: stockFor(ws, door.height),
-    rail: stockFor(ws, door.railLength),
-    panel: stockFor(panelWidth, door.panelLength),
-  };
+  const doorStock = door &&
+    sizes && {
+      stile: stockFor(sizes.frameWidth, door.height),
+      rail: stockFor(sizes.frameWidth, door.railLength),
+      panel: stockFor(panelWidth, door.panelLength),
+    };
   if (
     !topStock ||
     !bottomStock ||
@@ -293,7 +298,9 @@ export function cabinetParts(
     tenons,
   });
   const doorParts = (): CabinetPart[] => {
-    if (!door || !doorStock?.stile || !doorStock.rail || !doorStock.panel) return [];
+    if (!door || !sizes || !doorStock?.stile || !doorStock.rail || !doorStock.panel) return [];
+    const ws = sizes.frameWidth;
+    const gs = sizes.grooveDepth;
     const td = doorStock.stile.thickness;
     // The panel grooves and the rails' stub tenons, centered in the frame's thickness.
     const n0 = (td - p.tenonThickness) / 2;
@@ -539,18 +546,20 @@ export function cabinetParts(
   // A cleat inside each side apron, lying flat and flush with its top.
   place('cleat', 0, at(xl + r0 + ta, s, zb), Y, X, minusZ);
   place('cleat', 1, at(xr - r0 - ta, s, zb - tc), Y, minusX, Z);
-  if (door) {
+  if (door && sizes) {
+    const ws = sizes.frameWidth;
+    const gs = sizes.grooveDepth;
     // The left door runs in the front track and the right door in the back one, each against its
     // side when closed, centered in its track, and seated d_b in the bottom track.
     const td = door.thickness;
     const x1 = (g.panelX[0] as number) + t;
     const x2 = g.panelX[p.bays] as number;
-    const z = zb + t - p.door.bottomDepth;
+    const z = zb + t - sizes.bottomDepth;
     const top = z + door.height;
     for (const k of [0, 1]) {
       const x = k === 0 ? x1 : x2 - door.width;
       const xe = x + door.width;
-      const y = p.door.land + k * (p.door.land + door.trackWidth) + p.door.clearance / 2;
+      const y = sizes.land + k * (sizes.land + door.trackWidth) + sizes.clearance / 2;
       // Each stile's reference edge is away from the panel, and the outer stile's front face is
       // its far face, the face its cut detail shows, where the recess is: the left door's is
       // turned end for end.

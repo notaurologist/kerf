@@ -99,7 +99,7 @@ Stage 2 of the Shaker-modern cabinet. The owner chose on November 1, 2026: two *
 | Case depth | D_c | 17 (was 15) | So records fit behind the tracks; see below |
 | Doors | | sliding | The owner's choice; "none" leaves every bay open, as in version 8 |
 
-The panel grooves are as wide as the aprons' tenons, t_t, and the rails' stub tenons as thick, so one setting cuts both. A stored version 8 plan reads back with no doors and these suggestions, ready if the owner turns them on.
+The panel grooves are as wide as the aprons' tenons, t_t, and the rails' stub tenons as thick, so one setting cuts both. A stored version 8 plan reads back with no doors and these suggestions, ready if the owner turns them on. The editor shows the door sizes only with sliding doors, so a cabinet with no doors needs none and keeps none it was not given; with sliding doors, each is required (#501).
 
 Derived: the groove width is t_d + c_g, where t_d is the board's thickness; the track zone is d_t = 3·l_g + 2·(t_d + c_g); the door height is h_b + d_b + d_b (seated 1/4 in the bottom and 1/4 up into the top); the door width is b + t + o_d.
 

@@ -7,7 +7,7 @@ import type { RecordCabinetStructuralInputs } from './structural.ts';
 // questions suggest. The moisture range is the Wood Handbook's for individual pieces indoors
 // (Table 13-2).
 
-export const WORKED_EXAMPLE: RecordCabinetParams = {
+export const WORKED_EXAMPLE = {
   width: 54,
   bayHeight: 13.25,
   caseDepth: 17,
@@ -39,7 +39,7 @@ export const WORKED_EXAMPLE: RecordCabinetParams = {
   topItem: { width: 16.5, depth: 13.5, height: 15 },
   board: { source: 'store', thickness: 0.8125, width: 5.5, lengths: [4, 6, 8] },
   allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },
-};
+} satisfies RecordCabinetParams;
 
 const cherry: RecordCabinetStructuralInputs = {
   species: 'black-cherry',
