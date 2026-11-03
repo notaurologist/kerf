@@ -26,11 +26,7 @@ export function authRoutes(deps: { db: Database; passwordHash: string; now: () =
   return new Hono()
     .post('/login', valid('json', Login), async (c) => {
       const at = now();
-      const forwardedFor = c.req.header('x-forwarded-for');
-      const address = clientAddress(forwardedFor);
-      // Temporary: shows whether the address survives Vercel's rewrite to this service.
-      const entries = forwardedFor === undefined ? 0 : forwardedFor.split(',').length;
-      console.log(`login: address ${address}, x-forwarded-for entries ${entries}`);
+      const address = clientAddress(c.req.header('x-forwarded-for'));
       const attempt = await beginAttempt(db, address, at);
       if (!attempt.allowed) {
         c.header('Retry-After', String(attempt.retryAfterSeconds));
