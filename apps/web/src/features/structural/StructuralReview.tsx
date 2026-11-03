@@ -140,9 +140,9 @@ export function StructuralReview(props: {
       <Text tone="muted">
         <Measured text={STRUCTURAL_REVIEW_INTRO} terms />
       </Text>
-      {/* What the owner has to do leads, beside the results from 600 px (Stage 15, S1). */}
+      {/* What the owner has to do leads, beside the results where both fit (Stage 15, S1). */}
       {toDo ? (
-        <Sidebar sideWidth="m" gap="l">
+        <Sidebar sideWidth="l" gap="l">
           {toDo}
           {results}
         </Sidebar>
@@ -259,8 +259,8 @@ function ToDo(props: {
                 <Row key={`${flag.category}/${flag.ask}`} as="li">
                   <Stack gap="2xs">
                     <ResultLine
+                      flag={`Expert check · ${FLAG_CATEGORY_LABELS[flag.category]}`}
                       title={<Measured text={flag.ask} />}
-                      detail={FLAG_CATEGORY_LABELS[flag.category]}
                     >
                       <Text>
                         Why: <Measured text={flag.why} terms />

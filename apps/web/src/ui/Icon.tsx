@@ -16,7 +16,7 @@ const PATHS = {
   info: (
     <>
       <circle cx="8" cy="8" r="6.5" />
-      <path d="M8 6.5V12M8 4v1.5" />
+      <path d="M8 7v5M8 4.5h0" />
     </>
   ),
   chevron: <path d="M3.5 6l4.5 4.5L12.5 6" />,

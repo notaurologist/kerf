@@ -514,7 +514,8 @@ export interface Action {
  * built so far and the parts the step adds. An added part the template pulls apart is drawn away
  * from where it goes, with a motion arrow back to it. Parts not built yet, and phantom lines such
  * as chains, are left out. Added
- * parts are the drawing's emphasis, tinted and outlined heavily by the renderer.
+ * parts are the drawing's emphasis, tinted and outlined heavily by the renderer, when the drawing
+ * also shows parts built before them.
  */
 export function actionView(
   scene: Scene,
@@ -554,7 +555,8 @@ export function actionView(
     bounds: boundsOf(all, 2),
     primitives: all,
     notes: [],
-    emphasis: [...action.added],
+    // With nothing built before, every part shown is new, and tinting all of them marks nothing.
+    emphasis: action.built.size > 0 ? [...action.added] : [],
   };
 }
 

@@ -1,4 +1,4 @@
-export { boardDrawings } from './boards.ts';
+export { BOARD_SCALE_NOTE, boardDrawings } from './boards.ts';
 export { cutDetail } from './cutDetail.ts';
 export { crosses, type LetterRoom, letterColumn, letterRoom } from './letters.ts';
 export { blankOutline, edgeLengths, partOutline } from './outline.ts';

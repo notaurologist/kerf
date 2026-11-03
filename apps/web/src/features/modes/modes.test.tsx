@@ -92,6 +92,12 @@ describe('board cards (#59)', () => {
     expect(html.match(/class="k-diagram-wrap"/g)).toHaveLength(7);
   });
 
+  it('say once per line that the drawings are to scale along the length, not under each board', () => {
+    expect(text.match(/to scale along the length/g)).toHaveLength(4);
+    const line = text.slice(text.indexOf(`4 × 4x4`), text.indexOf(`Board 5:`));
+    expect(line.match(/to scale along the length/g)).toHaveLength(1);
+  });
+
   it('say first what to look for in the boards of that line only (#136)', () => {
     // The 4x6 line: its guidance, then its one board, before the 4x4 line starts.
     const line = text.slice(text.indexOf(`1 × 4x6`), text.indexOf(`4 × 4x4`));
