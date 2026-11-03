@@ -37,6 +37,7 @@ import {
   type NewProject,
   type NewProjectPreview,
   type ProjectChanges,
+  type ProjectRegenerate,
   ProjectStatus,
 } from './projectBodies.ts';
 import { getInventory } from './tools.ts';
@@ -405,14 +406,16 @@ export function createProjectService(deps: {
 
     /**
      * Regenerates from the stored parameters and inputs with the current template version. The
-     * plan changes, so its revision does too.
+     * plan changes, so its revision does too. A regeneration asked for on an older revision is
+     * refused: the owner approved the changes computed from that revision's values.
      */
-    async regenerate(id: string): Promise<Result<Project>> {
+    async regenerate(id: string, request: ProjectRegenerate): Promise<Result<Project>> {
       const at = now();
       let progressReset: ProgressReset[] | undefined;
       const outcome = await db.transaction(async (tx): Promise<Row | Failure> => {
         const row = await lock(tx, id);
         if (!row) return { ok: false, error: 'not-found' };
+        if (request.revision !== row.revision) return stale(row);
         const stored = read(row);
         if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
         const generated = generate(

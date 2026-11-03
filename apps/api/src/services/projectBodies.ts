@@ -51,3 +51,7 @@ export const ProjectSave = ProjectChanges.refine(
   (c) => !changesPlan(c) || c.revision !== undefined,
   { message: 'revision is required to change the name, parameters, or inputs', path: ['revision'] },
 );
+
+/** A regeneration names the revision whose version notice the owner was shown (#425). */
+export const ProjectRegenerate = z.object({ revision: Revision });
+export type ProjectRegenerate = z.infer<typeof ProjectRegenerate>;

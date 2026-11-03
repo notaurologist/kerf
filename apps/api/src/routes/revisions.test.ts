@@ -32,8 +32,12 @@ async function setup() {
     });
     return { status: r.status, body: (await r.json()) as Json };
   };
+  const regenerate = async (body: unknown) => {
+    const r = await test.authed(`${path}/regenerate`, { method: 'POST', body });
+    return { status: r.status, body: (await r.json()) as Json };
+  };
   const read = async () => (await (await test.authed(path)).json()) as Json;
-  return { ...test, created, path, put, tick, read };
+  return { ...test, created, path, put, tick, regenerate, read };
 }
 
 describe('project revisions', () => {
@@ -89,9 +93,8 @@ describe('project revisions', () => {
   });
 
   it('refuse a tick made before the plan was regenerated, and save none of it', async () => {
-    const { authed, path, tick, read } = await setup();
-    const regenerated = await authed(`${path}/regenerate`, { method: 'POST', body: {} });
-    expect(((await regenerated.json()) as Json).revision).toBe(2);
+    const { regenerate, tick, read } = await setup();
+    expect((await regenerate({ revision: 1 })).body.revision).toBe(2);
     // A tick queued on a phone against revision 1, retried after the regeneration.
     expect(await tick(1, 'frames')).toEqual({
       status: 409,
@@ -99,6 +102,28 @@ describe('project revisions', () => {
     });
     expect((await read()).ticks).toEqual([]);
     expect((await tick(2, 'frames')).status).toBe(200);
+  });
+
+  it('refuse a regeneration asked for on an older revision, and regenerate nothing', async () => {
+    const { put, regenerate, read } = await setup();
+    // The laptop's version notice was computed at revision 1. The phone then saves new
+    // parameters, so regenerating now would store a plan the owner was not shown.
+    await put({ params: { ...swingSetParams, crossbarHeight: 44 }, revision: 1 });
+    const before = await read();
+    expect(await regenerate({ revision: 1 })).toEqual({
+      status: 409,
+      body: { error: 'stale-project', revision: 2 },
+    });
+    const after = await read();
+    expect(after.revision).toBe(2);
+    expect(after.snapshot).toEqual(before.snapshot);
+    expect((await regenerate({ revision: 2 })).body.revision).toBe(3);
+  });
+
+  it('need a revision to regenerate', async () => {
+    const { regenerate, read } = await setup();
+    expect((await regenerate({})).status).toBe(400);
+    expect((await read()).revision).toBe(1);
   });
 
   it('refuse a tick made before a save that changed the plan', async () => {

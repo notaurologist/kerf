@@ -12,6 +12,7 @@ import {
   InfoNotice,
   InlineConfirm,
   List,
+  Notice,
   Stack,
   Text,
   useReturnFocus,
@@ -24,12 +25,17 @@ import { PlanOutputs } from '../project-editor/Preview.tsx';
 export function VersionNotice(props: {
   project: Project;
   onRegenerated: (project: Project) => void;
+  /** Shows the project as another device saved it, after a regeneration refused for that. */
+  onNewer?: (project: Project) => void;
 }) {
   const { project } = props;
   const report = project.version;
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The revision a regeneration was refused at. A newer project, however it arrives, clears it.
+  const [refusedAt, setRefusedAt] = useState<number | null>(null);
+  const stale = refusedAt === project.revision;
   const trigger = useReturnFocus(confirming);
   if (!report || report.status === 'current') return null;
 
@@ -48,14 +54,31 @@ export function VersionNotice(props: {
   const regenerate = async () => {
     setBusy(true);
     setError(null);
+    // The revision this notice's changes were computed at, so another device's save since is
+    // refused rather than regenerated unseen (0018).
     const result = await send(
-      api.api.projects[':id'].regenerate.$post({ param: { id: project.id } }),
+      api.api.projects[':id'].regenerate.$post({
+        param: { id: project.id },
+        json: { revision: project.revision },
+      }),
     );
     setBusy(false);
     if (result.ok) {
       setConfirming(false);
       props.onRegenerated(result.value);
+    } else if (result.error.kind === 'stale') {
+      setConfirming(false);
+      setRefusedAt(project.revision);
     } else setError(describeError(result.error));
+  };
+
+  const loadNewer = async () => {
+    setBusy(true);
+    setError(null);
+    const result = await send(api.api.projects[':id'].$get({ param: { id: project.id } }));
+    setBusy(false);
+    if (result.ok) props.onNewer?.(result.value);
+    else setError(describeError(result.error));
   };
 
   const { regenerated } = report;
@@ -95,7 +118,28 @@ export function VersionNotice(props: {
           </>
         )}
         {regenerated.ok &&
-          (confirming ? (
+          (stale ? (
+            <Stack gap="xs">
+              <Notice>
+                <b>Changed on another device.</b> This project was saved somewhere else after you
+                opened it here, so regenerating now could change other values than the ones listed.
+                Nothing was regenerated.
+              </Notice>
+              {error && <Notice>{error}</Notice>}
+              {props.onNewer && (
+                <Cluster>
+                  <Button
+                    variant="secondary"
+                    busy={busy}
+                    busyLabel="Loading…"
+                    onClick={() => void loadNewer()}
+                  >
+                    Load the newer version
+                  </Button>
+                </Cluster>
+              )}
+            </Stack>
+          ) : confirming ? (
             <InlineConfirm
               confirm="Regenerate"
               busyLabel="Regenerating…"
