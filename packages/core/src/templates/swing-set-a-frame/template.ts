@@ -87,8 +87,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * goes in, and the shopping list adds the preservative (#447). No number changes.
  * Version 28 also measures the gusset's bolts against the beam's weight, which crosses its grain:
  * end distance, the loaded top edge and the bottom edge, and spacing in a row (#456).
+ * Version 29 writes each bolt flag's count and size as the bolt layout does, "2 × 1/2\" bolts",
+ * which read as 2-1/2" before (#493). No number changes.
  */
-export const TEMPLATE_VERSION = 28;
+export const TEMPLATE_VERSION = 29;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

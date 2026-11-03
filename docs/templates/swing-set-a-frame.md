@@ -63,6 +63,8 @@ Template version 27 (#447) marks every part as treated lumber, so every cut and 
 
 Template version 28 (#456) also measures the gusset's bolts against the beam's weight, which pushes down across the gusset's grain (Bolt layout, below). Before, the gusset was measured only for load along its grain, which left the top edge, the loaded edge under the beam, at 1.5D where NDS 2024 sets 4D. In the worked example the top gusset bolt is 1.8125 (3.6D) from the top edge, under 2", so the gusset's expert check names it. No part, cut, or bolt moves.
 
+Template version 29 (#493) writes each bolt flag's count and size as the bolt layout row does: "Crossbar to leg, 2 × 1/2\" bolts", which read as 2-1/2" bolts before. A flag's progress key is its ask, so regenerating clears a tick on these flags in the structural review. No number changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
