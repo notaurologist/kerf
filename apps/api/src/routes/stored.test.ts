@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TEMPLATES } from '@kerf/core';
+import { recordCabinet, TEMPLATES } from '@kerf/core';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 import { swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
@@ -167,6 +167,47 @@ describe('response sizes', () => {
     const drawings = await authed(`/api/projects/${id}/drawings`);
     expect(drawings.status).toBe(200);
     expect(bytes(await drawings.text())).toBeLessThan(DRAWINGS_BUDGET);
+    await close();
+  });
+
+  // Narrower boards make more board drawings. The most boards found within the ranges: the
+  // narrowest boards a panel accepts, the most jointing allowance, 2' lengths (the shortest that
+  // hold the pieces), and the largest four-bay case.
+  it('keeps a record cabinet of its narrowest boards under budget', async () => {
+    const template = recordCabinet.definition;
+    const [example] = template.examples;
+    if (!example) throw new Error('no worked example');
+    const narrowest = 1.5;
+    const withBoards = (width: number) => ({
+      ...example.params,
+      width: 72,
+      bays: 4,
+      caseDepth: 20,
+      bayHeight: 18,
+      board: { source: 'store' as const, thickness: 0.8125, width, lengths: [2] },
+      allowances: { ...example.params.allowances, jointPerEdge: 0.25 },
+    });
+    expect(template.params.safeParse(withBoards(narrowest)).success).toBe(true);
+    expect(template.params.safeParse(withBoards(narrowest - 0.0625)).success).toBe(false);
+
+    const { authed, close } = await createTestApp();
+    const created = await authed('/api/projects', {
+      method: 'POST',
+      body: {
+        name: 'Narrow boards',
+        templateId: template.id,
+        params: withBoards(narrowest),
+        structuralInputs: example.structuralInputs,
+      },
+    });
+    expect(created.status).toBe(201);
+    const { id } = (await created.json()) as { id: string };
+    const drawings = await authed(`/api/projects/${id}/drawings`);
+    expect(drawings.status).toBe(200);
+    const text = await drawings.text();
+    const { drawings: drawn } = JSON.parse(text) as { drawings: { boards: unknown[] } };
+    expect(drawn.boards.length).toBeGreaterThan(150);
+    expect(bytes(text)).toBeLessThan(DRAWINGS_BUDGET);
     await close();
   });
 });
