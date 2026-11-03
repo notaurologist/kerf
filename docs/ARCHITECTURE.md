@@ -174,7 +174,7 @@ The preference order is the order of `METHODS` in `knowledge/methods.ts`, where 
 | `POST /api/login`, `POST /api/logout`, `GET /api/session` | Login and session (0007) |
 | `GET /api/templates` | Templates with their current version, name, and a one-sentence description |
 | `GET /api/templates/:id/drawing` | The template's first worked example drawn assembled, for choosing a template (#357); drawn by core on the first request and kept |
-| `GET/PUT /api/tools` | Tool inventory: library tools with their capabilities; `PUT` replaces the whole list |
+| `GET/PUT /api/tools` | Tool inventory: library tools with their capabilities, and its `revision`; `PUT` replaces the whole list and must send the revision it was read at, answering 409 `stale-tools` with the current one, saving nothing, if another save came first (0018, #426) |
 | `GET /api/projects`, `POST /api/projects` | List (summaries, no snapshots) and create. Each summary carries `progress`: shopping lines bought, steps done, and the next step, counted by core's `progressSummary` from the stored plan and its ticks (#61), for the Resume card |
 | `POST /api/projects/preview` | Dry run for the new-project screen (#98): takes the create body (name and status optional), generates the snapshot with the template's current version, and returns it with no changed paths, since there is nothing saved to compare with. Saves nothing; 422 with core's issues and 400 for an unknown template, like create |
 | `GET /api/projects/:id` | The stored snapshot (upgraded to the current shape if needed, 0014), plus a version report: `current`, `ahead`, or `behind` with the outputs regenerating would store and what it would change, as paths in the template's `plan` that the edit preview also uses (or the issues that stop it), the plan's drawings, drawn by core from the stored snapshot on each read (#91), its build steps, with methods chosen from the current tool inventory and that inventory's key (`inventoryKey`), so the shop view needs no other request and a stale step list can be detected (#52), and its `ticks` and `progress` (#61) |
@@ -205,6 +205,7 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 
 | Table | Contents |
 |---|---|
+| `tools_revision` | One row: the tool list's revision, raised by each save (0018) |
 | `tools` | Library tool type ID and the capabilities entered. Rows are read through core's `readStoredTools`, which leaves out a type the library lacks and capabilities it cannot use; they are rewritten when the owner next saves the inventory |
 | `projects` | Name, status, template ID, template version, snapshot (JSON, holding the parameters and structural inputs), timestamps, and `deleted_at`, set while the project is in the trash (#21) |
 | `project_history` | One row per operation in a project: operation ID and type, the method chosen (null when the inventory supported none), its skills, and the key of the inventory it was chosen from. Replaced in the same transaction whenever a snapshot is saved (create, a parameter or input change, regenerate), not on a rename or status change. A unique index on `(project_id, operation_id)` keeps it to one row per operation. The release step writes rows for projects that have none and keeps rows that exist (#106). Used later for references to past projects |

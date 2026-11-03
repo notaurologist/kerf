@@ -1,4 +1,10 @@
-import { capabilityForm, findToolType, TOOL_GROUP_LABELS, TOOL_GROUPS } from '@kerf/core';
+import {
+  capabilityForm,
+  findToolType,
+  type RevisedInventory,
+  TOOL_GROUP_LABELS,
+  TOOL_GROUPS,
+} from '@kerf/core';
 import { useEffect, useRef, useState } from 'react';
 import { api, type FieldIssue, failureOf, type SaveState, send } from '../../lib/api.ts';
 import { FieldInput } from '../../lib/FieldInput.tsx';
@@ -13,6 +19,7 @@ import {
   Field,
   Grid,
   InputNeeded,
+  Notice,
   Row,
   Rows,
   SaveFailed,
@@ -50,6 +57,12 @@ const TYPING_MS = 800;
 
 export function ToolsScreen() {
   const { loaded, set, reload } = useLoad(() => send(api.api.tools.$get()), 'tools');
+  // The editor starts again from the list when the owner loads the newer one.
+  const [generation, setGeneration] = useState(0);
+  const loadNewer = async () => {
+    await reload();
+    setGeneration((g) => g + 1);
+  };
   return (
     <Loaded
       state={loaded}
@@ -58,14 +71,26 @@ export function ToolsScreen() {
       onRetry={reload}
       title="My toolbox"
     >
-      {(inventory) => <ToolsEditor saved={fromInventory(inventory)} onSaved={set} />}
+      {(inventory) => (
+        <ToolsEditor
+          key={generation}
+          saved={fromInventory(inventory)}
+          revision={inventory.revision}
+          onSaved={set}
+          onReload={loadNewer}
+        />
+      )}
     </Loaded>
   );
 }
 
 export function ToolsEditor(props: {
   saved: InventoryDraft;
-  onSaved?: (inventory: Parameters<typeof fromInventory>[0]) => void;
+  /** The revision of the list `saved` was read from; a save names it (#426). */
+  revision: number;
+  onSaved?: (inventory: RevisedInventory) => void;
+  /** Loads the list again, for when another device saved it after this one was opened. */
+  onReload?: () => void;
 }) {
   // What the server has, so leaving with a change not yet saved asks first.
   const [stored, setStored] = useState(props.saved);
@@ -73,24 +98,52 @@ export function ToolsEditor(props: {
   const { issues, attempt, report } = useFormIssues<FieldIssue[]>([]);
   const [save, setSave] = useState<SaveState>({ state: 'idle' });
   const [removed, setRemoved] = useState<{ tools: ToolDraft[]; name: string } | null>(null);
+  // The revision the next save names. Saves go one at a time, each naming the revision the last
+  // one left, so this device's own saves never refuse each other.
+  const revision = useRef(props.revision);
+  const sending = useRef<Promise<void>>(Promise.resolve());
+  // Set when a save was refused: edits wait for the owner's choice instead of saving.
+  const [stale, setStale] = useState<number | null>(null);
+  const staleRef = useRef<number | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  const saveNow = async (next: InventoryDraft) => {
-    clearTimeout(timer.current);
+  const sendDraft = async (next: InventoryDraft) => {
+    if (staleRef.current !== null) return;
     const checked = toInventory(next);
     report(checked.ok ? [] : checked.issues, !checked.ok);
     if (!checked.ok) return;
     setSave({ state: 'saving' });
-    const result = await send(api.api.tools.$put({ json: checked.inventory }));
+    const result = await send(
+      api.api.tools.$put({ json: { ...checked.inventory, revision: revision.current } }),
+    );
     if (result.ok) {
+      revision.current = result.value.revision;
       setSave({ state: 'saved' });
       setStored(next);
       props.onSaved?.(result.value);
+    } else if (result.error.kind === 'stale') {
+      staleRef.current = result.error.revision;
+      setStale(result.error.revision);
+      setSave({ state: 'idle' });
     } else {
       if (result.error.kind === 'invalid') report(result.error.issues, true);
       setSave({ state: 'failed', failure: failureOf(result.error) });
     }
+  };
+  const saveNow = (next: InventoryDraft) => {
+    clearTimeout(timer.current);
+    const turn = sending.current.then(() => sendDraft(next));
+    sending.current = turn;
+    return turn;
+  };
+  /** Saves what is on screen over the newer list, naming its revision. */
+  const saveOver = () => {
+    if (staleRef.current === null) return;
+    revision.current = staleRef.current;
+    staleRef.current = null;
+    setStale(null);
+    void saveNow(draft);
   };
   /** A tool added or removed saves at once; typing waits for a pause. */
   const change = (next: InventoryDraft, when: 'now' | 'after-typing') => {
@@ -150,6 +203,24 @@ export function ToolsEditor(props: {
       />
       <ErrorSummary items={summaryItems(issues)} attempt={attempt} />
       {save.state === 'failed' && issues.length === 0 && <SaveFailed failure={save.failure} />}
+      {stale !== null && (
+        <Stack gap="xs">
+          <Notice>
+            <b>Changed on another device.</b> The tool list was saved somewhere else after you
+            opened it here. Your changes are still on this screen and are not saved.
+          </Notice>
+          <Cluster>
+            <Button variant="secondary" onClick={saveOver}>
+              Save my changes over it
+            </Button>
+            {props.onReload && (
+              <Button variant="secondary" onClick={props.onReload}>
+                Load the newer list
+              </Button>
+            )}
+          </Cluster>
+        </Stack>
+      )}
 
       {owned.length === 0 ? (
         <Text>No tools yet. Add the ones you have, and build steps choose methods from them.</Text>

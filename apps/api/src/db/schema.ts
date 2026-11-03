@@ -31,6 +31,20 @@ export const tools = pgTable('tools', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// The tool list's revision (#426): one row, raised by each save of the list, so a save made on an
+// older list is refused. The list has no row of its own to hold it, since it is replaced whole.
+export const toolsRevision = pgTable(
+  'tools_revision',
+  {
+    id: integer('id').primaryKey().default(1),
+    revision: integer('revision').notNull().default(1),
+  },
+  (t) => [
+    check('tools_revision_single_row', sql`${t.id} = 1`),
+    check('tools_revision_positive', sql`${t.revision} > 0`),
+  ],
+);
+
 export const PROJECT_STATUSES = ['planned', 'in-progress', 'built'] as const;
 
 // A project and its stored snapshot. The snapshot is regenerated only when the parameters or

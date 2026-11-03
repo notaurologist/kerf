@@ -152,7 +152,7 @@ describe('GET /api/projects/:id/views/:corner (#364)', () => {
 
 describe('GET /api/projects/:id build steps (#52)', () => {
   it('returns every build step in the project response, chosen from the current inventory', async () => {
-    const { authed } = await createTestApp();
+    const { authed, putTools } = await createTestApp();
     const { body } = await create(authed);
     const read = async () => (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
 
@@ -176,7 +176,7 @@ describe('GET /api/projects/:id build steps (#52)', () => {
         { toolTypeId: 'tape-measure', capabilities: {} },
       ],
     };
-    expect((await authed('/api/tools', { method: 'PUT', body: tools })).status).toBe(200);
+    expect((await putTools(tools)).status).toBe(200);
     const after = await read();
     expect(after.steps.inventoryKey).toBe(inventoryKey(tools));
     expect(after.steps.inventoryKey).not.toBe(before.steps.inventoryKey);
@@ -229,10 +229,10 @@ describe('project history (#106)', () => {
   });
 
   it('replaces the rows when the parameters change or the project is regenerated, not on a rename', async () => {
-    const { authed, client } = await createTestApp();
+    const { authed, client, putTools } = await createTestApp();
     const { body } = await create(authed);
     const before = await history(client, body.id);
-    expect((await authed('/api/tools', { method: 'PUT', body: miterSaw })).status).toBe(200);
+    expect((await putTools(miterSaw)).status).toBe(200);
 
     // A rename keeps the snapshot, so its history stands.
     await authed(`/api/projects/${body.id}`, {
@@ -257,7 +257,7 @@ describe('project history (#106)', () => {
     });
 
     // Regenerating rewrites them too, from the tools at that moment.
-    await authed('/api/tools', { method: 'PUT', body: { tools: [] } });
+    await putTools({ tools: [] });
     const regenerated = await authed(`/api/projects/${body.id}/regenerate`, {
       method: 'POST',
       body: { revision: 3 },
@@ -268,12 +268,12 @@ describe('project history (#106)', () => {
   });
 
   it('backfills rows at release for projects that have none, and keeps rows that exist', async () => {
-    const { authed, client, db } = await createTestApp();
+    const { authed, client, db, putTools } = await createTestApp();
     const first = await create(authed);
     const second = await create(authed, { ...newProject, name: 'Second' });
     await client.query('delete from project_history where project_id = $1', [first.body.id]);
     const kept = await history(client, second.body.id);
-    await authed('/api/tools', { method: 'PUT', body: miterSaw });
+    await putTools(miterSaw);
 
     const backfill = () => backfillHistory({ db, templates: TEMPLATES, now: () => new Date() });
     const result = await backfill();

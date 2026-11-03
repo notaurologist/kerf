@@ -91,6 +91,13 @@ export const Inventory = z.object({
 });
 export type Inventory = z.infer<typeof Inventory>;
 
+/**
+ * The inventory with the revision it was read at, which a save must send back (#426). A save made
+ * on an older list is refused, so two devices cannot overwrite each other.
+ */
+export const RevisedInventory = Inventory.extend({ revision: z.number().int().positive() });
+export type RevisedInventory = z.infer<typeof RevisedInventory>;
+
 /** The capabilities of a tool not yet entered: each is "input needed". */
 export function missingCapabilities(tool: Tool): CapabilityField[] {
   return (

@@ -1,7 +1,7 @@
-import { Inventory, readStoredTools } from '@kerf/core';
+import { Inventory, type RevisedInventory, readStoredTools } from '@kerf/core';
 import { asc, sql } from 'drizzle-orm';
 import type { Database } from '../db/client.ts';
-import { tools } from '../db/schema.ts';
+import { tools, toolsRevision } from '../db/schema.ts';
 
 // The tool inventory, stored as one row per library tool. Its schema lives in core so the web app
 // checks it the same way before saving. Rows are read through `readStoredTools`, which leaves out
@@ -19,13 +19,34 @@ export async function getInventory(db: Database): Promise<Inventory> {
   return Inventory.parse({ tools: readStoredTools(rows) });
 }
 
+/** The inventory with its revision. A database with no revision row yet reads as revision 1. */
+export async function getRevisedInventory(db: Database): Promise<RevisedInventory> {
+  const [row] = await db.select({ revision: toolsRevision.revision }).from(toolsRevision);
+  return { ...(await getInventory(db)), revision: row?.revision ?? 1 };
+}
+
+export type ReplaceResult =
+  | { ok: true; value: RevisedInventory }
+  | { ok: false; error: 'stale-tools'; revision: number };
+
 /**
- * Replaces the whole inventory in one transaction. Saves that arrive together take turns, so each
- * replaces the last instead of colliding on positions; reads are not blocked.
+ * Replaces the whole inventory in one transaction, if `revision` is the stored one, and raises the
+ * revision. Saves that arrive together take turns, so each is checked against the last instead of
+ * colliding on positions; reads are not blocked. A refused save changes nothing (#426).
  */
-export async function replaceInventory(db: Database, inventory: Inventory, now: Date) {
-  await db.transaction(async (tx) => {
+export async function replaceInventory(
+  db: Database,
+  inventory: Inventory,
+  revision: number,
+  now: Date,
+): Promise<ReplaceResult> {
+  return db.transaction(async (tx): Promise<ReplaceResult> => {
     await tx.execute(sql`lock table ${tools} in exclusive mode`);
+    // Present after migration 0015; inserted here too so a missing row cannot block a save.
+    await tx.insert(toolsRevision).values({ id: 1 }).onConflictDoNothing();
+    const [row] = await tx.select({ revision: toolsRevision.revision }).from(toolsRevision);
+    const current = row?.revision ?? 1;
+    if (revision !== current) return { ok: false, error: 'stale-tools', revision: current };
     await tx.delete(tools);
     if (inventory.tools.length > 0) {
       await tx.insert(tools).values(
@@ -37,5 +58,7 @@ export async function replaceInventory(db: Database, inventory: Inventory, now: 
         })),
       );
     }
+    await tx.update(toolsRevision).set({ revision: current + 1 });
+    return { ok: true, value: { ...(await getInventory(tx)), revision: current + 1 } };
   });
 }
