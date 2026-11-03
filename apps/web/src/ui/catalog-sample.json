@@ -1,8 +1,8 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 30,
-    "snapshotVersion": 17,
+    "templateVersion": 31,
+    "snapshotVersion": 18,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -4355,8 +4355,8 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 30,
-    "snapshotVersion": 17,
+    "templateVersion": 31,
+    "snapshotVersion": 18,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -4402,7 +4402,8 @@
           "diameter": 0.375,
           "perHanger": 2,
           "holeHeight": 1.5
-        }
+        },
+        "anchorRating": 500
       }
     },
     "structuralInputs": {
@@ -4466,7 +4467,8 @@
               "diameter": 0.375,
               "perHanger": 2,
               "holeHeight": 1.5
-            }
+            },
+            "anchorRating": 500
           }
         },
         "geometry": {
@@ -8801,6 +8803,285 @@
             "value": 8.000000000000002
           }
         },
+        "anchors": {
+          "kind": "hardware",
+          "title": "Rated load",
+          "subject": "Ground anchor",
+          "loadCase": "Strength: swing load times the dynamic factor",
+          "status": "computed",
+          "inputs": [
+            {
+              "symbol": "W1",
+              "label": "Rider on left swing, with seat and chain",
+              "value": 150,
+              "unit": "lb",
+              "basis": "Entered",
+              "input": "riderWeights.0"
+            },
+            {
+              "symbol": "W2",
+              "label": "Rider on right swing, with seat and chain",
+              "value": 150,
+              "unit": "lb",
+              "basis": "Entered",
+              "input": "riderWeights.1"
+            },
+            {
+              "symbol": "θ",
+              "label": "Maximum swing angle",
+              "value": 60,
+              "unit": "°",
+              "basis": "Entered",
+              "input": "maxSwingAngle"
+            },
+            {
+              "symbol": "MC",
+              "label": "Beam moisture content",
+              "value": 30,
+              "unit": "%",
+              "basis": "Entered",
+              "input": "beamMoistureContent"
+            },
+            {
+              "symbol": "G",
+              "label": "Specific gravity, oven-dry",
+              "value": 0.55,
+              "unit": "",
+              "basis": "Table 4B, 5\" - 6\" wide",
+              "sources": [
+                {
+                  "source": "nds-supplement-2024",
+                  "locator": "Table 4B, Southern Pine, pp. 40-41",
+                  "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/08/AWC_NDS2024-Supplement_20240719_Chapter-4-Reference-Design-Values_Website-1.pdf"
+                },
+                {
+                  "source": "spib-southern-pine-2013",
+                  "locator": "Table 1 (corroborating)"
+                }
+              ]
+            },
+            {
+              "symbol": "ρ",
+              "label": "Beam density at that moisture content",
+              "value": 38.94043203142047,
+              "unit": "lb/ft³",
+              "sources": [
+                {
+                  "source": "fpl-gtr-76",
+                  "locator": "Equations 4 and 6 to 9, pp. 1-3"
+                },
+                {
+                  "source": "nds-supplement-2024",
+                  "locator": "3.1.3 density formula, p. 12 (corroborating up to 30% moisture content)",
+                  "url": "https://awc.org/pdf-viewer/index.html#https://web-media.awc.org/wp-content/uploads/2021/10/17210145/AWC_NDS2024-Supplement_20231129_AWCWebsite_Section-Properties.pdf"
+                }
+              ]
+            },
+            {
+              "symbol": "A",
+              "label": "Beam cross-section, all plies",
+              "value": 16.5,
+              "unit": "in²"
+            },
+            {
+              "symbol": "w",
+              "label": "Beam weight, ρ·A / 1728",
+              "value": 0.37182704196668853,
+              "unit": "lb/in"
+            },
+            {
+              "symbol": "D",
+              "label": "Beam's weight on each frame, w·L / 2",
+              "value": 22.309622518001312,
+              "unit": "lb"
+            },
+            {
+              "symbol": "W_left",
+              "label": "Riders carried by the left frame, by the beam's span",
+              "value": 150.00000000000003,
+              "unit": "lb"
+            },
+            {
+              "symbol": "W_right",
+              "label": "Riders carried by the right frame, by the beam's span",
+              "value": 149.99999999999997,
+              "unit": "lb"
+            },
+            {
+              "symbol": "F_left",
+              "label": "Largest fore-and-aft force on the left frame, smooth swing",
+              "value": 126.02322658933136,
+              "unit": "lb",
+              "sources": [
+                {
+                  "source": "openstax-university-physics-1",
+                  "locator": "8.3, Example 8.7, Simple Pendulum",
+                  "url": "https://openstax.org/books/university-physics-volume-1/pages/8-3-conservation-of-energy"
+                },
+                {
+                  "source": "openstax-university-physics-1",
+                  "locator": "6.3, Centripetal Force",
+                  "url": "https://openstax.org/books/university-physics-volume-1/pages/6-3-centripetal-force"
+                }
+              ]
+            },
+            {
+              "symbol": "F_right",
+              "label": "Largest fore-and-aft force on the right frame, smooth swing",
+              "value": 126.0232265893313,
+              "unit": "lb",
+              "sources": [
+                {
+                  "source": "openstax-university-physics-1",
+                  "locator": "8.3, Example 8.7, Simple Pendulum",
+                  "url": "https://openstax.org/books/university-physics-volume-1/pages/8-3-conservation-of-energy"
+                },
+                {
+                  "source": "openstax-university-physics-1",
+                  "locator": "6.3, Centripetal Force",
+                  "url": "https://openstax.org/books/university-physics-volume-1/pages/6-3-centripetal-force"
+                }
+              ]
+            },
+            {
+              "symbol": "y_b",
+              "label": "Back foot, from under the beam",
+              "value": 38.13870758280422,
+              "unit": "in"
+            },
+            {
+              "symbol": "z_b",
+              "label": "Back foot height",
+              "value": 0,
+              "unit": "in"
+            },
+            {
+              "symbol": "y_f",
+              "label": "Front foot, from under the beam",
+              "value": -38.13870758280422,
+              "unit": "in"
+            },
+            {
+              "symbol": "z_f",
+              "label": "Front foot height",
+              "value": 0,
+              "unit": "in"
+            },
+            {
+              "symbol": "U",
+              "label": "Uplift, left frame, back foot, smooth swing",
+              "value": 79.76227406645035,
+              "unit": "lb"
+            },
+            {
+              "symbol": "U",
+              "label": "Uplift, left frame, front foot, smooth swing",
+              "value": 79.76227406645035,
+              "unit": "lb"
+            },
+            {
+              "symbol": "U",
+              "label": "Uplift, right frame, back foot, smooth swing",
+              "value": 79.76227406645032,
+              "unit": "lb"
+            },
+            {
+              "symbol": "U",
+              "label": "Uplift, right frame, front foot, smooth swing",
+              "value": 79.76227406645032,
+              "unit": "lb"
+            },
+            {
+              "symbol": "c_v",
+              "label": "Left frame, back foot: share of the downward load",
+              "value": 0.5,
+              "unit": ""
+            },
+            {
+              "symbol": "c_h",
+              "label": "Left frame, back foot: overturning per pound of fore-and-aft force",
+              "value": 1.2585638854118377,
+              "unit": ""
+            },
+            {
+              "symbol": "φ",
+              "label": "Left frame, back foot: chain angle where the foot lifts most",
+              "value": 47.071583056443444,
+              "unit": "°"
+            },
+            {
+              "symbol": "S",
+              "label": "Left frame, back foot: swing's pull at factor 1",
+              "value": 90.917085325451,
+              "unit": "lb"
+            },
+            {
+              "symbol": "D·c_v",
+              "label": "Left frame, back foot: beam's weight holding it down",
+              "value": 11.154811259000656,
+              "unit": "lb"
+            },
+            {
+              "symbol": "n",
+              "label": "Ground anchors per leg foot",
+              "value": 1,
+              "unit": "",
+              "basis": "Entered from the anchor maker's instructions"
+            },
+            {
+              "symbol": "C_dyn",
+              "label": "Dynamic factor",
+              "value": 2,
+              "unit": "",
+              "basis": "Entered",
+              "input": "dynamicFactor"
+            },
+            {
+              "symbol": "R_rated",
+              "label": "Rated working load, one piece",
+              "value": 500,
+              "unit": "lb",
+              "basis": "Entered from the manufacturer's specification"
+            }
+          ],
+          "formulas": [
+            "P = C_dyn · load before the factor + the part it does not multiply",
+            "margin = rated working load / computed load"
+          ],
+          "steps": [],
+          "factors": [],
+          "assumptions": [
+            "Chain tension at angle φ on the way down from θ is W·(3·cos φ − 2·cos θ); its fore-and-aft part pushes the frame over the foot it pivots on.",
+            "Both swings are at the same angle at the same time (riders in sync), so their loads add.",
+            "Each swing's load is split equally between its two hangers (a centered rider), and between the frames by the beam's span.",
+            "The lifting foot bears nothing, so the whole fore-and-aft reaction is at the other foot. Moments about that foot give the pull.",
+            "The beam's weight holds the feet down. The legs, crossbars, and gussets would too, but no species is entered for them, so their weight is left out, which makes the uplift larger.",
+            "The frame's own inertia is left out. Sliding along the ground is not computed.",
+            "The dynamic factor multiplies the swing loads, not the weight.",
+            "The anchor holds its rated pull-out in this soil, fastened to the leg as its maker specifies.",
+            "The rating is the manufacturer's working load for this use, installed as the manufacturer specifies."
+          ],
+          "sources": [],
+          "computed": {
+            "symbol": "P",
+            "label": "Load on one piece",
+            "value": 170.67935939190133,
+            "unit": "lb"
+          },
+          "allowable": {
+            "symbol": "R_rated",
+            "label": "Rated working load",
+            "value": 500,
+            "unit": "lb"
+          },
+          "margin": 2.9294696311341135,
+          "breakEven": {
+            "key": "dynamicFactor",
+            "symbol": "C_dyn",
+            "label": "Dynamic factor",
+            "value": 5.62220851481597
+          }
+        },
         "checklist": [
           {
             "category": "bolted-connections",
@@ -8869,8 +9150,8 @@
             "hardwareIds": [
               "ground-anchors"
             ],
-            "confirm": "Anchor type and count (1 per foot) and how they are buried or covered.",
-            "why": "Anchors keep the frame from lifting, tipping, and walking; tipping and anchoring are not computed."
+            "confirm": "Anchor type and count (1 per foot), that the rated pull-out holds in this soil, how each anchor is fastened to its leg, and how they are buried or covered.",
+            "why": "The anchor check gives the pull on one anchor from the swing alone; the soil, the fastening to the leg, and sliding along the ground are not computed."
           },
           {
             "category": "bolted-connections",
@@ -8911,8 +9192,8 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 30,
-    "snapshotVersion": 17,
+    "templateVersion": 31,
+    "snapshotVersion": 18,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,

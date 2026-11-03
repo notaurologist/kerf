@@ -1048,7 +1048,8 @@ describe('swing-set template versions', () => {
   // Hand check in structural.test.ts and the spec's example 4. The two-ply example on pads gets the
   // anchor check; the buried worked example gets none, so it changes nothing.
   it('version 31 checks the ground anchors on pads against uplift, and changes nothing else (#467)', () => {
-    const keep31 = [false, false, false, false, false, false, false, false, false, false] as const;
+    // Version 29's filter would also hide the checklist item's confirm, so it is kept.
+    const keep31 = [false, false, false, false, false, false, false, false, true, false] as const;
     const added: unknown[] = [];
     for (const stored of v30) {
       const snapshot = read(stored);
