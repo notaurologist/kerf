@@ -125,9 +125,9 @@ describe('ProjectView, from a stored snapshot', () => {
 
 describe('the plan’s hardware list', () => {
   const hardware: HardwareLine[] = [
-    { description: 'Bolts', quantity: 4, group: 'Bolts and fittings' },
-    { description: 'Hangers', quantity: 4, group: 'Swing hardware' },
-    { description: 'Washers', quantity: 8, group: 'Bolts and fittings' },
+    { description: 'Bolts', quantity: 4, group: 'Bolts and fittings', notes: [] },
+    { description: 'Hangers', quantity: 4, group: 'Swing hardware', notes: [] },
+    { description: 'Washers', quantity: 8, group: 'Bolts and fittings', notes: [] },
   ];
   const plan = readPlan(projectFrom(workedExample));
   if (!plan.ok) throw new Error(plan.message);
@@ -140,7 +140,9 @@ describe('the plan’s hardware list', () => {
   });
 
   it('has no group headings for a plan made before groups', () => {
-    const text = list(hardware.map(({ description, quantity }) => ({ description, quantity })));
+    const text = list(
+      hardware.map(({ description, quantity, notes }) => ({ description, quantity, notes })),
+    );
     expect(text).not.toContain('Bolts and fittings');
     expect(text).toMatch(/4 Bolts .*4 Hangers .*8 Washers/);
   });

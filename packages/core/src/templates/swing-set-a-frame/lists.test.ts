@@ -179,17 +179,38 @@ describe('hardwareList', () => {
   const out = output(example);
   const list = hardwareList(out.hardware);
 
-  it('groups bolts by diameter and grip and totals the fittings', () => {
+  it('groups bolts by diameter and length and totals the fittings', () => {
     const bolts = 'Bolts and fittings';
     const swing = 'Swing hardware';
-    expect(list).toEqual([
-      { description: '1/2" through-bolt, grip 8-15/16"', quantity: 2, group: bolts },
-      { description: '1/2" through-bolt, grip 5"', quantity: 16, group: bolts },
+    expect(list.map(({ notes, ...line }) => line)).toEqual([
+      { description: '1/2" × 10" through-bolt', quantity: 2, group: bolts },
+      { description: '1/2" × 6" through-bolt', quantity: 16, group: bolts },
       { description: '1/2" flat washers', quantity: 36, group: bolts },
       { description: '1/2" locking nuts', quantity: 18, group: bolts },
       { description: '1/2" bolt caps', quantity: 18, group: bolts },
       { description: 'Swing hangers', quantity: 4, group: swing },
       { description: 'Swing seats with chain', quantity: 2, group: swing },
+    ]);
+  });
+
+  // Hand check (#449; spec, Hardware), 1/2" bolts: a USS washer is at most 0.132 thick and a
+  // nylon-insert locknut at most 0.609 high. Leg to beam, grip 8.947: 8.947 + 2 × 0.132 + 0.609 =
+  // 9.820 to 9.820 + 0.5 = 10.320, so 10", shown inward as 9-7/8" (157.1 sixteenths up to 158) to
+  // 10-5/16" (165.1 down to 165). Crossbars and gussets, grip 5: 5.873 to 6.373, so 6", shown as
+  // 5-7/8" (93.97 up to 94) to 6-5/16" (101.97 down to 101).
+  it('gives each bolt the length to buy, with its grip and the lengths that fit', () => {
+    const legBolt = out.hardware.find((h) => h.id === 'leg-beam-bolts');
+    expect(legBolt?.bolt?.grip).toBeCloseTo(8.947, 3);
+    expect(legBolt?.bolt?.length).toBe(10);
+    expect(list[0]?.notes).toEqual([
+      'Grip 8-15/16". Any length from 9-7/8" to 10-5/16" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2" past the nut (CPSC Pub. 324, p. 3).',
+    ]);
+    expect(list[1]?.notes).toEqual([
+      'Grip 5". Any length from 5-7/8" to 6-5/16" fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2" past the nut (CPSC Pub. 324, p. 3).',
+    ]);
+    // Swing hardware keeps its notes on its lines too.
+    expect(list[5]?.notes).toEqual([
+      'Rated for swing use. The rating is checked in the structural review.',
     ]);
   });
 
@@ -202,6 +223,7 @@ describe('hardwareList', () => {
       description: 'Ground anchors',
       quantity: 4,
       group: 'Ground anchors',
+      notes: ['Bury or cover the anchors (CPSC Pub. 324, p. 4).'],
     });
   });
 
@@ -213,6 +235,7 @@ describe('hardwareList', () => {
       description: 'Ground anchors',
       quantityNeeded: { key: 'hardware.anchorsPerFoot', label: 'Ground anchors per leg foot' },
       group: 'Ground anchors',
+      notes: ['Bury or cover the anchors (CPSC Pub. 324, p. 4).'],
     });
   });
 
@@ -239,9 +262,11 @@ describe('hardwareList', () => {
     ]);
   });
 
-  it('states the bolt length rule and treatment compatibility', () => {
-    expect(out.hardwareNotes.join(' ')).toContain('no more than one bolt diameter past the nut');
+  it('states treatment compatibility and the materials the IRC names for treated lumber', () => {
     expect(out.hardwareNotes.join(' ')).toContain('pressure treatment');
+    expect(out.hardwareNotes[1]).toBe(
+      'Bolts, washers, and nuts in pressure-treated lumber: hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, or mechanically galvanized steel to ASTM B695 Class 55 or heavier (IRC 2021 R317.3.1).',
+    );
   });
 
   it('keeps different diameters apart', () => {
@@ -252,9 +277,11 @@ describe('hardwareList', () => {
       }).hardware,
     );
     expect(mixed.filter((l) => l.description.includes('washers'))).toEqual([
-      { description: '1/2" flat washers', quantity: 32, group: 'Bolts and fittings' },
-      { description: '5/8" flat washers', quantity: 4, group: 'Bolts and fittings' },
+      { description: '1/2" flat washers', quantity: 32, group: 'Bolts and fittings', notes: [] },
+      { description: '5/8" flat washers', quantity: 4, group: 'Bolts and fittings', notes: [] },
     ]);
+    // 5/8": 8.947 + 2 × 0.160 + 0.765 = 10.032 to 10.657, so 10-1/2".
+    expect(mixed[0]?.description).toBe('5/8" × 10-1/2" through-bolt');
   });
 });
 

@@ -48,7 +48,17 @@ describe('Shopping mode', () => {
     expect(html).toContain(`href="#/projects/${p.id}"`);
     expect(text).toContain('1 of 11 bought.');
     expect(text).toContain(`1 × 2x6, 10' 0"`);
-    expect(text).toContain('2 × 1/2" through-bolt, grip 8-15/16"');
+    expect(text).toContain('2 × 1/2" × 10" through-bolt');
+    // Each hardware line's notes under it, and the list's notes after the last group (#449).
+    expect(text).toContain(
+      '2 × 1/2" × 10" through-bolt Grip 8-15/16". Any length from 9-7/8" to 10-5/16" fits',
+    );
+    expect(text).toContain(
+      'Swing seats with chain Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80"',
+    );
+    expect(text).toMatch(
+      /Bolts, washers, and nuts in pressure-treated lumber: .*\(IRC 2021 R317\.3\.1\)\.$/,
+    );
     expect(html.match(/type="checkbox"/g)).toHaveLength(11);
     expect(html.match(/checked=""/g)).toHaveLength(1);
   });

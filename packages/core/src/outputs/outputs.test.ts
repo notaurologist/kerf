@@ -273,9 +273,35 @@ describe('hardwareList', () => {
       bolt('c', 1, 0.5, 6),
     ]);
     expect(lines.slice(0, 2)).toEqual([
-      { description: '1/2" through-bolt, grip 5"', quantity: 5, group: 'Bolts' },
-      { description: '1/2" through-bolt, grip 6"', quantity: 1, group: 'Bolts' },
+      { description: '1/2" through-bolt, grip 5"', quantity: 5, group: 'Bolts', notes: [] },
+      { description: '1/2" through-bolt, grip 6"', quantity: 1, group: 'Bolts', notes: [] },
     ]);
+  });
+
+  it('names a bolt by the length to buy, and keeps lengths and grips apart', () => {
+    const lines = hardwareList([
+      bolt('a', 2, 0.5, 8.9, { length: 10 }),
+      bolt('b', 1, 0.5, 9, { length: 10 }),
+      bolt('c', 1, 0.5, 9.4, { length: 10.5 }),
+    ]);
+    expect(lines.slice(0, 3).map((l) => [l.description, l.quantity])).toEqual([
+      ['1/2" × 10" through-bolt', 2],
+      ['1/2" × 10" through-bolt', 1],
+      ['1/2" × 10-1/2" through-bolt', 1],
+    ]);
+  });
+
+  it("carries each item's notes to its line, once each", () => {
+    const noted = (id: string, notes: string[]) => ({ ...bolt(id, 1, 0.5, 5), notes });
+    const lines = hardwareList([
+      noted('a', ['Grip 5".', 'Galvanized.']),
+      noted('b', ['Galvanized.', 'Leg bolts.']),
+      { id: 'x', name: 'Hinge', quantity: 2, structural: false, notes: ['Brass.'], group: 'Other' },
+    ]);
+    expect(lines[0]?.notes).toEqual(['Grip 5".', 'Galvanized.', 'Leg bolts.']);
+    // Fittings have none of their own.
+    expect(lines.slice(1, -1).every((l) => l.notes.length === 0)).toBe(true);
+    expect(lines.at(-1)?.notes).toEqual(['Brass.']);
   });
 
   it('totals only the fittings each bolt calls for', () => {
@@ -285,11 +311,11 @@ describe('hardwareList', () => {
       bolt('c', 1, 0.375, 4, { washers: 0 }),
     ]);
     expect(lines.slice(3)).toEqual([
-      { description: '3/8" nuts', quantity: 1, group: 'Bolts' },
-      { description: '1/2" flat washers', quantity: 8, group: 'Bolts' },
-      { description: '1/2" locking nuts', quantity: 2, group: 'Bolts' },
-      { description: '1/2" nuts', quantity: 3, group: 'Bolts' },
-      { description: '1/2" bolt caps', quantity: 2, group: 'Bolts' },
+      { description: '3/8" nuts', quantity: 1, group: 'Bolts', notes: [] },
+      { description: '1/2" flat washers', quantity: 8, group: 'Bolts', notes: [] },
+      { description: '1/2" locking nuts', quantity: 2, group: 'Bolts', notes: [] },
+      { description: '1/2" nuts', quantity: 3, group: 'Bolts', notes: [] },
+      { description: '1/2" bolt caps', quantity: 2, group: 'Bolts', notes: [] },
     ]);
   });
 
@@ -298,7 +324,12 @@ describe('hardwareList', () => {
       { id: 'x', name: 'Hinge', quantity: 2, structural: false, notes: [], group: 'Other' },
       bolt('a', 1, 0.5, 5),
     ]);
-    expect(lines.at(-1)).toEqual({ description: 'Hinge', quantity: 2, group: 'Other' });
+    expect(lines.at(-1)).toEqual({
+      description: 'Hinge',
+      quantity: 2,
+      group: 'Other',
+      notes: [],
+    });
   });
 });
 

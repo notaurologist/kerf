@@ -513,6 +513,22 @@ describe('plan and drawings', () => {
       expect(notes).toMatch(/ask/i);
     },
   );
+
+  // Spec, Hardware: the cleat's thickness plus two-thirds of the case bottom's, to the nearest
+  // quarter inch (#449). Worked example: 13/16 + 2/3 × 3/4 = 1.3125, so 1-1/4", and the points stop
+  // 0.8125 + 0.75 − 1.25 = 5/16" short of the top face. Edge of range: 1-1/16 + 2/3 × 1 = 1.729, so
+  // 1-3/4", stopping 2.0625 − 1.75 = 5/16" short.
+  it('names the screw length to buy, and how far short of the top face the points stop', () => {
+    for (const [o, length] of [
+      [worked, '1-1/4"'],
+      [edge, '1-3/4"'],
+    ] as const) {
+      const line = o.hardware.find((h) => h.description.startsWith('Wood screws'));
+      expect(line?.description).toBe(`Wood screws, ${length} long`);
+      expect(line?.notes[0]).toContain('the points stop 5/16" short of its top face');
+    }
+    expect(worked.hardware[0]?.notes[0]).toContain('the cleat’s 13/16" plus');
+  });
 });
 
 describe('ranges that bound generation (spec, Ranges that bound generation)', () => {

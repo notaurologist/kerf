@@ -61,6 +61,19 @@ export function formatLength(inches: number, style: LengthStyle = 'inches'): str
   return `${feet}' ${inchesText(total % perFoot, true)}"`;
 }
 
+/**
+ * One end of a range of lengths, in inches, rounded inward to the 1/16 so that a length read from
+ * the display is inside the range: a lower limit rounds up, an upper limit down. `10.02` as a
+ * lower limit is `10-1/16"`, where `formatLength` would show `10"`, which is short.
+ */
+export function formatLimit(inches: number, side: 'min' | 'max'): string {
+  assertLength(inches);
+  // The allowance keeps float error from moving a limit already on a sixteenth.
+  const scaled = inches * SIXTEENTHS_PER_INCH;
+  const total = side === 'min' ? Math.ceil(scaled - 1e-9) : Math.floor(scaled + 1e-9);
+  return `${inchesText(total)}"`;
+}
+
 /** A board's length, stored in feet, shown as feet and inches. */
 export function formatBoardLength(feet: number): string {
   return formatLength(feet * 12, 'feet-inches');

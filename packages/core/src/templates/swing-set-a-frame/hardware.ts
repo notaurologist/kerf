@@ -1,10 +1,11 @@
 import type { HardwareItem, Issue } from '../../model/types.ts';
-import { formatLength } from '../../units/length.ts';
+import { boltLength } from '../../structural/boltLength.ts';
+import { formatLength, formatLimit } from '../../units/length.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
 import type { SwingSetParams } from './params.ts';
 
 // Hardware (docs/templates/swing-set-a-frame.md, Hardware). Sizes and counts are inputs; this
-// computes quantities and grips only.
+// computes quantities, grips, and the bolt lengths to buy.
 
 /** Where each item is found in a store (#59), in the order the checklist shows them. */
 const GROUPS = {
@@ -44,25 +45,34 @@ function bolts(
   diameter: number,
   grip: number,
 ): HardwareItem {
+  // CPSC Pub. 324, p. 3: a washer at each end, a locking nut, a cap on the exposed end, and no
+  // more than one bolt diameter past the nut.
+  const fittings = { washers: 2, nut: 'locking', cap: true } as const;
+  const fits = boltLength(diameter, grip, fittings.washers, fittings.nut, diameter);
   return {
     id,
     name,
     quantity,
-    // CPSC Pub. 324, p. 3: a washer at each end, a locking nut, and a cap on the exposed end.
-    bolt: { diameter, grip, washers: 2, nut: 'locking', cap: true },
+    bolt: { diameter, grip, ...(fits?.length ? { length: fits.length } : {}), ...fittings },
     structural: true,
-    // Worded as #68's audit asked (docs/design/words.html): the length after its subject.
     notes: [
-      `${formatLength(diameter)} through-bolt. Length: at least ${formatLength(grip)} plus two washers and a locking nut, and no more than ${formatLength(diameter)} past the nut.`,
+      fits
+        ? `Grip ${formatLength(grip)}. Any length from ${formatLimit(fits.min, 'min')} to ${formatLimit(fits.max, 'max')} fits: through the grip, two USS flat washers, and a nylon-insert locking nut, and no more than ${formatLength(diameter)} past the nut (CPSC Pub. 324, p. 3).`
+        : `Grip ${formatLength(grip)}. Length: at least the grip plus two washers and a locking nut, and no more than ${formatLength(diameter)} past the nut (CPSC Pub. 324, p. 3).`,
     ],
     group: GROUPS.bolts,
   };
 }
 
-/** Notes for the hardware shopping list, from the CPSC home handbook (spec, Hardware). */
+/**
+ * Notes for the hardware shopping list (spec, Hardware). The second follows IRC 2021 R317.3.1 and
+ * its exception 2, read November 2026. Its exception 1 lets steel bolts 1/2" and larger go
+ * uncoated, but CPSC Pub. 324, p. 3 asks for corrosion-resistant hardware on a play set, so the
+ * note names the code's materials for every bolt.
+ */
 export const HARDWARE_NOTES = [
-  'Bolt length: at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC Pub. 324, p. 3).',
   "All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC Pub. 324, p. 3).",
+  'Bolts, washers, and nuts in pressure-treated lumber: hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, or mechanically galvanized steel to ASTM B695 Class 55 or heavier (IRC 2021 R317.3.1).',
 ] as const;
 
 export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): HardwareItem[] {

@@ -22,6 +22,7 @@ import {
   Cluster,
   Disclosure,
   InputNeeded,
+  List,
   Material,
   Measured,
   ModeFrame,
@@ -175,6 +176,9 @@ export function ModeView(props: {
                       readingHref={readingHref(project, 'shop')}
                     />
                   )}
+                  {'description' in line && line.notes.length > 0 && (
+                    <PlainList gap="xs" items={line.notes} terms />
+                  )}
                   {'nominal' in line && (
                     <Disclosure
                       summary={
@@ -196,6 +200,7 @@ export function ModeView(props: {
             </PlainList>
           </Stack>
         ))}
+        {plan.plan.hardwareNotes.length > 0 && <List items={plan.plan.hardwareNotes} terms />}
       </>,
     );
   }

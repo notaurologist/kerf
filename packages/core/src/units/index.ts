@@ -4,6 +4,7 @@ export {
   formatBoardFeet,
   formatBoardLength,
   formatLength,
+  formatLimit,
   type LengthStyle,
   type RoundedSum,
   SIXTEENTHS_PER_INCH,

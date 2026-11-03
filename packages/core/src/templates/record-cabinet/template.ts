@@ -20,8 +20,10 @@ export const TEMPLATE_ID = 'record-cabinet';
  * only how its build steps read: every power-tool method says to wear eye protection, and hearing
  * protection for saws, routers, jointers and planers, and the leg taper cut with a circular saw
  * says to let the blade stop before lifting the saw (#457). Stored output is the same.
+ * Version 16 names the screw length to buy, from the cleat and case bottom, and carries each
+ * item's notes to its shopping line (#449).
  */
-export const TEMPLATE_VERSION = 15;
+export const TEMPLATE_VERSION = 16;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
@@ -35,6 +37,17 @@ export const CabinetDesign = z.object({
 export type CabinetDesign = z.infer<typeof CabinetDesign>;
 
 const GROUP = 'Glue and finish';
+
+/**
+ * The screws up through a cleat into the case bottom (spec, Hardware): the cleat's thickness plus
+ * two-thirds of the bottom's, a rule of thumb, to the nearest quarter inch. Rounding to the nearest
+ * adds at most 1/8", and a third of the thinnest bottom the template allows (5/8") is 0.208", so
+ * the points always stop inside it.
+ */
+function screwLength(cleat: number, bottom: number) {
+  const length = Math.round((cleat + (2 * bottom) / 3) * 4) / 4;
+  return { cleat, bottom, length, left: cleat + bottom - length };
+}
 
 export function generate(
   params: RecordCabinetParams,
@@ -111,14 +124,18 @@ export function generate(
     ),
     { id: 'case/finish', type: 'finish', count: 1, partIds: all },
   ] satisfies Operation[];
+  const screw = screwLength(
+    parts.find((part) => part.id === 'cleat')?.stock.thickness ?? 0,
+    parts.find((part) => part.id === 'bottom')?.stock.thickness ?? 0,
+  );
   const hardware: HardwareItem[] = [
     {
       id: 'screws',
-      name: 'Wood screws',
+      name: `Wood screws, ${formatLength(screw.length)} long`,
       quantity: screwCount,
       structural: false,
       notes: [
-        'Length: the cleat’s thickness plus about two-thirds of the case bottom’s thickness, so the points stop short of its top face. Measure both on the cut parts, since surfaced stock is thinner than its name.',
+        `Length: the cleat’s ${formatLength(screw.cleat)} plus about two-thirds of the case bottom’s ${formatLength(screw.bottom)}, to the nearest quarter inch, so the points stop ${formatLength(screw.left)} short of its top face. If the cut parts measure thinner, take the next shorter screw.`,
         'Gauge: ask the lumber or hardware supplier which size suits a hardwood cleat of that thickness, and what pilot hole it needs. The screws hold the case to the base and carry none of its weight.',
       ],
       group: 'Screws',

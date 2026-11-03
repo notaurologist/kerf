@@ -846,19 +846,29 @@
       },
       "hardware": [
         {
-          "description": "Wood screws",
+          "description": "Wood screws, 1-1/4\" long",
           "quantity": 6,
-          "group": "Screws"
+          "group": "Screws",
+          "notes": [
+            "Length: the cleat’s 13/16\" plus about two-thirds of the case bottom’s 3/4\", to the nearest quarter inch, so the points stop 5/16\" short of its top face. If the cut parts measure thinner, take the next shorter screw.",
+            "Gauge: ask the lumber or hardware supplier which size suits a hardwood cleat of that thickness, and what pilot hole it needs. The screws hold the case to the base and carry none of its weight."
+          ]
         },
         {
           "description": "Wood glue",
           "quantity": 1,
-          "group": "Glue and finish"
+          "group": "Glue and finish",
+          "notes": [
+            "Enough for every panel glue-up and every dado joint."
+          ]
         },
         {
           "description": "Finish",
           "quantity": 1,
-          "group": "Glue and finish"
+          "group": "Glue and finish",
+          "notes": [
+            "Choose it with an experienced builder, and follow its instructions for ventilation."
+          ]
         }
       ],
       "hardwareNotes": [
@@ -42645,19 +42655,29 @@
       },
       "hardware": [
         {
-          "description": "Wood screws",
+          "description": "Wood screws, 1-1/4\" long",
           "quantity": 6,
-          "group": "Screws"
+          "group": "Screws",
+          "notes": [
+            "Length: the cleat’s 13/16\" plus about two-thirds of the case bottom’s 3/4\", to the nearest quarter inch, so the points stop 5/16\" short of its top face. If the cut parts measure thinner, take the next shorter screw.",
+            "Gauge: ask the lumber or hardware supplier which size suits a hardwood cleat of that thickness, and what pilot hole it needs. The screws hold the case to the base and carry none of its weight."
+          ]
         },
         {
           "description": "Wood glue",
           "quantity": 1,
-          "group": "Glue and finish"
+          "group": "Glue and finish",
+          "notes": [
+            "Enough for every panel glue-up and every dado joint."
+          ]
         },
         {
           "description": "Finish",
           "quantity": 1,
-          "group": "Glue and finish"
+          "group": "Glue and finish",
+          "notes": [
+            "Choose it with an experienced builder, and follow its instructions for ventilation."
+          ]
         }
       ],
       "hardwareNotes": [
@@ -83443,19 +83463,29 @@
       },
       "hardware": [
         {
-          "description": "Wood screws",
+          "description": "Wood screws, 1-3/4\" long",
           "quantity": 6,
-          "group": "Screws"
+          "group": "Screws",
+          "notes": [
+            "Length: the cleat’s 1-1/16\" plus about two-thirds of the case bottom’s 1\", to the nearest quarter inch, so the points stop 5/16\" short of its top face. If the cut parts measure thinner, take the next shorter screw.",
+            "Gauge: ask the lumber or hardware supplier which size suits a hardwood cleat of that thickness, and what pilot hole it needs. The screws hold the case to the base and carry none of its weight."
+          ]
         },
         {
           "description": "Wood glue",
           "quantity": 1,
-          "group": "Glue and finish"
+          "group": "Glue and finish",
+          "notes": [
+            "Enough for every panel glue-up and every dado joint."
+          ]
         },
         {
           "description": "Finish",
           "quantity": 1,
-          "group": "Glue and finish"
+          "group": "Glue and finish",
+          "notes": [
+            "Choose it with an experienced builder, and follow its instructions for ventilation."
+          ]
         }
       ],
       "hardwareNotes": [

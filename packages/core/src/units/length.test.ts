@@ -4,6 +4,7 @@ import {
   formatBoardFeet,
   formatBoardLength,
   formatLength,
+  formatLimit,
   toSixteenths,
 } from './length.ts';
 
@@ -12,6 +13,20 @@ describe('formatBoardFeet', () => {
     expect(formatBoardFeet(3.6000000000000005)).toBe('3.6');
     expect(formatBoardFeet(3.61)).toBe('3.7');
     expect(formatBoardFeet(12)).toBe('12.0');
+  });
+});
+
+describe('formatLimit', () => {
+  it('rounds a lower limit up and an upper limit down to the sixteenth', () => {
+    // 10.02 is 160.32 sixteenths: up to 161 (10-1/16), down and to the nearest 160 (10).
+    expect(formatLimit(10.02, 'min')).toBe('10-1/16"');
+    expect(formatLimit(10.02, 'max')).toBe('10"');
+    expect(formatLength(10.02)).toBe('10"');
+  });
+
+  it('keeps a limit already on a sixteenth, despite float error', () => {
+    expect(formatLimit(0.1 + 0.2 + 10.2, 'min')).toBe('10-1/2"');
+    expect(formatLimit(10.5 - 1e-12, 'max')).toBe('10-1/2"');
   });
 });
 

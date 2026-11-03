@@ -46,7 +46,7 @@ describe('a deeper beam after a front leg is cut and the beam and bolts are boug
   const { records, notes } = change(with4x6, with4x8, [
     { kind: 'part', key: 'leg-front/0' },
     { kind: 'shopping-line', key: 'lumber/4x6/12' },
-    { kind: 'shopping-line', key: 'hardware/1/2" through-bolt, grip 8-15/16"' },
+    { kind: 'shopping-line', key: 'hardware/1/2" × 10" through-bolt' },
   ]);
 
   it('records the piece at the length it was cut', () => {
@@ -77,10 +77,12 @@ describe('a deeper beam after a front leg is cut and the beam and bolts are boug
     });
   });
 
+  // The leg bolts' grip falls by 1.75 · tan 20° = 0.637, to 8.310, so they fit from
+  // 8.310 + 2 × 0.132 + 0.609 = 9.183 to 9.683: the line becomes 1/2" × 9-1/2" (#449).
   it('keeps a record of the beam and bolts bought, which the plan no longer has', () => {
     expect(notes.slice(1).map(({ item, change }) => ({ item, change }))).toEqual([
       { item: '4x6 × 12\' 0"', change: 'bought 1; no longer in the plan' },
-      { item: '1/2" through-bolt, grip 8-15/16"', change: 'bought 2; no longer in the plan' },
+      { item: '1/2" × 10" through-bolt', change: 'bought 2; no longer in the plan' },
     ]);
   });
 
@@ -130,9 +132,9 @@ describe('a bought line the plan needs more of', () => {
     // Written by hand: no change to the worked example's values takes fewer of these bolts.
     const record = ResetRecord.parse({
       kind: 'shopping-line',
-      key: 'hardware/1/2" through-bolt, grip 5"',
+      key: 'hardware/1/2" × 6" through-bolt',
       reason: 'changed',
-      was: { description: '1/2" through-bolt, grip 5"', quantity: 12 },
+      was: { description: '1/2" × 6" through-bolt', quantity: 12 },
     });
     // The worked example takes 16 of these bolts.
     const [note] = resetNotes(swingSetAFrame, with4x6, [record]);
