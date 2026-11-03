@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { type Generator, type ParityCase, parity, parityCases } from '../../parity.ts';
 import { design } from './design.ts';
 
-// Step 4 of the joint model: the record cabinet with its sides, partitions, and back rails housed
-// in dadoes matches the template's own output in every parity case, and gives the spec's
-// hand-checked worked example (docs/templates/record-cabinet.md, Worked example).
+// Steps 4 and 5 of the joint model: the record cabinet with every joint derived matches the
+// template's own output in every parity case, and gives the spec's hand-checked worked examples
+// (docs/templates/record-cabinet.md: Worked example; The Shaker-modern base; Sliding doors).
 
 const template = recordCabinet.definition;
 const FIXTURES = import.meta.glob<readonly unknown[]>(
@@ -118,6 +118,54 @@ describe('the record cabinet from joints', () => {
         v1: 14.5,
         depth: 0.1875,
       },
+    ]);
+
+    // Aprons, 17" case: front and back 52.5 − 3 + 2 = 51.5, sides 17 − 3 + 2 = 16. Tenons 1 long,
+    // 2 wide with 1/4 shoulders, cheeks (13/16 − 1/4)/2 = 9/32; mortises 27/32 from the leg's inside
+    // face, from 5.25 to 7.25 up it.
+    expect(part('apron-long')?.length).toBe(51.5);
+    expect(part('apron-short')?.length).toBe(16);
+    expect(part('apron-long')?.tenons[0]).toEqual({
+      end: 0,
+      length: 1,
+      n0: 0.28125,
+      thickness: 0.25,
+      v0: 0.25,
+      width: 2,
+    });
+    const mortise = { withPart: 'apron', u0: 5.25, u1: 7.25, a0: 0.84375, a1: 1.09375, depth: 1 };
+    expect(part('leg')?.mortises).toEqual([
+      { ...mortise, side: 'near' },
+      { ...mortise, side: 'reference-edge' },
+    ]);
+
+    // Doors: rails 17.75 − 2·2 + 2·3/8 = 14.5 with 3/8 stub tenons, 1/4 thick and 9/32 from each
+    // face; the panel 9.75 + 2·3/8 − 2/32 = 10-7/16 along its grain, rabbeted 3/8 by 1/4.
+    expect(part('door-rail')?.length).toBe(14.5);
+    expect(part('door-rail')?.tenons[1]).toEqual({
+      end: 1,
+      length: 0.375,
+      n0: 0.28125,
+      thickness: 0.25,
+      v0: 0,
+      width: 2,
+    });
+    expect(part('door-stile-outer')?.grooves).toEqual([
+      { edge: 'far', u0: 0, u1: 13.75, n0: 0.28125, width: 0.25, depth: 0.375 },
+    ]);
+    expect(part('door-panel')?.length).toBe(10.4375);
+    expect(part('door-panel')?.rabbets[0]).toEqual({
+      edge: 'reference',
+      face: 'near',
+      width: 0.375,
+      depth: 0.25,
+    });
+
+    // Cleats 17 − 3 = 14: round 1 from the front, slotted at 7 and 13 by 17 × 0.00248 × 4 + 1/16.
+    expect(part('cleat')?.screwHoles.map((h) => [h.u, h.slot])).toEqual([
+      [1, 0],
+      [7, expect.closeTo(0.2311, 4)],
+      [13, expect.closeTo(0.2311, 4)],
     ]);
   });
 });

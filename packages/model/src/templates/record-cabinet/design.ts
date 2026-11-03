@@ -1,20 +1,27 @@
 import {
   type Dado,
+  type EdgeGroove,
+  type Mortise,
   type Notch,
   type Part,
   type Placement,
   recordCabinet,
+  type ScrewHole,
+  type Tenon,
   type Vec3,
 } from '@kerf/core';
 import type { PlacedPart } from '../../boltedLap.ts';
 import { compare } from '../../compare.ts';
-import { type HousedEnd, housedEnd, housingPlane } from '../../housedEnd.ts';
+import { type HousedEnd, housedEnd, housingPlane, sideEntered } from '../../housedEnd.ts';
+import { floatingPanel, mortiseAndTenon, slottedScrews, tenonInGroove } from '../../joinery.ts';
 import { type Member, type Plane, trim } from '../../trim.ts';
 
-// The record cabinet's design with its sides, partitions, and back rails cut to length and placed
-// by housed ends, and the dadoes and notches those ends need made with them
-// (docs/explorations/joint-model.md, step 4). The template still gives where each part stands:
-// the panels' positions across the case, the top and case bottom, and the rails' height.
+// The record cabinet's design with its joints derived (docs/explorations/joint-model.md, steps 4
+// and 5): the sides, partitions, and back rails housed in dadoes, the aprons tenoned into the
+// legs, each door's rails stub-tenoned into its stiles around a floating panel, and the cleats
+// screwed to the case bottom through slots. The template still gives where each part stands: the
+// panels' positions across the case, the legs, top, case bottom, and stiles, the aprons' and
+// rails' lines, and the joints' sizes.
 
 const X: Vec3 = { x: 1, y: 0, z: 0 };
 const MINUS_X: Vec3 = { x: -1, y: 0, z: 0 };
@@ -147,18 +154,177 @@ export const design: typeof recordCabinet.design = (input, allowances) => {
     if (housed.notch) add(notches, joint.housed.part.id, housed.notch);
   }
 
-  const housedIds = new Set(joints.map((jt) => jt.housed.part.id));
-  const placed = [...panels, ...rails];
-  const parts = made.output.parts.map((part): Part => {
-    const derived = placed.find((q) => q.part.id === part.id)?.part ?? part;
-    const own = dadoes.get(part.id);
-    if (!own && !housedIds.has(part.id)) return part;
-    return {
-      ...derived,
-      // Dadoes for parts no joint covers yet, such as the doors' tracks, stay the template's.
-      dadoes: [...(own ?? []), ...part.dadoes.filter((d) => !housedIds.has(d.withPart))],
-      notches: housedIds.has(part.id) ? (notches.get(part.id) ?? []) : part.notches,
+  // Aprons: tenons into the legs' inside faces, with shoulders above and below, centered in the
+  // apron's thickness. Each runs where the template stands it; its length comes from the tenons.
+  const legs = [0, 1, 2, 3].map(
+    (i): PlacedPart => ({ part: partOf('leg'), placement: placementOf('leg', i) }),
+  );
+  const shoulder = recordCabinet.SHOULDER;
+  // The side aprons first: they enter each leg's near face, which the leg lists first.
+  const aprons = (
+    [
+      ['apron-short', 0, 0, 2],
+      ['apron-short', 1, 1, 3],
+      ['apron-long', 0, 0, 1],
+      ['apron-long', 1, 2, 3],
+    ] as const
+  ).map(([id, instance, first, second]) => {
+    const pl = placementOf(id, instance);
+    const into = (leg: PlacedPart, toward: Vec3) => {
+      const side = sideEntered(leg, toward);
+      if (!side) throw new Error(`${id} ${instance} does not meet its leg square.`);
+      return housingPlane(leg, side, p.tenonLength);
     };
+    const back = { x: -pl.along.x, y: -pl.along.y, z: -pl.along.z };
+    const piece = cut(id, instance, memberOf(pl, partOf(id)), [
+      into(legs[first] as PlacedPart, back),
+      into(legs[second] as PlacedPart, pl.along),
+    ]);
+    const ta = piece.part.stock.thickness;
+    const tenon = {
+      v0: shoulder,
+      width: p.apronHeight - 2 * shoulder,
+      n0: (ta - p.tenonThickness) / 2,
+      thickness: p.tenonThickness,
+    };
+    const joints = ([0, 1] as const).map((end) =>
+      mortiseAndTenon({
+        mortised: legs[end === 0 ? first : second] as PlacedPart,
+        tenoned: piece,
+        end,
+        depth: p.tenonLength,
+        tenon,
+        // The template's mortises name what they house by role.
+        withPart: piece.part.role,
+      }),
+    );
+    return { piece, joints };
+  });
+
+  // Doors: each rail's stub tenons in its stiles' grooves, and the panel floating in the frame.
+  const door = g.door && p.door;
+  const doorParts = door
+    ? [0, 1].map((k) => {
+        const outer: PlacedPart = {
+          part: partOf('door-stile-outer'),
+          placement: placementOf('door-stile-outer', k),
+        };
+        const inner: PlacedPart = {
+          part: partOf('door-stile-inner'),
+          placement: placementOf('door-stile-inner', k),
+        };
+        const [left, right] = k === 0 ? [outer, inner] : [inner, outer];
+        const rails = [2 * k, 2 * k + 1].map((instance) => {
+          const pl = placementOf('door-rail', instance);
+          return cut('door-rail', instance, memberOf(pl, partOf('door-rail')), [
+            housingPlane(left, 'far-edge', door.grooveDepth),
+            housingPlane(right, 'far-edge', door.grooveDepth),
+          ]);
+        });
+        const panelPart = partOf('door-panel');
+        const panelAt = placementOf('door-panel', k);
+        const floating = floatingPanel({
+          frame: [
+            { ...left, edge: 'far' },
+            { ...right, edge: 'far' },
+            ...rails.map((r) => ({ ...r, edge: 'far' as const })),
+          ],
+          groove: { width: p.tenonThickness, depth: door.grooveDepth },
+          panel: {
+            part: panelPart,
+            along: panelAt.along,
+            across: panelAt.across,
+            through: panelAt.through,
+          },
+          gaps: { ends: recordCabinet.PANEL_END_GAP, edges: allowances.panelGap.length },
+        });
+        if (!floating.ok) throw new Error(`Door ${k} panel: ${floating.message}`);
+        const grooveOf = (id: string) => floating.grooves.find((f) => f.partId === id)?.groove;
+        const withGroove = (s: PlacedPart): PlacedPart => {
+          const groove = grooveOf(s.part.id);
+          return { ...s, part: { ...s.part, grooves: groove ? [groove] : [] } };
+        };
+        const tenons = rails.map((rail) =>
+          ([0, 1] as const).map((end) => {
+            const made = tenonInGroove({
+              grooved: withGroove(end === 0 ? left : right),
+              tenoned: rail,
+              end,
+              v: [0, rail.part.stock.width],
+            });
+            if (!made.ok) throw new Error(`Door ${k} rail: ${made.message}`);
+            return made.tenon;
+          }),
+        );
+        const panel = {
+          part: { ...panelPart, length: floating.length, rabbets: floating.rabbets },
+          placement: { ...panelAt, origin: floating.origin },
+        };
+        return { rails, tenons, floating, panel };
+      })
+    : [];
+
+  // Screws up through each cleat into the case bottom, which is held at its front edge and moves
+  // toward the back: round at the front, slotted behind.
+  const screwHoles = [0, 1].map((instance) => {
+    const cleat: PlacedPart = { part: partOf('cleat'), placement: placementOf('cleat', instance) };
+    const L = cleat.part.length;
+    const v = cleat.part.stock.width / 2;
+    const made = slottedScrews({
+      hardwareId: 'screws',
+      through: cleat,
+      at: [recordCabinet.SCREW_INSET, L / 2, L - recordCabinet.SCREW_INSET].map((u) => ({ u, v })),
+      into: bottom,
+      heldAt: 'reference-edge',
+      slot: allowances.slot.length,
+    });
+    if (!made.ok) throw new Error(`Cleat ${instance}: ${made.message}`);
+    return made.holes;
+  });
+
+  // Every derived list, by part, without what another piece of the part already has.
+  const lists = {
+    mortises: new Map<string, Mortise[]>(),
+    tenons: new Map<string, Tenon[]>(),
+    grooves: new Map<string, EdgeGroove[]>(),
+    screwHoles: new Map<string, ScrewHole[]>(),
+  };
+  for (const { piece, joints } of aprons) {
+    for (const joint of joints) {
+      if (!joint.ok) throw new Error(`${piece.part.id}: ${joint.message}`);
+      add(lists.mortises, 'leg', joint.mortise);
+      add(lists.tenons, piece.part.id, joint.tenon);
+    }
+  }
+  for (const d of doorParts) {
+    for (const tenon of d.tenons.flat()) add(lists.tenons, 'door-rail', tenon);
+    for (const { partId, groove } of d.floating.grooves) add(lists.grooves, partId, groove);
+  }
+  for (const hole of screwHoles.flat()) add(lists.screwHoles, 'cleat', hole);
+
+  const housedIds = new Set(joints.map((jt) => jt.housed.part.id));
+  const placed = [
+    ...panels,
+    ...rails,
+    ...aprons.map((a) => a.piece),
+    ...doorParts.flatMap((d) => [...d.rails, d.panel]),
+  ];
+  const parts = made.output.parts.map((part): Part => {
+    let derived = placed.find((q) => q.part.id === part.id)?.part ?? part;
+    const own = dadoes.get(part.id);
+    if (own || housedIds.has(part.id)) {
+      derived = {
+        ...derived,
+        // Dadoes for parts no joint covers, the doors' tracks, stay the template's.
+        dadoes: [...(own ?? []), ...part.dadoes.filter((d) => !housedIds.has(d.withPart))],
+        notches: housedIds.has(part.id) ? (notches.get(part.id) ?? []) : part.notches,
+      };
+    }
+    for (const key of ['mortises', 'tenons', 'grooves', 'screwHoles'] as const) {
+      const list = lists[key].get(part.id);
+      if (list) derived = { ...derived, [key]: list };
+    }
+    return derived;
   });
   const placements = made.output.placements.map(
     (pl) =>
@@ -167,3 +333,14 @@ export const design: typeof recordCabinet.design = (input, allowances) => {
   );
   return { ok: true, output: { ...made.output, parts, placements } };
 };
+
+/** A part as the template stands it, before its ends are cut: its origin is on its reference edge. */
+function memberOf(pl: Placement, part: Part): Member {
+  return {
+    along: pl.along,
+    across: pl.across,
+    through: pl.through,
+    referenceEdge: pl.origin,
+    width: part.stock.width,
+  };
+}

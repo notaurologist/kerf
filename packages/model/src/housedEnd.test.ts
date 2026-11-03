@@ -159,7 +159,7 @@ describe('housedEnd', () => {
     };
     expect(housedEnd({ housing: side, housed: turned, end: 0, depth: 0.25 })).toMatchObject({
       ok: false,
-      message: 'The housed part does not meet the housing square to its face.',
+      message: 'The housed part does not meet the housing square to a side.',
     });
   });
 });
