@@ -51,6 +51,16 @@
       display: none;
     }
 
+    /* Paper has room for the whole line, and no link to the rest. */
+    .k-one-line[data-end] {
+      display: block;
+      white-space: normal;
+    }
+
+    .k-one-line__cut {
+      overflow: visible;
+    }
+
     /* What only a screen can use: buttons, popover triggers, and lines about tapping. */
     .k-button,
     .k-info,

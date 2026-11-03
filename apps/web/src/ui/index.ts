@@ -2,7 +2,7 @@
 // layout primitives; they write no classes or styles of their own.
 
 export { drawingInMove, sharedFrame, useAssemblyMotion } from './assemblyMotion.ts';
-export { Button, ButtonLink, IconButton, IconButtonLink } from './Button.tsx';
+export { Button, ButtonLink, EqualButtons, IconButton, IconButtonLink } from './Button.tsx';
 export { InlineConfirm, useReturnFocus } from './Confirm.tsx';
 export { SectionPager, WithContents } from './Contents.tsx';
 export { DefinitionFigure, Definitions } from './Definitions.tsx';
