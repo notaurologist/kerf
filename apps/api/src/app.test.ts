@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { inspect } from 'node:util';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../test/app.ts';
+import { createIsolatedTestDatabase } from '../test/database.ts';
 import { BODY_LIMIT_BYTES, createApp } from './app.ts';
 import type { Database } from './db/client.ts';
 
@@ -109,7 +110,7 @@ describe('errors', () => {
   });
 
   it('logs a failed query’s text and cause without its parameters', async () => {
-    const { app, client } = await createTestApp();
+    const { app, client } = await createTestApp({ database: await createIsolatedTestDatabase() });
     await client.exec('DROP TABLE sessions');
     // The session lookup's first parameter is the token's hash.
     const token = 'a'.repeat(43);

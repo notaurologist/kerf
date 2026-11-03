@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import * as schema from '../src/db/schema.ts';
 import { createProjectService } from '../src/services/projects.ts';
 import { createTestApp } from '../test/app.ts';
+import { createIsolatedTestDatabase } from '../test/database.ts';
 import { nextShape, swingSetInputs, swingSetParams } from '../test/fixtures.ts';
 import { release } from './release.ts';
 
@@ -50,8 +51,8 @@ async function contents(client: PGlite) {
   return Promise.all(tables.map(async (t) => (await client.query(`select * from ${t}`)).rows));
 }
 
-async function storedProject() {
-  const app = await createTestApp();
+async function storedProject(database?: Awaited<ReturnType<typeof createIsolatedTestDatabase>>) {
+  const app = await createTestApp(database && { database });
   const res = await app.authed('/api/projects', {
     method: 'POST',
     body: {
@@ -148,7 +149,7 @@ describe('release', () => {
   });
 
   it("fails before migrating when a project's template ID differs from its snapshot's", async () => {
-    const { client, id, close } = await storedProject();
+    const { client, id, close } = await storedProject(await createIsolatedTestDatabase());
     // As a database from before the check could hold.
     await client.query(
       'alter table projects drop constraint projects_template_id_matches_snapshot',
