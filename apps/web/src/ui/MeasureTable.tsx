@@ -20,6 +20,9 @@ export interface Column<Row> {
    */
   width?: 'fit' | 'fill';
   cell: (row: Row) => ReactNode;
+  /** Shown before the cell's lines, a part's letter: above them in a narrow table, beside them in a
+   * column of its own from 40rem. */
+  lead?: (row: Row) => ReactNode;
 }
 
 export function MeasureTable<Row>(props: {
@@ -97,7 +100,7 @@ export function MeasureTable<Row>(props: {
                     data-width={c.width}
                   >
                     {/* One box per cell, so stacked rows keep mixed text and lengths together. */}
-                    <div>
+                    <CellBox lead={c.lead?.(row)}>
                       {c.cell(row)}
                       {details && i === 0 && (
                         <button
@@ -113,7 +116,7 @@ export function MeasureTable<Row>(props: {
                           </span>
                         </button>
                       )}
-                    </div>
+                    </CellBox>
                   </td>
                 ))}
               </tr>
@@ -122,12 +125,24 @@ export function MeasureTable<Row>(props: {
             return [
               main,
               <tr key={`${key}/details`} id={detailsId} data-details="" hidden={!isOpen}>
-                <td colSpan={props.columns.length}>{details.content(row)}</td>
+                <td colSpan={props.columns.length}>
+                  <div className="k-table__details">{details.content(row)}</div>
+                </td>
               </tr>,
             ];
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function CellBox(props: { lead: ReactNode; children: ReactNode }) {
+  if (props.lead === undefined) return <div>{props.children}</div>;
+  return (
+    <div className="k-table__lead">
+      {props.lead}
+      <div>{props.children}</div>
     </div>
   );
 }

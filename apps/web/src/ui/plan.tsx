@@ -2,6 +2,7 @@ import { FLAG_CATEGORY_LABELS, type Flag, structural } from '@kerf/core';
 import type { ReactNode } from 'react';
 import { Disclosure } from './Disclosure.tsx';
 import { ExpertCheck, InputNeeded } from './feedback.tsx';
+import { Icon } from './Icon.tsx';
 import { Changed, MarginLine, Measured } from './numbers.tsx';
 import { PlainList } from './text.tsx';
 
@@ -66,6 +67,9 @@ export function ResultLine(props: {
   title: ReactNode;
   detail?: ReactNode;
   result?: ReactNode;
+  /** An expert check's label, such as "Expert check · Load-bearing design": the row is drawn as
+   * the amber callout with its flag, the label in bold and the title after it in plain text. */
+  flag?: string;
   children: ReactNode;
 }) {
   return (
@@ -74,7 +78,17 @@ export function ResultLine(props: {
       summary={
         <span className="k-result-line">
           <span className="k-result-line__what">
-            <b>{props.title}</b>
+            {props.flag ? (
+              <span className="k-callout" data-tone="flag">
+                <Icon name="flag" />
+                <span className="k-callout__body">
+                  <span className="k-callout__label">{props.flag}</span>
+                  <span>{props.title}</span>
+                </span>
+              </span>
+            ) : (
+              <b>{props.title}</b>
+            )}
             {props.detail && <span className="k-result-line__detail">{props.detail}</span>}
           </span>
           {props.result && <span className="k-result-line__result">{props.result}</span>}

@@ -1,6 +1,6 @@
 import { type CutListRow, formatLength, type geometry, type LumberPlan } from '@kerf/core';
 import { Length, Stack, Text } from '../../ui/index.ts';
-import { BoardCard } from '../modes/BoardCards.tsx';
+import { BOARDS_TO_SCALE, BoardCard } from '../modes/BoardCards.tsx';
 
 // The plan's Boards section (#40, section order A; #119): which pieces come from which board, in
 // the order they are cut, with the trim, saw cut, and offcut the board plan allowed. The shopping
@@ -19,7 +19,7 @@ export function Boards(props: {
       <Text tone="muted">
         Each board trims <Length>{formatLength(lumber.trimPerEnd)}</Length> off each factory end and
         allows <Length>{formatLength(lumber.kerf)}</Length> for each saw cut. Pieces are listed in
-        the order they come off the board.
+        the order they come off the board. {BOARDS_TO_SCALE}
       </Text>
       {lumber.boards.map((board, i) => (
         <BoardCard

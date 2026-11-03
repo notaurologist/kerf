@@ -55,7 +55,7 @@ import {
   PartLetter,
   SawSetting,
 } from './numbers.tsx';
-import { CheckStatus, FlagList } from './plan.tsx';
+import { CheckStatus, FlagList, ResultLine } from './plan.tsx';
 import { ScreenHeader } from './ScreenHeader.tsx';
 import { Frame, ModeBar } from './Shell.tsx';
 import { StepLayout } from './StepLayout.tsx';
@@ -437,6 +437,13 @@ function Specimens() {
             <Measured text={sampleFlag.ask} />
           </ExpertCheck>
         )}
+        {sampleFlag && (
+          <ResultLine flag="Expert check · as a row" title={<Measured text={sampleFlag.ask} />}>
+            <Text>
+              Why: <Measured text={sampleFlag.why} />
+            </Text>
+          </ResultLine>
+        )}
         <p>
           {numberField?.label ?? 'An input'} <InputNeeded />
         </p>
@@ -565,12 +572,8 @@ function Specimens() {
             {
               key: 'part',
               label: 'Part',
-              cell: (r) => (
-                <>
-                  <PartLetter>{r.letter}</PartLetter>
-                  {r.name}
-                </>
-              ),
+              lead: (r) => <PartLetter>{r.letter}</PartLetter>,
+              cell: (r) => r.name,
             },
             { key: 'qty', label: 'Qty', numeric: true, width: 'fit', cell: (r) => r.quantity },
             { key: 'stock', label: 'Stock', width: 'fit', cell: (r) => r.stock },

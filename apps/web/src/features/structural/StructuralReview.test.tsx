@@ -140,8 +140,17 @@ describe('the structural review, worked example with every input', () => {
     expect(review).toContain('Confirmation checklist');
     expect(review).toContain('Leg-to-beam bolt and gusset, each frame');
     expect(review).toContain('Ask an experienced builder, and tick Asked once you have.');
-    expect(review).toContain('Load-bearing design Why: This joint and the gusset carry the beam');
-    expect(review).toContain('Load-bearing design');
+    expect(review).toContain(
+      'Expert check · Load-bearing design Confirm the bolt size for the leg-to-beam bolt',
+    );
+    expect(review).toContain('Why: This joint and the gusset carry the beam');
+  });
+
+  it('draws each expert check as the amber callout with its flag, its label alone in bold', () => {
+    const row = html.match(
+      /<span class="k-callout" data-tone="flag"><svg[\s\S]*?<\/svg><span class="k-callout__body"><span class="k-callout__label">Expert check · Load-bearing design<\/span><span>([^<]*)/,
+    );
+    expect(row?.[1]).toMatch(/^Confirm the bolt size/);
   });
 });
 

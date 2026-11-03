@@ -80,9 +80,9 @@
   }
 
   /* A displayed length never breaks across lines: browsers break at the hyphen in 138-3/8
-     (#42). Components wrap every length and angle in this. */
+     (#42). Components wrap every length and angle in this. Its figures are the text's own in a
+     sentence; tables, the Glance number, and saw settings set tabular figures for columns. */
   .k-length {
     white-space: nowrap;
-    font-variant-numeric: tabular-nums;
   }
 }

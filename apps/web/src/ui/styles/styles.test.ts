@@ -165,3 +165,38 @@ describe('the bars at the top of the screen', () => {
     }
   });
 });
+
+describe('design-system consistency (#463)', () => {
+  const css = withoutComments(stylesheets['components.css'] ?? '');
+  const base = withoutComments(stylesheets['base.css'] ?? '');
+
+  it('sets a length in a sentence in the text’s own figures; columns set tabular ones', () => {
+    const length = base.slice(
+      base.indexOf('.k-length {'),
+      base.indexOf('}', base.indexOf('.k-length {')),
+    );
+    expect(length).toContain('white-space: nowrap');
+    expect(length).not.toContain('tabular-nums');
+    expect(base).toMatch(/table \{\s*font-variant-numeric: tabular-nums;/);
+  });
+
+  it('leaves the project’s name out of the mode bar below 25rem of its width', () => {
+    expect(rule('.k-modebar')).toContain('container-type: inline-size');
+    expect(css).toMatch(
+      /@container \(width < 25rem\) \{\s*\.k-modebar__context \{\s*display: none;\s*\}\s*\}/,
+    );
+  });
+
+  it('draws the tick’s box from tokens rather than the browser’s', () => {
+    expect(rule('.k-tick > input')).toMatch(/appearance: none;/);
+    expect(rule('.k-tick > input')).toMatch(/border: var\(--border-thick\) solid var\(--done\);/);
+    expect(rule('.k-tick > input:checked')).toMatch(/background: var\(--done\);/);
+  });
+
+  it('keeps a narrow table as wide as its columns: a fit column’s 1% would stretch it', () => {
+    expect(css).not.toMatch(/\.k-table \[data-width="fit"\] \{\s*inline-size: 1%;/);
+    expect(css).toMatch(
+      /\.k-table:not\(\[data-narrow\]\) \[data-width="fit"\] \{\s*inline-size: 1%;/,
+    );
+  });
+});

@@ -7,6 +7,7 @@ import {
   LiveRegion,
   Notice,
   Row,
+  RowLink,
   Rows,
   ScreenHeader,
   Stack,
@@ -47,22 +48,28 @@ export function WorkshopScreen(props: {
         {PLACES.map((place) => (
           <Row key={place.href} as="li">
             <Stack gap="3xs">
-              <a href={place.href}>{place.label}</a>
+              <RowLink href={place.href}>{place.label}</RowLink>
               <Text tone="muted">{place.about}</Text>
             </Stack>
           </Row>
         ))}
         <Row as="li">
-          {/* A copy to keep: the free database restores only the last few hours (#21). */}
-          <Stack gap="3xs">
-            <a href="/api/export" download onClick={onDownload}>
-              Download a backup
-            </a>
-            <Text tone="muted">
-              Every project, including deleted ones still in the trash, and your tools, as one file
-              to keep. Kerf cannot load this file back in; a full restore comes from a database dump
-              (ARCHITECTURE.md, Backups).
-            </Text>
+          {/* A copy to keep: the free database restores only the last few hours (#21). An action,
+              so a button rather than a row's link. */}
+          <Stack gap="xs">
+            <Stack gap="3xs">
+              <b>Backup</b>
+              <Text tone="muted">
+                Every project, including deleted ones still in the trash, and your tools, as one
+                file to keep. Kerf cannot load this file back in; a full restore comes from a
+                database dump (ARCHITECTURE.md, Backups).
+              </Text>
+            </Stack>
+            <Cluster>
+              <Button variant="secondary" onClick={onDownload}>
+                Download a backup
+              </Button>
+            </Cluster>
             <LiveRegion>
               {backup.state === 'preparing' && <Text tone="muted">Preparing the backup…</Text>}
               {backup.state === 'ready' && (

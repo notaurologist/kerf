@@ -239,6 +239,14 @@ describe('the diagrams in the plan (#91)', () => {
     expect(sectionOf(html, 'diagrams').match(/<svg[^>]*role="img"/g)).toHaveLength(8);
   });
 
+  it('says once in the Boards intro that the board drawings are to scale along the length', () => {
+    const boards = textOf(sectionOf(html, 'boards'));
+    expect(boards).toContain(
+      'in the order they come off the board. Each drawing is to scale along the length, not across the width.',
+    );
+    expect(boards.match(/to scale along the length/gi)).toHaveLength(1);
+  });
+
   it('labels each drawing from the same data, and points to the cut list as its long description', () => {
     expect(html).toContain(
       'aria-label="Isometric view. The swing set, assembled. Parts A to E, lettered as in the cut list."',
@@ -255,7 +263,7 @@ describe('the diagrams in the plan (#91)', () => {
 
   it('makes each cut-list part a link to the drawings with it selected (#156)', () => {
     expect(html).toContain(
-      `<a id="cut-list-part-beam" href="#/projects/${project.id}/diagrams?part=beam"><span class="k-part-letter">A</span><b>Beam</b></a>`,
+      `<span class="k-part-letter">A</span><div><a id="cut-list-part-beam" href="#/projects/${project.id}/diagrams?part=beam"><b>Beam</b></a>`,
     );
   });
 

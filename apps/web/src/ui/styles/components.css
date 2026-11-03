@@ -767,6 +767,19 @@
     inline-size: auto;
   }
 
+  /* A lead, such as a part's letter, above the cell's lines in a narrow table, so a name has the
+     column's whole width; beside them, in a column of its own, from 40rem. */
+  .k-table__lead {
+    display: grid;
+    gap: var(--space-3xs);
+    justify-items: start;
+  }
+
+  /* A row's details are as wide as the row and never widen a narrow table. */
+  .k-table[data-narrow] .k-table__details {
+    contain: inline-size;
+  }
+
   .k-table caption {
     text-align: start;
     font-weight: 700;
@@ -791,15 +804,28 @@
     white-space: nowrap;
   }
 
+  /* A table kept at every width takes its fit columns' widths at every width too, so a short
+     count column is as narrow in each of a list's tables and their columns line up. */
+  .k-table[data-keep]:not([data-narrow]) [data-width="fit"] {
+    inline-size: 1%;
+  }
+
   /* Column widths apply to the table only; stacked rows have their own grid. */
   @container (width >= 40rem) {
+    .k-table__lead {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: baseline;
+      gap: 0;
+    }
+
     /* The first column names the row: a name breaks between words, not after each one. */
     .k-table :is(th, td):first-child {
       min-inline-size: 8rem;
     }
 
-    /* 1% asks for the narrowest width: a value's pieces stay whole, and break between them. */
-    .k-table [data-width="fit"] {
+    /* 1% asks for the narrowest width: a value's pieces stay whole, and break between them. A
+       narrow table is as wide as its columns already, and a percentage would stretch it. */
+    .k-table:not([data-narrow]) [data-width="fit"] {
       inline-size: 1%;
     }
 
@@ -1568,6 +1594,7 @@
     padding: var(--space-xs) var(--space-s);
     background: var(--mode-building);
     color: var(--on-mode);
+    container-type: inline-size;
   }
 
   /* Each mode has its own color (Stage 10), so the mode shows from across the garage. */
@@ -1588,6 +1615,14 @@
     text-overflow: ellipsis;
   }
 
+  /* On a phone the project's name would show a letter or two before its ellipsis, so it is left
+     out below 25rem of the bar's width. */
+  @container (width < 25rem) {
+    .k-modebar__context {
+      display: none;
+    }
+  }
+
   .k-modebar__end {
     display: flex;
     flex: none;
@@ -1606,8 +1641,9 @@
     background: transparent;
   }
 
-  /* One item to mark done in a shop mode (#61). The box is drawn by the browser, so checked is a
-     shape, not only a color. */
+  /* One item to mark done in a shop mode (#61). The box is drawn from tokens, as the select is
+     (#354), since a browser's own box is a filled gray square in a dark theme. Checked is a shape,
+     the check mark, not only a fill. */
   .k-tick {
     display: flex;
     gap: var(--space-xs);
@@ -1618,10 +1654,30 @@
 
   .k-tick > input {
     flex: none;
+    display: grid;
+    place-content: center;
     inline-size: 1.5em;
     block-size: 1.5em;
     margin: 0;
-    accent-color: var(--done);
+    appearance: none;
+    border: var(--border-thick) solid var(--done);
+    border-radius: var(--radius);
+    background: var(--input-bg);
+    cursor: pointer;
+  }
+
+  .k-tick > input:checked {
+    background: var(--done);
+  }
+
+  .k-tick > input:checked::before {
+    content: "";
+    inline-size: 0.35em;
+    block-size: 0.7em;
+    margin-block-start: -0.15em;
+    border: solid var(--on-accent);
+    border-width: 0 0.15em 0.15em 0;
+    transform: rotate(45deg);
   }
 
   .k-tick > .k-part-letter {

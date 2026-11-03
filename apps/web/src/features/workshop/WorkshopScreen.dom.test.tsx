@@ -23,35 +23,25 @@ function browser() {
   return { host, backupHost: () => host };
 }
 
-/** Clicks the download link and says whether its default action, the download, was stopped. */
+/** Presses Download a backup. */
 async function download(container: HTMLElement) {
-  const link = byText<HTMLAnchorElement>(container, 'a', 'Download a backup');
-  let prevented = false;
-  // On the document, so it runs after React's handler on the root; then stops the navigation.
-  const listener = (e: Event) => {
-    prevented = e.defaultPrevented;
-    e.preventDefault();
-  };
-  document.addEventListener('click', listener);
-  await click(link);
-  document.removeEventListener('click', listener);
-  return prevented;
+  await click(byText<HTMLButtonElement>(container, 'button', 'Download a backup'));
 }
 
 describe('WorkshopScreen', () => {
-  it('links to My toolbox, the glossary, the trash, and the download of every project', () => {
+  it('links to My toolbox, the glossary, and the trash as rows, and offers the backup as a button', () => {
     const { container } = mount(<WorkshopScreen onLogOut={() => {}} />);
     const links = [...container.querySelectorAll('a')].map((a) => [
       a.textContent,
       a.getAttribute('href'),
+      a.className,
     ]);
     expect(links).toEqual([
-      ['My toolbox', '#/tools'],
-      ['Glossary', '#/glossary'],
-      ['Deleted projects', '#/trash'],
-      ['Download a backup', '/api/export'],
+      ['My toolbox', '#/tools', 'k-row-link'],
+      ['Glossary', '#/glossary', 'k-row-link'],
+      ['Deleted projects', '#/trash', 'k-row-link'],
     ]);
-    expect(container.querySelector('a[href="/api/export"]')?.hasAttribute('download')).toBe(true);
+    expect(byText(container, 'button', 'Download a backup').dataset.variant).toBe('secondary');
     expect(container.textContent).toContain(
       'Kerf cannot load this file back in; a full restore comes from a database dump',
     );
@@ -73,13 +63,13 @@ describe('WorkshopScreen', () => {
     expect(onLogOut).toHaveBeenCalledOnce();
   });
 
-  it('in a browser, saves the fetched backup in place of following the link', async () => {
+  it('in a browser, saves the fetched backup as a download', async () => {
     const { host, backupHost } = browser();
     const fetchBackup = vi.fn(fetched);
     const { container } = mount(
       <WorkshopScreen onLogOut={() => {}} backupHost={backupHost} fetchBackup={fetchBackup} />,
     );
-    expect(await download(container)).toBe(true);
+    await download(container);
     expect(fetchBackup).toHaveBeenCalledOnce();
     expect(host.save).toHaveBeenCalledWith(file);
     expect(container.textContent).not.toContain('Preparing');
@@ -121,12 +111,12 @@ describe('WorkshopScreen', () => {
     expect(host.save).toHaveBeenCalledOnce();
   });
 
-  it('from the Home Screen, hands the backup to the share sheet in place of following the link', async () => {
+  it('from the Home Screen, hands the backup to the share sheet', async () => {
     const { host, backupHost } = homeScreen(async () => {});
     const { container } = mount(
       <WorkshopScreen onLogOut={() => {}} backupHost={backupHost} fetchBackup={fetched} />,
     );
-    expect(await download(container)).toBe(true);
+    await download(container);
     expect(host.share).toHaveBeenCalledWith({ files: [file] });
     expect(container.textContent).not.toContain('Preparing');
   });

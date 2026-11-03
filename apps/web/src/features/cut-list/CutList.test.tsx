@@ -75,6 +75,17 @@ describe('the cut list as a narrow table (#360)', () => {
     expect(html).toContain('<span class="k-setting">0.0°</span>');
   });
 
+  it('is as wide as its columns, so a name stays near its numbers on a wide screen', () => {
+    expect(html).toMatch(/<table class="k-table" data-keep="" data-narrow="">/);
+  });
+
+  it("sets each part's letter before its name and stock, apart from the link", () => {
+    const linked = render(<CutList rows={rows} partHref={(id) => `#/drawings/${id}`} />);
+    expect(linked).toContain(
+      '<div class="k-table__lead"><span class="k-part-letter">A</span><div><a id="cut-list-part-side" href="#/drawings/side"><b>Side</b></a>',
+    );
+  });
+
   it('opens each row to its details beneath, closed at first and open in print', () => {
     expect(html.match(/<tr id="[^"]+" data-details="" hidden="">/g)).toHaveLength(2);
     expect(html).toContain('aria-expanded="false"');

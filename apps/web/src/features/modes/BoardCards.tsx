@@ -2,7 +2,7 @@ import {
   type CutListRow,
   formatBoardLength,
   formatLength,
-  type geometry,
+  geometry,
   type LumberPlan,
   type PlannedBoard,
   type ShoppingLine,
@@ -36,6 +36,7 @@ export function BoardCards(props: {
         partIds={partIds}
         heading={{ level: 3, text: 'What to look for' }}
       />
+      <Text>{BOARDS_TO_SCALE}</Text>
       {boards.map(({ board, i }) => (
         <BoardCard
           key={i}
@@ -47,6 +48,13 @@ export function BoardCards(props: {
       ))}
     </Stack>
   );
+}
+
+/** Said once before a list of boards, in place of the note under each board's drawing. */
+export const BOARDS_TO_SCALE = 'Each drawing is to scale along the length, not across the width.';
+
+function withoutScaleNote(drawing: geometry.Drawing): geometry.Drawing {
+  return { ...drawing, notes: drawing.notes.filter((n) => n !== geometry.BOARD_SCALE_NOTE) };
 }
 
 /**
@@ -68,7 +76,7 @@ export function BoardCard(props: {
           {drawing?.title ??
             `Board ${props.number}: ${board.nominal}, ${formatBoardLength(board.feet)}`}
         </h3>
-        {drawing && <Diagram drawing={drawing} label={drawing.description} />}
+        {drawing && <Diagram drawing={withoutScaleNote(drawing)} label={drawing.description} />}
         <PlainList>
           {board.pieces.map((piece, p) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: pieces are in cutting order and repeat.

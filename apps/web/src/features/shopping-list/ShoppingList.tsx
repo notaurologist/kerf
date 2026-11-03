@@ -146,7 +146,8 @@ export function ShoppingList(props: {
 
         <Stack>
           <h3>Hardware</h3>
-          {/* By store group (#59): each group the template names, under its own heading. */}
+          {/* By store group (#59): each group the template names, under its own heading, and each
+              as wide as the column, so stacked groups end together. */}
           {groupHardware(props.hardware, (h) => h.group).map((group, _, groups) => (
             <Stack key={group.title} gap="xs">
               {groups.length > 1 && <h4>{group.title}</h4>}
@@ -154,7 +155,6 @@ export function ShoppingList(props: {
                 caption={`${group.title} to buy`}
                 captionHidden
                 keepTable
-                narrow
                 rows={group.lines}
                 rowKey={(h) => h.description}
                 rowChanged={(h) => changes.under(line(h, props.hardware, 'hardware'))}
@@ -163,6 +163,7 @@ export function ShoppingList(props: {
                     key: 'buy',
                     label: 'Buy',
                     numeric: true,
+                    width: 'fit',
                     cell: (h) =>
                       marked(
                         changes,
