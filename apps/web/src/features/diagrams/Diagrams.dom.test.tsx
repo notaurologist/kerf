@@ -8,9 +8,9 @@ import {
 } from '@kerf/core';
 import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { readDrawings, readPlan } from '../../lib/plan.ts';
+import { readPlan } from '../../lib/plan.ts';
 import { byText, click, mount } from '../../test/dom.tsx';
-import { projectFrom } from '../../test/projects.ts';
+import { drawingsFor, projectFrom } from '../../test/projects.ts';
 import { drawingInMove } from '../../ui/index.ts';
 import { Diagrams } from './Diagrams.tsx';
 
@@ -21,7 +21,7 @@ const made = createSnapshot(template, example?.params, example?.structuralInputs
 if (!made.ok) throw new Error('worked example should generate');
 const project = projectFrom(JSON.parse(JSON.stringify(made.output)));
 const plan = readPlan(project);
-const drawings = readDrawings(project);
+const drawings = drawingsFor(project.snapshot);
 if (!plan.ok || !drawings?.isometric || !drawings.exploded) {
   throw new Error('the worked example has an assembled and an exploded view');
 }

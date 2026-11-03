@@ -1,6 +1,7 @@
 import { findTemplate, planTerms } from '@kerf/core';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useArrowKeys } from '../../lib/arrowKeys.ts';
+import { type DrawingsState, useDrawings } from '../../lib/drawings.ts';
 import { inputFieldId } from '../../lib/fieldIds.ts';
 import { takeFlash } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
@@ -32,7 +33,7 @@ import {
 import { Boards } from '../boards/Boards.tsx';
 import { BuildSteps } from '../build-steps/BuildSteps.tsx';
 import { CutList } from '../cut-list/CutList.tsx';
-import { Diagrams } from '../diagrams/Diagrams.tsx';
+import { Diagrams, DrawingsWaiting } from '../diagrams/Diagrams.tsx';
 import { ModeButtons } from '../modes/ModeCards.tsx';
 import { DeleteProject } from '../project-editor/DeleteProject.tsx';
 import { ShoppingList } from '../shopping-list/ShoppingList.tsx';
@@ -64,10 +65,20 @@ export function ProjectScreen(props: { id: string; section?: PlanSectionId; part
   return (
     <Loaded state={loaded} shape="plan" loading="Loading project…" onRetry={reload} title="Project">
       {(project) => (
-        <ProjectView project={project} section={props.section} part={props.part} onChange={set} />
+        <ProjectWithDrawings
+          project={project}
+          section={props.section}
+          part={props.part}
+          onChange={set}
+        />
       )}
     </Loaded>
   );
+}
+
+/** The project, with its drawings loaded where they are shown. */
+function ProjectWithDrawings(props: Omit<Parameters<typeof ProjectView>[0], 'drawings'>) {
+  return <ProjectView {...props} drawings={useDrawings(props.project)} />;
 }
 
 export function ProjectView(props: {
@@ -76,11 +87,16 @@ export function ProjectView(props: {
   section?: PlanSectionId;
   /** The part selected in the drawings and the cut list, from the address. */
   part?: string;
+  /** The plan's drawings, which come in a request of their own. */
+  drawings: DrawingsState;
   onChange?: (project: Project) => void;
 }) {
   const { project } = props;
   const template = findTemplate(project.templateId);
-  const { plan, drawings, steps } = useReadProject(project);
+  const { plan, steps } = useReadProject(project);
+  const drawings = props.drawings.state === 'ready' ? props.drawings.value : null;
+  // Until they arrive, or if they do not, the drawings section holds their place.
+  const hasDrawings = props.drawings.state !== 'ready' || drawings !== null;
   const readings = useMemo(
     () => (plan.ok ? projectStoreReadings(project, plan.plan) : undefined),
     [project, plan],
@@ -102,7 +118,7 @@ export function ProjectView(props: {
     [plan, steps, hasSteps, readings],
   );
   const shown = (id: PlanSectionId) =>
-    (id !== 'diagrams' || drawings !== null) && (id !== 'build-steps' || hasSteps);
+    (id !== 'diagrams' || hasDrawings) && (id !== 'build-steps' || hasSteps);
   const sections = PLAN_SECTIONS.filter((s) => shown(s.id));
   // A project opens on the structural review while inputs are needed, else on its drawings; a
   // section this plan does not have, such as build steps in an old plan, does the same.
@@ -134,13 +150,17 @@ export function ProjectView(props: {
   // Selecting it replaces the history entry, so selections do not fill Back; selecting it again
   // clears it.
   const selected = props.part ?? null;
-  const select = (partId: string) =>
-    redirect({
-      screen: 'project',
-      id: project.id,
-      section: current.id,
-      ...(selected === partId ? {} : { part: partId }),
-    });
+  // The same function from render to render, so drawings that did not change are not redrawn.
+  const select = useCallback(
+    (partId: string) =>
+      redirect({
+        screen: 'project',
+        id: project.id,
+        section: current.id,
+        ...(selected === partId ? {} : { part: partId }),
+      }),
+    [project.id, current.id, selected],
+  );
   // "Saved." from the editor stays until the next action (#67), not a toast that disappears. A
   // regenerate that clears ticks says so the same way (#57).
   const [flash, setFlashLine] = useState(takeFlash);
@@ -232,20 +252,23 @@ export function ProjectView(props: {
       ) : (
         // Section order A (#40): the same reading order in the contents, on screen, and on paper.
         <WithContents items={items} current={current.id} end={valuesUsed || undefined}>
-          {drawings && (
+          {hasDrawings && (
             <PlanSection {...section('diagrams')}>
-              <Diagrams
-                drawings={drawings}
-                rows={plan.plan.cutList}
-                describedBy="cut-list"
-                selected={selected}
-                onSelect={select}
-                partHref={(partId) => at('cut-list', partId)}
-                corners={{
-                  key: `${project.id}/${project.revision}`,
-                  load: (corner) => loadCornerViews(project.id, corner),
-                }}
-              />
+              <DrawingsWaiting state={props.drawings} />
+              {drawings && (
+                <Diagrams
+                  drawings={drawings}
+                  rows={plan.plan.cutList}
+                  describedBy="cut-list"
+                  selected={selected}
+                  onSelect={select}
+                  partHref={(partId) => at('cut-list', partId)}
+                  corners={{
+                    key: `${project.id}/${project.revision}`,
+                    load: (corner) => loadCornerViews(project.id, corner),
+                  }}
+                />
+              )}
             </PlanSection>
           )}
           <PlanSection {...section('structural-review')}>
@@ -264,7 +287,7 @@ export function ProjectView(props: {
               rows={plan.plan.cutList}
               flags={plan.plan.flags}
               selected={selected}
-              partHref={drawings ? (partId) => at('diagrams', partId) : undefined}
+              partHref={hasDrawings ? (partId) => at('diagrams', partId) : undefined}
             />
           </PlanSection>
           <PlanSection {...section('boards')}>
@@ -289,7 +312,7 @@ export function ProjectView(props: {
               <BuildSteps
                 steps={steps?.steps ?? []}
                 rows={plan.plan.cutList}
-                pieceHref={drawings ? (partId) => at('diagrams', partId) : undefined}
+                pieceHref={hasDrawings ? (partId) => at('diagrams', partId) : undefined}
               />
             </PlanSection>
           )}

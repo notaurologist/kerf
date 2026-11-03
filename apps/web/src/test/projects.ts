@@ -1,5 +1,6 @@
 import {
   findTemplate,
+  geometry,
   type Inventory,
   planSteps,
   progressSummary,
@@ -8,6 +9,7 @@ import {
   TEMPLATES,
 } from '@kerf/core';
 import fixtures from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v1.json';
+import type { DrawingsState } from '../lib/drawings.ts';
 import type { Ticks } from '../lib/ticks.ts';
 import type { Project } from '../lib/types.ts';
 
@@ -52,8 +54,6 @@ export function projectFrom(
     updatedAt: '2026-10-28T12:00:00.000Z',
     snapshot,
     version: { status: 'current', version: 1 },
-    // As the API sends them: drawn by core from the stored snapshot.
-    drawings: snapshot ? drawingsFor(snapshot) : null,
     // As the API sends them: chosen from the inventory, here with no tools.
     steps: snapshot ? stepsFor(snapshot, { tools: [] }) : null,
     ticks: [],
@@ -69,12 +69,23 @@ function summaryFor(snapshot: NonNullable<Project['snapshot']>, ticks: Project['
   return template && outputs?.success ? progressSummary(template, outputs.data, ticks) : null;
 }
 
-function drawingsFor(snapshot: NonNullable<Project['snapshot']>) {
-  const template = findTemplate(snapshot.templateId);
-  if (!template) return null;
+/** The plan's drawings as the API sends them, drawn by core, through JSON, and parsed. */
+export function drawingsFor(snapshot: Project['snapshot']): geometry.Drawings | null {
+  const template = snapshot && findTemplate(snapshot.templateId);
+  if (!snapshot || !template) return null;
   const outputs = template.storedOutputs.safeParse(snapshot.outputs);
   if (!outputs.success) return null;
-  return JSON.parse(JSON.stringify(projectDrawings(template, outputs.data)));
+  return geometry.Drawings.parse(
+    JSON.parse(JSON.stringify(projectDrawings(template, outputs.data))),
+  );
+}
+
+/** A project's drawings once a screen has loaded them, as `useDrawings` gives them. */
+export function loadedDrawings(
+  project: Project,
+  drawings = drawingsFor(project.snapshot),
+): DrawingsState {
+  return { state: 'ready', value: drawings };
 }
 
 /** Build steps as the API sends them: chosen by core from an inventory, through JSON. */

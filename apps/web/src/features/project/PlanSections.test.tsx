@@ -7,7 +7,7 @@ import {
 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { PLAN_SECTIONS, type PlanSectionId } from '../../lib/sections.ts';
-import { projectFrom } from '../../test/projects.ts';
+import { loadedDrawings, projectFrom } from '../../test/projects.ts';
 import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from './ProjectScreen.tsx';
 
@@ -19,11 +19,10 @@ const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const example = template.examples[0];
 const made = createSnapshot(template, example?.params, example?.structuralInputs);
 if (!made.ok) throw new Error('worked example should generate');
-// A plan made now, with the drawings and build steps the API sends with it.
+// A plan made now, with the build steps the API sends with it.
 const outputs = template.outputs.parse(made.output.outputs);
 const stored = JSON.parse(JSON.stringify(made.output));
 const project = projectFrom(stored, {
-  drawings: template.drawings(outputs),
   steps: {
     inventoryKey: 'none',
     steps: buildSteps(template.steps(outputs), template.plan(outputs), { tools: [] }),
@@ -32,7 +31,12 @@ const project = projectFrom(stored, {
 const base = `#/projects/${project.id}`;
 const at = (section?: PlanSectionId, part?: string) =>
   render(
-    <ProjectView project={project} {...(section ? { section } : {})} {...(part ? { part } : {})} />,
+    <ProjectView
+      project={project}
+      drawings={loadedDrawings(project)}
+      {...(section ? { section } : {})}
+      {...(part ? { part } : {})}
+    />,
   );
 const contentsOf = (html: string) =>
   html.slice(html.indexOf('<nav class="k-contents"'), html.indexOf('</nav>') + 6);
@@ -65,14 +69,21 @@ describe('each section on its own screen', () => {
     const none = createSnapshot(template, example?.params, {});
     if (!none.ok) throw new Error('worked example should generate without inputs');
     const html = render(
-      <ProjectView project={projectFrom(JSON.parse(JSON.stringify(none.output)))} />,
+      <ProjectView
+        project={projectFrom(JSON.parse(JSON.stringify(none.output)))}
+        drawings={loadedDrawings(projectFrom(JSON.parse(JSON.stringify(none.output))))}
+      />,
     );
     expect(shownSections(html)).toEqual(['structural-review']);
   });
 
   it('opens where it would have for a section the plan does not have', () => {
     const old = render(
-      <ProjectView project={projectFrom(stored, { steps: null })} section="build-steps" />,
+      <ProjectView
+        project={projectFrom(stored, { steps: null })}
+        drawings={loadedDrawings(projectFrom(stored, { steps: null }))}
+        section="build-steps"
+      />,
     );
     expect(shownSections(old)).toEqual(['diagrams']);
   });
@@ -171,6 +182,7 @@ describe('Edit', () => {
     const html = render(
       <ProjectView
         project={projectFrom(JSON.parse(JSON.stringify(none.output)))}
+        drawings={loadedDrawings(projectFrom(JSON.parse(JSON.stringify(none.output))))}
         section="structural-review"
       />,
     );

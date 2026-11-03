@@ -11,6 +11,7 @@ import { isValidElement, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, renderText, textOf } from '../test/render.tsx';
 import { Catalog } from './Catalog.tsx';
+import { DiagramDrawing } from './Diagram.tsx';
 import { goToField, reported } from './feedback.tsx';
 import { ICON_NAMES } from './Icon.tsx';
 import {
@@ -1463,10 +1464,10 @@ describe('Diagram (#91)', () => {
 
 /** Diagram's element tree, from a component that calls it as a function and so owns its hooks. */
 function DiagramProbe(props: {
-  diagram: Parameters<typeof Diagram>[0];
+  diagram: Parameters<typeof DiagramDrawing>[0];
   onTree: (tree: ReactNode) => void;
 }) {
-  const tree = Diagram(props.diagram);
+  const tree = DiagramDrawing(props.diagram);
   props.onTree(tree);
   return tree;
 }

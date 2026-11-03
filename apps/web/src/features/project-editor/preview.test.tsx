@@ -12,6 +12,7 @@ import { projectFrom } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
 import {
   PreviewPane,
+  type PreviewState,
   pendingState,
   previewRequest,
   previewState,
@@ -115,6 +116,19 @@ describe('pendingState', () => {
   it('drops the preview when the form returns to the saved plan or cannot be read', () => {
     expect(pendingState(ready, { kind: 'saved' })).toEqual({ kind: 'saved' });
     expect(pendingState(ready, { kind: 'incomplete' })).toEqual({ kind: 'incomplete' });
+  });
+
+  it('keeps the same state while typing changes nothing on screen, so the pane is not redrawn', () => {
+    const states: PreviewState[] = [
+      { kind: 'saved' },
+      { kind: 'incomplete' },
+      { kind: 'waiting' },
+      { kind: 'updating', previous: ready },
+    ];
+    for (const state of states) {
+      const request = state.kind === 'saved' || state.kind === 'incomplete' ? state : ask;
+      expect(pendingState(state, request)).toBe(state);
+    }
   });
 });
 

@@ -2,7 +2,7 @@ import { createSnapshot, TEMPLATES } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { cutListPartId } from '../../lib/show.ts';
 import type { Project } from '../../lib/types.ts';
-import { projectFrom } from '../../test/projects.ts';
+import { loadedDrawings, projectFrom } from '../../test/projects.ts';
 import { render, sectionOf, textOf } from '../../test/render.tsx';
 import { ProjectView } from './ProjectScreen.tsx';
 
@@ -18,7 +18,7 @@ describe.each(TEMPLATES.map((t) => [t.id, t] as const))(
     if (!made.ok) throw new Error(`${id} worked example does not generate`);
     const snapshot = JSON.parse(JSON.stringify(made.output)) as NonNullable<Project['snapshot']>;
     const project = projectFrom(snapshot, { templateId: id });
-    const html = render(<ProjectView project={project} />);
+    const html = render(<ProjectView project={project} drawings={loadedDrawings(project)} />);
     const plan = template.plan(made.output.outputs as never);
     const cutList = sectionOf(html, 'cut-list');
     const steps = textOf(sectionOf(html, 'build-steps'));

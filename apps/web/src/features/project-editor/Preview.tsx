@@ -7,7 +7,7 @@ import {
   structural,
   type TemplateDefinition,
 } from '@kerf/core';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { type ApiResult, api, failureOf, send } from '../../lib/api.ts';
 import { type Changes, indexChanges } from '../../lib/changes.tsx';
 import { useLatest } from '../../lib/latest.ts';
@@ -97,9 +97,11 @@ export type PreviewState =
  * for the earlier values, so its margins are never read as the current ones.
  */
 export function pendingState(current: PreviewState, request: PreviewRequest): PreviewState {
-  if (request.kind !== 'ask') return { kind: request.kind };
+  // The same state when nothing changed, so typing does not redraw the pane.
+  if (request.kind !== 'ask')
+    return current.kind === request.kind ? current : { kind: request.kind };
   if (current.kind === 'ready') return { kind: 'updating', previous: current };
-  if (current.kind === 'updating') return current;
+  if (current.kind === 'updating' || current.kind === 'waiting') return current;
   return { kind: 'waiting' };
 }
 
@@ -165,7 +167,10 @@ export function previewState(templateId: string, result: PreviewResult): Preview
  * says "Preview, not saved" and marks every value that differs with the saved value. A new
  * project has no saved plan (`saved` is null), so until there is a preview it shows only why.
  */
-export function PreviewPane(props: { saved: Plan | null; state: PreviewState }) {
+export const PreviewPane = memo(function PreviewPane(props: {
+  saved: Plan | null;
+  state: PreviewState;
+}) {
   const { state } = props;
   const preview =
     state.kind === 'ready' ? state : state.kind === 'updating' ? state.previous : null;
@@ -190,7 +195,7 @@ export function PreviewPane(props: { saved: Plan | null; state: PreviewState }) 
       </Stack>
     </section>
   );
-}
+});
 
 /** The outputs an edit most often moves, each changed value marked with the one it replaces. */
 export function PlanOutputs(props: { plan: Plan; changes: Changes | undefined }) {

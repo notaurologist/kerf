@@ -44,9 +44,12 @@ describe('stored projects of every shape', () => {
     expect(one.status).toBe(200);
     const project = (await one.json()) as Record<string, unknown>;
     expect(project.unreadable).toBeUndefined();
-    expect(project.drawings).not.toBeNull();
     expect(project.steps).not.toBeNull();
     expect(project.progress).not.toBeNull();
+
+    const drawings = await authed(`/api/projects/${id}/drawings`);
+    expect(drawings.status).toBe(200);
+    expect(await drawings.json()).not.toEqual({ drawings: null });
 
     const list = await authed('/api/projects');
     expect(list.status).toBe(200);
@@ -105,6 +108,11 @@ describe('stored projects of every shape', () => {
     const { authed, close } = await createTestApp({ database: before, templates: [throwing] });
     const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
     const res = await authed(`/api/projects/${id}`);
+    const drawings = await authed(`/api/projects/${id}/drawings`);
+    expect(logged).toHaveBeenCalledWith(
+      `project ${id}: the build steps could not be drawn`,
+      expect.any(Error),
+    );
     expect(logged).toHaveBeenCalledWith(
       `project ${id}: the drawings could not be drawn`,
       expect.any(Error),
@@ -115,8 +123,50 @@ describe('stored projects of every shape', () => {
     expect(project.unreadable).toBeUndefined();
     expect(project.snapshot).not.toBeNull();
     expect(project.version).toEqual({ status: 'current', version: swingSet.version });
-    expect(project.drawings).toBeNull();
     expect(project.steps).toBeNull();
+    expect(drawings.status).toBe(200);
+    expect(await drawings.json()).toEqual({ drawings: null });
+    await close();
+  });
+});
+
+// Vercel refuses a function response over 4.5 MB, and a project is read on every open and save.
+// The drawings, which are most of a plan's size, come in a request of their own.
+const PROJECT_BUDGET = 1_000_000;
+const DRAWINGS_BUDGET = 4_000_000;
+
+const bytes = (text: string) => new TextEncoder().encode(text).length;
+
+const examples = TEMPLATES.flatMap((template) =>
+  template.examples.map((example) => ({
+    name: `${template.id}: ${example.name}`,
+    template,
+    example,
+  })),
+);
+
+describe('response sizes', () => {
+  it.each(examples)('keeps $name under budget', async ({ template, example }) => {
+    const { authed, close } = await createTestApp();
+    const created = await authed('/api/projects', {
+      method: 'POST',
+      body: {
+        name: example.name,
+        templateId: template.id,
+        params: example.params,
+        structuralInputs: example.structuralInputs,
+      },
+    });
+    expect(created.status).toBe(201);
+    const text = await created.text();
+    expect(bytes(text)).toBeLessThan(PROJECT_BUDGET);
+    const { id } = JSON.parse(text) as { id: string };
+    const read = await authed(`/api/projects/${id}`);
+    expect(read.status).toBe(200);
+    expect(bytes(await read.text())).toBeLessThan(PROJECT_BUDGET);
+    const drawings = await authed(`/api/projects/${id}/drawings`);
+    expect(drawings.status).toBe(200);
+    expect(bytes(await drawings.text())).toBeLessThan(DRAWINGS_BUDGET);
     await close();
   });
 });

@@ -1,7 +1,6 @@
 import { createSnapshot, findTemplate, type geometry, type TemplateDefinition } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { readDrawings } from '../lib/plan.ts';
-import { projectFrom } from '../test/projects.ts';
+import { drawingsFor } from '../test/projects.ts';
 import { placeText } from './Diagram.tsx';
 
 // Labels on the cut details, as a phone shows them: a cut detail is drawn no narrower than 560 px
@@ -15,7 +14,7 @@ const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
 const details = template.examples.flatMap((example) => {
   const made = createSnapshot(template, example.params, example.structuralInputs);
   if (!made.ok) throw new Error('worked example should generate');
-  const drawings = readDrawings(projectFrom(JSON.parse(JSON.stringify(made.output))));
+  const drawings = drawingsFor(JSON.parse(JSON.stringify(made.output)));
   if (!drawings) throw new Error('the worked example draws');
   return drawings.cutDetails.map((d) => ({ ...d, title: `${example.name}, ${d.title}` }));
 });

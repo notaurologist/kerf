@@ -102,18 +102,35 @@ describe('POST /api/projects', () => {
   });
 });
 
-describe('GET /api/projects/:id drawings', () => {
-  it("returns the plan's drawings, drawn by core from the stored snapshot", async () => {
+describe('GET /api/projects/:id/drawings', () => {
+  it("returns the plan's drawings, drawn by core from the stored snapshot, apart from the project", async () => {
     const { authed } = await createTestApp();
     const { body } = await create(authed);
     const project = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
+    expect(project).not.toHaveProperty('drawings');
+    const res = await authed(`/api/projects/${body.id}/drawings`);
+    expect(res.status).toBe(200);
+    const { drawings } = (await res.json()) as Json;
     const outputs = swingSetAFrame.definition.storedOutputs.parse(project.snapshot.outputs);
     const plan = swingSetAFrame.definition.plan(outputs);
     const expected = projectDrawings(swingSetAFrame.definition, outputs);
-    expect(project.drawings).toEqual(JSON.parse(JSON.stringify(expected)));
-    expect(project.drawings.boards).toHaveLength(plan.lumber.boards.length);
-    expect(project.drawings.isometric.title).toBe('Isometric view');
-    expect(project.drawings.cutDetails).toHaveLength(project.snapshot.outputs.cutList.length);
+    expect(drawings).toEqual(JSON.parse(JSON.stringify(expected)));
+    expect(drawings.boards).toHaveLength(plan.lumber.boards.length);
+    expect(drawings.isometric.title).toBe('Isometric view');
+    expect(drawings.cutDetails).toHaveLength(project.snapshot.outputs.cutList.length);
+  });
+
+  it('answers 404 for a missing project', async () => {
+    const { authed } = await createTestApp();
+    const missing = '00000000-0000-4000-8000-000000000000';
+    expect((await authed(`/api/projects/${missing}/drawings`)).status).toBe(404);
+  });
+
+  it('requires a session', async () => {
+    const { app, authed } = await createTestApp();
+    const { body } = await create(authed);
+    const res = await app.request(`/api/projects/${body.id}/drawings`);
+    expect(res.status).toBe(401);
   });
 });
 
@@ -133,8 +150,9 @@ describe('GET /api/projects/:id/views/:corner (#364)', () => {
     const frontLeft = (await (
       await authed(`/api/projects/${body.id}/views/front-left`)
     ).json()) as Json;
-    expect(frontLeft.isometric).toEqual(project.drawings.isometric);
-    expect(frontLeft.exploded).toEqual(project.drawings.exploded);
+    const { drawings } = (await (await authed(`/api/projects/${body.id}/drawings`)).json()) as Json;
+    expect(frontLeft.isometric).toEqual(drawings.isometric);
+    expect(frontLeft.exploded).toEqual(drawings.exploded);
     const back = (await (await authed(`/api/projects/${body.id}/views/back-right`)).json()) as Json;
     expect(back.isometric.description).toBe(
       'The swing set, assembled. Seen from the back right, above.',
@@ -721,9 +739,11 @@ describe('a stored project whose template this code no longer has', () => {
         message: 'No template has the ID "swing-set-a-frame".',
       },
       version: null,
-      drawings: null,
       steps: null,
     });
+    const drawings = await after.authed(`/api/projects/${body.id}/drawings`);
+    expect(drawings.status).toBe(200);
+    expect(await drawings.json()).toEqual({ drawings: null });
   });
 
   it('answers a preview as the server’s problem, not the request’s', async () => {

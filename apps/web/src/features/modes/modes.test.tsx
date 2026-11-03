@@ -2,7 +2,7 @@ import { createSnapshot, TEMPLATES } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { Screen } from '../../App.tsx';
 import type { Project } from '../../lib/types.ts';
-import { projectFrom } from '../../test/projects.ts';
+import { loadedDrawings, projectFrom } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
 import { ProjectView } from '../project/ProjectScreen.tsx';
 import { ProjectList } from '../projects/ProjectsScreen.tsx';
@@ -33,8 +33,12 @@ function project(ticks: { kind: Project['ticks'][number]['kind']; key: string }[
 describe('Shopping mode', () => {
   it('ticks each shopping line under the mode bar, with no other navigation', () => {
     const p = project([{ kind: 'shopping-line', key: 'lumber/2x6/10' }]);
-    const html = render(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
-    const text = renderText(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
+    const html = render(
+      <ModeView route={{ screen: 'shop', id: p.id }} project={p} drawings={loadedDrawings(p)} />,
+    );
+    const text = renderText(
+      <ModeView route={{ screen: 'shop', id: p.id }} project={p} drawings={loadedDrawings(p)} />,
+    );
     expect(text).toContain(
       'Shopping · Backyard swing set Theme System theme Light theme Dark theme Exit',
     );
@@ -52,7 +56,9 @@ describe('Shopping mode', () => {
       { kind: 'shopping-line', key: 'lumber/2x6/10' },
       { kind: 'shopping-line', key: 'hardware/Swing hangers' },
     ]);
-    const text = renderText(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
+    const text = renderText(
+      <ModeView route={{ screen: 'shop', id: p.id }} project={p} drawings={loadedDrawings(p)} />,
+    );
     const headings = [...text.matchAll(/(Lumber|Bolts and fittings|Swing hardware) (\d+ of \d+)/g)];
     expect(headings.map((m) => `${m[1]} ${m[2]}`)).toEqual([
       'Lumber 1 of 4',
@@ -64,8 +70,12 @@ describe('Shopping mode', () => {
 
 describe('board cards (#59)', () => {
   const p = project();
-  const text = renderText(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
-  const html = render(<ModeView route={{ screen: 'shop', id: p.id }} project={p} />);
+  const text = renderText(
+    <ModeView route={{ screen: 'shop', id: p.id }} project={p} drawings={loadedDrawings(p)} />,
+  );
+  const html = render(
+    <ModeView route={{ screen: 'shop', id: p.id }} project={p} drawings={loadedDrawings(p)} />,
+  );
 
   it('open under each lumber line', () => {
     expect(text.match(/The boards?, and what to look for/g)).toHaveLength(4);
@@ -93,8 +103,8 @@ describe('Building mode', () => {
   it('shows a cutting step: its board drawn, trim and kerf, each piece at glance size (#118)', () => {
     const p = project([{ kind: 'part', key: 'crossbar/0' }]);
     const route = { screen: 'build-step' as const, id: p.id, step: 'board-6' };
-    const text = renderText(<ModeView route={route} project={p} />);
-    const html = render(<ModeView route={route} project={p} />);
+    const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
+    const html = render(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain(
       'Building · Backyard swing set Theme System theme Light theme Dark theme Exit',
     );
@@ -122,8 +132,8 @@ describe('Building mode', () => {
   it('shows an assembly step with its methods and flags, and no board', () => {
     const p = project();
     const route = { screen: 'build-step' as const, id: p.id, step: 'frames' };
-    const text = renderText(<ModeView route={route} project={p} />);
-    const html = render(<ModeView route={route} project={p} />);
+    const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
+    const html = render(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain('Step 10 of 11 All steps');
     expect(text).not.toContain('Cutting');
     expect(text).not.toContain('Trim 1/2"');
@@ -136,7 +146,7 @@ describe('Building mode', () => {
   it('sets an assembly step beside its action drawing, what it adds emphasized (#118)', () => {
     const p = project();
     const route = { screen: 'build-step' as const, id: p.id, step: 'beam' };
-    const html = render(<ModeView route={route} project={p} />);
+    const html = render(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     // Right after the title on a phone, before the flags and methods (#134).
     expect(html).toContain('Adds A Beam, to B Back leg');
     expect(html).not.toContain('k-steplayout__lead');
@@ -149,11 +159,19 @@ describe('Building mode', () => {
   it('sets site work beside the site layout, and a step with neither on its own', () => {
     const p = project();
     const site = render(
-      <ModeView route={{ screen: 'build-step', id: p.id, step: 'site' }} project={p} />,
+      <ModeView
+        route={{ screen: 'build-step', id: p.id, step: 'site' }}
+        project={p}
+        drawings={loadedDrawings(p)}
+      />,
     );
     expect(site).toContain('class="k-steplayout__drawing"');
     const ease = render(
-      <ModeView route={{ screen: 'build-step', id: p.id, step: 'ease-edges' }} project={p} />,
+      <ModeView
+        route={{ screen: 'build-step', id: p.id, step: 'ease-edges' }}
+        project={p}
+        drawings={loadedDrawings(p)}
+      />,
     );
     expect(ease).not.toContain('class="k-steplayout__drawing"');
   });
@@ -161,12 +179,20 @@ describe('Building mode', () => {
   it('says a step is done and offers Next instead', () => {
     const p = project([{ kind: 'step', key: 'board-6' }]);
     const text = renderText(
-      <ModeView route={{ screen: 'build-step', id: p.id, step: 'board-6' }} project={p} />,
+      <ModeView
+        route={{ screen: 'build-step', id: p.id, step: 'board-6' }}
+        project={p}
+        drawings={loadedDrawings(p)}
+      />,
     );
     expect(text).toContain('Step done. Mark not done');
     // A full-size control, not a link-sized one (#133).
     const html = render(
-      <ModeView route={{ screen: 'build-step', id: p.id, step: 'board-6' }} project={p} />,
+      <ModeView
+        route={{ screen: 'build-step', id: p.id, step: 'board-6' }}
+        project={p}
+        drawings={loadedDrawings(p)}
+      />,
     );
     expect(html).toMatch(/data-variant="secondary"[^>]*>Mark not done</);
     expect(text).toContain('Back Next');
@@ -178,8 +204,20 @@ describe('Building mode', () => {
       { kind: 'step', key: 'board-1' },
       { kind: 'step', key: 'board-2' },
     ]);
-    const html = render(<ModeView route={{ screen: 'build-steps', id: p.id }} project={p} />);
-    const text = renderText(<ModeView route={{ screen: 'build-steps', id: p.id }} project={p} />);
+    const html = render(
+      <ModeView
+        route={{ screen: 'build-steps', id: p.id }}
+        project={p}
+        drawings={loadedDrawings(p)}
+      />,
+    );
+    const text = renderText(
+      <ModeView
+        route={{ screen: 'build-steps', id: p.id }}
+        project={p}
+        drawings={loadedDrawings(p)}
+      />,
+    );
     expect(text).toContain('2 of 11 steps done.');
     expect(text).toContain('11. Bolt');
     // Every row laid out the same (#136): the tick, then Open under it.
@@ -190,8 +228,8 @@ describe('Building mode', () => {
   it('opens a piece’s cut card: the length largest, each end as a saw setting (#118)', () => {
     const p = project([{ kind: 'part', key: 'crossbar/1' }]);
     const route = { screen: 'build-part' as const, id: p.id, step: 'board-6', part: 'crossbar' };
-    const text = renderText(<ModeView route={route} project={p} />);
-    const html = render(<ModeView route={route} project={p} />);
+    const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
+    const html = render(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain('Step 6 of 11 · Cutting Back to the step');
     expect(text).toContain(
       `D Crossbar 2x6 (1-1/2" x 5-1/2"). Cut 2. From board 6, a 2x6 10' 0" long.`,
@@ -220,7 +258,7 @@ describe('Building mode', () => {
   it('heads a leg’s ends Top and Foot, and says where their angles start (#132)', () => {
     const p = project();
     const route = { screen: 'build-part' as const, id: p.id, step: 'board-2', part: 'leg-front' };
-    const text = renderText(<ModeView route={route} project={p} />);
+    const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain('from the inner edge, against the beam.');
     expect(text).toMatch(/Top: level cut Saw at 20\.0° To the edge 70\.0°/);
     expect(text).toMatch(/Foot: level cut Saw at 20\.0° To the edge 70\.0°/);
@@ -229,7 +267,11 @@ describe('Building mode', () => {
   it('says when a link names a step the plan no longer has', () => {
     const p = project();
     const text = renderText(
-      <ModeView route={{ screen: 'build-step', id: p.id, step: 'board-9' }} project={p} />,
+      <ModeView
+        route={{ screen: 'build-step', id: p.id, step: 'board-9' }}
+        project={p}
+        drawings={loadedDrawings(p)}
+      />,
     );
     expect(text).toContain('This plan has no step "board-9".');
   });
@@ -244,7 +286,9 @@ describe('Building mode', () => {
 
 describe('the plan’s mode buttons (#356)', () => {
   it('start each mode, with its progress', () => {
-    const text = renderText(<ProjectView project={project()} />);
+    const text = renderText(
+      <ProjectView project={project()} drawings={loadedDrawings(project())} />,
+    );
     expect(text).toContain('Shop · 11 to buy');
     expect(text).toContain('Build · not started');
   });
@@ -254,17 +298,19 @@ describe('the plan’s mode buttons (#356)', () => {
       { kind: 'shopping-line', key: 'lumber/2x6/10' },
       { kind: 'step', key: 'board-1' },
     ]);
-    const text = renderText(<ProjectView project={p} />);
+    const text = renderText(<ProjectView project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain('Shop · 1 of 11 bought');
     expect(text).toContain('Build · step 2 of 11');
     expect(text).toContain("Next: Cut board 2, a 4x4 12' long: Front leg (downhill)");
-    expect(render(<ProjectView project={p} />)).toContain(`href="#/projects/${p.id}/build"`);
+    expect(render(<ProjectView project={p} drawings={loadedDrawings(p)} />)).toContain(
+      `href="#/projects/${p.id}/build"`,
+    );
   });
 
   it('make the mode to do next the only primary button, on every section', () => {
     const primaries = (p: Project, section?: 'cut-list') =>
       (
-        render(<ProjectView project={p} section={section} />).match(
+        render(<ProjectView project={p} drawings={loadedDrawings(p)} section={section} />).match(
           /data-variant="primary"[^>]*>[^<]*/g,
         ) ?? []
       ).map((m) => m.slice(m.indexOf('>') + 1));
@@ -282,7 +328,7 @@ describe('the plan’s mode buttons (#356)', () => {
   });
 
   it('mark each button with its mode, for the mode color', () => {
-    const html = render(<ProjectView project={project()} />);
+    const html = render(<ProjectView project={project()} drawings={loadedDrawings(project())} />);
     expect(html).toContain('data-mode="shopping"');
     expect(html).toContain('data-mode="building"');
   });
@@ -355,7 +401,9 @@ describe('values read at the store (#390)', () => {
     JSON.parse(JSON.stringify(bare.output)) as NonNullable<Project['snapshot']>,
     { id: '6f1c2a3e-0000-4000-8000-0000000003a0' },
   );
-  const shop = (p: Project) => <ModeView route={{ screen: 'shop', id: p.id }} project={p} />;
+  const shop = (p: Project) => (
+    <ModeView route={{ screen: 'shop', id: p.id }} project={p} drawings={loadedDrawings(p)} />
+  );
 
   it('asks for each beside its line while needed, opening Edit on the field', () => {
     const text = renderText(shop(needing));
