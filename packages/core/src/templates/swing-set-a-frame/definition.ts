@@ -7,6 +7,7 @@ import { hardwareList } from '../../outputs/hardwareList.ts';
 import { DEFAULT_BOARD_OPTIONS, planLumber } from '../../outputs/shoppingList.ts';
 import { withStockAlternatives } from '../../outputs/stockAlternatives.ts';
 import { noSuggestions } from '../../snapshot/snapshot.ts';
+import { withDeeperStock } from './deeperStock.ts';
 import { assembly, drawings } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { SWING_SET_FORM } from './form.ts';
@@ -240,6 +241,7 @@ export const swingSetAFrame: TemplateDefinition<
         return other.ok ? reviewChecks(other.output.structuralReview) : null;
       },
     );
-    return { ok: true, output: { ...made.output, lumber } };
+    const review = withDeeperStock(made.output.structuralReview, params, structuralInputs);
+    return { ok: true, output: { ...made.output, lumber, structuralReview: review } };
   },
 };

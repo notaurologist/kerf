@@ -274,7 +274,11 @@ function hangerHoleNotes(p: SwingSetParams): string[] {
   ];
 }
 
-export function generate(input: unknown): GenerateResult<SwingSetOutput> {
+export function generate(
+  input: unknown,
+  /** False for a beam size compared in the structural review, not the plan's own. */
+  plyBolts = true,
+): GenerateResult<SwingSetOutput> {
   const parsed = SwingSetParams.safeParse(input);
   if (!parsed.success) return { ok: false, issues: parseIssues(parsed.error) };
   const p = parsed.data;
@@ -323,7 +327,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
   const issues = [
     ...frameIssues,
     ...(fits ? validateSwings(dims, swings) : []),
-    ...validateHardware(p, dims),
+    ...validateHardware(p, dims, plyBolts),
   ];
   if (issues.length > 0) return { ok: false, issues };
 
