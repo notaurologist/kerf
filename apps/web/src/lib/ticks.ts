@@ -1,13 +1,16 @@
-import { type ProgressKind, progressId } from '@kerf/core';
+import { type ProgressKind, progressId, WaitingProgressChanges } from '@kerf/core';
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { type ApiResult, api, describeError, send } from './api.ts';
 import type { ProjectStatus } from './types.ts';
 
 // Ticks made in Shopping and Building (#57, #61). The server holds them, so every device sees the
-// same ticks; a tick is sent at once and, when the connection drops, waits in memory and is sent
-// again until it goes through (#39, Q5 a). Nothing is kept in the browser's storage (0005): a
-// reload while ticks wait loses them, and the page asks first. Each project's queue lives for the
-// page's life, so leaving a mode and coming back keeps what is waiting.
+// same ticks; a tick is sent at once and, when the connection drops, waits and is sent again
+// until it goes through (#39, Q5 a). Waiting ticks are also written to the browser's local
+// storage, so a reload or iOS ending the app at the store does not lose them (0005, #427); an
+// entry is removed once the server accepts it, and the server stays the source of truth. When
+// storage is missing or throws, they wait in memory only and the page asks before it unloads.
+// Each project's queue lives for the page's life, so leaving a mode and coming back keeps what is
+// waiting.
 
 export interface Tick {
   kind: ProgressKind;
@@ -33,6 +36,8 @@ export interface TicksState {
   dropped: string | null;
   /** True while the server cannot be reached. */
   offline: boolean;
+  /** True when every waiting change is also kept in this browser's storage. */
+  stored: boolean;
 }
 
 /** Sends changes made against one revision of the project's plan (#207). */
@@ -51,6 +56,11 @@ interface Timers {
   clear: (handle: unknown) => void;
 }
 
+/** Where a queue keeps its waiting changes; `Storage` fits. */
+export type TickStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+
+export const ticksStorageKey = (projectId: string) => `kerf.ticks.${projectId}`;
+
 const FIRST_RETRY_MS = 2_000;
 const LAST_RETRY_MS = 30_000;
 
@@ -67,20 +77,34 @@ export class TickQueue {
   private problem: string | null = null;
   private dropped: string | null = null;
   private offline = false;
+  /** False once a write to storage failed, until one goes through. */
+  private stored = true;
   private state: TicksState;
   private readonly listeners = new Set<() => void>();
   private readonly sendChanges: TickSender;
   private readonly timers: Timers;
+  private readonly storage: TickStorage | null;
+  private readonly storageKey: string;
 
+  /**
+   * `storage` and `storageKey` say where waiting changes are kept; changes found there are read
+   * back (what does not parse is ignored) and wait to be sent like any other. Without storage,
+   * changes wait in memory.
+   */
   constructor(
     sendChanges: TickSender,
     timers: Timers = {
       set: (fn, ms) => setTimeout(fn, ms),
       clear: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
     },
+    storage: TickStorage | null = null,
+    storageKey = '',
   ) {
     this.sendChanges = sendChanges;
     this.timers = timers;
+    this.storage = storage;
+    this.storageKey = storageKey;
+    this.load();
     this.state = this.snapshot();
   }
 
@@ -102,12 +126,18 @@ export class TickQueue {
       revision: this.revision,
     });
     this.dropped = null;
+    this.persist();
     this.emit();
     void this.flush();
   }
 
   get hasWaiting() {
     return this.changes.size > 0;
+  }
+
+  /** True when a reload would lose waiting changes: they are not kept in storage. */
+  get atRisk() {
+    return this.changes.size > 0 && !this.stored;
   }
 
   /** Sends every waiting change; after a failure, tries again later. */
@@ -167,6 +197,7 @@ export class TickQueue {
       this.emit();
       return;
     }
+    this.persist();
     this.emit();
     if (this.changes.size > 0) await this.flush();
   }
@@ -191,7 +222,40 @@ export class TickQueue {
       problem: this.problem,
       dropped: this.dropped,
       offline: this.offline,
+      stored: this.stored,
     };
+  }
+
+  /** Reads back the changes an earlier page left in storage. */
+  private load() {
+    if (!this.storage) return;
+    try {
+      const text = this.storage.getItem(this.storageKey);
+      if (text === null) return;
+      const parsed = WaitingProgressChanges.safeParse(JSON.parse(text));
+      if (!parsed.success) {
+        this.storage.removeItem(this.storageKey);
+        return;
+      }
+      for (const c of parsed.data) this.changes.set(progressId(c), c);
+    } catch {
+      // Unreadable or blocked: start with nothing waiting.
+    }
+  }
+
+  /** Writes the waiting changes to storage, or removes the entry when none wait. */
+  private persist() {
+    if (!this.storage) {
+      this.stored = false;
+      return;
+    }
+    try {
+      if (this.changes.size === 0) this.storage.removeItem(this.storageKey);
+      else this.storage.setItem(this.storageKey, JSON.stringify([...this.changes.values()]));
+      this.stored = true;
+    } catch {
+      this.stored = false;
+    }
   }
 
   private emit() {
@@ -201,6 +265,15 @@ export class TickQueue {
 }
 
 const queues = new Map<string, TickQueue>();
+
+/** The browser's local storage, or null when it is missing or blocked. */
+function browserStorage(): TickStorage | null {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+}
 
 function sendTo(projectId: string): TickSender {
   return async (changes, revision) =>
@@ -212,11 +285,11 @@ function sendTo(projectId: string): TickSender {
     );
 }
 
-/** Asks before a reload or closing the tab while any project has ticks waiting. */
+/** Asks before a reload or closing the tab while ticks wait that storage does not hold. */
 function warnBeforeUnload() {
   if (typeof window === 'undefined') return;
   window.addEventListener('beforeunload', (e) => {
-    if ([...queues.values()].some((q) => q.hasWaiting)) e.preventDefault();
+    if ([...queues.values()].some((q) => q.atRisk)) e.preventDefault();
   });
 }
 
@@ -225,7 +298,12 @@ function ticksFor(projectId: string, seed: readonly Tick[], revision: number): T
   let queue = queues.get(projectId);
   if (!queue) {
     if (queues.size === 0) warnBeforeUnload();
-    queue = new TickQueue(sendTo(projectId));
+    queue = new TickQueue(
+      sendTo(projectId),
+      undefined,
+      browserStorage(),
+      ticksStorageKey(projectId),
+    );
     queues.set(projectId, queue);
   }
   queue.seed(seed, revision);
@@ -266,6 +344,8 @@ export function flushWhenBack(
 export function useTicks(projectId: string, seed: readonly Tick[], revision: number) {
   const queue = useMemo(() => ticksFor(projectId, seed, revision), [projectId, seed, revision]);
   useEffect(() => {
+    // Ticks a reloaded page found in storage are sent now.
+    void queue.flush();
     return flushWhenBack(queue, window, document);
   }, [queue]);
   const state = useSyncExternalStore(queue.subscribe, queue.getState, queue.getState);
@@ -286,11 +366,14 @@ export function useTicks(projectId: string, seed: readonly Tick[], revision: num
 export type Ticks = ReturnType<typeof useTicks>;
 
 /** The line saying how many changes wait, or null when none do. */
-export function describeWaiting(state: Pick<TicksState, 'waiting' | 'offline'>): string | null {
+export function describeWaiting(
+  state: Pick<TicksState, 'waiting' | 'offline' | 'stored'>,
+): string | null {
   const n = state.waiting.size;
   if (n === 0) return null;
   const changes = n === 1 ? '1 change is not saved yet' : `${n} changes are not saved yet`;
-  return state.offline
-    ? `${changes}. Kerf cannot reach the server and will keep trying; keep this page open.`
-    : `${changes}.`;
+  if (!state.offline) return `${changes}.`;
+  return state.stored
+    ? `${changes}. Kerf cannot reach the server and will keep trying. This device keeps ${n === 1 ? 'it' : 'them'} until ${n === 1 ? 'it is' : 'they are'} sent.`
+    : `${changes}. Kerf cannot reach the server and will keep trying; keep this page open.`;
 }

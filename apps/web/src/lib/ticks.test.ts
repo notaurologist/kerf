@@ -138,7 +138,7 @@ describe('TickQueue', () => {
 
 describe('describeWaiting', () => {
   it('says nothing when nothing waits', () => {
-    expect(describeWaiting({ waiting: new Set(), offline: false })).toBeNull();
+    expect(describeWaiting({ waiting: new Set(), offline: false, stored: true })).toBeNull();
   });
 
   it('sends each tick with the revision of the plan it was made on', async () => {
