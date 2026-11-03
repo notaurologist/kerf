@@ -1090,7 +1090,7 @@ describe('swing-set template versions', () => {
       const { changes } = regenerated(snapshot, ...keep32);
       expect(changes).toHaveLength(1);
       expect(changes.filter((c) => !isVersion32(c))).toEqual([]);
-      expect((changes[0]?.after as { kind: string }).kind).toBe('column');
+      expect(changes[0]?.after).toMatchObject({ kind: 'column' });
     }
   });
 });

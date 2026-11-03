@@ -40,6 +40,11 @@ export {
   type UniformLoad,
 } from './checks.ts';
 export {
+  type ClearWoodDeflectionInput,
+  type ClearWoodMember,
+  clearWoodChecks,
+} from './clearWood.ts';
+export {
   type AxialLoad,
   type ColumnAxis,
   type ColumnCheckInput,
@@ -47,11 +52,6 @@ export {
   columnCheck,
   columnStabilityFactor,
 } from './column.ts';
-export {
-  type ClearWoodDeflectionInput,
-  type ClearWoodMember,
-  clearWoodChecks,
-} from './clearWood.ts';
 export {
   type AdjustedCompression,
   type AdjustedValues,
