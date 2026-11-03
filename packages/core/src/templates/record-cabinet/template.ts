@@ -23,7 +23,7 @@ export const TEMPLATE_ID = 'record-cabinet';
  * Version 16 names the screw length to buy, from the cleat and case bottom, and carries each
  * item's notes to its shopping line (#449).
  */
-export const TEMPLATE_VERSION = 16;
+export const TEMPLATE_VERSION = 17;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,

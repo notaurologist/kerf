@@ -25,7 +25,7 @@ export interface ServiceConditions {
   loadDuration: { value: LoadDuration; reason: string };
   /** Whether NDS 4.3.9 applies (three or more members sharing load). */
   repetitive: { value: boolean; reason: string };
-  /** Water-borne preservative treatment, which caps C_D at 1.6 (NDS 4.3.13). */
+  /** Water-borne preservative treatment, which caps C_D at 1.6 (NDS 4.3.13; Table 2.3.2, footnote 2). */
   waterborneTreatment: boolean;
 }
 

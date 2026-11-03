@@ -77,7 +77,7 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 24 keeps the lengths that fit each bolt, and each bolt line's bolt and items, so a bolt
  * bought before a change can be compared with the new grip (#514). No number changes.
  */
-export const TEMPLATE_VERSION = 24;
+export const TEMPLATE_VERSION = 25;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

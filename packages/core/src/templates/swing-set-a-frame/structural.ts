@@ -196,7 +196,7 @@ const BEAM_CONDITIONS: ServiceConditions = {
   loadDuration: {
     value: 'ten-years',
     reason:
-      'C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13).',
+      'C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).',
   },
   repetitive: {
     value: false,
@@ -473,7 +473,7 @@ function checklist(output: SwingSetOutput): ChecklistItem[] {
           element: 'Buried legs',
           partIds: [...LEG_IDS],
           hardwareIds: [],
-          confirm: `Burial depth (${formatLength(p.burialDepth)}), soil, backfill or concrete, and lumber rated for ground contact.`,
+          confirm: `Burial depth (${formatLength(p.burialDepth)}), soil, what each leg's end stands on (gravel or tamped soil), whether the backfill or concrete around it sheds water away from the wood, and lumber rated for ground contact (UC4A, or UC4B if critical or hard to replace).`,
           why: 'Burial keeps the frame from lifting and walking; tipping and anchoring are not computed.',
         }
       : {

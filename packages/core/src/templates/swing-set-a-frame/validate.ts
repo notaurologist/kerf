@@ -173,8 +173,8 @@ export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
       category: 'load-bearing',
       partIds: [...LEG_IDS],
       hardwareIds: [],
-      ask: `Confirm the burial depth (${len(dims.d)}) and that the leg lumber is rated for ground contact.`,
-      why: 'Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line.',
+      ask: `Confirm the burial depth (${len(dims.d)}), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.`,
+      why: 'Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts ground-contact parts that are critical or hard to replace under UC4B.',
     });
   } else {
     result.push({

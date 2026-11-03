@@ -150,9 +150,12 @@ export const BOARD_GUIDES = [
     title: 'A board in or on the ground',
     checks: [
       {
-        look: 'Read the end tag. It must show AWPA U1 and use category UC4A or higher (ground contact).',
-        why: 'Ground contact needs UC4A or higher, and some treated lumber 2 inches thick or less is treated only for use above ground. A tag without AWPA U1 and a use category probably does not meet AWPA standards.',
-        sources: [{ source: 'awpa-homeowners', locator: 'Use categories; end tags' }],
+        look: 'Read the end tag. It must show AWPA U1 and use category UC4A or higher (ground contact). Ask an experienced builder whether this part needs UC4B (heavy duty).',
+        why: 'Ground contact needs UC4A or higher, and some treated lumber 2 inches thick or less is treated only for use above ground. A tag without AWPA U1 and a use category probably does not meet AWPA standards. AWPA U1 puts ground-contact parts that are critical or hard to replace, and ground contact where wood decays fast, under UC4B.',
+        sources: [
+          { source: 'awpa-homeowners', locator: 'Use categories; end tags' },
+          { source: 'awpa-u1', locator: 'Section 2, UC4A and UC4B, pp. 2-3; Table 1, pp. 4-5' },
+        ],
       },
     ],
   },

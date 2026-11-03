@@ -410,6 +410,23 @@ describe('a cabinet with no doors (#501)', () => {
 });
 
 describe('structural (spec, Structural model, Worked examples)', () => {
+  it('works out the case bottom’s long-term sag in each bay: 1.5 × 0.0043156"', () => {
+    // L = 16.5 + 0.75 = 17.25; I = 17 × 0.75³ / 12 = 0.597656 in⁴; w = 40/12 = 3.3333 lb/in.
+    // δ = 5 × 3.3333 × 17.25⁴ / (384 × 1,490,000 × 0.597656) = 1,475,724 / 341,953,500
+    // = 0.0043156".
+    const d = worked.review.bottom?.deflection;
+    if (d?.status !== 'computed') throw new Error(d?.status);
+    expect(d.computed.value).toBeCloseTo(0.0064733, 6);
+  });
+
+  it('works out the edge of range’s case bottom, walnut: 1.5 × 0.000792"', () => {
+    // L = 12.5 + 1 = 13.5; I = 13 × 1³ / 12 = 1.083333 in⁴; E = 1,680,000 psi.
+    // δ = 5 × 3.3333 × 13.5⁴ / (384 × 1,680,000 × 1.083333) = 553,584 / 698,880,000 = 0.000792".
+    const d = edge.review.bottom?.deflection;
+    if (d?.status !== 'computed') throw new Error(d?.status);
+    expect(d.computed.value).toBeCloseTo(0.0011882, 6);
+  });
+
   it('works out the front and back aprons’ long-term sag: 1.5 × 0.10019"', () => {
     // L = 52.5 − 3 = 49.5; records 40/12 × 3 × 16.5 = 165 lb and 35 lb on the top, 200 lb, half
     // on each apron: w = 200 / 49.5 / 2 = 2.0202 lb/in. I = 13/16 × 2.5³ / 12 = 1.057943 in⁴.
@@ -430,6 +447,7 @@ describe('structural (spec, Structural model, Worked examples)', () => {
   it('says what is needed when no structural inputs are entered', () => {
     const none = made(1);
     expect(none.review.apron.deflection.status).toBe('input-needed');
+    expect(none.review.bottom?.deflection.status).toBe('input-needed');
     expect(none.review.movement.every((m) => m.status === 'input-needed')).toBe(true);
   });
 });
@@ -455,8 +473,9 @@ describe('plan and drawings', () => {
   const plan = recordCabinet.plan(worked);
   const drawings = recordCabinet.drawings(worked);
 
-  it('shows the aprons’ and top’s checks and the movement estimates', () => {
+  it('shows the case bottom’s, aprons’, and top’s checks and the movement estimates', () => {
     expect(plan.checks.map((c) => `${c.subject}: ${c.loadCase}`)).toEqual([
+      'Case bottom, in each bay: Records along the bay, for years',
       'Front and back aprons: Records and everything on the top, for years',
       'Top: Everything on the top at the middle of a span, for years',
     ]);
