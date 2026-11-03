@@ -15,8 +15,12 @@ describe('useRoute', () => {
     window.history.replaceState(null, '', '#/glossary');
     mount(<Shown />);
     expect(shown()).toEqual({ screen: 'glossary' });
-    await goTo('#/projects/abc/cut-list');
-    expect(shown()).toEqual({ screen: 'project', id: 'abc', section: 'cut-list' });
+    await goTo('#/projects/6f1c2a3e-0000-4000-8000-000000000000/cut-list');
+    expect(shown()).toEqual({
+      screen: 'project',
+      id: '6f1c2a3e-0000-4000-8000-000000000000',
+      section: 'cut-list',
+    });
     await goTo('#/nowhere');
     expect(shown()).toEqual({ screen: 'not-found' });
   });

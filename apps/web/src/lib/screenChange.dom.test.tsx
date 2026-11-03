@@ -89,10 +89,10 @@ describe('a screen change', () => {
   });
 
   it('leaves moves between the plan’s sections to the plan', async () => {
-    window.history.replaceState(null, '', '#/projects/abc');
+    window.history.replaceState(null, '', '#/projects/6f1c2a3e-0000-4000-8000-000000000000');
     mount(<App />);
     expect(document.title).toBe('Summary · Swing set · Kerf');
-    await goTo('#/projects/abc/cut-list');
+    await goTo('#/projects/6f1c2a3e-0000-4000-8000-000000000000/cut-list');
     expect(scrollTo).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(document.body);
     expect(document.title).toBe('cut-list · Swing set · Kerf');

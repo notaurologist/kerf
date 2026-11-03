@@ -1,6 +1,8 @@
+import { createHash } from 'node:crypto';
+import { inspect } from 'node:util';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../test/app.ts';
-import { createApp } from './app.ts';
+import { BODY_LIMIT_BYTES, createApp } from './app.ts';
 import type { Database } from './db/client.ts';
 
 // Every route except login and the health check needs a session (decision 0007). The routes
@@ -104,6 +106,67 @@ describe('errors', () => {
     logged.mockRestore();
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: 'internal' });
+  });
+
+  it('logs a failed query’s text and cause without its parameters', async () => {
+    const { app, client } = await createTestApp();
+    await client.exec('DROP TABLE sessions');
+    // The session lookup's first parameter is the token's hash.
+    const token = 'a'.repeat(43);
+    const hash = createHash('sha256').update(token).digest('hex');
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await app.request('/api/projects', {
+      headers: { cookie: `__Host-kerf_session=${token}` },
+    });
+    const text = logged.mock.calls.map((args) => inspect(args, { depth: 10 })).join('\n');
+    logged.mockRestore();
+    expect(res.status).toBe(500);
+    expect(text).toContain('from "sessions"');
+    expect(text).toContain('relation "sessions" does not exist');
+    expect(text).not.toContain(hash);
+  });
+});
+
+describe('body size', () => {
+  it('refuses a body over the limit, before reading it into a route', async () => {
+    const { app, sessionCookie } = await createTestApp();
+    const res = await app.request('/api/tools', {
+      method: 'PUT',
+      headers: { cookie: await sessionCookie(), 'content-type': 'application/json' },
+      body: JSON.stringify({ tools: [], padding: 'x'.repeat(BODY_LIMIT_BYTES) }),
+    });
+    expect(res.status).toBe(413);
+    expect(await res.json()).toEqual({ error: 'request-refused' });
+  });
+
+  it('refuses an oversized login too', async () => {
+    const { login } = await createTestApp();
+    const res = await login('x'.repeat(BODY_LIMIT_BYTES));
+    expect(res.status).toBe(413);
+  });
+});
+
+describe('caching', () => {
+  it('forbids storing any response, with or without a session', async () => {
+    const { app, sessionCookie } = await createTestApp();
+    const cookie = await sessionCookie();
+    const routes = app.routes
+      .filter((r) => r.method !== 'ALL')
+      .map((r) => ({ method: r.method, path: r.path.replace(/:[^/]+/g, 'x') }));
+    for (const { method, path } of [...routes, { method: 'GET', path: '/api/nope' }]) {
+      for (const headers of [{ cookie }, {}]) {
+        const res = await app.request(path, {
+          method,
+          headers: { ...headers, 'content-type': 'application/json' },
+          ...(method === 'GET' ? {} : { body: '{}' }),
+        });
+        expect({ method, path, cache: res.headers.get('cache-control') }).toEqual({
+          method,
+          path,
+          cache: 'no-store',
+        });
+      }
+    }
   });
 });
 

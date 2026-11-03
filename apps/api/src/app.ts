@@ -1,10 +1,12 @@
 import { TEMPLATES, type TemplateDefinition } from '@kerf/core';
 import { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import { HTTPException } from 'hono/http-exception';
 import { secureHeaders } from 'hono/secure-headers';
 import { jsonBodiesOnly, requireSession } from './auth/middleware.ts';
 import { passwordFingerprint } from './auth/sessions.ts';
 import type { Database } from './db/client.ts';
+import { loggable } from './logError.ts';
 import { authRoutes } from './routes/auth.ts';
 import { projectRoutes } from './routes/projects.ts';
 import { templateRoutes } from './routes/templates.ts';
@@ -21,6 +23,8 @@ export interface AppDeps {
   templates?: readonly TemplateDefinition[];
 }
 
+export const BODY_LIMIT_BYTES = 256 * 1024;
+
 // Routes live under /api in development and production, so the web app's paths match both.
 export function createApp(deps: AppDeps) {
   const now = deps.now ?? (() => new Date());
@@ -35,8 +39,17 @@ export function createApp(deps: AppDeps) {
           referrerPolicy: 'no-referrer',
         }),
       )
+      // Responses hold the owner's projects and the full backup, so no browser or proxy keeps a
+      // copy past logout.
+      .use(async (c, next) => {
+        await next();
+        c.header('Cache-Control', 'no-store');
+      })
       .use(jsonBodiesOnly)
       .use(requireSession(deps.db, passwordFingerprint(deps.passwordHash), now))
+      // After the session check, so only login is read without one. The largest real body, a
+      // project with every field filled, is a few kilobytes.
+      .use(bodyLimit({ maxSize: BODY_LIMIT_BYTES }))
       // Deploy and uptime check. Returns no data, so it stays outside the session requirement.
       .get('/health', (c) => c.json({ ok: true }))
       .route('/', authRoutes({ db: deps.db, passwordHash: deps.passwordHash, now }))
@@ -56,7 +69,7 @@ export function createApp(deps: AppDeps) {
               )
             : c.json({ error: 'request-refused' as const }, error.status);
         }
-        console.error(error);
+        console.error(loggable(error));
         return c.json({ error: 'internal' as const }, 500);
       })
   );

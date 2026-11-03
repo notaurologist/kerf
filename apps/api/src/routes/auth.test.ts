@@ -13,7 +13,7 @@ describe('POST /api/login', () => {
     const res = await login();
     expect(res.status).toBe(200);
     const cookie = res.headers.get('set-cookie') ?? '';
-    expect(cookie).toMatch(/^kerf_session=[A-Za-z0-9_-]{43};/);
+    expect(cookie).toMatch(/^__Host-kerf_session=[A-Za-z0-9_-]{43};/);
     expect(cookie).toContain('HttpOnly');
     expect(cookie).toContain('Secure');
     expect(cookie).toContain('SameSite=Strict');
@@ -185,7 +185,7 @@ describe('sessions', () => {
       body: '{}',
     });
     expect(res.status).toBe(204);
-    expect(res.headers.get('set-cookie')).toMatch(/^kerf_session=;/);
+    expect(res.headers.get('set-cookie')).toMatch(/^__Host-kerf_session=;/);
     expect((await app.request('/api/session', { headers: { cookie } })).status).toBe(401);
     expect((await client.query('select * from sessions')).rows).toEqual([]);
   });
@@ -221,7 +221,7 @@ describe('sessions', () => {
   it('reject a made-up token', async () => {
     const { app } = await createTestApp();
     const res = await app.request('/api/session', {
-      headers: { cookie: 'kerf_session=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' },
+      headers: { cookie: '__Host-kerf_session=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' },
     });
     expect(res.status).toBe(401);
   });
@@ -242,7 +242,7 @@ describe('sessions', () => {
     });
     const { app } = await createTestApp({ database: { ...database, db } });
     const asking = (token: string) =>
-      app.request('/api/session', { headers: { cookie: `kerf_session=${token}` } });
+      app.request('/api/session', { headers: { cookie: `__Host-kerf_session=${token}` } });
 
     for (const token of ['x', 'A'.repeat(42), 'A'.repeat(44), `${'A'.repeat(42)}+`]) {
       expect((await asking(token)).status).toBe(401);

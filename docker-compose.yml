@@ -3,7 +3,8 @@
 #   pnpm db:migrate          apply migrations
 services:
   postgres:
-    image: postgres:18
+    # Pinned by digest so every checkout runs the same image; update both together.
+    image: postgres:18@sha256:3a4264520e121176619f54ff867d12774bc81e95e7b84db58d63bccdb6144b81
     environment:
       POSTGRES_USER: kerf
       POSTGRES_PASSWORD: kerf
