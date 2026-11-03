@@ -1,6 +1,7 @@
 import { type CutListRow, geometry } from '@kerf/core';
 import { useEffect, useRef, useState } from 'react';
 import { type ApiResult, describeError } from '../../lib/api.ts';
+import { useLatest } from '../../lib/latest.ts';
 import { cutDetailHeadingId, cutDetailId } from '../../lib/show.ts';
 import type { CornerViews } from '../../lib/views.ts';
 import {
@@ -195,7 +196,7 @@ const CORNER_LABELS: Record<geometry.Corner, string> = {
 /**
  * Which corner the assembled and exploded views are seen from (#364): the plan's own from the
  * front left, another fetched the first time it is chosen. The drawings on screen stay until the
- * new ones arrive.
+ * new ones arrive, and only the corner chosen last is shown.
  */
 function useCorner(drawings: Drawings, corners: Parameters<typeof Diagrams>[0]['corners']) {
   const [asked, setAsked] = useState<geometry.Corner>('front-left');
@@ -205,35 +206,58 @@ function useCorner(drawings: Drawings, corners: Parameters<typeof Diagrams>[0]['
   });
   const [failure, setFailure] = useState<string | null>(null);
   const key = corners?.key;
-  const latest = useRef(key);
-  latest.current = key;
+  const plan = useRef(key);
+  plan.current = key;
+  // Each corner's request in flight, shared by every choice of that corner until it arrives.
+  const pending = useRef(new Map<geometry.Corner, Promise<ApiResult<CornerViews>>>());
+  const latest = useLatest();
   // A changed plan is drawn afresh from the front left.
   useEffect(() => {
     if (key === undefined) return;
+    latest.supersede();
+    pending.current = new Map();
     setAsked('front-left');
     setShown('front-left');
     setFailure(null);
-  }, [key]);
+  }, [key, latest]);
   const views = loaded.key === key ? loaded.views : new Map<geometry.Corner, CornerViews>();
+  const request = (
+    corner: geometry.Corner,
+    load: (corner: geometry.Corner) => Promise<ApiResult<CornerViews>>,
+  ) => {
+    const requests = pending.current;
+    const inFlight = requests.get(corner);
+    if (inFlight) return inFlight;
+    const made = load(corner).then((result) => {
+      requests.delete(corner);
+      // Kept even when another corner has been chosen since, so choosing this one is instant.
+      if (result.ok && plan.current === key) {
+        setLoaded((l) => ({
+          key,
+          views: new Map(l.key === key ? l.views : []).set(corner, result.value),
+        }));
+      }
+      return result;
+    });
+    requests.set(corner, made);
+    return made;
+  };
   const choose = async (corner: geometry.Corner) => {
+    const isLatest = latest.start();
     setAsked(corner);
     setFailure(null);
     if (corner === 'front-left' || views.has(corner) || !corners) {
       setShown(corner);
       return;
     }
-    const result = await corners.load(corner);
-    // The plan changed while this corner was drawn: its views are of the old plan.
-    if (latest.current !== key) return;
+    const result = await request(corner, corners.load);
+    // Another corner was chosen, or the plan changed, while this one was drawn.
+    if (!isLatest()) return;
     if (!result.ok) {
       setFailure(describeError(result.error));
       setAsked(shown);
       return;
     }
-    setLoaded((l) => ({
-      key,
-      views: new Map(l.key === key ? l.views : []).set(corner, result.value),
-    }));
     setShown(corner);
   };
   const own = { isometric: drawings.isometric, exploded: drawings.exploded };

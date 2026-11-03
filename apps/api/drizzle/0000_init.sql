@@ -41,6 +41,7 @@ CREATE TABLE "tools" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+-- Applied with the tables it joins, which held no rows and had no deploy writing them.
 ALTER TABLE "project_history" ADD CONSTRAINT "project_history_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "project_history_project_id" ON "project_history" USING btree ("project_id");--> statement-breakpoint
 CREATE INDEX "projects_updated_at" ON "projects" USING btree ("updated_at");--> statement-breakpoint

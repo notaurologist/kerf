@@ -6,5 +6,7 @@ export default defineConfig({
     // GitHub's runners. Later tests clone that database and take milliseconds.
     testTimeout: 30_000,
     expect: { requireAssertions: true },
+    // Fails a test file that reads a path CI skips (0010).
+    setupFiles: ['./test/ciPaths.setup.ts'],
   },
 });

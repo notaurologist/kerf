@@ -1397,7 +1397,7 @@ export const METHODS = [
     moreAccurateThan: [],
   },
 
-  // Dado stopped at both ends (reaching no edge), such as a sliding door's track
+  // Dado stopped at both ends (reaching no edge), such as a track for a sliding panel
   {
     id: 'double-stopped-dado-router',
     operation: 'double-stopped-dado',

@@ -260,7 +260,7 @@ describe('project history (#106)', () => {
     await authed('/api/tools', { method: 'PUT', body: { tools: [] } });
     const regenerated = await authed(`/api/projects/${body.id}/regenerate`, {
       method: 'POST',
-      body: {},
+      body: { revision: 3 },
     });
     expect(regenerated.status).toBe(200);
     const again = await history(client, body.id);
@@ -521,7 +521,12 @@ describe('deleting, the trash, and restoring (#21)', () => {
 
     expect((await authed(`/api/projects/${body.id}`)).status).toBe(404);
     expect(
-      (await authed(`/api/projects/${body.id}/regenerate`, { method: 'POST', body: {} })).status,
+      (
+        await authed(`/api/projects/${body.id}/regenerate`, {
+          method: 'POST',
+          body: { revision: 1 },
+        })
+      ).status,
     ).toBe(404);
     expect((await authed(`/api/projects/${body.id}`, { method: 'DELETE', body: {} })).status).toBe(
       404,
@@ -640,18 +645,36 @@ describe('the trash and export routes', () => {
 });
 
 describe('a stored project whose template this code no longer has', () => {
-  it('answers as the server’s problem, not the request’s', async () => {
+  it('opens, saying why its plan cannot be read', async () => {
     const before = await createTestApp();
     const { body } = await create(before.authed);
     const after = await createTestApp({ database: before, templates: [] });
-    for (const [path, method, sent] of [
-      [`/api/projects/${body.id}`, 'GET', undefined],
-      [`/api/projects/${body.id}/preview`, 'POST', { name: 'x' }],
-    ] as const) {
-      const res = await after.authed(path, { method, body: sent });
-      expect({ path, status: res.status }).toEqual({ path, status: 500 });
-      expect(await res.json()).toEqual({ error: 'missing-template' });
-    }
+    const res = await after.authed(`/api/projects/${body.id}`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      id: body.id,
+      name: 'Backyard swing set',
+      snapshot: null,
+      unreadable: {
+        reason: 'unknown-template',
+        message: 'No template has the ID "swing-set-a-frame".',
+      },
+      version: null,
+      drawings: null,
+      steps: null,
+    });
+  });
+
+  it('answers a preview as the server’s problem, not the request’s', async () => {
+    const before = await createTestApp();
+    const { body } = await create(before.authed);
+    const after = await createTestApp({ database: before, templates: [] });
+    const res = await after.authed(`/api/projects/${body.id}/preview`, {
+      method: 'POST',
+      body: { name: 'x' },
+    });
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: 'missing-template' });
   });
 
   it('refuses a template ID longer than any template has', async () => {
@@ -671,8 +694,7 @@ describe('a project whose template version is behind', () => {
 
     // The same database, served by code whose template is now at the next version.
     const after = await createTestApp({ database: before, templates: [nextVersion] });
-    const get = async (path: string, method = 'GET') =>
-      (await (await after.authed(path, { method })).json()) as Json;
+    const get = async (path: string) => (await (await after.authed(path)).json()) as Json;
 
     const list = await get('/api/projects');
     expect(list.projects[0]).toMatchObject({ templateVersion: CURRENT, templateBehind: true });
@@ -693,7 +715,12 @@ describe('a project whose template version is behind', () => {
     // The stored plan is still the earlier version's.
     expect(project.snapshot.outputs.cutList[0].length).toBe('120"');
 
-    const regenerated = await get(`/api/projects/${body.id}/regenerate`, 'POST');
+    const regenerated = (await (
+      await after.authed(`/api/projects/${body.id}/regenerate`, {
+        method: 'POST',
+        body: { revision: project.revision },
+      })
+    ).json()) as Json;
     expect(regenerated).toMatchObject({
       templateVersion: CURRENT + 1,
       templateBehind: false,
@@ -714,7 +741,10 @@ describe('a project whose template version is behind', () => {
       unreadable: { reason: 'malformed' },
       version: null,
     });
-    const regenerate = await authed(`/api/projects/${body.id}/regenerate`, { method: 'POST' });
+    const regenerate = await authed(`/api/projects/${body.id}/regenerate`, {
+      method: 'POST',
+      body: { revision: 1 },
+    });
     expect(regenerate.status).toBe(500);
   });
 });
