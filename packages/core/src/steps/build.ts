@@ -36,6 +36,11 @@ export interface StepOutline {
   categories: readonly FlagCategory[];
   /** Done before the boards are cut, such as letting the lumber settle indoors. */
   beforeCutting?: true;
+  /**
+   * Rules the template follows for this work, each with its source in its own words, such as
+   * playground guidance on how a fitting is closed. Shown with the step.
+   */
+  notes?: readonly string[];
 }
 
 /** An expert check shown on a step. */
@@ -136,6 +141,8 @@ export const BuildStep = z.object({
   /** Every part the step uses, in order of first use. */
   partIds: z.array(z.string()),
   flags: z.array(StepFlag),
+  /** The template's rules for this step (`StepOutline.notes`); left out when it has none. */
+  notes: z.array(z.string()).optional(),
 });
 export type BuildStep = z.infer<typeof BuildStep>;
 
@@ -194,11 +201,16 @@ function stepOperation(op: Operation, inventory: Inventory): [StepOperation, Met
 }
 
 /**
- * The step a plan flag is shown on (#51): the first that drills for hardware it names, or else
- * the first that works on a part it names, so it is asked before the work it concerns. A flag
- * that names neither stays on the plan only.
+ * The step a plan flag is shown on (#51): the step the template placed it on, or else the first
+ * that drills for hardware it names, or else the first that works on a part it names, so it is
+ * asked before the work it concerns. A flag that names neither stays on the plan only.
  */
-function stepForFlag(flag: Flag, steps: readonly { operations: StepOperation[] }[]): number {
+function stepForFlag(
+  flag: Flag,
+  steps: readonly { id: string; operations: StepOperation[] }[],
+): number {
+  const placed = flag.step === undefined ? -1 : steps.findIndex((s) => s.id === flag.step);
+  if (placed >= 0) return placed;
   const hardware = flag.hardwareIds;
   const parts = flag.partIds;
   const drills = steps.findIndex((s) =>
@@ -368,7 +380,10 @@ export function buildSteps(
   const drafts = drafted.map((d) => d.draft);
   const done = drafted.map((d) => d.operations.map((op) => stepOperation(op, inventory)));
   const onStep = done.map((): StepFlag[] => []);
-  const operationsOf = done.map((d) => ({ operations: d.map(([op]) => op) }));
+  const operationsOf = done.map((d, i) => ({
+    id: drafts[i]?.id ?? '',
+    operations: d.map(([op]) => op),
+  }));
   for (const flag of plan.flags) {
     const i = stepForFlag(flag, operationsOf);
     if (i >= 0)
@@ -397,6 +412,7 @@ export function buildSteps(
         seen.add(key);
         return true;
       }),
+      ...(s.notes && s.notes.length > 0 ? { notes: [...s.notes] } : {}),
     };
   });
 }

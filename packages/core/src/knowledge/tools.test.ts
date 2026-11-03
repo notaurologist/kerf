@@ -74,6 +74,9 @@ describe('tool-type library', () => {
       'post-hole-digger',
       'shovel',
       'tamper',
+      'sledgehammer',
+      'stepladder',
+      'pliers',
     ];
     expect(TOOL_TYPES.map((t) => t.id)).toEqual(expect.arrayContaining(fromSpec));
   });

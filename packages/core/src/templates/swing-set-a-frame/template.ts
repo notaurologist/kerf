@@ -3,7 +3,12 @@ import type { BoardGuideId } from '../../knowledge/boardSelection.ts';
 import { stock } from '../../lumber/stock.ts';
 import { preservativeFor } from '../../lumber/treatment.ts';
 import { withLetters } from '../../model/letters.ts';
-import { cutAndDrillOperations, Operation, treatmentOperations } from '../../model/operations.ts';
+import {
+  cutAndDrillOperations,
+  Operation,
+  tighteningOperations,
+  treatmentOperations,
+} from '../../model/operations.ts';
 import {
   Flag,
   type GenerateResult,
@@ -43,7 +48,7 @@ import {
 import { SiteLayout, SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
 import { placements } from './placements.ts';
-import { flags, validate, validateSwings } from './validate.ts';
+import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.ts';
 
 /**
  * Bump whenever output for the same parameters would change (decision 0008).
@@ -98,13 +103,21 @@ import { flags, validate, validateSwings } from './validate.ts';
  * leave (NDS 2024 3.1.2.1), lists the bolts that mount the hangers, and drills their holes (#446).
  * Version 30 writes each bolt flag's count and size as the bolt layout does, "2 × 1/2\" bolts",
  * which read as 2-1/2" before (#493). No number changes.
+ * Version 31 adds the steps that put the frame up after the beam is bolted: stand the A-frames up
+ * and brace them, plumb them and backfill the leg holes or anchor the feet, tighten every bolt and
+ * cap its end, and hang the swings, each with the CPSC rules for it. It also asks which order the
+ * frame goes up in (#451). No number changes.
  */
-export const TEMPLATE_VERSION = 30;
+export const TEMPLATE_VERSION = 31;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
  * legs stand in or on the ground whether buried or on pads, so they always get ground contact.
  */
+/** Two A-frames hold the beam, and two swings hang from it. */
+const FRAMES = 2;
+const SWINGS = 2;
+
 const SELECTION = {
   beam: ['structural', 'span', 'bolted'],
   leg: ['structural', 'along-length', 'bolted', 'ground-contact'],
@@ -345,7 +358,12 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
       placements: placements(dims, g),
       hardware: madeHardware,
       hardwareNotes: HARDWARE_NOTES,
-      flags: [...flags(dims, g), ...boltFlags(joints), ...projectionFlags(boardBolts(p, dims, g))],
+      flags: [
+        ...flags(dims, g),
+        ...boltFlags(joints),
+        ...projectionFlags(boardBolts(p, dims, g)),
+        assemblyOrderFlag(dims),
+      ],
       boltLayout: joints.map((j) => j.joint),
       operations: operations(p, dims, madeParts, madeHardware),
     },
@@ -356,7 +374,9 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
  * The spec's operations (Operations): every cut and bolt hole, from the parts and hardware; easing
  * the edges of every part, since children touch every surface (DOMAIN.md, Lumber and finish); and
  * the legs' holes (buried) or pads (d = 0); then a coat of preservative on every cut and in every
- * bolt hole, since every part is treated lumber.
+ * bolt hole, since every part is treated lumber. Last, the work of putting the frame up: raising
+ * and bracing each A-frame, backfilling the leg holes or anchoring the feet, tightening every bolt,
+ * and hanging the swings.
  */
 function operations(
   p: SwingSetParams,
@@ -402,5 +422,22 @@ function operations(
     ),
     site,
   ];
-  return [...ops, ...treatmentOperations(madeParts, ops)];
+  const set: Operation =
+    d > 0
+      ? { id: 'site/backfill', type: 'backfill', count: legs, depth: d }
+      : { id: 'site/anchor', type: 'anchor', count: legs };
+  const assembly: Operation[] = [
+    {
+      id: 'frames/raise',
+      type: 'raise',
+      count: FRAMES,
+      partIds: madeParts.filter((part) => part.role !== 'beam').map((part) => part.id),
+      // The legs' tops, level with the top of the beam.
+      height: dims.H + dims.bd,
+    },
+    set,
+    ...tighteningOperations(ops),
+    { id: 'swings/hang', type: 'hang', count: SWINGS, height: p.swings.seatHeight },
+  ];
+  return [...ops, ...treatmentOperations(madeParts, ops), ...assembly];
 }

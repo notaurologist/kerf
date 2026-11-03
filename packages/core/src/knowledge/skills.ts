@@ -182,6 +182,36 @@ export const SKILLS = [
     description:
       'Remove sod and loose soil, tamp the base firm, and check it level in two directions and against the other bases.',
   },
+  {
+    id: 'raise-and-brace',
+    name: 'Raising and bracing an assembly',
+    description:
+      'Stand a heavy assembly up with enough helpers, each knowing their part, and hold it plumb with temporary braces until it is fixed in place.',
+  },
+  {
+    id: 'backfill-a-hole',
+    name: 'Backfilling a post hole',
+    description:
+      'Fill around a part in its hole in shallow layers, tamping each one firm, checking the part stays plumb, and leaving the top mounded to shed water.',
+  },
+  {
+    id: 'set-an-anchor',
+    name: 'Setting a ground anchor',
+    description:
+      'Set an anchor as its maker’s instructions say, fasten it to the part it holds, and cover it so no one trips on it.',
+  },
+  {
+    id: 'tighten-a-bolt',
+    name: 'Tightening a bolt',
+    description:
+      'Hold the head and turn the nut until the washers bear firmly on the wood without crushing it, then check it again as the wood dries.',
+  },
+  {
+    id: 'hang-a-seat',
+    name: 'Hanging a seat',
+    description:
+      'Hang a seat from fittings already on the structure, at the height the plan gives, level, with every link and hook closed.',
+  },
 ] as const satisfies readonly z.input<typeof Skill>[];
 
 export type SkillId = (typeof SKILLS)[number]['id'];

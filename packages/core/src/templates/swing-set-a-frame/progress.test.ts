@@ -77,11 +77,15 @@ describe('progress items for the worked example', () => {
       'site',
       'frames',
       'hanger-holes',
+      'raise',
       'beam',
+      'set',
+      'tighten',
+      'hang',
     ]);
     // Expert checks by category and what to ask, which carries the design's numbers.
     expect(keys('flag')).toEqual(flags.map((f) => `${f.category}/${f.ask}`));
-    expect(keys('flag')).toHaveLength(6);
+    expect(keys('flag')).toHaveLength(7);
     expect(PROJECTING_ENDS).toContain(`2' 10-1/2" to 3' 4" above the ground`);
     expect(keys('checklist-item')).toEqual([
       'bolted-connections/Leg-to-beam bolt and gusset, each frame',
@@ -94,20 +98,22 @@ describe('progress items for the worked example', () => {
     ]);
   });
 
-  it('keeps every tick when a change leaves the plan the same', () => {
+  it('keeps every tick but the hanging when a change moves only the seats', () => {
     const after = progressItems(
       swingSetAFrame,
       generate({ ...example.params, swings: { ...example.params.swings, seatHeight: 18 } }),
     );
-    expect(progressToReset(before, before, after)).toEqual([]);
+    expect(progressToReset(before, before, after)).toEqual([
+      { kind: 'step', key: 'hang', reason: 'changed' },
+    ]);
   });
 
   it('clears the ticks a higher crossbar changes, and keeps the rest', () => {
     // Raising the crossbar from 40 to 44 shortens it by 2 · 4 · tan 20° = 2.912, from 58.993 to
     // 56.081. Both still fit the 10' 2x6 (1 + 2 · 56.206 = 113.41 ≤ 120), so every shopping line
     // stays. The legs' crossbar holes move 4 / cos 20° = 4.257 along them, so the legs' pieces
-    // and every step that works on a leg change. The beam and gussets, their boards, and the site
-    // work do not.
+    // and every step that works on a leg change, raising and tightening among them. The beam and
+    // gussets, their boards, the site work, and hanging the swings do not.
     const outputs = generate({ ...example.params, crossbarHeight: 44 });
     const board = swingSetAFrame.plan(outputs).lumber.boards[5];
     expect(board?.pieces.map((p) => p.length)).toEqual([
@@ -138,7 +144,9 @@ describe('progress items for the worked example', () => {
       'step ease-edges',
       'step treat-cuts',
       'step frames',
+      'step raise',
       'step beam',
+      'step tighten',
     ]);
   });
 
