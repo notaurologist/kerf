@@ -153,7 +153,38 @@ describe('the worked example (spec, Holes and joints)', () => {
       // 2.75 / cos α along the leg.
       ['Leg', 'Spacing between bolts in a row', 2.9265],
     ]);
-    expect(values(gusset)?.[0]).toEqual(['Gusset', 'End distance', 3.5]);
+    // The gusset's rows for racking, as the crossbar's; then under the beam's weight, across its
+    // grain: end distance 3.5 (7D), the top (loaded) edge 7.25 − 5.4375 = 1.8125 and the bottom
+    // edge 1.8125, and the bolts 3.625 / cos α = 3.8576 apart along the leg's centerline.
+    expect(values(gusset)).toEqual([
+      ['Gusset', 'End distance', 3.5],
+      ['Gusset', 'Edge distance', 1.8125],
+      ['Gusset', 'Spacing between rows', 3.625],
+      ['Gusset', 'Between the outermost bolts', 3.625],
+      ['Leg', 'Edge distance', 1.75],
+      ['Leg', 'Spacing between bolts in a row', 3.8576],
+      ['Gusset', "End distance under the beam's weight", 3.5],
+      ['Gusset', "Edge distance under the beam's weight", 1.8125],
+      ['Gusset', "Edge distance under the beam's weight", 1.8125],
+      ['Gusset', "Spacing between bolts in a row under the beam's weight", 3.8576],
+    ]);
+    const underBeam = (gusset?.distances ?? []).slice(6);
+    expect(underBeam.map((d) => d.requirements.map((r) => [r.multiple, r.value]))).toEqual([
+      [
+        ['2D', 1],
+        ['4D', 2],
+      ],
+      [['4D', 2]],
+      [['1.5D', 0.75]],
+      [['3D', 1.5]],
+    ]);
+    expect(underBeam.map((d) => d.label.split(', ')[1])).toEqual([
+      "along the grain on each bolt's line",
+      'to the top edge',
+      'to the bottom edge',
+      'along the leg',
+    ]);
+    expect(crossbar?.distances.some((d) => d.label.includes("beam's weight"))).toBe(false);
     expect(values(legToBeam)).toEqual([
       ['Beam', 'End distance', 13.75],
       ['Beam', 'Edge distance', 2.75],
@@ -162,6 +193,11 @@ describe('the worked example (spec, Holes and joints)', () => {
     const boltFlags = out.flags.filter((f) => f.ask.includes('bolts:'));
     expect(boltFlags.map((f) => f.ask.split(',')[0])).toEqual(['Crossbar to leg', 'Gusset to leg']);
     expect(boltFlags[0]?.ask).toContain('leg edge distance 1-3/4" (3.5D): under 4D (2")');
+    // The gusset's top bolt is 1.8125 = 3.6D from its loaded edge, under 4D = 2.
+    expect(boltFlags[1]?.ask).toContain(
+      'gusset edge distance under the beam\'s weight, to the top edge 1-13/16" (3.6D): under 4D (2") for minimum, the edge the load pushes toward',
+    );
+    expect(boltFlags[0]?.ask).not.toContain("beam's weight");
   });
 
   it('asks about the projecting ends, with how far and how high', () => {

@@ -31,6 +31,7 @@ import v25 from './snapshots/v25.json' with { type: 'json' };
 import v26 from './snapshots/v26.json' with { type: 'json' };
 import v27 from './snapshots/v27.json' with { type: 'json' };
 import v28 from './snapshots/v28.json' with { type: 'json' };
+import v29 from './snapshots/v29.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -117,11 +118,26 @@ const isVersion27 = (c: { path: string; before?: unknown; after?: unknown }) => 
 };
 
 /**
- * Version 28's changes (#446): bending at the hangers' holes, which a plan made before it has not
+ * Version 28's changes (#456): the gusset's distances and note under the beam's weight, added after
+ * its other rows, and the gusset flag's item for its top edge. Set aside like version 18's.
+ */
+const isVersion28 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  (/^design\.boltLayout\[\d+\]\.distances\[\d+\]$/.test(c.path) &&
+    c.before === undefined &&
+    String((c.after as { label?: unknown }).label).includes("under the beam's weight")) ||
+  (/^design\.boltLayout\[\d+\]\.notes\[\d+\]$/.test(c.path) &&
+    c.before === undefined &&
+    String(c.after).startsWith("The gusset also carries the beam's weight")) ||
+  (/^design\.flags\[\d+\]\.ask$/.test(c.path) &&
+    String(c.before).startsWith('Gusset to leg') &&
+    String(c.after).includes("gusset edge distance under the beam's weight, to the top edge"));
+
+/**
+ * Version 29's changes (#446): bending at the hangers' holes, which a plan made before it has not
  * entered, so its bending says the mounting is needed; the hanger checklist item's wording; and
  * the beam's other sizes, which wait for bending's margin. Set aside like 18's.
  */
-const isVersion28 = (c: { path: string }) =>
+const isVersion29 = (c: { path: string }) =>
   /^structuralReview\.beam\.bending(\.|\[|$)/.test(c.path) ||
   /^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) ||
   /^lumber\.lines\[\d+\]\.alternatives(\[|$)/.test(c.path);
@@ -140,6 +156,7 @@ function regenerated(
   keepVersion26 = false,
   keepVersion27 = false,
   keepVersion28 = false,
+  keepVersion29 = false,
   later?: unknown,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
@@ -156,7 +173,8 @@ function regenerated(
         (keepVersion25 || !isVersion25(c)) &&
         (keepVersion26 || !isVersion26(c)) &&
         (keepVersion27 || !isVersion27(c)) &&
-        (keepVersion28 || later !== undefined || !isVersion28(c)),
+        (keepVersion28 || !isVersion28(c)) &&
+        (keepVersion29 || later !== undefined || !isVersion29(c)),
     ),
   };
   return keepVersion18
@@ -510,9 +528,10 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(12);
-      // Against version 25's plan, from before version 28 took bending at the hanger holes.
+      // Against version 25's plan, from before version 29 took bending at the hanger holes.
       const changes = regenerated(
         read.snapshot,
+        false,
         false,
         false,
         false,
@@ -669,7 +688,8 @@ describe('swing-set template versions', () => {
           !isVersion25(c) &&
           !isVersion26(c) &&
           !isVersion27(c) &&
-          !isVersion28(c),
+          !isVersion28(c) &&
+          !isVersion29(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -730,6 +750,7 @@ describe('swing-set template versions', () => {
       false,
       false,
       false,
+      false,
       v25[0],
     );
     expect(changes.length).toBeGreaterThan(0);
@@ -782,6 +803,7 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
+        false,
         v25[i],
       );
       expect(changes.length).toBeGreaterThan(0);
@@ -800,6 +822,7 @@ describe('swing-set template versions', () => {
       false,
       false,
       true,
+      false,
       false,
       false,
       false,
@@ -827,6 +850,7 @@ describe('swing-set template versions', () => {
         true,
         false,
         false,
+        false,
         v26[i],
       );
       expect(changes.length).toBeGreaterThan(0);
@@ -842,6 +866,7 @@ describe('swing-set template versions', () => {
       false,
       false,
       true,
+      false,
       false,
       false,
       v26[0],
@@ -897,16 +922,42 @@ describe('swing-set template versions', () => {
       'gusset-bolts/treat-holes',
     ]);
   });
+  // Hand check in features.test.ts: under the beam's weight the worked example's top gusset bolt is
+  // 7.25 − 5.4375 = 1.8125 (3.6D) from the top edge, under 4D = 2 for the loaded edge.
+  it("version 28 measures the gusset's bolts against the beam's weight, and changes nothing else (#456)", () => {
+    const keep28 = [false, false, false, false, false, false, false, true] as const;
+    for (const stored of v27) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(27);
+      const { changes } = regenerated(read.snapshot, ...keep28);
+      // Four distances and a note on the gusset joint, and its flag.
+      expect(changes).toHaveLength(6);
+      expect(changes.filter((c) => !isVersion28(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v27[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const added = regenerated(first.snapshot, ...keep28)
+      .changes.filter((c) => /\.distances\[\d+\]$/.test(c.path))
+      .map((c) => c.after as { label: string; value: number });
+    expect(added.map((d) => [d.label.split(',')[0], Number(d.value.toFixed(4))])).toEqual([
+      ["End distance under the beam's weight", 3.5],
+      ["Edge distance under the beam's weight", 1.8125],
+      ["Edge distance under the beam's weight", 1.8125],
+      ["Spacing between bolts in a row under the beam's weight", 3.8576],
+    ]);
+  });
 
   // Hand check in the spec, Structural model, example 1: a 1/2" hanger bolt down through the 4x6
   // in a 9/16" hole leaves S_net = 2.9375·5.5²/6 = 14.8099, and M at the inner hangers 17,743.78
   // gives f_b = 1198.10, margin 991.59 / 1198.10 = 0.8276, against 0.9849 on the gross section.
-  it('version 28 takes bending at the hanger holes, which a plan without a mounting waits for (#446)', () => {
-    for (const stored of v27) {
+  it('version 29 takes bending at the hanger holes, which a plan without a mounting waits for (#446)', () => {
+    for (const stored of v28) {
       const snapshot = read(stored);
-      expect(snapshot.templateVersion).toBe(27);
+      expect(snapshot.templateVersion).toBe(28);
       const { changes } = regenerated(
         snapshot,
+        false,
         false,
         false,
         false,
@@ -917,7 +968,7 @@ describe('swing-set template versions', () => {
         true,
       );
       expect(changes.length).toBeGreaterThan(0);
-      expect(changes.filter((c) => !isVersion28(c))).toEqual([]);
+      expect(changes.filter((c) => !isVersion29(c))).toEqual([]);
       const bending = (fresh(snapshot) as { structuralReview: { beam: { bending: unknown } } })
         .structuralReview.beam.bending;
       expect(bending).toMatchObject({
@@ -931,9 +982,9 @@ describe('swing-set template versions', () => {
     const margin = (stored: unknown) =>
       (read(stored).outputs as { structuralReview: { beam: { bending: Bending } } })
         .structuralReview.beam.bending;
-    expect(margin(v27[0]).margin).toBeCloseTo(0.98491, 4);
-    expect(margin(v28[0]).margin).toBeCloseTo(0.82763, 4);
-    expect(margin(v28[0]).computed.label).toBe(
+    expect(margin(v28[0]).margin).toBeCloseTo(0.98491, 4);
+    expect(margin(v29[0]).margin).toBeCloseTo(0.82763, 4);
+    expect(margin(v29[0]).computed.label).toBe(
       'Bending stress at left swing, right hanger hole, net section',
     );
   });

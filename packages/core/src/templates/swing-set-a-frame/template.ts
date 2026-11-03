@@ -92,10 +92,12 @@ import { flags, validate, validateSwings } from './validate.ts';
  * Version 27 marks every part as treated lumber, so each part's cuts and each bolt's holes get a
  * coat of preservative (IRC 2021 R317.1.1), in a step after easing the edges and before each bolt
  * goes in, and the shopping list adds the preservative (#447). No number changes.
- * Version 28 takes the beam's bending at each swing hanger on the net section its mounting holes
+ * Version 28 also measures the gusset's bolts against the beam's weight, which crosses its grain:
+ * end distance, the loaded top edge and the bottom edge, and spacing in a row (#456).
+ * Version 29 takes the beam's bending at each swing hanger on the net section its mounting holes
  * leave (NDS 2024 3.1.2.1), lists the bolts that mount the hangers, and drills their holes (#446).
  */
-export const TEMPLATE_VERSION = 28;
+export const TEMPLATE_VERSION = 29;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

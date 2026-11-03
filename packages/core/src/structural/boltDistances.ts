@@ -115,8 +115,8 @@ export function fullValueEndDistance(diameter: number, wood: Wood): number {
 
 /**
  * Table 12.5.1C. `lOverD` is the lesser of the bolt's length in the main member and in the side
- * members, each over D (footnote 1). Perpendicular to grain, both edges are listed: which one is
- * loaded depends on the load's direction.
+ * members, each over D (footnote 1). Perpendicular to grain, both edges are listed unless `edge`
+ * says which one this is: which one is loaded depends on the load's direction.
  */
 export function edgeDistance(
   member: string,
@@ -124,14 +124,18 @@ export function edgeDistance(
   diameter: number,
   loading: Loading,
   lOverD: number,
-  rowSpacing = 0,
+  options: { rowSpacing?: number; edge?: 'loaded' | 'unloaded'; label?: string } = {},
 ): BoltDistance {
+  const { rowSpacing = 0, edge, label = 'Edge distance' } = options;
+  const loaded = row('the edge the load pushes toward', 4, diameter, 'minimum', TABLE_C);
+  const unloaded = row('an edge the load pushes away from', 1.5, diameter, 'minimum', TABLE_C);
   const requirements =
     loading === 'perpendicular'
-      ? [
-          row('the edge the load pushes toward', 4, diameter, 'minimum', TABLE_C),
-          row('an edge the load pushes away from', 1.5, diameter, 'minimum', TABLE_C),
-        ]
+      ? edge === 'loaded'
+        ? [loaded]
+        : edge === 'unloaded'
+          ? [unloaded]
+          : [loaded, unloaded]
       : lOverD <= 6
         ? [row(`load parallel to grain, ℓ/D ≤ 6`, 1.5, diameter, 'minimum', TABLE_C)]
         : [
@@ -143,15 +147,16 @@ export function edgeDistance(
               citation: TABLE_C,
             },
           ];
-  return { member, label: 'Edge distance', value, requirements };
+  return { member, label, value, requirements };
 }
 
-/** Table 12.5.1B: bolts in a row, the row running along the grain. */
+/** Table 12.5.1B: bolts in a row, a row being bolts in line with the load (12.1.2.4). */
 export function spacingInRow(
   member: string,
   value: number,
   diameter: number,
   loading: Loading,
+  label = 'Spacing between bolts in a row',
 ): BoltDistance {
   const requirements =
     loading === 'parallel'
@@ -160,7 +165,7 @@ export function spacingInRow(
           row('load parallel to grain', 4, diameter, FULL, TABLE_B),
         ]
       : [row('load perpendicular to grain', 3, diameter, 'minimum', TABLE_B)];
-  return { member, label: 'Spacing between bolts in a row', value, requirements };
+  return { member, label, value, requirements };
 }
 
 /** Table 12.5.1D, with ℓ/D as in Table 12.5.1C. */
