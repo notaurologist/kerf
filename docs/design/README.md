@@ -757,6 +757,21 @@ Sizes in the distance table assume a digit is 0.7 of the font size; #42 redoes t
 
 Fixed in #452 (November 2026), after the design audit printed both templates: the exploded view printed over the cut details, cut details split across pages with their headings left behind, formulas ran off the page, and lines that only make sense on a screen printed. On paper each view now leaves the cell the views share on screen and prints alone, with its heading on its landscape page; a cut detail or elevation keeps its heading, drawing, and notes on one page; headings stay with what follows; formulas wrap; and the drawings' "Tap a part…" line, the header's Next line, and its info button are left out. The printed-plan check for both templates is with the deploy steps in `ARCHITECTURE.md`. Checked in Chrome; Safari not checked.
 
+### A shorter printed set (#469)
+
+After #452 the whole plan still printed long: in Chrome, a local copy of each template's first worked example printed to 91 pages for the swing set and 149 for the record cabinet (the design audit counted 66 and 128 on its own data). The cut list and steps a shop copy needs were buried in it. The issue set out three ways forward, and the owner chose the second (November 2026).
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| What prints | Two sets. The shop set holds the cut list, boards, and build steps. The whole plan holds every section in order A, as before, with the structural review and its working. | One printed plan, printed a section at a time with the browser's page range: the owner has to know which pages hold which section, and the counts change with the project. A choice of sections when printing: more to decide each time for the same two uses. |
+
+Built in #469 (November 2026):
+
+- A Print button in the plan's header, beside Edit, opens two choices: "Print the shop set" and "Print the whole plan", each with a line saying what it holds (`MenuButton`). The browser's own Print gives the whole plan, as it did.
+- The shop set starts on the first page under the project's name and status, with a line saying it holds the cut list, boards, and build steps and that the diagrams, structural review, and shopping list print with the whole plan. Its expert checks still print, on the parts and steps they concern, with every row and method open.
+- It ends with the terms its own sections use, not the whole plan's. Sources are left out of it; the whole plan prints each one open.
+- Page counts in Chrome 156 (headless, print to PDF, US Letter), on the same local projects, with a toolbox of a circular saw, drill/driver, clamps, and hand tools: the swing set's shop set is 37 pages and its whole plan 91; the record cabinet's shop set is 81 pages and its whole plan 149. Most of the cabinet's shop set is build steps, where each step prints its method's full setup, technique, mistakes, and safety, and the same method repeats from step to step. Not checked: Safari, and real paper.
+
 ## Stage 1b: the plan, one part at a time (#147)
 
 With all eight sections built (#119), the owner found the plan heavy: one long page, hard to find a part and stay on it even with the contents beside it. The owner did not want IA-1's tabs back. `plan-screen.html` drew three directions on the laptop and the phone with the worked example, and answered for each how you move, the address, links between sections, Edit, print, and accessibility.
@@ -800,7 +815,7 @@ Rules that hold across the structure:
 - Planning screens change parameters only; shop modes change progress only.
 - Status follows progress: In progress when shopping or building starts, Built when the last step is done.
 - Regenerating a project with saved progress says how much would reset before it runs.
-- Printing any view of a project prints the plan in section order A.
+- Printing any view of a project prints the plan in section order A. Since #469, Print in the plan's header can instead print the shorter shop set: the cut list, boards, and build steps, in the same order.
 
 Revised in Stage 1b (#147): on screen, each section of the plan is its own screen, reached from the contents; the order and print are unchanged. Revised in Stage 9 (#254): the header and contents column become a tab bar on the phone and one sidebar from 840 px. Revised in Stage 12 (#356): the summary goes, Shopping and Building launch from the project header, parameters fold into Edit, and the tab bar gives way to a Workshop place; the table below is updated.
 

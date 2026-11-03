@@ -55,8 +55,9 @@ describe('each section on its own screen', () => {
     const html = at(id);
     // Only the current section shows; the rest stay in the page, hidden, for print.
     expect(shownSections(html)).toEqual([id]);
-    // The six, then the values used and the terms the plan uses, which only print (#356, #180).
-    expect(html.match(/<section id="[a-z-]+" class="k-section"/g)).toHaveLength(8);
+    // The six, then the values used and the terms the plan uses, the whole plan's and the shop
+    // set's, which only print (#356, #180, #469).
+    expect(html.match(/<section id="[a-z-]+" class="k-section"/g)).toHaveLength(9);
     // The contents mark it as the page, with its own address.
     expect(contentsOf(html)).toContain(`<a href="${base}/${id}" aria-current="page">${title}</a>`);
     expect(contentsOf(html).match(/aria-current/g)).toHaveLength(1);
@@ -199,7 +200,7 @@ describe('the terms the plan uses, for print (#180)', () => {
 
   it('is in the page but never shown on screen, whichever section is', () => {
     expect(html).toMatch(
-      /<section id="terms-used" class="k-section" aria-labelledby="terms-used-heading" hidden="">/,
+      /<section id="terms-used" class="k-section" aria-labelledby="terms-used-heading" data-sets="whole" hidden="">/,
     );
     expect(shownSections(at('build-steps'))).toEqual(['build-steps']);
   });
@@ -215,5 +216,44 @@ describe('the terms the plan uses, for print (#180)', () => {
     expect(listed).toEqual(expected.map((e) => e.term));
     for (const entry of expected) expect(textOf(terms)).toContain(textOf(entry.definition));
     expect(textOf(terms)).toContain('Terms used in this plan');
+  });
+});
+
+describe('the shop set (#469)', () => {
+  const html = at('cut-list');
+  const setsOf = (id: string) =>
+    new RegExp(`<section id="${id}" class="k-section"[^>]*data-sets="([a-z]+)"`).exec(html)?.[1];
+
+  it('holds the cut list, boards, and build steps; the whole plan holds every section', () => {
+    expect(PLAN_SECTIONS.map((s) => [s.id, setsOf(s.id)])).toEqual([
+      ['diagrams', 'whole'],
+      ['structural-review', 'whole'],
+      ['cut-list', 'both'],
+      ['boards', 'both'],
+      ['shopping-list', 'whole'],
+      ['build-steps', 'both'],
+    ]);
+    expect(setsOf('values-used')).toBe('whole');
+    expect(setsOf('terms-used')).toBe('whole');
+    expect(setsOf('shop-terms-used')).toBe('shop');
+  });
+
+  it('says what it holds and where the rest is, in a line only it prints', () => {
+    expect(html).toContain(
+      '<p class="k-text" data-shop-set-only="true">The shop set: the cut list, boards, and build steps. The diagrams, structural review, and shopping list print with the whole plan.</p>',
+    );
+  });
+
+  it('lists the terms its own sections use, leaving out the structural review’s', () => {
+    const listed = (id: string) =>
+      [...sectionOf(html, id).matchAll(/<dfn>([^<]+)<\/dfn>/g)].map((m) => m[1]);
+    const whole = listed('terms-used');
+    const shop = listed('shop-terms-used');
+    // "Deflection" is only in the structural review's checks.
+    expect(whole).toContain('Deflection');
+    expect(shop).not.toContain('Deflection');
+    expect(shop).toEqual(expect.arrayContaining(['Long point', 'Gusset']));
+    expect(whole).toEqual(expect.arrayContaining(shop));
+    expect(sectionOf(html, 'shop-terms-used')).toContain('id="shop-terms-used-');
   });
 });

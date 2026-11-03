@@ -421,6 +421,38 @@ describe('a load factor', () => {
     expect(r.breakEven?.value).toBeCloseTo(5, 9);
   });
 
+  // 200 lb times 2, less 50 lb the factor does not multiply: 350 lb against 1000, margin 2.857.
+  // Margin 1.0 at C = (1000 + 50) / 200 = 5.25, not the margin times the factor (5.71).
+  it('adds the part of a hardware load it does not multiply after the factor', () => {
+    const anchor = (C: number) =>
+      hardwareCheck({
+        subject: 'Anchor',
+        loadCase: 'Strength',
+        load: { value: { value: 200, unfactored: -50, working: [], assumptions: [] } },
+        factor: impact(C),
+        rating: { value: 1000 },
+      });
+    const r = computed(anchor(2));
+    expect(r.computed.value).toBe(350);
+    expect(r.margin).toBeCloseTo(1000 / 350, 9);
+    expect(r.breakEven?.value).toBeCloseTo(5.25, 9);
+    expect(r.formulas[0]).toMatch(/does not multiply/);
+    expect(computed(anchor(5.25)).margin).toBeCloseTo(1, 9);
+  });
+
+  // 200 lb times 0.2 is 40 lb, less 50: nothing pulls on the anchor.
+  it('reports no margin when the load is zero or less', () => {
+    expect(
+      hardwareCheck({
+        subject: 'Anchor',
+        loadCase: 'Strength',
+        load: { value: { value: 200, unfactored: -50, working: [], assumptions: [] } },
+        factor: impact(0.2),
+        rating: { value: 1000 },
+      }),
+    ).toMatchObject({ status: 'not-computed' });
+  });
+
   it('reads as a margin of 1.0 or more, rounded down', () => {
     const b = { key: 'impact', symbol: 'C_i', label: 'Impact factor' };
     expect(formatBreakEven({ ...b, value: 2.1999 })).toBe(

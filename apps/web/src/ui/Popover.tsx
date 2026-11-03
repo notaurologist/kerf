@@ -6,9 +6,9 @@ import { Icon } from './Icon.tsx';
  * whether it is open, for the button's `aria-expanded`, which the browser does not set by itself.
  * It closes with Escape or a tap elsewhere.
  */
-export function usePopover() {
+export function usePopover<T extends HTMLElement = HTMLSpanElement>() {
   const id = useId();
-  const ref = useRef<HTMLSpanElement>(null);
+  const ref = useRef<T>(null);
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const element = ref.current;

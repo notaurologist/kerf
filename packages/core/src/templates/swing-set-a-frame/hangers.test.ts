@@ -147,7 +147,7 @@ describe('another mounting, or none entered', () => {
 describe('the fields bending and shear change with', () => {
   it('include the mounting for bending and shear; deflection does not', () => {
     const paths = (kind: 'beam-bending' | 'beam-shear' | 'beam-deflection') =>
-      checkFields({ kind }).map((f) => f.path);
+      checkFields({ kind, subject: 'Top beam, 4x6' }).map((f) => f.path);
     expect(paths('beam-bending')).toContain('hardware.hangerMounting.kind');
     expect(paths('beam-bending')).toContain('hardware.hangerMounting.holeHeight');
     expect(paths('beam-shear')).toContain('hardware.hangerMounting.holeHeight');

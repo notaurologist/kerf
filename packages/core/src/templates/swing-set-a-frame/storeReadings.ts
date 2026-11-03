@@ -63,4 +63,11 @@ export const STORE_READINGS: readonly StoreReading[] = [
     prompt: 'Read how many anchors the maker calls for at each leg.',
     how: "The anchor package or the maker's instructions say how many to set at each post or leg. Enter that number for each leg foot.",
   },
+  {
+    from: 'params',
+    path: 'hardware.anchorRating',
+    beside: { hardware: ANCHORS },
+    prompt: 'Read the rated pull-out for one anchor.',
+    how: "The anchor package or the maker's product sheet may give a working load or pull-out rating in pounds, sometimes by soil type: enter the one for your soil, for one anchor. If the package gives none, ask the maker; the anchor check waits for it.",
+  },
 ];

@@ -12,6 +12,8 @@ export function Text(props: {
   as?: 'p' | 'span';
   /** Left off paper, such as a line about tapping a drawing. */
   screenOnly?: boolean;
+  /** Only in the printed shop set, such as what it leaves out (#469). */
+  shopSetOnly?: boolean;
 }) {
   const Tag = props.as ?? 'p';
   return (
@@ -20,6 +22,7 @@ export function Text(props: {
       data-tone={props.tone}
       data-size={props.size}
       data-screen-only={props.screenOnly || undefined}
+      data-shop-set-only={props.shopSetOnly || undefined}
     >
       {props.children}
     </Tag>
