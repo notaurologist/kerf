@@ -19,12 +19,14 @@ export function Loaded<T>(props: {
   onRetry: () => void;
   /** For screens with no heading of their own while loading. */
   title?: string;
+  /** For Projects itself, where a link back to Projects would go nowhere. */
+  noBack?: boolean;
   children?: (value: T) => ReactNode;
 }) {
   const { state } = props;
   // Try again starts the wait over, with a fresh skeleton.
   const [attempt, setAttempt] = useState(0);
-  const back = { href: href({ screen: 'projects' }), label: 'Projects' };
+  const back = props.noBack ? undefined : { href: href({ screen: 'projects' }), label: 'Projects' };
   if (state.state === 'loading') {
     const retry = () => {
       setAttempt((n) => n + 1);
@@ -49,7 +51,7 @@ export function Loaded<T>(props: {
       <ProblemScreen
         title={props.title}
         icon={failure.connection ? 'connection' : 'error'}
-        onRetry={state.error.kind === 'failed' ? props.onRetry : undefined}
+        onRetry={state.error.kind === 'failed' || !back ? props.onRetry : undefined}
         back={back}
       >
         {failure.message}

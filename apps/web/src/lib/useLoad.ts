@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ApiError, ApiResult } from './api.ts';
 import { useLatest } from './latest.ts';
 import { arrive, startLoading } from './moves.ts';
+import { SessionReturns } from './session.ts';
 
 export type LoadState<T> =
   | { state: 'loading' }
@@ -30,7 +31,8 @@ const shown = <T>(kept: Kept<T> | undefined): LoadState<T> => {
 /**
  * Loads something from the API when the screen opens and whenever `key` changes. `set` replaces
  * the value with a newer one the API returned, such as the response to a save. With `kept`, the
- * last value shows at once and stays when a later request fails.
+ * last value shows at once and stays when a later request fails. A screen with nothing to show
+ * yet loads again when the session comes back, so a load refused for want of one needs no retry.
  */
 export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string, kept?: Kept<T>) {
   const [loaded, setLoaded] = useState<LoadState<T>>(() => shown(kept));
@@ -55,6 +57,17 @@ export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string, kept?
     setLoaded(shown(kept));
     void reload();
   }, [reload]);
+  const returns = useContext(SessionReturns);
+  const returned = useRef(returns);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `kept` belongs to `key`.
+  useEffect(() => {
+    if (returned.current === returns) return;
+    returned.current = returns;
+    // A screen showing a value keeps it, and any form on it keeps what was typed.
+    if (onScreen.current === 'ready') return;
+    setLoaded(shown(kept));
+    void reload();
+  }, [returns, reload]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: `kept` belongs to `key`.
   const set = useCallback(
     (value: T) => {

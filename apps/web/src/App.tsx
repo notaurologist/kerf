@@ -22,6 +22,7 @@ import { leaveGate } from './lib/leave.ts';
 import { changeScreen } from './lib/moves.ts';
 import { href, isMode, type PlaceId, placeOf, type Route, useRoute } from './lib/route.ts';
 import { useScreenChange } from './lib/screenChange.ts';
+import { SessionReturns } from './lib/session.ts';
 import {
   type Back,
   Button,
@@ -171,6 +172,7 @@ export function App() {
   const route = useRoute(changeScreen);
   useScreenChange(route);
   const [session, setSession] = useState<Session>('checking');
+  const [returns, setReturns] = useState(0);
 
   const check = () => {
     setSession('checking');
@@ -209,15 +211,20 @@ export function App() {
     );
   }
   const loginAgain = session === 'expired' && (
-    <LoginAgain onLoggedIn={() => setSession('logged-in')} />
+    <LoginAgain
+      onLoggedIn={() => {
+        setSession('logged-in');
+        setReturns((n) => n + 1);
+      }}
+    />
   );
   // Shopping and Building fill the screen under their own bar, with no other navigation (#61).
   if (isMode(route)) {
     return (
-      <>
+      <SessionReturns value={returns}>
         <ScreenWithTerms route={route} />
         {loginAgain}
-      </>
+      </SessionReturns>
     );
   }
   const frame = frameFor(route);
@@ -230,7 +237,7 @@ export function App() {
   // A back link to Workshop already goes there, so the title bar says it once.
   const backToWorkshop = typeof frame.back === 'object' && frame.back.href === workshop.href;
   return (
-    <>
+    <SessionReturns value={returns}>
       <Frame
         brandHref={href({ screen: 'projects' })}
         places={[place('projects'), workshop]}
@@ -248,6 +255,6 @@ export function App() {
         </Page>
       </Frame>
       {loginAgain}
-    </>
+    </SessionReturns>
   );
 }
