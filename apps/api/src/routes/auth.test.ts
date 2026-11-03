@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 import { createTestDatabase } from '../../test/database.ts';
 import { hashPassword } from '../auth/password.ts';
@@ -45,6 +45,21 @@ describe('POST /api/login', () => {
       body: 'password=x',
     });
     expect(res.status).toBe(415);
+  });
+
+  it('logs only the parsed address and how many entries x-forwarded-for held', async () => {
+    const { login } = await createTestApp();
+    const logged = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      await login('wrong', '203.0.113.7, 10.1.2.3');
+      await login('wrong');
+      expect(logged.mock.calls).toEqual([
+        ['login: address 203.0.113.7, x-forwarded-for entries 2'],
+        ['login: address unknown, x-forwarded-for entries 0'],
+      ]);
+    } finally {
+      logged.mockRestore();
+    }
   });
 });
 
