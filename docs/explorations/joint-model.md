@@ -125,6 +125,8 @@ Step 3 (#553): `packages/model/src/boltedLap.ts` takes a bolt's line and the par
 
 Still from the template: the grip printed in hardware notes and flag text, which it formats from its own value (the same within the tolerance), and the grips of ply bolts and horizontal hanger bolts, which are not placed.
 
+Step 4 (#554): `packages/model/src/housedEnd.ts`. `housingPlane` is the plane a dado's depth inside a part's face; a part trimmed to it is long enough to reach the dado's bottom. `housedEnd` then gives the dado: the housed end's outline where it enters the housing, on the face it enters, found from the parts' frames. A dado stopped short of the housed part's reference edge leaves that corner notched. It refuses an angled end, a part that meets the face at an angle, an end that doesn't reach the dado's bottom, and one that runs past the housing. The record cabinet's definition has the same `generateWith` seam as the swing set's. Its joint-based design trims each side and partition into the top and case bottom, and each back rail into the panels on either side of its bay. The panels' and rails' lengths and placements, the top's, bottom's, and panels' dadoes for them, and the panels' notches all come from the joints. The doors' tracks are still the template's. It reaches parity in the 6 fixture cases and two more: one bay and four bays.
+
 ## Still open
 
 - The parity test's tolerance (exact display, 1e-9 before display) is used as written until the owner changes it.

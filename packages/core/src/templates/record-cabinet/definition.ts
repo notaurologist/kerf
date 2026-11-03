@@ -1,4 +1,5 @@
 import type { SnapshotUpgrade, TemplateDefinition } from '../../model/definition.ts';
+import type { GenerateResult } from '../../model/types.ts';
 import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { planLumber } from '../../outputs/shoppingList.ts';
@@ -190,6 +191,31 @@ const toDoors: SnapshotUpgrade = (snapshot) => {
   };
 };
 
+/**
+ * The template's `generate`, with the step that makes the design given: the template's own, or
+ * one that derives the same parts another way (docs/explorations/joint-model.md).
+ */
+export function generateWith(design: typeof generate) {
+  return (
+    params: RecordCabinetParams,
+    structuralInputs: RecordCabinetStructuralInputs,
+  ): GenerateResult<RecordCabinetOutputs> => {
+    const made = design(params, allowancesFor(params, cabinetGeometry(params), structuralInputs));
+    if (!made.ok) return made;
+    const review = structuralReview(params, made.output.geometry, structuralInputs);
+    return {
+      ok: true,
+      output: {
+        design: made.output,
+        cutList: cutList(made.output.parts),
+        lumber: planLumber(made.output.parts),
+        hardware: hardwareList(made.output.hardware),
+        review,
+      },
+    };
+  };
+}
+
 export const recordCabinet: TemplateDefinition<
   RecordCabinetParams,
   RecordCabinetStructuralInputs,
@@ -275,22 +301,5 @@ export const recordCabinet: TemplateDefinition<
     view: VIEW,
     explode: cabinetExplode(outputs),
   }),
-  generate(params, structuralInputs) {
-    const design = generate(
-      params,
-      allowancesFor(params, cabinetGeometry(params), structuralInputs),
-    );
-    if (!design.ok) return design;
-    const review = structuralReview(params, design.output.geometry, structuralInputs);
-    return {
-      ok: true,
-      output: {
-        design: design.output,
-        cutList: cutList(design.output.parts),
-        lumber: planLumber(design.output.parts),
-        hardware: hardwareList(design.output.hardware),
-        review,
-      },
-    };
-  },
+  generate: generateWith(generate),
 };
