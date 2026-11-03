@@ -65,6 +65,11 @@ export const projects = pgTable(
       'projects_template_version_matches_snapshot',
       sql`${t.templateVersion} = (${t.snapshot}->>'templateVersion')::integer`,
     ),
+    // Reads find the template by this column, and the snapshot is read with its own.
+    check(
+      'projects_template_id_matches_snapshot',
+      sql`${t.templateId} = ${t.snapshot}->>'templateId'`,
+    ),
     index('projects_updated_at').on(t.updatedAt),
   ],
 );

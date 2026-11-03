@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { TEMPLATES } from '@kerf/core';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
+import { swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
 
 // Every shape a project has been stored in, as the database holds it, served by today's code.
 const templatesFolder = join(
@@ -75,6 +76,47 @@ describe('stored projects of every shape', () => {
     logged.mockRestore();
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ projects: [{ name: 'Stored', progress: null }] });
+    await close();
+  });
+
+  it('opens a project whose drawings and steps cannot be drawn, without them', async () => {
+    const [swingSet] = TEMPLATES;
+    if (!swingSet) throw new Error('needs a template');
+    const throwing = {
+      ...swingSet,
+      drawings: () => {
+        throw new Error('drawings this code cannot draw');
+      },
+      steps: () => {
+        throw new Error('steps this code cannot choose');
+      },
+    };
+    const before = await createTestApp();
+    const created = await before.authed('/api/projects', {
+      method: 'POST',
+      body: {
+        name: 'Stored',
+        templateId: swingSet.id,
+        params: swingSetParams,
+        structuralInputs: swingSetInputs,
+      },
+    });
+    const { id } = (await created.json()) as { id: string };
+    const { authed, close } = await createTestApp({ database: before, templates: [throwing] });
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await authed(`/api/projects/${id}`);
+    expect(logged).toHaveBeenCalledWith(
+      `project ${id}: the drawings could not be drawn`,
+      expect.any(Error),
+    );
+    logged.mockRestore();
+    expect(res.status).toBe(200);
+    const project = (await res.json()) as Record<string, unknown>;
+    expect(project.unreadable).toBeUndefined();
+    expect(project.snapshot).not.toBeNull();
+    expect(project.version).toEqual({ status: 'current', version: swingSet.version });
+    expect(project.drawings).toBeNull();
+    expect(project.steps).toBeNull();
     await close();
   });
 });

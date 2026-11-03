@@ -147,6 +147,23 @@ describe('release', () => {
     await close();
   });
 
+  it("fails before migrating when a project's template ID differs from its snapshot's", async () => {
+    const { client, id, close } = await storedProject();
+    // As a database from before the check could hold.
+    await client.query(
+      'alter table projects drop constraint projects_template_id_matches_snapshot',
+    );
+    await client.query(`update projects set template_id = 'bench' where id = $1`, [id]);
+
+    const { result, calls } = await releaseOn(client);
+    expect(result).toEqual({
+      status: 'unreadable',
+      projects: [{ id, reason: 'template-id-mismatch' }],
+    });
+    expect(calls.migrated).toBe(false);
+    await close();
+  });
+
   it('writes history for a project that has none, and only once', async () => {
     const { client, id, close } = await storedProject();
     const written = (await client.query('select operation_id from project_history')).rows;

@@ -640,18 +640,36 @@ describe('the trash and export routes', () => {
 });
 
 describe('a stored project whose template this code no longer has', () => {
-  it('answers as the server’s problem, not the request’s', async () => {
+  it('opens, saying why its plan cannot be read', async () => {
     const before = await createTestApp();
     const { body } = await create(before.authed);
     const after = await createTestApp({ database: before, templates: [] });
-    for (const [path, method, sent] of [
-      [`/api/projects/${body.id}`, 'GET', undefined],
-      [`/api/projects/${body.id}/preview`, 'POST', { name: 'x' }],
-    ] as const) {
-      const res = await after.authed(path, { method, body: sent });
-      expect({ path, status: res.status }).toEqual({ path, status: 500 });
-      expect(await res.json()).toEqual({ error: 'missing-template' });
-    }
+    const res = await after.authed(`/api/projects/${body.id}`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      id: body.id,
+      name: 'Backyard swing set',
+      snapshot: null,
+      unreadable: {
+        reason: 'unknown-template',
+        message: 'No template has the ID "swing-set-a-frame".',
+      },
+      version: null,
+      drawings: null,
+      steps: null,
+    });
+  });
+
+  it('answers a preview as the server’s problem, not the request’s', async () => {
+    const before = await createTestApp();
+    const { body } = await create(before.authed);
+    const after = await createTestApp({ database: before, templates: [] });
+    const res = await after.authed(`/api/projects/${body.id}/preview`, {
+      method: 'POST',
+      body: { name: 'x' },
+    });
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: 'missing-template' });
   });
 
   it('refuses a template ID longer than any template has', async () => {

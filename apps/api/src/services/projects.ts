@@ -87,20 +87,23 @@ export interface ProjectsExport {
 export interface Project extends ProjectSummary {
   /**
    * Null only when the stored snapshot cannot be read even after upgrading, which tests guard
-   * against (decision 0014); `unreadable` says why.
+   * against (decision 0014), or this code no longer has its template; `unreadable` says why.
    */
   snapshot: ProjectSnapshot | null;
   unreadable?: { reason: string; message: string };
+  /** Null when the snapshot cannot be read, or comparing it with the template fails. */
   version: VersionReport | null;
   /**
    * The plan's drawings (#90, #91), drawn by core from the stored snapshot on each read. Not
-   * stored: a view of the numbers the snapshot holds. Null when the snapshot cannot be read.
+   * stored: a view of the numbers the snapshot holds. Null when the snapshot cannot be read or
+   * drawing it fails.
    */
   drawings: geometry.Drawings | null;
   /**
    * The build steps (#105, #52), with methods chosen from the current tool inventory on each read,
    * and the key of that inventory so a client can tell when they are stale. In the project
-   * response so the shop view needs no other request. Null when the snapshot cannot be read.
+   * response so the shop view needs no other request. Null when the snapshot cannot be read or
+   * choosing them fails.
    */
   steps: BuildSteps | null;
   /** What has been ticked off (#57), so the plan and its modes need no other request. */
@@ -191,10 +194,25 @@ export function createProjectService(deps: {
   /** The stored snapshot, upgraded to the current shape if it was stored in an older one. */
   const read = (row: Row) => readSnapshot(templates, row.snapshot);
 
+  /** What `draw` returns, or null if it throws, so one broken view does not stop the project opening. */
+  function drawn<T>(row: Row, what: string, draw: () => T): T | null {
+    try {
+      return draw();
+    } catch (error) {
+      console.error(`project ${row.id}: ${what} could not be drawn`, error);
+      return null;
+    }
+  }
+
   async function view(row: Row): Promise<Result<Project>> {
     const template = findTemplate(row.templateId);
-    if (!template) return { ok: false, error: 'missing-template' };
-    const result = read(row);
+    const result = template
+      ? { ...read(row), template }
+      : {
+          ok: false as const,
+          reason: 'unknown-template' as const,
+          message: `No template has the ID "${row.templateId}".`,
+        };
     const ticks = await readProgress(db, row.id);
     if (!result.ok) {
       return {
@@ -210,15 +228,19 @@ export function createProjectService(deps: {
         },
       };
     }
+    const { snapshot, template: found } = result;
+    const inventory = await getInventory(db);
     return {
       ok: true,
       value: {
         ...summary(row, ticks),
         ticks,
-        snapshot: result.snapshot,
-        version: compareWithCurrent(template, result.snapshot),
-        drawings: projectDrawings(template, template.storedOutputs.parse(result.snapshot.outputs)),
-        steps: snapshotSteps(template, result.snapshot, await getInventory(db)),
+        snapshot,
+        version: drawn(row, 'the version report', () => compareWithCurrent(found, snapshot)),
+        drawings: drawn(row, 'the drawings', () =>
+          projectDrawings(found, found.storedOutputs.parse(snapshot.outputs)),
+        ),
+        steps: drawn(row, 'the build steps', () => snapshotSteps(found, snapshot, inventory)),
       },
     };
   }
