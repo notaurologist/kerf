@@ -905,7 +905,17 @@ describe('swing-set template versions', () => {
     for (const stored of v27) {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(27);
-      const { changes } = regenerated(snapshot, false, false, false, false, false, false, false, true);
+      const { changes } = regenerated(
+        snapshot,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+      );
       expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion28(c))).toEqual([]);
       const bending = (fresh(snapshot) as { structuralReview: { beam: { bending: unknown } } })
