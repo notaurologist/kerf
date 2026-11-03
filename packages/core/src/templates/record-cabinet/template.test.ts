@@ -498,4 +498,18 @@ describe('plan and drawings', () => {
     // Leg showing 5, apron 2-1/2, case bottom 3/4, bay 13-1/4, top 3/4.
     for (const t of ['5"', '2-1/2"', '13-1/4"']) expect(texts).toContain(t);
   });
+
+  // The screws fasten the case to the base and no check reads them (spec, Hardware), so hard rule 3
+  // does not ask the owner to confirm them. If a check ever depends on screw size, this fails.
+  it.each(EXAMPLES.map((example, i) => [example.name, i] as const))(
+    'has only non-structural hardware, and the screws’ note says how to find the size: %s',
+    (_name, i) => {
+      const hardware = made(i).design.hardware;
+      expect(hardware.length).toBeGreaterThan(0);
+      expect(hardware.filter((item) => item.structural)).toEqual([]);
+      const notes = hardware.find((item) => item.id === 'screws')?.notes.join(' ') ?? '';
+      expect(notes).toMatch(/measure/i);
+      expect(notes).toMatch(/ask/i);
+    },
+  );
 });

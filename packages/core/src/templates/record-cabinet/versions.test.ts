@@ -13,6 +13,7 @@ import v7 from './snapshots/v7.json' with { type: 'json' };
 import v8 from './snapshots/v8.json' with { type: 'json' };
 import v9 from './snapshots/v9.json' with { type: 'json' };
 import v10 from './snapshots/v10.json' with { type: 'json' };
+import v11 from './snapshots/v11.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -213,5 +214,10 @@ describe('record-cabinet template versions', () => {
     expect(list.map((c) => c.after).every((text) => !/\bpass(es)?\b/.test(String(text)))).toBe(
       true,
     );
+  });
+
+  it('version 11 rewrites the screws note to say how to find the size, and changes nothing else (#438)', () => {
+    const list = changes(v10, v11);
+    expect(kinds(list)).toEqual(['outputs.design.hardware[].notes[]']);
   });
 });
