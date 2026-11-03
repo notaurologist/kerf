@@ -114,3 +114,19 @@ export const RecordCabinetParams = z.object({
   }),
 });
 export type RecordCabinetParams = z.infer<typeof RecordCabinetParams>;
+
+/**
+ * Parameters as stored: a plan from before the leg base (template version 8) has none of its
+ * sizes, and one from before the doors none of the doors' sizes.
+ */
+export const StoredRecordCabinetParams = RecordCabinetParams.partial({
+  legShowing: true,
+  apronHeight: true,
+  legStock: true,
+  footSize: true,
+  apronSetback: true,
+  tenonThickness: true,
+  tenonLength: true,
+  door: true,
+});
+export type StoredRecordCabinetParams = z.infer<typeof StoredRecordCabinetParams>;
