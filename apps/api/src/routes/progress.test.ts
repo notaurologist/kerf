@@ -293,7 +293,32 @@ describe('project progress', () => {
         number: 3,
         title: "Cut board 3, a 4x4 12' long: Front leg (downhill)",
       },
+      // Ticks saved together: board 2 marked done is the furthest along, so the step after it.
+      resumeStep: {
+        id: 'board-3',
+        number: 3,
+        title: "Cut board 3, a 4x4 12' long: Front leg (downhill)",
+      },
     });
+  });
+
+  it('resumes the list at the step with the most recent tick, by the time it was saved (#460)', async () => {
+    // Legs cut before the beam: board 4's piece ticked a minute after board 2's.
+    const { tick, authed, clock } = await setup();
+    await tick([done('part', 'leg-front/0')]);
+    clock.now = new Date(clock.now.getTime() + 60_000);
+    await tick([done('part', 'leg-back/0')]);
+    clock.now = new Date(clock.now.getTime() + 60_000);
+    // A tick outside Building leaves where the owner was in Building alone.
+    await tick([done('shopping-line', 'lumber/2x6/10')]);
+    const list = (await (await authed('/api/projects')).json()) as Json;
+    const { progress } = list.projects[0];
+    expect(progress.resumeStep).toEqual({
+      id: 'board-4',
+      number: 4,
+      title: "Cut board 4, a 4x4 12' long: Back leg (uphill)",
+    });
+    expect(progress.nextStep.id).toBe('board-1');
   });
 
   it('carries the ticks and summary in the project response', async () => {
