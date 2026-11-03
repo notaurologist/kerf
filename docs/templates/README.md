@@ -29,7 +29,7 @@ The contract is `TemplateDefinition` in `packages/core/src/model/definition.ts`.
 | Field | What it holds |
 |---|---|
 | `id`, `name`, `version` | The ID used in URLs and stored projects; the name the owner sees; the template version (step 5) |
-| `ownWords` | Words only this folder uses, such as the names of its parts, lowercase. Generic code may not use them (step 6) |
+| `ownWords` | Words that name what this template builds and no other template uses, such as its parts, lowercase, each plural listed. Generic members such as a leg or a beam do not belong. Generic code and other templates' folders may not use them (step 6) |
 | `params`, `structuralInputs` | Zod schemas. Every structural input is optional: missing means "input needed" |
 | `form` | How parameters and structural inputs are entered, as data (`model/form.ts`). Fields start empty; hardware is `confirmed` |
 | `generate` | Pure: parameters and inputs to outputs, or issues. No clock, randomness, or I/O |
@@ -70,7 +70,7 @@ Every template version has a fixture: `snapshots/v<version>.json`, its worked ex
 
 Only the template's folder may know it exists (ARCHITECTURE.md, principle 6). Rules for one kind of project, such as the CPSC playground guidance the swing set follows, live in the folder and reach generic code as data: a note to show with a list, which fittings a bolt takes, a flag's category. Three tests hold the line:
 
-- `generic.test.ts` fails when source outside the template's folder, other than tests, uses its ID (in either spelling) or one of its `ownWords`.
+- `generic.test.ts` fails when source outside the template's folder, other than tests, uses its ID or one of its `ownWords`, as a word or inside an identifier (`crossbarSpan`, `swing_angle`). It also fails when another template's folder, tests included, uses them.
 - `templateFolders.test.ts` fails when anything but `templates/index.ts` imports from the folder.
 - `generation.test.ts` fails when the web app calls generation code instead of displaying what the API sends.
 

@@ -96,7 +96,7 @@ Pure TypeScript. No I/O, no framework dependencies, no clock or randomness. The 
 interface Template<P> {
   id: string;                   // 'swing-set-a-frame'
   version: number;              // bumped when output for the same parameters changes (0008)
-  ownWords: string[];           // words only its folder may use, such as its parts' names
+  ownWords: string[];           // words only its folder may use, such as its parts' names, even in identifiers
   params: z.ZodType<P>;         // types, ranges, defaults
   outputs: z.ZodType<O>;        // what generate makes now: every field generic code reads, required
   storedOutputs: z.ZodType<S>;  // reads a stored snapshot after its upgrades (0014); relaxes only
