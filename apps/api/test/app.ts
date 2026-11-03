@@ -2,7 +2,7 @@ import { type AppDeps, createApp } from '../src/app.ts';
 import { hashPassword } from '../src/auth/password.ts';
 import { createTestDatabase } from './database.ts';
 
-// The API on a fresh PGlite database, with a clock tests can move.
+// The API on the test file's PGlite database, emptied, with a clock tests can move.
 
 export const TEST_PASSWORD = 'correct horse battery staple';
 /** A cheap scrypt cost so tests run fast; production uses the default. */

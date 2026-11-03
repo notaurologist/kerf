@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createTestDatabase } from './database.ts';
+import { createIsolatedTestDatabase, createTestDatabase } from './database.ts';
 
 describe('createTestDatabase', () => {
   it('applies the committed migrations', async () => {
@@ -87,5 +87,36 @@ describe('createTestDatabase', () => {
     const left = await client.query('select * from project_history');
     expect(left.rows).toEqual([]);
     await close();
+  });
+
+  it('starts a test with a project in it, for the next test', async () => {
+    const { client } = await createTestDatabase();
+    await client.query(
+      `insert into projects (name, status, template_id, template_version, snapshot)
+       values ('Swing set', 'planned', 't', 1, '{}')`,
+    );
+    await client.query('update tools_revision set revision = 7');
+    expect((await client.query('select 1 from projects')).rows).toHaveLength(1);
+  });
+
+  it('empties what the test before wrote, and keeps the rows the migrations wrote', async () => {
+    const { client } = await createTestDatabase();
+    expect((await client.query('select 1 from projects')).rows).toEqual([]);
+    expect((await client.query('select id, revision from tools_revision')).rows).toEqual([
+      { id: 1, revision: 1 },
+    ]);
+  });
+
+  it('gives a test one database', async () => {
+    await createTestDatabase();
+    await expect(createTestDatabase()).rejects.toThrow(/one test database/);
+  });
+
+  it('gives a test that changes the schema a copy of its own', async () => {
+    const shared = await createTestDatabase();
+    const isolated = await createIsolatedTestDatabase();
+    await isolated.client.exec('DROP TABLE sessions');
+    expect((await shared.client.query('select 1 from sessions')).rows).toEqual([]);
+    await isolated.close();
   });
 });
