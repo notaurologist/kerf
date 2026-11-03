@@ -34,6 +34,7 @@ import v28 from './snapshots/v28.json' with { type: 'json' };
 import v29 from './snapshots/v29.json' with { type: 'json' };
 import v30 from './snapshots/v30.json' with { type: 'json' };
 import v31 from './snapshots/v31.json' with { type: 'json' };
+import v32 from './snapshots/v32.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -170,6 +171,19 @@ const isVersion32 = (c: { path: string }) =>
   /^structuralReview\.beam\.bending\.deeperStock(\.|\[|$)/.test(c.path);
 
 /**
+ * Version 33's changes (#467): the ground anchor check on pads, new, and the ground-anchor checklist
+ * item's reworded confirm and why. Set aside like version 18's.
+ */
+const isVersion33 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  (c.path === 'structuralReview.anchors' && c.before === undefined) ||
+  (/^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) &&
+    String(c.before).startsWith('Anchor type and count') &&
+    String(c.after).includes('how each anchor is fastened to its leg')) ||
+  (/^structuralReview\.checklist\[\d+\]\.why$/.test(c.path) &&
+    String(c.before).startsWith('Anchors keep the frame') &&
+    String(c.after).startsWith('The anchor check gives the pull on one anchor'));
+
+/**
  * What regenerating with the current version changes in the stored outputs, field by field; or,
  * given `later`, a later version's fixture of the same example, what that version changed.
  */
@@ -188,6 +202,7 @@ function regenerated(
   later?: unknown,
   keepVersion31 = false,
   keepVersion32 = false,
+  keepVersion33 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -207,7 +222,8 @@ function regenerated(
         (keepVersion29 || later !== undefined || !isVersion29(c)) &&
         (keepVersion30 || !isVersion30(c)) &&
         (keepVersion31 || !isVersion31(c)) &&
-        (keepVersion32 || !isVersion32(c)),
+        (keepVersion32 || !isVersion32(c)) &&
+        (keepVersion33 || later !== undefined || !isVersion33(c)),
     ),
   };
   return keepVersion18
@@ -726,7 +742,8 @@ describe('swing-set template versions', () => {
           !isVersion29(c) &&
           !isVersion30(c) &&
           !isVersion31(c) &&
-          !isVersion32(c),
+          !isVersion32(c) &&
+          !isVersion33(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1096,5 +1113,27 @@ describe('swing-set template versions', () => {
       ['Top beam, 4x8', 2.655],
       ['Top beam, 3 plies of 2x8', 2.086],
     ]);
+  });
+
+  // Hand check in structural.test.ts and the spec's example 4. The two-ply example on pads gets the
+  // anchor check; the buried worked example gets none, so it changes nothing.
+  it('version 33 checks the ground anchors on pads against uplift, and changes nothing else (#467)', () => {
+    // Version 29's filter would also hide the checklist item's confirm, so it is kept.
+    const keep33 = [...Array(8).fill(false), true, false, undefined, false, false, true] as const;
+    const added: unknown[] = [];
+    for (const stored of v32) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(32);
+      const { changes } = regenerated(snapshot, ...keep33);
+      expect(changes.filter((c) => !isVersion33(c))).toEqual([]);
+      const onPads = (snapshot.params as { burialDepth: number }).burialDepth === 0;
+      // On pads: the check, and the checklist item's confirm and why.
+      expect(changes).toHaveLength(onPads ? 3 : 0);
+      added.push(
+        ...changes.filter((c) => c.path === 'structuralReview.anchors').map((c) => c.after),
+      );
+    }
+    expect(added).toHaveLength(1);
+    expect(added[0]).toMatchObject({ kind: 'hardware', subject: 'Ground anchor' });
   });
 });

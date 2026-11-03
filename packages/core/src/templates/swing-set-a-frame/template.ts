@@ -109,8 +109,10 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * frame goes up in (#451). No number changes.
  * Version 32 gives bending in the next deeper beam stock, with its margin and break-even dynamic
  * factor, so the stock can be chosen against them (#466). The plan's own numbers do not change.
+ * Version 33 computes the uplift at each foot on pads and checks one ground anchor against its
+ * rated pull-out, a new hardware input (#467). No part, cut, or bolt moves.
  */
-export const TEMPLATE_VERSION = 32;
+export const TEMPLATE_VERSION = 33;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

@@ -427,6 +427,139 @@ describe('missing inputs', () => {
   });
 });
 
+describe('example 4: uplift at the feet on pads (spec, Structural model)', () => {
+  // The worked example on pads: d = 0, ground falling 1"/ft toward the front. Back foot at
+  // z_b = 3.1182, y_b = 3.61232 + 92.8818·tan 20° = 37.4185; front foot at z_f = −3.3133,
+  // y_f = −(3.61232 + 99.3133·tan 20°) = −39.7594. Riders 200 and 80: the left frame carries
+  // (100·(78.75 + 58.75) + 40·(38.75 + 18.75)) / 97.5 = 164.615. The beam's weight on each frame
+  // is 0.433798·60 = 26.0279.
+  const pads: SwingSetParams = {
+    ...params,
+    burialDepth: 0,
+    hardware: { ...params.hardware, anchorsPerFoot: 1, anchorRating: 500 },
+  };
+  const asymmetric = { ...inputs, riderWeights: [200, 80] };
+  const value = (r: ComputedCheck, label: string) =>
+    r.inputs.find((q) => q.label.startsWith(label))?.value;
+
+  // Back foot lifting: c_v = 39.7594 / 77.1779 = 0.51517, c_h = 99.3133 / 77.1779 = 1.28681. At
+  // φ = 47.14°, (3·cos φ − 1)·(c_v·cos φ − c_h·sin φ) = −0.61692, so S = 164.615·0.61692 = 101.555
+  // and the weight holds D·c_v = 13.409: 2·101.555 − 13.409 = 189.70 against 500.
+  it('pulls 189.70 lb on one anchor at the left back foot, margin 2.64', () => {
+    const a = computed(review(pads, asymmetric).anchors as CheckResult);
+    expect(a.subject).toBe('Ground anchor');
+    expect(a.inputs.find((q) => q.symbol === 'y_b')?.value).toBeCloseTo(37.4185, 3);
+    expect(a.inputs.find((q) => q.symbol === 'y_f')?.value).toBeCloseTo(-39.7594, 3);
+    expect(a.inputs.find((q) => q.symbol === 'W_left')?.value).toBeCloseTo(164.6154, 3);
+    expect(a.inputs.find((q) => q.symbol === 'D')?.value).toBeCloseTo(26.0279, 3);
+    expect(a.inputs.find((q) => q.symbol === 'c_v')?.value).toBeCloseTo(0.51517, 4);
+    expect(a.inputs.find((q) => q.symbol === 'c_h')?.value).toBeCloseTo(1.28681, 4);
+    expect(a.inputs.find((q) => q.symbol === 'φ')?.value).toBeCloseTo(47.14, 1);
+    expect(a.inputs.find((q) => q.symbol === 'S')?.value).toBeCloseTo(101.555, 2);
+    expect(a.inputs.find((q) => q.symbol === 'D·c_v')?.value).toBeCloseTo(13.409, 2);
+    expect(a.computed.value).toBeCloseTo(189.7, 1);
+    expect(a.margin).toBeCloseTo(500 / 189.7, 2);
+    // (1·500 + 13.409) / 101.555.
+    expect(a.breakEven?.value).toBeCloseTo(5.0555, 3);
+  });
+
+  // At factor 1: left back 101.555 − 13.409 = 88.15, left front 94.625 − 12.619 = 82.01, right back
+  // 71.183 − 13.409 = 57.77, right front 66.326 − 12.619 = 53.71.
+  it('gives each foot its uplift and each frame its largest fore-and-aft force', () => {
+    const a = computed(review(pads, asymmetric).anchors as CheckResult);
+    expect(value(a, 'Uplift, left frame, back foot')).toBeCloseTo(88.146, 2);
+    expect(value(a, 'Uplift, left frame, front foot')).toBeCloseTo(82.006, 2);
+    expect(value(a, 'Uplift, right frame, back foot')).toBeCloseTo(57.774, 2);
+    expect(value(a, 'Uplift, right frame, front foot')).toBeCloseTo(53.707, 2);
+    // cos φ = (0.5 + √18.25) / 6 = 0.79535, sin φ·(3·cos φ − 1) = 0.84016.
+    expect(a.inputs.find((q) => q.symbol === 'F_left')?.value).toBeCloseTo(0.840155 * 164.6154, 2);
+    expect(a.inputs.find((q) => q.symbol === 'F_right')?.value).toBeCloseTo(0.840155 * 115.3846, 2);
+  });
+
+  // Level ground and θ = 90°, the closed form: h = 96 / 38.5535 = 2.49004, minimum
+  // 0.75·(1 − √(1 + h²)) = −1.26251 at φ = 90° − atan(h)/2 = 55.94°. S = 189.376, D/2 = 13.014;
+  // 2·189.376 − 13.014 = 365.74, over 2 anchors 182.87 against 250.
+  it('matches the closed form on level ground at θ = 90°', () => {
+    const level: SwingSetParams = {
+      ...pads,
+      groundSlope: 0,
+      hardware: { ...pads.hardware, anchorsPerFoot: 2, anchorRating: 250 },
+    };
+    const a = computed(review(level, { ...inputs, maxSwingAngle: 90 }).anchors as CheckResult);
+    const h =
+      96 / (1.75 + 1.75 / Math.cos((20 * Math.PI) / 180) + 96 * Math.tan((20 * Math.PI) / 180));
+    expect(h).toBeCloseTo(2.49004, 4);
+    expect(a.inputs.find((q) => q.symbol === 'φ')?.value).toBeCloseTo(
+      90 - (Math.atan(h) * 180) / Math.PI / 2,
+      5,
+    );
+    expect(a.inputs.find((q) => q.symbol === 'S')?.value).toBeCloseTo(
+      150 * 0.75 * (Math.sqrt(1 + h * h) - 1),
+      6,
+    );
+    expect(a.computed.value).toBeCloseTo(182.87, 2);
+    expect(a.margin).toBeCloseTo(1.3671, 3);
+    expect(a.breakEven?.value).toBeCloseTo(2.709, 3);
+    expect(a.inputs.find((q) => q.symbol === 'F_left')?.value).toBeCloseTo(225, 6);
+  });
+
+  it('is only on pads', () => {
+    expect(review(params, inputs).anchors).toBeUndefined();
+    expect(review(pads, inputs).anchors).toBeDefined();
+  });
+
+  it('needs the anchor count and rating, with no default, and reports the break-even factor first', () => {
+    const bare: SwingSetParams = { ...pads, hardware: params.hardware };
+    expect(review(bare, inputs).anchors).toMatchObject({
+      status: 'input-needed',
+      missing: [
+        { key: 'hardware.anchorsPerFoot', label: 'Ground anchors per leg foot' },
+        { key: 'hardware.anchorRating', label: 'Ground anchor rated pull-out, one anchor' },
+      ],
+    });
+    const { dynamicFactor: _, ...rest } = asymmetric;
+    const held = review(pads, rest).anchors;
+    expect(held).toMatchObject({ status: 'input-needed', missing: [{ key: 'dynamicFactor' }] });
+    expect(held?.status === 'input-needed' && held.breakEven?.value).toBeCloseTo(5.0555, 3);
+    const { beamMoistureContent: __, ...noWeight } = inputs;
+    expect(review(pads, noWeight).anchors).toMatchObject({
+      status: 'input-needed',
+      missing: [{ key: 'beamMoistureContent' }],
+    });
+  });
+
+  // Riders hanging still: θ = 0, so nothing pushes the frame over and no foot lifts.
+  it('reports no margin when no foot lifts', () => {
+    expect(review(pads, { ...inputs, maxSwingAngle: 0 }).anchors).toMatchObject({
+      status: 'not-computed',
+    });
+  });
+
+  it('links the frame, the anchors, and the inputs it changes with', () => {
+    const a = review(pads, inputs).anchors as CheckResult;
+    const paths = swingSetAFrame.checkFields(a).map((f) => f.path);
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        'beamHeight',
+        'groundSlope',
+        'hardware.anchorsPerFoot',
+        'hardware.anchorRating',
+        'riderWeights.0',
+        'dynamicFactor',
+        'beamMoistureContent',
+      ]),
+    );
+    expect(paths).not.toContain('hangerRating');
+    expect(
+      swingSetAFrame.checkFields(review(pads, inputs).hanger).map((f) => f.path),
+    ).not.toContain('hardware.anchorRating');
+  });
+
+  it('never says safe, unsafe, pass, or fail', () => {
+    expect(JSON.stringify(review(pads, asymmetric).anchors)).not.toMatch(VERDICT_WORDS);
+  });
+});
+
 describe('checklist', () => {
   it('covers connections, beam restraint, racking, anchoring, hangers, lumber, and upkeep', () => {
     const r = review(params, {});

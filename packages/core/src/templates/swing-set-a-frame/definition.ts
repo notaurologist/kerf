@@ -98,8 +98,14 @@ const addHoleSizes: SnapshotUpgrade = (snapshot) => {
 };
 
 /** The plan's checks, in the order the structural review lists them. */
-function reviewChecks(review: Pick<SwingSetStructuralReview, 'beam' | 'hanger'>) {
-  return [review.beam.bending, review.beam.shear, review.beam.deflection, review.hanger];
+function reviewChecks(review: Pick<SwingSetStructuralReview, 'beam' | 'hanger' | 'anchors'>) {
+  return [
+    review.beam.bending,
+    review.beam.shear,
+    review.beam.deflection,
+    review.hanger,
+    ...(review.anchors ? [review.anchors] : []),
+  ];
 }
 
 /** Everything but each line's other stock sizes, which take this to work out. */
@@ -181,7 +187,9 @@ export const swingSetAFrame: TemplateDefinition<
   // read unchanged. Shape 17 adds the project's suggested values (#417); every older plan's
   // values were entered, so it reads with none. Shape 18 adds a check's results in the next deeper
   // stock (#466), optional.
-  snapshotVersion: 18,
+  // Shape 19 adds the ground anchor check on pads (#467), optional: a plan stored before it shows
+  // no anchor check until it is regenerated.
+  snapshotVersion: 19,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -200,6 +208,7 @@ export const swingSetAFrame: TemplateDefinition<
     15: (snapshot) => snapshot,
     16: noSuggestions,
     17: (snapshot) => snapshot,
+    18: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   questions: SWING_SET_QUESTIONS,
