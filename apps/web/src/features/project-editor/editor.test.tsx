@@ -470,7 +470,7 @@ describe('editing a plan stored before a parameter existed (#429)', () => {
     expect(read.snapshot.params).not.toHaveProperty('legShowing');
     const text = renderText(<EditProject project={project} onReload={() => {}} />);
     expect(text).toContain(
-      'Rule of thumb: about 5" of leg below the aprons, the owner\'s choice for this cabinet. Your plan was saved before Kerf asked for this, so Kerf suggests it.',
+      'Rule of thumb: about 5" of leg below the aprons, as you chose for this cabinet. Your plan was saved before Kerf asked for this, so Kerf suggests it.',
     );
     const html = render(<EditProject project={project} onReload={() => {}} />);
     const input = html.match(
