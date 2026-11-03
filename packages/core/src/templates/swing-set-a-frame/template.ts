@@ -96,8 +96,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * end distance, the loaded top edge and the bottom edge, and spacing in a row (#456).
  * Version 29 takes the beam's bending at each swing hanger on the net section its mounting holes
  * leave (NDS 2024 3.1.2.1), lists the bolts that mount the hangers, and drills their holes (#446).
+ * Version 30 writes each bolt flag's count and size as the bolt layout does, "2 × 1/2\" bolts",
+ * which read as 2-1/2" before (#493). No number changes.
  */
-export const TEMPLATE_VERSION = 29;
+export const TEMPLATE_VERSION = 30;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 29,
+    "templateVersion": 30,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -1220,7 +1220,7 @@
             "hardwareIds": [
               "crossbar-bolts"
             ],
-            "ask": "Crossbar to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
+            "ask": "Crossbar to leg, 2 × 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
@@ -1233,7 +1233,7 @@
             "hardwareIds": [
               "gusset-bolts"
             ],
-            "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
+            "ask": "Gusset to leg, 2 × 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
@@ -4355,7 +4355,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 29,
+    "templateVersion": 30,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -5608,7 +5608,7 @@
             "hardwareIds": [
               "crossbar-bolts"
             ],
-            "ask": "Crossbar to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
+            "ask": "Crossbar to leg, 2 × 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
@@ -5621,7 +5621,7 @@
             "hardwareIds": [
               "gusset-bolts"
             ],
-            "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
+            "ask": "Gusset to leg, 2 × 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
@@ -8911,7 +8911,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 29,
+    "templateVersion": 30,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -10118,7 +10118,7 @@
             "hardwareIds": [
               "crossbar-bolts"
             ],
-            "ask": "Crossbar to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
+            "ask": "Crossbar to leg, 2 × 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
@@ -10131,7 +10131,7 @@
             "hardwareIds": [
               "gusset-bolts"
             ],
-            "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
+            "ask": "Gusset to leg, 2 × 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {

@@ -476,7 +476,7 @@ export function boltFlags(joints: readonly JoinedParts[]): Flag[] {
         category: 'load-bearing' as const,
         partIds: [...partIds],
         hardwareIds: [...hardwareIds],
-        ask: `${joint.title}, ${joint.bolts} ${formatLength(joint.diameter)} bolt${joint.bolts > 1 ? 's' : ''}: ${items.join('. ')}. Confirm the bolt size and layout with these distances.`,
+        ask: `${joint.title}, ${joint.bolts} × ${formatLength(joint.diameter)} bolt${joint.bolts > 1 ? 's' : ''}: ${items.join('. ')}. Confirm the bolt size and layout with these distances.`,
         why: 'NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load.',
       },
     ];

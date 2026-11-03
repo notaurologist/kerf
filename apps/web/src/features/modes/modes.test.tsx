@@ -196,7 +196,7 @@ describe('Building mode', () => {
     expect(text).not.toContain('Trim 1/2"');
     // The bolted joints' expert checks (#51), on the step that drills for them.
     expect(text).toContain('Expert check');
-    expect(text).toContain('Crossbar to leg, 2 1/2" bolts');
+    expect(text).toContain('Crossbar to leg, 2 × 1/2" bolts');
     expect(html).not.toContain('class="k-glance"');
   });
 

@@ -130,6 +130,7 @@ const isVersion28 = (c: { path: string; before?: unknown; after?: unknown }) =>
     String(c.after).startsWith("The gusset also carries the beam's weight")) ||
   (/^design\.flags\[\d+\]\.ask$/.test(c.path) &&
     String(c.before).startsWith('Gusset to leg') &&
+    !String(c.before).includes("under the beam's weight") &&
     String(c.after).includes("gusset edge distance under the beam's weight, to the top edge"));
 
 /**
@@ -141,6 +142,14 @@ const isVersion29 = (c: { path: string }) =>
   /^structuralReview\.beam\.bending(\.|\[|$)/.test(c.path) ||
   /^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) ||
   /^lumber\.lines\[\d+\]\.alternatives(\[|$)/.test(c.path);
+
+/**
+ * Version 30's change (#493): each bolt flag writes its count and size as the bolt layout does,
+ * "2 × 1/2\" bolts" for "2 1/2\" bolts", and nothing else in it. Set aside like version 18's.
+ */
+const isVersion30 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  /^design\.flags\[\d+\]\.ask$/.test(c.path) &&
+  String(c.after).replace(/^([^,:]+, \d+) × /, '$1 ') === c.before;
 
 /**
  * What regenerating with the current version changes in the stored outputs, field by field; or,
@@ -157,6 +166,7 @@ function regenerated(
   keepVersion27 = false,
   keepVersion28 = false,
   keepVersion29 = false,
+  keepVersion30 = false,
   later?: unknown,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
@@ -174,7 +184,8 @@ function regenerated(
         (keepVersion26 || !isVersion26(c)) &&
         (keepVersion27 || !isVersion27(c)) &&
         (keepVersion28 || !isVersion28(c)) &&
-        (keepVersion29 || later !== undefined || !isVersion29(c)),
+        (keepVersion29 || later !== undefined || !isVersion29(c)) &&
+        (keepVersion30 || !isVersion30(c)),
     ),
   };
   return keepVersion18
@@ -540,6 +551,7 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
+        false,
         v25[i],
       ).changes.filter(notVersion14);
       expect(changes.filter(notVersion13)).toEqual([]);
@@ -689,7 +701,8 @@ describe('swing-set template versions', () => {
           !isVersion26(c) &&
           !isVersion27(c) &&
           !isVersion28(c) &&
-          !isVersion29(c),
+          !isVersion29(c) &&
+          !isVersion30(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -751,6 +764,7 @@ describe('swing-set template versions', () => {
       false,
       false,
       false,
+      false,
       v25[0],
     );
     expect(changes.length).toBeGreaterThan(0);
@@ -804,6 +818,7 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
+        false,
         v25[i],
       );
       expect(changes.length).toBeGreaterThan(0);
@@ -822,6 +837,7 @@ describe('swing-set template versions', () => {
       false,
       false,
       true,
+      false,
       false,
       false,
       false,
@@ -851,6 +867,7 @@ describe('swing-set template versions', () => {
         false,
         false,
         false,
+        false,
         v26[i],
       );
       expect(changes.length).toBeGreaterThan(0);
@@ -866,6 +883,7 @@ describe('swing-set template versions', () => {
       false,
       false,
       true,
+      false,
       false,
       false,
       false,
@@ -987,5 +1005,26 @@ describe('swing-set template versions', () => {
     expect(margin(v29[0]).computed.label).toBe(
       'Bending stress at left swing, right hanger hole, net section',
     );
+  });
+
+  // A flag's progress key is its category and its ask (ARCHITECTURE.md, project_progress), so
+  // regenerating a version 29 plan clears a tick on either bolt flag in the structural review.
+  it('version 30 writes the bolt count and size as 2 × 1/2", and changes nothing else (#493)', () => {
+    const keep30 = [false, false, false, false, false, false, false, false, false, true] as const;
+    for (const stored of v29) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(29);
+      const { changes } = regenerated(snapshot, ...keep30);
+      // Each bolt flag the example has: a joint's title, then its count and size.
+      const flags = at(snapshot.outputs, 'design.flags') as { ask: string }[];
+      const boltFlags = flags.filter((f) => /^[^,:]+, \d+ \d/.test(f.ask));
+      expect(boltFlags.length).toBeGreaterThan(0);
+      expect(changes).toHaveLength(boltFlags.length);
+      expect(changes.filter((c) => !isVersion30(c))).toEqual([]);
+    }
+    const asks = regenerated(read(v29[0]), ...keep30).changes.map(
+      (c) => String(c.after).split(':')[0],
+    );
+    expect(asks).toEqual(['Crossbar to leg, 2 × 1/2" bolts', 'Gusset to leg, 2 × 1/2" bolts']);
   });
 });
