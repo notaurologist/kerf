@@ -30,6 +30,7 @@ import v24 from './snapshots/v24.json' with { type: 'json' };
 import v25 from './snapshots/v25.json' with { type: 'json' };
 import v26 from './snapshots/v26.json' with { type: 'json' };
 import v27 from './snapshots/v27.json' with { type: 'json' };
+import v28 from './snapshots/v28.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -130,6 +131,13 @@ const isVersion28 = (c: { path: string; before?: unknown; after?: unknown }) =>
     String(c.before).startsWith('Gusset to leg') &&
     String(c.after).includes("gusset edge distance under the beam's weight, to the top edge"));
 
+/**
+ * Version 29's change (#468): the legs' column check, new in the review with nothing before it.
+ * Set aside like version 18's.
+ */
+const isVersion29 = (c: { path: string; before?: unknown }) =>
+  c.path === 'structuralReview.legs' && c.before === undefined;
+
 /** What regenerating with the current version changes in the stored outputs, field by field. */
 function regenerated(
   snapshot: ProjectSnapshot,
@@ -141,6 +149,7 @@ function regenerated(
   keepVersion26 = false,
   keepVersion27 = false,
   keepVersion28 = false,
+  keepVersion29 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -158,7 +167,8 @@ function regenerated(
         (keepVersion25 || !isVersion25(c)) &&
         (keepVersion26 || !isVersion26(c)) &&
         (keepVersion27 || !isVersion27(c)) &&
-        (keepVersion28 || !isVersion28(c)),
+        (keepVersion28 || !isVersion28(c)) &&
+        (keepVersion29 || !isVersion29(c)),
     ),
   };
   return keepVersion18
@@ -647,7 +657,8 @@ describe('swing-set template versions', () => {
           !isVersion25(c) &&
           !isVersion26(c) &&
           !isVersion27(c) &&
-          !isVersion28(c),
+          !isVersion28(c) &&
+          !isVersion29(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -846,5 +857,20 @@ describe('swing-set template versions', () => {
       ["Edge distance under the beam's weight", 1.8125],
       ["Spacing between bolts in a row under the beam's weight", 3.8576],
     ]);
+  });
+  // Hand check in structural.test.ts: the worked example's front leg runs (96 + 3.313) / cos 20° =
+  // 105.687 from grade to the beam, so ℓe/d = 2.10 · 105.687 / 3.5 = 63.4 along the beam, over 50.
+  it("version 29 adds the legs' column check, and changes nothing else (#468)", () => {
+    const keep29 = [false, false, false, false, false, false, false, false, true] as const;
+    for (const stored of v28) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(28);
+      expect(read.snapshot.outputs).not.toHaveProperty('structuralReview.legs');
+      const { changes } = regenerated(read.snapshot, ...keep29);
+      expect(changes).toHaveLength(1);
+      expect(changes.filter((c) => !isVersion29(c))).toEqual([]);
+      expect((changes[0]?.after as { kind: string }).kind).toBe('column');
+    }
   });
 });

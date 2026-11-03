@@ -39,17 +39,24 @@ describe('the swing set store readings', () => {
     }
   });
 
-  it('asks for the grade stamp and incising beside the beam boards, and nowhere else', () => {
+  it('asks for the grade stamp and incising beside the beam and leg boards, and nowhere else', () => {
     const { plan, readings } = placed(empty);
-    const beamLines = new Set(
-      plan.lumber.boards
-        .filter((b) => b.pieces.some((p) => p.partId === 'beam'))
-        .map(lumberLineKey),
-    );
+    const linesOf = (partIds: readonly string[]) =>
+      new Set(
+        plan.lumber.boards
+          .filter((b) => b.pieces.some((p) => partIds.includes(p.partId)))
+          .map(lumberLineKey),
+      );
+    const beamLines = linesOf(['beam']);
+    const legLines = linesOf(['leg-back', 'leg-front']);
     expect(beamLines.size).toBeGreaterThan(0);
-    expect([...readings.lumber.keys()].sort()).toEqual([...beamLines].sort());
+    expect(legLines.size).toBeGreaterThan(0);
+    expect([...readings.lumber.keys()].sort()).toEqual([...beamLines, ...legLines].sort());
     for (const key of beamLines) {
       expect(paths(readings.lumber.get(key) ?? [])).toEqual(['beamSpeciesGrade', 'beamIncised']);
+    }
+    for (const key of legLines) {
+      expect(paths(readings.lumber.get(key) ?? [])).toEqual(['legSpeciesGrade', 'legIncised']);
     }
   });
 

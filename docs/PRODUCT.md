@@ -16,7 +16,7 @@ Me (Jason), for the foreseeable future. I have some experience building rudiment
 ## Core principles
 
 1. **Geometry is deterministic.** Every dimension, angle, and quantity comes from template math, never from AI. Wrong dimensions waste wood; the numbers must be exact and reproducible.
-2. **Structural checks are transparent checks, not engineered designs.** The app computes what is well understood (beam bending, deflection, shear, and hardware load vs. rating) and shows every input, formula, assumption, adjustment factor, and source. What is hard to compute reliably (connections, racking, tipping, anchoring) goes on a confirmation checklist instead. Final structural decisions rest with me, experienced people, and manufacturer specifications.
+2. **Structural checks are transparent checks, not engineered designs.** The app computes what is well understood (beam bending, deflection, shear, column compression, and hardware load vs. rating) and shows every input, formula, assumption, adjustment factor, and source. What is hard to compute reliably (connections, racking, tipping, anchoring) goes on a confirmation checklist instead. Final structural decisions rest with me, experienced people, and manufacturer specifications.
 3. **Flag what warrants an expert check.** Steps and design choices in known risk categories (see `DOMAIN.md`) carry a visible flag saying what to ask about and why.
 4. **Plans adapt to my tools.** Each operation (for example, an angled crosscut) can be done several ways. The app picks methods my inventory supports and explains them.
 5. **Tool suggestions are generic.** "A miter saw would make these angle cuts faster and more repeatable," not specific products or brands.

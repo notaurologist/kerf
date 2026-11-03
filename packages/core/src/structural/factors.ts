@@ -10,9 +10,11 @@ import { type ReferenceValues, TABLE_4B_ADJUSTMENTS } from '../design-values/saw
 import { type Citation, SOURCE_LINKS } from '../design-values/sources.ts';
 import type { AppliedFactor, Quantity } from './types.ts';
 
-// Adjusted design values for sawn lumber bending members, ASD (NDS 2024, 4.3 and Table 4.3.1):
+// Adjusted design values for sawn lumber bending members and columns, ASD (NDS 2024, 4.3 and
+// Table 4.3.1):
 //   Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r
 //   Fv' = Fv · C_D · C_M · C_t · C_i
+//   Fc' = Fc · C_D · C_M · C_t · C_F · C_i · C_P
 //   E'  = E · C_M · C_t · C_i
 //   Emin' = Emin · C_M · C_t · C_i       (C_T applies only to truss chords, NDS 4.4.2)
 // C_fu is 1.0 because members here bend about their strong axis (load on the narrow face).
@@ -113,6 +115,112 @@ export function beamStabilityFactor(
       { symbol: "Emin'", label: 'Adjusted Emin', value: EminPrime, unit: 'psi' },
       { symbol: 'F_bE', label: "1.20·Emin' / R_B²", value: FbE, unit: 'psi', sources },
     ],
+  };
+}
+
+/** Fc and Emin adjusted for a column, before the column stability factor C_P. */
+export interface AdjustedCompression {
+  /** Fc times every factor but C_P (NDS 3.7.1.5). */
+  FcStar: number;
+  Emin: number;
+  factors: AppliedFactor[];
+}
+
+/**
+ * Compression parallel to grain for sawn lumber, ASD (NDS 2024 Table 4.3.1):
+ *   Fc* = Fc · C_D · C_M · C_t · C_F · C_i, and Fc' = Fc* · C_P.
+ *   Emin' = Emin · C_M · C_t · C_i.
+ */
+export function adjustedCompression(
+  material: Material,
+  conditions: ServiceConditions,
+): AdjustedCompression {
+  const ref = material.reference;
+  const wet = conditions.wet.value;
+  const wetTable = TABLE_4B_ADJUSTMENTS.wetService;
+  const CD = LOAD_DURATION[conditions.loadDuration.value].C_D;
+  const CMFc = wet && ref.Fc > wetTable.Fc.oneWhenFcAtMost ? wetTable.Fc.factor : 1;
+  const CMEmin = wet ? wetTable.Emin : 1;
+  const t = TEMPERATURE[conditions.temperature.value];
+  const CtFc = t.Fc[wet ? 'wet' : 'dry'];
+  const CtE = t.E;
+  const CF = TABLE_4B_ADJUSTMENTS.sizeFactor.Fc;
+  const CiFc = material.incised ? INCISING.Fc : 1;
+  const CiEmin = material.incised ? INCISING.Emin : 1;
+  const incised = material.incised ? 'The lumber is incised.' : 'The lumber is not incised.';
+
+  const factors: AppliedFactor[] = [
+    {
+      symbol: 'C_D',
+      name: 'Load duration',
+      value: CD,
+      appliesTo: ['Fc'],
+      reason: `${LOAD_DURATION[conditions.loadDuration.value].description}. ${conditions.loadDuration.reason}`,
+      sources: [...LOAD_DURATION.sources],
+    },
+    {
+      symbol: 'C_M',
+      name: 'Wet service',
+      value: CMFc,
+      appliesTo: ['Fc'],
+      reason: wet
+        ? `${conditions.wet.reason} Fc = ${ref.Fc} psi${CMFc === 1 ? `, at or below ${wetTable.Fc.oneWhenFcAtMost} psi, so C_M = 1.0 for Fc` : ''}.`
+        : conditions.wet.reason,
+      sources: [...wetTable.sources],
+    },
+    {
+      symbol: 'C_M',
+      name: 'Wet service',
+      value: CMEmin,
+      appliesTo: ['Emin'],
+      reason: conditions.wet.reason,
+      sources: [...wetTable.sources],
+    },
+    {
+      symbol: 'C_t',
+      name: 'Temperature',
+      value: CtFc,
+      appliesTo: ['Fc'],
+      reason: conditions.temperature.reason,
+      sources: [...TEMPERATURE.sources],
+    },
+    {
+      symbol: 'C_t',
+      name: 'Temperature',
+      value: CtE,
+      appliesTo: ['Emin'],
+      reason: conditions.temperature.reason,
+      sources: [...TEMPERATURE.sources],
+    },
+    {
+      symbol: 'C_F',
+      name: 'Size',
+      value: CF,
+      appliesTo: ['Fc'],
+      reason: 'Size adjustment is already in the tabulated Southern Pine values for this size.',
+      sources: [...TABLE_4B_ADJUSTMENTS.sizeFactor.sources],
+    },
+    {
+      symbol: 'C_i',
+      name: 'Incising',
+      value: CiFc,
+      appliesTo: ['Fc'],
+      reason: incised,
+      sources: [...INCISING.sources],
+    },
+    {
+      symbol: 'C_i',
+      name: 'Incising',
+      value: CiEmin,
+      appliesTo: ['Emin'],
+      reason: incised,
+      sources: [...INCISING.sources],
+    },
+  ];
+  return {
+    FcStar: ref.Fc * CD * CMFc * CtFc * CF * CiFc,
+    Emin: ref.Emin * CMEmin * CtE * CiEmin,
+    factors,
   };
 }
 

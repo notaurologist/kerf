@@ -265,6 +265,24 @@ export const SWING_SET_FORM: TemplateForm = {
       ],
     },
     {
+      title: 'Legs',
+      fields: [
+        {
+          path: 'legSpeciesGrade',
+          label: INPUT.legSpeciesGrade,
+          kind: 'choice',
+          options: SPECIES_GRADES.map((s) => ({ value: s.id, label: `${s.species} ${s.grade}` })),
+          help: 'Read the grade stamp on the leg boards at the store, the same way as for the beam: the species group (such as SYP for Southern Pine) and the grade (such as No. 2). If a board has no stamp, ask the yard for the species and grade on its paperwork.',
+        },
+        {
+          path: 'legIncised',
+          label: INPUT.legIncised,
+          kind: 'yes-no',
+          help: 'Look at the faces of the leg boards: incised lumber has rows of small slits pressed in for the treatment to soak in. No slits means not incised.',
+        },
+      ],
+    },
+    {
       title: 'Swings',
       fields: [
         {

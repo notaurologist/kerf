@@ -140,7 +140,7 @@ function header(kind: CheckKind, title: string, subject: string, loadCase: strin
 }
 
 /** Missing inputs across several needs, each listed once. */
-function missingFrom(...needs: Needed<unknown>[]): MissingInput[] {
+export function missingFrom(...needs: Needed<unknown>[]): MissingInput[] {
   const all = needs.flatMap((n) => (isMissing(n) ? n.missing : []));
   return all.filter((m, i) => all.findIndex((other) => other.key === m.key) === i);
 }
@@ -340,7 +340,7 @@ function scaled<T extends BeamLoads | SpanLoads>(loads: T, C: number): T {
 }
 
 /** The factor's value as an input in the working. */
-function factorQuantity(factor: LoadFactor, value: number): Quantity {
+export function factorQuantity(factor: LoadFactor, value: number): Quantity {
   return {
     symbol: factor.symbol,
     label: factor.label,

@@ -81,7 +81,7 @@ const readings = [
   {
     from: 'structuralInputs' as const,
     path: 'rating',
-    beside: { part: 'side' },
+    beside: { parts: ['side'] },
     prompt: 'Read the stamp.',
     how: 'On the face.',
   },

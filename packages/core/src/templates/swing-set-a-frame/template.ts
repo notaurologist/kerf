@@ -87,8 +87,10 @@ import { flags, validate, validateSwings } from './validate.ts';
  * goes in, and the shopping list adds the preservative (#447). No number changes.
  * Version 28 also measures the gusset's bolts against the beam's weight, which crosses its grain:
  * end distance, the loaded top edge and the bottom edge, and spacing in a row (#456).
+ * Version 29 checks the longer leg as a column in compression (NDS 2024 3.6.3 and 3.7.1), with
+ * the legs' species, grade, and incising as structural inputs (#468). No other output changes.
  */
-export const TEMPLATE_VERSION = 28;
+export const TEMPLATE_VERSION = 29;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
