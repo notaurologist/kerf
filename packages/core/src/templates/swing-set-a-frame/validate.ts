@@ -188,3 +188,19 @@ export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
 
   return result;
 }
+
+/**
+ * The order the frame goes up in, which is the owner's to choose with an experienced builder. Until
+ * then the steps follow the first order, and the flag states both on the step that stands the
+ * frames up.
+ */
+export function assemblyOrderFlag(dims: Dimensions): Flag {
+  return {
+    category: 'load-bearing',
+    partIds: [...LEG_IDS, 'beam'],
+    hardwareIds: ['leg-beam-bolts'],
+    step: 'raise',
+    ask: 'Choose the order the frame goes up in. The steps stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up into place.',
+    why: `The first lifts the beam ${len(dims.H)} up onto frames held only by temporary braces, and drills through the leg tops from a ladder. The second does all the drilling and bolting on the ground, but lifts the whole frame at once, a heavier and more awkward load that needs more helpers. OSHA asks for two or more people on any load over 50 pounds (Electrical Contractors eTool, Heavy Lifting).`,
+  };
+}

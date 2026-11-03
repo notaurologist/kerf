@@ -30,6 +30,7 @@ import v24 from './snapshots/v24.json' with { type: 'json' };
 import v25 from './snapshots/v25.json' with { type: 'json' };
 import v26 from './snapshots/v26.json' with { type: 'json' };
 import v27 from './snapshots/v27.json' with { type: 'json' };
+import v28 from './snapshots/v28.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -130,6 +131,18 @@ const isVersion28 = (c: { path: string; before?: unknown; after?: unknown }) =>
     String(c.before).startsWith('Gusset to leg') &&
     String(c.after).includes("gusset edge distance under the beam's weight, to the top edge"));
 
+/**
+ * Version 29's changes (#451): the operations that put the frame up after the beam is bolted, and
+ * the flag asking which order it goes up in, each new with nothing before it. Set aside like
+ * version 18's.
+ */
+const ASSEMBLY = ['raise', 'backfill', 'anchor', 'tighten-bolts', 'hang'];
+const isVersion29 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  c.before === undefined &&
+  ((/^design\.operations\[\d+\]$/.test(c.path) &&
+    ASSEMBLY.includes(String((c.after as { type?: string }).type))) ||
+    (/^design\.flags\[\d+\]$/.test(c.path) && (c.after as { step?: string }).step === 'raise'));
+
 /** What regenerating with the current version changes in the stored outputs, field by field. */
 function regenerated(
   snapshot: ProjectSnapshot,
@@ -141,6 +154,7 @@ function regenerated(
   keepVersion26 = false,
   keepVersion27 = false,
   keepVersion28 = false,
+  keepVersion29 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -158,7 +172,8 @@ function regenerated(
         (keepVersion25 || !isVersion25(c)) &&
         (keepVersion26 || !isVersion26(c)) &&
         (keepVersion27 || !isVersion27(c)) &&
-        (keepVersion28 || !isVersion28(c)),
+        (keepVersion28 || !isVersion28(c)) &&
+        (keepVersion29 || !isVersion29(c)),
     ),
   };
   return keepVersion18
@@ -647,7 +662,8 @@ describe('swing-set template versions', () => {
           !isVersion25(c) &&
           !isVersion26(c) &&
           !isVersion27(c) &&
-          !isVersion28(c),
+          !isVersion28(c) &&
+          !isVersion29(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -845,6 +861,32 @@ describe('swing-set template versions', () => {
       ["Edge distance under the beam's weight", 1.8125],
       ["Edge distance under the beam's weight", 1.8125],
       ["Spacing between bolts in a row under the beam's weight", 3.8576],
+    ]);
+  });
+  // Hand check in operations.test.ts: two A-frames raised, four legs backfilled 24 deep or four
+  // feet anchored, one tightening for each bolt item, two seats hung at their seat height.
+  it('version 29 adds the steps that put the frame up, and asks which order (#451)', () => {
+    const keep29 = [false, false, false, false, false, false, false, false, true] as const;
+    for (const stored of v28) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(28);
+      const { changes } = regenerated(read.snapshot, ...keep29);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion29(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v28[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const added = regenerated(first.snapshot, ...keep29)
+      .changes.filter((c) => c.path.startsWith('design.operations'))
+      .map((c) => (c.after as Operation).id);
+    expect(added).toEqual([
+      'frames/raise',
+      'site/backfill',
+      'leg-beam-bolts/tighten',
+      'crossbar-bolts/tighten',
+      'gusset-bolts/tighten',
+      'swings/hang',
     ]);
   });
 });

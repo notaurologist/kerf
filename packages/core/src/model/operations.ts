@@ -277,6 +277,36 @@ export const Operation = z.discriminatedUnion('type', [
   }),
   /** Level pads or footings at grade for parts that stand on them. */
   z.object({ ...base, type: z.literal('level-pads') }),
+  /**
+   * Stand `count` assemblies of the parts named upright and hold each plumb with temporary braces
+   * until it is fixed in place. `height` is how far above grade the assembly reaches once up.
+   */
+  z.object({
+    ...base,
+    type: z.literal('raise'),
+    partIds: z.array(z.string()).min(1),
+    height: z.number(),
+  }),
+  /** Fill `count` holes around parts set `depth` below grade, tamping it firm, the parts plumb. */
+  z.object({ ...base, type: z.literal('backfill'), depth: z.number() }),
+  /** Fix `count` feet standing on pads to the ground with anchors, as the anchors' maker says. */
+  z.object({ ...base, type: z.literal('anchor') }),
+  /**
+   * Tighten the nuts on one through-bolt item's `count` bolts once the parts are set, and cap the
+   * ends, after its holes are drilled (`tighteningOperations`).
+   */
+  z.object({
+    ...base,
+    type: z.literal('tighten-bolts'),
+    hardwareId: z.string(),
+    partIds: z.array(z.string()).min(1),
+    boltDiameter: z.number(),
+  }),
+  /**
+   * Hang `count` seats on chain from fittings already on the structure, so each hangs `height`
+   * above the ground.
+   */
+  z.object({ ...base, type: z.literal('hang'), height: z.number() }),
 ]);
 export type Operation = z.infer<typeof Operation>;
 export type OperationType = Operation['type'];
@@ -515,6 +545,28 @@ export function treatmentOperations(
   return [...cuts, ...holes];
 }
 
+/**
+ * A tightening for each through-bolt item drilled in `ops`, with the same bolts and parts. A
+ * template orders these after the parts are set, since a bolt tightened first holds an assembly
+ * as it stands, plumb or not.
+ */
+export function tighteningOperations(ops: readonly Operation[]): Operation[] {
+  return ops.flatMap((op): Operation[] =>
+    op.type === 'bolt-holes'
+      ? [
+          {
+            id: `${op.hardwareId}/tighten`,
+            type: 'tighten-bolts',
+            hardwareId: op.hardwareId,
+            partIds: op.partIds,
+            count: op.count,
+            boltDiameter: op.boltDiameter,
+          },
+        ]
+      : [],
+  );
+}
+
 /** Distances within this of an edge are taken as reaching it. */
 const AT_EDGE = 1e-9;
 
@@ -682,4 +734,9 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   finish: 'Finish',
   'dig-holes': 'Dig holes',
   'level-pads': 'Level pads',
+  raise: 'Raise and brace',
+  backfill: 'Backfill',
+  anchor: 'Anchor',
+  'tighten-bolts': 'Tighten bolts',
+  hang: 'Hang',
 };

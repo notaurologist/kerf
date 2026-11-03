@@ -63,6 +63,8 @@ Template version 27 (#447) marks every part as treated lumber, so every cut and 
 
 Template version 28 (#456) also measures the gusset's bolts against the beam's weight, which pushes down across the gusset's grain (Bolt layout, below). Before, the gusset was measured only for load along its grain, which left the top edge, the loaded edge under the beam, at 1.5D where NDS 2024 sets 4D. In the worked example the top gusset bolt is 1.8125 (3.6D) from the top edge, under 2", so the gusset's expert check names it. No part, cut, or bolt moves.
 
+Template version 29 (#451) adds the work after the beam is bolted, which the steps used to leave out: standing the A-frames up and bracing them, plumbing them and backfilling the leg holes or anchoring the feet, tightening every bolt and capping its end, and hanging the swings (Operations and Build steps, below). The steps that tighten the bolts, anchor the feet, and hang the swings carry the CPSC home handbook's rules for that work as notes. A new expert check states both orders the frame can go up in, for the owner to choose with an experienced builder (Flags, below). No part, cut, or check changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -269,11 +271,15 @@ The tool-type library (`packages/core/src/knowledge/tools.ts`, #85) is checked a
 | Angled crosscuts at the splay angle | legs (top and foot), crossbars, gussets | miter saw, circular saw, hand saw; laid out with a rafter square or sliding bevel |
 | The flush cut along the inside of each leg's top | legs | circular saw, jigsaw, or hand saw to cut; chisel or block plane to clean up |
 | Bolt holes through thick stock (leg, beam, leg; boards and legs) | all bolted parts | drill/driver with auger or spade bits, drilled from one side or both depending on reach; clamps hold the parts while drilling |
-| Tighten bolts and locking nuts | all bolted parts | socket wrench, impact driver |
+| Tighten bolts and locking nuts, once the frame is set | all bolted parts | socket wrench, impact driver (run down, finished by hand) |
 | Ease edges and splinters | all | sander, block plane |
 | Treat cuts and bolt holes with preservative | all | none from the library: a brush, a tray to stand ends in, or a small bottle to pour into holes |
 | Lay out the footprint and set the frames level and plumb | site | tape measure, string line, line level, level |
 | Dig for buried legs, or level pads | site | post-hole digger, shovel, tamper |
+| Stand the A-frames up and hold them plumb with temporary braces | legs, crossbars, gussets | level; drill/driver or impact driver to screw the braces on, or clamps |
+| Backfill buried legs in layers | site | shovel, tamper (or the shovel's handle), level |
+| Anchor feet on pads | site | shovel to cover the anchors; a sledgehammer for driven anchors (screw-in anchors are turned with a bar, not a library tool) |
+| Hang the swings | beam | stepladder, pliers, tape measure |
 
 ### Operations
 
@@ -289,8 +295,12 @@ What needs doing, before any choice of how (`DOMAIN.md`, Operations; methods are
 | Treat cuts | every part | each part's ends and flush cut, since every part is treated lumber (IRC 2021 R317.1.1; `DOMAIN.md`, Field treatment) |
 | Treat bolt holes | each through-bolt item's holes | after its bolt holes, through the treated parts it joins (all of them) |
 | Dig holes (d > 0), or level pads (d = 0) | one per leg | burial depth d |
+| Raise (version 29) | 2, each A-frame: legs, crossbar, gusset | `height` H + bd, how far up the legs reach |
+| Backfill (d > 0), or anchor (d = 0) (version 29) | one per leg | burial depth d |
+| Tighten bolts (version 29) | one per through-bolt item, as drilled | each bolt-holes operation's count and diameter (`tighteningOperations`) |
+| Hang (version 29) | 2 seats | `height` h_s, the seat's underside above the ground |
 
-Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep. Four holes 24 deep. Field treatment: 3 cuts on each leg (top, foot, flush cut) and 2 on the beam, each crossbar, and each gusset; the same 2 + 8 + 8 bolt holes, 9/16" across.
+Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep. Four holes 24 deep. Field treatment: 3 cuts on each leg (top, foot, flush cut) and 2 on the beam, each crossbar, and each gusset; the same 2 + 8 + 8 bolt holes, 9/16" across. Putting it up: 2 A-frames raised, reaching 96 + 5.5 = 101.5; 4 holes backfilled 24 deep; 2 leg-to-beam, 8 crossbar, and 8 gusset bolts tightened, all 1/2"; 2 seats hung 16 above the ground.
 
 Every part is treated: the beam checks take a waterborne preservative treatment (NDS 4.3.13, Structural model), and the legs stand in or on the ground. The generic operations follow from each part's `treated` flag and are added after the template's own (`treatmentOperations`).
 
@@ -305,13 +315,27 @@ Cutting goes board by board in the board plan's order (#58): generic code makes 
 | Treat every cut with preservative (version 27) | treat cuts, every part | |
 | Dig the leg holes, or Level the pads | dig holes or level pads | load-bearing design |
 | Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes, each followed by treating them | load-bearing design |
+| Stand the frames up and brace them (version 29) | raise, both A-frames | load-bearing design |
 | Bolt the beam between the leg tops | leg-to-beam bolt holes, then treating them | load-bearing design, dynamic loads |
+| Plumb the frames and backfill the leg holes, or Plumb the frames and anchor the feet (version 29) | backfill or anchor | load-bearing design |
+| Tighten every bolt and cap its end (version 29) | tighten bolts, every through-bolt item | load-bearing design |
+| Hang the swings (version 29) | hang | dynamic loads |
 
 Each step also shows the plan's own flags for its work (Flags, below).
 
 The cuts are treated after the edges are eased, since rounding a corner also opens wood the treatment may not have reached, and before the site work, so a leg's foot is coated before it goes in the ground. AWPA M4-06 5.2 asks for the end of a column in ground contact to be an original untrimmed end or field-treated; the leg's foot is cut at the splay angle, so it is treated.
 
-The assembly order (frames braced first, then the beam) is Kerf's proposal and goes to the review with an experienced builder (M7). Raising the frames, backfilling, tightening, and hanging the swings have no operation type yet, so they are not steps.
+The assembly order is the owner's to choose with an experienced builder, and a flag on the step that stands the frames up states both (Flags, below). Until then the steps follow the first: bolt the crossbars and gussets across each pair of legs on the ground, stand each A-frame up and brace it, then lift the beam onto the gussets and drill and bolt it between the leg tops there. The other order lays the A-frames on their sides, bolts the beam between them on the ground, and tips the whole frame up.
+
+The frame is plumbed and its legs backfilled or its feet anchored before the bolts are tightened, since a tightened bolt holds the frame as it stands. The braces stay on until the legs are set.
+
+Each step that puts the frame up carries the rules the CPSC home handbook (Pub. 324, 2005, read November 2026) gives for its work, as notes (`StepOutline.notes`):
+
+- **Anchor the feet:** follow the anchor maker's instructions, and bury or cover the anchors (p. 4).
+- **Tighten every bolt:** tighten all connections, with a locking nut on every bolt (pp. 3 and 4); cap every exposed bolt end, which stands no more than one diameter past the nut (p. 3); check the nuts and bolts twice a month and tighten them as needed, with the caps in place (p. 5).
+- **Hang the swings:** close S-hooks and all other hooks to a gap less than the thickness of a dime, with an open hook only at the uppermost attachment (p. 3); lightweight seats (p. 4); at least 8 inches between the surfacing and a seat's underside (p. 5); no rope that can untwist or separate (p. 8); seats and chains checked monthly (p. 5).
+
+The generic methods carry their own sourced safety notes: two or more people for the lift (OSHA Electrical Contractors eTool, Heavy Lifting), backfill in shallow layers tamped firm with the post plumb and the top mounded (NRCS Colorado, Conservation Practice Standard 382, December 2014), bolts checked again as the wood dries, since it shrinks across the grain (Wood Handbook, ch. 4, p. 4-7), and a stepladder locked open on level ground, never stood on at its top step (OSHA 29 CFR 1926.1053). No published interval for tightening again as treated lumber dries was found; the CPSC's twice a month covers it.
 
 Worked example, the boards (`steps.test.ts`; 1/2" trim per end and 1/8" kerf per piece): the beam alone on a 12' 4x6, leaving 144 − (1 + 120.125) = 22.875; each leg on its own 12' 4x4, since two do not fit; both crossbars on a 10' 2x6 (1 + 2 · 59.118 = 119.236); both gussets on an 8' 2x8, leaving 96 − (1 + 2 · 19.627) = 55.746. A leg's cuts are done once on its board, a crossbar's twice on the board that holds both.
 
@@ -424,6 +448,7 @@ Rejected combinations, each with a message saying which values conflict:
 - Built-up beam (n > 1): **expert check** on how the plies are fastened together.
 - Sloped ground (g ≠ 0): **expert check**, since the CPSC handbook recommends a level site.
 - Bolt layout and projecting board ends: **expert checks** from the bolt layout (Bolt layout, above).
+- The order the frame goes up in (version 29): **expert check** stating both orders (Build steps, above), why each is hard (the beam lifted H onto braced frames and drilled from a ladder, or the whole frame lifted at once), and OSHA's two or more people for a load over 50 pounds.
 
 Each flag and checklist item names the parts and hardware it concerns (#51). A build step shows a plan flag on the first step that drills for its hardware, or else the first that works on one of its parts (`ARCHITECTURE.md`, Method selection):
 
@@ -437,6 +462,7 @@ Each flag and checklist item names the parts and hardware it concerns (#51). A b
 | Pads | legs | ground anchors | First board with a leg |
 | Crossbar or gusset bolt distances | that board, legs | its bolts | Bolt the crossbars and gussets across the legs |
 | Projecting board ends | the boards that project | their bolts | Bolt the crossbars and gussets across the legs |
+| The order the frame goes up in | legs, beam | leg-to-beam bolts | Stand the frames up and brace them, where the template places it (`Flag.step`) |
 
 Leg length depends on the slope and the burial depth, so those are asked before the legs are cut. Ground anchors have no drilling operation, so the pads flag goes with the legs.
 
