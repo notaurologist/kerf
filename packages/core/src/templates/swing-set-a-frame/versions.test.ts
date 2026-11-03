@@ -29,6 +29,7 @@ import v23 from './snapshots/v23.json' with { type: 'json' };
 import v24 from './snapshots/v24.json' with { type: 'json' };
 import v25 from './snapshots/v25.json' with { type: 'json' };
 import v26 from './snapshots/v26.json' with { type: 'json' };
+import v27 from './snapshots/v27.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -114,6 +115,21 @@ const isVersion27 = (c: { path: string; before?: unknown; after?: unknown }) => 
   );
 };
 
+/**
+ * Version 28's changes (#456): the gusset's distances and note under the beam's weight, added after
+ * its other rows, and the gusset flag's item for its top edge. Set aside like version 18's.
+ */
+const isVersion28 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  (/^design\.boltLayout\[\d+\]\.distances\[\d+\]$/.test(c.path) &&
+    c.before === undefined &&
+    String((c.after as { label?: unknown }).label).includes("under the beam's weight")) ||
+  (/^design\.boltLayout\[\d+\]\.notes\[\d+\]$/.test(c.path) &&
+    c.before === undefined &&
+    String(c.after).startsWith("The gusset also carries the beam's weight")) ||
+  (/^design\.flags\[\d+\]\.ask$/.test(c.path) &&
+    String(c.before).startsWith('Gusset to leg') &&
+    String(c.after).includes("gusset edge distance under the beam's weight, to the top edge"));
+
 /** What regenerating with the current version changes in the stored outputs, field by field. */
 function regenerated(
   snapshot: ProjectSnapshot,
@@ -124,6 +140,7 @@ function regenerated(
   keepVersion25 = false,
   keepVersion26 = false,
   keepVersion27 = false,
+  keepVersion28 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -140,7 +157,8 @@ function regenerated(
         (keepVersion24 || !isVersion24(c)) &&
         (keepVersion25 || !isVersion25(c)) &&
         (keepVersion26 || !isVersion26(c)) &&
-        (keepVersion27 || !isVersion27(c)),
+        (keepVersion27 || !isVersion27(c)) &&
+        (keepVersion28 || !isVersion28(c)),
     ),
   };
   return keepVersion18
@@ -628,7 +646,8 @@ describe('swing-set template versions', () => {
           !isVersion24(c) &&
           !isVersion25(c) &&
           !isVersion26(c) &&
-          !isVersion27(c),
+          !isVersion27(c) &&
+          !isVersion28(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -801,6 +820,31 @@ describe('swing-set template versions', () => {
       'leg-beam-bolts/treat-holes',
       'crossbar-bolts/treat-holes',
       'gusset-bolts/treat-holes',
+    ]);
+  });
+  // Hand check in features.test.ts: under the beam's weight the worked example's top gusset bolt is
+  // 7.25 − 5.4375 = 1.8125 (3.6D) from the top edge, under 4D = 2 for the loaded edge.
+  it("version 28 measures the gusset's bolts against the beam's weight, and changes nothing else (#456)", () => {
+    const keep28 = [false, false, false, false, false, false, false, true] as const;
+    for (const stored of v27) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(27);
+      const { changes } = regenerated(read.snapshot, ...keep28);
+      // Four distances and a note on the gusset joint, and its flag.
+      expect(changes).toHaveLength(6);
+      expect(changes.filter((c) => !isVersion28(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v27[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const added = regenerated(first.snapshot, ...keep28)
+      .changes.filter((c) => /\.distances\[\d+\]$/.test(c.path))
+      .map((c) => c.after as { label: string; value: number });
+    expect(added.map((d) => [d.label.split(',')[0], Number(d.value.toFixed(4))])).toEqual([
+      ["End distance under the beam's weight", 3.5],
+      ["Edge distance under the beam's weight", 1.8125],
+      ["Edge distance under the beam's weight", 1.8125],
+      ["Spacing between bolts in a row under the beam's weight", 3.8576],
     ]);
   });
 });

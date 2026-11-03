@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 27,
+    "templateVersion": 28,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -1077,7 +1077,7 @@
             "category": "load-bearing",
             "partIds": ["gusset", "leg-back", "leg-front"],
             "hardwareIds": ["gusset-bolts"],
-            "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
+            "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
@@ -1412,13 +1412,97 @@
                     }
                   }
                 ]
+              },
+              {
+                "member": "Gusset",
+                "label": "End distance under the beam's weight, along the grain on each bolt's line",
+                "value": 3.5,
+                "requirements": [
+                  {
+                    "condition": "load perpendicular to grain",
+                    "multiple": "2D",
+                    "value": 1,
+                    "gives": "reduced design value (C∆ = 0.5)",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  },
+                  {
+                    "condition": "load perpendicular to grain",
+                    "multiple": "4D",
+                    "value": 2,
+                    "gives": "full design value (C∆ = 1.0)",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
+              },
+              {
+                "member": "Gusset",
+                "label": "Edge distance under the beam's weight, to the top edge",
+                "value": 1.8125,
+                "requirements": [
+                  {
+                    "condition": "the edge the load pushes toward",
+                    "multiple": "4D",
+                    "value": 2,
+                    "gives": "minimum",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1C, Edge Distance Requirements, p. 99",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
+              },
+              {
+                "member": "Gusset",
+                "label": "Edge distance under the beam's weight, to the bottom edge",
+                "value": 1.8125,
+                "requirements": [
+                  {
+                    "condition": "an edge the load pushes away from",
+                    "multiple": "1.5D",
+                    "value": 0.75,
+                    "gives": "minimum",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1C, Edge Distance Requirements, p. 99",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
+              },
+              {
+                "member": "Gusset",
+                "label": "Spacing between bolts in a row under the beam's weight, along the leg",
+                "value": 3.8576444252251814,
+                "requirements": [
+                  {
+                    "condition": "load perpendicular to grain",
+                    "multiple": "3D",
+                    "value": 1.5,
+                    "gives": "minimum",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
               }
             ],
             "notes": [
               "The bolts sit on the leg's centerline, one in the middle of each equal strip across the gusset's width.",
               "The gusset runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
               "End distance is measured along the grain on each bolt's line; the end is cut at 20.0° from square, parallel to the leg.",
-              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Softwood lumber."
+              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Softwood lumber.",
+              "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 20.0° to the load."
             ]
           },
           {
@@ -3761,7 +3845,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 27,
+    "templateVersion": 28,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -4926,7 +5010,7 @@
             "category": "load-bearing",
             "partIds": ["gusset", "leg-back", "leg-front"],
             "hardwareIds": ["gusset-bolts"],
-            "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
+            "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
@@ -5261,13 +5345,97 @@
                     }
                   }
                 ]
+              },
+              {
+                "member": "Gusset",
+                "label": "End distance under the beam's weight, along the grain on each bolt's line",
+                "value": 3.5,
+                "requirements": [
+                  {
+                    "condition": "load perpendicular to grain",
+                    "multiple": "2D",
+                    "value": 1,
+                    "gives": "reduced design value (C∆ = 0.5)",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  },
+                  {
+                    "condition": "load perpendicular to grain",
+                    "multiple": "4D",
+                    "value": 2,
+                    "gives": "full design value (C∆ = 1.0)",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
+              },
+              {
+                "member": "Gusset",
+                "label": "Edge distance under the beam's weight, to the top edge",
+                "value": 1.8125,
+                "requirements": [
+                  {
+                    "condition": "the edge the load pushes toward",
+                    "multiple": "4D",
+                    "value": 2,
+                    "gives": "minimum",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1C, Edge Distance Requirements, p. 99",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
+              },
+              {
+                "member": "Gusset",
+                "label": "Edge distance under the beam's weight, to the bottom edge",
+                "value": 1.8125,
+                "requirements": [
+                  {
+                    "condition": "an edge the load pushes away from",
+                    "multiple": "1.5D",
+                    "value": 0.75,
+                    "gives": "minimum",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1C, Edge Distance Requirements, p. 99",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
+              },
+              {
+                "member": "Gusset",
+                "label": "Spacing between bolts in a row under the beam's weight, along the leg",
+                "value": 3.8555342927626683,
+                "requirements": [
+                  {
+                    "condition": "load perpendicular to grain",
+                    "multiple": "3D",
+                    "value": 1.5,
+                    "gives": "minimum",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
               }
             ],
             "notes": [
               "The bolts sit on the leg's centerline, one in the middle of each equal strip across the gusset's width.",
               "The gusset runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
               "End distance is measured along the grain on each bolt's line; the end is cut at 19.9° from square, parallel to the leg.",
-              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.1°. Softwood lumber."
+              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.1°. Softwood lumber.",
+              "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 19.9° to the load."
             ]
           },
           {
@@ -7675,7 +7843,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 27,
+    "templateVersion": 28,
     "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
@@ -8742,7 +8910,7 @@
             "category": "load-bearing",
             "partIds": ["gusset", "leg-back", "leg-front"],
             "hardwareIds": ["gusset-bolts"],
-            "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
+            "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
@@ -9077,13 +9245,97 @@
                     }
                   }
                 ]
+              },
+              {
+                "member": "Gusset",
+                "label": "End distance under the beam's weight, along the grain on each bolt's line",
+                "value": 3.5,
+                "requirements": [
+                  {
+                    "condition": "load perpendicular to grain",
+                    "multiple": "2D",
+                    "value": 1,
+                    "gives": "reduced design value (C∆ = 0.5)",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  },
+                  {
+                    "condition": "load perpendicular to grain",
+                    "multiple": "4D",
+                    "value": 2,
+                    "gives": "full design value (C∆ = 1.0)",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1A, End Distance Requirements, p. 98",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
+              },
+              {
+                "member": "Gusset",
+                "label": "Edge distance under the beam's weight, to the top edge",
+                "value": 1.8125,
+                "requirements": [
+                  {
+                    "condition": "the edge the load pushes toward",
+                    "multiple": "4D",
+                    "value": 2,
+                    "gives": "minimum",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1C, Edge Distance Requirements, p. 99",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
+              },
+              {
+                "member": "Gusset",
+                "label": "Edge distance under the beam's weight, to the bottom edge",
+                "value": 1.8125,
+                "requirements": [
+                  {
+                    "condition": "an edge the load pushes away from",
+                    "multiple": "1.5D",
+                    "value": 0.75,
+                    "gives": "minimum",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1C, Edge Distance Requirements, p. 99",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
+              },
+              {
+                "member": "Gusset",
+                "label": "Spacing between bolts in a row under the beam's weight, along the leg",
+                "value": 3.8576444252251814,
+                "requirements": [
+                  {
+                    "condition": "load perpendicular to grain",
+                    "multiple": "3D",
+                    "value": 1.5,
+                    "gives": "minimum",
+                    "citation": {
+                      "source": "nds-2024",
+                      "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
+                      "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
+                    }
+                  }
+                ]
               }
             ],
             "notes": [
               "The bolts sit on the leg's centerline, one in the middle of each equal strip across the gusset's width.",
               "The gusset runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
               "End distance is measured along the grain on each bolt's line; the end is cut at 20.0° from square, parallel to the leg.",
-              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Softwood lumber."
+              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Softwood lumber.",
+              "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 20.0° to the load."
             ]
           },
           {

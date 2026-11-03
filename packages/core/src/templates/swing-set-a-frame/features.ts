@@ -298,7 +298,8 @@ export interface JoinedParts {
 /**
  * Each bolted joint's distances against NDS 2024 12.5.1 (spec, Bolt layout; #93). The swing set
  * is built from softwood dimension lumber. Loads assumed: along each board's grain, and across
- * the leg's grain (the board meets it at 90° − α); at the beam, across its grain.
+ * the leg's grain (the board meets it at 90° − α); at the beam, across its grain. The gusset also
+ * carries the beam's weight down across its grain, so its bolts bear toward its top edge.
  */
 export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): JoinedParts[] {
   const a = g.splay * RAD;
@@ -311,12 +312,46 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
     member: string,
     b: BoardBolts,
     params: string[],
+    carriesBeam = false,
   ): BoltJoint => {
     const n = b.vs.length;
     const D = b.diameter;
     // ℓ/D: the lesser of the bolt's length in the leg and in the board, over D (Table 12.5.1C).
     const lOverD = Math.min(dims.t, b.thickness) / D;
     const rowSpacing = b.width / n;
+    // Under the beam's weight a joint's bolts are one row, in line with the load to within α
+    // (12.1.2.4), spaced along the leg's centerline.
+    const underBeam = carriesBeam
+      ? [
+          endDistance(
+            member,
+            b.toBoltLine,
+            D,
+            'perpendicular',
+            'softwood',
+            "End distance under the beam's weight, along the grain on each bolt's line",
+          ),
+          edgeDistance(member, b.width - (b.vs[n - 1] ?? 0), D, 'perpendicular', lOverD, {
+            edge: 'loaded',
+            label: "Edge distance under the beam's weight, to the top edge",
+          }),
+          edgeDistance(member, b.vs[0] ?? 0, D, 'perpendicular', lOverD, {
+            edge: 'unloaded',
+            label: "Edge distance under the beam's weight, to the bottom edge",
+          }),
+          ...(n > 1
+            ? [
+                spacingInRow(
+                  member,
+                  rowSpacing / Math.cos(a),
+                  D,
+                  'perpendicular',
+                  "Spacing between bolts in a row under the beam's weight, along the leg",
+                ),
+              ]
+            : []),
+        ]
+      : [];
     const distances = [
       endDistance(
         member,
@@ -326,7 +361,7 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
         'softwood',
         "End distance, along the grain on each bolt's line",
       ),
-      edgeDistance(member, b.vs[0] ?? 0, D, 'parallel', lOverD, rowSpacing),
+      edgeDistance(member, b.vs[0] ?? 0, D, 'parallel', lOverD, { rowSpacing }),
       ...(n > 1
         ? [
             spacingBetweenRows(member, rowSpacing, D, 'parallel', lOverD),
@@ -335,6 +370,7 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
         : []),
       edgeDistance('Leg', dims.w / 2, D, 'perpendicular', lOverD),
       ...(n > 1 ? [spacingInRow('Leg', rowSpacing / Math.cos(a), D, 'perpendicular')] : []),
+      ...underBeam,
     ];
     return {
       title,
@@ -349,6 +385,11 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
           : `The leg is wide enough for 7D of end distance with the ${member.toLowerCase()} flush with it.`,
         `End distance is measured along the grain on each bolt's line; the end is cut at ${angle} from square, parallel to the leg.`,
         `Assumed: load along the ${member.toLowerCase()}'s grain, and across the leg's grain, which the ${member.toLowerCase()} meets at ${across}. Softwood lumber.`,
+        ...(carriesBeam
+          ? [
+              `The ${member.toLowerCase()} also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at ${angle} to the load.`,
+            ]
+          : []),
       ],
     };
   };
@@ -382,10 +423,13 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
       hardwareIds: [bolts.crossbar.hardwareId],
     },
     {
-      joint: boardJoint('Gusset to leg', 'Gusset', bolts.gusset, [
-        'hardware.gussetBolts.diameter',
-        'hardware.gussetBolts.perJoint',
-      ]),
+      joint: boardJoint(
+        'Gusset to leg',
+        'Gusset',
+        bolts.gusset,
+        ['hardware.gussetBolts.diameter', 'hardware.gussetBolts.perJoint'],
+        true,
+      ),
       partIds: ['gusset', ...LEG_IDS],
       hardwareIds: [bolts.gusset.hardwareId],
     },
