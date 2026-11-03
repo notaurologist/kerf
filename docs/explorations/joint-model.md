@@ -113,6 +113,14 @@ The harness is `packages/model/src/parity.ts` (#551). Its cases are each templat
 
 Each step is its own issue and pull request into `explore/joint-model`.
 
+### How a template's joint-based version plugs in
+
+A template's `generate` makes its design (parts, placements, hardware, flags) and then the cut list, lumber, and structural review from it. The joint-based version replaces only the design step, so everything after it runs unchanged. On `explore/joint-model`, the swing set's definition builds its `generate` with `generateWith(design)`, and its folder exports `generateWith`, `design`, and `dimensions`. Its own `generate` is `generateWith` of its own design, so its output is unchanged. The joint-based design lives in `packages/model/src/templates/<template-id>/`, which the generic-code scan treats like the template's own folder.
+
+The beam's deeper-stock comparison and the starting questions' bolt suggestions still call the template's own design step. They compare other beam sizes and suggest bolts, and read no part's length or end cuts.
+
+Step 2 (#552): `packages/model/src/trim.ts` cuts a part to a plane at each end. The swing set's joint-based design declares every part that way: the beam plies square at x = 0 and L, the legs level at the top of the beam and at the foot cut, and the crossbars and gussets parallel to the legs' outer faces, `past` beyond them. Every part's length, end cuts, marked edges, and placement come from the trims, and the swing set reaches parity in all 10 cases.
+
 ## Still open
 
 - The parity test's tolerance (exact display, 1e-9 before display) is used as written until the owner changes it.

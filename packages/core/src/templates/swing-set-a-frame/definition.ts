@@ -115,22 +115,49 @@ function reviewChecks(
 
 /** Everything but each line's other stock sizes, which take this to work out. */
 function outputsFor(
+  design: typeof generate,
   params: SwingSetParams,
   structuralInputs: SwingSetStructuralInputs,
 ): GenerateResult<SwingSetOutputs> {
-  const design = generate(params);
-  if (!design.ok) return design;
-  const review = structuralReview(design.output, structuralInputs);
+  const made = design(params);
+  if (!made.ok) return made;
+  const review = structuralReview(made.output, structuralInputs);
   if (!review.ok) return review;
   return {
     ok: true,
     output: {
-      design: design.output,
-      cutList: cutList(design.output.parts),
-      lumber: planLumber(design.output.parts),
-      hardware: hardwareList(design.output.hardware),
+      design: made.output,
+      cutList: cutList(made.output.parts),
+      lumber: planLumber(made.output.parts),
+      hardware: hardwareList(made.output.hardware),
       structuralReview: review.review,
     },
+  };
+}
+
+/**
+ * The template's `generate`, with the step that makes the design given: the template's own, or
+ * one that derives the same parts another way (docs/explorations/joint-model.md).
+ */
+export function generateWith(design: typeof generate) {
+  return (
+    params: SwingSetParams,
+    structuralInputs: SwingSetStructuralInputs,
+  ): GenerateResult<SwingSetOutputs> => {
+    const made = outputsFor(design, params, structuralInputs);
+    if (!made.ok) return made;
+    const lumber = withStockAlternatives(
+      made.output.lumber,
+      beamChecks(made.output.structuralReview),
+      stockFields(params),
+      checkFields,
+      (path, nominal) => {
+        const other = outputsFor(design, { ...params, [path]: nominal }, structuralInputs);
+        return other.ok ? beamChecks(other.output.structuralReview) : null;
+      },
+    );
+    const review = withDeeperStock(made.output.structuralReview, params, structuralInputs);
+    return { ok: true, output: { ...made.output, lumber, structuralReview: review } };
   };
 }
 
@@ -249,20 +276,5 @@ export const swingSetAFrame: TemplateDefinition<
   },
   drawings,
   assembly,
-  generate(params, structuralInputs) {
-    const made = outputsFor(params, structuralInputs);
-    if (!made.ok) return made;
-    const lumber = withStockAlternatives(
-      made.output.lumber,
-      beamChecks(made.output.structuralReview),
-      stockFields(params),
-      checkFields,
-      (path, nominal) => {
-        const other = outputsFor({ ...params, [path]: nominal }, structuralInputs);
-        return other.ok ? beamChecks(other.output.structuralReview) : null;
-      },
-    );
-    const review = withDeeperStock(made.output.structuralReview, params, structuralInputs);
-    return { ok: true, output: { ...made.output, lumber, structuralReview: review } };
-  },
+  generate: generateWith(generate),
 };
