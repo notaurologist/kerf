@@ -107,8 +107,8 @@ README section 4.
 README section 5 and decisions 0008 and 0014. The mechanics that tripped sessions up:
 
 - Any change to output for the same parameters bumps `version`, including labels and sources. A change to the stored shape also bumps `snapshotVersion` and adds an upgrade to `snapshotUpgrades`. An upgrade that returns the snapshot unchanged is fine when older plans simply lack the new data and the new field is optional.
-- `pnpm --filter @kerf/api write-snapshot-fixture <id>` refuses to overwrite. If you rewrite the new version's fixture during your own branch, before it merges, delete your own new file first; never touch a merged one.
-- Pin the previous version's fixture in `apps/api/scripts/snapshot-fixtures.test.ts`. The hash is sha256 of `JSON.stringify(JSON.parse(file))`, not of the file bytes. The test prints the actual hash when it fails.
+- `pnpm --filter @kerf/api write-snapshot-fixture <id>` writes the new version's fixture and `shown/v<n>.json`, removes the previous version's `shown/` file, and records both hashes in `apps/api/scripts/snapshot-fixture-hashes.json`. It refuses a version already there. If you rewrite the new version's fixture during your own branch, before it merges, delete your own `v<n>.json`, restore the template's `shown/` folder from `main`, and remove your two entries from the hashes file first; never touch a merged one.
+- When two branches bump the same template, the one that merges second takes the next version and writes its fixture again on top of the other's.
 - Add a test to the template's `versions.test.ts` saying what the version changed (decision 0008 requires it), and, when an upgrade changes what a plan holds, a test in the template's `snapshots.test.ts` of what it keeps. `contract.test.ts` already reads every fixture through the upgrades. The cabinet's versions 2 and 3 have only the second (#325); the swing set's `versions.test.ts` is the example to copy.
 - Run `pnpm --filter @kerf/api write-catalog-sample` when `catalog-sample.test.ts` reports a difference. The catalog uses the first template, so a generic change can move it too.
 
