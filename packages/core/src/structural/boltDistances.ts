@@ -79,7 +79,7 @@ function row(
 
 /**
  * Table 12.5.1A. A joint's load can reverse, so both directions are listed when the load is
- * parallel to grain.
+ * parallel to grain, unless `bearing` says the bolt only bears away from the end (compression).
  */
 export function endDistance(
   member: string,
@@ -88,20 +88,26 @@ export function endDistance(
   loading: Loading,
   wood: Wood,
   label = 'End distance',
+  bearing: 'either' | 'away' = 'either',
 ): BoltDistance {
   const [tensionHalf, tensionFull] = wood === 'softwood' ? [3.5, 7] : [2.5, 5];
+  const away = [
+    row('bolt bearing away from the end', 2, diameter, HALF, TABLE_A),
+    row('bolt bearing away from the end', 4, diameter, FULL, TABLE_A),
+  ];
   const requirements =
     loading === 'perpendicular'
       ? [
           row('load perpendicular to grain', 2, diameter, HALF, TABLE_A),
           row('load perpendicular to grain', 4, diameter, FULL, TABLE_A),
         ]
-      : [
-          row('bolt bearing away from the end', 2, diameter, HALF, TABLE_A),
-          row('bolt bearing away from the end', 4, diameter, FULL, TABLE_A),
-          row(`bolt bearing toward the end, ${wood}`, tensionHalf, diameter, HALF, TABLE_A),
-          row(`bolt bearing toward the end, ${wood}`, tensionFull, diameter, FULL, TABLE_A),
-        ];
+      : bearing === 'away'
+        ? away
+        : [
+            ...away,
+            row(`bolt bearing toward the end, ${wood}`, tensionHalf, diameter, HALF, TABLE_A),
+            row(`bolt bearing toward the end, ${wood}`, tensionFull, diameter, FULL, TABLE_A),
+          ];
   return { member, label, value, requirements };
 }
 

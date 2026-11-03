@@ -18,7 +18,7 @@ describe('the bolt layout, worked example', () => {
 
   it('gives each joint one line: its bolts, and whether any distance is outside NDS 2024 (#359)', () => {
     expect(text).toContain('Crossbar to leg 1 of 6 distances outside an NDS 2024 value 2 × 1/2"');
-    expect(text).toContain('Gusset to leg 2 of 10 distances outside an NDS 2024 value 2 × 1/2"');
+    expect(text).toContain('Gusset to leg 2 of 12 distances outside an NDS 2024 value 2 × 1/2"');
     expect(text).toContain('Leg to beam Every distance within its NDS 2024 values 1 × 1/2"');
     expect(render(<BoltLayout joints={joints} />).match(/data-variant="line"/g)).toHaveLength(3);
   });

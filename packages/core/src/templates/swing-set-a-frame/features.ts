@@ -336,6 +336,13 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
     // ℓ/D: the lesser of the bolt's length in the leg and in the board, over D (Table 12.5.1C).
     const lOverD = Math.min(dims.t, b.thickness) / D;
     const rowSpacing = b.width / n;
+    // In the leg the beam's weight acts at α to the grain, mostly along it. NDS 2024 12.5.1.2
+    // takes the smallest factor of any condition that applies, so the leg is measured against
+    // the rows along its grain too; the part across it is the load its edge distance already
+    // takes. The bolts bear down, away from the leg's top. On the bolts' line the wood above the
+    // top bolt ends at the flush cut, or at the top cut if the line reaches it first.
+    const legEndZ = dims.H + Math.min(dims.bd, dims.w / (2 * Math.sin(a)));
+    const legEnd = (legEndZ - (b.bottomZ + (b.vs[n - 1] ?? 0))) / Math.cos(a);
     // Under the beam's weight a joint's bolts are one row, in line with the load to within α
     // (12.1.2.4), spaced along the leg's centerline.
     const underBeam = carriesBeam
@@ -364,6 +371,26 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
                   D,
                   'perpendicular',
                   "Spacing between bolts in a row under the beam's weight, along the leg",
+                ),
+              ]
+            : []),
+          endDistance(
+            'Leg',
+            legEnd,
+            D,
+            'parallel',
+            'softwood',
+            "End distance under the beam's weight, from the top bolt up the bolts' line",
+            'away',
+          ),
+          ...(n > 1
+            ? [
+                spacingInRow(
+                  'Leg',
+                  rowSpacing / Math.cos(a),
+                  D,
+                  'parallel',
+                  "Spacing between bolts in a row under the beam's weight, along the grain",
                 ),
               ]
             : []),
@@ -418,6 +445,7 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
         ...(carriesBeam
           ? [
               `The ${member.toLowerCase()} also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at ${angle} to the load.`,
+              `In the leg the beam's weight acts at ${angle} to the grain, mostly along it, so the leg is also measured for load along its grain. Its bolts bear down, away from its top; the wood above the top bolt ends at the flush cut or the top cut.`,
             ]
           : []),
       ],

@@ -28,6 +28,19 @@ describe('bolt distances against NDS 2024', () => {
       ['2.5D', 1.25],
       ['5D', 2.5],
     ]);
+    // Bearing away from the end only (compression): the 2D and 4D rows alone.
+    expect(
+      rows(endDistance('Leg', 7.374, D, 'parallel', 'softwood', 'End distance', 'away')),
+    ).toEqual([
+      ['2D', 1, 'reduced design value'],
+      ['4D', 2, 'full design value'],
+    ]);
+    // 1.5 is under 4D (2) but over 2D, and no 7D row is listed to fall short of.
+    expect(
+      shortfalls(endDistance('Leg', 1.5, D, 'parallel', 'softwood', 'End distance', 'away')).map(
+        (r) => r.multiple,
+      ),
+    ).toEqual(['4D']);
     expect(fullValueEndDistance(D, 'softwood')).toBe(3.5);
     expect(fullValueEndDistance(D, 'hardwood')).toBe(2.5);
   });

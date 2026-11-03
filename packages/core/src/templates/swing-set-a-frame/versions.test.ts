@@ -39,6 +39,7 @@ import v32 from './snapshots/v32.json' with { type: 'json' };
 import v33 from './snapshots/v33.json' with { type: 'json' };
 import v34 from './snapshots/v34.json' with { type: 'json' };
 import v35 from './snapshots/v35.json' with { type: 'json' };
+import v36 from './snapshots/v36.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -131,6 +132,7 @@ const isVersion27 = (c: { path: string; before?: unknown; after?: unknown }) => 
 const isVersion28 = (c: { path: string; before?: unknown; after?: unknown }) =>
   (/^design\.boltLayout\[\d+\]\.distances\[\d+\]$/.test(c.path) &&
     c.before === undefined &&
+    (c.after as { member?: unknown }).member === 'Gusset' &&
     String((c.after as { label?: unknown }).label).includes("under the beam's weight")) ||
   (/^design\.boltLayout\[\d+\]\.notes\[\d+\]$/.test(c.path) &&
     c.before === undefined &&
@@ -238,6 +240,18 @@ const isVersion36 = (c: { path: string; before?: unknown }) =>
     String(c.before).startsWith('Hangers rated for swing use'));
 
 /**
+ * Version 37's changes (#536): the leg's distances along its grain under the beam's weight, added
+ * after the gusset joint's other rows, and a note saying why. Set aside like version 18's.
+ */
+const isVersion37 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  c.before === undefined &&
+  ((/^design\.boltLayout\[\d+\]\.distances\[\d+\]$/.test(c.path) &&
+    (c.after as { member?: unknown }).member === 'Leg' &&
+    String((c.after as { label?: unknown }).label).includes("under the beam's weight")) ||
+    (/^design\.boltLayout\[\d+\]\.notes\[\d+\]$/.test(c.path) &&
+      String(c.after).startsWith("In the leg the beam's weight acts at")));
+
+/**
  * What regenerating with the current version changes in the stored outputs, field by field; or,
  * given `later`, a later version's fixture of the same example, what that version changed.
  */
@@ -260,6 +274,7 @@ function regenerated(
   keepVersion34 = false,
   keepVersion35 = false,
   keepVersion36 = false,
+  keepVersion37 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -283,7 +298,8 @@ function regenerated(
         (keepVersion33 || later !== undefined || !isVersion33(c)) &&
         (keepVersion34 || !isVersion34(c)) &&
         (keepVersion35 || !isVersion35(c)) &&
-        (keepVersion36 || later !== undefined || !isVersion36(c)),
+        (keepVersion36 || later !== undefined || !isVersion36(c)) &&
+        (keepVersion37 || !isVersion37(c)),
     ),
   };
   return keepVersion18
@@ -806,7 +822,8 @@ describe('swing-set template versions', () => {
           !isVersion33(c) &&
           !isVersion34(c) &&
           !isVersion35(c) &&
-          !isVersion36(c),
+          !isVersion36(c) &&
+          !isVersion37(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1280,5 +1297,26 @@ describe('swing-set template versions', () => {
     const now = shear(fresh(read(v35[0])));
     expect(now.margin).toBeCloseTo(2.98256, 4);
     expect(now.computed.label).toBe('Shear stress at left swing, left hanger hole, net section');
+  });
+  // Hand check in features.test.ts: the bolts' line meets the flush cut 1.75 / sin 20° = 5.1167
+  // above the beam's underside, so the top gusset bolt, 1.8125 below it, is 6.9292 / cos 20° =
+  // 7.3739 (14.7D) from the end along the grain; the bolts are 3.625 / cos 20° = 3.8576 apart.
+  it("version 37 measures the leg along its grain under the beam's weight, and changes nothing else (#536)", () => {
+    const keep37 = [...Array(10).fill(false), undefined, ...Array(6).fill(false), true] as const;
+    for (const stored of v36) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(36);
+      const { changes } = regenerated(snapshot, ...keep37);
+      expect(changes.filter((c) => !isVersion37(c))).toEqual([]);
+      // Two distances and a note on the gusset joint; no flag, since both are over every row.
+      expect(changes).toHaveLength(3);
+    }
+    const added = regenerated(read(v36[0]), ...keep37)
+      .changes.filter((c) => /\.distances\[\d+\]$/.test(c.path))
+      .map((c) => c.after as { label: string; value: number });
+    expect(added.map((d) => [d.label.split(',')[0], Number(d.value.toFixed(4))])).toEqual([
+      ["End distance under the beam's weight", 7.3739],
+      ["Spacing between bolts in a row under the beam's weight", 3.8576],
+    ]);
   });
 });

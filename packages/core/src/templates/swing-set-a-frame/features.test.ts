@@ -174,6 +174,11 @@ describe('the worked example (spec, Holes and joints)', () => {
       ['Gusset', "Edge distance under the beam's weight", 1.8125],
       ['Gusset', "Edge distance under the beam's weight", 1.8125],
       ['Gusset', "Spacing between bolts in a row under the beam's weight", 3.8576],
+      // The leg along its grain: the bolts' line meets the flush cut at z = 96 + 1.75 / sin α
+      // = 101.1167, under the top cut at 101.5, so the top bolt (z = 94.1875) is
+      // 6.9292 / cos α = 7.3739 below it; the bolts 3.8576 apart along the grain.
+      ['Leg', "End distance under the beam's weight", 7.3739],
+      ['Leg', "Spacing between bolts in a row under the beam's weight", 3.8576],
     ]);
     const underBeam = (gusset?.distances ?? []).slice(6);
     expect(underBeam.map((d) => d.requirements.map((r) => [r.multiple, r.value]))).toEqual([
@@ -184,12 +189,23 @@ describe('the worked example (spec, Holes and joints)', () => {
       [['4D', 2]],
       [['1.5D', 0.75]],
       [['3D', 1.5]],
+      // Bolts bearing away from the leg's top: the compression rows only.
+      [
+        ['2D', 1],
+        ['4D', 2],
+      ],
+      [
+        ['3D', 1.5],
+        ['4D', 2],
+      ],
     ]);
     expect(underBeam.map((d) => d.label.split(', ')[1])).toEqual([
       "along the grain on each bolt's line",
       'to the top edge',
       'to the bottom edge',
       'along the leg',
+      "from the top bolt up the bolts' line",
+      'along the grain',
     ]);
     expect(crossbar?.distances.some((d) => d.label.includes("beam's weight"))).toBe(false);
     expect(values(legToBeam)).toEqual([
@@ -209,6 +225,29 @@ describe('the worked example (spec, Holes and joints)', () => {
     expect(boltFlags.map((f) => f.ask.split(':')[0])).toEqual([
       'Crossbar to leg, 2 × 1/2" bolts',
       'Gusset to leg, 2 × 1/2" bolts',
+    ]);
+  });
+
+  it("measures the leg's end above the gusset bolts to the top cut when the bolts' line reaches it first", () => {
+    // At 10°, the bolts' line would meet the flush cut 1.75 / sin 10° = 10.078 above the beam's
+    // underside, past the top cut at 5.5, so the wood ends at the top cut, z = 101.5: the top
+    // bolt (z = 94.1875) is 7.3125 / cos 10° = 7.4253 below it.
+    const steep = run({ ...workedExample, splay: { kind: 'angle', degrees: 10 } });
+    const legEnd = steep.boltLayout?.[1]?.distances.find(
+      (d) => d.member === 'Leg' && d.label.startsWith('End distance'),
+    );
+    expect(legEnd?.value).toBeCloseTo(7.4253, 4);
+    // One bolt per joint: the leg's end distance stays, with no spacing in a row.
+    const one = run({
+      ...workedExample,
+      hardware: { ...workedExample.hardware, gussetBolts: { diameter: 0.5, perJoint: 1 } },
+    });
+    const leg = (one.boltLayout?.[1]?.distances ?? []).filter(
+      (d) => d.member === 'Leg' && d.label.includes("beam's weight"),
+    );
+    // The single bolt is at v = 3.625, z = 92.375: (101.1167 − 92.375) / cos 20° = 9.3027.
+    expect(leg.map((d) => [d.label.split(' under')[0], Number(d.value.toFixed(4))])).toEqual([
+      ['End distance', 9.3027],
     ]);
   });
 
