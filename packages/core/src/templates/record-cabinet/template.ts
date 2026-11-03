@@ -12,7 +12,7 @@ import type { Allowances } from './structural.ts';
 // parts in cut-list order, placements, operations, and hardware. Pure.
 
 export const TEMPLATE_ID = 'record-cabinet';
-export const TEMPLATE_VERSION = 10;
+export const TEMPLATE_VERSION = 11;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
@@ -109,7 +109,8 @@ export function generate(
       quantity: screwCount,
       structural: false,
       notes: [
-        'Long enough to go through a cleat and about two-thirds of the way into the case bottom, but not out its top. Confirm the size with an experienced builder.',
+        'Length: the cleat’s thickness plus about two-thirds of the case bottom’s thickness, so the points stop short of its top face. Measure both on the cut parts, since surfaced stock is thinner than its name.',
+        'Gauge: ask the lumber or hardware supplier which size suits a hardwood cleat of that thickness, and what pilot hole it needs. The screws hold the case to the base and carry none of its weight.',
       ],
       group: 'Screws',
     },
