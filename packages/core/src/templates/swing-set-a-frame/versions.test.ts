@@ -773,7 +773,16 @@ describe('swing-set template versions', () => {
       const read = readSnapshot([template], stored);
       if (!read.ok) throw new Error(JSON.stringify(read));
       expect(read.snapshot.templateVersion).toBe(26);
-      const { changes } = regenerated(read.snapshot, false, false, false, false, false, false, true);
+      const { changes } = regenerated(
+        read.snapshot,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+      );
       expect(changes.length).toBeGreaterThan(0);
       expect(changes.filter((c) => !isVersion27(c))).toEqual([]);
     }
