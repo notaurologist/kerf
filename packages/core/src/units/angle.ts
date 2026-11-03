@@ -32,7 +32,9 @@ export function formatAngle(degrees: number): string {
   if (!Number.isFinite(degrees)) {
     throw new RangeError(`Angle must be a finite number, got ${degrees}`);
   }
-  // Adding 0 turns -0 into 0 so a tiny negative rounding error never shows as "-0.0°".
-  const tenths = Math.round(degrees * 10) / 10 + 0;
+  // A value within float error of a half step rounds as the exact value would: 17.25° computed as
+  // 17.249999999999996 is still 17.3°. Adding 0 turns -0 into 0 so a tiny negative rounding error
+  // never shows as "-0.0°".
+  const tenths = Math.round(Math.round(degrees * 1e9) / 1e8) / 10 + 0;
   return `${tenths.toFixed(1)}°`;
 }

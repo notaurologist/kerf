@@ -14,10 +14,13 @@ function assertLength(inches: number): void {
   }
 }
 
-/** Nearest whole number of sixteenths. Exact halves round up. */
+/**
+ * Nearest whole number of sixteenths. Exact halves round up, and so does a value within float
+ * error of one: 13-1/32 computed as 13.031249999999998 is still 13-1/16.
+ */
 export function toSixteenths(inches: number): number {
   assertLength(inches);
-  return Math.round(inches * SIXTEENTHS_PER_INCH);
+  return Math.round(Math.round(inches * 1e9) * (SIXTEENTHS_PER_INCH / 1e9));
 }
 
 function gcd(a: number, b: number): number {
