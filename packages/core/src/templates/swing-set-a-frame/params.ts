@@ -9,18 +9,24 @@ const Nominal = z.enum(NOMINAL_SIZES as [NominalSize, ...NominalSize[]]);
 /** Common through-bolt diameters, inches. */
 const BoltDiameter = z.union([z.literal(0.375), z.literal(0.5), z.literal(0.625), z.literal(0.75)]);
 
+/** Inches; past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). */
+const FOOTPRINT_MAX = 360;
+
 const Splay = z.discriminatedUnion('kind', [
   /** Each leg's angle from vertical. */
   z.object({ kind: z.literal('angle'), degrees: z.number().min(5).max(35) }),
   /** Plan-view distance between the outer faces of the front and back legs at grade. */
-  z.object({ kind: z.literal('footprint'), depth: z.number().positive() }),
+  z.object({ kind: z.literal('footprint'), depth: z.number().positive().max(FOOTPRINT_MAX) }),
 ]);
 
 /** Inches; the starting questions keep their suggestions inside this (#163). */
 export const BEAM_HEIGHT = { min: 60, max: 144 } as const;
 
+/** Inches. Positions and widths along the beam stay on it. */
+const BEAM_LENGTH = { min: 48, max: 240 } as const;
+
 export const SwingSetParams = z.object({
-  beamLength: z.number().min(48).max(240),
+  beamLength: z.number().min(BEAM_LENGTH.min).max(BEAM_LENGTH.max),
   /** Height of the underside of the beam above the ground directly under it. */
   beamHeight: z.number().min(BEAM_HEIGHT.min).max(BEAM_HEIGHT.max),
   splay: Splay,
@@ -33,24 +39,30 @@ export const SwingSetParams = z.object({
   /** Width is the crossbar's vertical depth. */
   crossbarStock: Nominal,
   /** Height of the crossbar's top edge above the ground under the beam. */
-  crossbarHeight: z.number().positive(),
+  crossbarHeight: z.number().positive().max(BEAM_HEIGHT.max),
   /** Width is the gusset's height below the beam. */
   gussetStock: Nominal,
   /** Beam end to the outside face of that frame's legs. */
-  frameInset: z.number().min(0),
+  frameInset: z
+    .number()
+    .min(0)
+    .max(BEAM_LENGTH.max / 2),
   /** Inches the ground falls per foot toward the front. Negative means the front is uphill. */
   groundSlope: z.number().min(-3).max(3),
   /** How far each leg extends below grade, measured vertically. 0 for pads. */
   burialDepth: z.number().min(0).max(48),
   swings: z.object({
     /** Each swing's center along the beam, left swing first. */
-    centers: z.tuple([z.number(), z.number()]),
+    centers: z.tuple([
+      z.number().min(0).max(BEAM_LENGTH.max),
+      z.number().min(0).max(BEAM_LENGTH.max),
+    ]),
     /** Distance between a swing's two hangers along the beam. */
-    hangerSpacing: z.number().positive(),
+    hangerSpacing: z.number().positive().max(BEAM_LENGTH.max),
     /** Side-to-side width of a seat. */
-    seatWidth: z.number().positive(),
+    seatWidth: z.number().positive().max(BEAM_LENGTH.max),
     /** Height of the seat's underside above the ground under the beam, at rest. */
-    seatHeight: z.number().positive(),
+    seatHeight: z.number().positive().max(BEAM_HEIGHT.max),
   }),
   /**
    * Bolt sizes and counts, confirmed with an experienced builder. No defaults: these decide

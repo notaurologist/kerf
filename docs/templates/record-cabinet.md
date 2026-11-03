@@ -159,6 +159,29 @@ Ranges are proposals for the owner's review.
 | Panel allowances | | suggested 1/16, 1/2, 1, 1/16 | Jointing per glued edge, rip, trim per end, and flattening (`DOMAIN.md`, Edge-glued panels). No published source gives them, so the suggestions are rules of thumb (#317, #319). |
 | Species and grain | | owner-entered | Species for every panel, and ring orientation (flatsawn, quartersawn, unknown) for movement (#284). |
 
+### Ranges that bound generation (#421)
+
+Every number has a minimum and a maximum. A panel takes n = ⌈(width + rip − 2a) / (w − 2a)⌉ boards (`DOMAIN.md`, Edge-glued panels), so a board width w near twice the jointing allowance a asked for thousands of boards: a 0.13" board took 5.7 seconds to generate and 0.1251" did not finish. Values far past any real one also overflowed the display formatting. These ranges were set without the owner on November 2, 2026, as conservative proposals for review. None changes the plan for values inside it, so the template version stays 11.
+
+| Parameter | Range | Basis |
+|---|---|---|
+| Board width (store) and plan width (dealer) | 1-1/2 to 12 | From a 1x2 board (1-1/2" actual) to past a 1x12 (11-1/4"), rule of thumb. With the jointing range below, w − 2a is at least 1, so the top, at most 22 deep with 2 of rip, glues up from at most ⌈(22 + 2 − 1/2) / 1⌉ = 24 boards. |
+| Board thickness (store) and surfaced thickness (dealer) | 5/8 to 2 | Thinner than the thinnest panel makes no panel; 2 is past 8/4 surfaced (1-3/4, Wood Handbook Table 6-4) |
+| Jointing per edge | 0 to 1/4 | Rule of thumb: four times the suggested 1/16 |
+| Rip | 0 to 2 | Rule of thumb: four times the suggested 1/2 |
+| Trim per end | 0 to 4 | Rule of thumb: four times the suggested 1 |
+| Flattening | 0 to 1/4 | Rule of thumb: four times the suggested 1/16 |
+| Lengths sold, boards and leg stock | 1 to 16 ft | A dealer's hardwood comes in 4 to 16 ft (Wood Handbook, p. 6-3); a store's 1x boards are shorter |
+| Dado depth j | 1/16 to 1/2 | 1/16 is the smallest router setting the suggestion rounds to; 2·j < t ≤ 1 |
+| Stopped-dado setback s_d | 1/16 to 20 | s_d < D_c ≤ 20 |
+| Foot s_f, tenon length l_t | 1/16 to 3 | Each is less than the leg stock, at most 3 |
+| Apron setback r_a | 0 to 3 | r_a + t_t < s ≤ 3 |
+| Tenon thickness t_t | 1/16 to 2 | Thinner than the apron, a board at most 2 thick |
+| Record jacket s_r | 1/16 to 18 | No more than the tallest bay, 18 |
+| Largest item on the top, each way | 1/16 to 72 | No wider than the longest top; 72 high for anything that stands on a low cabinet |
+
+1/16 is the smallest length Kerf shows. Before these ranges, Kerf refused a too-large dado, foot, tenon, setback, jacket, or item only by validation, which still applies inside them.
+
 ## Derived geometry
 
 ### Case width and bays

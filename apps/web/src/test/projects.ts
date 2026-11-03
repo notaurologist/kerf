@@ -21,6 +21,7 @@ export const noTicks: Ticks = {
   problem: null,
   dropped: null,
   offline: false,
+  stored: true,
   isDone: () => false,
   isWaiting: () => false,
   set: () => {},
