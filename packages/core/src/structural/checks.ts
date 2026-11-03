@@ -98,8 +98,8 @@ export interface BeamCheckInput {
   conditions: ServiceConditions;
   /** Bending and shear use this case. */
   strength: LoadCase;
-  /** Deflection uses this case, against span / limitRatio. */
-  deflection: LoadCase & { limitRatio: Needed<number> };
+  /** Deflection uses this case, against span / limitRatio, entered in the input `limitKey`. */
+  deflection: LoadCase & { limitRatio: Needed<number>; limitKey: string };
   /** The template's assumptions about the member and its supports. */
   assumptions: string[];
 }
@@ -338,7 +338,14 @@ function scaled<T extends BeamLoads | SpanLoads>(loads: T, C: number): T {
 
 /** The factor's value as an input in the working. */
 function factorQuantity(factor: LoadFactor, value: number): Quantity {
-  return { symbol: factor.symbol, label: factor.label, value, unit: '', basis: factor.basis };
+  return {
+    symbol: factor.symbol,
+    label: factor.label,
+    value,
+    unit: '',
+    basis: factor.basis,
+    input: factor.key,
+  };
 }
 
 /**
@@ -556,6 +563,7 @@ function deflectionCheck(
         value: N,
         unit: '',
         basis: 'Entered',
+        input: lc.limitKey,
       },
     ],
     assumptions: [

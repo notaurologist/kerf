@@ -28,6 +28,7 @@ const PINNED: Record<string, Record<string, string>> = {
     'v14.json': '325b2bf424c09a89602c67f9e005b78761f3c28335bb209ee468ca5bc59af975',
     'v15.json': '298cb0786956a0f0507c97c1110686f8597bfba57faa72a98edc063d1497e89c',
     'v16.json': '4d1af668f98ea825eb9338b30a8d53ac33845f7430695eb221ec6f5333d2527f',
+    'v17.json': '776eeed94745f6ebc0c633e90373044aeded589be54ab964e073d276fbbae6d8',
   },
   'record-cabinet': {
     'v1.json': 'b74091595976a0736584ba361abd263e0ce720235059180bc8495944fc20b24f',
@@ -41,6 +42,7 @@ const PINNED: Record<string, Record<string, string>> = {
     'v9.json': '7c3e99f07738708f26e0acc4b254ffbe3b9a6f3c8a2c246e75da9f9427c2e922',
     'v10.json': 'ac65e7df6215ed3a9ef96a38d4c1b3eef478948db49fbfaa4fcc4c24a39e40e5',
     'v11.json': '8997e76483e60d18e7e4195e95334b9588cec40b4e85645ee008b1e12aa438ea',
+    'v12.json': '36a2d41bfda0f5bc26198bddcc5a3eecee3fea9c722636a61ac7d08557d661d1',
   },
 };
 

@@ -8,7 +8,9 @@ export type { SnapshotUpgrade, TemplateDefinition } from './model/definition.ts'
 export * from './model/form.ts';
 export * from './model/operations.ts';
 export * from './model/questions.ts';
+export * from './model/start.ts';
 export * from './model/storeReadings.ts';
+export * from './model/suggested.ts';
 export type * from './model/types.ts';
 export { CHECKLIST_CATEGORY_LABELS } from './model/types.ts';
 export * as movement from './movement/index.ts';

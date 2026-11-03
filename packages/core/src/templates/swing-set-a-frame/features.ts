@@ -305,7 +305,12 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
   const angle = formatAngle(g.splay);
   const across = formatAngle(90 - g.splay);
 
-  const boardJoint = (title: string, member: string, b: BoardBolts): BoltJoint => {
+  const boardJoint = (
+    title: string,
+    member: string,
+    b: BoardBolts,
+    params: string[],
+  ): BoltJoint => {
     const n = b.vs.length;
     const D = b.diameter;
     // ℓ/D: the lesser of the bolt's length in the leg and in the board, over D (Table 12.5.1C).
@@ -334,6 +339,7 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
       title,
       bolts: n,
       diameter: D,
+      params,
       distances,
       notes: [
         `The bolts sit on the leg's centerline, one in the middle of each equal strip across the ${member.toLowerCase()}'s width.`,
@@ -353,6 +359,7 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
     title: 'Leg to beam',
     bolts: 1,
     diameter: D,
+    params: ['hardware.legBoltDiameter'],
     distances: [
       endDistance('Beam', g.supportsX[0], D, 'perpendicular', 'softwood'),
       edgeDistance('Beam', dims.bd / 2, D, 'perpendicular', beamOverD),
@@ -366,12 +373,18 @@ export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry
 
   return [
     {
-      joint: boardJoint('Crossbar to leg', 'Crossbar', bolts.crossbar),
+      joint: boardJoint('Crossbar to leg', 'Crossbar', bolts.crossbar, [
+        'hardware.crossbarBolts.diameter',
+        'hardware.crossbarBolts.perJoint',
+      ]),
       partIds: ['crossbar', ...LEG_IDS],
       hardwareIds: [bolts.crossbar.hardwareId],
     },
     {
-      joint: boardJoint('Gusset to leg', 'Gusset', bolts.gusset),
+      joint: boardJoint('Gusset to leg', 'Gusset', bolts.gusset, [
+        'hardware.gussetBolts.diameter',
+        'hardware.gussetBolts.perJoint',
+      ]),
       partIds: ['gusset', ...LEG_IDS],
       hardwareIds: [bolts.gusset.hardwareId],
     },

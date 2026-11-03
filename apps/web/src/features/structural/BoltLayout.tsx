@@ -1,9 +1,10 @@
-import { formatLength, structural } from '@kerf/core';
+import { formatLength, jointSuggestions, type SuggestedItem, structural } from '@kerf/core';
 import {
   Length,
   List,
   MeasureTable,
   PlainList,
+  Readings,
   ResultLine,
   Row,
   Rows,
@@ -14,13 +15,18 @@ import { SourceToggle } from './Citation.tsx';
 
 // Bolt distances at each joint (#93, decision 0016): where Kerf put each bolt, and the NDS 2024
 // rows each distance is measured against. Geometry for the conversation with an experienced
-// builder, not a capacity check; every number comes from core.
+// builder, not a capacity check; every number comes from core. A joint whose bolt size or count is
+// Kerf's suggestion, not yet confirmed, says so on its line (#417).
 
 type BoltJoint = structural.BoltJoint;
 type BoltDistance = structural.BoltDistance;
 const { formatDiameters, shortfalls } = structural;
 
-export function BoltLayout(props: { joints: readonly BoltJoint[] }) {
+export function BoltLayout(props: {
+  joints: readonly BoltJoint[];
+  /** The project's suggested values, to mark the bolts they size. */
+  suggested?: readonly SuggestedItem[];
+}) {
   if (props.joints.length === 0) return null;
   return (
     <>
@@ -33,7 +39,7 @@ export function BoltLayout(props: { joints: readonly BoltJoint[] }) {
       <Rows>
         {props.joints.map((joint) => (
           <Row key={joint.title} as="section">
-            <Joint joint={joint} />
+            <Joint joint={joint} suggested={props.suggested ?? []} />
           </Row>
         ))}
       </Rows>
@@ -49,8 +55,9 @@ function jointSummary(joint: BoltJoint): string {
 }
 
 /** One joint as a line (Stage 15, #359), opening to its distances. */
-function Joint(props: { joint: BoltJoint }) {
+function Joint(props: { joint: BoltJoint; suggested: readonly SuggestedItem[] }) {
   const { joint } = props;
+  const unconfirmed = jointSuggestions(joint, props.suggested).filter((s) => !s.confirmed);
   return (
     <ResultLine
       title={joint.title}
@@ -58,10 +65,24 @@ function Joint(props: { joint: BoltJoint }) {
       result={
         <>
           {joint.bolts} × <Length>{formatLength(joint.diameter)}</Length>
+          {unconfirmed.length > 0 && ', suggested'}
         </>
       }
     >
       <Stack gap="xs">
+        {unconfirmed.length > 0 && (
+          <Text>
+            Suggested by Kerf, not confirmed yet:{' '}
+            {unconfirmed.map((s, i) => (
+              <span key={s.key}>
+                {i > 0 && '; '}
+                {s.label}, <Readings text={s.text} />
+              </span>
+            ))}
+            . Confirm {unconfirmed.length === 1 ? 'it' : 'them'} under To do, or change{' '}
+            {unconfirmed.length === 1 ? 'it' : 'them'} in Edit.
+          </Text>
+        )}
         <MeasureTable
           caption={`${joint.title} distances`}
           captionHidden

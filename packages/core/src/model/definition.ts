@@ -103,8 +103,10 @@ export interface TemplateDefinition<
   }[];
   /**
    * A few plain questions whose answers suggest starting parameters (#163). Offered as a new
-   * project's start when present. Only the answers that are structural inputs themselves are
-   * filled in as inputs; hardware and the other inputs are never suggested (hard rule 3).
+   * project's start when present. A structural input or hardware size is suggested only from a
+   * named source or a stated rule of thumb, and stays unconfirmed, with its basis, until the owner
+   * ticks it in the structural review or changes it (hard rule 3, #417). Values only the owner or
+   * what is bought can say, such as a grade stamp or a rating, are never suggested.
    */
   questions?: StartingQuestions;
   /**

@@ -50,6 +50,8 @@ export interface MovementInput {
   species: Needed<string>;
   orientation: Needed<RingOrientation>;
   moisture: Needed<MoistureRange>;
+  /** The input the moisture range is entered in; its low and high values are under it. */
+  moistureKey: string;
 }
 
 const Header = { subject: z.string() };
@@ -129,6 +131,7 @@ export function woodMovement(input: MovementInput): MovementResult {
         unit: '%',
         basis: 'Entered by the owner',
         sources: [SOURCES.recommended],
+        input: `${input.moistureKey}.low`,
       },
       {
         symbol: 'M_F',
@@ -137,6 +140,7 @@ export function woodMovement(input: MovementInput): MovementResult {
         unit: '%',
         basis: 'Entered by the owner',
         sources: [SOURCES.recommended],
+        input: `${input.moistureKey}.high`,
       },
     ],
     formulas: [`ΔD = D · ${symbol} · (M_F − M_I)`],

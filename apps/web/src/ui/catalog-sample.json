@@ -1,8 +1,8 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 17,
-    "snapshotVersion": 16,
+    "templateVersion": 18,
+    "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -47,6 +47,7 @@
       "deflectionLimit": 240,
       "hangerRating": 1200
     },
+    "suggested": [],
     "outputs": {
       "design": {
         "params": {
@@ -1061,6 +1062,7 @@
             "title": "Crossbar to leg",
             "bolts": 2,
             "diameter": 0.5,
+            "params": ["hardware.crossbarBolts.diameter", "hardware.crossbarBolts.perJoint"],
             "distances": [
               {
                 "member": "Crossbar",
@@ -1226,6 +1228,7 @@
             "title": "Gusset to leg",
             "bolts": 2,
             "diameter": 0.5,
+            "params": ["hardware.gussetBolts.diameter", "hardware.gussetBolts.perJoint"],
             "distances": [
               {
                 "member": "Gusset",
@@ -1391,6 +1394,7 @@
             "title": "Leg to beam",
             "bolts": 1,
             "diameter": 0.5,
+            "params": ["hardware.legBoltDiameter"],
             "distances": [
               {
                 "member": "Beam",
@@ -2065,21 +2069,24 @@
                 "label": "Rider on left swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.0"
               },
               {
                 "symbol": "W2",
                 "label": "Rider on right swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.1"
               },
               {
                 "symbol": "θ",
                 "label": "Maximum swing angle",
                 "value": 60,
                 "unit": "°",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "maxSwingAngle"
               },
               {
                 "symbol": "3 − 2·cos θ",
@@ -2117,7 +2124,8 @@
                 "label": "Beam moisture content",
                 "value": 30,
                 "unit": "%",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "beamMoistureContent"
               },
               {
                 "symbol": "G",
@@ -2171,7 +2179,8 @@
                 "label": "Dynamic factor",
                 "value": 2,
                 "unit": "",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "dynamicFactor"
               },
               {
                 "symbol": "Fb",
@@ -2619,21 +2628,24 @@
                 "label": "Rider on left swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.0"
               },
               {
                 "symbol": "W2",
                 "label": "Rider on right swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.1"
               },
               {
                 "symbol": "θ",
                 "label": "Maximum swing angle",
                 "value": 60,
                 "unit": "°",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "maxSwingAngle"
               },
               {
                 "symbol": "3 − 2·cos θ",
@@ -2671,7 +2683,8 @@
                 "label": "Beam moisture content",
                 "value": 30,
                 "unit": "%",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "beamMoistureContent"
               },
               {
                 "symbol": "G",
@@ -2725,7 +2738,8 @@
                 "label": "Dynamic factor",
                 "value": 2,
                 "unit": "",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "dynamicFactor"
               },
               {
                 "symbol": "Fb",
@@ -3048,21 +3062,24 @@
                 "label": "Rider on left swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.0"
               },
               {
                 "symbol": "W2",
                 "label": "Rider on right swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.1"
               },
               {
                 "symbol": "θ",
                 "label": "Maximum swing angle",
                 "value": 60,
                 "unit": "°",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "maxSwingAngle"
               },
               {
                 "symbol": "3 − 2·cos θ",
@@ -3100,7 +3117,8 @@
                 "label": "Beam moisture content",
                 "value": 30,
                 "unit": "%",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "beamMoistureContent"
               },
               {
                 "symbol": "G",
@@ -3226,7 +3244,8 @@
                 "label": "Deflection limit, span divided by",
                 "value": 240,
                 "unit": "",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "deflectionLimit"
               }
             ],
             "assumptions": [
@@ -3369,21 +3388,24 @@
               "label": "Rider on left swing, with seat and chain",
               "value": 150,
               "unit": "lb",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "riderWeights.0"
             },
             {
               "symbol": "W2",
               "label": "Rider on right swing, with seat and chain",
               "value": 150,
               "unit": "lb",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "riderWeights.1"
             },
             {
               "symbol": "θ",
               "label": "Maximum swing angle",
               "value": 60,
               "unit": "°",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "maxSwingAngle"
             },
             {
               "symbol": "3 − 2·cos θ",
@@ -3427,7 +3449,8 @@
               "label": "Dynamic factor",
               "value": 2,
               "unit": "",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "dynamicFactor"
             },
             {
               "symbol": "R_rated",
@@ -3476,7 +3499,7 @@
             "element": "Leg-to-beam bolt and gusset, each frame",
             "partIds": ["leg-back", "leg-front", "beam", "gusset"],
             "hardwareIds": ["leg-beam-bolts", "gusset-bolts"],
-            "confirm": "Bolt size (1/2\" entered, 8-15/16\" grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.",
+            "confirm": "Bolt size (1/2\", 8-15/16\" grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.",
             "why": "Each frame carries half of every swing load into the legs through this joint; connections are not computed."
           },
           {
@@ -3533,8 +3556,8 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 17,
-    "snapshotVersion": 16,
+    "templateVersion": 18,
+    "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -3584,6 +3607,7 @@
       "deflectionLimit": 240,
       "hangerRating": 1200
     },
+    "suggested": [],
     "outputs": {
       "design": {
         "params": {
@@ -4677,6 +4701,7 @@
             "title": "Crossbar to leg",
             "bolts": 2,
             "diameter": 0.5,
+            "params": ["hardware.crossbarBolts.diameter", "hardware.crossbarBolts.perJoint"],
             "distances": [
               {
                 "member": "Crossbar",
@@ -4842,6 +4867,7 @@
             "title": "Gusset to leg",
             "bolts": 2,
             "diameter": 0.5,
+            "params": ["hardware.gussetBolts.diameter", "hardware.gussetBolts.perJoint"],
             "distances": [
               {
                 "member": "Gusset",
@@ -5007,6 +5033,7 @@
             "title": "Leg to beam",
             "bolts": 1,
             "diameter": 0.5,
+            "params": ["hardware.legBoltDiameter"],
             "distances": [
               {
                 "member": "Beam",
@@ -5701,21 +5728,24 @@
                 "label": "Rider on left swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.0"
               },
               {
                 "symbol": "W2",
                 "label": "Rider on right swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.1"
               },
               {
                 "symbol": "θ",
                 "label": "Maximum swing angle",
                 "value": 60,
                 "unit": "°",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "maxSwingAngle"
               },
               {
                 "symbol": "3 − 2·cos θ",
@@ -5753,7 +5783,8 @@
                 "label": "Beam moisture content",
                 "value": 30,
                 "unit": "%",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "beamMoistureContent"
               },
               {
                 "symbol": "G",
@@ -5807,7 +5838,8 @@
                 "label": "Dynamic factor",
                 "value": 2,
                 "unit": "",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "dynamicFactor"
               },
               {
                 "symbol": "Fb",
@@ -6269,21 +6301,24 @@
                 "label": "Rider on left swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.0"
               },
               {
                 "symbol": "W2",
                 "label": "Rider on right swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.1"
               },
               {
                 "symbol": "θ",
                 "label": "Maximum swing angle",
                 "value": 60,
                 "unit": "°",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "maxSwingAngle"
               },
               {
                 "symbol": "3 − 2·cos θ",
@@ -6321,7 +6356,8 @@
                 "label": "Beam moisture content",
                 "value": 30,
                 "unit": "%",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "beamMoistureContent"
               },
               {
                 "symbol": "G",
@@ -6375,7 +6411,8 @@
                 "label": "Dynamic factor",
                 "value": 2,
                 "unit": "",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "dynamicFactor"
               },
               {
                 "symbol": "Fb",
@@ -6712,21 +6749,24 @@
                 "label": "Rider on left swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.0"
               },
               {
                 "symbol": "W2",
                 "label": "Rider on right swing, with seat and chain",
                 "value": 150,
                 "unit": "lb",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "riderWeights.1"
               },
               {
                 "symbol": "θ",
                 "label": "Maximum swing angle",
                 "value": 60,
                 "unit": "°",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "maxSwingAngle"
               },
               {
                 "symbol": "3 − 2·cos θ",
@@ -6764,7 +6804,8 @@
                 "label": "Beam moisture content",
                 "value": 30,
                 "unit": "%",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "beamMoistureContent"
               },
               {
                 "symbol": "G",
@@ -6890,7 +6931,8 @@
                 "label": "Deflection limit, span divided by",
                 "value": 240,
                 "unit": "",
-                "basis": "Entered"
+                "basis": "Entered",
+                "input": "deflectionLimit"
               }
             ],
             "assumptions": [
@@ -7041,21 +7083,24 @@
               "label": "Rider on left swing, with seat and chain",
               "value": 150,
               "unit": "lb",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "riderWeights.0"
             },
             {
               "symbol": "W2",
               "label": "Rider on right swing, with seat and chain",
               "value": 150,
               "unit": "lb",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "riderWeights.1"
             },
             {
               "symbol": "θ",
               "label": "Maximum swing angle",
               "value": 60,
               "unit": "°",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "maxSwingAngle"
             },
             {
               "symbol": "3 − 2·cos θ",
@@ -7099,7 +7144,8 @@
               "label": "Dynamic factor",
               "value": 2,
               "unit": "",
-              "basis": "Entered"
+              "basis": "Entered",
+              "input": "dynamicFactor"
             },
             {
               "symbol": "R_rated",
@@ -7148,7 +7194,7 @@
             "element": "Leg-to-beam bolt and gusset, each frame",
             "partIds": ["leg-back", "leg-front", "beam", "gusset"],
             "hardwareIds": ["leg-beam-bolts", "gusset-bolts"],
-            "confirm": "Bolt size (1/2\" entered, 8-7/16\" grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.",
+            "confirm": "Bolt size (1/2\", 8-7/16\" grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.",
             "why": "Each frame carries half of every swing load into the legs through this joint; connections are not computed."
           },
           {
@@ -7213,8 +7259,8 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 17,
-    "snapshotVersion": 16,
+    "templateVersion": 18,
+    "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -7250,6 +7296,7 @@
       }
     },
     "structuralInputs": {},
+    "suggested": [],
     "outputs": {
       "design": {
         "params": {
@@ -8264,6 +8311,7 @@
             "title": "Crossbar to leg",
             "bolts": 2,
             "diameter": 0.5,
+            "params": ["hardware.crossbarBolts.diameter", "hardware.crossbarBolts.perJoint"],
             "distances": [
               {
                 "member": "Crossbar",
@@ -8429,6 +8477,7 @@
             "title": "Gusset to leg",
             "bolts": 2,
             "diameter": 0.5,
+            "params": ["hardware.gussetBolts.diameter", "hardware.gussetBolts.perJoint"],
             "distances": [
               {
                 "member": "Gusset",
@@ -8594,6 +8643,7 @@
             "title": "Leg to beam",
             "bolts": 1,
             "diameter": 0.5,
+            "params": ["hardware.legBoltDiameter"],
             "distances": [
               {
                 "member": "Beam",
@@ -9282,7 +9332,7 @@
             "element": "Leg-to-beam bolt and gusset, each frame",
             "partIds": ["leg-back", "leg-front", "beam", "gusset"],
             "hardwareIds": ["leg-beam-bolts", "gusset-bolts"],
-            "confirm": "Bolt size (1/2\" entered, 8-15/16\" grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.",
+            "confirm": "Bolt size (1/2\", 8-15/16\" grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.",
             "why": "Each frame carries half of every swing load into the legs through this joint; connections are not computed."
           },
           {

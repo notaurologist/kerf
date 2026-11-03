@@ -65,6 +65,7 @@ function NewProject(props: { template: TemplateDefinition; start?: ProjectStart 
                   template={template}
                   initial={{ name: '', params: suggested.params, inputs: suggested.inputs }}
                   suggested={suggested.about}
+                  answers={suggested.answers}
                   starts={
                     <>
                       {starts}
