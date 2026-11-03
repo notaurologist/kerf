@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { boardDrawings } from '../../geometry/boards.ts';
+import { projectDrawings } from '../../steps/drawings.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 
@@ -69,5 +70,41 @@ describe('board drawings for the worked example', () => {
     expect(drawings[0]?.description).toBe(
       'A 4x6 board 12\' 0" long, cut into A 120", leaving an offcut of 22-7/8" after trimming 1/2" off each end.',
     );
+  });
+});
+
+describe('the end angles on the boards (#455)', () => {
+  // Drawn at the setting on the page, 20°, across the drawn width of 10: each angled end runs
+  // 10 · tan 20° = 3.640 along the board. Long points as the cut detail has them: the first end's
+  // on the reference edge (the bottom, y = 10); the second end's on the far edge (y = 0) for the
+  // legs, whose ends are parallel, and on the reference edge for the crossbars, which mirror.
+  const boards = projectDrawings(swingSetAFrame, generated.output).boards ?? [];
+  const outline = (board: number) => {
+    const piece = boards[board]?.primitives.find((p) => p.kind === 'polygon' && p.fill === 1);
+    return piece?.kind === 'polygon' ? piece.points : [];
+  };
+  const run = 10 * Math.tan((20 * Math.PI) / 180);
+
+  it('slants a leg’s two ends the same way', () => {
+    expect(run).toBeCloseTo(3.64, 3);
+    const [topLeft, topRight, bottomRight, bottomLeft] = outline(1);
+    expect(bottomLeft).toEqual({ x: 0.5, y: 10 });
+    expect(topLeft?.x).toBeCloseTo(0.5 + run, 9);
+    expect(topRight?.x).toBeCloseTo((bottomRight?.x ?? 0) + run, 9);
+    expect(topRight?.y).toBe(0);
+  });
+
+  it('slants a crossbar’s ends toward each other, with the waste beside each drawn as a zone', () => {
+    const [topLeft, topRight, bottomRight, bottomLeft] = outline(5);
+    expect(topLeft?.x).toBeCloseTo((bottomLeft?.x ?? 0) + run, 9);
+    expect(topRight?.x).toBeCloseTo((bottomRight?.x ?? 0) - run, 9);
+    const zones = boards[5]?.primitives.filter((p) => p.kind === 'polygon' && p.fill === 'zone');
+    // Two trims, the offcut, and two triangles for each of the two crossbars.
+    expect(zones).toHaveLength(7);
+  });
+
+  it('leaves the beam’s square ends square', () => {
+    const [topLeft, , , bottomLeft] = outline(0);
+    expect(topLeft?.x).toBe(bottomLeft?.x);
   });
 });

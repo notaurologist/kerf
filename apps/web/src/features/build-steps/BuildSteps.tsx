@@ -1,10 +1,12 @@
 import {
   type BuildStep,
+  endName,
   findSkill,
   findToolType,
   formatLength,
   type MethodGaps,
   OPERATION_TYPE_LABELS,
+  type Plan,
   type PlannedCutRow,
   type StepBoard,
   type StepOperation,
@@ -42,6 +44,7 @@ import { SourceToggle } from '../structural/Citation.tsx';
 export function BuildSteps(props: {
   steps: readonly BuildStep[];
   rows: readonly PlannedCutRow[];
+  cutEnds: Plan['cutEnds'];
   /** Where a piece opens its part's cut detail: in the plan, the drawings with it selected (#156). */
   pieceHref?: (partId: string) => string;
 }) {
@@ -53,7 +56,12 @@ export function BuildSteps(props: {
             <h3>
               {i + 1}. {step.title}
             </h3>
-            <StepBody step={step} rows={props.rows} pieceHref={props.pieceHref} />
+            <StepBody
+              step={step}
+              rows={props.rows}
+              cutEnds={props.cutEnds}
+              pieceHref={props.pieceHref}
+            />
           </Stack>
         </li>
       ))}
@@ -69,6 +77,8 @@ export function BuildSteps(props: {
 export function StepBody(props: {
   step: BuildStep;
   rows: readonly PlannedCutRow[];
+  /** How the template names each part's ends, for its settings. */
+  cutEnds: Plan['cutEnds'];
   pieceHref?: (partId: string) => string;
   /** Leave the board's pieces out, for a screen that shows them its own way (#118). */
   withoutBoard?: boolean;
@@ -77,7 +87,6 @@ export function StepBody(props: {
   const parts = new Map(props.rows.map((r) => [r.partId, `${r.letter} ${r.name}`]));
   const partName = (id: string) => parts.get(id) ?? id;
   const quantity = new Map(props.rows.map((r) => [r.partId, r.quantity]));
-  const settings = new Map(props.rows.map((r) => [r.partId, r.settings]));
   return (
     <Stack gap="s">
       {step.board
@@ -86,7 +95,8 @@ export function StepBody(props: {
               board={step.board}
               partName={partName}
               quantity={quantity}
-              settings={settings}
+              row={(id) => props.rows.find((r) => r.partId === id)}
+              cutEnds={props.cutEnds}
               pieceHref={props.pieceHref}
             />
           )
@@ -218,7 +228,8 @@ function Board(props: {
   board: StepBoard;
   partName: (id: string) => string;
   quantity: ReadonlyMap<string, number>;
-  settings: ReadonlyMap<string, readonly string[]>;
+  row: (partId: string) => PlannedCutRow | undefined;
+  cutEnds: Plan['cutEnds'];
   pieceHref?: (partId: string) => string;
 }) {
   const { board } = props;
@@ -239,7 +250,7 @@ function Board(props: {
             )}{' '}
             <Length>{formatLength(piece.length)}</Length>
             {pieceOf(piece.instance, props.quantity.get(piece.partId))}{' '}
-            <EndSettings settings={props.settings.get(piece.partId)} />
+            <EndSettings row={props.row(piece.partId)} cutEnds={props.cutEnds} />
           </li>
         ))}
       </List>
@@ -250,17 +261,30 @@ function Board(props: {
 
 /**
  * A piece's saw settings beside its length (B1), only when an end is not square, since a square
- * cut needs no setting.
+ * cut needs no setting. Each is named for its end as the template names it ("Top 20.0°"), or by
+ * number, and two angled ends say whether they are parallel, so the second cut is not turned the
+ * wrong way (#455).
  */
-export function EndSettings(props: { settings: readonly string[] | undefined }) {
-  const settings = props.settings ?? [];
+export function EndSettings(props: { row: PlannedCutRow | undefined; cutEnds: Plan['cutEnds'] }) {
+  const settings = props.row?.settings ?? [];
   if (settings.every((s) => s === '0.0°')) return null;
+  const described = props.cutEnds.find((c) => c.partId === props.row?.partId);
+  const name = (end: number) => {
+    const description = described?.ends[end]?.description;
+    return (description && endName(description)) ?? `End ${end + 1}`;
+  };
+  const bothAngled = settings.length === 2 && settings.every((s) => s !== '0.0°');
   return (
     <SettingBoxes>
       {settings.map((s, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: the two ends are positional.
-        <SettingBox key={i}>{s}</SettingBox>
+        <SettingBox key={i} end={name(i)}>
+          {s}
+        </SettingBox>
       ))}
+      {bothAngled && (
+        <span>{props.row?.endsParallel ? 'Ends parallel' : 'Ends mirror each other'}</span>
+      )}
     </SettingBoxes>
   );
 }

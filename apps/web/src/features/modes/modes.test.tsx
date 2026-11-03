@@ -114,11 +114,25 @@ describe('Building mode', () => {
     expect(text).toContain("Cut board 6, a 2x6 10' long: 2 × Crossbar");
     expect(text).toContain('Trim 1/2" off the factory end to square it');
     expect(text).toContain('Each saw cut takes 1/8"');
-    // Both crossbars, each with its tick, its length to cut, and its cut card.
-    // The saw settings beside the length, since a crossbar's ends are mitered (#362).
-    expect(text).toContain('D Crossbar, piece 1 of 2 cut 59" 20.0° 20.0° Cut card');
-    expect(text).toContain('D Crossbar, piece 2 of 2 cut 59" 20.0° 20.0° Cut card');
-    expect(html.match(/class="k-glance"/g)).toHaveLength(2);
+    // Both crossbars, each with its tick, its length to cut, and its cut card. The saw settings
+    // beside the length, since a crossbar's ends are mitered (#362), numbered by end, as the
+    // template does not name them, and saying they mirror each other (#455).
+    expect(text).toContain(
+      'D Crossbar, piece 1 of 2 cut 59" End 1 20.0° End 2 20.0° Ends mirror each other Cut card',
+    );
+    expect(text).toContain(
+      'D Crossbar, piece 2 of 2 cut 59" End 1 20.0° End 2 20.0° Ends mirror each other Cut card',
+    );
+    // A fixed grid: the tick with its letter in a column of its own, the length and settings, then
+    // Cut card on a line of its own, so it keeps its place however long the name (#455).
+    expect(
+      html.match(
+        /<div class="k-piece"><label class="k-tick"[^>]*><input type="checkbox"[^>]*\/><span class="k-part-letter">D<\/span>/g,
+      ),
+    ).toHaveLength(2);
+    expect(
+      html.match(/<div class="k-piece__action"><a [^>]*>Cut card<\/a><\/div><\/div>/g),
+    ).toHaveLength(2);
     expect(html.match(/checked=""/g)).toHaveLength(1);
     expect(html).toContain(`href="#/projects/${p.id}/build/board-6/crossbar"`);
     // The board's drawing: beside the step from the 8-column width, and on a phone after the
@@ -242,9 +256,7 @@ describe('Building mode', () => {
     const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     const html = render(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain('Step 6 of 11 · Cutting Back to the step');
-    expect(text).toContain(
-      `D Crossbar 2x6 (1-1/2" x 5-1/2"). Cut 2. From board 6, a 2x6 10' 0" long.`,
-    );
+    expect(text).toContain(`D Crossbar 2x6 (1-1/2" x 5-1/2"). Cut 2 from this board.`);
     expect(text).toContain('Length, long point to long point 59"');
     // Where the angles are laid out from, before the ends (#132).
     expect(text).toContain(
@@ -273,6 +285,21 @@ describe('Building mode', () => {
     expect(text).toContain('from the inner edge, against the beam.');
     expect(text).toMatch(/Top: level cut Saw at 20\.0° To the edge 70\.0°/);
     expect(text).toMatch(/Foot: level cut Saw at 20\.0° To the edge 70\.0°/);
+    // One of the two front legs comes off this board (#455).
+    expect(text).toContain('Cut 1 from this board (2 in all).');
+    // The cut detail names the ends as the text does.
+    expect(text).toContain(
+      'Hole positions are measured from the long point of the top, on the left',
+    );
+  });
+
+  it('names a leg’s settings Top and Foot on its step, and says the ends are parallel (#455)', () => {
+    const p = project();
+    const route = { screen: 'build-step' as const, id: p.id, step: 'board-2' };
+    const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
+    expect(text).toContain(
+      'C Front leg (downhill), piece 1 of 2 cut 138-3/8" Top 20.0° Foot 20.0° Ends parallel Cut card',
+    );
   });
 
   it('says when a link names a step the plan no longer has', () => {

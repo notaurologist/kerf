@@ -80,6 +80,15 @@ function panelOf(stock: PartStock): CutListRow['panel'] {
   return { width, boardLength, boards, recipe };
 }
 
+/**
+ * What a template calls an end, such as "Top" for "Top: level cut", so a drawing and a step label
+ * the end with the name its text uses. Undefined for an end the template does not name.
+ */
+export function endName(description: string): string | undefined {
+  const at = description.indexOf(': ');
+  return at > 0 ? description.slice(0, at) : undefined;
+}
+
 /** How a panel row's part is made from its boards, to go before its recipe. */
 export function panelMade(panel: NonNullable<CutListRow['panel']>): string {
   return panel.boards === 1 ? 'Ripped from' : 'Glued up from';

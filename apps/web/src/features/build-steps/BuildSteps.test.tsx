@@ -317,7 +317,11 @@ describe('a step taken in at a glance (#362)', () => {
         'build-steps',
       ),
     );
-    expect(text).toMatch(/B Back leg \(uphill\) 131-1\/2", piece 1 of 2 20\.0° 20\.0°/);
+    // Each setting named for its end, and whether the ends are parallel (#455).
+    expect(text).toMatch(
+      /B Back leg \(uphill\) 131-1\/2", piece 1 of 2 Top 20\.0° Foot 20\.0° Ends parallel/,
+    );
+    expect(text).toMatch(/D Crossbar 59", piece 1 of 2 End 1 20\.0° End 2 20\.0° Ends mirror/);
     expect(text).toMatch(/A Beam 120" (?!\d)/);
   });
 });

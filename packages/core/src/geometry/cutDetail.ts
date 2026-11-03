@@ -1,4 +1,5 @@
 import { type Part, widthTapers } from '../model/types.ts';
+import { endName } from '../outputs/cutList.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
 import { clipPolygon } from './clip.ts';
@@ -61,6 +62,12 @@ function windows(part: Part, outline: readonly UV[]): Window[] {
 export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`): Drawing {
   const W = part.stock.width;
   const ref: PartRef = { partId: part.id, instance: 0, letter: part.letter };
+  const names = part.ends.map((e) => endName(e.description));
+  /** "the top, on the left", or "the first end, on the left" for an end the template does not name. */
+  const whichEnd = (end: 0 | 1) => {
+    const name = names[end]?.toLowerCase() ?? (end === 0 ? 'first end' : 'second end');
+    return `the ${name}, on the ${end === 0 ? 'left' : 'right'}`;
+  };
   const outline = partOutline(part);
   const blank = blankOutline(part);
   const ws = windows(part, blank);
@@ -417,7 +424,22 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
         { at: c, square: 270, cut: 270 - part.ends[1].setting, setting: part.ends[1].setting }
       : { at: b, square: 90, cut: 90 + part.ends[1].setting, setting: part.ends[1].setting },
   ];
-  for (const end of ends) {
+  for (const [i, end] of ends.entries()) {
+    const first = i === 0;
+    const x = first ? xOf(left) - 0.35 * W : xOf(right) + 0.35 * W;
+    const anchor = first ? ('end' as const) : ('start' as const);
+    // The end's name, as the text names it ("Top", "Foot"), above its setting.
+    const name = names[i];
+    if (name) {
+      prims.push({
+        kind: 'text',
+        role: 'label',
+        at: { x, y: end.setting === 0 ? -0.65 * W : -1.05 * W },
+        text: name,
+        anchor,
+        part: ref,
+      });
+    }
     if (end.setting === 0) continue;
     const o = page(end.at);
     const r = 0.75 * W;
@@ -436,9 +458,6 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       part: ref,
     });
     // The setting and the angle to the edge, beside the end, outside the part.
-    const first = end.at === a;
-    const x = first ? xOf(left) - 0.35 * W : xOf(right) + 0.35 * W;
-    const anchor = first ? ('end' as const) : ('start' as const);
     prims.push({
       kind: 'text',
       role: 'dimension',
@@ -510,8 +529,6 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
 
   const along = (n: { along: number; across: number }) =>
     `${formatLength(n.along)} along the part by ${formatLength(n.across)} across`;
-  const endName = (end: 0 | 1) =>
-    end === 0 ? 'first end, on the left' : 'second end, on the right';
   const joinery = [
     ...part.dadoes.map((d) => {
       const runsAlong = d.u0 <= 1e-9 && d.u1 >= part.length - 1e-9;
@@ -523,11 +540,11 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     }),
     ...part.notches.map(
       (n) =>
-        `Notch at the ${endName(n.end)}, at the ${n.edge === 'reference' ? part.referenceEdge : 'far edge'}: ${along(n)}.`,
+        `Notch at ${whichEnd(n.end)}, at the ${n.edge === 'reference' ? part.referenceEdge : 'far edge'}: ${along(n)}.`,
     ),
     ...part.cutouts.map(
       (c) =>
-        `Cutout at the ${endName(c.end)}: ${formatLength(c.v1 - c.v0)} wide, ${formatLength(c.depth)} deep, starting ${formatLength(c.v0)} from the ${part.referenceEdge}.`,
+        `Cutout at ${whichEnd(c.end)}: ${formatLength(c.v1 - c.v0)} wide, ${formatLength(c.depth)} deep, starting ${formatLength(c.v0)} from the ${part.referenceEdge}.`,
     ),
     ...part.mortises.map((m) => {
       const onFace = m.side === 'near' || m.side === 'far';
@@ -575,7 +592,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       ),
     ...part.tenons.map(
       (t) =>
-        `Tenon at the ${endName(t.end)}: ${formatLength(t.length)} long, ${formatLength(t.thickness)} thick, ${formatLength(t.width)} wide, ${formatLength(t.n0)} from the back face and ${formatLength(t.v0)} from the ${part.referenceEdge}.`,
+        `Tenon at ${whichEnd(t.end)}: ${formatLength(t.length)} long, ${formatLength(t.thickness)} thick, ${formatLength(t.width)} wide, ${formatLength(t.n0)} from the back face and ${formatLength(t.v0)} from the ${part.referenceEdge}.`,
     ),
   ];
 
@@ -592,7 +609,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       `The face shown is the reference face (the loop). Angles are measured from the ${part.referenceEdge}, at the bottom.`,
       ...(holes.length > 0
         ? [
-            "Hole positions are measured from the first end's long point, on the left, along the reference edge.",
+            `Hole positions are measured from the long point of ${whichEnd(0)}, along the reference edge.`,
           ]
         : []),
       ...joinery,

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Pending } from './feedback.tsx';
+import { PartLetter } from './numbers.tsx';
 
 /**
  * Marks one item done in Shopping or Building (#57, #61), an expert check asked or a checklist item
@@ -17,6 +18,8 @@ export function Tick(props: {
   children: ReactNode;
   /** Read after the label by a screen reader only, for a short label the item beside it explains. */
   context?: ReactNode;
+  /** A part's letter, in its own column so a long label wraps beside it, not under it (#455). */
+  letter?: string;
 }) {
   return (
     <label className="k-tick" data-done={props.done || undefined}>
@@ -26,6 +29,7 @@ export function Tick(props: {
         checked={props.done}
         onChange={(e) => props.onChange(e.currentTarget.checked)}
       />
+      {props.letter !== undefined && <PartLetter>{props.letter}</PartLetter>}
       <span className="k-tick__label">
         <span>
           {props.children}
