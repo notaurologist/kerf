@@ -5,6 +5,7 @@ import { SOURCE_LINKS } from './sources.ts';
 // Table A-1:
 //   Fb'   = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r
 //   Fv'   = Fv · C_D · C_M · C_t · C_i
+//   Fc'   = Fc · C_D · C_M · C_t · C_F · C_i · C_P
 //   E'    = E · C_M · C_t · C_i
 //   Emin' = Emin · C_M · C_t · C_i · C_T
 
@@ -42,9 +43,24 @@ export type LoadDuration = Exclude<keyof typeof LOAD_DURATION, 'sources'>;
  * temperature. Keyed by the in-service temperature range.
  */
 export const TEMPERATURE = {
-  'up-to-100F': { Fb: { dry: 1.0, wet: 1.0 }, Fv: { dry: 1.0, wet: 1.0 }, E: 1.0 },
-  '100F-to-125F': { Fb: { dry: 0.8, wet: 0.7 }, Fv: { dry: 0.8, wet: 0.7 }, E: 0.9 },
-  '125F-to-150F': { Fb: { dry: 0.7, wet: 0.5 }, Fv: { dry: 0.7, wet: 0.5 }, E: 0.9 },
+  'up-to-100F': {
+    Fb: { dry: 1.0, wet: 1.0 },
+    Fv: { dry: 1.0, wet: 1.0 },
+    Fc: { dry: 1.0, wet: 1.0 },
+    E: 1.0,
+  },
+  '100F-to-125F': {
+    Fb: { dry: 0.8, wet: 0.7 },
+    Fv: { dry: 0.8, wet: 0.7 },
+    Fc: { dry: 0.8, wet: 0.7 },
+    E: 0.9,
+  },
+  '125F-to-150F': {
+    Fb: { dry: 0.7, wet: 0.5 },
+    Fv: { dry: 0.7, wet: 0.5 },
+    Fc: { dry: 0.7, wet: 0.5 },
+    E: 0.9,
+  },
   sources: [
     { source: 'nds-2024', locator: '2.3.3 and Table 2.3.3, p. 13', url: SOURCE_LINKS.ndsChapter2 },
   ],
@@ -59,6 +75,7 @@ export type TemperatureRange = Exclude<keyof typeof TEMPERATURE, 'sources'>;
 export const INCISING = {
   Fb: 0.8,
   Fv: 0.8,
+  Fc: 0.8,
   E: 0.95,
   Emin: 0.95,
   sources: [

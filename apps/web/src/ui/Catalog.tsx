@@ -46,6 +46,7 @@ import {
 import { ICON_NAMES, Icon } from './Icon.tsx';
 import { Card, Cluster, Stack, Switcher } from './layout.tsx';
 import { MeasureTable } from './MeasureTable.tsx';
+import { MenuButton } from './MenuButton.tsx';
 import {
   Changed,
   Glance,
@@ -299,6 +300,18 @@ function Specimens() {
           <Button variant="link">Show the working</Button>
           <IconButton icon="edit" label="Edit" />
           <IconButton icon="log-out" label="Log out" variant="quiet" />
+          <MenuButton
+            icon="print"
+            label="Print"
+            actions={[
+              {
+                label: 'Print the shop set',
+                detail: 'The cut list, boards, and build steps.',
+                onSelect: () => {},
+              },
+              { label: 'Print the whole plan', detail: 'Every section.', onSelect: () => {} },
+            ]}
+          />
           <Button busy busyLabel="Saving…">
             Save changes
           </Button>

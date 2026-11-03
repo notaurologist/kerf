@@ -36,6 +36,8 @@ import v29 from './snapshots/v29.json' with { type: 'json' };
 import v30 from './snapshots/v30.json' with { type: 'json' };
 import v31 from './snapshots/v31.json' with { type: 'json' };
 import v32 from './snapshots/v32.json' with { type: 'json' };
+import v33 from './snapshots/v33.json' with { type: 'json' };
+import v34 from './snapshots/v34.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -172,12 +174,36 @@ const isVersion32 = (c: { path: string }) =>
   /^structuralReview\.beam\.bending\.deeperStock(\.|\[|$)/.test(c.path);
 
 /**
- * Version 33's changes (#524): the bolts' spacing along the leg measured between rows (Table
+ * Version 33's changes (#467): the ground anchor check on pads, new, and the ground-anchor checklist
+ * item's reworded confirm and why. Set aside like version 18's.
+ */
+const isVersion33 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  (c.path === 'structuralReview.anchors' && c.before === undefined) ||
+  (/^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) &&
+    String(c.before).startsWith('Anchor type and count') &&
+    String(c.after).includes('how each anchor is fastened to its leg')) ||
+  (/^structuralReview\.checklist\[\d+\]\.why$/.test(c.path) &&
+    String(c.before).startsWith('Anchors keep the frame') &&
+    String(c.after).startsWith('The anchor check gives the pull on one anchor'));
+
+/**
+ * Version 34's changes (#468): the legs' column check, new in the review with nothing before it,
+ * and the anchor check's assumption about the legs' weight, which no longer says no species is
+ * entered for them. Set aside like version 18's.
+ */
+const isVersion34 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  (c.path === 'structuralReview.legs' && c.before === undefined) ||
+  (/^structuralReview\.anchors\.assumptions\[\d+\]$/.test(c.path) &&
+    String(c.before).includes('no species is entered') &&
+    !String(c.after).includes('species'));
+
+/**
+ * Version 35's changes (#524): the bolts' spacing along the leg measured between rows (Table
  * 12.5.1D) instead of in a row (Table 12.5.1B), and the assumed note saying each bolt is its own
  * row across the leg's grain. The distance itself does not move. Set aside like version 18's.
  */
 const SPACING_ALONG_LEG = /^design\.boltLayout\[\d+\]\.distances\[\d+\]\./;
-const isVersion33 = (c: { path: string; before?: unknown; after?: unknown }) => {
+const isVersion35 = (c: { path: string; before?: unknown; after?: unknown }) => {
   if (SPACING_ALONG_LEG.test(c.path)) {
     const field = c.path.replace(SPACING_ALONG_LEG, '');
     if (field === 'label') {
@@ -221,6 +247,8 @@ function regenerated(
   keepVersion31 = false,
   keepVersion32 = false,
   keepVersion33 = false,
+  keepVersion34 = false,
+  keepVersion35 = false,
 ) {
   const json = (value: unknown) => JSON.parse(JSON.stringify(value));
   const outputs = later === undefined ? fresh(snapshot) : read(later).outputs;
@@ -241,7 +269,9 @@ function regenerated(
         (keepVersion30 || !isVersion30(c)) &&
         (keepVersion31 || !isVersion31(c)) &&
         (keepVersion32 || !isVersion32(c)) &&
-        (keepVersion33 || !isVersion33(c)),
+        (keepVersion33 || later !== undefined || !isVersion33(c)) &&
+        (keepVersion34 || !isVersion34(c)) &&
+        (keepVersion35 || !isVersion35(c)),
     ),
   };
   return keepVersion18
@@ -761,7 +791,9 @@ describe('swing-set template versions', () => {
           !isVersion30(c) &&
           !isVersion31(c) &&
           !isVersion32(c) &&
-          !isVersion33(c),
+          !isVersion33(c) &&
+          !isVersion34(c) &&
+          !isVersion35(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1133,18 +1165,57 @@ describe('swing-set template versions', () => {
     ]);
   });
 
-  // Hand check in the spec, Bolt layout: ℓ is the lesser of the leg's 3.5 and the board's 1.5, so
-  // ℓ/D = 3 for 1/2" bolts and Table 12.5.1D gives (5·1.5 + 10·0.5) / 8 = 1.5625. The bolts stay
-  // 2.75 / cos 20° = 2.9265 (crossbar) and 3.625 / cos 20° = 3.8576 (gusset) apart along the leg.
-  it("version 33 measures the bolts' spacing along the leg between rows, and changes nothing else (#524)", () => {
-    const keep33 = [...Array(10).fill(false), undefined, false, false, true] as const;
+  // Hand check in structural.test.ts and the spec's example 4. The two-ply example on pads gets the
+  // anchor check; the buried worked example gets none, so it changes nothing.
+  it('version 33 checks the ground anchors on pads against uplift, and changes nothing else (#467)', () => {
+    // Version 29's filter would also hide the checklist item's confirm, so it is kept.
+    const keep33 = [...Array(8).fill(false), true, false, undefined, false, false, true] as const;
+    const added: unknown[] = [];
     for (const stored of v32) {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(32);
       const { changes } = regenerated(snapshot, ...keep33);
       expect(changes.filter((c) => !isVersion33(c))).toEqual([]);
+      const onPads = (snapshot.params as { burialDepth: number }).burialDepth === 0;
+      // On pads: the check, and the checklist item's confirm and why.
+      expect(changes).toHaveLength(onPads ? 3 : 0);
+      added.push(
+        ...changes.filter((c) => c.path === 'structuralReview.anchors').map((c) => c.after),
+      );
     }
-    const layout = at(fresh(read(v32[0])), 'design.boltLayout') as BoltJoint[];
+    expect(added).toHaveLength(1);
+    expect(added[0]).toMatchObject({ kind: 'hardware', subject: 'Ground anchor' });
+  });
+
+  // Hand check in structural.test.ts: the worked example's front leg runs (96 + 3.313) / cos 20° =
+  // 105.687 from grade to the beam, so ℓe/d = 2.10 · 105.687 / 3.5 = 63.4 along the beam, over 50.
+  it("version 34 adds the legs' column check, and changes nothing else (#468)", () => {
+    const keep34 = [...Array(10).fill(false), undefined, false, false, false, true] as const;
+    for (const stored of v33) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(33);
+      expect(snapshot.outputs).not.toHaveProperty('structuralReview.legs');
+      const { changes } = regenerated(snapshot, ...keep34);
+      expect(changes.filter((c) => !isVersion34(c))).toEqual([]);
+      const legs = changes.filter((c) => c.path === 'structuralReview.legs');
+      expect(legs).toHaveLength(1);
+      expect(legs[0]?.after).toMatchObject({ kind: 'column' });
+    }
+  });
+
+  // Hand check in the spec, Bolt layout: ℓ is the lesser of the leg's 3.5 and the board's 1.5, so
+  // ℓ/D = 3 for 1/2" bolts and Table 12.5.1D gives (5·1.5 + 10·0.5) / 8 = 1.5625. The bolts stay
+  // 2.75 / cos 20° = 2.9265 (crossbar) and 3.625 / cos 20° = 3.8576 (gusset) apart along the leg.
+  it("version 35 measures the bolts' spacing along the leg between rows, and changes nothing else (#524)", () => {
+    const keep35 = [...Array(10).fill(false), undefined, false, false, false, false, true] as const;
+    for (const stored of v34) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(34);
+      const { changes } = regenerated(snapshot, ...keep35);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion35(c))).toEqual([]);
+    }
+    const layout = at(fresh(read(v34[0])), 'design.boltLayout') as BoltJoint[];
     const alongLeg = layout.flatMap((j) =>
       j.distances
         .filter((d) => d.label === 'Spacing between rows, along the leg')

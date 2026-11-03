@@ -16,7 +16,7 @@ Me (Jason), for the foreseeable future. I have some experience building rudiment
 ## Core principles
 
 1. **Geometry is deterministic.** Every dimension, angle, and quantity comes from template math, never from AI. Wrong dimensions waste wood; the numbers must be exact and reproducible.
-2. **Structural checks are transparent checks, not engineered designs.** The app computes what is well understood (beam bending, deflection, shear, and hardware load vs. rating) and shows every input, formula, assumption, adjustment factor, and source. What is hard to compute reliably (connections, racking, tipping, anchoring) goes on a confirmation checklist instead. Final structural decisions rest with me, experienced people, and manufacturer specifications.
+2. **Structural checks are transparent checks, not engineered designs.** The app computes what is well understood (beam bending, deflection, shear, column compression, and hardware load vs. rating) and shows every input, formula, assumption, adjustment factor, and source. What is hard to compute reliably (connections, racking, tipping, anchoring) goes on a confirmation checklist instead. Final structural decisions rest with me, experienced people, and manufacturer specifications.
 3. **Flag what warrants an expert check.** Steps and design choices in known risk categories (see `DOMAIN.md`) carry a visible flag saying what to ask about and why.
 4. **Plans adapt to my tools.** Each operation (for example, an angled crosscut) can be done several ways. The app picks methods my inventory supports and explains them.
 5. **Tool suggestions are generic.** "A miter saw would make these angle cuts faster and more repeatable," not specific products or brands.
@@ -65,7 +65,7 @@ A low cabinet with record bays and room on the top for a turntable or whatever e
 6. **Build steps.** Ordered steps, each listing its operations; for each operation, the method chosen from my inventory, skills involved, expert-check flags, and optional generic tool suggestions. Method content is written for the tools I own, plus one alternative per operation to support tool suggestions.
 7. **Structural review.** Two parts, generated from the template and its parameters:
    - **Confirmation checklist:** specific items to confirm with an experienced builder, tied to the design (for example, "Top beam spans 10 ft carrying two swings: confirm beam size for adult use," "Leg-to-beam bolts carry swing loads: confirm bolt size, spacing, and edge distance").
-   - **Structural checks:** computed loads and margins for beams and rated hardware, with the full calculation visible and expandable. Results read as "margin 2.1x under these assumptions," never "safe." Inputs the user must supply or confirm (lumber species and grade, rider weights, dynamic factor, deflection limit) are explicit, with no hidden defaults; a suggested one shows its source until confirmed (#355).
+   - **Structural checks:** computed loads and margins for beams and rated hardware (including ground anchors against uplift), with the full calculation visible and expandable. Results read as "margin 2.1x under these assumptions," never "safe." Inputs the user must supply or confirm (lumber species and grade, rider weights, dynamic factor, deflection limit) are explicit, with no hidden defaults; a suggested one shows its source until confirmed (#355).
 8. **Project history.** Projects have a status (planned, in progress, built) and record the operations, methods, and skills each one used. In the MVP this is recorded data; later projects use it to refer back (see After the MVP).
 9. **Shop-friendly.** Readable on a phone or tablet in the garage: large text, steps one at a time. Assumes reliable internet in the shop; a project that is already open stays readable if the connection drops briefly.
 
@@ -83,7 +83,7 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 ## Non-goals (MVP)
 
 - Free-form CAD or modeling. Templates only.
-- Connection design, racking, tipping, or anchoring calculations (checklist only).
+- Connection design, racking, tipping, sliding, or soil capacity calculations (checklist only). The one exception is a statics-only uplift check: the fore-and-aft swing force and the uplift it gives at each foot on pads, reported as a hardware load against the ground anchor's rated pull-out, which the owner enters (#467).
 - Certifying loads or replacing manufacturer ratings.
 - Brand- or product-specific recommendations.
 - AI-generated dimensions or diagrams.

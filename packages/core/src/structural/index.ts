@@ -45,7 +45,17 @@ export {
   clearWoodChecks,
 } from './clearWood.ts';
 export {
+  type AxialLoad,
+  type ColumnAxis,
+  type ColumnCheckInput,
+  type ColumnMember,
+  columnCheck,
+  columnStabilityFactor,
+} from './column.ts';
+export {
+  type AdjustedCompression,
   type AdjustedValues,
+  adjustedCompression,
   adjustedValues,
   beamStabilityFactor,
   effectiveLength,

@@ -97,9 +97,20 @@ const addHoleSizes: SnapshotUpgrade = (snapshot) => {
   };
 };
 
-/** The plan's checks, in the order the structural review lists them. */
-function reviewChecks(review: Pick<SwingSetStructuralReview, 'beam' | 'hanger'>) {
+/** The beam's and hanger's checks, which the beam's other stock sizes are offered against. */
+function beamChecks(review: Pick<SwingSetStructuralReview, 'beam' | 'hanger'>) {
   return [review.beam.bending, review.beam.shear, review.beam.deflection, review.hanger];
+}
+
+/** The plan's checks, in the order the structural review lists them. */
+function reviewChecks(
+  review: Pick<SwingSetStructuralReview, 'beam' | 'hanger' | 'anchors' | 'legs'>,
+) {
+  return [
+    ...beamChecks(review),
+    ...(review.anchors ? [review.anchors] : []),
+    ...(review.legs ? [review.legs] : []),
+  ];
 }
 
 /** Everything but each line's other stock sizes, which take this to work out. */
@@ -124,9 +135,11 @@ function outputsFor(
 }
 
 /**
- * The stock parameters whose other sizes the plan can give a margin for (#450): only the beam's,
- * the one member a check computes. The beam checks read the legs' and gussets' sizes too, through
- * the span, but say nothing of whether those parts are strong enough, so they get no other size.
+ * The stock parameters whose other sizes the plan can give a margin for (#450): only the beam's.
+ * The beam checks read the legs' and gussets' sizes too, through the span, but say nothing of
+ * whether those parts are strong enough, so they get no other size. The legs' check reads the
+ * beam's size through its weight and width but says nothing of the beam, so the beam's other sizes
+ * are offered against the beam's and hanger's checks alone.
  */
 function stockFields(params: SwingSetParams) {
   return [
@@ -181,7 +194,11 @@ export const swingSetAFrame: TemplateDefinition<
   // read unchanged. Shape 17 adds the project's suggested values (#417); every older plan's
   // values were entered, so it reads with none. Shape 18 adds a check's results in the next deeper
   // stock (#466), optional.
-  snapshotVersion: 18,
+  // Shape 19 adds the ground anchor check on pads (#467), optional: a plan stored before it shows
+  // no anchor check until it is regenerated. Shape 20 adds the legs' species, grade, and incising
+  // as structural inputs and the legs' column check to the review (#468), both optional: a plan
+  // stored before it has neither, and its review lists the checks it was made with.
+  snapshotVersion: 20,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -200,6 +217,8 @@ export const swingSetAFrame: TemplateDefinition<
     15: (snapshot) => snapshot,
     16: noSuggestions,
     17: (snapshot) => snapshot,
+    18: (snapshot) => snapshot,
+    19: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   questions: SWING_SET_QUESTIONS,
@@ -235,12 +254,12 @@ export const swingSetAFrame: TemplateDefinition<
     if (!made.ok) return made;
     const lumber = withStockAlternatives(
       made.output.lumber,
-      reviewChecks(made.output.structuralReview),
+      beamChecks(made.output.structuralReview),
       stockFields(params),
       checkFields,
       (path, nominal) => {
         const other = outputsFor({ ...params, [path]: nominal }, structuralInputs);
-        return other.ok ? reviewChecks(other.output.structuralReview) : null;
+        return other.ok ? beamChecks(other.output.structuralReview) : null;
       },
     );
     const review = withDeeperStock(made.output.structuralReview, params, structuralInputs);

@@ -14,6 +14,11 @@
     font-size: var(--size--1);
   }
 
+  /* Only in the printed shop set (print.css). */
+  .k-text[data-shop-set-only] {
+    display: none;
+  }
+
   .k-visually-hidden {
     position: absolute;
     inline-size: 1px;

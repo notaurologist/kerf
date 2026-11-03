@@ -167,7 +167,7 @@ function header(kind: CheckKind, title: string, subject: string, loadCase: strin
 }
 
 /** Missing inputs across several needs, each listed once. */
-function missingFrom(...needs: Needed<unknown>[]): MissingInput[] {
+export function missingFrom(...needs: Needed<unknown>[]): MissingInput[] {
   const all = needs.flatMap((n) => (isMissing(n) ? n.missing : []));
   return all.filter((m, i) => all.findIndex((other) => other.key === m.key) === i);
 }
@@ -393,7 +393,7 @@ function scaled<T extends BeamLoads | SpanLoads>(loads: T, C: number): T {
 }
 
 /** The factor's value as an input in the working. */
-function factorQuantity(factor: LoadFactor, value: number): Quantity {
+export function factorQuantity(factor: LoadFactor, value: number): Quantity {
   return {
     symbol: factor.symbol,
     label: factor.label,
@@ -746,8 +746,12 @@ export interface HardwareCheckInput {
   /** Named by the template, such as 'Rated connector'. */
   subject: string;
   loadCase: string;
-  /** The load on one piece of hardware before any factor, with its working. */
-  load: Needed<{ value: number; working: Quantity[]; assumptions: string[] }>;
+  /**
+   * The load on one piece of hardware before any factor, with its working. `unfactored` is a part
+   * the factor does not multiply, added after it: negative for weight that holds the piece down,
+   * such as a frame's own weight on a ground anchor.
+   */
+  load: Needed<{ value: number; unfactored?: number; working: Quantity[]; assumptions: string[] }>;
   factor?: LoadFactor;
   /** Manufacturer's rated working load for one piece, pounds. */
   rating: Needed<number>;
@@ -763,8 +767,10 @@ export function hardwareCheck(input: HardwareCheckInput): CheckResult {
   }
   const load = input.load.value;
   const rating = input.rating.value;
-  // Rating / (C · load) = 1 at C = rating / load.
-  const atMarginOne = factor && breakEven(factor, rating / load.value);
+  const unfactored = load.unfactored ?? 0;
+  // Rating / (C · load + unfactored) = 1 at C = (rating − unfactored) / load.
+  const atMarginOne =
+    factor && load.value > 0 && breakEven(factor, Math.max(0, (rating - unfactored) / load.value));
   if (factor && isMissing(factor.value)) {
     return {
       ...head,
@@ -774,7 +780,16 @@ export function hardwareCheck(input: HardwareCheckInput): CheckResult {
     };
   }
   const C = factor && !isMissing(factor.value) ? factor.value.value : undefined;
-  const P = load.value * (C ?? 1);
+  const P = load.value * (C ?? 1) + unfactored;
+  if (P <= 0) {
+    return {
+      ...head,
+      status: 'not-computed',
+      reason:
+        'The load on one piece is zero or less under these loads, so there is no margin to report.',
+      sources: [],
+    };
+  }
   return {
     ...head,
     status: 'computed',
@@ -790,7 +805,13 @@ export function hardwareCheck(input: HardwareCheckInput): CheckResult {
       },
     ],
     formulas: [
-      ...(factor && C !== undefined ? [`P = ${factor.symbol} · load before the factor`] : []),
+      ...(factor && C !== undefined
+        ? [
+            load.unfactored === undefined
+              ? `P = ${factor.symbol} · load before the factor`
+              : `P = ${factor.symbol} · load before the factor + the part it does not multiply`,
+          ]
+        : []),
       'margin = rated working load / computed load',
     ],
     steps: [],

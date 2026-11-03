@@ -115,7 +115,7 @@ describe('board cards (#59)', () => {
   it('open under each lumber line', () => {
     expect(text.match(/The boards?, and what to look for/g)).toHaveLength(4);
     expect(text).toContain(
-      `4 × 4x4, 12' 0" Not in stock? Buy one of these instead: 4 × 4x4, 14' 0". The boards, and what to look for`,
+      `4 × 4x4, 12' 0" Leg species and grade: Southern Pine No.2. Change Whether the leg lumber is incised: No. Change Not in stock? Buy one of these instead: 4 × 4x4, 14' 0". The boards, and what to look for`,
     );
   });
 

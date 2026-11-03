@@ -37,6 +37,8 @@ const allInputs: SwingSetStructuralInputs = {
   dynamicFactor: 2,
   deflectionLimit: 240,
   hangerRating: 1200,
+  legSpeciesGrade: 'southern-pine-no2',
+  legIncised: false,
 };
 
 export const EXAMPLES: readonly {
@@ -66,6 +68,7 @@ export const EXAMPLES: readonly {
         ...WORKED_EXAMPLE.hardware,
         plyBolts: { diameter: 0.5, count: 6 },
         anchorsPerFoot: 1,
+        anchorRating: 500,
         hangerMounting: {
           kind: 'horizontal-bolts',
           diameter: 0.375,

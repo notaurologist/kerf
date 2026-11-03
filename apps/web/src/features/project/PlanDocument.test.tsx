@@ -60,11 +60,19 @@ describe('the plan’s header (#356)', () => {
     // The worked example with heavier riders: the beam's computed bending stress is larger than
     // its allowable one. At the inner hangers' holes the hangers give 17,250 · (3/2) · (250/150) =
     // 43,125 and the beam's weight 493.78, so f_b = 43,618.78 / 14.8099 = 2945.2 against 991.59:
-    // margin 0.34.
+    // margin 0.34. The frame is lowered to 72" on level ground so the legs' column check has a
+    // margin too (the spec's example 5, margin 5.3 at these riders' lighter loads); the worked
+    // example's legs are over the NDS slenderness limit, which leaves the plan no lowest margin.
     const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
     const example = template.examples[0];
     if (!example) throw new Error('no worked example');
-    const made = createSnapshot(template, example.params, {
+    const params = {
+      ...(example.params as object),
+      beamHeight: 72,
+      groundSlope: 0,
+      crossbarHeight: 30,
+    };
+    const made = createSnapshot(template, params, {
       ...(example.structuralInputs as object),
       riderWeights: [250, 250],
       dynamicFactor: 3,
@@ -108,9 +116,11 @@ describe('the plan’s contents', () => {
       'boards',
       'shopping-list',
       'build-steps',
-      // Printed only, after the plan: the values used (#356) and the terms (#180).
+      // Printed only, after the plan: the values used (#356) and the terms (#180), the whole
+      // plan's and the shop set's (#469).
       'values-used',
       'terms-used',
+      'shop-terms-used',
     ]);
   });
 
@@ -132,10 +142,10 @@ describe('the plan’s contents', () => {
 });
 
 describe('the plan’s header', () => {
-  it('offers Edit and leaves printing to the browser', () => {
+  it('offers Edit, and Print with the shop set and the whole plan (#469)', () => {
     const top = textOf(html(complete).slice(0, html(complete).indexOf('</header>')));
     expect(top).toBe(
-      'Backyard swing set Planned About this plan Template Two-swing A-frame swing set, version 1. Edit',
+      'Backyard swing set Planned About this plan Template Two-swing A-frame swing set, version 1. Edit Print Print the shop set The cut list, boards, and build steps. Print the whole plan Every section, with the structural review and its working.',
     );
   });
 
