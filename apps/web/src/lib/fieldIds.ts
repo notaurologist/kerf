@@ -8,12 +8,15 @@ export const fieldId = (from: FormSource, path: string) =>
   `${from === 'params' ? 'p' : 's'}-${path}`;
 
 /**
- * The editor field for a structural input a check names as missing, by its key: the field with
- * that path, or the first one under it, such as `moisture.low` for `moisture`.
+ * The editor field for an input a check names as missing, by its key: the structural input with
+ * that path, or the first one under it, such as `moisture.low` for `moisture`; failing that, a
+ * parameter with that path, such as a hardware rating entered beside its count.
  */
 export function inputFieldId(form: TemplateForm, key: string): string | undefined {
   const field = form.structuralInputs
     .flatMap((section) => section.fields)
     .find((f) => f.path === key || f.path.startsWith(`${key}.`));
-  return field && fieldId('structuralInputs', field.path);
+  if (field) return fieldId('structuralInputs', field.path);
+  const param = form.params.flatMap((section) => section.fields).find((f) => f.path === key);
+  return param && fieldId('params', param.path);
 }

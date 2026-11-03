@@ -21,7 +21,9 @@ export const PRESERVATIVE_GROUP = 'Paint and stain';
 export const HANGERS = 'Swing hangers';
 export const ANCHORS = 'Ground anchors';
 /** The anchor count's field, as the form labels it. */
-const ANCHORS_PER_FOOT = 'Ground anchors per leg foot';
+export const ANCHORS_PER_FOOT = 'Ground anchors per leg foot';
+/** The anchor rating's field, as the form labels it. */
+export const ANCHOR_RATING = 'Ground anchor rated pull-out, one anchor';
 
 const FRAMES = 2;
 /** Each frame has two legs, and the crossbar and the gusset each meet both. */

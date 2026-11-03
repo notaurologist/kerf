@@ -63,6 +63,8 @@ Template version 27 (#447) marks every part as treated lumber, so every cut and 
 
 Template version 28 (#456) also measures the gusset's bolts against the beam's weight, which pushes down across the gusset's grain (Bolt layout, below). Before, the gusset was measured only for load along its grain, which left the top edge, the loaded edge under the beam, at 1.5D where NDS 2024 sets 4D. In the worked example the top gusset bolt is 1.8125 (3.6D) from the top edge, under 2", so the gusset's expert check names it. No part, cut, or bolt moves.
 
+Template version 29 (#467) computes, for legs on pads, the fore-and-aft force the swings put on each frame and the uplift it gives at each foot, and checks the pull on one ground anchor against the anchor's rated pull-out, a new hardware input with no default (Structural model, below). The owner chose this on #467 (November 3, 2026); `PRODUCT.md` narrows its non-goal to match. The ground-anchor checklist item now asks about the soil, the anchors' fastening to the legs, and sliding, which stay uncomputed. No part, cut, or bolt moves.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -92,11 +94,11 @@ Not covered in version 1: metal A-frame brackets, legs with seat cuts under the 
 | Hanger spacing | s_h | Distance between a swing's two hangers along the beam |
 | Seat width | s_w | Side-to-side width of a seat |
 | Seat height | h_s | Height of the seat's underside above the ground under the beam, at rest |
-| Hardware | | Bolt diameters and counts, confirmed with an experienced builder; no defaults (see Hardware) |
+| Hardware | | Bolt diameters and counts, confirmed with an experienced builder; on pads, ground anchors per foot and one anchor's rated pull-out, read from the anchor maker. No defaults (see Hardware) |
 
 The ground is the line z_g(y) = k·y with k = g / 12, the same at every x.
 
-Every number has a range in the parameter schema (#421, November 2, 2026). Those that had none take one from the beam's: crossbar height and seat height at most 144 (the tallest beam), frame inset at most 120 (half the longest beam), swing centers 0 to 240, hanger spacing and seat width at most 240, and a footprint depth at most 360, past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). Each is wider than Validation already allows, so no plan changes and the template version stays the same.
+Every number has a range in the parameter schema (#421, November 2, 2026). Those that had none take one from the beam's: crossbar height and seat height at most 144 (the tallest beam), frame inset at most 120 (half the longest beam), swing centers 0 to 240, hanger spacing and seat width at most 240, and a footprint depth at most 360, past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). Each is wider than Validation already allows, so no plan changes and the template version stays the same. One ground anchor's rated pull-out, added in version 29, is at most 10,000 lb, past any swing set anchor that gives a rating (one kit claims 2,500).
 
 ## Derived geometry
 
@@ -250,13 +252,13 @@ Every structural connection is a through-bolt with a flat washer at each end and
 - **Per bolt:** two flat washers, one locking nut, and one cap for the exposed end.
 - **Swing hangers:** 4, rated for swing use. Their rating is a structural input checked in M2.
 - **Swing seats:** 2, lightweight (CPSC p. 4), with chain set to the chain length.
-- **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none. Until the count is entered the anchors are listed with no quantity, marked as waiting for it (version 16, #406), so a plan on pads can be made before the store.
+- **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none. Until the count is entered the anchors are listed with no quantity, marked as waiting for it (version 16, #406), so a plan on pads can be made before the store. One anchor's rated pull-out, in pounds, is entered beside the count (version 29, #467) for the anchor check (Structural model); it has no default and is never suggested (hard rule 3). Many anchor kits print no rating, and the help says to ask the maker.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
 - **Treated lumber** (version 22, #449): IRC 2021 R317.3.1 requires fasteners, including nuts and washers, in preservative-treated wood to be hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, and its exception 2 allows mechanically galvanized steel to ASTM B695 Class 55 or heavier for fasteners other than nails, staples, and timber rivets. The hardware notes name these. Its exception 1 exempts steel bolts 1/2" and larger; Kerf does not use it, since CPSC asks for corrosion-resistant hardware on a play set. The IRC is a code for houses, read here as the reference for which materials suit treated lumber.
 - **Preservative** (version 27, #447): one wood preservative for cut ends, in its own store group, "Paint and stain", for the field treatment below. Its notes say IRC 2021 R317.1.1 requires it, to choose one labeled for treating cuts in treated wood, and that copper naphthenate suits any treated lumber while boron is only for wood off the ground and out of the rain. They give AWPA M4-06's figures for copper naphthenate: at least 2.0% copper as metal, or 1.0% where that is not readily available (7.1.1). IRC 2021 refers to M4-15, which is sold and could not be read; the 2006 edition was read in full. Secondary summaries that give only 2% or only 1% each quote half of 7.1.1.
 - **Notes on the lines** (version 22): each item's notes are carried to its shopping line, and the plan's list and Shopping mode show them under it.
 - **Store groups** (version 12): the bolts and their washers, nuts, and caps are "Bolts and fittings"; the hangers and seats are "Swing hardware"; the ground anchors are "Ground anchors"; the preservative is "Paint and stain" (version 27). The store checklist shows them in that order, after the lumber.
-- **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, and, on pads, the ground anchors per leg foot beside the anchors (`storeReadings.ts`). Each says where to look, and once entered, shows the value with a link to change it.
+- **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, and, on pads, the ground anchors per leg foot and one anchor's rated pull-out beside the anchors (`storeReadings.ts`). Each says where to look, and once entered, shows the value with a link to change it.
 
 ### Tools for the work
 
@@ -592,6 +594,8 @@ None has a default (decision 0001). A missing input makes every check that needs
 | Deflection limit, span divided by N | Deflection |
 | Swing hanger rated working load, from the manufacturer | Hanger |
 
+On pads, the anchor check also needs two hardware parameters (Hardware, above): the ground anchors per leg foot and one anchor's rated pull-out. Like the inputs, neither has a default.
+
 ### Loads and load cases
 
 - **Swing load:** chain tension at the bottom of the arc T = W·(3 − 2·cos θ). For a pendulum of length r released from rest at θ, the speed at the bottom gives v² = 2·g·r·(1 − cos θ), and T = W + W·v²/(g·r) = W·(3 − 2·cos θ). It is 1·W at rest, 2·W at 60°, and 3·W at 90°.
@@ -600,13 +604,21 @@ None has a default (decision 0001). A missing input makes every check that needs
 - **Break-even dynamic factor** (#401): each strength check also reports the dynamic factor at which its margin reaches 1.0, with every other input as entered (`DOMAIN.md`, Structural checks). For the hanger it is the rating over the smooth-swing load on the most loaded hanger. For bending and shear it is solved from the check, since the beam's weight is not multiplied: C = (allowable − the weight's part) / the hangers' part at factor 1. It is shown with the check and under the dynamic factor's field in Edit, and it is reported while the factor is still missing; the checks stay "input needed" until the factor is entered.
 - **Deflection:** per-hanger load without the dynamic factor.
 - **Beam:** supported where it bears, with a point load at each hanger, `swings.hangersX`. The gusset is fitted with its top edge against the beam's underside, and the leg-to-beam bolt sits in a hole 1/16" over its size (Hole size, version 9), so the gusset is what the beam meets first. The bolt carries part of the reaction only if the gusset settles (its own bolts are in oversize holes too) or the wood crushes; that moves the support inward and shortens the span, so the gusset position is the longer of the two. Each support is at the middle of the part of the gusset's top edge under the beam, b_g = min(gt, e) long: x = e − b_g/2 and L − e + b_g/2 (`beamSupports` in `structural.ts`, version 23, #445). NDS 2024 3.2.1 (p. 17) takes a simple beam's span "from face to face of supports, plus ½ the required bearing length at each end". The faces are the gussets' inner faces, L − 2e apart, and the required bearing length can be no more than the bearing there is, b_g, so the span to the middle of each gusset, L − 2e + b_g, is the longest the clause allows. Kerf uses it rather than computing the required bearing length, which needs a bearing check it does not make; the longer span gives the larger moment and deflection. With e = 0 no gusset is under the beam, and it is supported at the bolts, `geometry.supportsX`. Before version 23 the supports were the frame centerlines, which put the span 2.5 short at each end in the worked example. The unbraced length for beam stability is the span, since each frame holds the beam against rotation (a checklist item). The beam's own weight is a uniform load over the span, not multiplied by the dynamic factor; the overhangs' weight is left out, which slightly raises the moment between the supports.
+- **Uplift at the feet** (pads only, version 29, #467): on the way down from θ, at angle φ from vertical, the chain carries T = W·(3·cos φ − 2·cos θ): v² = 2·g·r·(cos φ − cos θ) from the energy, and T = W·cos φ + W·v²/(g·r) from the centripetal force (the same sources as the swing load, at φ instead of the bottom). Its fore-and-aft part F = T·sin φ pushes the beam toward the front or the back, in the plane of each A-frame, and its vertical part V = T·cos φ pushes down. Both act at the hangers, (y, z) = (0, H).
+  - **Each frame's share:** the share of each hanger's load the beam's span gives that frame, with the supports of the beam checks: W_f = Σ (W_i / 2)·(x_far − x_i) / (x1 − x0), and half the beam's whole weight, D = w·L / 2, at y = 0.
+  - **Feet:** where each leg's centerline meets the ground (Where the leg meets the ground; on pads the foot is at grade): the back foot at y_b = Q_y + (H − z_b)·tan α, z_b its ground height, and the front foot at y_f = −(Q_y + (H − z_f)·tan α).
+  - **Moments:** pushed toward the back, the frame pivots on its back foot and the front foot lifts. The lifting foot bears nothing, so it has no friction, and the whole fore-and-aft reaction is at the pivot. Moments about the pivot (OpenStax University Physics Vol. 1, 12.1 and 12.2) give the front foot's reaction R_f = [(V + D)·y_b − F·(H − z_b)] / (y_b − y_f). Pushed toward the front, R_b = [(V + D)·(−y_f) − F·(H − z_f)] / (y_b − y_f). Writing each as R = (V + D)·c_v − F·c_h, the uplift at a foot with the dynamic factor C is U = C·S − D·c_v, where S = −W_f · min over 0 ≤ φ ≤ θ of (3·cos φ − 2·cos θ)·(c_v·cos φ − c_h·sin φ).
+  - **Where the minimum is:** found numerically, by golden-section search on [0, θ]. It is not where the fore-and-aft force peaks (φ = 45° for θ = 90°), since the vertical part, which holds the foot down, falls faster there. On level ground with θ = 90° it is closed form: c_v = 1/2, c_h = h/2 with h = H / b and b = y_b, and the minimum is 0.75·(1 − √(1 + h²)) at φ = 90° − ½·atan h.
+  - **Check:** a hardware load against its rating (`DOMAIN.md`, Structural checks). The load on one anchor is (C·S − D·c_v) / n with n anchors per foot, at the foot where it is largest, against one anchor's rated pull-out. The dynamic factor multiplies the swing part only, as it leaves the beam's weight alone in bending, so the break-even factor is (n·R_rated + D·c_v) / S. When the load is zero or less no foot lifts and no margin is reported. The working also gives, without the dynamic factor, each foot's uplift and the largest fore-and-aft force on each frame over the swing, W_f · max sin φ·(3·cos φ − 2·cos θ), which is at cos φ = (cos θ + √(cos² θ + 18)) / 6.
+  - **Weight:** the beam's weight comes from the entered species, grade, and moisture content, as in the beam checks. The legs', crossbars', and gussets' weight would also hold the feet down, but no species is entered for them, so it is left out, which makes the uplift larger.
+  - **Assumptions stated on the result:** both swings at the same φ at the same time (riders in sync, as the other checks take them at the bottom together); a centered rider; the frame's own inertia left out; the anchor holds its rating in this soil, fastened to the leg as its maker specifies. Sliding (the frame walking) is not computed and stays on the checklist, as do buried legs, which have no anchor to rate.
 - **Service conditions:** wet service (outdoors, uncovered), C_t = 1.0 (no sustained heat above 100°F), C_D = 1.0 (the impact increase is not used, and the NDS bars factors above 1.6 for lumber treated with water-borne preservatives, 4.3.13 and Table 2.3.2, footnote 2), no repetitive member factor (one beam).
 - **Beam weight:** w = ρ·A / 1728 lb/in, with A the cross-section of all plies and ρ the density at the entered moisture content M from Simpson, FPL-GTR-76: G_b = G / (1 + 0.265·G) with G = 0.55 from Table 4B, then ρ = 62.4·G_b·(1 + M/100) at or above 30%, divided by (1 − 0.265·a·G_b) with a = (30 − M)/30 below 30%. The NDS Supplement 3.1.3 formula agrees within 0.3% up to 30%; above 30% it reads low, because it keeps shrinking the volume of wood that no longer swells.
 - **Built-up beam:** each ply carries an equal share of every load, including the beam's weight (decision 0013).
 
 ### Checklist
 
-Leg-to-beam bolt and gusset; beam plies (built-up beams only); beam held against rotation at each frame; racking of the A-frames and crossbars; burial or ground anchors; swing hanger installation; lumber quality in the beam and legs; an inspection routine (CPSC Pub. 324, p. 5).
+Leg-to-beam bolt and gusset; beam plies (built-up beams only); beam held against rotation at each frame; racking of the A-frames and crossbars; burial, or on pads the ground anchors' type, soil, fastening to the legs, and sliding; swing hanger installation; lumber quality in the beam and legs; an inspection routine (CPSC Pub. 324, p. 5).
 
 ### Worked examples (hand-checked)
 
@@ -665,6 +677,28 @@ Beam stability: ℓu/d = 97.5/5.5 = 17.7 > 14.3, so ℓe = 1.84·97.5 = 179.4.
 The two-ply 2x6 has less margin in bending than the 4x6 under the same inputs, for two reasons: two 2x6 plies (3.0 in) are narrower than a 4x6 (3.5 in), and one ply is far more slender for beam stability. The beam's weight lowers each bending margin by about 3%. Maximum moments and deflections were also found by sampling the summed DA6 curves at 200,000 points; the code finds them exactly, and both agree to the precision shown. Version 23's numbers were recomputed by a separate script that first reproduced every version 22 number above from the old supports.
 
 The supports at the frame centerlines give a shorter span and so a larger margin in bending and deflection, but in example 2 a slightly smaller one in shear (3.19 against 3.21), since the left reaction is then larger (683.85 against 679.61). The difference is under 1%, and the bolt carries load only after the gusset bears, so Kerf reports the gusset position alone.
+
+**Example 4, uplift on pads:** the worked example on pads (d = 0, ground falling g = 1"/ft toward the front), example 2's riders (200 and 80 lb), θ = 60°, dynamic factor 2, the 4x6 beam's weight above, 1 anchor per foot rated 500 lb.
+
+| Quantity | Value |
+|---|---|
+| Q_y = 1.75 + 3.5 / (2·0.93969) | 3.61232 |
+| Back foot | z_b = 3.1182, y_b = 3.61232 + 92.8818·0.36397 = 37.4185 |
+| Front foot | z_f = −3.3133, y_f = −(3.61232 + 99.3133·0.36397) = −39.7594 |
+| y_b − y_f | 77.1779 |
+| W_f, left frame | (100·(78.75 + 58.75) + 40·(38.75 + 18.75)) / 97.5 = 164.615; right frame 280 − 164.615 = 115.385 |
+| D = w·L / 2 | 0.433798·60 = 26.0279 |
+| Back foot lifting (pivot on the front foot) | c_v = 39.7594 / 77.1779 = 0.51517, c_h = 99.3133 / 77.1779 = 1.28681 |
+| Minimum, at φ = 47.14° (cos 0.68039, sin 0.73285) | (3·0.68039 − 1)·(0.51517·0.68039 − 1.28681·0.73285) = 1.04117·(−0.59252) = −0.61692 |
+| S, D·c_v, left frame | 164.615·0.61692 = 101.555; 26.0279·0.51517 = 13.409 |
+| Uplift, left back foot, at C = 2 | 2·101.555 − 13.409 = 189.70 lb; at C = 1, 88.15 |
+| Front foot lifting | c_v = 0.48483, c_h = 1.20348, minimum −0.57483 at φ = 47.20°: left front foot 2·94.625 − 12.619 = 176.63 |
+| Right frame | back foot 2·71.183 − 13.409 = 128.96; front foot 2·66.326 − 12.619 = 120.03 |
+| Anchor | 189.70 / 1 = 189.70 lb against 500; margin 2.64 |
+| Break-even dynamic factor | (1·500 + 13.409) / 101.555 = 5.056 |
+| Largest fore-and-aft force, left frame | cos φ = (0.5 + √18.25) / 6 = 0.79535 (φ = 37.31°): 0.84016·164.615 = 138.30 lb |
+
+On level ground (g = 0) with θ = 90° the closed form checks the search. Example 1's riders (150 each, so W_f = 150 on each frame), 2 anchors per foot rated 250 lb, dynamic factor 2: b = 3.61232 + 96·0.36397 = 38.5535, h = 96 / 38.5535 = 2.49004, √(1 + h²) = 2.68334, so the minimum is 0.75·(1 − 2.68334) = −1.26251 at φ = 90° − 68.12°/2 = 55.94°. S = 150·1.26251 = 189.376, D / 2 = 13.014, uplift at every foot 2·189.376 − 13.014 = 365.74 lb, 182.87 per anchor against 250: margin 1.37; break-even (2·250 + 13.014) / 189.376 = 2.709. The largest fore-and-aft force on each frame is 1.5·150 = 225 lb, at φ = 45°.
 
 These inputs are only for testing. The real values are the owner's to choose with an experienced builder.
 

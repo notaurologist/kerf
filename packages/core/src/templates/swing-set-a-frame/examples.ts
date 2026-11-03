@@ -65,6 +65,7 @@ export const EXAMPLES: readonly {
         ...WORKED_EXAMPLE.hardware,
         plyBolts: { diameter: 0.5, count: 6 },
         anchorsPerFoot: 1,
+        anchorRating: 500,
       },
     },
     structuralInputs: allInputs,

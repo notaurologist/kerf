@@ -2,6 +2,7 @@ import { SPECIES_GRADES } from '../../design-values/sawnLumber.ts';
 import { NOMINAL_SIZES } from '../../lumber/stock.ts';
 import type { FieldOption, FormField, TemplateForm } from '../../model/form.ts';
 import { formatLength } from '../../units/length.ts';
+import { ANCHOR_RATING } from './hardware.ts';
 import { STRUCTURAL_INPUT_LABELS as INPUT } from './structural.ts';
 
 // How the swing set's parameters and structural inputs are entered (spec, Parameters and
@@ -195,6 +196,15 @@ export const SWING_SET_FORM: TemplateForm = {
           label: 'Ground anchors per leg foot',
           kind: 'integer',
           help: "From the anchor maker's instructions for your soil, on the package or the maker's product sheet. Ask the store which ground anchors are meant for a swing set.",
+          when: onPads,
+          confirmed: true,
+        },
+        {
+          path: 'hardware.anchorRating',
+          label: ANCHOR_RATING,
+          kind: 'number',
+          unit: 'lb',
+          help: "The load one anchor is rated to hold pulled straight up, for your soil, from the package or the maker's product sheet: its working load, not a breaking or test load. Many anchor kits print no rating; ask the maker for one, or the anchor check stays input needed. Kerf suggests none.",
           when: onPads,
           confirmed: true,
         },

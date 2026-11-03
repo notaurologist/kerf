@@ -42,6 +42,15 @@ describe('inputFieldId', () => {
     }
   });
 
+  it('finds a parameter a check needs, such as the ground anchor rating', () => {
+    expect(inputFieldId(form('swing-set-a-frame'), 'hardware.anchorRating')).toBe(
+      'p-hardware.anchorRating',
+    );
+    expect(inputFieldId(form('swing-set-a-frame'), 'hardware.anchorsPerFoot')).toBe(
+      'p-hardware.anchorsPerFoot',
+    );
+  });
+
   it('gives nothing for a key the form does not have', () => {
     expect(inputFieldId(form('swing-set-a-frame'), 'elsewhere')).toBeUndefined();
   });

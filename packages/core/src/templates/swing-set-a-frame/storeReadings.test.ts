@@ -71,13 +71,13 @@ describe('the swing set store readings', () => {
     );
   });
 
-  it('asks for anchors per leg foot only on pads, beside the anchors', () => {
+  it("asks for anchors per leg foot and one anchor's rated pull-out only on pads, beside the anchors", () => {
     expect(placed(buried).readings.hardware.has('Ground anchors')).toBe(false);
     const anchors = readingsBesideHardware(placed(onPads).readings, {
       description: 'Ground anchors',
     });
-    expect(paths(anchors)).toEqual(['hardware.anchorsPerFoot']);
-    expect(anchors[0]?.entered).toBe('1');
+    expect(paths(anchors)).toEqual(['hardware.anchorsPerFoot', 'hardware.anchorRating']);
+    expect(anchors.map((a) => a.entered)).toEqual(['1', '500 lb']);
   });
 
   it('says how to find each value', () => {

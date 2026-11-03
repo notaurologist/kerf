@@ -30,6 +30,7 @@ import v24 from './snapshots/v24.json' with { type: 'json' };
 import v25 from './snapshots/v25.json' with { type: 'json' };
 import v26 from './snapshots/v26.json' with { type: 'json' };
 import v27 from './snapshots/v27.json' with { type: 'json' };
+import v28 from './snapshots/v28.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -130,6 +131,19 @@ const isVersion28 = (c: { path: string; before?: unknown; after?: unknown }) =>
     String(c.before).startsWith('Gusset to leg') &&
     String(c.after).includes("gusset edge distance under the beam's weight, to the top edge"));
 
+/**
+ * Version 29's changes (#467): the ground anchor check on pads, new, and the ground-anchor checklist
+ * item's reworded confirm and why. Set aside like version 18's.
+ */
+const isVersion29 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  (c.path === 'structuralReview.anchors' && c.before === undefined) ||
+  (/^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) &&
+    String(c.before).startsWith('Anchor type and count') &&
+    String(c.after).includes('how each anchor is fastened to its leg')) ||
+  (/^structuralReview\.checklist\[\d+\]\.why$/.test(c.path) &&
+    String(c.before).startsWith('Anchors keep the frame') &&
+    String(c.after).startsWith('The anchor check gives the pull on one anchor'));
+
 /** What regenerating with the current version changes in the stored outputs, field by field. */
 function regenerated(
   snapshot: ProjectSnapshot,
@@ -141,6 +155,7 @@ function regenerated(
   keepVersion26 = false,
   keepVersion27 = false,
   keepVersion28 = false,
+  keepVersion29 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -158,7 +173,8 @@ function regenerated(
         (keepVersion25 || !isVersion25(c)) &&
         (keepVersion26 || !isVersion26(c)) &&
         (keepVersion27 || !isVersion27(c)) &&
-        (keepVersion28 || !isVersion28(c)),
+        (keepVersion28 || !isVersion28(c)) &&
+        (keepVersion29 || !isVersion29(c)),
     ),
   };
   return keepVersion18
@@ -647,7 +663,8 @@ describe('swing-set template versions', () => {
           !isVersion25(c) &&
           !isVersion26(c) &&
           !isVersion27(c) &&
-          !isVersion28(c),
+          !isVersion28(c) &&
+          !isVersion29(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -846,5 +863,27 @@ describe('swing-set template versions', () => {
       ["Edge distance under the beam's weight", 1.8125],
       ["Spacing between bolts in a row under the beam's weight", 3.8576],
     ]);
+  });
+
+  // Hand check in structural.test.ts and the spec's example 4. The two-ply example on pads gets the
+  // anchor check; the buried worked example gets none, so it changes nothing.
+  it('version 29 checks the ground anchors on pads against uplift, and changes nothing else (#467)', () => {
+    const keep29 = [false, false, false, false, false, false, false, false, true] as const;
+    const added: unknown[] = [];
+    for (const stored of v28) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(28);
+      const { changes } = regenerated(read.snapshot, ...keep29);
+      expect(changes.filter((c) => !isVersion29(c))).toEqual([]);
+      const onPads = (read.snapshot.params as { burialDepth: number }).burialDepth === 0;
+      // On pads: the check, and the checklist item's confirm and why.
+      expect(changes).toHaveLength(onPads ? 3 : 0);
+      added.push(
+        ...changes.filter((c) => c.path === 'structuralReview.anchors').map((c) => c.after),
+      );
+    }
+    expect(added).toHaveLength(1);
+    expect(added[0]).toMatchObject({ kind: 'hardware', subject: 'Ground anchor' });
   });
 });

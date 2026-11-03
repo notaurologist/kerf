@@ -12,6 +12,9 @@ const BoltDiameter = z.union([z.literal(0.375), z.literal(0.5), z.literal(0.625)
 /** Inches; past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). */
 const FOOTPRINT_MAX = 360;
 
+/** Pounds; past any anchor sold for swing sets that gives a rating (one kit claims 2,500). */
+const ANCHOR_RATING_MAX = 10000;
+
 const Splay = z.discriminatedUnion('kind', [
   /** Each leg's angle from vertical. */
   z.object({ kind: z.literal('angle'), degrees: z.number().min(5).max(35) }),
@@ -78,6 +81,11 @@ export const SwingSetParams = z.object({
       .optional(),
     /** Required for pads (burial depth 0). */
     anchorsPerFoot: z.number().int().min(1).max(4).optional(),
+    /**
+     * One ground anchor's rated pull-out, pounds, from its maker, for the anchor check on pads. No
+     * default: many kits print none.
+     */
+    anchorRating: z.number().positive().max(ANCHOR_RATING_MAX).optional(),
   }),
 });
 

@@ -23,6 +23,8 @@ import {
   type Quantity,
 } from '../../structural/types.ts';
 import { formatLength } from '../../units/length.ts';
+import { dimensions } from './geometry.ts';
+import { ANCHOR_RATING, ANCHORS_PER_FOOT } from './hardware.ts';
 import type { SwingSetOutput } from './template.ts';
 import { LEG_IDS } from './validate.ts';
 
@@ -210,6 +212,11 @@ export const SwingSetStructuralReview = z.object({
   beam: BeamChecks,
   /** The most heavily loaded hanger against its rating. */
   hanger: CheckResult,
+  /**
+   * On pads, one ground anchor at the foot that lifts most against its rated pull-out (version
+   * 29). Absent for buried legs, and in plans stored before it.
+   */
+  anchors: CheckResult.optional(),
   checklist: z.array(ChecklistItem),
 });
 export type SwingSetStructuralReview = z.infer<typeof SwingSetStructuralReview>;
@@ -412,7 +419,270 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
     rating: mapNeeded(need(inputs, STRUCTURAL_INPUT_LABELS, 'hangerRating'), (v) => v.hangerRating),
   });
 
-  return { ok: true, review: { inputs, beam: beamResult, hanger, checklist: checklist(output) } };
+  const anchors =
+    p.burialDepth === 0
+      ? anchorCheck(output, inputs, supports.x, beamWeight, dynamicFactor)
+      : undefined;
+
+  return {
+    ok: true,
+    review: {
+      inputs,
+      beam: beamResult,
+      hanger,
+      ...(anchors ? { anchors } : {}),
+      checklist: checklist(output),
+    },
+  };
+}
+
+/** The anchor check's subject, which `checkFields` tells it apart from the hanger by. */
+const ANCHOR_SUBJECT = 'Ground anchor';
+
+const RAD = Math.PI / 180;
+
+/**
+ * The smallest value of `f` on [lo, hi]: the least of 90 evenly spaced samples, then golden-section
+ * search between its neighbors. `f` has one minimum on the interval for every foot and angle.
+ */
+function minimize(f: (x: number) => number, lo: number, hi: number): { x: number; value: number } {
+  const steps = 90;
+  const at = (i: number) => lo + ((hi - lo) * i) / steps;
+  let best = 0;
+  for (let i = 1; i <= steps; i++) if (f(at(i)) < f(at(best))) best = i;
+  let a = at(Math.max(0, best - 1));
+  let b = at(Math.min(steps, best + 1));
+  const ratio = (Math.sqrt(5) - 1) / 2;
+  for (let i = 0; i < 100; i++) {
+    const c = b - ratio * (b - a);
+    const d = a + ratio * (b - a);
+    if (f(c) < f(d)) b = d;
+    else a = c;
+  }
+  const x = (a + b) / 2;
+  return { x, value: f(x) };
+}
+
+interface FootLift {
+  label: string;
+  /** The weight-sharing and overturning coefficients: R = (V + D)·c_v − F·c_h. */
+  cv: number;
+  ch: number;
+  /** Swing part of the uplift per unit dynamic factor, S, and the angle it is largest at. */
+  S: number;
+  phi: number;
+  /** The beam's weight holding the foot down, D·c_v. */
+  held: number;
+}
+
+/**
+ * Uplift at a foot on pads, by statics (spec, Structural model, Uplift at the feet). The chain
+ * tension at φ on the way down from θ is W·(3·cos φ − 2·cos θ), from the same energy and
+ * centripetal results as the swing load. Its fore-and-aft part pushes each A-frame over the foot
+ * it pivots on; moments about that foot give the pull at the other one, which bears nothing and
+ * so has no friction.
+ */
+function anchorCheck(
+  output: SwingSetOutput,
+  inputs: SwingSetStructuralInputs,
+  supportsX: [number, number],
+  beamWeight: Needed<{ w: number; working: Quantity[] } | null>,
+  dynamicFactor: LoadFactor,
+): CheckResult {
+  const p = output.params;
+  const g = output.geometry;
+  const dims = dimensions(p);
+  const a = g.splay * RAD;
+  const qy = dims.bw / 2 + dims.w / (2 * Math.cos(a));
+  const H = dims.H;
+  const zb = g.back.footZ;
+  const zf = g.front.footZ;
+  const yb = qy + (H - zb) * Math.tan(a);
+  const yf = -(qy + (H - zf) * Math.tan(a));
+  const base = yb - yf;
+  const [x0, x1] = supportsX;
+  const hangersX = output.swings.hangersX;
+
+  const swing = need(inputs, STRUCTURAL_INPUT_LABELS, 'riderWeights', 'maxSwingAngle');
+  const perFoot: Needed<number> =
+    p.hardware.anchorsPerFoot === undefined
+      ? { missing: [{ key: 'hardware.anchorsPerFoot', label: ANCHORS_PER_FOOT }] }
+      : { value: p.hardware.anchorsPerFoot };
+  const rating: Needed<number> =
+    p.hardware.anchorRating === undefined
+      ? { missing: [{ key: 'hardware.anchorRating', label: ANCHOR_RATING }] }
+      : { value: p.hardware.anchorRating };
+  const C = 'value' in dynamicFactor.value ? dynamicFactor.value.value : undefined;
+  const R = 'value' in rating ? rating.value : undefined;
+
+  const load = combine(
+    combine(swing, beamWeight, (s, weight) => ({ s, weight })),
+    perFoot,
+    (v, n) => {
+      const { riderWeights, maxSwingAngle } = v.s;
+      const theta = maxSwingAngle * RAD;
+      const cosT = Math.cos(theta);
+      // Each frame's share of the riders, by the beam's simple span between its supports.
+      const left = hangersX.reduce(
+        (sum, x, i) => sum + ((riderWeights[i < 2 ? 0 : 1] / 2) * (x1 - x)) / (x1 - x0),
+        0,
+      );
+      const frames = [
+        { name: 'left', W: left },
+        { name: 'right', W: riderWeights[0] + riderWeights[1] - left },
+      ];
+      const w = v.weight?.w ?? 0;
+      const D = (w * p.beamLength) / 2;
+      const lifting = [
+        { foot: 'back', cv: -yf / base, ch: (H - zf) / base },
+        { foot: 'front', cv: yb / base, ch: (H - zb) / base },
+      ];
+      const feet: FootLift[] = frames.flatMap((frame) =>
+        lifting.map(({ foot, cv, ch }) => {
+          const m = minimize(
+            (phi) => (3 * Math.cos(phi) - 2 * cosT) * (cv * Math.cos(phi) - ch * Math.sin(phi)),
+            0,
+            theta,
+          );
+          return {
+            label: `${frame.name === 'left' ? 'Left' : 'Right'} frame, ${foot} foot`,
+            cv,
+            ch,
+            S: -frame.W * m.value,
+            phi: m.x / RAD,
+            held: D * cv,
+          };
+        }),
+      );
+      // The foot that sets the margin at the entered factor, or that reaches margin 1.0 first.
+      const governing = feet.reduce((worst, f) => {
+        const score = (x: FootLift) =>
+          C !== undefined
+            ? C * x.S - x.held
+            : R !== undefined && x.S > 0
+              ? -(n * R + x.held) / x.S
+              : x.S;
+        return score(f) > score(worst) ? f : worst;
+      });
+      // The largest fore-and-aft force over the swing, at cos φ = (cos θ + √(cos² θ + 18)) / 6.
+      const cosPeak = Math.min(1, (cosT + Math.sqrt(cosT * cosT + 18)) / 6);
+      const sinPeak = Math.sqrt(1 - cosPeak * cosPeak);
+      const peak = maxSwingAngle === 0 ? 0 : sinPeak * (3 * cosPeak - 2 * cosT);
+      const working: Quantity[] = [
+        {
+          symbol: 'W1',
+          label: 'Rider on left swing, with seat and chain',
+          value: riderWeights[0],
+          unit: 'lb',
+          basis: 'Entered',
+          input: 'riderWeights.0',
+        },
+        {
+          symbol: 'W2',
+          label: 'Rider on right swing, with seat and chain',
+          value: riderWeights[1],
+          unit: 'lb',
+          basis: 'Entered',
+          input: 'riderWeights.1',
+        },
+        {
+          symbol: 'θ',
+          label: 'Maximum swing angle',
+          value: maxSwingAngle,
+          unit: '°',
+          basis: 'Entered',
+          input: 'maxSwingAngle',
+        },
+        ...(v.weight?.working ?? []),
+        { symbol: 'D', label: "Beam's weight on each frame, w·L / 2", value: D, unit: 'lb' },
+        ...frames.map((f) => ({
+          symbol: f.name === 'left' ? 'W_left' : 'W_right',
+          label: `Riders carried by the ${f.name} frame, by the beam's span`,
+          value: f.W,
+          unit: 'lb',
+        })),
+        ...frames.map((f) => ({
+          symbol: f.name === 'left' ? 'F_left' : 'F_right',
+          label: `Largest fore-and-aft force on the ${f.name} frame, smooth swing`,
+          value: f.W * peak,
+          unit: 'lb',
+          sources: PENDULUM_SOURCES,
+        })),
+        { symbol: 'y_b', label: 'Back foot, from under the beam', value: yb, unit: 'in' },
+        { symbol: 'z_b', label: 'Back foot height', value: zb, unit: 'in' },
+        { symbol: 'y_f', label: 'Front foot, from under the beam', value: yf, unit: 'in' },
+        { symbol: 'z_f', label: 'Front foot height', value: zf, unit: 'in' },
+        ...feet.map((f) => ({
+          symbol: 'U',
+          label: `Uplift, ${f.label.toLowerCase()}, smooth swing`,
+          value: Math.max(0, f.S - f.held),
+          unit: 'lb',
+        })),
+        {
+          symbol: 'c_v',
+          label: `${governing.label}: share of the downward load`,
+          value: governing.cv,
+          unit: '',
+        },
+        {
+          symbol: 'c_h',
+          label: `${governing.label}: overturning per pound of fore-and-aft force`,
+          value: governing.ch,
+          unit: '',
+        },
+        {
+          symbol: 'φ',
+          label: `${governing.label}: chain angle where the foot lifts most`,
+          value: governing.phi,
+          unit: '°',
+        },
+        {
+          symbol: 'S',
+          label: `${governing.label}: swing's pull at factor 1`,
+          value: governing.S,
+          unit: 'lb',
+        },
+        {
+          symbol: 'D·c_v',
+          label: `${governing.label}: beam's weight holding it down`,
+          value: governing.held,
+          unit: 'lb',
+        },
+        {
+          symbol: 'n',
+          label: ANCHORS_PER_FOOT,
+          value: n,
+          unit: '',
+          basis: "Entered from the anchor maker's instructions",
+        },
+      ];
+      return {
+        value: governing.S / n,
+        unfactored: -governing.held / n,
+        working,
+        assumptions: [
+          'Chain tension at angle φ on the way down from θ is W·(3·cos φ − 2·cos θ); its fore-and-aft part pushes the frame over the foot it pivots on.',
+          'Both swings are at the same angle at the same time (riders in sync), so their loads add.',
+          "Each swing's load is split equally between its two hangers (a centered rider), and between the frames by the beam's span.",
+          'The lifting foot bears nothing, so the whole fore-and-aft reaction is at the other foot. Moments about that foot give the pull.',
+          v.weight
+            ? "The beam's weight holds the feet down. The legs, crossbars, and gussets would too, but no species is entered for them, so their weight is left out, which makes the uplift larger."
+            : "No weight holds the feet down in this check: the beam's size has no design values, so it has no specific gravity, and no species is entered for the legs. That makes the uplift larger.",
+          "The frame's own inertia is left out. Sliding along the ground is not computed.",
+          'The dynamic factor multiplies the swing loads, not the weight.',
+          'The anchor holds its rated pull-out in this soil, fastened to the leg as its maker specifies.',
+        ],
+      };
+    },
+  );
+
+  return hardwareCheck({
+    subject: ANCHOR_SUBJECT,
+    loadCase: LOAD_CASES.strength,
+    load,
+    factor: dynamicFactor,
+    rating,
+  });
 }
 
 const params = (...paths: string[]) => paths.map((path): FieldRef => ({ from: 'params', path }));
@@ -422,10 +692,25 @@ const inputs = (...paths: (keyof typeof STRUCTURAL_INPUT_LABELS | `riderWeights.
 /**
  * The fields each check changes with (`TemplateDefinition.checkFields`): for the top beam, its
  * size, its span between the gussets (or the bolts, with no gusset under it), and where the hangers hang on it, then the inputs
- * its material and loads come from; for a hanger, its loads and its rating.
+ * its material and loads come from; for a hanger, its loads and its rating; for a ground anchor,
+ * the frame's shape, the anchors, and the inputs behind the beam's weight. The beam's size also
+ * changes its weight, but it is left out, so the beam's other sizes are offered against the beam
+ * checks alone (#450).
  */
-export function checkFields(check: { kind: CheckKind }): FieldRef[] {
+export function checkFields(check: { kind: CheckKind; subject: string }): FieldRef[] {
   const riders = inputs('riderWeights.0', 'riderWeights.1', 'maxSwingAngle');
+  if (check.subject === ANCHOR_SUBJECT) {
+    return [
+      ...params('beamLength', 'beamHeight'),
+      ...params('splay.kind', 'splay.degrees', 'splay.depth', 'frameInset', 'legStock'),
+      ...params('gussetStock', 'groundSlope'),
+      ...params('swings.centers.0', 'swings.centers.1', 'swings.hangerSpacing'),
+      ...params('hardware.anchorsPerFoot', 'hardware.anchorRating'),
+      ...inputs('beamSpeciesGrade', 'beamMoistureContent'),
+      ...riders,
+      ...inputs('dynamicFactor'),
+    ];
+  }
   if (check.kind === 'hardware') return [...riders, ...inputs('dynamicFactor', 'hangerRating')];
   return [
     ...params('beamStock', 'beamPlies', 'beamLength', 'frameInset', 'gussetStock', 'legStock'),
@@ -481,8 +766,8 @@ function checklist(output: SwingSetOutput): ChecklistItem[] {
           element: 'Ground anchors on pads',
           partIds: [...LEG_IDS],
           hardwareIds: ['ground-anchors'],
-          confirm: `Anchor type and count (${h.anchorsPerFoot ?? 'not entered'} per foot) and how they are buried or covered.`,
-          why: 'Anchors keep the frame from lifting, tipping, and walking; tipping and anchoring are not computed.',
+          confirm: `Anchor type and count (${h.anchorsPerFoot ?? 'not entered'} per foot), that the rated pull-out holds in this soil, how each anchor is fastened to its leg, and how they are buried or covered.`,
+          why: 'The anchor check gives the pull on one anchor from the swing alone; the soil, the fastening to the leg, and sliding along the ground are not computed.',
         },
     {
       category: 'bolted-connections',
