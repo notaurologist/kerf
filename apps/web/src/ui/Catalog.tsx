@@ -21,7 +21,7 @@ import {
 const SAW = /saw at ([\d.]+°), ([\d.]+°) to the edge/;
 
 import { type ReactNode, useState } from 'react';
-import { Button, ButtonLink, IconButton, IconButtonLink } from './Button.tsx';
+import { Button, ButtonLink, EqualButtons, IconButton, IconButtonLink } from './Button.tsx';
 import { InlineConfirm } from './Confirm.tsx';
 import { SectionPager, WithContents } from './Contents.tsx';
 import sample from './catalog-sample.json';
@@ -256,6 +256,18 @@ function Specimens() {
               terms
             />
           </OneLine>
+          <Text>
+            <OneLine
+              end={
+                <>
+                  {'\u00a0· '}
+                  <a href="#/catalog">6 expert checks</a>
+                </>
+              }
+            >
+              Next: Cut board 1, a 4x6 12' long: Beam
+            </OneLine>
+          </Text>
         </TermScope>
       </Group>
 
@@ -292,6 +304,14 @@ function Specimens() {
           </Button>
           <ButtonLink href="#/catalog">Start building</ButtonLink>
         </Cluster>
+        <EqualButtons>
+          <ButtonLink href="#/catalog" mode="shopping" detail="4 of 11 bought">
+            Shop
+          </ButtonLink>
+          <ButtonLink href="#/catalog" variant="secondary" mode="building" detail="not started">
+            Build
+          </ButtonLink>
+        </EqualButtons>
       </Group>
 
       <Group title="Fields">

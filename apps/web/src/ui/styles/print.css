@@ -51,6 +51,16 @@
       display: none;
     }
 
+    /* Paper has room for the whole line, and no link to the rest. */
+    .k-one-line[data-end] {
+      display: block;
+      white-space: normal;
+    }
+
+    .k-one-line__cut {
+      overflow: visible;
+    }
+
     .k-button,
     .k-table__toggle,
     .k-titlebar,

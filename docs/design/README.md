@@ -167,6 +167,12 @@ Built in #381 (November 2026): the summary is gone, with its key figures and its
 
 Built in #357 (November 2026): the projects list has one "New project" button, which opens a picker at `#/projects/new` listing every template with its name, a sentence on what it is, and its first worked example drawn assembled (from `GET /api/templates/:id/drawing`, loaded only on the picker). Each row shows the project's name, its status as a tag, its template, and when it was last updated; the template version is left to the project's own notice. Status is set by hand only in Edit (Stage 13, S-2). In Workshop, Trash is now "Deleted projects" and Download all projects is "Download a backup".
 
+Changed in November 2026 (#454): on a phone the header filled the first screen of every section, with the section's heading near the middle and the first drawing below it, and Shop and Build on two rows at different widths read as a main and a lesser choice. Kerf keeps the whole header on every section and makes it shorter. Shop and Build sit side by side at one width (`EqualButtons`); below 30rem each fills half the row with its progress under its name. The line of what is next is one line: the counts stay whole and the step is cut short with an ellipsis, since it is in full in the build steps; when inputs are needed and the counts would leave the step a few letters, the counts take a second line. At 375 × 812 with a two-word name, every section's heading now starts at about 407 px and its content at about 449 px, against 469 px and 512 px before.
+
+| Question | Chosen | Rejected, and why |
+|---|---|---|
+| A shorter header on a phone | The whole header on every section, shorter: Shop and Build side by side at one width, and Next on one line. | The full header only on the section a project opens on, with a one-line header elsewhere: Shop and Build would leave five of six sections, against N1's "on every section", and the header would change between sections, where it now stays still with the frame while only the section moves. |
+
 What does not change: IA-2 (the project is the plan, and Shopping and Building are full-screen modes launched from it), the Resume card on the projects list, the order of the remaining sections, and print, which still gives the whole plan in order. The glossary stays reachable from every marked term (#178, #192) as well as from Workshop.
 
 ## Stage 11: review for a second template (#71)

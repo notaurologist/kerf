@@ -311,9 +311,9 @@ describe('the plan’s mode buttons (#356)', () => {
     const primaries = (p: Project, section?: 'cut-list') =>
       (
         render(<ProjectView project={p} drawings={loadedDrawings(p)} section={section} />).match(
-          /data-variant="primary"[^>]*>[^<]*/g,
+          /data-variant="primary"[^>]*>.*?<\/a>/g,
         ) ?? []
-      ).map((m) => m.slice(m.indexOf('>') + 1));
+      ).map((m) => m.slice(m.indexOf('>') + 1).replace(/<[^>]+>/g, ''));
     expect(primaries(project())).toEqual(['Shop · 11 to buy']);
     expect(primaries(project(), 'cut-list')).toEqual(['Shop · 11 to buy']);
     // Building is next once it has started, even with lines left to buy.

@@ -3,11 +3,12 @@ import { arriveAt } from '../../lib/planMoves.ts';
 import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
 import { useTicks } from '../../lib/ticks.ts';
 import type { Project } from '../../lib/types.ts';
-import { Text } from '../../ui/index.ts';
+import { OneLine, Text } from '../../ui/index.ts';
 
 // The project header's line of what is next (#356), on every section: the next build step, the
 // structural inputs still needed, and the expert checks not yet asked (#393), each a way to where it
-// is dealt with.
+// is dealt with. One line, so the section stays in the first screen on a phone: the step is
+// cut short, since it is in full in the build steps, and the counts stay whole.
 
 /** The structural inputs the plan's checks and estimates are waiting for, each counted once. */
 export function inputsNeeded(plan: Pick<Plan, 'checks' | 'movement'>): number {
@@ -33,9 +34,8 @@ export function ProjectNext(props: {
   const { nextStep, steps } = summarizeProgress(plan, props.steps, ticked);
   const inputs = inputsNeeded(plan);
   const flags = summarizeReview(plan, ticked).flags.open;
-  const parts = [
-    nextStep && <span key="step">Next: {nextStep.title}</span>,
-    !nextStep && steps.total > 0 && <span key="step">Every step done</span>,
+  const step = nextStep ? `Next: ${nextStep.title}` : steps.total > 0 ? 'Every step done' : null;
+  const counts = [
     inputs > 0 && (
       <a key="inputs" href={props.reviewHref}>
         {count(inputs, 'input needed', 'inputs needed')}
@@ -47,6 +47,12 @@ export function ProjectNext(props: {
       </a>
     ),
   ].filter(Boolean);
-  if (parts.length === 0) return null;
-  return <Text>{parts.flatMap((part, i) => (i === 0 ? [part] : [' · ', part]))}</Text>;
+  if (!step && counts.length === 0) return null;
+  // A space at the start of the end would be dropped, so the first dot's is one with no break.
+  const end = counts.flatMap((part, i) => [i > 0 ? ' · ' : step ? '\u00a0· ' : '', part]);
+  return (
+    <Text>
+      <OneLine end={counts.length > 0 ? end : undefined}>{step}</OneLine>
+    </Text>
+  );
 }

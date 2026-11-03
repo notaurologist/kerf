@@ -52,6 +52,9 @@ export function ButtonLink(props: {
   keyshortcuts?: string;
   /** A way into a shop mode, marked with the mode's color (Stage 10). */
   mode?: 'shopping' | 'building';
+  /** Said after the name, such as progress: "Shop · 4 of 11 bought". In a narrow `EqualButtons`
+   * it goes on its own line under the name. */
+  detail?: ReactNode;
 }) {
   return (
     <a
@@ -61,8 +64,28 @@ export function ButtonLink(props: {
       href={props.href}
       aria-keyshortcuts={props.keyshortcuts}
     >
-      {props.children}
+      {props.detail === undefined ? (
+        props.children
+      ) : (
+        <span className="k-button__label">
+          <span>{props.children}</span>
+          <span className="k-button__sep"> · </span>
+          <span className="k-button__detail">{props.detail}</span>
+        </span>
+      )}
     </a>
+  );
+}
+
+/**
+ * Sibling buttons, neither more important for its size: side by side at the width of the widest,
+ * and sharing the whole row below 30rem, where each button's `detail` goes under its name.
+ */
+export function EqualButtons(props: { children: ReactNode }) {
+  return (
+    <div className="k-equal-buttons">
+      <div className="k-equal-buttons__row">{props.children}</div>
+    </div>
   );
 }
 

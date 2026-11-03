@@ -16,6 +16,7 @@ import { goToField, reported } from './feedback.tsx';
 import { ICON_NAMES } from './Icon.tsx';
 import {
   Button,
+  ButtonLink,
   Card,
   Changed,
   CheckStatus,
@@ -23,6 +24,7 @@ import {
   Definitions,
   Diagram,
   Disclosure,
+  EqualButtons,
   ErrorSummary,
   ErrorText,
   ExpertCheck,
@@ -277,6 +279,35 @@ describe('IconButton', () => {
     const html = render(<IconButtonLink icon="edit" label="Edit" href="#/projects/1/edit" />);
     expect(html).toMatch(/^<a class="k-button" data-variant="secondary" data-icon-only=""/);
     expect(html).toContain('href="#/projects/1/edit"');
+  });
+});
+
+describe('EqualButtons', () => {
+  it('says a button’s detail after its name, with the dot kept for screen readers', () => {
+    const html = render(
+      <EqualButtons>
+        <ButtonLink href="#/projects/1/shop" mode="shopping" detail="4 of 11 bought">
+          Shop
+        </ButtonLink>
+        <ButtonLink
+          href="#/projects/1/build"
+          variant="secondary"
+          mode="building"
+          detail="step 3 of 11"
+        >
+          Build
+        </ButtonLink>
+      </EqualButtons>,
+    );
+    expect(html).toMatch(/^<div class="k-equal-buttons"><div class="k-equal-buttons__row"><a /);
+    expect(html).toContain('<span class="k-button__sep"> · </span>');
+    expect(textOf(html)).toBe('Shop · 4 of 11 bought Build · step 3 of 11');
+  });
+
+  it('leaves a button with no detail as it was', () => {
+    expect(render(<ButtonLink href="#/catalog">Start building</ButtonLink>)).toBe(
+      '<a class="k-button" data-variant="primary" href="#/catalog">Start building</a>',
+    );
   });
 });
 
@@ -1106,6 +1137,15 @@ describe('OneLine', () => {
   it('keeps the whole text in the page, for screen readers and copying', () => {
     expect(render(<OneLine>A long sentence.</OneLine>)).toBe(
       '<span class="k-one-line">A long sentence.</span>',
+    );
+  });
+
+  it('cuts only the text before its end', () => {
+    expect(
+      render(<OneLine end={<a href="#/glossary">Glossary</a>}>A long sentence.</OneLine>),
+    ).toBe(
+      '<span class="k-one-line" data-end=""><span class="k-one-line__cut">A long sentence.</span>' +
+        '<span class="k-one-line__end"><a href="#/glossary">Glossary</a></span></span>',
     );
   });
 });
