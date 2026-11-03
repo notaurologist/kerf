@@ -1,4 +1,4 @@
-import { createSnapshot, TEMPLATES } from '@kerf/core';
+import { checklistProgressKey, createSnapshot, flagProgressKey, TEMPLATES } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { Screen } from '../../App.tsx';
 import type { Project } from '../../lib/types.ts';
@@ -296,6 +296,16 @@ describe('Building mode', () => {
 });
 
 describe('the plan’s mode buttons (#356)', () => {
+  // Every expert check asked and checklist item confirmed: the structural review's To do is done.
+  const plan = template.plan(snapshot.outputs);
+  const reviewed = [
+    ...plan.flags.map((f) => ({ kind: 'flag' as const, key: flagProgressKey(f) })),
+    ...plan.checklist.map((c) => ({
+      kind: 'checklist-item' as const,
+      key: checklistProgressKey(c),
+    })),
+  ];
+
   it('start each mode, with its progress', () => {
     const text = renderText(
       <ProjectView project={project()} drawings={loadedDrawings(project())} />,
@@ -305,16 +315,30 @@ describe('the plan’s mode buttons (#356)', () => {
   });
 
   it('resume where you left off, and say what is next', () => {
-    const p = project([
+    const building = [
       { kind: 'shopping-line', key: 'lumber/2x6/10' },
       { kind: 'step', key: 'board-1' },
-    ]);
+    ] as const;
+    const p = project([...reviewed, ...building]);
     const text = renderText(<ProjectView project={p} drawings={loadedDrawings(p)} />);
     expect(text).toContain('Shop · 1 of 11 bought');
     expect(text).toContain('Build · step 2 of 11');
     expect(text).toContain("Next: Cut board 2, a 4x4 12' long: Front leg (downhill)");
     expect(render(<ProjectView project={p} drawings={loadedDrawings(p)} />)).toContain(
       `href="#/projects/${p.id}/build"`,
+    );
+  });
+
+  it('say the structural review is next while its To do is open, then shopping (#448)', () => {
+    const next = (p: Project) =>
+      renderText(<ProjectView project={p} drawings={loadedDrawings(p)} />).match(
+        /Next: [^·]*/,
+      )?.[0];
+    // Even once building has started: the review is settled first.
+    expect(next(project([{ kind: 'step', key: 'board-1' }]))).toBe('Next: Structural review ');
+    expect(next(project(reviewed))).toBe('Next: Shopping list, 11 to buy ');
+    expect(next(project([...reviewed, { kind: 'shopping-line', key: 'lumber/2x6/10' }]))).toBe(
+      'Next: Shopping list, 10 to buy ',
     );
   });
 

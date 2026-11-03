@@ -496,7 +496,7 @@ export const GLOSSARY = [
     group: 'structure',
     forms: ['margins'],
     definition:
-      "A structural check's adjusted allowable value divided by the value computed for the loads. It holds only under the assumptions the check lists, and is a number to judge with an experienced builder.",
+      "A structural check's adjusted allowable value divided by the value computed for the loads, so under 1.0 the computed value is larger than the allowable one. It holds only under the assumptions the check lists, and is a number to judge with an experienced builder.",
     sources: [
       {
         source: 'nds-2024',

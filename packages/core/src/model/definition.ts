@@ -2,7 +2,8 @@ import type { z } from 'zod';
 import type { Drawings, Explode, Isometric, Scene } from '../geometry/index.ts';
 import type { Plan } from '../outputs/plan.ts';
 import type { StepOutline } from '../steps/build.ts';
-import type { TemplateForm } from './form.ts';
+import type { CheckResult } from '../structural/types.ts';
+import type { FieldRef, TemplateForm } from './form.ts';
 import type { StartingQuestions, Suggestion } from './questions.ts';
 import type { StoreReading } from './storeReadings.ts';
 import type { GenerateResult } from './types.ts';
@@ -56,6 +57,12 @@ export interface TemplateDefinition<
   structuralInputs: z.ZodType<Inputs>;
   /** How the parameters and structural inputs are entered, for the web app's editor. */
   form: TemplateForm;
+  /**
+   * The fields a structural check's result changes with (#448), so the review can link to each in
+   * the editor: the member's size and span and what loads it, then the inputs it reads. Read
+   * against the current form, so it is not stored.
+   */
+  checkFields(check: Pick<CheckResult, 'kind' | 'subject'>): readonly FieldRef[];
   /**
    * Everything this version generates. Every field generic code reads is required. A part's lists
    * also default to empty, so a stored snapshot leaves out an empty one and reading fills it in.

@@ -1,4 +1,11 @@
-import { type BuildStep, type Plan, type ProgressSummary, summarizeProgress } from '@kerf/core';
+import {
+  type BuildStep,
+  buildingIsNext,
+  buildingStarted,
+  type Plan,
+  type ProgressSummary,
+  summarizeProgress,
+} from '@kerf/core';
 import { href } from '../../lib/route.ts';
 import { useTicks } from '../../lib/ticks.ts';
 import type { Project, ProjectSummary } from '../../lib/types.ts';
@@ -14,13 +21,10 @@ export function shoppingText(s: ProgressSummary['shopping']): string {
   return `${s.done} of ${s.total} bought.`;
 }
 
-/** True once a step is done or a piece is cut (#135). */
-const building = (s: ProgressSummary) => s.steps.done > 0 || s.pieces.done > 0;
-
 /** How far the building has got, in words; pieces cut count until the first step is done. */
 export function buildingText(s: ProgressSummary): string {
   const { done, total } = s.steps;
-  if (!building(s)) return `${total} steps, not started.`;
+  if (!buildingStarted(s)) return `${total} steps, not started.`;
   if (!s.nextStep) return `All ${total} steps done.`;
   const cut = done === 0 ? `${s.pieces.done} of ${s.pieces.total} pieces cut. ` : '';
   return `${cut}Step ${s.nextStep.number} of ${total} next: ${s.nextStep.title}.`;
@@ -35,7 +39,7 @@ function shoppingShort(s: ProgressSummary['shopping']): string {
 
 /** Building's progress, short enough for a button: "step 3 of 11". */
 function buildingShort(s: ProgressSummary): string {
-  if (!building(s)) return 'not started';
+  if (!buildingStarted(s)) return 'not started';
   if (!s.nextStep) return 'all done';
   return `step ${s.nextStep.number} of ${s.steps.total}`;
 }
@@ -73,11 +77,6 @@ export function ModeButtons(props: { project: Project; plan: Plan; steps: readon
       )}
     </EqualButtons>
   );
-}
-
-/** Building comes next once it has started (a step done or a piece cut) or the shopping is done. */
-function buildingIsNext(s: ProgressSummary): boolean {
-  return building(s) || s.shopping.done === s.shopping.total;
 }
 
 /**

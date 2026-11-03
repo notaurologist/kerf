@@ -11,7 +11,7 @@ import {
   suggestionsUsed,
   summarizeReview,
 } from '@kerf/core';
-import { EXPERT_CHECKS_ID } from '../../lib/show.ts';
+import { CHECKS_ID, EXPERT_CHECKS_ID } from '../../lib/show.ts';
 import type { Suggested } from '../../lib/suggested.ts';
 import type { Ticks } from '../../lib/ticks.ts';
 import {
@@ -50,15 +50,23 @@ export const WOOD_MOVEMENT_INTRO =
 
 /** The review's opening line, exported so the printed plan's terms include it. */
 export const STRUCTURAL_REVIEW_INTRO =
-  'Structural checks, not an engineered design. A margin is the allowable value divided by the computed one, under the assumptions listed with it. Judge each one with an experienced builder.';
+  'Structural checks, not an engineered design. A margin is the allowable value divided by the computed one, under the assumptions listed with it, so under 1.0 the computed value is larger than the allowable one. Judge each one with an experienced builder.';
 
 type CheckResult = structural.CheckResult;
 type MovementResult = movement.MovementResult;
 type Quantity = structural.Quantity;
 const { formatBreakEven, formatMargin, formatQuantity } = structural;
 
+/** A field in Edit, as a link to it. */
+export interface FieldLink {
+  label: string;
+  href: string;
+}
+
 export function StructuralReview(props: {
   inputHref: (key: string) => string;
+  /** The fields in Edit a check changes with (#448). */
+  checkFields?: (check: CheckResult) => readonly FieldLink[];
   checks: readonly CheckResult[];
   flags: readonly Flag[];
   checklist: readonly ChecklistItem[];
@@ -73,7 +81,10 @@ export function StructuralReview(props: {
   const values = suggested?.items ?? [];
   const results = (
     <Stack>
-      <h3>Checks</h3>
+      {/* Focusable, so the header's lowest margin can open the review here (#448). */}
+      <h3 id={CHECKS_ID} tabIndex={-1}>
+        Checks
+      </h3>
       <Text tone="muted">
         The lowest margin comes first, after any check still waiting for inputs, since one of those
         could be the lowest. Open a check for its working and the assumptions its margin rests on.
@@ -81,7 +92,12 @@ export function StructuralReview(props: {
       <Rows>
         {byMargin(props.checks).map((check) => (
           <Row key={`${check.kind}/${check.subject}`} as="section">
-            <Check check={check} inputHref={props.inputHref} suggested={values} />
+            <Check
+              check={check}
+              inputHref={props.inputHref}
+              fields={props.checkFields?.(check) ?? []}
+              suggested={values}
+            />
           </Row>
         ))}
       </Rows>
@@ -329,6 +345,7 @@ function UsesSuggested(props: {
 function Check(props: {
   check: CheckResult;
   inputHref: (key: string) => string;
+  fields: readonly FieldLink[];
   suggested: Suggested['items'];
 }) {
   const { check } = props;
@@ -370,6 +387,7 @@ function Check(props: {
               <Value q={check.computed} />; allowed {check.allowable.symbol} ={' '}
               <Value q={check.allowable} />.
             </Text>
+            <ChangesWith fields={props.fields} />
             <Working check={check} />
           </>
         )}
@@ -379,8 +397,27 @@ function Check(props: {
         {check.status === 'not-computed' && check.sources.length > 0 && (
           <CitationList citations={check.sources} />
         )}
+        {/* A computed check's come before its working, which is long. */}
+        {check.status !== 'computed' && <ChangesWith fields={props.fields} />}
       </Stack>
     </ResultLine>
+  );
+}
+
+/** The fields in Edit a check changes with, each a link to it. */
+function ChangesWith(props: { fields: readonly FieldLink[] }) {
+  if (props.fields.length === 0) return null;
+  return (
+    <Text>
+      Changes with these values in Edit:{' '}
+      {props.fields.map((f, i) => (
+        <span key={f.href}>
+          {i > 0 && ', '}
+          <a href={f.href}>{f.label}</a>
+        </span>
+      ))}
+      .
+    </Text>
   );
 }
 
