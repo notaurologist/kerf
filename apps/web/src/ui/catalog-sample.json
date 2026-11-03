@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 33,
+    "templateVersion": 32,
     "snapshotVersion": 18,
     "params": {
       "beamLength": 120,
@@ -1410,17 +1410,17 @@
               },
               {
                 "member": "Leg",
-                "label": "Spacing between rows, along the leg",
+                "label": "Spacing between bolts in a row",
                 "value": 2.9264888743087583,
                 "requirements": [
                   {
-                    "condition": "load perpendicular to grain, 2 < ℓ/D < 6",
-                    "multiple": "(5ℓ + 10D) / 8",
-                    "value": 1.5625,
+                    "condition": "load perpendicular to grain",
+                    "multiple": "3D",
+                    "value": 1.5,
                     "gives": "minimum",
                     "citation": {
                       "source": "nds-2024",
-                      "locator": "Table 12.5.1D, Spacing Requirements Between Rows, p. 99",
+                      "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
                       "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
                     }
                   }
@@ -1431,7 +1431,7 @@
               "The bolts sit on the leg's centerline, one in the middle of each equal strip across the crossbar's width.",
               "The crossbar runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
               "End distance is measured along the grain on each bolt's line; the end is cut at 20.0° from square, parallel to the leg.",
-              "Assumed: load along the crossbar's grain, and across the leg's grain, which the crossbar meets at 70.0°. Across the leg's grain, each bolt is a row of its own. Softwood lumber."
+              "Assumed: load along the crossbar's grain, and across the leg's grain, which the crossbar meets at 70.0°. Softwood lumber."
             ]
           },
           {
@@ -1579,17 +1579,17 @@
               },
               {
                 "member": "Leg",
-                "label": "Spacing between rows, along the leg",
+                "label": "Spacing between bolts in a row",
                 "value": 3.8576444252251814,
                 "requirements": [
                   {
-                    "condition": "load perpendicular to grain, 2 < ℓ/D < 6",
-                    "multiple": "(5ℓ + 10D) / 8",
-                    "value": 1.5625,
+                    "condition": "load perpendicular to grain",
+                    "multiple": "3D",
+                    "value": 1.5,
                     "gives": "minimum",
                     "citation": {
                       "source": "nds-2024",
-                      "locator": "Table 12.5.1D, Spacing Requirements Between Rows, p. 99",
+                      "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
                       "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
                     }
                   }
@@ -1683,7 +1683,7 @@
               "The bolts sit on the leg's centerline, one in the middle of each equal strip across the gusset's width.",
               "The gusset runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
               "End distance is measured along the grain on each bolt's line; the end is cut at 20.0° from square, parallel to the leg.",
-              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Across the leg's grain, each bolt is a row of its own. Softwood lumber.",
+              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Softwood lumber.",
               "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 20.0° to the load."
             ]
           },
@@ -4461,7 +4461,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 33,
+    "templateVersion": 32,
     "snapshotVersion": 18,
     "params": {
       "beamLength": 120,
@@ -5904,17 +5904,17 @@
               },
               {
                 "member": "Leg",
-                "label": "Spacing between rows, along the leg",
+                "label": "Spacing between bolts in a row",
                 "value": 2.924888084164783,
                 "requirements": [
                   {
-                    "condition": "load perpendicular to grain, 2 < ℓ/D < 6",
-                    "multiple": "(5ℓ + 10D) / 8",
-                    "value": 1.5625,
+                    "condition": "load perpendicular to grain",
+                    "multiple": "3D",
+                    "value": 1.5,
                     "gives": "minimum",
                     "citation": {
                       "source": "nds-2024",
-                      "locator": "Table 12.5.1D, Spacing Requirements Between Rows, p. 99",
+                      "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
                       "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
                     }
                   }
@@ -5925,7 +5925,7 @@
               "The bolts sit on the leg's centerline, one in the middle of each equal strip across the crossbar's width.",
               "The crossbar runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
               "End distance is measured along the grain on each bolt's line; the end is cut at 19.9° from square, parallel to the leg.",
-              "Assumed: load along the crossbar's grain, and across the leg's grain, which the crossbar meets at 70.1°. Across the leg's grain, each bolt is a row of its own. Softwood lumber."
+              "Assumed: load along the crossbar's grain, and across the leg's grain, which the crossbar meets at 70.1°. Softwood lumber."
             ]
           },
           {
@@ -6073,17 +6073,17 @@
               },
               {
                 "member": "Leg",
-                "label": "Spacing between rows, along the leg",
+                "label": "Spacing between bolts in a row",
                 "value": 3.8555342927626683,
                 "requirements": [
                   {
-                    "condition": "load perpendicular to grain, 2 < ℓ/D < 6",
-                    "multiple": "(5ℓ + 10D) / 8",
-                    "value": 1.5625,
+                    "condition": "load perpendicular to grain",
+                    "multiple": "3D",
+                    "value": 1.5,
                     "gives": "minimum",
                     "citation": {
                       "source": "nds-2024",
-                      "locator": "Table 12.5.1D, Spacing Requirements Between Rows, p. 99",
+                      "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
                       "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
                     }
                   }
@@ -6177,7 +6177,7 @@
               "The bolts sit on the leg's centerline, one in the middle of each equal strip across the gusset's width.",
               "The gusset runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
               "End distance is measured along the grain on each bolt's line; the end is cut at 19.9° from square, parallel to the leg.",
-              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.1°. Across the leg's grain, each bolt is a row of its own. Softwood lumber.",
+              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.1°. Softwood lumber.",
               "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 19.9° to the load."
             ]
           },
@@ -9142,7 +9142,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 33,
+    "templateVersion": 32,
     "snapshotVersion": 18,
     "params": {
       "beamLength": 120,
@@ -10539,17 +10539,17 @@
               },
               {
                 "member": "Leg",
-                "label": "Spacing between rows, along the leg",
+                "label": "Spacing between bolts in a row",
                 "value": 2.9264888743087583,
                 "requirements": [
                   {
-                    "condition": "load perpendicular to grain, 2 < ℓ/D < 6",
-                    "multiple": "(5ℓ + 10D) / 8",
-                    "value": 1.5625,
+                    "condition": "load perpendicular to grain",
+                    "multiple": "3D",
+                    "value": 1.5,
                     "gives": "minimum",
                     "citation": {
                       "source": "nds-2024",
-                      "locator": "Table 12.5.1D, Spacing Requirements Between Rows, p. 99",
+                      "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
                       "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
                     }
                   }
@@ -10560,7 +10560,7 @@
               "The bolts sit on the leg's centerline, one in the middle of each equal strip across the crossbar's width.",
               "The crossbar runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
               "End distance is measured along the grain on each bolt's line; the end is cut at 20.0° from square, parallel to the leg.",
-              "Assumed: load along the crossbar's grain, and across the leg's grain, which the crossbar meets at 70.0°. Across the leg's grain, each bolt is a row of its own. Softwood lumber."
+              "Assumed: load along the crossbar's grain, and across the leg's grain, which the crossbar meets at 70.0°. Softwood lumber."
             ]
           },
           {
@@ -10708,17 +10708,17 @@
               },
               {
                 "member": "Leg",
-                "label": "Spacing between rows, along the leg",
+                "label": "Spacing between bolts in a row",
                 "value": 3.8576444252251814,
                 "requirements": [
                   {
-                    "condition": "load perpendicular to grain, 2 < ℓ/D < 6",
-                    "multiple": "(5ℓ + 10D) / 8",
-                    "value": 1.5625,
+                    "condition": "load perpendicular to grain",
+                    "multiple": "3D",
+                    "value": 1.5,
                     "gives": "minimum",
                     "citation": {
                       "source": "nds-2024",
-                      "locator": "Table 12.5.1D, Spacing Requirements Between Rows, p. 99",
+                      "locator": "Table 12.5.1B, Spacing Requirements for Fasteners in a Row, p. 98",
                       "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website_Chapter-12-Dowel-Type-Fasteners.pdf"
                     }
                   }
@@ -10812,7 +10812,7 @@
               "The bolts sit on the leg's centerline, one in the middle of each equal strip across the gusset's width.",
               "The gusset runs 1-5/8\" past each leg's outer face, so each bolt has 7D of end distance whichever way it bears.",
               "End distance is measured along the grain on each bolt's line; the end is cut at 20.0° from square, parallel to the leg.",
-              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Across the leg's grain, each bolt is a row of its own. Softwood lumber.",
+              "Assumed: load along the gusset's grain, and across the leg's grain, which the gusset meets at 70.0°. Softwood lumber.",
               "The gusset also carries the beam's weight down across its grain, so its bolts bear toward its top edge, the loaded edge. Its bolts at each leg are then one row, on the leg's centerline at 20.0° to the load."
             ]
           },
