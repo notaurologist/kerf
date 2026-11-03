@@ -365,33 +365,23 @@ describe('other stock sizes when the store has none (#450)', () => {
   const lowestOfBeamChecks = (checks: readonly CheckResult[]) =>
     Math.min(...checks.slice(0, 3).map((c) => (c.status === 'computed' ? c.margin : 0)));
 
-  // The beam's three checks read the beam's and the legs' sizes (the legs set the span); the
-  // crossbar and gusset sizes are read by no check, so they get no other size.
-  it('offers each beam and leg size that keeps the beam checks at their margin, as regenerating gives it', () => {
+  // The beam is the one member a check computes. Its checks also read the legs' and gussets'
+  // sizes, through the span, but a margin for them would say nothing about the legs or gussets.
+  it('offers each beam size that keeps the beam checks at their margin, as regenerating gives it', () => {
     const now = lowestOfBeamChecks(plan.checks);
-    for (const [line, path] of [
-      [plan.lumber.lines[0], 'beamStock'],
-      [plan.lumber.lines[1], 'legStock'],
-    ] as const) {
-      const stock = (line?.alternatives ?? []).filter((a) => a.kind === 'stock');
-      for (const alternative of stock) {
-        const other = made(
-          { ...entered.params, [path]: alternative.nominal },
-          entered.structuralInputs,
-        );
-        expect(alternative.margin).toBe(lowestOfBeamChecks(other.checks));
-        expect(alternative.margin).toBeGreaterThanOrEqual(now);
-      }
-      expect(stock.map((a) => a.margin)).toEqual(stock.map((a) => a.margin).sort((a, b) => b - a));
+    const stock = (plan.lumber.lines[0]?.alternatives ?? []).filter((a) => a.kind === 'stock');
+    for (const alternative of stock) {
+      const other = made(
+        { ...entered.params, beamStock: alternative.nominal as SwingSetParams['beamStock'] },
+        entered.structuralInputs,
+      );
+      expect(alternative.margin).toBe(lowestOfBeamChecks(other.checks));
+      expect(alternative.margin).toBeGreaterThanOrEqual(now);
     }
     // A deeper beam has more margin than the 4x6; a 4x4 has less.
-    const beamSizes = plan.lumber.lines[0]?.alternatives.flatMap((a) =>
-      a.kind === 'stock' ? [a.nominal] : [],
-    );
-    expect(beamSizes).toContain('4x8');
-    expect(beamSizes).not.toContain('4x4');
-    for (const line of plan.lumber.lines.slice(2)) {
-      expect(line.alternatives.some((a) => a.kind === 'stock')).toBe(false);
+    expect(stock.map((a) => a.nominal)).toEqual(['4x8']);
+    for (const line of plan.lumber.lines.slice(1)) {
+      expect(line.alternatives.some((a) => a.kind.startsWith('stock'))).toBe(false);
     }
   });
 
@@ -401,11 +391,6 @@ describe('other stock sizes when the store has none (#450)', () => {
       kind: 'stock-needs-inputs',
       name: 'Beam',
       field: 'beamStock',
-    });
-    expect(missing.lumber.lines[1]?.alternatives.at(-1)).toEqual({
-      kind: 'stock-needs-inputs',
-      name: 'Legs',
-      field: 'legStock',
     });
   });
 });

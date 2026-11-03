@@ -41,12 +41,8 @@ describe('action drawings for the worked example', () => {
   });
 
   it('frames: adds the legs, crossbars, and gussets, with nothing built before', () => {
-    expect(byStep('frames')?.emphasis?.sort()).toEqual([
-      'crossbar',
-      'gusset',
-      'leg-back',
-      'leg-front',
-    ]);
+    // Every part shown is new, so none is tinted: tinting all of them would mark nothing.
+    expect(byStep('frames')?.emphasis).toEqual([]);
     expect(parts('frames').sort()).toEqual(['crossbar', 'gusset', 'leg-back', 'leg-front']);
     // The legs stay; each crossbar and gusset is pulled out along the beam, arrow back home.
     expect(arrows('frames').map((a) => a.part)).toEqual([

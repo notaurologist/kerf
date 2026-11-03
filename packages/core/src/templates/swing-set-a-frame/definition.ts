@@ -122,23 +122,22 @@ function outputsFor(
   };
 }
 
-/** The parameters that size the parts, with the names their other sizes go by (#450). */
+/**
+ * The stock parameters whose other sizes the plan can give a margin for (#450): only the beam's,
+ * the one member a check computes. The beam checks read the legs' and gussets' sizes too, through
+ * the span, but say nothing of whether those parts are strong enough, so they get no other size.
+ */
 function stockFields(params: SwingSetParams) {
-  const field = (path: StockPath, name: string, partIds: string[]) => ({
-    path,
-    name,
-    partIds,
-    current: params[path],
-    options: NOMINAL_SIZES,
-  });
   return [
-    field('beamStock', params.beamPlies > 1 ? 'Beam plies' : 'Beam', ['beam']),
-    field('legStock', 'Legs', ['leg-back', 'leg-front']),
-    field('crossbarStock', 'Crossbars', ['crossbar']),
-    field('gussetStock', 'Gussets', ['gusset']),
+    {
+      path: 'beamStock',
+      name: params.beamPlies > 1 ? 'Beam plies' : 'Beam',
+      partIds: ['beam'],
+      current: params.beamStock,
+      options: NOMINAL_SIZES,
+    },
   ];
 }
-type StockPath = 'beamStock' | 'legStock' | 'crossbarStock' | 'gussetStock';
 
 export const swingSetAFrame: TemplateDefinition<
   SwingSetParams,

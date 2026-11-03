@@ -830,6 +830,12 @@ describe('icons', () => {
       expect(html).toContain('stroke-linejoin="round"');
     },
   );
+
+  it("draws the info icon's dot apart from its stem, with the round caps' half unit on each", () => {
+    // A zero-length segment at y 4.5 is a dot reaching 5; the stem's cap starts at 6.5.
+    const d = render(<Icon name="info" />).match(/<path d="([^"]+)"/)?.[1];
+    expect(d).toBe('M8 7v5M8 4.5h0');
+  });
 });
 
 describe('ErrorText', () => {
@@ -1284,7 +1290,7 @@ describe('the catalog', () => {
 
   it("uses the worked example's values, formatted by core", () => {
     expect(text).toContain('131-1/2"');
-    expect(text).toContain('margin 1.1x under these assumptions');
+    expect(text).toContain('margin 1.0x under these assumptions');
     expect(text).toContain(`Beam height must be from 5' 0" to 12' 0".`);
   });
 

@@ -33,6 +33,27 @@ The design milestone (`MILESTONES.md`, Design) runs in stages. Each stage explor
 
 Review pages are standalone HTML. Open one in a browser from the repository, or use the private link given in the pull request, which works on a phone.
 
+## Consistency fixes after the design audit (#463)
+
+The design audit of 2 November 2026 found twelve places where a screen departed from `system.md`. Fixed in November 2026:
+
+- The cut list is as wide as its columns (C1), as the shopping list is. A `fit` column's 1% width had stretched every narrow table to its container, so narrow tables now leave it out; a row's details never widen the table.
+- A cut-list part's letter is a `lead` of the cell: above the name in a table under 40rem wide, so a name breaks between phrases rather than after each word at 375 px, and in a column of its own beside the name and stock from 40rem.
+- Workshop's places are `RowLink`s. "Download a backup" is a secondary button under its description, since it does something rather than going somewhere.
+- The structural review's To do is 24rem wide (was 16rem), and each expert check in it is the amber callout with its flag, its label ("Expert check · Load-bearing design") in bold and the question in plain text.
+- The info icon's dot is a zero-length segment at y 4.5 and its stem starts at 7, so the round caps leave a unit of space between them.
+- The mode bar leaves out the project's name below 25rem of its width, where only a letter or two showed.
+- "To scale along the length, not across the width" is said once before a list of boards (the Boards section's intro, and each line's board cards in Shopping), and still under the board drawing on a cutting step.
+- Every table kept at every width with `fit` columns takes their widths at every width, so the shopping list's hardware groups, now each as wide as the Hardware column, end together and their Buy columns line up.
+- The tick's box is drawn from tokens, as the select is (#354): an outline in the text color, filled with a check mark when ticked. Chrome's dark rendering had drawn an unticked box as a filled gray square; Safari on an iPhone was not checked, and drawing it from tokens makes that check unnecessary.
+- A length in a sentence uses the text's own figures; tables, the Glance number, and saw settings keep tabular figures for columns.
+- An action drawing tints the parts a step adds only when it also shows parts built before; on the first assembly step every part shown is new, so none is tinted.
+
+Not changed:
+
+- The slashed zero. Atkinson Hyperlegible Next draws its zero slashed in every style, proportional or tabular, so that 0 and O differ; it is the typeface's legibility choice (#42), not a result of tabular figures, and lengths in sentences keep it.
+- The new-project drawings at 375 px. Measured on the current build, each template's drawing is 309 px wide, the card's full width, and the swing set's outlines stay apart, so nothing was left to change.
+
 ## Stage 19: usability pass, My toolbox (#363)
 
 The Tools page was a checklist of every tool type in the library, a details section for the ones ticked, and "Other tools" by name, which build steps never used, all saved with one button at the end. The owner asked for "My toolbox": the tools they have, with an easy way to add one from the library, and a decision on other tools. The two directions were drawn in the question itself (November 2026).

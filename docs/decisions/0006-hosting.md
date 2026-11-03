@@ -36,6 +36,11 @@ From each provider's own docs on that date:
 Backups: the free plan's restore window is 6 hours, which does not cover a mistake noticed days later. `PRODUCT.md` calls for backups from Postgres; a scheduled dump is a follow-up, not part of M3. Update, October 30, 2026 (#21): the owner chose manual dumps for now (steps in `ARCHITECTURE.md`, Backups). Neon's scheduled snapshots need a paid plan, and a free scheduled dump from GitHub Actions would need an encrypted artifact (the repository is public) and a database secret outside Vercel.
 
 
+
+## Function response size, checked November 3, 2026 (#489)
+
+Vercel's [function limits](https://vercel.com/docs/functions/limitations) (updated August 24, 2026) give 4.5 MB as the most a function's request or response body can be; a larger response fails with [`FUNCTION_RESPONSE_PAYLOAD_TOO_LARGE`](https://vercel.com/docs/errors/FUNCTION_RESPONSE_PAYLOAD_TOO_LARGE) (updated February 9, 2026). Neither page, nor the [guide to the limit](https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions) (updated November 10, 2025), says whether compression counts. The API does not compress its responses, so the limit is taken to apply to the uncompressed body. The guide says streamed responses are not limited, which is why the export streams. A record cabinet's drawings at the narrowest boards its ranges accept measure about 3.1 MB uncompressed and 0.22 MB gzipped.
+
 ## Requests that keep the database awake, checked October 31, 2026 (#211)
 
 Neon's compute stays awake while requests reach it, and suspends only after 5 idle minutes. One request every 4 minutes would keep it awake all month: about 720 hours at 0.25 CU, or 180 CU-hours against the free plan's 100. When the allowance is used up, compute is suspended until the next billing period.

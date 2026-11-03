@@ -252,7 +252,7 @@ describe('a structural input with a break-even value (#401)', () => {
     />,
   );
 
-  // The worked example's break-even factors: 2.164, 7.195, and 8.0 (spec, Structural model).
+  // The worked example's break-even factors: 1.969, 7.191, and 8.0 (spec, Structural model).
   it('shows under the dynamic factor where each strength check reaches margin 1.0', () => {
     const id = fieldId('structuralInputs', 'dynamicFactor');
     expect(html).toMatch(new RegExp(`id="${id}"[^>]*aria-describedby="[^"]*${id}-compare`));
@@ -265,7 +265,7 @@ describe('a structural input with a break-even value (#401)', () => {
     const rows = [...table.matchAll(/<tr[^>]*>(.*?)<\/tr>/g)].map((m) => textOf(m[1] ?? ''));
     expect(rows).toEqual([
       'Check Dynamic factor',
-      'Top beam, 4x6, bending 2.1 or less',
+      'Top beam, 4x6, bending 1.9 or less',
       'Top beam, 4x6, shear 7.1 or less',
       'Swing hanger, rated load 8.0 or less',
     ]);

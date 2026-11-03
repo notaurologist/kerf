@@ -108,9 +108,8 @@ export async function fetchBackup(
 }
 
 /**
- * The download link's click handler and what to show beside it. The link's own download is
- * stopped: in a browser the fetched backup is saved as a download, and from the Home Screen it
- * goes to the share sheet.
+ * The download button's click handler and what to show beside it: in a browser the fetched backup
+ * is saved as a download, and from the Home Screen it goes to the share sheet.
  */
 export function useBackup(
   host: () => BackupHost = browserHost,
@@ -118,8 +117,7 @@ export function useBackup(
 ) {
   const [backup, setBackup] = useState<BackupState>({ state: 'idle' });
 
-  const onDownload = async (event: { preventDefault(): void }) => {
-    event.preventDefault();
+  const onDownload = async () => {
     if (backup.state === 'preparing') return;
     const current = host();
     if (backup.state === 'ready') {

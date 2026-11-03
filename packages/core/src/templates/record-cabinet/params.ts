@@ -14,7 +14,7 @@ const BOARD_THICKNESS = { min: 0.625, max: 2 } as const;
 /** Feet: lengths sold, up to the 16' a dealer's hardwood comes in. */
 const LENGTHS = z.array(z.number().int().min(1).max(16)).min(1).max(4);
 
-export const RecordCabinetParams = z.object({
+const RecordCabinetFields = z.object({
   /** W: the top's length, end to end. */
   width: z.number().min(30).max(72),
   /** h_b: each bay's clear height, from the case bottom to the underside of the top. */
@@ -54,23 +54,25 @@ export const RecordCabinetParams = z.object({
   tenonLength: z.number().min(SIXTEENTH).max(3),
   /** Sliding doors on the end bays (#339), or none. */
   doors: z.enum(['sliding', 'none']),
-  /** The doors' tracks and frames (spec, Sliding doors on the end bays). */
-  door: z.object({
-    /** c_g: each track groove is the door's thickness plus this. */
-    clearance: z.number().min(0).max(0.125),
-    /** l_g: wood between and around the track grooves. */
-    land: z.number().min(0.125).max(0.5),
-    /** d_b: each bottom track's depth. */
-    bottomDepth: z.number().min(0.125).max(0.5),
-    /** d_u: each top track's depth, deeper so a door lifts in. */
-    topDepth: z.number().min(0.25).max(1),
-    /** o_d: how far each door runs past the partition, over the next bay. */
-    overlap: z.number().min(0).max(2),
-    /** w_s: each stile's and rail's width. */
-    frameWidth: z.number().min(1.5).max(4),
-    /** g_s: the panel grooves' depth, and the rails' stub tenons' length. */
-    grooveDepth: z.number().min(0.25).max(0.5),
-  }),
+  /** The doors' tracks and frames (spec, Sliding doors on the end bays), only with doors. */
+  door: z
+    .object({
+      /** c_g: each track groove is the door's thickness plus this. */
+      clearance: z.number().min(0).max(0.125),
+      /** l_g: wood between and around the track grooves. */
+      land: z.number().min(0.125).max(0.5),
+      /** d_b: each bottom track's depth. */
+      bottomDepth: z.number().min(0.125).max(0.5),
+      /** d_u: each top track's depth, deeper so a door lifts in. */
+      topDepth: z.number().min(0.25).max(1),
+      /** o_d: how far each door runs past the partition, over the next bay. */
+      overlap: z.number().min(0).max(2),
+      /** w_s: each stile's and rail's width. */
+      frameWidth: z.number().min(1.5).max(4),
+      /** g_s: the panel grooves' depth, and the rails' stub tenons' length. */
+      grooveDepth: z.number().min(0.25).max(0.5),
+    })
+    .optional(),
   /** h_r: vertical width of each back rail. */
   railHeight: z.number().min(2).max(4),
   /** s_r: one of the owner's record jackets, measured. */
@@ -113,13 +115,19 @@ export const RecordCabinetParams = z.object({
     flatten: z.number().min(0).max(0.25),
   }),
 });
+
+/** A cabinet with no doors has no door sizes to enter (#501). */
+export const RecordCabinetParams = RecordCabinetFields.refine(
+  (p) => p.doors === 'none' || p.door !== undefined,
+  { path: ['door'], message: 'Enter the doors’ sizes.' },
+);
 export type RecordCabinetParams = z.infer<typeof RecordCabinetParams>;
 
 /**
  * Parameters as stored: a plan from before the leg base (template version 8) has none of its
- * sizes, and one from before the doors none of the doors' sizes.
+ * sizes, and one with no doors, every plan from before them included, may have none of theirs.
  */
-export const StoredRecordCabinetParams = RecordCabinetParams.partial({
+export const StoredRecordCabinetParams = RecordCabinetFields.partial({
   legShowing: true,
   apronHeight: true,
   legStock: true,
@@ -127,6 +135,5 @@ export const StoredRecordCabinetParams = RecordCabinetParams.partial({
   apronSetback: true,
   tenonThickness: true,
   tenonLength: true,
-  door: true,
 });
 export type StoredRecordCabinetParams = z.infer<typeof StoredRecordCabinetParams>;

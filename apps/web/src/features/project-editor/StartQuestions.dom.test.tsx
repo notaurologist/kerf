@@ -82,7 +82,7 @@ describe('suggesting from the answers', () => {
         body: { answers: questions.examples[0] },
       },
     ]);
-    expect(opened?.params['beamLength']).toBe('120');
+    expect(opened?.params.beamLength).toBe('120');
     expect(opened?.about.get('params beamLength')?.about).toBe(
       "From the template's worked example.",
     );

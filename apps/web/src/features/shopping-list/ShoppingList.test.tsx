@@ -44,6 +44,33 @@ describe('ShoppingList', () => {
     expect(html).toContain('data-keep="" data-narrow=""');
   });
 
+  it("gives each hardware group the column's width and a count column as narrow as it can be", () => {
+    const html = render(
+      <ShoppingList
+        lumber={plan([])}
+        hardware={[
+          {
+            description: '1/2" through-bolt, grip 8-15/16"',
+            quantity: 2,
+            group: 'Bolts',
+            notes: [],
+          },
+          { description: 'Swing hangers', quantity: 4, group: 'Swing hardware', notes: [] },
+        ]}
+        hardwareNotes={[]}
+      />,
+    );
+    const tables = [...html.matchAll(/<table class="k-table"[^>]*>/g)].map((m) => m[0]);
+    expect(tables).toEqual([
+      '<table class="k-table" data-keep="" data-narrow="">',
+      '<table class="k-table" data-keep="">',
+      '<table class="k-table" data-keep="">',
+    ]);
+    expect(html.match(/<th scope="col" data-numeric="" data-width="fit">Buy<\/th>/g)).toHaveLength(
+      2,
+    );
+  });
+
   it('marks a hardware count still to be read at the store as input needed (#406)', () => {
     const text = renderText(
       <ShoppingList

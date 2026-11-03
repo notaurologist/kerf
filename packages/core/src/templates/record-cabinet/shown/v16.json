@@ -730,53 +730,17 @@
           {
             "nominal": "13/16\" x 5-1/2\"",
             "feet": 8,
-            "count": 12,
-            "notes": [],
-            "alternatives": [
-              {
-                "kind": "lengths",
-                "boards": [
-                  {
-                    "feet": 6,
-                    "count": 16
-                  }
-                ]
-              }
-            ]
+            "count": 12
           },
           {
             "nominal": "13/16\" x 5-1/2\"",
             "feet": 4,
-            "count": 1,
-            "notes": [],
-            "alternatives": [
-              {
-                "kind": "lengths",
-                "boards": [
-                  {
-                    "feet": 6,
-                    "count": 1
-                  }
-                ]
-              }
-            ]
+            "count": 1
           },
           {
             "nominal": "1-1/2\" x 1-1/2\"",
             "feet": 3,
-            "count": 1,
-            "notes": [],
-            "alternatives": [
-              {
-                "kind": "lengths",
-                "boards": [
-                  {
-                    "feet": 4,
-                    "count": 1
-                  }
-                ]
-              }
-            ]
+            "count": 1
           }
         ],
         "notes": [
@@ -42575,53 +42539,17 @@
           {
             "nominal": "13/16\" x 5-1/2\"",
             "feet": 8,
-            "count": 12,
-            "notes": [],
-            "alternatives": [
-              {
-                "kind": "lengths",
-                "boards": [
-                  {
-                    "feet": 6,
-                    "count": 16
-                  }
-                ]
-              }
-            ]
+            "count": 12
           },
           {
             "nominal": "13/16\" x 5-1/2\"",
             "feet": 4,
-            "count": 1,
-            "notes": [],
-            "alternatives": [
-              {
-                "kind": "lengths",
-                "boards": [
-                  {
-                    "feet": 6,
-                    "count": 1
-                  }
-                ]
-              }
-            ]
+            "count": 1
           },
           {
             "nominal": "1-1/2\" x 1-1/2\"",
             "feet": 3,
-            "count": 1,
-            "notes": [],
-            "alternatives": [
-              {
-                "kind": "lengths",
-                "boards": [
-                  {
-                    "feet": 4,
-                    "count": 1
-                  }
-                ]
-              }
-            ]
+            "count": 1
           }
         ],
         "notes": [
@@ -83447,47 +83375,17 @@
           {
             "nominal": "1-1/16\" x 5-1/2\"",
             "feet": 8,
-            "count": 5,
-            "notes": [],
-            "alternatives": [
-              {
-                "kind": "lengths",
-                "boards": [
-                  {
-                    "feet": 6,
-                    "count": 7
-                  },
-                  {
-                    "feet": 4,
-                    "count": 1
-                  }
-                ]
-              }
-            ]
+            "count": 5
           },
           {
             "nominal": "1-1/16\" x 5-1/2\"",
             "feet": 4,
-            "count": 1,
-            "notes": [],
-            "alternatives": [
-              {
-                "kind": "lengths",
-                "boards": [
-                  {
-                    "feet": 6,
-                    "count": 1
-                  }
-                ]
-              }
-            ]
+            "count": 1
           },
           {
             "nominal": "1-3/4\" x 1-3/4\"",
             "feet": 3,
-            "count": 1,
-            "notes": [],
-            "alternatives": []
+            "count": 1
           }
         ],
         "notes": [

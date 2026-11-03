@@ -73,8 +73,8 @@ const boardThickness = (p: RecordCabinetParams) =>
   p.board.source === 'store' ? p.board.thickness : p.board.surfaced;
 
 function doorGeometry(p: RecordCabinetParams, bayWidth: number): CabinetGeometry['door'] {
-  if (p.doors === 'none') return undefined;
   const d = p.door;
+  if (p.doors === 'none' || !d) return undefined;
   const thickness = boardThickness(p);
   const trackWidth = thickness + d.clearance;
   const trackZone = 3 * d.land + 2 * trackWidth;
@@ -170,14 +170,14 @@ export function validate(p: RecordCabinetParams, g: CabinetGeometry): Issue[] {
     );
   }
   const d = p.door;
-  if (g.door && d.topDepth < 2 * d.bottomDepth) {
+  if (g.door && d && d.topDepth < 2 * d.bottomDepth) {
     refuse(
       'door-cannot-lift',
       `A door seated ${len(d.bottomDepth)} in its bottom track lifts out of it only if the top track is at least ${len(2 * d.bottomDepth)} deep.`,
       ['door.topDepth', 'door.bottomDepth'],
     );
   }
-  if (g.door && d.grooveDepth >= d.frameWidth) {
+  if (g.door && d && d.grooveDepth >= d.frameWidth) {
     refuse(
       'groove-past-frame',
       `A ${len(d.grooveDepth)} panel groove is as deep as the ${len(d.frameWidth)} stiles and rails are wide.`,
@@ -191,7 +191,7 @@ export function validate(p: RecordCabinetParams, g: CabinetGeometry): Issue[] {
       ['tenonThickness', 'panelThickness'],
     );
   }
-  if (g.door) {
+  if (g.door && d) {
     // The recess and the panel groove overlap across the stile; the recess must stop above it.
     const reaches = d.frameWidth / 2 + RECESS.across / 2 > d.frameWidth - d.grooveDepth;
     if (reaches && RECESS.depth >= (g.door.thickness - p.tenonThickness) / 2) {

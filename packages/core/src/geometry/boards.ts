@@ -24,6 +24,9 @@ const NOTE_GAP = 3;
 /** A part's two end settings, in degrees from square, in end order. */
 export type EndSettings = ReadonlyMap<string, readonly [number, number]>;
 
+/** Under each board's drawing; a screen that lists several boards can say it once instead. */
+export const BOARD_SCALE_NOTE = 'To scale along the length, not across the width.';
+
 /** One drawing per board in the plan's order, its pieces lettered as in the cut list. */
 export function boardDrawings(
   lumber: Pick<LumberPlan, 'boards' | 'kerf' | 'trimPerEnd'>,
@@ -124,7 +127,7 @@ export function boardDrawings(
       description: `A ${board.nominal} board ${feet} long, cut into ${pieces}, leaving an offcut of ${formatLength(board.offcut)} after trimming ${formatLength(lumber.trimPerEnd)} off each end.`,
       bounds: boundsOf(prims, 2),
       primitives: prims,
-      notes: ['To scale along the length, not across the width.'],
+      notes: [BOARD_SCALE_NOTE],
     };
   });
 }

@@ -7,6 +7,11 @@ import { type LumberAlternative, type LumberPlan, lumberLineKey } from './shoppi
 // only when the checks that read the size are left with no lower margin than the plan has now.
 // Generic: the template names its stock parameters and does the generating.
 
+/**
+ * A stock parameter of a member some check computes. A part that checks read only indirectly,
+ * such as a leg whose size moves a beam's span, does not belong here: its margin would say
+ * nothing about the part itself.
+ */
 export interface StockField {
   /** The parameter that sets these parts' stock, by its form path. */
   path: string;

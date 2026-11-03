@@ -54,6 +54,7 @@ export function CutList(props: {
         caption="Cut list"
         captionHidden
         keepTable
+        narrow
         rows={props.rows}
         rowKey={(row) => row.partId}
         rowChanged={(row) => changes.under(path(row))}
@@ -70,13 +71,9 @@ export function CutList(props: {
             label: 'Part',
             // The letter first, as magazine plans list parts, then the name (#66), and the stock
             // under it: nominal for buying, the actual size for cutting.
+            lead: (row) => <PartLetter>{row.letter}</PartLetter>,
             cell: (row) => {
-              const name = (
-                <>
-                  <PartLetter>{row.letter}</PartLetter>
-                  <b>{row.name}</b>
-                </>
-              );
+              const name = <b>{row.name}</b>;
               const partHref = props.partHref;
               return (
                 <>
