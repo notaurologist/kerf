@@ -457,6 +457,15 @@
           "notes": [
             "Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80\" from pivot to seat, less the hanger's drop."
           ]
+        },
+        {
+          "description": "Wood preservative for cut ends",
+          "quantity": 1,
+          "group": "Paint and stain",
+          "notes": [
+            "For every cut and bolt hole in treated lumber, which IRC 2021 R317.1.1 requires to be treated as AWPA M4 says. Choose one whose label says it is for treating cuts in treated wood.",
+            "Copper naphthenate suits any treated lumber; boron is only for wood off the ground and out of the rain (AWPA M4-06, 7.1.1 and 7.1.2). M4-06 recommends at least 2.0% copper as metal, or 1.0% where that is not readily available. The label gives the copper as metal; the percentage of copper naphthenate is a different number."
+          ]
         }
       ],
       "hardwareNotes": [
@@ -2811,6 +2820,80 @@
           "count": 4,
           "type": "dig-holes",
           "depth": 24
+        },
+        {
+          "id": "beam/treat-cuts",
+          "count": 1,
+          "partId": "beam",
+          "type": "treat-cuts",
+          "cuts": 2
+        },
+        {
+          "id": "leg-back/treat-cuts",
+          "count": 2,
+          "partId": "leg-back",
+          "type": "treat-cuts",
+          "cuts": 3
+        },
+        {
+          "id": "leg-front/treat-cuts",
+          "count": 2,
+          "partId": "leg-front",
+          "type": "treat-cuts",
+          "cuts": 3
+        },
+        {
+          "id": "crossbar/treat-cuts",
+          "count": 2,
+          "partId": "crossbar",
+          "type": "treat-cuts",
+          "cuts": 2
+        },
+        {
+          "id": "gusset/treat-cuts",
+          "count": 2,
+          "partId": "gusset",
+          "type": "treat-cuts",
+          "cuts": 2
+        },
+        {
+          "id": "leg-beam-bolts/treat-holes",
+          "count": 2,
+          "type": "treat-holes",
+          "hardwareId": "leg-beam-bolts",
+          "partIds": [
+            "beam",
+            "leg-back",
+            "leg-front"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 8.947408118867273
+        },
+        {
+          "id": "crossbar-bolts/treat-holes",
+          "count": 8,
+          "type": "treat-holes",
+          "hardwareId": "crossbar-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "crossbar"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 5
+        },
+        {
+          "id": "gusset-bolts/treat-holes",
+          "count": 8,
+          "type": "treat-holes",
+          "hardwareId": "gusset-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "gusset"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 5
         }
       ],
       "cutEnds": [
@@ -2900,6 +2983,18 @@
         "categories": []
       },
       {
+        "id": "treat-cuts",
+        "title": "Treat every cut with preservative",
+        "operationIds": [
+          "beam/treat-cuts",
+          "leg-back/treat-cuts",
+          "leg-front/treat-cuts",
+          "crossbar/treat-cuts",
+          "gusset/treat-cuts"
+        ],
+        "categories": []
+      },
+      {
         "id": "site",
         "title": "Dig the leg holes",
         "operationIds": [
@@ -2914,7 +3009,9 @@
         "title": "Bolt the crossbars and gussets across the legs",
         "operationIds": [
           "crossbar-bolts/holes",
-          "gusset-bolts/holes"
+          "crossbar-bolts/treat-holes",
+          "gusset-bolts/holes",
+          "gusset-bolts/treat-holes"
         ],
         "categories": [
           "load-bearing"
@@ -2924,7 +3021,8 @@
         "id": "beam",
         "title": "Bolt the beam between the leg tops",
         "operationIds": [
-          "leg-beam-bolts/holes"
+          "leg-beam-bolts/holes",
+          "leg-beam-bolts/treat-holes"
         ],
         "categories": [
           "load-bearing",
@@ -6221,6 +6319,260 @@
             ]
           },
           {
+            "id": "treat-cuts",
+            "title": "Treat every cut with preservative",
+            "operations": [
+              {
+                "operation": {
+                  "id": "beam/treat-cuts",
+                  "count": 1,
+                  "partId": "beam",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 1 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-back/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-back",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-back"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-front/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-front",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar/treat-cuts",
+                  "count": 2,
+                  "partId": "crossbar",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset/treat-cuts",
+                  "count": 2,
+                  "partId": "gusset",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": []
+          },
+          {
             "id": "site",
             "title": "Dig the leg holes",
             "operations": [
@@ -6495,6 +6847,60 @@
               },
               {
                 "operation": {
+                  "id": "crossbar-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "gusset-bolts/holes",
                   "count": 8,
                   "type": "bolt-holes",
@@ -6664,6 +7070,60 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               }
@@ -6876,6 +7336,60 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/treat-holes",
+                  "count": 2,
+                  "type": "treat-holes",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 8.947408118867273
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 8-15/16\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 2 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               }
@@ -9053,6 +9567,260 @@
             ]
           },
           {
+            "id": "treat-cuts",
+            "title": "Treat every cut with preservative",
+            "operations": [
+              {
+                "operation": {
+                  "id": "beam/treat-cuts",
+                  "count": 1,
+                  "partId": "beam",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 1 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-back/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-back",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-back"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-front/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-front",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar/treat-cuts",
+                  "count": 2,
+                  "partId": "crossbar",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset/treat-cuts",
+                  "count": 2,
+                  "partId": "gusset",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": []
+          },
+          {
             "id": "site",
             "title": "Dig the leg holes",
             "operations": [
@@ -9265,6 +10033,60 @@
               },
               {
                 "operation": {
+                  "id": "crossbar-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "gusset-bolts/holes",
                   "count": 8,
                   "type": "bolt-holes",
@@ -9386,6 +10208,60 @@
                     ]
                   }
                 ]
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
               }
             ],
             "partIds": [
@@ -9581,6 +10457,60 @@
                     ]
                   }
                 ]
+              },
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/treat-holes",
+                  "count": 2,
+                  "type": "treat-holes",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 8.947408118867273
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 8-15/16\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 2 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
               }
             ],
             "partIds": [
@@ -10189,6 +11119,15 @@
           "group": "Swing hardware",
           "notes": [
             "Lightweight seats (CPSC Pub. 324, p. 4). Set the chain to 80\" from pivot to seat, less the hanger's drop."
+          ]
+        },
+        {
+          "description": "Wood preservative for cut ends",
+          "quantity": 1,
+          "group": "Paint and stain",
+          "notes": [
+            "For every cut and bolt hole in treated lumber, which IRC 2021 R317.1.1 requires to be treated as AWPA M4 says. Choose one whose label says it is for treating cuts in treated wood.",
+            "Copper naphthenate suits any treated lumber; boron is only for wood off the ground and out of the rain (AWPA M4-06, 7.1.1 and 7.1.2). M4-06 recommends at least 2.0% copper as metal, or 1.0% where that is not readily available. The label gives the copper as metal; the percentage of copper naphthenate is a different number."
           ]
         }
       ],
@@ -11095,6 +12034,80 @@
           "count": 4,
           "type": "dig-holes",
           "depth": 24
+        },
+        {
+          "id": "beam/treat-cuts",
+          "count": 1,
+          "partId": "beam",
+          "type": "treat-cuts",
+          "cuts": 2
+        },
+        {
+          "id": "leg-back/treat-cuts",
+          "count": 2,
+          "partId": "leg-back",
+          "type": "treat-cuts",
+          "cuts": 3
+        },
+        {
+          "id": "leg-front/treat-cuts",
+          "count": 2,
+          "partId": "leg-front",
+          "type": "treat-cuts",
+          "cuts": 3
+        },
+        {
+          "id": "crossbar/treat-cuts",
+          "count": 2,
+          "partId": "crossbar",
+          "type": "treat-cuts",
+          "cuts": 2
+        },
+        {
+          "id": "gusset/treat-cuts",
+          "count": 2,
+          "partId": "gusset",
+          "type": "treat-cuts",
+          "cuts": 2
+        },
+        {
+          "id": "leg-beam-bolts/treat-holes",
+          "count": 2,
+          "type": "treat-holes",
+          "hardwareId": "leg-beam-bolts",
+          "partIds": [
+            "beam",
+            "leg-back",
+            "leg-front"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 8.947408118867273
+        },
+        {
+          "id": "crossbar-bolts/treat-holes",
+          "count": 8,
+          "type": "treat-holes",
+          "hardwareId": "crossbar-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "crossbar"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 5
+        },
+        {
+          "id": "gusset-bolts/treat-holes",
+          "count": 8,
+          "type": "treat-holes",
+          "hardwareId": "gusset-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "gusset"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 5
         }
       ],
       "cutEnds": [
@@ -11184,6 +12197,18 @@
         "categories": []
       },
       {
+        "id": "treat-cuts",
+        "title": "Treat every cut with preservative",
+        "operationIds": [
+          "beam/treat-cuts",
+          "leg-back/treat-cuts",
+          "leg-front/treat-cuts",
+          "crossbar/treat-cuts",
+          "gusset/treat-cuts"
+        ],
+        "categories": []
+      },
+      {
         "id": "site",
         "title": "Dig the leg holes",
         "operationIds": [
@@ -11198,7 +12223,9 @@
         "title": "Bolt the crossbars and gussets across the legs",
         "operationIds": [
           "crossbar-bolts/holes",
-          "gusset-bolts/holes"
+          "crossbar-bolts/treat-holes",
+          "gusset-bolts/holes",
+          "gusset-bolts/treat-holes"
         ],
         "categories": [
           "load-bearing"
@@ -11208,7 +12235,8 @@
         "id": "beam",
         "title": "Bolt the beam between the leg tops",
         "operationIds": [
-          "leg-beam-bolts/holes"
+          "leg-beam-bolts/holes",
+          "leg-beam-bolts/treat-holes"
         ],
         "categories": [
           "load-bearing",
@@ -14505,6 +15533,260 @@
             ]
           },
           {
+            "id": "treat-cuts",
+            "title": "Treat every cut with preservative",
+            "operations": [
+              {
+                "operation": {
+                  "id": "beam/treat-cuts",
+                  "count": 1,
+                  "partId": "beam",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 1 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-back/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-back",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-back"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-front/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-front",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar/treat-cuts",
+                  "count": 2,
+                  "partId": "crossbar",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset/treat-cuts",
+                  "count": 2,
+                  "partId": "gusset",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": []
+          },
+          {
             "id": "site",
             "title": "Dig the leg holes",
             "operations": [
@@ -14779,6 +16061,60 @@
               },
               {
                 "operation": {
+                  "id": "crossbar-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "gusset-bolts/holes",
                   "count": 8,
                   "type": "bolt-holes",
@@ -14948,6 +16284,60 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               }
@@ -15160,6 +16550,60 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/treat-holes",
+                  "count": 2,
+                  "type": "treat-holes",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 8.947408118867273
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 8-15/16\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 2 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               }
@@ -17337,6 +18781,260 @@
             ]
           },
           {
+            "id": "treat-cuts",
+            "title": "Treat every cut with preservative",
+            "operations": [
+              {
+                "operation": {
+                  "id": "beam/treat-cuts",
+                  "count": 1,
+                  "partId": "beam",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 1 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-back/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-back",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-back"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-front/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-front",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar/treat-cuts",
+                  "count": 2,
+                  "partId": "crossbar",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset/treat-cuts",
+                  "count": 2,
+                  "partId": "gusset",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": []
+          },
+          {
             "id": "site",
             "title": "Dig the leg holes",
             "operations": [
@@ -17549,6 +19247,60 @@
               },
               {
                 "operation": {
+                  "id": "crossbar-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "gusset-bolts/holes",
                   "count": 8,
                   "type": "bolt-holes",
@@ -17670,6 +19422,60 @@
                     ]
                   }
                 ]
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
               }
             ],
             "partIds": [
@@ -17865,6 +19671,60 @@
                     ]
                   }
                 ]
+              },
+              {
+                "operation": {
+                  "id": "leg-beam-bolts/treat-holes",
+                  "count": 2,
+                  "type": "treat-holes",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 8.947408118867273
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 8-15/16\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 2 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
               }
             ],
             "partIds": [
@@ -18482,6 +20342,15 @@
           "group": "Ground anchors",
           "notes": [
             "Bury or cover the anchors (CPSC Pub. 324, p. 4)."
+          ]
+        },
+        {
+          "description": "Wood preservative for cut ends",
+          "quantity": 1,
+          "group": "Paint and stain",
+          "notes": [
+            "For every cut and bolt hole in treated lumber, which IRC 2021 R317.1.1 requires to be treated as AWPA M4 says. Choose one whose label says it is for treating cuts in treated wood.",
+            "Copper naphthenate suits any treated lumber; boron is only for wood off the ground and out of the rain (AWPA M4-06, 7.1.1 and 7.1.2). M4-06 recommends at least 2.0% copper as metal, or 1.0% where that is not readily available. The label gives the copper as metal; the percentage of copper naphthenate is a different number."
           ]
         }
       ],
@@ -20908,6 +22777,91 @@
           "id": "site/level-pads",
           "count": 4,
           "type": "level-pads"
+        },
+        {
+          "id": "beam/treat-cuts",
+          "count": 2,
+          "partId": "beam",
+          "type": "treat-cuts",
+          "cuts": 2
+        },
+        {
+          "id": "leg-back/treat-cuts",
+          "count": 2,
+          "partId": "leg-back",
+          "type": "treat-cuts",
+          "cuts": 3
+        },
+        {
+          "id": "leg-front/treat-cuts",
+          "count": 2,
+          "partId": "leg-front",
+          "type": "treat-cuts",
+          "cuts": 3
+        },
+        {
+          "id": "crossbar/treat-cuts",
+          "count": 2,
+          "partId": "crossbar",
+          "type": "treat-cuts",
+          "cuts": 2
+        },
+        {
+          "id": "gusset/treat-cuts",
+          "count": 2,
+          "partId": "gusset",
+          "type": "treat-cuts",
+          "cuts": 2
+        },
+        {
+          "id": "leg-beam-bolts/treat-holes",
+          "count": 2,
+          "type": "treat-holes",
+          "hardwareId": "leg-beam-bolts",
+          "partIds": [
+            "beam",
+            "leg-back",
+            "leg-front"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 8.452713591586766
+        },
+        {
+          "id": "crossbar-bolts/treat-holes",
+          "count": 8,
+          "type": "treat-holes",
+          "hardwareId": "crossbar-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "crossbar"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 5
+        },
+        {
+          "id": "gusset-bolts/treat-holes",
+          "count": 8,
+          "type": "treat-holes",
+          "hardwareId": "gusset-bolts",
+          "partIds": [
+            "leg-back",
+            "leg-front",
+            "gusset"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 5
+        },
+        {
+          "id": "ply-bolts/treat-holes",
+          "count": 6,
+          "type": "treat-holes",
+          "hardwareId": "ply-bolts",
+          "partIds": [
+            "beam"
+          ],
+          "holeDiameter": 0.5625,
+          "depth": 3
         }
       ],
       "cutEnds": [
@@ -20997,6 +22951,18 @@
         "categories": []
       },
       {
+        "id": "treat-cuts",
+        "title": "Treat every cut with preservative",
+        "operationIds": [
+          "beam/treat-cuts",
+          "leg-back/treat-cuts",
+          "leg-front/treat-cuts",
+          "crossbar/treat-cuts",
+          "gusset/treat-cuts"
+        ],
+        "categories": []
+      },
+      {
         "id": "site",
         "title": "Level the pads",
         "operationIds": [
@@ -21011,7 +22977,9 @@
         "title": "Bolt the crossbars and gussets across the legs",
         "operationIds": [
           "crossbar-bolts/holes",
-          "gusset-bolts/holes"
+          "crossbar-bolts/treat-holes",
+          "gusset-bolts/holes",
+          "gusset-bolts/treat-holes"
         ],
         "categories": [
           "load-bearing"
@@ -21022,7 +22990,9 @@
         "title": "Bolt the beam between the leg tops",
         "operationIds": [
           "leg-beam-bolts/holes",
-          "ply-bolts/holes"
+          "leg-beam-bolts/treat-holes",
+          "ply-bolts/holes",
+          "ply-bolts/treat-holes"
         ],
         "categories": [
           "load-bearing",
@@ -24892,6 +26862,260 @@
             ]
           },
           {
+            "id": "treat-cuts",
+            "title": "Treat every cut with preservative",
+            "operations": [
+              {
+                "operation": {
+                  "id": "beam/treat-cuts",
+                  "count": 2,
+                  "partId": "beam",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-back/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-back",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-back"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-front/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-front",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar/treat-cuts",
+                  "count": 2,
+                  "partId": "crossbar",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset/treat-cuts",
+                  "count": 2,
+                  "partId": "gusset",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": []
+          },
+          {
             "id": "site",
             "title": "Level the pads",
             "operations": [
@@ -25171,6 +27395,60 @@
               },
               {
                 "operation": {
+                  "id": "crossbar-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "gusset-bolts/holes",
                   "count": 8,
                   "type": "bolt-holes",
@@ -25340,6 +27618,60 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               }
@@ -25557,6 +27889,60 @@
               },
               {
                 "operation": {
+                  "id": "leg-beam-bolts/treat-holes",
+                  "count": 2,
+                  "type": "treat-holes",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 8.452713591586766
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 8-7/16\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 2 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "ply-bolts/holes",
                   "count": 6,
                   "type": "bolt-holes",
@@ -25722,6 +28108,56 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "ply-bolts/treat-holes",
+                  "count": 6,
+                  "type": "treat-holes",
+                  "hardwareId": "ply-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 3
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 3\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 6 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               }
@@ -28270,6 +30706,260 @@
             ]
           },
           {
+            "id": "treat-cuts",
+            "title": "Treat every cut with preservative",
+            "operations": [
+              {
+                "operation": {
+                  "id": "beam/treat-cuts",
+                  "count": 2,
+                  "partId": "beam",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-back/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-back",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-back"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "leg-front/treat-cuts",
+                  "count": 2,
+                  "partId": "leg-front",
+                  "type": "treat-cuts",
+                  "cuts": 3
+                },
+                "partIds": [
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 3 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "crossbar/treat-cuts",
+                  "count": 2,
+                  "partId": "crossbar",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "gusset/treat-cuts",
+                  "count": 2,
+                  "partId": "gusset",
+                  "type": "treat-cuts",
+                  "cuts": 2
+                },
+                "partIds": [
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-cuts-brush",
+                  "name": "Brushed on",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush the sawdust off each cut.",
+                    "Brush the preservative onto each of the 2 cuts on the piece, and onto any corner you rounded or chamfered, until the wood stops soaking it in.",
+                    "Add a second coat if the label calls for one.",
+                    "Wipe off what has not soaked in.",
+                    "Treat 2 this way."
+                  ],
+                  "mistakes": [
+                    "Leaving a cut bare because it will not show, such as the foot of a leg, leaves wood the treatment may never have reached. Coat every cut.",
+                    "Bolting a part in place before its cuts are treated hides faces you can no longer reach. Treat every cut first."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              }
+            ],
+            "partIds": [
+              "beam",
+              "leg-back",
+              "leg-front",
+              "crossbar",
+              "gusset"
+            ],
+            "flags": []
+          },
+          {
             "id": "site",
             "title": "Level the pads",
             "operations": [
@@ -28475,6 +31165,60 @@
               },
               {
                 "operation": {
+                  "id": "crossbar-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "crossbar-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "crossbar"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "crossbar"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "gusset-bolts/holes",
                   "count": 8,
                   "type": "bolt-holes",
@@ -28596,6 +31340,60 @@
                     ]
                   }
                 ]
+              },
+              {
+                "operation": {
+                  "id": "gusset-bolts/treat-holes",
+                  "count": 8,
+                  "type": "treat-holes",
+                  "hardwareId": "gusset-bolts",
+                  "partIds": [
+                    "leg-back",
+                    "leg-front",
+                    "gusset"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 5
+                },
+                "partIds": [
+                  "leg-back",
+                  "leg-front",
+                  "gusset"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 5\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 8 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
               }
             ],
             "partIds": [
@@ -28794,6 +31592,60 @@
               },
               {
                 "operation": {
+                  "id": "leg-beam-bolts/treat-holes",
+                  "count": 2,
+                  "type": "treat-holes",
+                  "hardwareId": "leg-beam-bolts",
+                  "partIds": [
+                    "beam",
+                    "leg-back",
+                    "leg-front"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 8.452713591586766
+                },
+                "partIds": [
+                  "beam",
+                  "leg-back",
+                  "leg-front"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 8-7/16\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 2 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "ply-bolts/holes",
                   "count": 6,
                   "type": "bolt-holes",
@@ -28911,6 +31763,56 @@
                     ]
                   }
                 ]
+              },
+              {
+                "operation": {
+                  "id": "ply-bolts/treat-holes",
+                  "count": 6,
+                  "type": "treat-holes",
+                  "hardwareId": "ply-bolts",
+                  "partIds": [
+                    "beam"
+                  ],
+                  "holeDiameter": 0.5625,
+                  "depth": 3
+                },
+                "partIds": [
+                  "beam"
+                ],
+                "method": {
+                  "id": "treat-holes-brush",
+                  "name": "Brushed in",
+                  "tools": [],
+                  "setup": [
+                    "Use the preservative on the shopping list, made for treating cuts in treated wood, and read its label for how to apply it and how long to let it dry."
+                  ],
+                  "technique": [
+                    "Brush or blow the chips out of each hole.",
+                    "Wet a brush narrow enough for a 9/16\" hole, or a rag wrapped on a thin stick, with the preservative, and work it through the 3\" of the hole from one face, then from the other, so the whole inside is wet.",
+                    "Wipe off what runs out onto the faces.",
+                    "Treat 6 holes this way, then put in the bolts once the label says it has soaked in."
+                  ],
+                  "mistakes": [
+                    "Coating only the ends of a hole leaves bare wood in the middle, where the parts meet. Work the brush through from both faces."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Read the precautions on the preservative’s label before you open it, and follow them: the label says what to wear and where to work.",
+                      "sources": [
+                        {
+                          "source": "awpa-m4-06",
+                          "locator": "Section 7.1, p. 2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "treat-a-cut"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
               }
             ],
             "partIds": [

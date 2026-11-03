@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TemplateDefinition } from '../../model/definition.ts';
+import type { Operation } from '../../model/operations.ts';
 import { diff } from '../../snapshot/diff.ts';
 import { createSnapshot, type ProjectSnapshot, readSnapshot } from '../../snapshot/snapshot.ts';
 import { swingSetAFrame } from './definition.ts';
@@ -26,6 +27,7 @@ import v21 from './snapshots/v21.json' with { type: 'json' };
 import v22 from './snapshots/v22.json' with { type: 'json' };
 import v23 from './snapshots/v23.json' with { type: 'json' };
 import v24 from './snapshots/v24.json' with { type: 'json' };
+import v25 from './snapshots/v25.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -83,6 +85,24 @@ const isVersion25 = (c: { path: string; before?: unknown }) =>
   (/^lumber\.notes\[\d+\]$/.test(c.path) &&
     String(c.before).includes(' to leave room for trimming'));
 
+/**
+ * Version 26's changes (#447): every part marked treated, an operation to treat each part's cuts and
+ * each bolt's holes, and the preservative in the hardware and its shopping line. Each is new, with
+ * nothing before it. Set aside like version 18's.
+ */
+const isVersion26 = (c: { path: string; before?: unknown; after?: unknown }) => {
+  if (c.before !== undefined) return false;
+  const after = c.after as { id?: string; type?: string } | undefined;
+  return (
+    (/^design\.parts\[\d+\]\.treated$/.test(c.path) && c.after === true) ||
+    (/^design\.operations\[\d+\]$/.test(c.path) &&
+      (after?.type === 'treat-cuts' || after?.type === 'treat-holes')) ||
+    (/^design\.hardware\[\d+\]$/.test(c.path) && after?.id === 'preservative') ||
+    (/^hardware\[\d+\]$/.test(c.path) &&
+      (c.after as { description?: string }).description === 'Wood preservative for cut ends')
+  );
+};
+
 /** What regenerating with the current version changes in the stored outputs, field by field. */
 function regenerated(
   snapshot: ProjectSnapshot,
@@ -91,6 +111,7 @@ function regenerated(
   keepVersion23 = false,
   keepVersion24 = false,
   keepVersion25 = false,
+  keepVersion26 = false,
 ) {
   const current = createSnapshot(template, snapshot.params, snapshot.structuralInputs);
   if (!current.ok) throw new Error('worked example no longer generates');
@@ -105,7 +126,8 @@ function regenerated(
         (keepVersion22 || !isVersion22(c)) &&
         (keepVersion23 || !isVersion23(c)) &&
         (keepVersion24 || !isVersion24(c)) &&
-        (keepVersion25 || !isVersion25(c)),
+        (keepVersion25 || !isVersion25(c)) &&
+        (keepVersion26 || !isVersion26(c)),
     ),
   };
   return keepVersion18
@@ -587,7 +609,12 @@ describe('swing-set template versions', () => {
       const json = (value: unknown) => JSON.parse(JSON.stringify(value));
       const outputs = template.storedOutputs.parse(current.output.outputs);
       const changes = diff(json(read.snapshot.outputs), json(outputs), 1000).changes.filter(
-        (c) => !isVersion22(c) && !isVersion23(c) && !isVersion24(c) && !isVersion25(c),
+        (c) =>
+          !isVersion22(c) &&
+          !isVersion23(c) &&
+          !isVersion24(c) &&
+          !isVersion25(c) &&
+          !isVersion26(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -696,6 +723,35 @@ describe('swing-set template versions', () => {
       { kind: 'measured', feet: 10, count: 1, atLeast: 121.125 },
       { kind: 'lengths', boards: [{ feet: 14, count: 1 }] },
       expect.objectContaining({ kind: 'stock', name: 'Beam', field: 'beamStock', nominal: '4x8' }),
+    ]);
+  });
+
+  // Hand check in operations.test.ts: each leg has 3 cuts (top, foot, flush cut), every other part
+  // 2; each bolt's holes are treated where they pass through treated parts, which is every one.
+  it('version 26 treats every cut and bolt hole, and adds the preservative (#447)', () => {
+    for (const stored of v25) {
+      const read = readSnapshot([template], stored);
+      if (!read.ok) throw new Error(JSON.stringify(read));
+      expect(read.snapshot.templateVersion).toBe(25);
+      const { changes } = regenerated(read.snapshot, false, false, false, false, false, true);
+      expect(changes.length).toBeGreaterThan(0);
+      expect(changes.filter((c) => !isVersion26(c))).toEqual([]);
+    }
+    const first = readSnapshot([template], v25[0]);
+    if (!first.ok) throw new Error(JSON.stringify(first));
+    const { changes } = regenerated(first.snapshot, false, false, false, false, false, true);
+    const added = changes
+      .filter((c) => c.path.startsWith('design.operations'))
+      .map((c) => c.after as Operation);
+    expect(added.map((op) => op.id)).toEqual([
+      'beam/treat-cuts',
+      'leg-back/treat-cuts',
+      'leg-front/treat-cuts',
+      'crossbar/treat-cuts',
+      'gusset/treat-cuts',
+      'leg-beam-bolts/treat-holes',
+      'crossbar-bolts/treat-holes',
+      'gusset-bolts/treat-holes',
     ]);
   });
 });

@@ -165,6 +165,12 @@ export const SKILLS = [
       'Round over or chamfer every corner a hand can touch, and sand the faces until no splinter catches.',
   },
   {
+    id: 'treat-a-cut',
+    name: 'Field-treating cuts and holes',
+    description:
+      'Coat every face a saw or bit opened in treated lumber with preservative, as its label says, and wipe off what does not soak in.',
+  },
+  {
     id: 'dig-a-post-hole',
     name: 'Digging a post hole',
     description:

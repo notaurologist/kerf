@@ -57,6 +57,8 @@ Template version 24 (#514) keeps each bolt's range of lengths that fit, and each
 
 Template version 25 (#450) moves the note about a shorter board onto its lumber line, and gives each lumber line what else to buy when the store has none of its boards (Not in stock, below). No part, cut, or check changes.
 
+Template version 26 (#447) marks every part as treated lumber, so every cut and bolt hole is field-treated, as IRC 2021 R317.1.1 requires (Operations and Build steps, below): a step after easing the edges coats every cut, and each bolt's holes are coated right after they are drilled, before the bolt goes in. The shopping list adds the preservative (Hardware, below). No part, cut, or check changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -241,8 +243,9 @@ Every structural connection is a through-bolt with a flat washer at each end and
 - **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none. Until the count is entered the anchors are listed with no quantity, marked as waiting for it (version 16, #406), so a plan on pads can be made before the store.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
 - **Treated lumber** (version 22, #449): IRC 2021 R317.3.1 requires fasteners, including nuts and washers, in preservative-treated wood to be hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, and its exception 2 allows mechanically galvanized steel to ASTM B695 Class 55 or heavier for fasteners other than nails, staples, and timber rivets. The hardware notes name these. Its exception 1 exempts steel bolts 1/2" and larger; Kerf does not use it, since CPSC asks for corrosion-resistant hardware on a play set. The IRC is a code for houses, read here as the reference for which materials suit treated lumber.
+- **Preservative** (version 26, #447): one wood preservative for cut ends, in its own store group, "Paint and stain", for the field treatment below. Its notes say IRC 2021 R317.1.1 requires it, to choose one labeled for treating cuts in treated wood, and that copper naphthenate suits any treated lumber while boron is only for wood off the ground and out of the rain. They give AWPA M4-06's figures for copper naphthenate: at least 2.0% copper as metal, or 1.0% where that is not readily available (7.1.1). IRC 2021 refers to M4-15, which is sold and could not be read; the 2006 edition was read in full. Secondary summaries that give only 2% or only 1% each quote half of 7.1.1.
 - **Notes on the lines** (version 22): each item's notes are carried to its shopping line, and the plan's list and Shopping mode show them under it.
-- **Store groups** (version 12): the bolts and their washers, nuts, and caps are "Bolts and fittings"; the hangers and seats are "Swing hardware"; the ground anchors are "Ground anchors". The store checklist shows them in that order, after the lumber.
+- **Store groups** (version 12): the bolts and their washers, nuts, and caps are "Bolts and fittings"; the hangers and seats are "Swing hardware"; the ground anchors are "Ground anchors"; the preservative is "Paint and stain" (version 26). The store checklist shows them in that order, after the lumber.
 - **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, and, on pads, the ground anchors per leg foot beside the anchors (`storeReadings.ts`). Each says where to look, and once entered, shows the value with a link to change it.
 
 ### Tools for the work
@@ -258,6 +261,7 @@ The tool-type library (`packages/core/src/knowledge/tools.ts`, #85) is checked a
 | Bolt holes through thick stock (leg, beam, leg; boards and legs) | all bolted parts | drill/driver with auger or spade bits, drilled from one side or both depending on reach; clamps hold the parts while drilling |
 | Tighten bolts and locking nuts | all bolted parts | socket wrench, impact driver |
 | Ease edges and splinters | all | sander, block plane |
+| Treat cuts and bolt holes with preservative | all | none from the library: a brush, a tray to stand ends in, or a small bottle to pour into holes |
 | Lay out the footprint and set the frames level and plumb | site | tape measure, string line, line level, level |
 | Dig for buried legs, or level pads | site | post-hole digger, shovel, tamper |
 
@@ -272,9 +276,13 @@ What needs doing, before any choice of how (`DOMAIN.md`, Operations; methods are
 | Taper: the flush cut | each leg | the leg's taper; it runs the beam's depth bd at α to the edge |
 | Bolt holes | leg to beam (through leg, beam, leg); crossbar and gusset to legs | each through-bolt item: its quantity, diameter, and grip as the depth |
 | Ease edges | every part | CPSC: kids touch every surface (`DOMAIN.md`, Lumber and finish) |
+| Treat cuts | every part | each part's ends and flush cut, since every part is treated lumber (IRC 2021 R317.1.1; `DOMAIN.md`, Field treatment) |
+| Treat bolt holes | each through-bolt item's holes | after its bolt holes, through the treated parts it joins (all of them) |
 | Dig holes (d > 0), or level pads (d = 0) | one per leg | burial depth d |
 
-Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep. Four holes 24 deep.
+Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep. Four holes 24 deep. Field treatment: 3 cuts on each leg (top, foot, flush cut) and 2 on the beam, each crossbar, and each gusset; the same 2 + 8 + 8 bolt holes, 9/16" across.
+
+Every part is treated: the beam checks take a waterborne preservative treatment (NDS 4.3.13, Structural model), and the legs stand in or on the ground. The generic operations follow from each part's `treated` flag and are added after the template's own (`treatmentOperations`).
 
 ### Build steps
 
@@ -284,17 +292,20 @@ Cutting goes board by board in the board plan's order (#58): generic code makes 
 |---|---|---|
 | Cut board 1, 2, ... (one per board), titled with what comes off it ("Cut board 6, a 2x6 10' long: 2 × Crossbar") | the end cuts and flush cuts of its pieces | |
 | Ease the edges of every part | ease edges, every part | from the method (dust) |
+| Treat every cut with preservative (version 26) | treat cuts, every part | |
 | Dig the leg holes, or Level the pads | dig holes or level pads | load-bearing design |
-| Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes | load-bearing design |
-| Bolt the beam between the leg tops | leg-to-beam bolt holes | load-bearing design, dynamic loads |
+| Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes, each followed by treating them | load-bearing design |
+| Bolt the beam between the leg tops | leg-to-beam bolt holes, then treating them | load-bearing design, dynamic loads |
 
 Each step also shows the plan's own flags for its work (Flags, below).
+
+The cuts are treated after the edges are eased, since rounding a corner also opens wood the treatment may not have reached, and before the site work, so a leg's foot is coated before it goes in the ground. AWPA M4-06 5.2 asks for the end of a column in ground contact to be an original untrimmed end or field-treated; the leg's foot is cut at the splay angle, so it is treated.
 
 The assembly order (frames braced first, then the beam) is Kerf's proposal and goes to the review with an experienced builder (M7). Raising the frames, backfilling, tightening, and hanging the swings have no operation type yet, so they are not steps.
 
 Worked example, the boards (`steps.test.ts`; 1/2" trim per end and 1/8" kerf per piece): the beam alone on a 12' 4x6, leaving 144 − (1 + 120.125) = 22.875; each leg on its own 12' 4x4, since two do not fit; both crossbars on a 10' 2x6 (1 + 2 · 59.118 = 119.236); both gussets on an 8' 2x8, leaving 96 − (1 + 2 · 19.627) = 55.746. A leg's cuts are done once on its board, a crossbar's twice on the board that holds both.
 
-Worked example, two inventories (`steps.test.ts`): a shop with a miter saw that cuts a 4x4, a jigsaw, and auger bits reaching 10" uses the miter saw for every end cut, the jigsaw for the flush cuts, and drills every hole from one side. A kit with a circular saw cutting 2-3/8" and spade bits reaching 6" cuts the 4x4s from two faces (2-3/8" ≥ 3-1/2" / 2), the 2x boards in one pass, drills the board holes (5") from one side and the leg-to-beam holes (8.947) from both sides (6 ≥ 4.47), and is offered the auger and longer spade bits as easier and more accurate. The angled-line offset on a 4x4 is 3.5 · tan 20° = 1.274, shown as 1-1/4"; on a 2x6, 5.5 · tan 20° = 2.002, shown as 2".
+Worked example, two inventories (`steps.test.ts`): a shop with a miter saw that cuts a 4x4, a jigsaw, and auger bits reaching 10" uses the miter saw for every end cut, the jigsaw for the flush cuts, and drills every hole from one side. A kit with a circular saw cutting 2-3/8" and spade bits reaching 6" cuts the 4x4s from two faces (2-3/8" ≥ 3-1/2" / 2), the 2x boards in one pass, drills the board holes (5") from one side and the leg-to-beam holes (8.947) from both sides (6 ≥ 4.47), and is offered the auger and longer spade bits as easier and more accurate. The angled-line offset on a 4x4 is 3.5 · tan 20° = 1.274, shown as 1-1/4"; on a 2x6, 5.5 · tan 20° = 2.002, shown as 2". Both, and an empty toolbox, brush on the field treatment, since its methods need no tool from the library.
 
 ### Board selection
 
