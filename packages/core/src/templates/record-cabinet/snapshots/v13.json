@@ -17,7 +17,10 @@
       "apronHeight": 2.5,
       "legStock": {
         "size": 1.5,
-        "lengths": [3, 4]
+        "lengths": [
+          3,
+          4
+        ]
       },
       "footSize": 1,
       "apronSetback": 0.125,
@@ -44,7 +47,11 @@
         "source": "store",
         "thickness": 0.8125,
         "width": 5.5,
-        "lengths": [4, 6, 8]
+        "lengths": [
+          4,
+          6,
+          8
+        ]
       },
       "allowances": {
         "jointPerEdge": 0.0625,
@@ -81,7 +88,10 @@
           "apronHeight": 2.5,
           "legStock": {
             "size": 1.5,
-            "lengths": [3, 4]
+            "lengths": [
+              3,
+              4
+            ]
           },
           "footSize": 1,
           "apronSetback": 0.125,
@@ -108,7 +118,11 @@
             "source": "store",
             "thickness": 0.8125,
             "width": 5.5,
-            "lengths": [4, 6, 8]
+            "lengths": [
+              4,
+              6,
+              8
+            ]
           },
           "allowances": {
             "jointPerEdge": 0.0625,
@@ -127,7 +141,12 @@
           "height": 22.25,
           "panelLength": 13.625,
           "railLength": 16.875,
-          "panelX": [0.75, 18, 35.25, 52.5],
+          "panelX": [
+            0.75,
+            18,
+            35.25,
+            52.5
+          ],
           "partitionLeft": 0.375,
           "legLength": 7.5,
           "longApron": 51.5,
@@ -226,7 +245,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 4,
               "boardLength": 56,
@@ -240,8 +263,13 @@
             },
             "quantity": 1,
             "length": 54,
-            "notes": ["The face shown is the top surface; its dadoes are in the underside."],
-            "selection": ["structural", "span"],
+            "notes": [
+              "The face shown is the top surface; its dadoes are in the underside."
+            ],
+            "selection": [
+              "structural",
+              "span"
+            ],
             "referenceEdge": "front edge",
             "letter": "A"
           },
@@ -325,7 +353,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 4,
               "boardLength": 54.5,
@@ -342,7 +374,10 @@
             "notes": [
               "The face shown is its top face, with the dadoes; it is the floor of every bay."
             ],
-            "selection": ["structural", "span"],
+            "selection": [
+              "structural",
+              "span"
+            ],
             "referenceEdge": "front edge",
             "letter": "B"
           },
@@ -395,7 +430,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 4,
               "boardLength": 15.625,
@@ -409,8 +448,13 @@
             },
             "quantity": 1,
             "length": 13.625,
-            "notes": ["Its dadoes face right, into the cabinet."],
-            "selection": ["structural", "along-length"],
+            "notes": [
+              "Its dadoes face right, into the cabinet."
+            ],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "front edge",
             "letter": "C"
           },
@@ -463,7 +507,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 4,
               "boardLength": 15.625,
@@ -477,8 +525,13 @@
             },
             "quantity": 1,
             "length": 13.625,
-            "notes": ["Its dadoes face left, into the cabinet."],
-            "selection": ["structural", "along-length"],
+            "notes": [
+              "Its dadoes face left, into the cabinet."
+            ],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "front edge",
             "letter": "D"
           },
@@ -540,7 +593,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 3,
               "boardLength": 15.625,
@@ -557,7 +614,10 @@
             "notes": [
               "Dadoes on both faces, opposite each other. It stops behind the doors’ tracks."
             ],
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "front edge",
             "letter": "E"
           },
@@ -585,7 +645,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 18.875,
@@ -599,8 +663,12 @@
             },
             "quantity": 3,
             "length": 16.875,
-            "notes": ["Under the top at the back of its bay, its ends in the back of the dadoes."],
-            "selection": ["structural"],
+            "notes": [
+              "Under the top at the back of its bay, its ends in the back of the dadoes."
+            ],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "bottom edge",
             "letter": "F"
           },
@@ -672,14 +740,20 @@
               "nominal": "1-1/2\" x 1-1/2\"",
               "thickness": 1.5,
               "width": 1.5,
-              "buyableFeet": [3, 4]
+              "buyableFeet": [
+                3,
+                4
+              ]
             },
             "quantity": 4,
             "length": 7.5,
             "notes": [
               "Its two tapered faces and its two mortises face into the cabinet; the foot is the first end."
             ],
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "inside face",
             "letter": "G"
           },
@@ -725,7 +799,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 53.5,
@@ -742,7 +820,9 @@
             "notes": [
               "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
             ],
-            "selection": ["structural"],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "bottom edge",
             "letter": "H"
           },
@@ -788,7 +868,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 18,
@@ -805,7 +889,9 @@
             "notes": [
               "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
             ],
-            "selection": ["structural"],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "bottom edge",
             "letter": "I"
           },
@@ -856,7 +942,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 16,
@@ -874,7 +964,9 @@
               "Glued to the inside of a side apron, flush with its top; the case bottom is screwed down through it.",
               "Each slot is 1/4\" longer than its round hole: the case bottom's movement across its 17\" depth, from the species and moisture range, plus 1/16\"."
             ],
-            "selection": ["structural"],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "inside edge",
             "letter": "J"
           },
@@ -920,7 +1012,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 15.75,
@@ -934,7 +1030,10 @@
             },
             "quantity": 2,
             "length": 13.75,
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "edge away from the panel",
             "id": "door-stile-outer",
             "name": "Outer stile",
@@ -975,7 +1074,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 15.75,
@@ -989,11 +1092,16 @@
             },
             "quantity": 2,
             "length": 13.75,
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "edge away from the panel",
             "id": "door-stile-inner",
             "name": "Inner stile",
-            "notes": ["The door’s edge that runs past the partition."],
+            "notes": [
+              "The door’s edge that runs past the partition."
+            ],
             "letter": "L"
           },
           {
@@ -1048,7 +1156,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 16.5,
@@ -1065,7 +1177,10 @@
             "notes": [
               "A stub tenon at each end fits the stiles’ grooves. Each door’s bottom rail runs in the bottom track and its top rail in the top track."
             ],
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "outer edge",
             "letter": "M"
           },
@@ -1143,7 +1258,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 3,
               "boardLength": 12.4375,
@@ -1162,7 +1281,10 @@
               "It floats in its grooves, unglued, with 1/8\" at each edge across its grain: half its movement across 14-1/2\", from the species and moisture range, plus 1/32\".",
               "Finish it before the frame is glued around it, so no bare wood shows at its edges when it shrinks."
             ],
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "left edge",
             "letter": "N"
           }
@@ -1870,7 +1992,14 @@
             "id": "lumber/acclimate",
             "type": "acclimate",
             "count": 1,
-            "partIds": ["top", "bottom", "side-left", "side-right", "partition", "door-panel"]
+            "partIds": [
+              "top",
+              "bottom",
+              "side-left",
+              "side-right",
+              "partition",
+              "door-panel"
+            ]
           },
           {
             "id": "top/board-end-0",
@@ -3172,42 +3301,68 @@
             "id": "base/glue",
             "type": "glue-assembly",
             "count": 1,
-            "partIds": ["leg", "apron-long", "apron-short"],
+            "partIds": [
+              "leg",
+              "apron-long",
+              "apron-short"
+            ],
             "reach": 52.5
           },
           {
             "id": "cleats/glue",
             "type": "glue-assembly",
             "count": 2,
-            "partIds": ["apron-short", "cleat"],
+            "partIds": [
+              "apron-short",
+              "cleat"
+            ],
             "reach": 1.8125
           },
           {
             "id": "case/glue",
             "type": "glue-assembly",
             "count": 1,
-            "partIds": ["bottom", "side-left", "side-right", "partition", "rail"],
+            "partIds": [
+              "bottom",
+              "side-left",
+              "side-right",
+              "partition",
+              "rail"
+            ],
             "reach": 52.5
           },
           {
             "id": "top/glue",
             "type": "glue-assembly",
             "count": 1,
-            "partIds": ["top", "side-left", "side-right", "partition"],
+            "partIds": [
+              "top",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "reach": 14.75
           },
           {
             "id": "doors/glue",
             "type": "glue-assembly",
             "count": 2,
-            "partIds": ["door-stile-outer", "door-stile-inner", "door-rail", "door-panel"],
+            "partIds": [
+              "door-stile-outer",
+              "door-stile-inner",
+              "door-rail",
+              "door-panel"
+            ],
             "reach": 17.75
           },
           {
             "id": "case/fasten",
             "type": "fasten",
             "count": 6,
-            "partIds": ["bottom", "cleat"]
+            "partIds": [
+              "bottom",
+              "cleat"
+            ]
           },
           {
             "id": "top/ease-edges",
@@ -3332,7 +3487,9 @@
             "name": "Wood glue",
             "quantity": 1,
             "structural": false,
-            "notes": ["Enough for every panel glue-up and every dado joint."],
+            "notes": [
+              "Enough for every panel glue-up and every dado joint."
+            ],
             "group": "Glue and finish"
           },
           {
@@ -3365,10 +3522,15 @@
             "recipe": "4 boards of 13/16\" x 5-1/2\", each 56\" long, glued to 21-5/8\" wide and ripped to 17-3/4\""
           },
           "length": "54\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["The face shown is the top surface; its dadoes are in the underside."]
+          "notes": [
+            "The face shown is the top surface; its dadoes are in the underside."
+          ]
         },
         {
           "partId": "bottom",
@@ -3383,7 +3545,10 @@
             "recipe": "4 boards of 13/16\" x 5-1/2\", each 54-1/2\" long, glued to 21-5/8\" wide and ripped to 17\""
           },
           "length": "52-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -3403,10 +3568,15 @@
             "recipe": "4 boards of 13/16\" x 5-1/2\", each 15-5/8\" long, glued to 21-5/8\" wide and ripped to 17\""
           },
           "length": "13-5/8\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Its dadoes face right, into the cabinet."]
+          "notes": [
+            "Its dadoes face right, into the cabinet."
+          ]
         },
         {
           "partId": "side-right",
@@ -3421,10 +3591,15 @@
             "recipe": "4 boards of 13/16\" x 5-1/2\", each 15-5/8\" long, glued to 21-5/8\" wide and ripped to 17\""
           },
           "length": "13-5/8\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Its dadoes face left, into the cabinet."]
+          "notes": [
+            "Its dadoes face left, into the cabinet."
+          ]
         },
         {
           "partId": "partition",
@@ -3439,10 +3614,15 @@
             "recipe": "3 boards of 13/16\" x 5-1/2\", each 15-5/8\" long, glued to 16-1/4\" wide and ripped to 14-1/2\""
           },
           "length": "13-5/8\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Dadoes on both faces, opposite each other. It stops behind the doors’ tracks."]
+          "notes": [
+            "Dadoes on both faces, opposite each other. It stops behind the doors’ tracks."
+          ]
         },
         {
           "partId": "rail",
@@ -3457,10 +3637,15 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 18-7/8\" long, ripped to 3\""
           },
           "length": "16-7/8\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Under the top at the back of its bay, its ends in the back of the dadoes."]
+          "notes": [
+            "Under the top at the back of its bay, its ends in the back of the dadoes."
+          ]
         },
         {
           "partId": "leg",
@@ -3469,7 +3654,10 @@
           "quantity": 4,
           "stock": "1-1/2\" x 1-1/2\"",
           "length": "7-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -3489,7 +3677,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 53-1/2\" long, ripped to 2-1/2\""
           },
           "length": "51-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -3509,7 +3700,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 18\" long, ripped to 2-1/2\""
           },
           "length": "16\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -3529,7 +3723,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 16\" long, ripped to 1\""
           },
           "length": "14\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -3550,7 +3747,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 15-3/4\" long, ripped to 2\""
           },
           "length": "13-3/4\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -3570,10 +3770,15 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 15-3/4\" long, ripped to 2\""
           },
           "length": "13-3/4\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["The door’s edge that runs past the partition."]
+          "notes": [
+            "The door’s edge that runs past the partition."
+          ]
         },
         {
           "partId": "door-rail",
@@ -3588,7 +3793,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 16-1/2\" long, ripped to 2\""
           },
           "length": "14-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -3608,7 +3816,10 @@
             "recipe": "3 boards of 13/16\" x 5-1/2\", each 12-7/16\" long, glued to 16-1/4\" wide and ripped to 14-5/16\""
           },
           "length": "10-7/16\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -3983,64 +4194,104 @@
             "count": 1
           }
         ],
-        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
+        "notes": [
+          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."
+        ],
         "issues": [],
         "selection": [
           {
             "partId": "top",
-            "guides": ["structural", "span"]
+            "guides": [
+              "structural",
+              "span"
+            ]
           },
           {
             "partId": "bottom",
-            "guides": ["structural", "span"]
+            "guides": [
+              "structural",
+              "span"
+            ]
           },
           {
             "partId": "side-left",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "side-right",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "partition",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "rail",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "leg",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "apron-long",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "apron-short",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "cleat",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "door-stile-outer",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "door-stile-inner",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "door-rail",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "door-panel",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           }
         ]
       },
@@ -4548,7 +4799,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -4628,7 +4881,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -4708,7 +4963,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -4788,7 +5045,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -4868,7 +5127,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -4948,7 +5209,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -4979,21 +5242,32 @@
             "category": "load-bearing",
             "ask": "Ask an experienced builder whether 3/8\" of wood between each partition's back-to-back dadoes holds the back rails.",
             "why": "Dadoes 3/16\" deep on both faces of a 3/4\" partition leave 3/8\" between them, and no source gives a limit.",
-            "partIds": ["partition"],
+            "partIds": [
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
             "category": "wood-movement",
             "ask": "Ask an experienced builder whether the back rails, glued into dadoes with their grain across the sides’ grain, will let the sides move.",
             "why": "The sides move front to back with the seasons; a rail glued across them resists it at the back corners. The Wood Movement section estimates how much.",
-            "partIds": ["rail", "side-left", "side-right", "partition"],
+            "partIds": [
+              "rail",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
             "category": "load-bearing",
             "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
             "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
-            "partIds": ["apron-long", "leg", "top"],
+            "partIds": [
+              "apron-long",
+              "leg",
+              "top"
+            ],
             "hardwareIds": []
           }
         ],
@@ -5003,7 +5277,12 @@
             "element": "Open back, with back rails",
             "confirm": "Confirm with an experienced builder that the dadoes and back rails keep the case square under a sideways push.",
             "why": "An open back has no panel to stop the case racking.",
-            "partIds": ["rail", "side-left", "side-right", "partition"],
+            "partIds": [
+              "rail",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
@@ -5011,7 +5290,9 @@
             "element": "The loaded cabinet",
             "confirm": "Confirm whether the cabinet, loaded with records and with everything on the top, can tip forward.",
             "why": "It is low and deep, but a heavy top load and a pull on the front can still tip a cabinet.",
-            "partIds": ["leg"],
+            "partIds": [
+              "leg"
+            ],
             "hardwareIds": []
           },
           {
@@ -5019,7 +5300,11 @@
             "element": "The base: legs and aprons",
             "confirm": "Confirm with an experienced builder that the mortise-and-tenon joints keep the base square and steady under a sideways push.",
             "why": "Short legs and aprons are a common, proven base, but Kerf does not compute joint strength.",
-            "partIds": ["leg", "apron-long", "apron-short"],
+            "partIds": [
+              "leg",
+              "apron-long",
+              "apron-short"
+            ],
             "hardwareIds": []
           },
           {
@@ -5027,7 +5312,12 @@
             "element": "Glued dadoes",
             "confirm": "Confirm with an experienced builder how strong the glued dado joints are for this load.",
             "why": "Kerf does not compute joint strength.",
-            "partIds": ["bottom", "side-left", "side-right", "partition"],
+            "partIds": [
+              "bottom",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
@@ -5035,7 +5325,10 @@
             "element": "Bending and shear of the aprons and top",
             "confirm": "Confirm the aprons and top are strong enough, not only stiff enough.",
             "why": "There are no published design values for furniture lumber, so Kerf checks only deflection.",
-            "partIds": ["apron-long", "top"],
+            "partIds": [
+              "apron-long",
+              "top"
+            ],
             "hardwareIds": []
           }
         ]
@@ -5060,7 +5353,10 @@
       "apronHeight": 2.5,
       "legStock": {
         "size": 1.5,
-        "lengths": [3, 4]
+        "lengths": [
+          3,
+          4
+        ]
       },
       "footSize": 1,
       "apronSetback": 0.125,
@@ -5087,7 +5383,11 @@
         "source": "store",
         "thickness": 0.8125,
         "width": 5.5,
-        "lengths": [4, 6, 8]
+        "lengths": [
+          4,
+          6,
+          8
+        ]
       },
       "allowances": {
         "jointPerEdge": 0.0625,
@@ -5114,7 +5414,10 @@
           "apronHeight": 2.5,
           "legStock": {
             "size": 1.5,
-            "lengths": [3, 4]
+            "lengths": [
+              3,
+              4
+            ]
           },
           "footSize": 1,
           "apronSetback": 0.125,
@@ -5141,7 +5444,11 @@
             "source": "store",
             "thickness": 0.8125,
             "width": 5.5,
-            "lengths": [4, 6, 8]
+            "lengths": [
+              4,
+              6,
+              8
+            ]
           },
           "allowances": {
             "jointPerEdge": 0.0625,
@@ -5160,7 +5467,12 @@
           "height": 22.25,
           "panelLength": 13.625,
           "railLength": 16.875,
-          "panelX": [0.75, 18, 35.25, 52.5],
+          "panelX": [
+            0.75,
+            18,
+            35.25,
+            52.5
+          ],
           "partitionLeft": 0.375,
           "legLength": 7.5,
           "longApron": 51.5,
@@ -5259,7 +5571,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 4,
               "boardLength": 56,
@@ -5273,8 +5589,13 @@
             },
             "quantity": 1,
             "length": 54,
-            "notes": ["The face shown is the top surface; its dadoes are in the underside."],
-            "selection": ["structural", "span"],
+            "notes": [
+              "The face shown is the top surface; its dadoes are in the underside."
+            ],
+            "selection": [
+              "structural",
+              "span"
+            ],
             "referenceEdge": "front edge",
             "letter": "A"
           },
@@ -5358,7 +5679,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 4,
               "boardLength": 54.5,
@@ -5375,7 +5700,10 @@
             "notes": [
               "The face shown is its top face, with the dadoes; it is the floor of every bay."
             ],
-            "selection": ["structural", "span"],
+            "selection": [
+              "structural",
+              "span"
+            ],
             "referenceEdge": "front edge",
             "letter": "B"
           },
@@ -5428,7 +5756,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 4,
               "boardLength": 15.625,
@@ -5442,8 +5774,13 @@
             },
             "quantity": 1,
             "length": 13.625,
-            "notes": ["Its dadoes face right, into the cabinet."],
-            "selection": ["structural", "along-length"],
+            "notes": [
+              "Its dadoes face right, into the cabinet."
+            ],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "front edge",
             "letter": "C"
           },
@@ -5496,7 +5833,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 4,
               "boardLength": 15.625,
@@ -5510,8 +5851,13 @@
             },
             "quantity": 1,
             "length": 13.625,
-            "notes": ["Its dadoes face left, into the cabinet."],
-            "selection": ["structural", "along-length"],
+            "notes": [
+              "Its dadoes face left, into the cabinet."
+            ],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "front edge",
             "letter": "D"
           },
@@ -5573,7 +5919,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 3,
               "boardLength": 15.625,
@@ -5590,7 +5940,10 @@
             "notes": [
               "Dadoes on both faces, opposite each other. It stops behind the doors’ tracks."
             ],
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "front edge",
             "letter": "E"
           },
@@ -5618,7 +5971,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 18.875,
@@ -5632,8 +5989,12 @@
             },
             "quantity": 3,
             "length": 16.875,
-            "notes": ["Under the top at the back of its bay, its ends in the back of the dadoes."],
-            "selection": ["structural"],
+            "notes": [
+              "Under the top at the back of its bay, its ends in the back of the dadoes."
+            ],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "bottom edge",
             "letter": "F"
           },
@@ -5705,14 +6066,20 @@
               "nominal": "1-1/2\" x 1-1/2\"",
               "thickness": 1.5,
               "width": 1.5,
-              "buyableFeet": [3, 4]
+              "buyableFeet": [
+                3,
+                4
+              ]
             },
             "quantity": 4,
             "length": 7.5,
             "notes": [
               "Its two tapered faces and its two mortises face into the cabinet; the foot is the first end."
             ],
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "inside face",
             "letter": "G"
           },
@@ -5758,7 +6125,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 53.5,
@@ -5775,7 +6146,9 @@
             "notes": [
               "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
             ],
-            "selection": ["structural"],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "bottom edge",
             "letter": "H"
           },
@@ -5821,7 +6194,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 18,
@@ -5838,7 +6215,9 @@
             "notes": [
               "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
             ],
-            "selection": ["structural"],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "bottom edge",
             "letter": "I"
           },
@@ -5889,7 +6268,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 16,
@@ -5907,7 +6290,9 @@
               "Glued to the inside of a side apron, flush with its top; the case bottom is screwed down through it.",
               "Each slot is 5/16\" longer than its round hole, sized for the species in Kerf that moves most, over 6% to 10% moisture, since the species and moisture range are not entered yet. Entering them sizes the slots for your wood."
             ],
-            "selection": ["structural"],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "inside edge",
             "letter": "J"
           },
@@ -5953,7 +6338,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 15.75,
@@ -5967,7 +6356,10 @@
             },
             "quantity": 2,
             "length": 13.75,
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "edge away from the panel",
             "id": "door-stile-outer",
             "name": "Outer stile",
@@ -6008,7 +6400,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 15.75,
@@ -6022,11 +6418,16 @@
             },
             "quantity": 2,
             "length": 13.75,
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "edge away from the panel",
             "id": "door-stile-inner",
             "name": "Inner stile",
-            "notes": ["The door’s edge that runs past the partition."],
+            "notes": [
+              "The door’s edge that runs past the partition."
+            ],
             "letter": "L"
           },
           {
@@ -6081,7 +6482,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 16.5,
@@ -6098,7 +6503,10 @@
             "notes": [
               "A stub tenon at each end fits the stiles’ grooves. Each door’s bottom rail runs in the bottom track and its top rail in the top track."
             ],
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "outer edge",
             "letter": "M"
           },
@@ -6176,7 +6584,11 @@
                 "nominal": "13/16\" x 5-1/2\"",
                 "thickness": 0.8125,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 3,
               "boardLength": 12.4375,
@@ -6195,7 +6607,10 @@
               "It floats in its grooves, unglued, with 1/8\" at each edge across its grain, sized for the species in Kerf that moves most, over 6% to 10% moisture, since the species and moisture range are not entered yet. Entering them sizes the gap for your wood.",
               "Finish it before the frame is glued around it, so no bare wood shows at its edges when it shrinks."
             ],
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "left edge",
             "letter": "N"
           }
@@ -6903,7 +7318,14 @@
             "id": "lumber/acclimate",
             "type": "acclimate",
             "count": 1,
-            "partIds": ["top", "bottom", "side-left", "side-right", "partition", "door-panel"]
+            "partIds": [
+              "top",
+              "bottom",
+              "side-left",
+              "side-right",
+              "partition",
+              "door-panel"
+            ]
           },
           {
             "id": "top/board-end-0",
@@ -8205,42 +8627,68 @@
             "id": "base/glue",
             "type": "glue-assembly",
             "count": 1,
-            "partIds": ["leg", "apron-long", "apron-short"],
+            "partIds": [
+              "leg",
+              "apron-long",
+              "apron-short"
+            ],
             "reach": 52.5
           },
           {
             "id": "cleats/glue",
             "type": "glue-assembly",
             "count": 2,
-            "partIds": ["apron-short", "cleat"],
+            "partIds": [
+              "apron-short",
+              "cleat"
+            ],
             "reach": 1.8125
           },
           {
             "id": "case/glue",
             "type": "glue-assembly",
             "count": 1,
-            "partIds": ["bottom", "side-left", "side-right", "partition", "rail"],
+            "partIds": [
+              "bottom",
+              "side-left",
+              "side-right",
+              "partition",
+              "rail"
+            ],
             "reach": 52.5
           },
           {
             "id": "top/glue",
             "type": "glue-assembly",
             "count": 1,
-            "partIds": ["top", "side-left", "side-right", "partition"],
+            "partIds": [
+              "top",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "reach": 14.75
           },
           {
             "id": "doors/glue",
             "type": "glue-assembly",
             "count": 2,
-            "partIds": ["door-stile-outer", "door-stile-inner", "door-rail", "door-panel"],
+            "partIds": [
+              "door-stile-outer",
+              "door-stile-inner",
+              "door-rail",
+              "door-panel"
+            ],
             "reach": 17.75
           },
           {
             "id": "case/fasten",
             "type": "fasten",
             "count": 6,
-            "partIds": ["bottom", "cleat"]
+            "partIds": [
+              "bottom",
+              "cleat"
+            ]
           },
           {
             "id": "top/ease-edges",
@@ -8365,7 +8813,9 @@
             "name": "Wood glue",
             "quantity": 1,
             "structural": false,
-            "notes": ["Enough for every panel glue-up and every dado joint."],
+            "notes": [
+              "Enough for every panel glue-up and every dado joint."
+            ],
             "group": "Glue and finish"
           },
           {
@@ -8398,10 +8848,15 @@
             "recipe": "4 boards of 13/16\" x 5-1/2\", each 56\" long, glued to 21-5/8\" wide and ripped to 17-3/4\""
           },
           "length": "54\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["The face shown is the top surface; its dadoes are in the underside."]
+          "notes": [
+            "The face shown is the top surface; its dadoes are in the underside."
+          ]
         },
         {
           "partId": "bottom",
@@ -8416,7 +8871,10 @@
             "recipe": "4 boards of 13/16\" x 5-1/2\", each 54-1/2\" long, glued to 21-5/8\" wide and ripped to 17\""
           },
           "length": "52-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -8436,10 +8894,15 @@
             "recipe": "4 boards of 13/16\" x 5-1/2\", each 15-5/8\" long, glued to 21-5/8\" wide and ripped to 17\""
           },
           "length": "13-5/8\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Its dadoes face right, into the cabinet."]
+          "notes": [
+            "Its dadoes face right, into the cabinet."
+          ]
         },
         {
           "partId": "side-right",
@@ -8454,10 +8917,15 @@
             "recipe": "4 boards of 13/16\" x 5-1/2\", each 15-5/8\" long, glued to 21-5/8\" wide and ripped to 17\""
           },
           "length": "13-5/8\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Its dadoes face left, into the cabinet."]
+          "notes": [
+            "Its dadoes face left, into the cabinet."
+          ]
         },
         {
           "partId": "partition",
@@ -8472,10 +8940,15 @@
             "recipe": "3 boards of 13/16\" x 5-1/2\", each 15-5/8\" long, glued to 16-1/4\" wide and ripped to 14-1/2\""
           },
           "length": "13-5/8\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Dadoes on both faces, opposite each other. It stops behind the doors’ tracks."]
+          "notes": [
+            "Dadoes on both faces, opposite each other. It stops behind the doors’ tracks."
+          ]
         },
         {
           "partId": "rail",
@@ -8490,10 +8963,15 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 18-7/8\" long, ripped to 3\""
           },
           "length": "16-7/8\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Under the top at the back of its bay, its ends in the back of the dadoes."]
+          "notes": [
+            "Under the top at the back of its bay, its ends in the back of the dadoes."
+          ]
         },
         {
           "partId": "leg",
@@ -8502,7 +8980,10 @@
           "quantity": 4,
           "stock": "1-1/2\" x 1-1/2\"",
           "length": "7-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -8522,7 +9003,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 53-1/2\" long, ripped to 2-1/2\""
           },
           "length": "51-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -8542,7 +9026,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 18\" long, ripped to 2-1/2\""
           },
           "length": "16\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -8562,7 +9049,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 16\" long, ripped to 1\""
           },
           "length": "14\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -8583,7 +9073,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 15-3/4\" long, ripped to 2\""
           },
           "length": "13-3/4\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -8603,10 +9096,15 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 15-3/4\" long, ripped to 2\""
           },
           "length": "13-3/4\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["The door’s edge that runs past the partition."]
+          "notes": [
+            "The door’s edge that runs past the partition."
+          ]
         },
         {
           "partId": "door-rail",
@@ -8621,7 +9119,10 @@
             "recipe": "1 board of 13/16\" x 5-1/2\", 16-1/2\" long, ripped to 2\""
           },
           "length": "14-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -8641,7 +9142,10 @@
             "recipe": "3 boards of 13/16\" x 5-1/2\", each 12-7/16\" long, glued to 16-1/4\" wide and ripped to 14-1/4\""
           },
           "length": "10-7/16\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -9016,64 +9520,104 @@
             "count": 1
           }
         ],
-        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
+        "notes": [
+          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."
+        ],
         "issues": [],
         "selection": [
           {
             "partId": "top",
-            "guides": ["structural", "span"]
+            "guides": [
+              "structural",
+              "span"
+            ]
           },
           {
             "partId": "bottom",
-            "guides": ["structural", "span"]
+            "guides": [
+              "structural",
+              "span"
+            ]
           },
           {
             "partId": "side-left",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "side-right",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "partition",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "rail",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "leg",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "apron-long",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "apron-short",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "cleat",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "door-stile-outer",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "door-stile-inner",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "door-rail",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "door-panel",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           }
         ]
       },
@@ -9320,21 +9864,32 @@
             "category": "load-bearing",
             "ask": "Ask an experienced builder whether 3/8\" of wood between each partition's back-to-back dadoes holds the back rails.",
             "why": "Dadoes 3/16\" deep on both faces of a 3/4\" partition leave 3/8\" between them, and no source gives a limit.",
-            "partIds": ["partition"],
+            "partIds": [
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
             "category": "wood-movement",
             "ask": "Ask an experienced builder whether the back rails, glued into dadoes with their grain across the sides’ grain, will let the sides move.",
             "why": "The sides move front to back with the seasons; a rail glued across them resists it at the back corners. The Wood Movement section estimates how much.",
-            "partIds": ["rail", "side-left", "side-right", "partition"],
+            "partIds": [
+              "rail",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
             "category": "load-bearing",
             "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
             "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
-            "partIds": ["apron-long", "leg", "top"],
+            "partIds": [
+              "apron-long",
+              "leg",
+              "top"
+            ],
             "hardwareIds": []
           }
         ],
@@ -9344,7 +9899,12 @@
             "element": "Open back, with back rails",
             "confirm": "Confirm with an experienced builder that the dadoes and back rails keep the case square under a sideways push.",
             "why": "An open back has no panel to stop the case racking.",
-            "partIds": ["rail", "side-left", "side-right", "partition"],
+            "partIds": [
+              "rail",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
@@ -9352,7 +9912,9 @@
             "element": "The loaded cabinet",
             "confirm": "Confirm whether the cabinet, loaded with records and with everything on the top, can tip forward.",
             "why": "It is low and deep, but a heavy top load and a pull on the front can still tip a cabinet.",
-            "partIds": ["leg"],
+            "partIds": [
+              "leg"
+            ],
             "hardwareIds": []
           },
           {
@@ -9360,7 +9922,11 @@
             "element": "The base: legs and aprons",
             "confirm": "Confirm with an experienced builder that the mortise-and-tenon joints keep the base square and steady under a sideways push.",
             "why": "Short legs and aprons are a common, proven base, but Kerf does not compute joint strength.",
-            "partIds": ["leg", "apron-long", "apron-short"],
+            "partIds": [
+              "leg",
+              "apron-long",
+              "apron-short"
+            ],
             "hardwareIds": []
           },
           {
@@ -9368,7 +9934,12 @@
             "element": "Glued dadoes",
             "confirm": "Confirm with an experienced builder how strong the glued dado joints are for this load.",
             "why": "Kerf does not compute joint strength.",
-            "partIds": ["bottom", "side-left", "side-right", "partition"],
+            "partIds": [
+              "bottom",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
@@ -9376,7 +9947,10 @@
             "element": "Bending and shear of the aprons and top",
             "confirm": "Confirm the aprons and top are strong enough, not only stiff enough.",
             "why": "There are no published design values for furniture lumber, so Kerf checks only deflection.",
-            "partIds": ["apron-long", "top"],
+            "partIds": [
+              "apron-long",
+              "top"
+            ],
             "hardwareIds": []
           }
         ]
@@ -9401,7 +9975,9 @@
       "apronHeight": 2,
       "legStock": {
         "size": 1.75,
-        "lengths": [3]
+        "lengths": [
+          3
+        ]
       },
       "footSize": 1.25,
       "apronSetback": 0,
@@ -9428,7 +10004,11 @@
         "source": "store",
         "thickness": 1.0625,
         "width": 5.5,
-        "lengths": [4, 6, 8]
+        "lengths": [
+          4,
+          6,
+          8
+        ]
       },
       "allowances": {
         "jointPerEdge": 0.0625,
@@ -9465,7 +10045,9 @@
           "apronHeight": 2,
           "legStock": {
             "size": 1.75,
-            "lengths": [3]
+            "lengths": [
+              3
+            ]
           },
           "footSize": 1.25,
           "apronSetback": 0,
@@ -9492,7 +10074,11 @@
             "source": "store",
             "thickness": 1.0625,
             "width": 5.5,
-            "lengths": [4, 6, 8]
+            "lengths": [
+              4,
+              6,
+              8
+            ]
           },
           "allowances": {
             "jointPerEdge": 0.0625,
@@ -9511,7 +10097,11 @@
           "height": 22,
           "panelLength": 15.5,
           "railLength": 13,
-          "panelX": [1, 14.5, 28],
+          "panelX": [
+            1,
+            14.5,
+            28
+          ],
           "partitionLeft": 0.5,
           "legLength": 5,
           "longApron": 27,
@@ -9572,7 +10162,11 @@
                 "nominal": "1-1/16\" x 5-1/2\"",
                 "thickness": 1.0625,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 3,
               "boardLength": 32,
@@ -9586,8 +10180,13 @@
             },
             "quantity": 1,
             "length": 30,
-            "notes": ["The face shown is the top surface; its dadoes are in the underside."],
-            "selection": ["structural", "span"],
+            "notes": [
+              "The face shown is the top surface; its dadoes are in the underside."
+            ],
+            "selection": [
+              "structural",
+              "span"
+            ],
             "referenceEdge": "front edge",
             "letter": "A"
           },
@@ -9644,7 +10243,11 @@
                 "nominal": "1-1/16\" x 5-1/2\"",
                 "thickness": 1.0625,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 3,
               "boardLength": 30,
@@ -9661,7 +10264,10 @@
             "notes": [
               "The face shown is its top face, with the dadoes; it is the floor of every bay."
             ],
-            "selection": ["structural", "span"],
+            "selection": [
+              "structural",
+              "span"
+            ],
             "referenceEdge": "front edge",
             "letter": "B"
           },
@@ -9714,7 +10320,11 @@
                 "nominal": "1-1/16\" x 5-1/2\"",
                 "thickness": 1.0625,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 3,
               "boardLength": 17.5,
@@ -9728,8 +10338,13 @@
             },
             "quantity": 1,
             "length": 15.5,
-            "notes": ["Its dadoes face right, into the cabinet."],
-            "selection": ["structural", "along-length"],
+            "notes": [
+              "Its dadoes face right, into the cabinet."
+            ],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "front edge",
             "letter": "C"
           },
@@ -9782,7 +10397,11 @@
                 "nominal": "1-1/16\" x 5-1/2\"",
                 "thickness": 1.0625,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 3,
               "boardLength": 17.5,
@@ -9796,8 +10415,13 @@
             },
             "quantity": 1,
             "length": 15.5,
-            "notes": ["Its dadoes face left, into the cabinet."],
-            "selection": ["structural", "along-length"],
+            "notes": [
+              "Its dadoes face left, into the cabinet."
+            ],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "front edge",
             "letter": "D"
           },
@@ -9859,7 +10483,11 @@
                 "nominal": "1-1/16\" x 5-1/2\"",
                 "thickness": 1.0625,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 3,
               "boardLength": 17.5,
@@ -9873,8 +10501,13 @@
             },
             "quantity": 1,
             "length": 15.5,
-            "notes": ["Dadoes on both faces, opposite each other."],
-            "selection": ["structural", "along-length"],
+            "notes": [
+              "Dadoes on both faces, opposite each other."
+            ],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "front edge",
             "letter": "E"
           },
@@ -9902,7 +10535,11 @@
                 "nominal": "1-1/16\" x 5-1/2\"",
                 "thickness": 1.0625,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 15,
@@ -9916,8 +10553,12 @@
             },
             "quantity": 2,
             "length": 13,
-            "notes": ["Under the top at the back of its bay, its ends in the back of the dadoes."],
-            "selection": ["structural"],
+            "notes": [
+              "Under the top at the back of its bay, its ends in the back of the dadoes."
+            ],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "bottom edge",
             "letter": "F"
           },
@@ -9989,14 +10630,19 @@
               "nominal": "1-3/4\" x 1-3/4\"",
               "thickness": 1.75,
               "width": 1.75,
-              "buyableFeet": [3]
+              "buyableFeet": [
+                3
+              ]
             },
             "quantity": 4,
             "length": 5,
             "notes": [
               "Its two tapered faces and its two mortises face into the cabinet; the foot is the first end."
             ],
-            "selection": ["structural", "along-length"],
+            "selection": [
+              "structural",
+              "along-length"
+            ],
             "referenceEdge": "inside face",
             "letter": "G"
           },
@@ -10042,7 +10688,11 @@
                 "nominal": "1-1/16\" x 5-1/2\"",
                 "thickness": 1.0625,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 29,
@@ -10059,7 +10709,9 @@
             "notes": [
               "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
             ],
-            "selection": ["structural"],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "bottom edge",
             "letter": "H"
           },
@@ -10105,7 +10757,11 @@
                 "nominal": "1-1/16\" x 5-1/2\"",
                 "thickness": 1.0625,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 14,
@@ -10122,7 +10778,9 @@
             "notes": [
               "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
             ],
-            "selection": ["structural"],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "bottom edge",
             "letter": "I"
           },
@@ -10173,7 +10831,11 @@
                 "nominal": "1-1/16\" x 5-1/2\"",
                 "thickness": 1.0625,
                 "width": 5.5,
-                "buyableFeet": [4, 6, 8]
+                "buyableFeet": [
+                  4,
+                  6,
+                  8
+                ]
               },
               "boards": 1,
               "boardLength": 11.5,
@@ -10191,7 +10853,9 @@
               "Glued to the inside of a side apron, flush with its top; the case bottom is screwed down through it.",
               "Each slot is 3/16\" longer than its round hole: the case bottom's movement across its 13\" depth, from the species and moisture range, plus 1/16\"."
             ],
-            "selection": ["structural"],
+            "selection": [
+              "structural"
+            ],
             "referenceEdge": "inside edge",
             "letter": "J"
           }
@@ -10611,7 +11275,13 @@
             "id": "lumber/acclimate",
             "type": "acclimate",
             "count": 1,
-            "partIds": ["top", "bottom", "side-left", "side-right", "partition"]
+            "partIds": [
+              "top",
+              "bottom",
+              "side-left",
+              "side-right",
+              "partition"
+            ]
           },
           {
             "id": "top/board-end-0",
@@ -11480,35 +12150,56 @@
             "id": "base/glue",
             "type": "glue-assembly",
             "count": 1,
-            "partIds": ["leg", "apron-long", "apron-short"],
+            "partIds": [
+              "leg",
+              "apron-long",
+              "apron-short"
+            ],
             "reach": 28
           },
           {
             "id": "cleats/glue",
             "type": "glue-assembly",
             "count": 2,
-            "partIds": ["apron-short", "cleat"],
+            "partIds": [
+              "apron-short",
+              "cleat"
+            ],
             "reach": 2.0625
           },
           {
             "id": "case/glue",
             "type": "glue-assembly",
             "count": 1,
-            "partIds": ["bottom", "side-left", "side-right", "partition", "rail"],
+            "partIds": [
+              "bottom",
+              "side-left",
+              "side-right",
+              "partition",
+              "rail"
+            ],
             "reach": 28
           },
           {
             "id": "top/glue",
             "type": "glue-assembly",
             "count": 1,
-            "partIds": ["top", "side-left", "side-right", "partition"],
+            "partIds": [
+              "top",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "reach": 17
           },
           {
             "id": "case/fasten",
             "type": "fasten",
             "count": 6,
-            "partIds": ["bottom", "cleat"]
+            "partIds": [
+              "bottom",
+              "cleat"
+            ]
           },
           {
             "id": "top/ease-edges",
@@ -11605,7 +12296,9 @@
             "name": "Wood glue",
             "quantity": 1,
             "structural": false,
-            "notes": ["Enough for every panel glue-up and every dado joint."],
+            "notes": [
+              "Enough for every panel glue-up and every dado joint."
+            ],
             "group": "Glue and finish"
           },
           {
@@ -11637,10 +12330,15 @@
             "recipe": "3 boards of 1-1/16\" x 5-1/2\", each 32\" long, glued to 16-1/4\" wide and ripped to 14\""
           },
           "length": "30\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["The face shown is the top surface; its dadoes are in the underside."]
+          "notes": [
+            "The face shown is the top surface; its dadoes are in the underside."
+          ]
         },
         {
           "partId": "bottom",
@@ -11655,7 +12353,10 @@
             "recipe": "3 boards of 1-1/16\" x 5-1/2\", each 30\" long, glued to 16-1/4\" wide and ripped to 13\""
           },
           "length": "28\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -11675,10 +12376,15 @@
             "recipe": "3 boards of 1-1/16\" x 5-1/2\", each 17-1/2\" long, glued to 16-1/4\" wide and ripped to 13\""
           },
           "length": "15-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Its dadoes face right, into the cabinet."]
+          "notes": [
+            "Its dadoes face right, into the cabinet."
+          ]
         },
         {
           "partId": "side-right",
@@ -11693,10 +12399,15 @@
             "recipe": "3 boards of 1-1/16\" x 5-1/2\", each 17-1/2\" long, glued to 16-1/4\" wide and ripped to 13\""
           },
           "length": "15-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Its dadoes face left, into the cabinet."]
+          "notes": [
+            "Its dadoes face left, into the cabinet."
+          ]
         },
         {
           "partId": "partition",
@@ -11711,10 +12422,15 @@
             "recipe": "3 boards of 1-1/16\" x 5-1/2\", each 17-1/2\" long, glued to 16-1/4\" wide and ripped to 13\""
           },
           "length": "15-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Dadoes on both faces, opposite each other."]
+          "notes": [
+            "Dadoes on both faces, opposite each other."
+          ]
         },
         {
           "partId": "rail",
@@ -11729,10 +12445,15 @@
             "recipe": "1 board of 1-1/16\" x 5-1/2\", 15\" long, ripped to 3\""
           },
           "length": "13\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
-          "notes": ["Under the top at the back of its bay, its ends in the back of the dadoes."]
+          "notes": [
+            "Under the top at the back of its bay, its ends in the back of the dadoes."
+          ]
         },
         {
           "partId": "leg",
@@ -11741,7 +12462,10 @@
           "quantity": 4,
           "stock": "1-3/4\" x 1-3/4\"",
           "length": "5\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -11761,7 +12485,10 @@
             "recipe": "1 board of 1-1/16\" x 5-1/2\", 29\" long, ripped to 2\""
           },
           "length": "27\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -11781,7 +12508,10 @@
             "recipe": "1 board of 1-1/16\" x 5-1/2\", 14\" long, ripped to 2\""
           },
           "length": "12\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -11801,7 +12531,10 @@
             "recipe": "1 board of 1-1/16\" x 5-1/2\", 11-1/2\" long, ripped to 1\""
           },
           "length": "9-1/2\"",
-          "ends": ["Square", "Square"],
+          "ends": [
+            "Square",
+            "Square"
+          ],
           "endsParallel": true,
           "marks": [],
           "notes": [
@@ -12016,48 +12749,76 @@
             "count": 1
           }
         ],
-        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
+        "notes": [
+          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."
+        ],
         "issues": [],
         "selection": [
           {
             "partId": "top",
-            "guides": ["structural", "span"]
+            "guides": [
+              "structural",
+              "span"
+            ]
           },
           {
             "partId": "bottom",
-            "guides": ["structural", "span"]
+            "guides": [
+              "structural",
+              "span"
+            ]
           },
           {
             "partId": "side-left",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "side-right",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "partition",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "rail",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "leg",
-            "guides": ["structural", "along-length"]
+            "guides": [
+              "structural",
+              "along-length"
+            ]
           },
           {
             "partId": "apron-long",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "apron-short",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           },
           {
             "partId": "cleat",
-            "guides": ["structural"]
+            "guides": [
+              "structural"
+            ]
           }
         ]
       },
@@ -12565,7 +13326,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -12645,7 +13408,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -12725,7 +13490,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -12805,7 +13572,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -12885,7 +13654,9 @@
                 "input": "moisture.high"
               }
             ],
-            "formulas": ["ΔD = D · C_T · (M_F − M_I)"],
+            "formulas": [
+              "ΔD = D · C_T · (M_F − M_I)"
+            ],
             "assumptions": [
               "Moisture content stays within 6% to 14%, where Eq. 13-3 applies.",
               "Coefficients are species averages; individual boards vary, with a coefficient of variation of about 15%.",
@@ -12916,21 +13687,32 @@
             "category": "load-bearing",
             "ask": "Ask an experienced builder whether 1/2\" of wood between each partition's back-to-back dadoes holds the back rails.",
             "why": "Dadoes 1/4\" deep on both faces of a 1\" partition leave 1/2\" between them, and no source gives a limit.",
-            "partIds": ["partition"],
+            "partIds": [
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
             "category": "wood-movement",
             "ask": "Ask an experienced builder whether the back rails, glued into dadoes with their grain across the sides’ grain, will let the sides move.",
             "why": "The sides move front to back with the seasons; a rail glued across them resists it at the back corners. The Wood Movement section estimates how much.",
-            "partIds": ["rail", "side-left", "side-right", "partition"],
+            "partIds": [
+              "rail",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
             "category": "load-bearing",
             "ask": "Ask an experienced builder to look over the base under a full load of records, and the top under everything that stands on it.",
             "why": "Records are heavy and stay for years, and Kerf computes only the long aprons’ and the top’s sag.",
-            "partIds": ["apron-long", "leg", "top"],
+            "partIds": [
+              "apron-long",
+              "leg",
+              "top"
+            ],
             "hardwareIds": []
           }
         ],
@@ -12940,7 +13722,12 @@
             "element": "Open back, with back rails",
             "confirm": "Confirm with an experienced builder that the dadoes and back rails keep the case square under a sideways push.",
             "why": "An open back has no panel to stop the case racking.",
-            "partIds": ["rail", "side-left", "side-right", "partition"],
+            "partIds": [
+              "rail",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
@@ -12948,7 +13735,9 @@
             "element": "The loaded cabinet",
             "confirm": "Confirm whether the cabinet, loaded with records and with everything on the top, can tip forward.",
             "why": "It is low and deep, but a heavy top load and a pull on the front can still tip a cabinet.",
-            "partIds": ["leg"],
+            "partIds": [
+              "leg"
+            ],
             "hardwareIds": []
           },
           {
@@ -12956,7 +13745,11 @@
             "element": "The base: legs and aprons",
             "confirm": "Confirm with an experienced builder that the mortise-and-tenon joints keep the base square and steady under a sideways push.",
             "why": "Short legs and aprons are a common, proven base, but Kerf does not compute joint strength.",
-            "partIds": ["leg", "apron-long", "apron-short"],
+            "partIds": [
+              "leg",
+              "apron-long",
+              "apron-short"
+            ],
             "hardwareIds": []
           },
           {
@@ -12964,7 +13757,12 @@
             "element": "Glued dadoes",
             "confirm": "Confirm with an experienced builder how strong the glued dado joints are for this load.",
             "why": "Kerf does not compute joint strength.",
-            "partIds": ["bottom", "side-left", "side-right", "partition"],
+            "partIds": [
+              "bottom",
+              "side-left",
+              "side-right",
+              "partition"
+            ],
             "hardwareIds": []
           },
           {
@@ -12972,7 +13770,10 @@
             "element": "Bending and shear of the aprons and top",
             "confirm": "Confirm the aprons and top are strong enough, not only stiff enough.",
             "why": "There are no published design values for furniture lumber, so Kerf checks only deflection.",
-            "partIds": ["apron-long", "top"],
+            "partIds": [
+              "apron-long",
+              "top"
+            ],
             "hardwareIds": []
           }
         ]

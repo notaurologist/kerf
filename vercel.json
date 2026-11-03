@@ -27,7 +27,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'sha256-0PSDXnRqOhVQ1gsY/Rlns9o3CmfHJAAtPCaCN48d8B4='; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'"
+          "value": "default-src 'self'; script-src 'self' 'sha256-DtuOMZEQ2HZBxkO6PdU3K+AlnyUFSlf2SGnKoE08wvU='; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'"
         },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "no-referrer" },

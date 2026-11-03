@@ -14,6 +14,7 @@ import { ChecklistItem, Flag } from '../model/types.ts';
 import { LumberPlan } from '../outputs/shoppingList.ts';
 import { leaveOutDefaults } from '../snapshot/defaults.ts';
 import { shapeOf } from '../snapshot/shape.ts';
+import { shownOnRead } from '../snapshot/shown.ts';
 import { createSnapshot, readSnapshot } from '../snapshot/snapshot.ts';
 import { planSteps } from '../steps/build.ts';
 import { BRAND_NAMES, VERDICT_WORDS, withoutBrandExceptions } from '../testing.ts';
@@ -86,6 +87,25 @@ const FIXTURES = (() => {
 })();
 
 const fixturesOf = (t: (typeof TEMPLATES)[number]) => FIXTURES[t.id] ?? {};
+
+/**
+ * What the current version's worked examples show when read, by template ID and template version:
+ * the plan, build steps, and drawing dimensions core derives from stored outputs on every read.
+ * Written with the fixture; the previous version's copy is removed then.
+ */
+const SHOWN = (() => {
+  const files = import.meta.glob<readonly unknown[]>('./*/shown/v*.json', {
+    eager: true,
+    import: 'default',
+  });
+  const byTemplate: Record<string, Record<number, readonly unknown[]>> = {};
+  for (const [path, shown] of Object.entries(files)) {
+    const [, id, version] = path.match(/^\.\/([^/]+)\/shown\/v(\d+)\.json$/) ?? [];
+    if (!id || !version) throw new Error(`Unexpected file ${path}`);
+    byTemplate[id] = { ...byTemplate[id], [Number(version)]: shown };
+  }
+  return byTemplate;
+})();
 
 const storedFixtures = TEMPLATES.flatMap((t) =>
   Object.entries(fixturesOf(t)).map(([version, fixture]) => [t.id, version, t, fixture] as const),
@@ -181,6 +201,27 @@ describe('every template stays readable (decision 0014)', () => {
           `0008), then write the new fixture: pnpm --filter @kerf/api write-snapshot-fixture ${id} ` +
           '(decision 0014).',
       ).toEqual(fixturesOf(t)[t.version]);
+    },
+  );
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))(
+    '%s shows its current fixture as it did when the fixture was written',
+    (id, t) => {
+      // Plans, build steps, and drawings are derived from stored outputs on every read, so a
+      // change to generic code there changes every stored plan, with no new fixture to show it.
+      expect(Object.keys(SHOWN[id] ?? {})).toEqual([String(t.version)]);
+      const shown = (fixturesOf(t)[t.version] ?? []).map((stored) => {
+        const read = readSnapshot([t], stored);
+        if (!read.ok) throw new Error(read.message);
+        return asJson(shownOnRead(t, t.storedOutputs.parse(read.snapshot.outputs)));
+      });
+      expect(
+        shown,
+        'A stored plan reads differently: its plan, build steps, or drawing dimensions changed. ' +
+          'That changes every stored plan, older versions included. Bump the version of each ' +
+          `template it changes and write the new fixture: pnpm --filter @kerf/api ` +
+          `write-snapshot-fixture ${id} (decision 0014).`,
+      ).toEqual(SHOWN[id]?.[t.version]);
     },
   );
 

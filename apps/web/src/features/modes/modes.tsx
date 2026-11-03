@@ -13,7 +13,7 @@ import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
 import { useProject } from '../../lib/projectStore.ts';
 import { href, type Route, redirect } from '../../lib/route.ts';
-import { ThemeSwitch } from '../../lib/theme.tsx';
+import { ThemeSwitch, useModeColor } from '../../lib/theme.tsx';
 import { describeWaiting, type Ticks, useTicks } from '../../lib/ticks.ts';
 import type { Project } from '../../lib/types.ts';
 import { useWakeLock } from '../../lib/wakeLock.ts';
@@ -62,6 +62,7 @@ export function ModeScreen(props: { route: ModeRoute }) {
   const { id } = props.route;
   const { loaded, reload } = useProject(id);
   const mode = props.route.screen === 'shop' ? 'Shopping' : 'Building';
+  useModeColor(mode);
   if (loaded.state !== 'ready') {
     return (
       <ModeFrame mode={mode} exitHref={href({ screen: 'project', id })} end={<ThemeSwitch />}>

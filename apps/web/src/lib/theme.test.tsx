@@ -5,9 +5,11 @@ import {
   chooseTheme,
   parseTheme,
   readTheme,
+  showTopColor,
   THEME_KEY,
   type ThemeHost,
   ThemeSwitch,
+  TOP_COLORS,
 } from './theme.tsx';
 
 // The theme menu (#155): System by default, Light and Dark force one scheme on the page's root,
@@ -92,6 +94,42 @@ describe('chooseTheme', () => {
   });
 });
 
+describe('the theme-color metas', () => {
+  const metas = () => [
+    { getAttribute: () => '(prefers-color-scheme: light)', content: '' },
+    { getAttribute: () => '(prefers-color-scheme: dark)', content: '' },
+  ];
+
+  it('take the title bar in each scheme under System', () => {
+    const host: ThemeHost = { ...fakeHost().host, metas: metas() };
+    showTopColor(host);
+    expect(host.metas?.map((m) => m.content)).toEqual(['#ffffff', '#1a1d23']);
+  });
+
+  it('both take the chosen scheme under Light or Dark, and go back to their own under System', () => {
+    const host: ThemeHost = { ...fakeHost().host, metas: metas() };
+    chooseTheme(host, 'dark');
+    expect(host.metas?.map((m) => m.content)).toEqual(['#1a1d23', '#1a1d23']);
+    chooseTheme(host, 'light');
+    expect(host.metas?.map((m) => m.content)).toEqual(['#ffffff', '#ffffff']);
+    chooseTheme(host, 'system');
+    expect(host.metas?.map((m) => m.content)).toEqual(['#ffffff', '#1a1d23']);
+  });
+
+  it('are the colors of the bars in tokens.css', () => {
+    const css = readFileSync(new URL('../ui/styles/tokens.css', import.meta.url), 'utf8');
+    const token = (name: string) => {
+      const match = css.match(
+        new RegExp(`--${name}: light-dark\\((#[0-9a-f]{6}), (#[0-9a-f]{6})\\)`),
+      );
+      return { light: match?.[1], dark: match?.[2] };
+    };
+    expect(TOP_COLORS.title).toEqual(token('raised'));
+    expect(TOP_COLORS.Shopping).toEqual(token('mode-shopping'));
+    expect(TOP_COLORS.Building).toEqual(token('mode-building'));
+  });
+});
+
 describe('ThemeSwitch', () => {
   it('is a labeled menu with System chosen by default', () => {
     const html = render(<ThemeSwitch host={fakeHost().host} />);
@@ -115,6 +153,16 @@ describe('before the first paint', () => {
     expect(html).toContain(`localStorage.getItem('${THEME_KEY}')`);
     expect(html).toContain("theme === 'light' || theme === 'dark'");
     expect(html).toContain('document.documentElement.dataset.theme = theme');
+  });
+
+  it('index.html starts the theme-color metas on the title bar in each scheme', () => {
+    const html = read('../../index.html');
+    expect(html).toContain(
+      `<meta name="theme-color" media="(prefers-color-scheme: light)" content="${TOP_COLORS.title.light}" />`,
+    );
+    expect(html).toContain(
+      `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="${TOP_COLORS.title.dark}" />`,
+    );
   });
 
   it('tokens.css forces each scheme by data-theme and prints light whatever is chosen', () => {
