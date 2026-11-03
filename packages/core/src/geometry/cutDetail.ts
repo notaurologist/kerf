@@ -500,9 +500,27 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   prims.push({ kind: 'line', role: 'leader', points: [...loop, { x: mx, y: 0 }], part: ref });
 
   // The grain arrow (owner's choice on #71): along the part near its far edge, away from the
-  // loop, labeled. Every part is solid wood, with its grain along its length.
+  // loop, labeled. Every part is solid wood, with its grain along its length. When every point
+  // tried is near something, such as a long part with a row of holes, it goes in the
+  // middle of the longest clear stretch inside a window.
+  const widestGap = () => {
+    const points = [...busy, clear].sort((a, b) => a - b);
+    let best: { u: number; gap: number } | undefined;
+    for (const w of ws) {
+      const inside = points.filter((u) => u > w.u0 && u < w.u1);
+      const stops = [w.u0, ...inside, w.u1];
+      for (let i = 1; i < stops.length; i++) {
+        const gap = (stops[i] as number) - (stops[i - 1] as number);
+        if (gap >= 2 * W && (!best || gap > best.gap)) {
+          best = { u: ((stops[i] as number) + (stops[i - 1] as number)) / 2, gap };
+        }
+      }
+    }
+    return best?.u;
+  };
   const free = candidates.filter((u) => Math.abs(u - clear) >= W);
-  const gu = free.find((u) => busy.every((b) => Math.abs(b - u) >= W)) ?? free[0] ?? clear;
+  const gu =
+    free.find((u) => busy.every((b) => Math.abs(b - u) >= W)) ?? widestGap() ?? free[0] ?? clear;
   // Short enough to stay clear of the nearest joinery, a hole, or the loop.
   const room = Math.min(...[...busy, clear].map((b) => Math.abs(b - gu)).filter((d) => d > 0));
   const gx = xOf(gu);

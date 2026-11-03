@@ -13,6 +13,8 @@ import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
+import { HANGER_BOLTS } from './hardware.ts';
+import { swingGeometry } from './layout.ts';
 import type { SwingSetParams } from './params.ts';
 import { LEG_IDS } from './validate.ts';
 
@@ -196,6 +198,21 @@ export function features(
     direction: { u: 0, v: 0, n: 1 },
     length: plyThickness,
   }));
+  // A vertical hanger bolt goes down through the beam at each hanger, on the beam's centerline:
+  // in a built-up beam, n is in the frame of the ply it cuts most (the seam of two plies, the
+  // middle of three). Horizontal bolts are drilled through the bracket's own holes, wherever the
+  // bracket puts them along the beam, so they are not placed.
+  const m = h.hangerMounting;
+  const hangerHoles: Hole[] =
+    m?.kind === 'vertical-bolt'
+      ? swingGeometry(p).hangersX.map((x) => ({
+          hardwareId: HANGER_BOLTS,
+          ...boltHole(m.diameter),
+          entry: { u: x, v: dims.bd, n: dims.plies === 2 ? plyThickness : plyThickness / 2 },
+          direction: { u: 0, v: -1, n: 0 },
+          length: dims.bd,
+        }))
+      : [];
   const plyArea: BoltArea[] =
     dims.plies > 1 && h.plyBolts
       ? [
@@ -217,7 +234,7 @@ export function features(
   return {
     beam: {
       referenceEdge: 'bottom edge',
-      holes: beamHoles,
+      holes: [...beamHoles, ...hangerHoles],
       boltAreas: plyArea,
       tapers: [],
       dadoes: [],
@@ -459,7 +476,7 @@ export function boltFlags(joints: readonly JoinedParts[]): Flag[] {
         category: 'load-bearing' as const,
         partIds: [...partIds],
         hardwareIds: [...hardwareIds],
-        ask: `${joint.title}, ${joint.bolts} ${formatLength(joint.diameter)} bolt${joint.bolts > 1 ? 's' : ''}: ${items.join('. ')}. Confirm the bolt size and layout with these distances.`,
+        ask: `${joint.title}, ${joint.bolts} × ${formatLength(joint.diameter)} bolt${joint.bolts > 1 ? 's' : ''}: ${items.join('. ')}. Confirm the bolt size and layout with these distances.`,
         why: 'NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load.',
       },
     ];

@@ -21,6 +21,7 @@ export const swingSetParams = {
     legBoltDiameter: 0.5,
     crossbarBolts: { diameter: 0.5, perJoint: 2 },
     gussetBolts: { diameter: 0.5, perJoint: 2 },
+    hangerMounting: { kind: 'vertical-bolt', diameter: 0.5 },
   },
 };
 

@@ -3,7 +3,7 @@ import { NOMINAL_SIZES } from '../../lumber/stock.ts';
 import type { FieldOption, FormField, TemplateForm } from '../../model/form.ts';
 import { formatLength } from '../../units/length.ts';
 import { ANCHOR_RATING } from './hardware.ts';
-import { STRUCTURAL_INPUT_LABELS as INPUT } from './structural.ts';
+import { HANGER_MOUNTING_LABEL, STRUCTURAL_INPUT_LABELS as INPUT } from './structural.ts';
 
 // How the swing set's parameters and structural inputs are entered (spec, Parameters and
 // Structural model, Inputs). Every field starts empty: geometry, hardware, and structural
@@ -24,6 +24,8 @@ const boltDiameters: FieldOption[] = BOLT_DIAMETERS.map((d) => ({
   label: formatLength(d),
 }));
 
+const hangerBolted = (value: (path: string) => string) =>
+  ['vertical-bolt', 'horizontal-bolts'].includes(value('hardware.hangerMounting.kind'));
 const builtUp = (value: (path: string) => string) => Number(value('beamPlies')) > 1;
 const onPads = (value: (path: string) => string) =>
   value('burialDepth').trim() !== '' && Number(value('burialDepth')) === 0;
@@ -237,6 +239,46 @@ export const SWING_SET_FORM: TemplateForm = {
           label: 'Seat height',
           kind: 'length',
           help: 'Underside of the seat above the ground under the beam, at rest.',
+        },
+        {
+          path: 'hardware.hangerMounting.kind',
+          label: HANGER_MOUNTING_LABEL,
+          kind: 'choice',
+          options: [
+            { value: 'vertical-bolt', label: 'One bolt down through the beam' },
+            {
+              value: 'horizontal-bolts',
+              label: 'Bolts sideways through the beam, through a bracket',
+            },
+            { value: 'other', label: 'Other, such as screws, lag screws, or a clamp' },
+          ],
+          help: "Read it on the hanger's package or instructions: how the hanger fastens to the beam. Its holes weaken the beam right where the swings pull, so the beam's bending check needs it.",
+          confirmed: true,
+        },
+        {
+          path: 'hardware.hangerMounting.diameter',
+          label: 'Swing hanger bolt diameter',
+          kind: 'choice',
+          options: boltDiameters,
+          help: 'Read it on the hanger\'s package or instructions, or on the bolts that come with it. Kerf drills each hole 1/16" larger.',
+          when: hangerBolted,
+          confirmed: true,
+        },
+        {
+          path: 'hardware.hangerMounting.perHanger',
+          label: 'Swing hanger bolts per hanger',
+          kind: 'integer',
+          help: "Count the bolt holes in one side of the hanger's bracket.",
+          when: (v) => v('hardware.hangerMounting.kind') === 'horizontal-bolts',
+          confirmed: true,
+        },
+        {
+          path: 'hardware.hangerMounting.holeHeight',
+          label: 'Swing hanger bolt height',
+          kind: 'length',
+          help: "Measure on the bracket from its bottom, which sits against the beam's underside, to the center of its bolt holes.",
+          when: (v) => v('hardware.hangerMounting.kind') === 'horizontal-bolts',
+          confirmed: true,
         },
       ],
     },

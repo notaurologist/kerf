@@ -58,8 +58,9 @@ describe('the plan’s header (#356)', () => {
 
   it('shows a lowest margin under 1.0 the same way, and puts the review first (#448)', () => {
     // The worked example with heavier riders: the beam's computed bending stress is larger than
-    // its allowable one. Roughly 1.1 × (2 × 300 lb) / (3 × 500 lb) = 0.44, a little more since the
-    // beam's own weight, which the dynamic factor does not multiply, stays the same.
+    // its allowable one. At the inner hangers' holes the hangers give 17,250 · (3/2) · (250/150) =
+    // 43,125 and the beam's weight 493.78, so f_b = 43,618.78 / 14.8099 = 2945.2 against 991.59:
+    // margin 0.34.
     const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
     const example = template.examples[0];
     if (!example) throw new Error('no worked example');
@@ -70,7 +71,7 @@ describe('the plan’s header (#356)', () => {
     });
     if (!made.ok) throw new Error('heavier riders do not generate');
     const text = textOf(head(JSON.parse(JSON.stringify(made.output))));
-    expect(text).toContain('Lowest margin 0.4x: bending, top beam, 4x6');
+    expect(text).toContain('Lowest margin 0.3x: bending, top beam, 4x6');
     expect(text).toMatch(/Next: Structural review · .*expert checks/);
   });
 

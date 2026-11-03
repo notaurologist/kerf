@@ -73,7 +73,7 @@ describe('the structural review with suggested values', () => {
       'Deflection limit, span divided by (Suggested by Kerf, not confirmed yet. Source: International Building Code (2021), Table 1604.3.)',
     );
     // The strength checks do not use the limit.
-    expect(html).toContain('margin 1.0x</span>');
+    expect(html).toContain('margin 0.8x</span>');
   });
 
   it('marks the leg-to-beam bolt as suggested in the bolt layout', () => {

@@ -2,7 +2,7 @@
   {
     "templateId": "swing-set-a-frame",
     "templateVersion": 29,
-    "snapshotVersion": 18,
+    "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -20,10 +20,7 @@
       "groundSlope": 1,
       "burialDepth": 24,
       "swings": {
-        "centers": [
-          40,
-          80
-        ],
+        "centers": [40, 80],
         "hangerSpacing": 20,
         "seatWidth": 20,
         "seatHeight": 16
@@ -37,6 +34,10 @@
         "gussetBolts": {
           "diameter": 0.5,
           "perJoint": 2
+        },
+        "hangerMounting": {
+          "kind": "vertical-bolt",
+          "diameter": 0.5
         }
       }
     },
@@ -44,10 +45,7 @@
       "beamSpeciesGrade": "southern-pine-no2",
       "beamIncised": false,
       "beamMoistureContent": 30,
-      "riderWeights": [
-        150,
-        150
-      ],
+      "riderWeights": [150, 150],
       "maxSwingAngle": 60,
       "dynamicFactor": 2,
       "deflectionLimit": 240,
@@ -73,10 +71,7 @@
           "groundSlope": 1,
           "burialDepth": 24,
           "swings": {
-            "centers": [
-              40,
-              80
-            ],
+            "centers": [40, 80],
             "hangerSpacing": 20,
             "seatWidth": 20,
             "seatHeight": 16
@@ -90,6 +85,10 @@
             "gussetBolts": {
               "diameter": 0.5,
               "perJoint": 2
+            },
+            "hangerMounting": {
+              "kind": "vertical-bolt",
+              "diameter": 0.5
             }
           }
         },
@@ -130,18 +129,10 @@
             "height": 7.25,
             "pastLeg": 1.6376888981671538
           },
-          "supportsX": [
-            13.75,
-            106.25
-          ]
+          "supportsX": [13.75, 106.25]
         },
         "swings": {
-          "hangersX": [
-            30,
-            50,
-            70,
-            90
-          ],
+          "hangersX": [30, 50, 70, 90],
           "seats": [
             {
               "xMin": 30,
@@ -194,11 +185,7 @@
             "id": "beam",
             "name": "Beam",
             "role": "beam",
-            "selection": [
-              "structural",
-              "span",
-              "bolted"
-            ],
+            "selection": ["structural", "span", "bolted"],
             "treated": true,
             "stock": {
               "nominal": "4x6",
@@ -220,6 +207,9 @@
               }
             ],
             "endsParallel": true,
+            "notes": [
+              "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+            ],
             "referenceEdge": "bottom edge",
             "holes": [
               {
@@ -253,6 +243,70 @@
                   "n": 1
                 },
                 "length": 3.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 30,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 50,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 70,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 90,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
               }
             ],
             "letter": "A"
@@ -261,12 +315,7 @@
             "id": "leg-back",
             "name": "Back leg (uphill)",
             "role": "leg",
-            "selection": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ],
+            "selection": ["structural", "along-length", "bolted", "ground-contact"],
             "treated": true,
             "stock": {
               "nominal": "4x4",
@@ -401,12 +450,7 @@
             "id": "leg-front",
             "name": "Front leg (downhill)",
             "role": "leg",
-            "selection": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ],
+            "selection": ["structural", "along-length", "bolted", "ground-contact"],
             "treated": true,
             "stock": {
               "nominal": "4x4",
@@ -541,10 +585,7 @@
             "id": "crossbar",
             "name": "Crossbar",
             "role": "crossbar",
-            "selection": [
-              "structural",
-              "bolted"
-            ],
+            "selection": ["structural", "bolted"],
             "treated": true,
             "stock": {
               "nominal": "2x6",
@@ -653,10 +694,7 @@
             "id": "gusset",
             "name": "Gusset",
             "role": "gusset",
-            "selection": [
-              "structural",
-              "bolted"
-            ],
+            "selection": ["structural", "bolted"],
             "treated": true,
             "stock": {
               "nominal": "2x8",
@@ -1048,13 +1086,29 @@
             "group": "Bolts and fittings"
           },
           {
+            "id": "hanger-bolts",
+            "name": "Swing hanger bolts",
+            "quantity": 4,
+            "bolt": {
+              "diameter": 0.5,
+              "grip": 5.5,
+              "washers": 2,
+              "nut": "locking",
+              "cap": true
+            },
+            "structural": true,
+            "notes": [
+              "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+              "Many hangers come with their bolts: check those against this length."
+            ],
+            "group": "Bolts and fittings"
+          },
+          {
             "id": "swing-hangers",
             "name": "Swing hangers",
             "quantity": 4,
             "structural": true,
-            "notes": [
-              "Rated for swing use. The rating is checked in the structural review."
-            ],
+            "notes": ["Rated for swing use. The rating is checked in the structural review."],
             "group": "Swing hardware"
           },
           {
@@ -1086,73 +1140,43 @@
         "flags": [
           {
             "category": "load-bearing",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "beam"
-            ],
-            "hardwareIds": [
-              "leg-beam-bolts"
-            ],
+            "partIds": ["leg-back", "leg-front", "beam"],
+            "hardwareIds": ["leg-beam-bolts"],
             "ask": "Confirm the bolt size for the leg-to-beam bolt (8-15/16\" of wood), the 2-9/16\" of leg left at the bolt after the flush cut, and how the head and nut bear on the leg's tilted outer face.",
             "why": "This joint and the gusset carry the beam and every swing load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
             "ask": "Confirm the frame on sloped ground: leg lengths, footing or burial on the downhill side, and whether to regrade instead.",
             "why": "The CPSC home handbook recommends a level site to reduce the chance of tipping (Pub. 324, p. 2)."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
             "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
             "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "crossbar",
-              "leg-back",
-              "leg-front"
-            ],
-            "hardwareIds": [
-              "crossbar-bolts"
-            ],
+            "partIds": ["crossbar", "leg-back", "leg-front"],
+            "hardwareIds": ["crossbar-bolts"],
             "ask": "Crossbar to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "gusset",
-              "leg-back",
-              "leg-front"
-            ],
-            "hardwareIds": [
-              "gusset-bolts"
-            ],
+            "partIds": ["gusset", "leg-back", "leg-front"],
+            "hardwareIds": ["gusset-bolts"],
             "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "crossbar",
-              "gusset"
-            ],
-            "hardwareIds": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ],
+            "partIds": ["crossbar", "gusset"],
+            "hardwareIds": ["crossbar-bolts", "gusset-bolts"],
             "ask": "For the bolts' end distance, the crossbar ends 1-5/8\", 2' 10-1/2\" to 3' 4\" above the ground, and the gusset ends 1-5/8\", 7' 4-3/4\" to 8' 0\" above the ground project past the legs. Confirm the projecting ends are acceptable where children play, with their edges and corners eased.",
             "why": "The projecting ends are new to this design, and children reach the crossbar."
           }
@@ -1162,10 +1186,7 @@
             "title": "Crossbar to leg",
             "bolts": 2,
             "diameter": 0.5,
-            "params": [
-              "hardware.crossbarBolts.diameter",
-              "hardware.crossbarBolts.perJoint"
-            ],
+            "params": ["hardware.crossbarBolts.diameter", "hardware.crossbarBolts.perJoint"],
             "distances": [
               {
                 "member": "Crossbar",
@@ -1331,10 +1352,7 @@
             "title": "Gusset to leg",
             "bolts": 2,
             "diameter": 0.5,
-            "params": [
-              "hardware.gussetBolts.diameter",
-              "hardware.gussetBolts.perJoint"
-            ],
+            "params": ["hardware.gussetBolts.diameter", "hardware.gussetBolts.perJoint"],
             "distances": [
               {
                 "member": "Gusset",
@@ -1584,9 +1602,7 @@
             "title": "Leg to beam",
             "bolts": 1,
             "diameter": 0.5,
-            "params": [
-              "hardware.legBoltDiameter"
-            ],
+            "params": ["hardware.legBoltDiameter"],
             "distances": [
               {
                 "member": "Beam",
@@ -1777,11 +1793,7 @@
             "id": "leg-beam-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "leg-beam-bolts",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "count": 2,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
@@ -1791,11 +1803,7 @@
             "id": "crossbar-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "crossbar-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "crossbar"
-            ],
+            "partIds": ["leg-back", "leg-front", "crossbar"],
             "count": 8,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
@@ -1805,15 +1813,21 @@
             "id": "gusset-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "gusset-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "gusset"
-            ],
+            "partIds": ["leg-back", "leg-front", "gusset"],
             "count": 8,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
             "depth": 5
+          },
+          {
+            "id": "hanger-bolts/holes",
+            "type": "bolt-holes",
+            "hardwareId": "hanger-bolts",
+            "partIds": ["beam"],
+            "count": 4,
+            "boltDiameter": 0.5,
+            "holeDiameter": 0.5625,
+            "depth": 5.5
           },
           {
             "id": "beam/ease-edges",
@@ -1890,11 +1904,7 @@
             "id": "leg-beam-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "leg-beam-bolts",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "count": 2,
             "holeDiameter": 0.5625,
             "depth": 8.947408118867273
@@ -1903,11 +1913,7 @@
             "id": "crossbar-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "crossbar-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "crossbar"
-            ],
+            "partIds": ["leg-back", "leg-front", "crossbar"],
             "count": 8,
             "holeDiameter": 0.5625,
             "depth": 5
@@ -1916,14 +1922,19 @@
             "id": "gusset-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "gusset-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "gusset"
-            ],
+            "partIds": ["leg-back", "leg-front", "gusset"],
             "count": 8,
             "holeDiameter": 0.5625,
             "depth": 5
+          },
+          {
+            "id": "hanger-bolts/treat-holes",
+            "type": "treat-holes",
+            "hardwareId": "hanger-bolts",
+            "partIds": ["beam"],
+            "count": 4,
+            "holeDiameter": 0.5625,
+            "depth": 5.5
           }
         ]
       },
@@ -1935,13 +1946,12 @@
           "quantity": 1,
           "stock": "4x6 (3-1/2\" x 5-1/2\")",
           "length": "120\"",
-          "ends": [
-            "Square",
-            "Square"
-          ],
+          "ends": ["Square", "Square"],
           "endsParallel": true,
           "marks": [],
-          "notes": []
+          "notes": [
+            "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+          ]
         },
         {
           "partId": "leg-back",
@@ -2172,7 +2182,7 @@
                 "name": "Beam",
                 "field": "beamStock",
                 "nominal": "4x8",
-                "margin": 1.564950475890361,
+                "margin": 1.3155384003110364,
                 "check": {
                   "title": "Bending",
                   "subject": "Top beam, 4x8"
@@ -2238,50 +2248,28 @@
             ]
           }
         ],
-        "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."
-        ],
+        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
         "issues": [],
         "selection": [
           {
             "partId": "beam",
-            "guides": [
-              "structural",
-              "span",
-              "bolted"
-            ]
+            "guides": ["structural", "span", "bolted"]
           },
           {
             "partId": "leg-back",
-            "guides": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ]
+            "guides": ["structural", "along-length", "bolted", "ground-contact"]
           },
           {
             "partId": "leg-front",
-            "guides": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ]
+            "guides": ["structural", "along-length", "bolted", "ground-contact"]
           },
           {
             "partId": "crossbar",
-            "guides": [
-              "structural",
-              "bolted"
-            ]
+            "guides": ["structural", "bolted"]
           },
           {
             "partId": "gusset",
-            "guides": [
-              "structural",
-              "bolted"
-            ]
+            "guides": ["structural", "bolted"]
           }
         ]
       },
@@ -2301,9 +2289,7 @@
               "min": 9.820408118867272,
               "max": 10.320408118867272
             },
-            "items": [
-              "leg-beam-bolts"
-            ]
+            "items": ["leg-beam-bolts"]
           }
         },
         {
@@ -2321,34 +2307,43 @@
               "min": 5.873,
               "max": 6.373
             },
-            "items": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ]
+            "items": ["crossbar-bolts", "gusset-bolts"]
+          }
+        },
+        {
+          "description": "1/2\" through-bolt, grip 5-1/2\"",
+          "quantity": 4,
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+            "Many hangers come with their bolts: check those against this length."
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5.5,
+            "items": ["hanger-bolts"]
           }
         },
         {
           "description": "1/2\" flat washers",
-          "quantity": 36,
+          "quantity": 44,
           "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" locking nuts",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" bolt caps",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings"
         },
         {
           "description": "Swing hangers",
           "quantity": 4,
           "group": "Swing hardware",
-          "notes": [
-            "Rated for swing use. The rating is checked in the structural review."
-          ]
+          "notes": ["Rated for swing use. The rating is checked in the structural review."]
         },
         {
           "description": "Swing seats with chain",
@@ -2373,10 +2368,7 @@
           "beamSpeciesGrade": "southern-pine-no2",
           "beamIncised": false,
           "beamMoistureContent": 30,
-          "riderWeights": [
-            150,
-            150
-          ],
+          "riderWeights": [150, 150],
           "maxSwingAngle": 60,
           "dynamicFactor": 2,
           "deflectionLimit": 240,
@@ -2680,6 +2672,8 @@
             "assumptions": [
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -2692,7 +2686,7 @@
               "key": "dynamicFactor",
               "symbol": "C_dyn",
               "label": "Dynamic factor",
-              "value": 1.9689253208922757
+              "value": 1.6454005556671611
             },
             "formulas": [
               "Each point load P = C_dyn · its load before the factor; the uniform load w is not multiplied",
@@ -2700,6 +2694,8 @@
               "M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign",
               "S = b·d² / 6",
               "f_b = M / S",
+              "At each hole, S_net is the section modulus of the gross section less the hole, and f_b = M(x) / S_net there",
+              "f_b = the largest of these",
               "Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r",
               "margin = Fb' / f_b"
             ],
@@ -2790,6 +2786,162 @@
                 "label": "Position of largest moment",
                 "value": 60.00000000000011,
                 "unit": "in"
+              },
+              {
+                "symbol": "f_b,M",
+                "label": "Bending stress at the largest moment, M / S",
+                "value": 1006.7801248215713,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h1",
+                "label": "Left swing, left hanger hole, position",
+                "value": 30,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h1",
+                "label": "Left swing, left hanger hole, moment",
+                "value": 11570.265088881462,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,1",
+                "label": "Left swing, left hanger hole, hole diameter",
+                "value": 0.5625,
+                "unit": "in"
+              },
+              {
+                "symbol": "b_net,1",
+                "label": "Left swing, left hanger hole, net breadth",
+                "value": 2.9375,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,1",
+                "label": "Left swing, left hanger hole, net section modulus, b_net·d² / 6",
+                "value": 14.809895833333334,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,1",
+                "label": "Left swing, left hanger hole, bending stress",
+                "value": 781.252293675133,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h2",
+                "label": "Left swing, right hanger hole, position",
+                "value": 50,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h2",
+                "label": "Left swing, right hanger hole, moment",
+                "value": 17743.78437513258,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,2",
+                "label": "Left swing, right hanger hole, hole diameter",
+                "value": 0.5625,
+                "unit": "in"
+              },
+              {
+                "symbol": "b_net,2",
+                "label": "Left swing, right hanger hole, net breadth",
+                "value": 2.9375,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,2",
+                "label": "Left swing, right hanger hole, net section modulus, b_net·d² / 6",
+                "value": 14.809895833333334,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,2",
+                "label": "Left swing, right hanger hole, bending stress",
+                "value": 1198.103253042186,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h3",
+                "label": "Right swing, left hanger hole, position",
+                "value": 70,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h3",
+                "label": "Right swing, left hanger hole, moment",
+                "value": 17743.784375132578,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,3",
+                "label": "Right swing, left hanger hole, hole diameter",
+                "value": 0.5625,
+                "unit": "in"
+              },
+              {
+                "symbol": "b_net,3",
+                "label": "Right swing, left hanger hole, net breadth",
+                "value": 2.9375,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,3",
+                "label": "Right swing, left hanger hole, net section modulus, b_net·d² / 6",
+                "value": 14.809895833333334,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,3",
+                "label": "Right swing, left hanger hole, bending stress",
+                "value": 1198.1032530421855,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h4",
+                "label": "Right swing, right hanger hole, position",
+                "value": 90,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h4",
+                "label": "Right swing, right hanger hole, moment",
+                "value": 11570.265088881468,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,4",
+                "label": "Right swing, right hanger hole, hole diameter",
+                "value": 0.5625,
+                "unit": "in"
+              },
+              {
+                "symbol": "b_net,4",
+                "label": "Right swing, right hanger hole, net breadth",
+                "value": 2.9375,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,4",
+                "label": "Right swing, right hanger hole, net section modulus, b_net·d² / 6",
+                "value": 14.809895833333334,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,4",
+                "label": "Right swing, right hanger hole, bending stress",
+                "value": 781.2522936751334,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_f",
+                "label": "Position of the largest bending stress",
+                "value": 50,
+                "unit": "in"
               }
             ],
             "factors": [
@@ -2797,10 +2949,7 @@
                 "symbol": "C_D",
                 "name": "Load duration",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
@@ -2814,9 +2963,7 @@
                 "symbol": "C_M",
                 "name": "Wet service",
                 "value": 1,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "The beam is outdoors and uncovered, so its moisture content can stay above 19%. Fb·C_F = 1000 psi, at or below 1150 psi, so C_M = 1.0 for Fb.",
                 "sources": [
                   {
@@ -2834,10 +2981,7 @@
                 "symbol": "C_t",
                 "name": "Temperature",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "Outdoor air temperature; no sustained exposure above 100°F.",
                 "sources": [
                   {
@@ -2851,9 +2995,7 @@
                 "symbol": "C_L",
                 "name": "Beam stability",
                 "value": 0.9915913206296021,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "Computed from the unbraced length between supports that prevent rotation; ℓe = 1.84·ℓu (ℓu/d > 14.3).",
                 "sources": [
                   {
@@ -2867,9 +3009,7 @@
                 "symbol": "C_F",
                 "name": "Size",
                 "value": 1,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "Size adjustment is already in the tabulated Southern Pine values for this size.",
                 "sources": [
                   {
@@ -2883,9 +3023,7 @@
                 "symbol": "C_fu",
                 "name": "Flat use",
                 "value": 1,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "Loaded on the narrow face (bending about the strong axis).",
                 "sources": [
                   {
@@ -2899,10 +3037,7 @@
                 "symbol": "C_i",
                 "name": "Incising",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "The lumber is not incised.",
                 "sources": [
                   {
@@ -2916,9 +3051,7 @@
                 "symbol": "C_r",
                 "name": "Repetitive member",
                 "value": 1,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "A single beam; the repetitive member factor needs three or more members sharing load.",
                 "sources": [
                   {
@@ -2946,12 +3079,17 @@
                 "source": "nds-2024",
                 "locator": "3.3.2, Eq. 3.3-2 and 3.3-4, p. 17",
                 "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+              },
+              {
+                "source": "nds-2024",
+                "locator": "3.1.2.1, p. 16",
+                "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
               }
             ],
             "computed": {
               "symbol": "f_b",
-              "label": "Bending stress",
-              "value": 1006.7801248215713,
+              "label": "Bending stress at left swing, right hanger hole, net section",
+              "value": 1198.103253042186,
               "unit": "psi"
             },
             "allowable": {
@@ -2960,7 +3098,7 @@
               "value": 991.5913206296021,
               "unit": "psi"
             },
-            "margin": 0.9849134842678176
+            "margin": 0.8276342778569249
           },
           "shear": {
             "kind": "beam-shear",
@@ -3259,6 +3397,8 @@
             "assumptions": [
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -3307,10 +3447,7 @@
                 "symbol": "C_D",
                 "name": "Load duration",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
@@ -3324,9 +3461,7 @@
                 "symbol": "C_M",
                 "name": "Wet service",
                 "value": 0.97,
-                "appliesTo": [
-                  "Fv"
-                ],
+                "appliesTo": ["Fv"],
                 "reason": "The beam is outdoors and uncovered, so its moisture content can stay above 19%.",
                 "sources": [
                   {
@@ -3344,10 +3479,7 @@
                 "symbol": "C_t",
                 "name": "Temperature",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "Outdoor air temperature; no sustained exposure above 100°F.",
                 "sources": [
                   {
@@ -3361,10 +3493,7 @@
                 "symbol": "C_i",
                 "name": "Incising",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "The lumber is not incised.",
                 "sources": [
                   {
@@ -3705,6 +3834,8 @@
             "assumptions": [
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolt goes down through the beam on its centerline, in a 9/16\" hole (the bolt plus 1/16\", NDS 2024 12.1.3.2).",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -3749,10 +3880,7 @@
                 "symbol": "C_M",
                 "name": "Wet service",
                 "value": 0.9,
-                "appliesTo": [
-                  "E",
-                  "Emin"
-                ],
+                "appliesTo": ["E", "Emin"],
                 "reason": "The beam is outdoors and uncovered, so its moisture content can stay above 19%.",
                 "sources": [
                   {
@@ -3770,10 +3898,7 @@
                 "symbol": "C_t",
                 "name": "Temperature",
                 "value": 1,
-                "appliesTo": [
-                  "E",
-                  "Emin"
-                ],
+                "appliesTo": ["E", "Emin"],
                 "reason": "Outdoor air temperature; no sustained exposure above 100°F.",
                 "sources": [
                   {
@@ -3787,10 +3912,7 @@
                 "symbol": "C_i",
                 "name": "Incising",
                 "value": 1,
-                "appliesTo": [
-                  "E",
-                  "Emin"
-                ],
+                "appliesTo": ["E", "Emin"],
                 "reason": "The lumber is not incised.",
                 "sources": [
                   {
@@ -3961,27 +4083,15 @@
           {
             "category": "bolted-connections",
             "element": "Leg-to-beam bolt and gusset, each frame",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "beam",
-              "gusset"
-            ],
-            "hardwareIds": [
-              "leg-beam-bolts",
-              "gusset-bolts"
-            ],
+            "partIds": ["leg-back", "leg-front", "beam", "gusset"],
+            "hardwareIds": ["leg-beam-bolts", "gusset-bolts"],
             "confirm": "Bolt size (1/2\", 8-15/16\" grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.",
             "why": "Each frame carries half of every swing load into the legs through this joint; connections are not computed."
           },
           {
             "category": "check-assumptions",
             "element": "Beam ends at the frames",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "hardwareIds": [],
             "confirm": "That each frame holds the beam against rolling over at its support.",
             "why": "The beam stability factor assumes it; without that restraint the beam can buckle sideways at a lower load."
@@ -3989,26 +4099,15 @@
           {
             "category": "racking",
             "element": "A-frames and crossbars",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "crossbar",
-              "gusset"
-            ],
-            "hardwareIds": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ],
+            "partIds": ["leg-back", "leg-front", "crossbar", "gusset"],
+            "hardwareIds": ["crossbar-bolts", "gusset-bolts"],
             "confirm": "That the frames resist side-to-side and front-to-back swing forces without racking, and whether corner braces are needed.",
             "why": "Swinging pushes the top of the frame back and forth; racking is not computed."
           },
           {
             "category": "tipping-and-anchoring",
             "element": "Buried legs",
-            "partIds": [
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
             "confirm": "Burial depth (24\"), soil, what each leg's end stands on (gravel or tamped soil), whether the backfill or concrete around it sheds water away from the wood, and lumber rated for ground contact (UC4A, or UC4B if critical or hard to replace).",
             "why": "Burial keeps the frame from lifting and walking; tipping and anchoring are not computed."
@@ -4016,23 +4115,15 @@
           {
             "category": "bolted-connections",
             "element": "Swing hangers",
-            "partIds": [
-              "beam"
-            ],
-            "hardwareIds": [
-              "swing-hangers"
-            ],
-            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies.",
+            "partIds": ["beam"],
+            "hardwareIds": ["swing-hangers", "hanger-bolts"],
+            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
             "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation."
           },
           {
             "category": "lumber-quality",
             "element": "Beam and legs",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "hardwareIds": [],
             "confirm": "Boards free of large knots near the edges (especially near midspan of the beam), steep grain slope, splits, and wane.",
             "why": "Design values assume the grade; a defect in the wrong place lowers strength more than the grade allows for."
@@ -4052,7 +4143,7 @@
   {
     "templateId": "swing-set-a-frame",
     "templateVersion": 29,
-    "snapshotVersion": 18,
+    "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -4070,10 +4161,7 @@
       "groundSlope": 1,
       "burialDepth": 24,
       "swings": {
-        "centers": [
-          40,
-          80
-        ],
+        "centers": [40, 80],
         "hangerSpacing": 20,
         "seatWidth": 20,
         "seatHeight": 16
@@ -4087,6 +4175,10 @@
         "gussetBolts": {
           "diameter": 0.5,
           "perJoint": 2
+        },
+        "hangerMounting": {
+          "kind": "vertical-bolt",
+          "diameter": 0.5
         }
       }
     },
@@ -4111,10 +4203,7 @@
           "groundSlope": 1,
           "burialDepth": 24,
           "swings": {
-            "centers": [
-              40,
-              80
-            ],
+            "centers": [40, 80],
             "hangerSpacing": 20,
             "seatWidth": 20,
             "seatHeight": 16
@@ -4128,6 +4217,10 @@
             "gussetBolts": {
               "diameter": 0.5,
               "perJoint": 2
+            },
+            "hangerMounting": {
+              "kind": "vertical-bolt",
+              "diameter": 0.5
             }
           }
         },
@@ -4168,18 +4261,10 @@
             "height": 7.25,
             "pastLeg": 1.6376888981671538
           },
-          "supportsX": [
-            13.75,
-            106.25
-          ]
+          "supportsX": [13.75, 106.25]
         },
         "swings": {
-          "hangersX": [
-            30,
-            50,
-            70,
-            90
-          ],
+          "hangersX": [30, 50, 70, 90],
           "seats": [
             {
               "xMin": 30,
@@ -4232,11 +4317,7 @@
             "id": "beam",
             "name": "Beam",
             "role": "beam",
-            "selection": [
-              "structural",
-              "span",
-              "bolted"
-            ],
+            "selection": ["structural", "span", "bolted"],
             "treated": true,
             "stock": {
               "nominal": "4x6",
@@ -4258,6 +4339,9 @@
               }
             ],
             "endsParallel": true,
+            "notes": [
+              "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+            ],
             "referenceEdge": "bottom edge",
             "holes": [
               {
@@ -4291,6 +4375,70 @@
                   "n": 1
                 },
                 "length": 3.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 30,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 50,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 70,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
+              },
+              {
+                "hardwareId": "hanger-bolts",
+                "diameter": 0.5625,
+                "boltDiameter": 0.5,
+                "entry": {
+                  "u": 90,
+                  "v": 5.5,
+                  "n": 1.75
+                },
+                "direction": {
+                  "u": 0,
+                  "v": -1,
+                  "n": 0
+                },
+                "length": 5.5
               }
             ],
             "letter": "A"
@@ -4299,12 +4447,7 @@
             "id": "leg-back",
             "name": "Back leg (uphill)",
             "role": "leg",
-            "selection": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ],
+            "selection": ["structural", "along-length", "bolted", "ground-contact"],
             "treated": true,
             "stock": {
               "nominal": "4x4",
@@ -4439,12 +4582,7 @@
             "id": "leg-front",
             "name": "Front leg (downhill)",
             "role": "leg",
-            "selection": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ],
+            "selection": ["structural", "along-length", "bolted", "ground-contact"],
             "treated": true,
             "stock": {
               "nominal": "4x4",
@@ -4579,10 +4717,7 @@
             "id": "crossbar",
             "name": "Crossbar",
             "role": "crossbar",
-            "selection": [
-              "structural",
-              "bolted"
-            ],
+            "selection": ["structural", "bolted"],
             "treated": true,
             "stock": {
               "nominal": "2x6",
@@ -4691,10 +4826,7 @@
             "id": "gusset",
             "name": "Gusset",
             "role": "gusset",
-            "selection": [
-              "structural",
-              "bolted"
-            ],
+            "selection": ["structural", "bolted"],
             "treated": true,
             "stock": {
               "nominal": "2x8",
@@ -5086,13 +5218,29 @@
             "group": "Bolts and fittings"
           },
           {
+            "id": "hanger-bolts",
+            "name": "Swing hanger bolts",
+            "quantity": 4,
+            "bolt": {
+              "diameter": 0.5,
+              "grip": 5.5,
+              "washers": 2,
+              "nut": "locking",
+              "cap": true
+            },
+            "structural": true,
+            "notes": [
+              "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+              "Many hangers come with their bolts: check those against this length."
+            ],
+            "group": "Bolts and fittings"
+          },
+          {
             "id": "swing-hangers",
             "name": "Swing hangers",
             "quantity": 4,
             "structural": true,
-            "notes": [
-              "Rated for swing use. The rating is checked in the structural review."
-            ],
+            "notes": ["Rated for swing use. The rating is checked in the structural review."],
             "group": "Swing hardware"
           },
           {
@@ -5124,73 +5272,43 @@
         "flags": [
           {
             "category": "load-bearing",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "beam"
-            ],
-            "hardwareIds": [
-              "leg-beam-bolts"
-            ],
+            "partIds": ["leg-back", "leg-front", "beam"],
+            "hardwareIds": ["leg-beam-bolts"],
             "ask": "Confirm the bolt size for the leg-to-beam bolt (8-15/16\" of wood), the 2-9/16\" of leg left at the bolt after the flush cut, and how the head and nut bear on the leg's tilted outer face.",
             "why": "This joint and the gusset carry the beam and every swing load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
             "ask": "Confirm the frame on sloped ground: leg lengths, footing or burial on the downhill side, and whether to regrade instead.",
             "why": "The CPSC home handbook recommends a level site to reduce the chance of tipping (Pub. 324, p. 2)."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
             "ask": "Confirm the burial depth (24\"), that the leg lumber is rated for ground contact, and whether it needs UC4B (heavy duty) rather than UC4A.",
             "why": "Buried legs anchor the frame against lifting and walking, and wood decays fastest at the ground line. AWPA U1 puts parts in ground contact that are critical or hard to replace under UC4B."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "crossbar",
-              "leg-back",
-              "leg-front"
-            ],
-            "hardwareIds": [
-              "crossbar-bolts"
-            ],
+            "partIds": ["crossbar", "leg-back", "leg-front"],
+            "hardwareIds": ["crossbar-bolts"],
             "ask": "Crossbar to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "gusset",
-              "leg-back",
-              "leg-front"
-            ],
-            "hardwareIds": [
-              "gusset-bolts"
-            ],
+            "partIds": ["gusset", "leg-back", "leg-front"],
+            "hardwareIds": ["gusset-bolts"],
             "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "crossbar",
-              "gusset"
-            ],
-            "hardwareIds": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ],
+            "partIds": ["crossbar", "gusset"],
+            "hardwareIds": ["crossbar-bolts", "gusset-bolts"],
             "ask": "For the bolts' end distance, the crossbar ends 1-5/8\", 2' 10-1/2\" to 3' 4\" above the ground, and the gusset ends 1-5/8\", 7' 4-3/4\" to 8' 0\" above the ground project past the legs. Confirm the projecting ends are acceptable where children play, with their edges and corners eased.",
             "why": "The projecting ends are new to this design, and children reach the crossbar."
           }
@@ -5200,10 +5318,7 @@
             "title": "Crossbar to leg",
             "bolts": 2,
             "diameter": 0.5,
-            "params": [
-              "hardware.crossbarBolts.diameter",
-              "hardware.crossbarBolts.perJoint"
-            ],
+            "params": ["hardware.crossbarBolts.diameter", "hardware.crossbarBolts.perJoint"],
             "distances": [
               {
                 "member": "Crossbar",
@@ -5369,10 +5484,7 @@
             "title": "Gusset to leg",
             "bolts": 2,
             "diameter": 0.5,
-            "params": [
-              "hardware.gussetBolts.diameter",
-              "hardware.gussetBolts.perJoint"
-            ],
+            "params": ["hardware.gussetBolts.diameter", "hardware.gussetBolts.perJoint"],
             "distances": [
               {
                 "member": "Gusset",
@@ -5622,9 +5734,7 @@
             "title": "Leg to beam",
             "bolts": 1,
             "diameter": 0.5,
-            "params": [
-              "hardware.legBoltDiameter"
-            ],
+            "params": ["hardware.legBoltDiameter"],
             "distances": [
               {
                 "member": "Beam",
@@ -5815,11 +5925,7 @@
             "id": "leg-beam-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "leg-beam-bolts",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "count": 2,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
@@ -5829,11 +5935,7 @@
             "id": "crossbar-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "crossbar-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "crossbar"
-            ],
+            "partIds": ["leg-back", "leg-front", "crossbar"],
             "count": 8,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
@@ -5843,15 +5945,21 @@
             "id": "gusset-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "gusset-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "gusset"
-            ],
+            "partIds": ["leg-back", "leg-front", "gusset"],
             "count": 8,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
             "depth": 5
+          },
+          {
+            "id": "hanger-bolts/holes",
+            "type": "bolt-holes",
+            "hardwareId": "hanger-bolts",
+            "partIds": ["beam"],
+            "count": 4,
+            "boltDiameter": 0.5,
+            "holeDiameter": 0.5625,
+            "depth": 5.5
           },
           {
             "id": "beam/ease-edges",
@@ -5928,11 +6036,7 @@
             "id": "leg-beam-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "leg-beam-bolts",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "count": 2,
             "holeDiameter": 0.5625,
             "depth": 8.947408118867273
@@ -5941,11 +6045,7 @@
             "id": "crossbar-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "crossbar-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "crossbar"
-            ],
+            "partIds": ["leg-back", "leg-front", "crossbar"],
             "count": 8,
             "holeDiameter": 0.5625,
             "depth": 5
@@ -5954,14 +6054,19 @@
             "id": "gusset-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "gusset-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "gusset"
-            ],
+            "partIds": ["leg-back", "leg-front", "gusset"],
             "count": 8,
             "holeDiameter": 0.5625,
             "depth": 5
+          },
+          {
+            "id": "hanger-bolts/treat-holes",
+            "type": "treat-holes",
+            "hardwareId": "hanger-bolts",
+            "partIds": ["beam"],
+            "count": 4,
+            "holeDiameter": 0.5625,
+            "depth": 5.5
           }
         ]
       },
@@ -5973,13 +6078,12 @@
           "quantity": 1,
           "stock": "4x6 (3-1/2\" x 5-1/2\")",
           "length": "120\"",
-          "ends": [
-            "Square",
-            "Square"
-          ],
+          "ends": ["Square", "Square"],
           "endsParallel": true,
           "marks": [],
-          "notes": []
+          "notes": [
+            "Swing hanger holes: 9/16\", down through the beam on its centerline, 30\", 50\", 70\", 90\" from the left end."
+          ]
         },
         {
           "partId": "leg-back",
@@ -6270,50 +6374,28 @@
             ]
           }
         ],
-        "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."
-        ],
+        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
         "issues": [],
         "selection": [
           {
             "partId": "beam",
-            "guides": [
-              "structural",
-              "span",
-              "bolted"
-            ]
+            "guides": ["structural", "span", "bolted"]
           },
           {
             "partId": "leg-back",
-            "guides": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ]
+            "guides": ["structural", "along-length", "bolted", "ground-contact"]
           },
           {
             "partId": "leg-front",
-            "guides": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ]
+            "guides": ["structural", "along-length", "bolted", "ground-contact"]
           },
           {
             "partId": "crossbar",
-            "guides": [
-              "structural",
-              "bolted"
-            ]
+            "guides": ["structural", "bolted"]
           },
           {
             "partId": "gusset",
-            "guides": [
-              "structural",
-              "bolted"
-            ]
+            "guides": ["structural", "bolted"]
           }
         ]
       },
@@ -6333,9 +6415,7 @@
               "min": 9.820408118867272,
               "max": 10.320408118867272
             },
-            "items": [
-              "leg-beam-bolts"
-            ]
+            "items": ["leg-beam-bolts"]
           }
         },
         {
@@ -6353,34 +6433,43 @@
               "min": 5.873,
               "max": 6.373
             },
-            "items": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ]
+            "items": ["crossbar-bolts", "gusset-bolts"]
+          }
+        },
+        {
+          "description": "1/2\" through-bolt, grip 5-1/2\"",
+          "quantity": 4,
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 5-1/2\": the beam's depth, plus the hanger's plate under it. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 1/2\" past the nut (CPSC Pub. 324, p. 3).",
+            "Many hangers come with their bolts: check those against this length."
+          ],
+          "bolt": {
+            "diameter": 0.5,
+            "grip": 5.5,
+            "items": ["hanger-bolts"]
           }
         },
         {
           "description": "1/2\" flat washers",
-          "quantity": 36,
+          "quantity": 44,
           "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" locking nuts",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" bolt caps",
-          "quantity": 18,
+          "quantity": 22,
           "group": "Bolts and fittings"
         },
         {
           "description": "Swing hangers",
           "quantity": 4,
           "group": "Swing hardware",
-          "notes": [
-            "Rated for swing use. The rating is checked in the structural review."
-          ]
+          "notes": ["Rated for swing use. The rating is checked in the structural review."]
         },
         {
           "description": "Swing seats with chain",
@@ -6532,27 +6621,15 @@
           {
             "category": "bolted-connections",
             "element": "Leg-to-beam bolt and gusset, each frame",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "beam",
-              "gusset"
-            ],
-            "hardwareIds": [
-              "leg-beam-bolts",
-              "gusset-bolts"
-            ],
+            "partIds": ["leg-back", "leg-front", "beam", "gusset"],
+            "hardwareIds": ["leg-beam-bolts", "gusset-bolts"],
             "confirm": "Bolt size (1/2\", 8-15/16\" grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.",
             "why": "Each frame carries half of every swing load into the legs through this joint; connections are not computed."
           },
           {
             "category": "check-assumptions",
             "element": "Beam ends at the frames",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "hardwareIds": [],
             "confirm": "That each frame holds the beam against rolling over at its support.",
             "why": "The beam stability factor assumes it; without that restraint the beam can buckle sideways at a lower load."
@@ -6560,26 +6637,15 @@
           {
             "category": "racking",
             "element": "A-frames and crossbars",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "crossbar",
-              "gusset"
-            ],
-            "hardwareIds": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ],
+            "partIds": ["leg-back", "leg-front", "crossbar", "gusset"],
+            "hardwareIds": ["crossbar-bolts", "gusset-bolts"],
             "confirm": "That the frames resist side-to-side and front-to-back swing forces without racking, and whether corner braces are needed.",
             "why": "Swinging pushes the top of the frame back and forth; racking is not computed."
           },
           {
             "category": "tipping-and-anchoring",
             "element": "Buried legs",
-            "partIds": [
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["leg-back", "leg-front"],
             "hardwareIds": [],
             "confirm": "Burial depth (24\"), soil, what each leg's end stands on (gravel or tamped soil), whether the backfill or concrete around it sheds water away from the wood, and lumber rated for ground contact (UC4A, or UC4B if critical or hard to replace).",
             "why": "Burial keeps the frame from lifting and walking; tipping and anchoring are not computed."
@@ -6587,23 +6653,15 @@
           {
             "category": "bolted-connections",
             "element": "Swing hangers",
-            "partIds": [
-              "beam"
-            ],
-            "hardwareIds": [
-              "swing-hangers"
-            ],
-            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies.",
+            "partIds": ["beam"],
+            "hardwareIds": ["swing-hangers", "hanger-bolts"],
+            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
             "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation."
           },
           {
             "category": "lumber-quality",
             "element": "Beam and legs",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "hardwareIds": [],
             "confirm": "Boards free of large knots near the edges (especially near midspan of the beam), steep grain slope, splits, and wane.",
             "why": "Design values assume the grade; a defect in the wrong place lowers strength more than the grade allows for."
@@ -6623,7 +6681,7 @@
   {
     "templateId": "swing-set-a-frame",
     "templateVersion": 29,
-    "snapshotVersion": 18,
+    "snapshotVersion": 17,
     "params": {
       "beamLength": 120,
       "beamHeight": 96,
@@ -6641,10 +6699,7 @@
       "groundSlope": 0,
       "burialDepth": 0,
       "swings": {
-        "centers": [
-          40,
-          80
-        ],
+        "centers": [40, 80],
         "hangerSpacing": 20,
         "seatWidth": 20,
         "seatHeight": 16
@@ -6664,17 +6719,19 @@
           "count": 6
         },
         "anchorsPerFoot": 1,
-        "anchorRating": 500
+        "hangerMounting": {
+          "kind": "horizontal-bolts",
+          "diameter": 0.375,
+          "perHanger": 2,
+          "holeHeight": 1.5
+        }
       }
     },
     "structuralInputs": {
       "beamSpeciesGrade": "southern-pine-no2",
       "beamIncised": false,
       "beamMoistureContent": 30,
-      "riderWeights": [
-        150,
-        150
-      ],
+      "riderWeights": [150, 150],
       "maxSwingAngle": 60,
       "dynamicFactor": 2,
       "deflectionLimit": 240,
@@ -6700,10 +6757,7 @@
           "groundSlope": 0,
           "burialDepth": 0,
           "swings": {
-            "centers": [
-              40,
-              80
-            ],
+            "centers": [40, 80],
             "hangerSpacing": 20,
             "seatWidth": 20,
             "seatHeight": 16
@@ -6723,7 +6777,12 @@
               "count": 6
             },
             "anchorsPerFoot": 1,
-            "anchorRating": 500
+            "hangerMounting": {
+              "kind": "horizontal-bolts",
+              "diameter": 0.375,
+              "perHanger": 2,
+              "holeHeight": 1.5
+            }
           }
         },
         "geometry": {
@@ -6763,18 +6822,10 @@
             "height": 7.25,
             "pastLeg": 1.638707582804229
           },
-          "supportsX": [
-            13.75,
-            106.25
-          ]
+          "supportsX": [13.75, 106.25]
         },
         "swings": {
-          "hangersX": [
-            30,
-            50,
-            70,
-            90
-          ],
+          "hangersX": [30, 50, 70, 90],
           "seats": [
             {
               "xMin": 30,
@@ -6827,11 +6878,7 @@
             "id": "beam",
             "name": "Beam ply",
             "role": "beam",
-            "selection": [
-              "structural",
-              "span",
-              "bolted"
-            ],
+            "selection": ["structural", "span", "bolted"],
             "treated": true,
             "stock": {
               "nominal": "2x6",
@@ -6854,7 +6901,8 @@
             ],
             "endsParallel": true,
             "notes": [
-              "2 plies fastened face to face make one 3\" wide beam."
+              "2 plies fastened face to face make one 3\" wide beam.",
+              "Swing hanger holes: 7/16\", across the beam 1-1/2\" up from its bottom edge. Hold each hanger's bracket at its mark and drill through the bracket's holes."
             ],
             "referenceEdge": "bottom edge",
             "holes": [
@@ -6923,12 +6971,7 @@
             "id": "leg-back",
             "name": "Back leg",
             "role": "leg",
-            "selection": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ],
+            "selection": ["structural", "along-length", "bolted", "ground-contact"],
             "treated": true,
             "stock": {
               "nominal": "4x4",
@@ -7062,12 +7105,7 @@
             "id": "leg-front",
             "name": "Front leg",
             "role": "leg",
-            "selection": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ],
+            "selection": ["structural", "along-length", "bolted", "ground-contact"],
             "treated": true,
             "stock": {
               "nominal": "4x4",
@@ -7201,10 +7239,7 @@
             "id": "crossbar",
             "name": "Crossbar",
             "role": "crossbar",
-            "selection": [
-              "structural",
-              "bolted"
-            ],
+            "selection": ["structural", "bolted"],
             "treated": true,
             "stock": {
               "nominal": "2x6",
@@ -7313,10 +7348,7 @@
             "id": "gusset",
             "name": "Gusset",
             "role": "gusset",
-            "selection": [
-              "structural",
-              "bolted"
-            ],
+            "selection": ["structural", "bolted"],
             "treated": true,
             "stock": {
               "nominal": "2x8",
@@ -7754,13 +7786,29 @@
             "group": "Bolts and fittings"
           },
           {
+            "id": "hanger-bolts",
+            "name": "Swing hanger bolts",
+            "quantity": 8,
+            "bolt": {
+              "diameter": 0.375,
+              "grip": 3,
+              "washers": 2,
+              "nut": "locking",
+              "cap": true
+            },
+            "structural": true,
+            "notes": [
+              "Grip 3\": the beam's breadth, plus the two sides of the hanger's bracket. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 3/8\" past the nut (CPSC Pub. 324, p. 3).",
+              "Many hangers come with their bolts: check those against this length."
+            ],
+            "group": "Bolts and fittings"
+          },
+          {
             "id": "swing-hangers",
             "name": "Swing hangers",
             "quantity": 4,
             "structural": true,
-            "notes": [
-              "Rated for swing use. The rating is checked in the structural review."
-            ],
+            "notes": ["Rated for swing use. The rating is checked in the structural review."],
             "group": "Swing hardware"
           },
           {
@@ -7778,9 +7826,7 @@
             "name": "Ground anchors",
             "quantity": 4,
             "structural": true,
-            "notes": [
-              "Bury or cover the anchors (CPSC Pub. 324, p. 4)."
-            ],
+            "notes": ["Bury or cover the anchors (CPSC Pub. 324, p. 4)."],
             "group": "Ground anchors"
           },
           {
@@ -7802,76 +7848,43 @@
         "flags": [
           {
             "category": "load-bearing",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "beam"
-            ],
-            "hardwareIds": [
-              "leg-beam-bolts"
-            ],
+            "partIds": ["leg-back", "leg-front", "beam"],
+            "hardwareIds": ["leg-beam-bolts"],
             "ask": "Confirm the bolt size for the leg-to-beam bolt (8-7/16\" of wood), the 2-9/16\" of leg left at the bolt after the flush cut, and how the head and nut bear on the leg's tilted outer face.",
             "why": "This joint and the gusset carry the beam and every swing load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "beam"
-            ],
-            "hardwareIds": [
-              "ply-bolts"
-            ],
+            "partIds": ["beam"],
+            "hardwareIds": ["ply-bolts"],
             "ask": "Confirm how the 2 beam plies are fastened together: fastener type, size, spacing, and pattern.",
             "why": "A built-up beam only acts as one member when its plies are fastened well enough to share the load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "leg-back",
-              "leg-front"
-            ],
-            "hardwareIds": [
-              "ground-anchors"
-            ],
+            "partIds": ["leg-back", "leg-front"],
+            "hardwareIds": ["ground-anchors"],
             "ask": "Confirm the pads or footings and the ground anchors for each foot.",
             "why": "On pads, the anchors alone keep the frame from lifting or walking under swing loads."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "crossbar",
-              "leg-back",
-              "leg-front"
-            ],
-            "hardwareIds": [
-              "crossbar-bolts"
-            ],
+            "partIds": ["crossbar", "leg-back", "leg-front"],
+            "hardwareIds": ["crossbar-bolts"],
             "ask": "Crossbar to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "gusset",
-              "leg-back",
-              "leg-front"
-            ],
-            "hardwareIds": [
-              "gusset-bolts"
-            ],
+            "partIds": ["gusset", "leg-back", "leg-front"],
+            "hardwareIds": ["gusset-bolts"],
             "ask": "Gusset to leg, 2 1/2\" bolts: leg edge distance 1-3/4\" (3.5D): under 4D (2\") for minimum, the edge the load pushes toward. gusset edge distance under the beam's weight, to the top edge 1-13/16\" (3.6D): under 4D (2\") for minimum, the edge the load pushes toward. Confirm the bolt size and layout with these distances.",
             "why": "NDS 2024 12.5.1 sets these distances for bolts in wood (Tables 12.5.1A to 12.5.1D). Below a full-value distance, the joint is designed for less load."
           },
           {
             "category": "load-bearing",
-            "partIds": [
-              "crossbar",
-              "gusset"
-            ],
-            "hardwareIds": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ],
+            "partIds": ["crossbar", "gusset"],
+            "hardwareIds": ["crossbar-bolts", "gusset-bolts"],
             "ask": "For the bolts' end distance, the crossbar ends 1-5/8\", 2' 10-1/2\" to 3' 4\" above the ground, and the gusset ends 1-5/8\", 7' 4-3/4\" to 8' 0\" above the ground project past the legs. Confirm the projecting ends are acceptable where children play, with their edges and corners eased.",
             "why": "The projecting ends are new to this design, and children reach the crossbar."
           }
@@ -7881,10 +7894,7 @@
             "title": "Crossbar to leg",
             "bolts": 2,
             "diameter": 0.5,
-            "params": [
-              "hardware.crossbarBolts.diameter",
-              "hardware.crossbarBolts.perJoint"
-            ],
+            "params": ["hardware.crossbarBolts.diameter", "hardware.crossbarBolts.perJoint"],
             "distances": [
               {
                 "member": "Crossbar",
@@ -8050,10 +8060,7 @@
             "title": "Gusset to leg",
             "bolts": 2,
             "diameter": 0.5,
-            "params": [
-              "hardware.gussetBolts.diameter",
-              "hardware.gussetBolts.perJoint"
-            ],
+            "params": ["hardware.gussetBolts.diameter", "hardware.gussetBolts.perJoint"],
             "distances": [
               {
                 "member": "Gusset",
@@ -8303,9 +8310,7 @@
             "title": "Leg to beam",
             "bolts": 1,
             "diameter": 0.5,
-            "params": [
-              "hardware.legBoltDiameter"
-            ],
+            "params": ["hardware.legBoltDiameter"],
             "distances": [
               {
                 "member": "Beam",
@@ -8496,11 +8501,7 @@
             "id": "leg-beam-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "leg-beam-bolts",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "count": 2,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
@@ -8510,11 +8511,7 @@
             "id": "crossbar-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "crossbar-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "crossbar"
-            ],
+            "partIds": ["leg-back", "leg-front", "crossbar"],
             "count": 8,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
@@ -8524,11 +8521,7 @@
             "id": "gusset-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "gusset-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "gusset"
-            ],
+            "partIds": ["leg-back", "leg-front", "gusset"],
             "count": 8,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
@@ -8538,12 +8531,20 @@
             "id": "ply-bolts/holes",
             "type": "bolt-holes",
             "hardwareId": "ply-bolts",
-            "partIds": [
-              "beam"
-            ],
+            "partIds": ["beam"],
             "count": 6,
             "boltDiameter": 0.5,
             "holeDiameter": 0.5625,
+            "depth": 3
+          },
+          {
+            "id": "hanger-bolts/holes",
+            "type": "bolt-holes",
+            "hardwareId": "hanger-bolts",
+            "partIds": ["beam"],
+            "count": 8,
+            "boltDiameter": 0.375,
+            "holeDiameter": 0.4375,
             "depth": 3
           },
           {
@@ -8620,11 +8621,7 @@
             "id": "leg-beam-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "leg-beam-bolts",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "count": 2,
             "holeDiameter": 0.5625,
             "depth": 8.452713591586766
@@ -8633,11 +8630,7 @@
             "id": "crossbar-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "crossbar-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "crossbar"
-            ],
+            "partIds": ["leg-back", "leg-front", "crossbar"],
             "count": 8,
             "holeDiameter": 0.5625,
             "depth": 5
@@ -8646,11 +8639,7 @@
             "id": "gusset-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "gusset-bolts",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "gusset"
-            ],
+            "partIds": ["leg-back", "leg-front", "gusset"],
             "count": 8,
             "holeDiameter": 0.5625,
             "depth": 5
@@ -8659,11 +8648,18 @@
             "id": "ply-bolts/treat-holes",
             "type": "treat-holes",
             "hardwareId": "ply-bolts",
-            "partIds": [
-              "beam"
-            ],
+            "partIds": ["beam"],
             "count": 6,
             "holeDiameter": 0.5625,
+            "depth": 3
+          },
+          {
+            "id": "hanger-bolts/treat-holes",
+            "type": "treat-holes",
+            "hardwareId": "hanger-bolts",
+            "partIds": ["beam"],
+            "count": 8,
+            "holeDiameter": 0.4375,
             "depth": 3
           }
         ]
@@ -8676,14 +8672,12 @@
           "quantity": 2,
           "stock": "2x6 (1-1/2\" x 5-1/2\")",
           "length": "120\"",
-          "ends": [
-            "Square",
-            "Square"
-          ],
+          "ends": ["Square", "Square"],
           "endsParallel": true,
           "marks": [],
           "notes": [
-            "2 plies fastened face to face make one 3\" wide beam."
+            "2 plies fastened face to face make one 3\" wide beam.",
+            "Swing hanger holes: 7/16\", across the beam 1-1/2\" up from its bottom edge. Hold each hanger's bracket at its mark and drill through the bracket's holes."
           ]
         },
         {
@@ -8913,7 +8907,7 @@
                 "name": "Beam plies",
                 "field": "beamStock",
                 "nominal": "2x8",
-                "margin": 1.1264487123192335,
+                "margin": 1.0148652620007972,
                 "check": {
                   "title": "Bending",
                   "subject": "Top beam, 2 plies of 2x8"
@@ -8954,50 +8948,28 @@
             ]
           }
         ],
-        "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."
-        ],
+        "notes": ["Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."],
         "issues": [],
         "selection": [
           {
             "partId": "beam",
-            "guides": [
-              "structural",
-              "span",
-              "bolted"
-            ]
+            "guides": ["structural", "span", "bolted"]
           },
           {
             "partId": "leg-back",
-            "guides": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ]
+            "guides": ["structural", "along-length", "bolted", "ground-contact"]
           },
           {
             "partId": "leg-front",
-            "guides": [
-              "structural",
-              "along-length",
-              "bolted",
-              "ground-contact"
-            ]
+            "guides": ["structural", "along-length", "bolted", "ground-contact"]
           },
           {
             "partId": "crossbar",
-            "guides": [
-              "structural",
-              "bolted"
-            ]
+            "guides": ["structural", "bolted"]
           },
           {
             "partId": "gusset",
-            "guides": [
-              "structural",
-              "bolted"
-            ]
+            "guides": ["structural", "bolted"]
           }
         ]
       },
@@ -9017,9 +8989,7 @@
               "min": 9.325713591586766,
               "max": 9.825713591586766
             },
-            "items": [
-              "leg-beam-bolts"
-            ]
+            "items": ["leg-beam-bolts"]
           }
         },
         {
@@ -9037,10 +9007,7 @@
               "min": 5.873,
               "max": 6.373
             },
-            "items": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ]
+            "items": ["crossbar-bolts", "gusset-bolts"]
           }
         },
         {
@@ -9058,10 +9025,37 @@
               "min": 3.873,
               "max": 4.373
             },
-            "items": [
-              "ply-bolts"
-            ]
+            "items": ["ply-bolts"]
           }
+        },
+        {
+          "description": "3/8\" through-bolt, grip 3\"",
+          "quantity": 8,
+          "group": "Bolts and fittings",
+          "notes": [
+            "Grip 3\": the beam's breadth, plus the two sides of the hanger's bracket. Length: at least the grip, the hanger's thickness, two USS flat washers, and a nylon-insert locking nut, and no more than 3/8\" past the nut (CPSC Pub. 324, p. 3).",
+            "Many hangers come with their bolts: check those against this length."
+          ],
+          "bolt": {
+            "diameter": 0.375,
+            "grip": 3,
+            "items": ["hanger-bolts"]
+          }
+        },
+        {
+          "description": "3/8\" flat washers",
+          "quantity": 16,
+          "group": "Bolts and fittings"
+        },
+        {
+          "description": "3/8\" locking nuts",
+          "quantity": 8,
+          "group": "Bolts and fittings"
+        },
+        {
+          "description": "3/8\" bolt caps",
+          "quantity": 8,
+          "group": "Bolts and fittings"
         },
         {
           "description": "1/2\" flat washers",
@@ -9082,9 +9076,7 @@
           "description": "Swing hangers",
           "quantity": 4,
           "group": "Swing hardware",
-          "notes": [
-            "Rated for swing use. The rating is checked in the structural review."
-          ]
+          "notes": ["Rated for swing use. The rating is checked in the structural review."]
         },
         {
           "description": "Swing seats with chain",
@@ -9098,9 +9090,7 @@
           "description": "Ground anchors",
           "quantity": 4,
           "group": "Ground anchors",
-          "notes": [
-            "Bury or cover the anchors (CPSC Pub. 324, p. 4)."
-          ]
+          "notes": ["Bury or cover the anchors (CPSC Pub. 324, p. 4)."]
         },
         {
           "description": "Wood preservative for cut ends",
@@ -9117,10 +9107,7 @@
           "beamSpeciesGrade": "southern-pine-no2",
           "beamIncised": false,
           "beamMoistureContent": 30,
-          "riderWeights": [
-            150,
-            150
-          ],
+          "riderWeights": [150, 150],
           "maxSwingAngle": 60,
           "dynamicFactor": 2,
           "deflectionLimit": 240,
@@ -9431,6 +9418,8 @@
               "Each ply carries an equal share of every load (decision 0013).",
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -9443,7 +9432,7 @@
               "key": "dynamicFactor",
               "symbol": "C_dyn",
               "label": "Dynamic factor",
-              "value": 1.5115359688960188
+              "value": 1.3733200229165963
             },
             "formulas": [
               "Each point load P = C_dyn · its load before the factor; the uniform load w is not multiplied",
@@ -9452,6 +9441,8 @@
               "M(x) = R1·x − w·x² / 2 − Σ P·(x − a) over loads left of x; the largest M is where the shear changes sign",
               "S = b·d² / 6",
               "f_b = M / S",
+              "At each hole, S_net is the section modulus of the gross section less the hole, and f_b = M(x) / S_net there",
+              "f_b = the largest of these",
               "Fb' = Fb · C_D · C_M · C_t · C_L · C_F · C_fu · C_i · C_r",
               "margin = Fb' / f_b"
             ],
@@ -9548,6 +9539,234 @@
                 "label": "Position of largest moment per ply",
                 "value": 59.99999999999993,
                 "unit": "in"
+              },
+              {
+                "symbol": "f_b,M",
+                "label": "Bending stress at the largest moment, M / S",
+                "value": 1169.7081059313703,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h1",
+                "label": "Left swing, left hanger hole, position",
+                "value": 30,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h1",
+                "label": "Left swing, left hanger hole, moment per ply",
+                "value": 5762.2564666634835,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,1",
+                "label": "Left swing, left hanger hole, hole diameter",
+                "value": 0.4375,
+                "unit": "in"
+              },
+              {
+                "symbol": "h,1",
+                "label": "Left swing, left hanger hole, hole center above the member's bottom",
+                "value": 1.5,
+                "unit": "in"
+              },
+              {
+                "symbol": "ȳ,1",
+                "label": "Left swing, left hanger hole, neutral axis above the bottom, net section of one ply",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "I_net,1",
+                "label": "Left swing, left hanger hole, net moment of inertia of one ply",
+                "value": 19.672402841073495,
+                "unit": "in⁴"
+              },
+              {
+                "symbol": "c,1",
+                "label": "Left swing, left hanger hole, neutral axis to the farther face",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,1",
+                "label": "Left swing, left hanger hole, net section modulus, I_net / c",
+                "value": 6.883216544824852,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,1",
+                "label": "Left swing, left hanger hole, bending stress",
+                "value": 837.1458938039422,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h2",
+                "label": "Left swing, right hanger hole, position",
+                "value": 50,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h2",
+                "label": "Left swing, right hanger hole, moment per ply",
+                "value": 8836.62187505682,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,2",
+                "label": "Left swing, right hanger hole, hole diameter",
+                "value": 0.4375,
+                "unit": "in"
+              },
+              {
+                "symbol": "h,2",
+                "label": "Left swing, right hanger hole, hole center above the member's bottom",
+                "value": 1.5,
+                "unit": "in"
+              },
+              {
+                "symbol": "ȳ,2",
+                "label": "Left swing, right hanger hole, neutral axis above the bottom, net section of one ply",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "I_net,2",
+                "label": "Left swing, right hanger hole, net moment of inertia of one ply",
+                "value": 19.672402841073495,
+                "unit": "in⁴"
+              },
+              {
+                "symbol": "c,2",
+                "label": "Left swing, right hanger hole, neutral axis to the farther face",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,2",
+                "label": "Left swing, right hanger hole, net section modulus, I_net / c",
+                "value": 6.883216544824852,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,2",
+                "label": "Left swing, right hanger hole, bending stress",
+                "value": 1283.7925143733328,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h3",
+                "label": "Right swing, left hanger hole, position",
+                "value": 70,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h3",
+                "label": "Right swing, left hanger hole, moment per ply",
+                "value": 8836.621875056815,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,3",
+                "label": "Right swing, left hanger hole, hole diameter",
+                "value": 0.4375,
+                "unit": "in"
+              },
+              {
+                "symbol": "h,3",
+                "label": "Right swing, left hanger hole, hole center above the member's bottom",
+                "value": 1.5,
+                "unit": "in"
+              },
+              {
+                "symbol": "ȳ,3",
+                "label": "Right swing, left hanger hole, neutral axis above the bottom, net section of one ply",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "I_net,3",
+                "label": "Right swing, left hanger hole, net moment of inertia of one ply",
+                "value": 19.672402841073495,
+                "unit": "in⁴"
+              },
+              {
+                "symbol": "c,3",
+                "label": "Right swing, left hanger hole, neutral axis to the farther face",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,3",
+                "label": "Right swing, left hanger hole, net section modulus, I_net / c",
+                "value": 6.883216544824852,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,3",
+                "label": "Right swing, left hanger hole, bending stress",
+                "value": 1283.7925143733319,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_h4",
+                "label": "Right swing, right hanger hole, position",
+                "value": 90,
+                "unit": "in"
+              },
+              {
+                "symbol": "M_h4",
+                "label": "Right swing, right hanger hole, moment per ply",
+                "value": 5762.256466663483,
+                "unit": "lb·in"
+              },
+              {
+                "symbol": "D_h,4",
+                "label": "Right swing, right hanger hole, hole diameter",
+                "value": 0.4375,
+                "unit": "in"
+              },
+              {
+                "symbol": "h,4",
+                "label": "Right swing, right hanger hole, hole center above the member's bottom",
+                "value": 1.5,
+                "unit": "in"
+              },
+              {
+                "symbol": "ȳ,4",
+                "label": "Right swing, right hanger hole, neutral axis above the bottom, net section of one ply",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "I_net,4",
+                "label": "Right swing, right hanger hole, net moment of inertia of one ply",
+                "value": 19.672402841073495,
+                "unit": "in⁴"
+              },
+              {
+                "symbol": "c,4",
+                "label": "Right swing, right hanger hole, neutral axis to the farther face",
+                "value": 2.8580246913580245,
+                "unit": "in"
+              },
+              {
+                "symbol": "S_net,4",
+                "label": "Right swing, right hanger hole, net section modulus, I_net / c",
+                "value": 6.883216544824852,
+                "unit": "in³"
+              },
+              {
+                "symbol": "f_b,4",
+                "label": "Right swing, right hanger hole, bending stress",
+                "value": 837.145893803942,
+                "unit": "psi"
+              },
+              {
+                "symbol": "x_f",
+                "label": "Position of the largest bending stress",
+                "value": 50,
+                "unit": "in"
               }
             ],
             "factors": [
@@ -9555,10 +9774,7 @@
                 "symbol": "C_D",
                 "name": "Load duration",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
@@ -9572,9 +9788,7 @@
                 "symbol": "C_M",
                 "name": "Wet service",
                 "value": 1,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "The beam is outdoors and uncovered, so its moisture content can stay above 19%. Fb·C_F = 1000 psi, at or below 1150 psi, so C_M = 1.0 for Fb.",
                 "sources": [
                   {
@@ -9592,10 +9806,7 @@
                 "symbol": "C_t",
                 "name": "Temperature",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "Outdoor air temperature; no sustained exposure above 100°F.",
                 "sources": [
                   {
@@ -9609,9 +9820,7 @@
                 "symbol": "C_L",
                 "name": "Beam stability",
                 "value": 0.89116250141753,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "Computed from the unbraced length between supports that prevent rotation; ℓe = 1.84·ℓu (ℓu/d > 14.3).",
                 "sources": [
                   {
@@ -9625,9 +9834,7 @@
                 "symbol": "C_F",
                 "name": "Size",
                 "value": 1,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "Size adjustment is already in the tabulated Southern Pine values for this size.",
                 "sources": [
                   {
@@ -9641,9 +9848,7 @@
                 "symbol": "C_fu",
                 "name": "Flat use",
                 "value": 1,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "Loaded on the narrow face (bending about the strong axis).",
                 "sources": [
                   {
@@ -9657,10 +9862,7 @@
                 "symbol": "C_i",
                 "name": "Incising",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "The lumber is not incised.",
                 "sources": [
                   {
@@ -9674,9 +9876,7 @@
                 "symbol": "C_r",
                 "name": "Repetitive member",
                 "value": 1,
-                "appliesTo": [
-                  "Fb"
-                ],
+                "appliesTo": ["Fb"],
                 "reason": "A single beam; the repetitive member factor needs three or more members sharing load.",
                 "sources": [
                   {
@@ -9704,12 +9904,17 @@
                 "source": "nds-2024",
                 "locator": "3.3.2, Eq. 3.3-2 and 3.3-4, p. 17",
                 "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
+              },
+              {
+                "source": "nds-2024",
+                "locator": "3.1.2.1, p. 16",
+                "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/09/AWC_NDS2024_withCommentary_20260911_Website-Chapter-3-Design-Provisions-Equations.pdf"
               }
             ],
             "computed": {
               "symbol": "f_b",
-              "label": "Bending stress",
-              "value": 1169.7081059313703,
+              "label": "Bending stress at left swing, right hanger hole, net section",
+              "value": 1283.7925143733328,
               "unit": "psi"
             },
             "allowable": {
@@ -9718,7 +9923,7 @@
               "value": 891.1625014175299,
               "unit": "psi"
             },
-            "margin": 0.7618674239313313
+            "margin": 0.6941639645348296
           },
           "shear": {
             "kind": "beam-shear",
@@ -10024,6 +10229,8 @@
               "Each ply carries an equal share of every load (decision 0013).",
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -10079,10 +10286,7 @@
                 "symbol": "C_D",
                 "name": "Load duration",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "Ten years (occupancy live load). C_D = 1.0: the impact increase is not used, and factors above 1.6 do not apply to lumber treated with water-borne preservatives (NDS 4.3.13 and Table 2.3.2, footnote 2).",
                 "sources": [
                   {
@@ -10096,9 +10300,7 @@
                 "symbol": "C_M",
                 "name": "Wet service",
                 "value": 0.97,
-                "appliesTo": [
-                  "Fv"
-                ],
+                "appliesTo": ["Fv"],
                 "reason": "The beam is outdoors and uncovered, so its moisture content can stay above 19%.",
                 "sources": [
                   {
@@ -10116,10 +10318,7 @@
                 "symbol": "C_t",
                 "name": "Temperature",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "Outdoor air temperature; no sustained exposure above 100°F.",
                 "sources": [
                   {
@@ -10133,10 +10332,7 @@
                 "symbol": "C_i",
                 "name": "Incising",
                 "value": 1,
-                "appliesTo": [
-                  "Fb",
-                  "Fv"
-                ],
+                "appliesTo": ["Fb", "Fv"],
                 "reason": "The lumber is not incised.",
                 "sources": [
                   {
@@ -10484,6 +10680,8 @@
               "Each ply carries an equal share of every load (decision 0013).",
               "Supported at the middle of each gusset's top edge under the beam, 11-1/4\" and 108-3/4\" from the left end. The beam rests on the gussets, and the leg-to-beam bolts sit in holes 1/16\" larger than the bolt, so the gussets take the beam's weight and the swing loads first.",
               "NDS 2024 3.2.1 takes the span from face to face of the supports plus half the bearing length needed at each end. That bearing can be no longer than the gusset's, so the span to the middle of each gusset is the longest it allows and gives the largest bending moment.",
+              "Each hanger's bolts cross the beam in one row, 1-1/2\" above its bottom, in 7/16\" holes (the bolt plus 1/16\", NDS 2024 12.1.3.2). Bending is taken at the hanger's position with one hole in the section; bolts one above another are not covered.",
+              "Deflection uses the beam's gross section; the holes are not deducted from its stiffness.",
               "Each A-frame holds the beam against rotation at its support (legs bolted against both faces, gusset underneath), so the unbraced length is the span.",
               "The beam's own weight acts as a uniform load over the span, from its density at the entered moisture content; seats and chains are in the rider weights.",
               "Simply supported between the two supports; loads outside the supports, including the weight of any overhang, are not part of this check.",
@@ -10535,10 +10733,7 @@
                 "symbol": "C_M",
                 "name": "Wet service",
                 "value": 0.9,
-                "appliesTo": [
-                  "E",
-                  "Emin"
-                ],
+                "appliesTo": ["E", "Emin"],
                 "reason": "The beam is outdoors and uncovered, so its moisture content can stay above 19%.",
                 "sources": [
                   {
@@ -10556,10 +10751,7 @@
                 "symbol": "C_t",
                 "name": "Temperature",
                 "value": 1,
-                "appliesTo": [
-                  "E",
-                  "Emin"
-                ],
+                "appliesTo": ["E", "Emin"],
                 "reason": "Outdoor air temperature; no sustained exposure above 100°F.",
                 "sources": [
                   {
@@ -10573,10 +10765,7 @@
                 "symbol": "C_i",
                 "name": "Incising",
                 "value": 1,
-                "appliesTo": [
-                  "E",
-                  "Emin"
-                ],
+                "appliesTo": ["E", "Emin"],
                 "reason": "The lumber is not incised.",
                 "sources": [
                   {
@@ -10743,323 +10932,27 @@
             "value": 8.000000000000002
           }
         },
-        "anchors": {
-          "kind": "hardware",
-          "title": "Rated load",
-          "subject": "Ground anchor",
-          "loadCase": "Strength: swing load times the dynamic factor",
-          "status": "computed",
-          "inputs": [
-            {
-              "symbol": "W1",
-              "label": "Rider on left swing, with seat and chain",
-              "value": 150,
-              "unit": "lb",
-              "basis": "Entered",
-              "input": "riderWeights.0"
-            },
-            {
-              "symbol": "W2",
-              "label": "Rider on right swing, with seat and chain",
-              "value": 150,
-              "unit": "lb",
-              "basis": "Entered",
-              "input": "riderWeights.1"
-            },
-            {
-              "symbol": "θ",
-              "label": "Maximum swing angle",
-              "value": 60,
-              "unit": "°",
-              "basis": "Entered",
-              "input": "maxSwingAngle"
-            },
-            {
-              "symbol": "MC",
-              "label": "Beam moisture content",
-              "value": 30,
-              "unit": "%",
-              "basis": "Entered",
-              "input": "beamMoistureContent"
-            },
-            {
-              "symbol": "G",
-              "label": "Specific gravity, oven-dry",
-              "value": 0.55,
-              "unit": "",
-              "basis": "Table 4B, 5\" - 6\" wide",
-              "sources": [
-                {
-                  "source": "nds-supplement-2024",
-                  "locator": "Table 4B, Southern Pine, pp. 40-41",
-                  "url": "https://awc.org/pdf-viewer/index.html#https://awc.org/wp-content/uploads/2026/08/AWC_NDS2024-Supplement_20240719_Chapter-4-Reference-Design-Values_Website-1.pdf"
-                },
-                {
-                  "source": "spib-southern-pine-2013",
-                  "locator": "Table 1 (corroborating)"
-                }
-              ]
-            },
-            {
-              "symbol": "ρ",
-              "label": "Beam density at that moisture content",
-              "value": 38.94043203142047,
-              "unit": "lb/ft³",
-              "sources": [
-                {
-                  "source": "fpl-gtr-76",
-                  "locator": "Equations 4 and 6 to 9, pp. 1-3"
-                },
-                {
-                  "source": "nds-supplement-2024",
-                  "locator": "3.1.3 density formula, p. 12 (corroborating up to 30% moisture content)",
-                  "url": "https://awc.org/pdf-viewer/index.html#https://web-media.awc.org/wp-content/uploads/2021/10/17210145/AWC_NDS2024-Supplement_20231129_AWCWebsite_Section-Properties.pdf"
-                }
-              ]
-            },
-            {
-              "symbol": "A",
-              "label": "Beam cross-section, all plies",
-              "value": 16.5,
-              "unit": "in²"
-            },
-            {
-              "symbol": "w",
-              "label": "Beam weight, ρ·A / 1728",
-              "value": 0.37182704196668853,
-              "unit": "lb/in"
-            },
-            {
-              "symbol": "D",
-              "label": "Beam's weight on each frame, w·L / 2",
-              "value": 22.309622518001312,
-              "unit": "lb"
-            },
-            {
-              "symbol": "W_left",
-              "label": "Riders carried by the left frame, by the beam's span",
-              "value": 150.00000000000003,
-              "unit": "lb"
-            },
-            {
-              "symbol": "W_right",
-              "label": "Riders carried by the right frame, by the beam's span",
-              "value": 149.99999999999997,
-              "unit": "lb"
-            },
-            {
-              "symbol": "F_left",
-              "label": "Largest fore-and-aft force on the left frame, smooth swing",
-              "value": 126.02322658933136,
-              "unit": "lb",
-              "sources": [
-                {
-                  "source": "openstax-university-physics-1",
-                  "locator": "8.3, Example 8.7, Simple Pendulum",
-                  "url": "https://openstax.org/books/university-physics-volume-1/pages/8-3-conservation-of-energy"
-                },
-                {
-                  "source": "openstax-university-physics-1",
-                  "locator": "6.3, Centripetal Force",
-                  "url": "https://openstax.org/books/university-physics-volume-1/pages/6-3-centripetal-force"
-                }
-              ]
-            },
-            {
-              "symbol": "F_right",
-              "label": "Largest fore-and-aft force on the right frame, smooth swing",
-              "value": 126.0232265893313,
-              "unit": "lb",
-              "sources": [
-                {
-                  "source": "openstax-university-physics-1",
-                  "locator": "8.3, Example 8.7, Simple Pendulum",
-                  "url": "https://openstax.org/books/university-physics-volume-1/pages/8-3-conservation-of-energy"
-                },
-                {
-                  "source": "openstax-university-physics-1",
-                  "locator": "6.3, Centripetal Force",
-                  "url": "https://openstax.org/books/university-physics-volume-1/pages/6-3-centripetal-force"
-                }
-              ]
-            },
-            {
-              "symbol": "y_b",
-              "label": "Back foot, from under the beam",
-              "value": 38.13870758280422,
-              "unit": "in"
-            },
-            {
-              "symbol": "z_b",
-              "label": "Back foot height",
-              "value": 0,
-              "unit": "in"
-            },
-            {
-              "symbol": "y_f",
-              "label": "Front foot, from under the beam",
-              "value": -38.13870758280422,
-              "unit": "in"
-            },
-            {
-              "symbol": "z_f",
-              "label": "Front foot height",
-              "value": 0,
-              "unit": "in"
-            },
-            {
-              "symbol": "U",
-              "label": "Uplift, left frame, back foot, smooth swing",
-              "value": 79.76227406645035,
-              "unit": "lb"
-            },
-            {
-              "symbol": "U",
-              "label": "Uplift, left frame, front foot, smooth swing",
-              "value": 79.76227406645035,
-              "unit": "lb"
-            },
-            {
-              "symbol": "U",
-              "label": "Uplift, right frame, back foot, smooth swing",
-              "value": 79.76227406645032,
-              "unit": "lb"
-            },
-            {
-              "symbol": "U",
-              "label": "Uplift, right frame, front foot, smooth swing",
-              "value": 79.76227406645032,
-              "unit": "lb"
-            },
-            {
-              "symbol": "c_v",
-              "label": "Left frame, back foot: share of the downward load",
-              "value": 0.5,
-              "unit": ""
-            },
-            {
-              "symbol": "c_h",
-              "label": "Left frame, back foot: overturning per pound of fore-and-aft force",
-              "value": 1.2585638854118377,
-              "unit": ""
-            },
-            {
-              "symbol": "φ",
-              "label": "Left frame, back foot: chain angle where the foot lifts most",
-              "value": 47.071583056443444,
-              "unit": "°"
-            },
-            {
-              "symbol": "S",
-              "label": "Left frame, back foot: swing's pull at factor 1",
-              "value": 90.917085325451,
-              "unit": "lb"
-            },
-            {
-              "symbol": "D·c_v",
-              "label": "Left frame, back foot: beam's weight holding it down",
-              "value": 11.154811259000656,
-              "unit": "lb"
-            },
-            {
-              "symbol": "n",
-              "label": "Ground anchors per leg foot",
-              "value": 1,
-              "unit": "",
-              "basis": "Entered from the anchor maker's instructions"
-            },
-            {
-              "symbol": "C_dyn",
-              "label": "Dynamic factor",
-              "value": 2,
-              "unit": "",
-              "basis": "Entered",
-              "input": "dynamicFactor"
-            },
-            {
-              "symbol": "R_rated",
-              "label": "Rated working load, one piece",
-              "value": 500,
-              "unit": "lb",
-              "basis": "Entered from the manufacturer's specification"
-            }
-          ],
-          "formulas": [
-            "P = C_dyn · load before the factor + the part it does not multiply",
-            "margin = rated working load / computed load"
-          ],
-          "steps": [],
-          "factors": [],
-          "assumptions": [
-            "Chain tension at angle φ on the way down from θ is W·(3·cos φ − 2·cos θ); its fore-and-aft part pushes the frame over the foot it pivots on.",
-            "Both swings are at the same angle at the same time (riders in sync), so their loads add.",
-            "Each swing's load is split equally between its two hangers (a centered rider), and between the frames by the beam's span.",
-            "The lifting foot bears nothing, so the whole fore-and-aft reaction is at the other foot. Moments about that foot give the pull.",
-            "The beam's weight holds the feet down. The legs, crossbars, and gussets would too, but no species is entered for them, so their weight is left out, which makes the uplift larger.",
-            "The frame's own inertia is left out. Sliding along the ground is not computed.",
-            "The dynamic factor multiplies the swing loads, not the weight.",
-            "The anchor holds its rated pull-out in this soil, fastened to the leg as its maker specifies.",
-            "The rating is the manufacturer's working load for this use, installed as the manufacturer specifies."
-          ],
-          "sources": [],
-          "computed": {
-            "symbol": "P",
-            "label": "Load on one piece",
-            "value": 170.67935939190133,
-            "unit": "lb"
-          },
-          "allowable": {
-            "symbol": "R_rated",
-            "label": "Rated working load",
-            "value": 500,
-            "unit": "lb"
-          },
-          "margin": 2.9294696311341135,
-          "breakEven": {
-            "key": "dynamicFactor",
-            "symbol": "C_dyn",
-            "label": "Dynamic factor",
-            "value": 5.62220851481597
-          }
-        },
         "checklist": [
           {
             "category": "bolted-connections",
             "element": "Leg-to-beam bolt and gusset, each frame",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "beam",
-              "gusset"
-            ],
-            "hardwareIds": [
-              "leg-beam-bolts",
-              "gusset-bolts"
-            ],
+            "partIds": ["leg-back", "leg-front", "beam", "gusset"],
+            "hardwareIds": ["leg-beam-bolts", "gusset-bolts"],
             "confirm": "Bolt size (1/2\", 8-7/16\" grip), edge and end distances in the legs and beam, washers on the tilted outer faces, and that the gusset and bolt together carry the beam's reaction.",
             "why": "Each frame carries half of every swing load into the legs through this joint; connections are not computed."
           },
           {
             "category": "bolted-connections",
             "element": "Beam plies (2 x 2x6)",
-            "partIds": [
-              "beam"
-            ],
-            "hardwareIds": [
-              "ply-bolts",
-              "swing-hangers"
-            ],
-            "confirm": "Ply bolt pattern and spacing (6 bolts entered), and that every hanger bolts through all 2 plies.",
+            "partIds": ["beam"],
+            "hardwareIds": ["ply-bolts", "swing-hangers"],
+            "confirm": "Ply bolt pattern and spacing (6 bolts entered), and that every hanger's load reaches all 2 plies.",
             "why": "The checks assume each ply carries an equal share of every load (decision 0013); that holds only if the plies are fastened together and every load reaches every ply."
           },
           {
             "category": "check-assumptions",
             "element": "Beam ends at the frames",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "hardwareIds": [],
             "confirm": "That each frame holds the beam against rolling over at its support.",
             "why": "The beam stability factor assumes it; without that restraint the beam can buckle sideways at a lower load."
@@ -11067,52 +10960,31 @@
           {
             "category": "racking",
             "element": "A-frames and crossbars",
-            "partIds": [
-              "leg-back",
-              "leg-front",
-              "crossbar",
-              "gusset"
-            ],
-            "hardwareIds": [
-              "crossbar-bolts",
-              "gusset-bolts"
-            ],
+            "partIds": ["leg-back", "leg-front", "crossbar", "gusset"],
+            "hardwareIds": ["crossbar-bolts", "gusset-bolts"],
             "confirm": "That the frames resist side-to-side and front-to-back swing forces without racking, and whether corner braces are needed.",
             "why": "Swinging pushes the top of the frame back and forth; racking is not computed."
           },
           {
             "category": "tipping-and-anchoring",
             "element": "Ground anchors on pads",
-            "partIds": [
-              "leg-back",
-              "leg-front"
-            ],
-            "hardwareIds": [
-              "ground-anchors"
-            ],
-            "confirm": "Anchor type and count (1 per foot), that the rated pull-out holds in this soil, how each anchor is fastened to its leg, and how they are buried or covered.",
-            "why": "The anchor check gives the pull on one anchor from the swing alone; the soil, the fastening to the leg, and sliding along the ground are not computed."
+            "partIds": ["leg-back", "leg-front"],
+            "hardwareIds": ["ground-anchors"],
+            "confirm": "Anchor type and count (1 per foot) and how they are buried or covered.",
+            "why": "Anchors keep the frame from lifting, tipping, and walking; tipping and anchoring are not computed."
           },
           {
             "category": "bolted-connections",
             "element": "Swing hangers",
-            "partIds": [
-              "beam"
-            ],
-            "hardwareIds": [
-              "swing-hangers"
-            ],
-            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies.",
+            "partIds": ["beam"],
+            "hardwareIds": ["swing-hangers", "hanger-bolts"],
+            "confirm": "Hangers rated for swing use, installed through the beam as the manufacturer specifies, with holes no larger than the bending check takes.",
             "why": "The hanger margin uses the manufacturer's rating, which holds only for its specified installation."
           },
           {
             "category": "lumber-quality",
             "element": "Beam and legs",
-            "partIds": [
-              "beam",
-              "leg-back",
-              "leg-front"
-            ],
+            "partIds": ["beam", "leg-back", "leg-front"],
             "hardwareIds": [],
             "confirm": "Boards free of large knots near the edges (especially near midspan of the beam), steep grain slope, splits, and wane.",
             "why": "Design values assume the grade; a defect in the wrong place lowers strength more than the grade allows for."

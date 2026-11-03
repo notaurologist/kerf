@@ -63,7 +63,11 @@ Template version 27 (#447) marks every part as treated lumber, so every cut and 
 
 Template version 28 (#456) also measures the gusset's bolts against the beam's weight, which pushes down across the gusset's grain (Bolt layout, below). Before, the gusset was measured only for load along its grain, which left the top edge, the loaded edge under the beam, at 1.5D where NDS 2024 sets 4D. In the worked example the top gusset bolt is 1.8125 (3.6D) from the top edge, under 2", so the gusset's expert check names it. No part, cut, or bolt moves.
 
-Template version 29 (#467) computes, for legs on pads, the fore-and-aft force the swings put on each frame and the uplift it gives at each foot, and checks the pull on one ground anchor against the anchor's rated pull-out, a new hardware input with no default (Structural model, below). The owner chose this on #467 (November 3, 2026); `PRODUCT.md` narrows its non-goal to match. The ground-anchor checklist item now asks about the soil, the anchors' fastening to the legs, and sliding, which stay uncomputed. No part, cut, or bolt moves.
+Template version 29 (#446) takes the beam's bending at each swing hanger on the net section the hanger's bolt holes leave (NDS 2024 3.1.2.1; Structural model, below). The hangers are the beam's point loads, so their holes fall where the moment is largest. How the hangers mount is a new hardware input, read at the store and with no default: one bolt down through the beam, bolts sideways through a bracket, or another way. Its bolts are listed with the other bolts, and their holes are drilled in the beam in a step of their own. In the worked example, a 1/2" bolt in a 9/16" hole at each hanger takes the bending margin from 0.98 to 0.83. A plan made before version 29 has no mounting, so on regenerating its bending says the mounting is needed.
+
+Template version 30 (#493) writes each bolt flag's count and size as the bolt layout row does: "Crossbar to leg, 2 × 1/2\" bolts", which read as 2-1/2" bolts before. A flag's progress key is its ask, so regenerating clears a tick on these flags in the structural review. No number changes.
+
+Template version 31 (#467) computes, for legs on pads, the fore-and-aft force the swings put on each frame and the uplift it gives at each foot, and checks the pull on one ground anchor against the anchor's rated pull-out, a new hardware input with no default (Structural model, below). The owner chose this on #467 (November 3, 2026); `PRODUCT.md` narrows its non-goal to match. The ground-anchor checklist item now asks about the soil, the anchors' fastening to the legs, and sliding, which stay uncomputed. No part, cut, or bolt moves.
 
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
@@ -94,11 +98,11 @@ Not covered in version 1: metal A-frame brackets, legs with seat cuts under the 
 | Hanger spacing | s_h | Distance between a swing's two hangers along the beam |
 | Seat width | s_w | Side-to-side width of a seat |
 | Seat height | h_s | Height of the seat's underside above the ground under the beam, at rest |
-| Hardware | | Bolt diameters and counts, confirmed with an experienced builder; on pads, ground anchors per foot and one anchor's rated pull-out, read from the anchor maker. No defaults (see Hardware) |
+| Hardware | | Bolt diameters and counts, and how the swing hangers mount, confirmed with an experienced builder or read at the store; on pads, ground anchors per foot and one anchor's rated pull-out, read from the anchor maker. No defaults (see Hardware) |
 
 The ground is the line z_g(y) = k·y with k = g / 12, the same at every x.
 
-Every number has a range in the parameter schema (#421, November 2, 2026). Those that had none take one from the beam's: crossbar height and seat height at most 144 (the tallest beam), frame inset at most 120 (half the longest beam), swing centers 0 to 240, hanger spacing and seat width at most 240, and a footprint depth at most 360, past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). Each is wider than Validation already allows, so no plan changes and the template version stays the same. One ground anchor's rated pull-out, added in version 29, is at most 10,000 lb, past any swing set anchor that gives a rating (one kit claims 2,500).
+Every number has a range in the parameter schema (#421, November 2, 2026). Those that had none take one from the beam's: crossbar height and seat height at most 144 (the tallest beam), frame inset at most 120 (half the longest beam), swing centers 0 to 240, hanger spacing and seat width at most 240, and a footprint depth at most 360, past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). Each is wider than Validation already allows, so no plan changes and the template version stays the same. One ground anchor's rated pull-out, added in version 31, is at most 10,000 lb, past any swing set anchor that gives a rating (one kit claims 2,500).
 
 ## Derived geometry
 
@@ -247,18 +251,22 @@ Every structural connection is a through-bolt with a flat washer at each end and
 | Crossbar to leg | diameter, bolts per joint | 4 joints | ct + t |
 | Gusset to leg | diameter, bolts per joint | 4 joints | gt + t |
 | Beam plies (built-up beams only) | diameter, total count | as entered | bw |
+| Swing hangers, one bolt down through the beam | diameter | 4 | bd, plus the hanger's plate |
+| Swing hangers, bolts sideways through a bracket | diameter, bolts per hanger, hole height | 4 × bolts per hanger | bw, plus the bracket's two sides |
 
 - **Bolt length** (version 22, #449): at least the grip plus two washers and the nut, and no more than one bolt diameter past the nut (CPSC p. 3). Kerf takes the washers as USS flat washers at their largest thickness (ASME B18.21.1-2009) and the nut as a nylon-insert locknut at its largest height (ASME B18.16.6-2008, Table 1), so L_min = grip + 2·washer + nut and L_max = L_min + D (`structural/boltLength.ts`). The length to buy is the shortest half inch from L_min to L_max, or the shortest quarter inch when no half inch is in it; for the diameters the form offers, a quarter inch always is, since D ≥ 3/8. The shopping line names the bolt by that length, and its note gives the grip and the range, rounded inward to the 1/16 (`formatLimit`), so any bolt the store has in that range fits. Worked example, 1/2" bolts (washer 0.132, nut 0.609): the leg-to-beam bolt's grip 8.947 gives 9.820 to 10.320, so 10", noted as 9-7/8" to 10-5/16"; the crossbar and gusset bolts' grip 5 gives 5.873 to 6.373, so 6". With 5/8" leg bolts (washer 0.160, nut 0.765): 10.032 to 10.657, so 10-1/2". With a 4x8 beam, the leg-to-beam grip falls by 1.75 · tan 20° = 0.637, to 8.310, so a 1/2" bolt fits from 9.183 to 9.683 (9-1/2"), and a reset note on 10" bolts bought for the 4x6 says they are too long for it (#514).
 - **Per bolt:** two flat washers, one locking nut, and one cap for the exposed end.
 - **Swing hangers:** 4, rated for swing use. Their rating is a structural input checked in M2.
+- **Hanger mounting** (version 29, #446): how each hanger fastens to the beam, read on its package or instructions, with no default (hard rule 3). It is one of: one bolt down through the beam, on its centerline; bolts sideways through the beam, through a bracket's two sides, in one row at a height read off the bracket (its holes' centers above the beam's underside); or another way, such as screws, lag screws, or a clamp. A bolted mounting asks the bolt's diameter, and sideways bolts also how many per hanger. Each hole is the bolt plus 1/16" (NDS 2024 12.1.3.2, as for every bolt since version 9). A sideways hole must lie within the beam's depth; a height that puts it past the top or bottom is refused. Until the mounting is entered, the plan lists no hanger bolts and the beam's bending check says the mounting is needed.
+- **Hanger bolts** (version 29): listed with the other bolts, with two washers, a locking nut, and a cap, like every bolt. The hanger's own plate or bracket is in the grip, and only the hanger says how thick it is, so the line gives the wood's grip (bd down through the beam, bw across it), says to add the hanger, and names no length to buy. Many hangers come with their bolts, and the note says to check those against this length.
 - **Swing seats:** 2, lightweight (CPSC p. 4), with chain set to the chain length.
-- **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none. Until the count is entered the anchors are listed with no quantity, marked as waiting for it (version 16, #406), so a plan on pads can be made before the store. One anchor's rated pull-out, in pounds, is entered beside the count (version 29, #467) for the anchor check (Structural model); it has no default and is never suggested (hard rule 3). Many anchor kits print no rating, and the help says to ask the maker.
+- **Ground anchors:** for pads (d = 0) only, anchors per foot as entered, 4 feet. Buried legs need none. Until the count is entered the anchors are listed with no quantity, marked as waiting for it (version 16, #406), so a plan on pads can be made before the store. One anchor's rated pull-out, in pounds, is entered beside the count (version 31, #467) for the anchor check (Structural model); it has no default and is never suggested (hard rule 3). Many anchor kits print no rating, and the help says to ask the maker.
 - All hardware corrosion-resistant and compatible with the lumber's pressure treatment (CPSC p. 3).
 - **Treated lumber** (version 22, #449): IRC 2021 R317.3.1 requires fasteners, including nuts and washers, in preservative-treated wood to be hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, and its exception 2 allows mechanically galvanized steel to ASTM B695 Class 55 or heavier for fasteners other than nails, staples, and timber rivets. The hardware notes name these. Its exception 1 exempts steel bolts 1/2" and larger; Kerf does not use it, since CPSC asks for corrosion-resistant hardware on a play set. The IRC is a code for houses, read here as the reference for which materials suit treated lumber.
 - **Preservative** (version 27, #447): one wood preservative for cut ends, in its own store group, "Paint and stain", for the field treatment below. Its notes say IRC 2021 R317.1.1 requires it, to choose one labeled for treating cuts in treated wood, and that copper naphthenate suits any treated lumber while boron is only for wood off the ground and out of the rain. They give AWPA M4-06's figures for copper naphthenate: at least 2.0% copper as metal, or 1.0% where that is not readily available (7.1.1). IRC 2021 refers to M4-15, which is sold and could not be read; the 2006 edition was read in full. Secondary summaries that give only 2% or only 1% each quote half of 7.1.1.
 - **Notes on the lines** (version 22): each item's notes are carried to its shopping line, and the plan's list and Shopping mode show them under it.
 - **Store groups** (version 12): the bolts and their washers, nuts, and caps are "Bolts and fittings"; the hangers and seats are "Swing hardware"; the ground anchors are "Ground anchors"; the preservative is "Paint and stain" (version 27). The store checklist shows them in that order, after the lumber.
-- **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, and, on pads, the ground anchors per leg foot and one anchor's rated pull-out beside the anchors (`storeReadings.ts`). Each says where to look, and once entered, shows the value with a link to change it.
+- **Read at the store** (#390): the beam's species and grade (from the grade stamp) and whether it is incised are asked beside the lumber lines that hold the beam, the hanger rating beside the swing hangers, how the hangers mount (and, when bolted, the bolt diameter, and for sideways bolts the count and hole height) beside the swing hangers, and, on pads, the ground anchors per leg foot and one anchor's rated pull-out beside the anchors (`storeReadings.ts`). Each says where to look, and once entered, shows the value with a link to change it.
 
 ### Tools for the work
 
@@ -287,12 +295,13 @@ What needs doing, before any choice of how (`DOMAIN.md`, Operations; methods are
 | Miter at the splay angle | legs (top and foot), crossbars and gussets (both ends) | each angled end cut |
 | Taper: the flush cut | each leg | the leg's taper; it runs the beam's depth bd at α to the edge |
 | Bolt holes | leg to beam (through leg, beam, leg); crossbar and gusset to legs | each through-bolt item: its quantity, diameter, and grip as the depth |
+| Bolt holes: the swing hangers | beam | the hanger bolts: down through the beam at each hanger, placed on the beam's centerline at x_i ± s_h/2; or across it, drilled through the bracket's holes at its mark, so not placed (version 29) |
 | Ease edges | every part | CPSC: kids touch every surface (`DOMAIN.md`, Lumber and finish) |
 | Treat cuts | every part | each part's ends and flush cut, since every part is treated lumber (IRC 2021 R317.1.1; `DOMAIN.md`, Field treatment) |
 | Treat bolt holes | each through-bolt item's holes | after its bolt holes, through the treated parts it joins (all of them) |
 | Dig holes (d > 0), or level pads (d = 0) | one per leg | burial depth d |
 
-Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep. Four holes 24 deep. Field treatment: 3 cuts on each leg (top, foot, flush cut) and 2 on the beam, each crossbar, and each gusset; the same 2 + 8 + 8 bolt holes, 9/16" across.
+Worked example: the flush cut is √((5.853 − 0.685)² + 1.881²) = 5.500 = bd long at 20° to the leg's edge. Holes: 2 leg-to-beam holes 8.947 deep (the grip), 8 crossbar and 8 gusset holes 5 deep, and 4 hanger holes 9/16" across and 5.5 deep, down through the beam at 30, 50, 70, and 90. Four holes 24 deep. Field treatment: 3 cuts on each leg (top, foot, flush cut) and 2 on the beam, each crossbar, and each gusset; the same 2 + 8 + 8 + 4 bolt holes, 9/16" across.
 
 Every part is treated: the beam checks take a waterborne preservative treatment (NDS 4.3.13, Structural model), and the legs stand in or on the ground. The generic operations follow from each part's `treated` flag and are added after the template's own (`treatmentOperations`).
 
@@ -307,6 +316,7 @@ Cutting goes board by board in the board plan's order (#58): generic code makes 
 | Treat every cut with preservative (version 27) | treat cuts, every part | |
 | Dig the leg holes, or Level the pads | dig holes or level pads | load-bearing design |
 | Bolt the crossbars and gussets across the legs | crossbar and gusset bolt holes, each followed by treating them | load-bearing design |
+| Drill the swing hanger holes in the beam (once the mounting is bolted, version 29) | hanger bolt holes, then treating them | load-bearing design, dynamic loads |
 | Bolt the beam between the leg tops | leg-to-beam bolt holes, then treating them | load-bearing design, dynamic loads |
 
 Each step also shows the plan's own flags for its work (Flags, below).
@@ -525,18 +535,19 @@ With swings centered at x = 40 and 80, hangers 20 apart, seats 20 wide, and seat
 
 ### Hardware
 
-With every bolt 1/2" and 2 bolts per crossbar and gusset joint, buried legs:
+With every bolt 1/2", 2 bolts per crossbar and gusset joint, each hanger on one bolt down through the beam, buried legs:
 
 | Item | Quantity | Grip |
 |---|---|---|
 | Leg-to-beam bolts | 2 | 8.947 |
 | Crossbar bolts | 4 joints × 2 = 8 | 1.5 + 3.5 = 5 |
 | Gusset bolts | 4 joints × 2 = 8 | 1.5 + 3.5 = 5 |
-| 1/2" flat washers | 2 × 18 = 36 | |
-| 1/2" locking nuts and caps | 18 each | |
+| Swing hanger bolts | 4 | 5.5, plus the hanger |
+| 1/2" flat washers | 2 × 22 = 44 | |
+| 1/2" locking nuts and caps | 22 each | |
 | Swing hangers, seats | 4, 2 | |
 
-On pads with 1 anchor per foot, add 4 ground anchors. With the two-ply 2x6 beam and 6 ply bolts, add 6 bolts with a 3" grip, 12 washers, 6 nuts, and 6 caps.
+On pads with 1 anchor per foot, add 4 ground anchors. With the two-ply 2x6 beam and 6 ply bolts, add 6 bolts with a 3" grip, 12 washers, 6 nuts, and 6 caps. The third fixture example hangs each hanger from a bracket with two 3/8" bolts sideways through the beam, 1-1/2" up: 8 bolts with a 3" grip plus the bracket, and their 3/8" washers, nuts, and caps.
 
 ### Edge of range
 
@@ -593,6 +604,7 @@ None has a default (decision 0001). A missing input makes every check that needs
 | Dynamic factor | Bending, shear, hanger |
 | Deflection limit, span divided by N | Deflection |
 | Swing hanger rated working load, from the manufacturer | Hanger |
+| Swing hanger mounting, from its package (a hardware parameter, Hardware above) | Bending |
 
 On pads, the anchor check also needs two hardware parameters (Hardware, above): the ground anchors per leg foot and one anchor's rated pull-out. Like the inputs, neither has a default.
 
@@ -604,7 +616,13 @@ On pads, the anchor check also needs two hardware parameters (Hardware, above): 
 - **Break-even dynamic factor** (#401): each strength check also reports the dynamic factor at which its margin reaches 1.0, with every other input as entered (`DOMAIN.md`, Structural checks). For the hanger it is the rating over the smooth-swing load on the most loaded hanger. For bending and shear it is solved from the check, since the beam's weight is not multiplied: C = (allowable − the weight's part) / the hangers' part at factor 1. It is shown with the check and under the dynamic factor's field in Edit, and it is reported while the factor is still missing; the checks stay "input needed" until the factor is entered.
 - **Deflection:** per-hanger load without the dynamic factor.
 - **Beam:** supported where it bears, with a point load at each hanger, `swings.hangersX`. The gusset is fitted with its top edge against the beam's underside, and the leg-to-beam bolt sits in a hole 1/16" over its size (Hole size, version 9), so the gusset is what the beam meets first. The bolt carries part of the reaction only if the gusset settles (its own bolts are in oversize holes too) or the wood crushes; that moves the support inward and shortens the span, so the gusset position is the longer of the two. Each support is at the middle of the part of the gusset's top edge under the beam, b_g = min(gt, e) long: x = e − b_g/2 and L − e + b_g/2 (`beamSupports` in `structural.ts`, version 23, #445). NDS 2024 3.2.1 (p. 17) takes a simple beam's span "from face to face of supports, plus ½ the required bearing length at each end". The faces are the gussets' inner faces, L − 2e apart, and the required bearing length can be no more than the bearing there is, b_g, so the span to the middle of each gusset, L − 2e + b_g, is the longest the clause allows. Kerf uses it rather than computing the required bearing length, which needs a bearing check it does not make; the longer span gives the larger moment and deflection. With e = 0 no gusset is under the beam, and it is supported at the bolts, `geometry.supportsX`. Before version 23 the supports were the frame centerlines, which put the span 2.5 short at each end in the worked example. The unbraced length for beam stability is the span, since each frame holds the beam against rotation (a checklist item). The beam's own weight is a uniform load over the span, not multiplied by the dynamic factor; the overhangs' weight is left out, which slightly raises the moment between the supports.
-- **Uplift at the feet** (pads only, version 29, #467): on the way down from θ, at angle φ from vertical, the chain carries T = W·(3·cos φ − 2·cos θ): v² = 2·g·r·(cos φ − cos θ) from the energy, and T = W·cos φ + W·v²/(g·r) from the centripetal force (the same sources as the swing load, at φ instead of the bottom). Its fore-and-aft part F = T·sin φ pushes the beam toward the front or the back, in the plane of each A-frame, and its vertical part V = T·cos φ pushes down. Both act at the hangers, (y, z) = (0, H).
+- **Net section at the hangers** (version 29, #446): NDS 2024 3.1.2.1 (p. 16), read November 3, 2026: "The net section area is obtained by deducting from the gross section area the projected area of all material removed by boring, grooving, dapping, notching, or other means. The net section area shall be used in calculating the load carrying capacity of a member". The hangers are the point loads, so each hanger's hole is at a section where the moment is at a peak. Bending is f_b = M/S (Eq. 3.3-1) at the largest moment on the gross section and at each hanger on its net section, and the margin is from the largest of these. With the bolt centered under the hanger the load is not eccentric at that section, which the clause also asks about. NDS chapter 4 (sawn lumber) adds nothing on bored holes. `netSection` in `structural/netSection.ts`:
+  - **Down through the depth:** the hole takes D_h from the breadth: S_net = (b − D_h)·d²/6. In a built-up beam the hole is centered on the whole beam, and each ply loses the part of the hole within it; the check takes the ply that loses most (both plies of two lose D_h/2 at the seam, the middle ply of three loses D_h), which still carries an equal share of the load (decision 0013).
+  - **Across the breadth:** the hole removes a band D_h tall across every ply, its center h above the bottom. The neutral axis moves to the centroid of what is left: ȳ = (b·d·d/2 − b·D_h·h) / (b·(d − D_h)), I_net = b·d³/12 + b·d·(d/2 − ȳ)² − (b·D_h³/12 + b·D_h·(h − ȳ)²), and S_net = I_net / max(ȳ, d − ȳ). Bending is taken at the hanger's position with one hole in the section; a bracket with bolts one above another is not covered, and is entered as another mounting.
+  - **Another mounting:** bending is not computed, with the reason, since Kerf cannot say what the screws or clamp remove. Shear and deflection are computed as before.
+  - Deflection uses the gross section. Shear also uses the gross section at the supports, where there are no holes; 3.1.2.1 applies to shear at the hangers too, which is #526.
+  - C_L stays the gross member's, since beam stability is a property of the whole member between its braces.
+- **Uplift at the feet** (pads only, version 31, #467): on the way down from θ, at angle φ from vertical, the chain carries T = W·(3·cos φ − 2·cos θ): v² = 2·g·r·(cos φ − cos θ) from the energy, and T = W·cos φ + W·v²/(g·r) from the centripetal force (the same sources as the swing load, at φ instead of the bottom). Its fore-and-aft part F = T·sin φ pushes the beam toward the front or the back, in the plane of each A-frame, and its vertical part V = T·cos φ pushes down. Both act at the hangers, (y, z) = (0, H).
   - **Each frame's share:** the share of each hanger's load the beam's span gives that frame, with the supports of the beam checks: W_f = Σ (W_i / 2)·(x_far − x_i) / (x1 − x0), and half the beam's whole weight, D = w·L / 2, at y = 0.
   - **Feet:** where each leg's centerline meets the ground (Where the leg meets the ground; on pads the foot is at grade): the back foot at y_b = Q_y + (H − z_b)·tan α, z_b its ground height, and the front foot at y_f = −(Q_y + (H − z_f)·tan α).
   - **Moments:** pushed toward the back, the frame pivots on its back foot and the front foot lifts. The lifting foot bears nothing, so it has no friction, and the whole fore-and-aft reaction is at the pivot. Moments about the pivot (OpenStax University Physics Vol. 1, 12.1 and 12.2) give the front foot's reaction R_f = [(V + D)·y_b − F·(H − z_b)] / (y_b − y_f). Pushed toward the front, R_b = [(V + D)·(−y_f) − F·(H − z_f)] / (y_b − y_f). Writing each as R = (V + D)·c_v − F·c_h, the uplift at a foot with the dynamic factor C is U = C·S − D·c_v, where S = −W_f · min over 0 ≤ φ ≤ θ of (3·cos φ − 2·cos θ)·(c_v·cos φ − c_h·sin φ).
@@ -644,12 +662,15 @@ Beam stability: ℓu/d = 97.5/5.5 = 17.7 > 14.3, so ℓe = 1.84·97.5 = 179.4.
 |---|---|
 | Reactions, 600 + w·L/2 | 621.15, 621.15 |
 | M at midspan: hangers 600·48.75 − 300·30 − 300·10 = 17,250, plus w·L²/8 = 515.47 | 17,765.47 lb·in |
-| f_b = M/S | 1006.78 psi; margin 991.59 / 1006.78 = 0.98 |
+| f_b = M/S on the gross section | 1006.78 psi |
+| Net section at each hanger: one 1/2" bolt down through the beam, hole 9/16", b_net = 3.5 − 0.5625 = 2.9375 | S_net = 2.9375·5.5²/6 = 14.8099 in³ |
+| M at the inner hangers (38.75 from the left support): 600·38.75 − 300·20 = 17,250, plus w·(48.75·38.75 − 38.75²/2) = 493.78 | 17,743.78 lb·in; at the outer hangers 11,570.27 |
+| f_b at the inner hangers, 17,743.78 / 14.8099 | 1198.10 psi; margin 991.59 / 1198.10 = 0.83 (the outer hangers 781.25 psi, margin 1.27) |
 | f_v = 3·621.15 / (2·3.5·5.5) | 48.40 psi; margin 169.75 / 48.40 = 3.51 |
 | δ·EI at midspan: two symmetric pairs (DA6 Fig. 9), [150·18.75·(3·97.5² − 4·18.75²) + 150·38.75·(3·97.5² − 4·38.75²)] / 24 = 8,629,492, plus 5·w·L⁴/384 = 510,440 (DA6 Fig. 1) | 9,139,933 / 61,142,813 = 0.1495 in |
 | Limit 97.5/240 | 0.4063 in; margin 2.72 |
 | Hanger | 300 lb against 1200; margin 4.0 |
-| Break-even dynamic factor, bending | Fb'·S = 991.59 · 17.6458 = 17,497.46 lb·in; the hangers give 8,625 per unit factor and the weight 515.47, so C = (17,497.46 − 515.47) / 8,625 = 1.969 (not margin × factor, 0.985 · 2 = 1.970, since the weight is not multiplied) |
+| Break-even dynamic factor, bending | At the inner hangers, Fb'·S_net = 991.59 · 14.8099 = 14,685.37 lb·in; the hangers give 8,625 per unit factor and the weight 493.78, so C = (14,685.37 − 493.78) / 8,625 = 1.645 (not margin × factor, 0.828 · 2 = 1.655, since the weight is not multiplied). On the gross section at midspan it would be (17,497.46 − 515.47) / 8,625 = 1.969. |
 | Break-even dynamic factor, shear | Fv'·2·b·d/3 = 2,178.46 lb; C = (2,178.46 − 21.15) / 300 = 7.191 |
 | Break-even dynamic factor, hanger | 1200 / 150 = 8.0 |
 
@@ -659,7 +680,8 @@ Beam stability: ℓu/d = 97.5/5.5 = 17.7 > 14.3, so ℓe = 1.84·97.5 = 179.4.
 |---|---|
 | R1 = (400·(78.75 + 58.75) + 160·(38.75 + 18.75)) / 97.5 + w·L/2 | 658.46 + 21.15 = 679.61; R2 = 1120 + 42.30 − 679.61 = 482.69 |
 | M under the second hanger, 679.61·38.75 − 400·20 − w·38.75²/2 | 18,009.17 lb·in (the shear changes sign there) |
-| f_b | 1020.59 psi; margin 0.97 |
+| f_b on the gross section | 1020.59 psi |
+| f_b at the second hanger, on the net section, 18,009.17 / 14.8099 | 1216.02 psi; margin 0.82 (0.8154) |
 | f_v = 3·679.61 / 38.5 | 52.96 psi; margin 3.21 |
 | δ (deflection loads 200, 200, 80, 80, plus w) | 0.1403 in, at x = 58.29; margin 2.90 |
 | Hanger | 400 lb against 1200; margin 3.0 |
@@ -669,12 +691,27 @@ Beam stability: ℓu/d = 97.5/5.5 = 17.7 > 14.3, so ℓe = 1.84·97.5 = 179.4.
 | Quantity | Value |
 |---|---|
 | M per ply, 8,625 + 0.185914·97.5²/8 | 8,845.92 lb·in |
-| f_b = 8845.92 / 7.5625 | 1169.71 psi; margin 891.16 / 1169.71 = 0.76 |
+| f_b = 8845.92 / 7.5625 on the gross section | 1169.71 psi |
+| Net section: the 9/16" hole centered on the seam, so each ply loses 0.28125 | S_net = 1.21875·5.5²/6 = 6.1445 in³ |
+| M per ply at the inner hangers, 8,625 + 0.185914·(48.75·38.75 − 38.75²/2) | 8,836.62 lb·in |
+| f_b at the inner hangers, 8,836.62 / 6.1445 | 1438.13 psi; margin 891.16 / 1438.13 = 0.62 |
 | f_v = 3·309.06 / (2·1.5·5.5) | 56.19 psi; margin 3.02 |
 | δ | 0.1730 in; margin 2.35 |
-| Break-even dynamic factor, bending | Fb'·S = 891.16 · 7.5625 = 6,739.42 per ply; C = (6,739.42 − 220.92) / 4,312.5 = 1.512 |
+| Break-even dynamic factor, bending | At the inner hangers, Fb'·S_net = 891.16 · 6.1445 = 5,475.78 per ply; the weight gives 211.62, so C = (5,475.78 − 211.62) / 4,312.5 = 1.221 |
 
-The two-ply 2x6 has less margin in bending than the 4x6 under the same inputs, for two reasons: two 2x6 plies (3.0 in) are narrower than a 4x6 (3.5 in), and one ply is far more slender for beam stability. The beam's weight lowers each bending margin by about 3%. Maximum moments and deflections were also found by sampling the summed DA6 curves at 200,000 points; the code finds them exactly, and both agree to the precision shown. Version 23's numbers were recomputed by a separate script that first reproduced every version 22 number above from the old supports.
+**Example 4, two-ply 2x6, bolts sideways:** example 3 with each hanger on a bracket with 3/8" bolts across the beam, holes 7/16", their centers 1.5 above the beam's bottom. Per ply, b = 1.5, d = 5.5, D_h = 0.4375, h = 1.5.
+
+| Quantity | Value |
+|---|---|
+| Net area, 1.5·(5.5 − 0.4375) | 7.59375 in² |
+| ȳ = (1.5·5.5·2.75 − 1.5·0.4375·1.5) / 7.59375 | 2.858025 in |
+| I_net = 20.796875 + 8.25·0.108025² − (0.010468 + 0.65625·1.358025²) | 19.672403 in⁴ |
+| c = max(2.858025, 2.641975), S_net = 19.672403 / 2.858025 | 6.883217 in³ |
+| f_b at the inner hangers, 8,836.62 / 6.883217 | 1283.79 psi; margin 891.16 / 1283.79 = 0.69 |
+
+A horizontal hole at mid-depth costs far less: in the 4x6, a 9/16" hole there gives S_net = 3.5·(5.5³ − 0.5625³)/12 / 2.75 = 17.627 against 17.646, 0.1%.
+
+The two-ply 2x6 has less margin in bending than the 4x6 under the same inputs, for two reasons: two 2x6 plies (3.0 in) are narrower than a 4x6 (3.5 in), and one ply is far more slender for beam stability. The beam's weight lowers each bending margin by about 3%. Maximum moments and deflections were also found by sampling the summed DA6 curves at 200,000 points; the code finds them exactly, and both agree to the precision shown. Version 23's numbers were recomputed by a separate script that first reproduced every version 22 number above from the old supports. Version 29's net sections, moments at the hangers, and break-even factors were checked by a separate script that searched the moment curve at 1,000,000 points and solved each break-even factor by bisection.
 
 The supports at the frame centerlines give a shorter span and so a larger margin in bending and deflection, but in example 2 a slightly smaller one in shear (3.19 against 3.21), since the left reaction is then larger (683.85 against 679.61). The difference is under 1%, and the bolt carries load only after the gusset bears, so Kerf reports the gusset position alone.
 

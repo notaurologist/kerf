@@ -1,12 +1,15 @@
 import type { Operation } from '../../model/operations.ts';
 import type { StepOutline } from '../../steps/build.ts';
+import { HANGER_BOLTS } from './hardware.ts';
 import type { StoredSwingSetOutputs } from './outputs.ts';
+
+type BoltHoles = Extract<Operation, { type: 'bolt-holes' }>;
 
 // The swing set's build order after cutting, which generic code does board by board (spec, Build
 // steps): ease the parts' edges, treat every cut, prepare the site, bolt the crossbars and gussets
-// across each pair of legs, then bolt the beam between the leg tops. Each bolt's holes are treated
-// right after they are drilled, before the bolt goes in. Generic code fills in methods; this only
-// groups and orders the operations.
+// across each pair of legs, drill the swing hanger holes, then bolt the beam between the leg tops.
+// Each bolt's holes are treated right after they are drilled, before the bolt goes in. Generic
+// code fills in methods; this only groups and orders the operations.
 
 export function stepOutline(design: StoredSwingSetOutputs['design']): StepOutline[] {
   const ops = design.operations ?? [];
@@ -16,15 +19,19 @@ export function stepOutline(design: StoredSwingSetOutputs['design']): StepOutlin
   const treatHoles = new Map(
     ops.flatMap((op) => (op.type === 'treat-holes' ? [[op.hardwareId, op.id] as const] : [])),
   );
-  const boltsThrough = (board: string) =>
+  const forHangers = (op: BoltHoles) => op.hardwareId === HANGER_BOLTS;
+  const drilled = (keep: (op: BoltHoles) => boolean) =>
     ops.flatMap((op) => {
-      if (op.type !== 'bolt-holes' || !op.partIds.some((id) => role.get(id) === board)) return [];
+      if (op.type !== 'bolt-holes' || !keep(op)) return [];
       const treat = treatHoles.get(op.hardwareId);
       return treat ? [op.id, treat] : [op.id];
     });
+  const boltsThrough = (board: string) =>
+    drilled((op) => !forHangers(op) && op.partIds.some((id) => role.get(id) === board));
   // Plans made before version 26 have no field treatment, and so no step for it.
   const treatCuts = ids((op) => op.type === 'treat-cuts');
   const buried = ops.some((op) => op.type === 'dig-holes');
+  const hangerHoles = drilled(forHangers);
   return [
     {
       id: 'ease-edges',
@@ -55,6 +62,17 @@ export function stepOutline(design: StoredSwingSetOutputs['design']): StepOutlin
       operationIds: [...boltsThrough('crossbar'), ...boltsThrough('gusset')],
       categories: ['load-bearing'],
     },
+    // Drilled while the beam is still on the ground.
+    ...(hangerHoles.length > 0
+      ? [
+          {
+            id: 'hanger-holes',
+            title: 'Drill the swing hanger holes in the beam',
+            operationIds: hangerHoles,
+            categories: ['load-bearing' as const, 'dynamic-loads' as const],
+          },
+        ]
+      : []),
     {
       id: 'beam',
       title: 'Bolt the beam between the leg tops',

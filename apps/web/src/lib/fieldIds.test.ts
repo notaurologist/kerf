@@ -42,6 +42,12 @@ describe('inputFieldId', () => {
     }
   });
 
+  it('finds a parameter a check names as missing, such as the hanger mounting', () => {
+    expect(inputFieldId(form('swing-set-a-frame'), 'hardware.hangerMounting')).toBe(
+      'p-hardware.hangerMounting.kind',
+    );
+  });
+
   it('finds a parameter a check needs, such as the ground anchor rating', () => {
     expect(inputFieldId(form('swing-set-a-frame'), 'hardware.anchorRating')).toBe(
       'p-hardware.anchorRating',

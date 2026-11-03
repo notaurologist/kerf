@@ -46,7 +46,7 @@ describe('Shopping mode', () => {
     );
     expect(html).not.toContain('<nav');
     expect(html).toContain(`href="#/projects/${p.id}"`);
-    expect(text).toContain('1 of 12 bought.');
+    expect(text).toContain('1 of 13 bought.');
     expect(text).toContain(`1 × 2x6, 10' 0"`);
     expect(text).toContain('2 × 1/2" × 10" through-bolt');
     // Each hardware line's notes under it, and the list's notes after the last group (#449).
@@ -59,7 +59,7 @@ describe('Shopping mode', () => {
     expect(text).toMatch(
       /Bolts, washers, and nuts in pressure-treated lumber: .*\(IRC 2021 R317\.3\.1\)\.$/,
     );
-    expect(html.match(/type="checkbox"/g)).toHaveLength(12);
+    expect(html.match(/type="checkbox"/g)).toHaveLength(13);
     expect(html.match(/checked=""/g)).toHaveLength(1);
   });
 
@@ -73,7 +73,7 @@ describe('Shopping mode', () => {
     );
     // The beam's line: its note, then what else holds the beam (lists.test.ts hand-checks these).
     expect(text).toContain(
-      `incised: No. Change Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8". Not in stock? Buy one of these instead: 1 × 4x6, 10' 0", if it measures at least 121-1/8". 1 × 4x6, 14' 0". Beam in 4x8, which changes the plan: margin 1.6x under these assumptions (bending, top beam, 4x8). Change it in Edit The board`,
+      `incised: No. Change Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8". Not in stock? Buy one of these instead: 1 × 4x6, 10' 0", if it measures at least 121-1/8". 1 × 4x6, 14' 0". Beam in 4x8, which changes the plan: margin 1.3x under these assumptions (bending, top beam, 4x8). Change it in Edit The board`,
     );
     expect(text).toContain(
       `1 × 2x6, 10' 0" Not in stock? Buy one of these instead: 2 × 2x6, 8' 0". 1 × 2x6, 12' 0". The board`,
@@ -97,7 +97,7 @@ describe('Shopping mode', () => {
     const headings = [...text.matchAll(/(Lumber|Bolts and fittings|Swing hardware) (\d+ of \d+)/g)];
     expect(headings.map((m) => `${m[1]} ${m[2]}`)).toEqual([
       'Lumber 1 of 4',
-      'Bolts and fittings 0 of 5',
+      'Bolts and fittings 0 of 6',
       'Swing hardware 1 of 2',
     ]);
   });
@@ -151,7 +151,7 @@ describe('Building mode', () => {
     expect(text).toContain(
       'Building · Backyard swing set Theme System theme Light theme Dark theme Exit',
     );
-    expect(text).toContain('Step 6 of 12 · Cutting All steps');
+    expect(text).toContain('Step 6 of 13 · Cutting All steps');
     expect(text).toContain("Cut board 6, a 2x6 10' long: 2 × Crossbar");
     expect(text).toContain('Trim 1/2" off the factory end to square it');
     expect(text).toContain('Each saw cut takes 1/8"');
@@ -191,12 +191,12 @@ describe('Building mode', () => {
     const route = { screen: 'build-step' as const, id: p.id, step: 'frames' };
     const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     const html = render(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
-    expect(text).toContain('Step 11 of 12 All steps');
+    expect(text).toContain('Step 11 of 13 All steps');
     expect(text).not.toContain('Cutting');
     expect(text).not.toContain('Trim 1/2"');
     // The bolted joints' expert checks (#51), on the step that drills for them.
     expect(text).toContain('Expert check');
-    expect(text).toContain('Crossbar to leg, 2 1/2" bolts');
+    expect(text).toContain('Crossbar to leg, 2 × 1/2" bolts');
     expect(html).not.toContain('class="k-glance"');
   });
 
@@ -284,10 +284,10 @@ describe('Building mode', () => {
         drawings={loadedDrawings(p)}
       />,
     );
-    expect(text).toContain('2 of 12 steps done.');
-    expect(text).toContain('12. Bolt');
+    expect(text).toContain('2 of 13 steps done.');
+    expect(text).toContain('13. Bolt');
     // Every row laid out the same (#136): the tick, then Open under it.
-    expect(html.match(/<li><div class="l-stack"[^>]*><label class="k-tick"/g)).toHaveLength(12);
+    expect(html.match(/<li><div class="l-stack"[^>]*><label class="k-tick"/g)).toHaveLength(13);
     expect(html.match(/checked=""/g)).toHaveLength(2);
   });
 
@@ -296,7 +296,7 @@ describe('Building mode', () => {
     const route = { screen: 'build-part' as const, id: p.id, step: 'board-6', part: 'crossbar' };
     const text = renderText(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
     const html = render(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
-    expect(text).toContain('Step 6 of 12 · Cutting Back to the step');
+    expect(text).toContain('Step 6 of 13 · Cutting Back to the step');
     expect(text).toContain(`D Crossbar 2x6 (1-1/2" x 5-1/2"). Cut 2 from this board.`);
     expect(text).toContain('Length, long point to long point 59"');
     // Where the angles are laid out from, before the ends (#132).
@@ -378,7 +378,7 @@ describe('the plan’s mode buttons (#356)', () => {
     const text = renderText(
       <ProjectView project={project()} drawings={loadedDrawings(project())} />,
     );
-    expect(text).toContain('Shop · 12 to buy');
+    expect(text).toContain('Shop · 13 to buy');
     expect(text).toContain('Build · not started');
   });
 
@@ -389,8 +389,8 @@ describe('the plan’s mode buttons (#356)', () => {
     ] as const;
     const p = project([...reviewed, ...building]);
     const text = renderText(<ProjectView project={p} drawings={loadedDrawings(p)} />);
-    expect(text).toContain('Shop · 1 of 12 bought');
-    expect(text).toContain('Build · step 2 of 12');
+    expect(text).toContain('Shop · 1 of 13 bought');
+    expect(text).toContain('Build · step 2 of 13');
     expect(text).toContain("Next: Cut board 2, a 4x4 12' long: Front leg (downhill)");
     expect(render(<ProjectView project={p} drawings={loadedDrawings(p)} />)).toContain(
       `href="#/projects/${p.id}/build"`,
@@ -404,9 +404,9 @@ describe('the plan’s mode buttons (#356)', () => {
       )?.[0];
     // Even once building has started: the review is settled first.
     expect(next(project([{ kind: 'step', key: 'board-1' }]))).toBe('Next: Structural review ');
-    expect(next(project(reviewed))).toBe('Next: Shopping list, 12 to buy ');
+    expect(next(project(reviewed))).toBe('Next: Shopping list, 13 to buy ');
     expect(next(project([...reviewed, { kind: 'shopping-line', key: 'lumber/2x6/10' }]))).toBe(
-      'Next: Shopping list, 11 to buy ',
+      'Next: Shopping list, 12 to buy ',
     );
   });
 
@@ -417,8 +417,8 @@ describe('the plan’s mode buttons (#356)', () => {
           /data-variant="primary"[^>]*>.*?<\/a>/g,
         ) ?? []
       ).map((m) => m.slice(m.indexOf('>') + 1).replace(/<[^>]+>/g, ''));
-    expect(primaries(project())).toEqual(['Shop · 12 to buy']);
-    expect(primaries(project(), 'cut-list')).toEqual(['Shop · 12 to buy']);
+    expect(primaries(project())).toEqual(['Shop · 13 to buy']);
+    expect(primaries(project(), 'cut-list')).toEqual(['Shop · 13 to buy']);
     // Building is next once it has started, even with lines left to buy.
     expect(
       primaries(
@@ -427,7 +427,7 @@ describe('the plan’s mode buttons (#356)', () => {
           { kind: 'step', key: 'board-1' },
         ]),
       ),
-    ).toEqual(['Build · step 2 of 12']);
+    ).toEqual(['Build · step 2 of 13']);
   });
 
   it('mark each button with its mode, for the mode color', () => {
@@ -490,9 +490,9 @@ describe('progress in words', () => {
     // One card, for the first project in the list (the most recently updated).
     expect(text.match(/Resume /g)).toHaveLength(1);
     expect(text).toContain(
-      "Backyard swing set Step 2 of 12: Cut board 2, a 4x4 12' long: Front leg (downhill). Resume building",
+      "Backyard swing set Step 2 of 13: Cut board 2, a 4x4 12' long: Front leg (downhill). Resume building",
     );
-    expect(text).toContain('Shopping: 12 lines, none bought. Building: Step 2 of 12 next');
+    expect(text).toContain('Shopping: 13 lines, none bought. Building: Step 2 of 13 next');
   });
 
   it('resumes at the step with the most recent tick, naming the first step not done (#460)', () => {
@@ -506,7 +506,7 @@ describe('progress in words', () => {
     const html = render(<ProjectList projects={[p]} templates={[]} />);
     const text = renderText(<ProjectList projects={[p]} templates={[]} />);
     expect(text).toContain(
-      "Backyard swing set Step 4 of 12: Cut board 4, a 4x4 12' long: Back leg (uphill). First step not done: step 1, Cut board 1, a 4x6 12' long: Beam. Resume building",
+      "Backyard swing set Step 4 of 13: Cut board 4, a 4x4 12' long: Back leg (uphill). First step not done: step 1, Cut board 1, a 4x6 12' long: Beam. Resume building",
     );
     expect(html).toContain(`href="#/projects/${p.id}/build/board-4"`);
   });

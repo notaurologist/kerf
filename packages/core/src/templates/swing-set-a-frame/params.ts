@@ -9,6 +9,25 @@ const Nominal = z.enum(NOMINAL_SIZES as [NominalSize, ...NominalSize[]]);
 /** Common through-bolt diameters, inches. */
 const BoltDiameter = z.union([z.literal(0.375), z.literal(0.5), z.literal(0.625), z.literal(0.75)]);
 
+/**
+ * How each swing hanger is fastened to the beam, read from the hanger's package or instructions
+ * (spec, Hardware). Its holes reduce the beam's section where the swing loads are.
+ */
+const HangerMounting = z.discriminatedUnion('kind', [
+  /** One bolt down through the beam's depth, on its centerline. */
+  z.object({ kind: z.literal('vertical-bolt'), diameter: BoltDiameter }),
+  /** Bolts across the beam's breadth, in one row along it, through a bracket's two sides. */
+  z.object({
+    kind: z.literal('horizontal-bolts'),
+    diameter: BoltDiameter,
+    perHanger: z.number().int().min(1).max(4),
+    /** Height of the holes' centers above the beam's underside. */
+    holeHeight: z.number().positive().max(12),
+  }),
+  /** Screws, lag screws, a clamp, or anything else: its net section is not worked out. */
+  z.object({ kind: z.literal('other') }),
+]);
+
 /** Inches; past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). */
 const FOOTPRINT_MAX = 360;
 
@@ -81,6 +100,8 @@ export const SwingSetParams = z.object({
       .optional(),
     /** Required for pads (burial depth 0). */
     anchorsPerFoot: z.number().int().min(1).max(4).optional(),
+    /** Read at the store; until then the beam's bending says it is needed. */
+    hangerMounting: HangerMounting.optional(),
     /**
      * One ground anchor's rated pull-out, pounds, from its maker, for the anchor check on pads. No
      * default: many kits print none.
