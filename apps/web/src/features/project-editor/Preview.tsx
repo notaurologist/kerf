@@ -3,14 +3,15 @@ import {
   type Change,
   entryProblems,
   type FormValues,
+  formatBoardLength,
   type Plan,
   type SuggestedValue,
   structural,
   type TemplateDefinition,
 } from '@kerf/core';
-import { memo, useEffect, useState } from 'react';
+import { memo, type ReactNode, useEffect, useState } from 'react';
 import { type ApiResult, api, failureOf, send } from '../../lib/api.ts';
-import { type Changes, indexChanges } from '../../lib/changes.tsx';
+import { type Changes, indexChanges, marked } from '../../lib/changes.tsx';
 import { useLatest } from '../../lib/latest.ts';
 import { planOf } from '../../lib/plan.ts';
 import type { Project } from '../../lib/types.ts';
@@ -18,11 +19,15 @@ import {
   CheckStatus,
   Cluster,
   type Failure,
+  Length,
   LiveRegion,
+  Measured,
   Notice,
+  PlainList,
   Row,
   Rows,
   SaveFailed,
+  SettingBox,
   Stack,
   StateTag,
   Text,
@@ -202,6 +207,97 @@ export const PreviewPane = memo(function PreviewPane(props: {
   );
 });
 
+/**
+ * The numbers the preview changes, alone, each marked with the saved one: for beside Save while
+ * the full preview is out of sight below the form, as on a phone. Nothing while none changed.
+ */
+export function WhatChanges(props: { state: PreviewState }) {
+  const { state } = props;
+  const preview =
+    state.kind === 'ready' ? state : state.kind === 'updating' ? state.previous : null;
+  const lines = preview ? changedNumbers(preview.plan, preview.changes) : [];
+  if (!preview || lines.length === 0) return null;
+  return (
+    <section aria-labelledby="what-changes-heading">
+      <Stack gap="xs">
+        <Cluster spread>
+          <h2 id="what-changes-heading">What changes</h2>
+          <StateTag>
+            {state.kind === 'updating' ? 'Earlier values, not saved' : 'Preview, not saved'}
+          </StateTag>
+        </Cluster>
+        <PlainList gap="xs">
+          {lines.map((line) => (
+            <li key={line.path}>
+              <b>{line.label}</b> {line.value}
+            </li>
+          ))}
+        </PlainList>
+        <Text tone="muted">
+          {preview.truncated && 'More values changed than the preview can list. '}The full preview
+          follows the form.
+        </Text>
+      </Stack>
+    </section>
+  );
+}
+
+/** Each changed number the preview shows, in its order: margins, the cut list, then buying. */
+function changedNumbers(
+  plan: Plan,
+  changes: Changes,
+): { path: string; label: string; value: ReactNode }[] {
+  const lines: { path: string; label: string; value: ReactNode }[] = [];
+  const add = (
+    path: string,
+    label: string,
+    value: ReactNode,
+    was?: (before: unknown) => string,
+  ) => {
+    if (changes.at(path)) lines.push({ path, label, value: marked(changes, path, value, was) });
+  };
+  plan.checks.forEach((check, i) => {
+    const was = marginWas(changes, `checks[${i}]`);
+    if (was !== undefined) {
+      lines.push({
+        path: `checks[${i}]`,
+        label: `${check.title}: ${check.subject}`,
+        value: <CheckStatus check={check} was={was} />,
+      });
+    }
+  });
+  plan.cutList.forEach((row, i) => {
+    const at = `cutList[${i}]`;
+    const part = `${row.letter} · ${row.name}`;
+    add(`${at}.quantity`, `${part}, quantity`, row.quantity);
+    add(`${at}.length`, `${part}, length`, <Length>{row.length}</Length>);
+    row.settings.forEach((setting, end) => {
+      add(`${at}.ends[${end}]`, `${part}, end ${end + 1}`, <SettingBox>{setting}</SettingBox>);
+    });
+    row.marks.forEach((mark, m) => {
+      add(`${at}.marks[${m}].value`, `${part}, ${mark.label}`, <Length>{mark.value}</Length>);
+    });
+  });
+  plan.lumber.lines.forEach((line, i) => {
+    const at = `lumber.lines[${i}]`;
+    add(`${at}.count`, `${line.nominal} boards to buy`, line.count);
+    add(
+      `${at}.feet`,
+      `${line.nominal} board length`,
+      <Length>{formatBoardLength(line.feet)}</Length>,
+      (before) => formatBoardLength(before as number),
+    );
+  });
+  plan.hardware.forEach((line, i) => {
+    const at = `hardware[${i}]`;
+    add(`${at}.description`, 'Hardware', <Measured text={line.description} />);
+    if (line.quantity !== undefined) {
+      add(`${at}.quantity`, `${line.description}, to buy`, line.quantity);
+    }
+  });
+  return lines;
+}
+
 /** The outputs an edit most often moves, each changed value marked with the one it replaces. */
 export function PlanOutputs(props: { plan: Plan; changes: Changes | undefined }) {
   const { plan, changes } = props;
@@ -283,14 +379,7 @@ function Margins(props: { checks: readonly CheckResult[]; changes?: Changes }) {
   return (
     <Rows>
       {props.checks.map((check, i) => {
-        const at = `checks[${i}]`;
-        const before = props.changes?.at(`${at}.margin`)?.before;
-        const was =
-          typeof before === 'number'
-            ? structural.formatMargin(before)
-            : props.changes?.at(`${at}.status`)
-              ? 'Input needed'
-              : undefined;
+        const was = props.changes && marginWas(props.changes, `checks[${i}]`);
         return (
           <Row key={`${check.kind}/${check.subject}`}>
             <Stack gap="2xs">
@@ -304,4 +393,11 @@ function Margins(props: { checks: readonly CheckResult[]; changes?: Changes }) {
       })}
     </Rows>
   );
+}
+
+/** A check's saved margin, or "Input needed", when the preview changes it. */
+function marginWas(changes: Changes, at: string): string | undefined {
+  const before = changes.at(`${at}.margin`)?.before;
+  if (typeof before === 'number') return structural.formatMargin(before);
+  return changes.at(`${at}.status`) ? 'Input needed' : undefined;
 }

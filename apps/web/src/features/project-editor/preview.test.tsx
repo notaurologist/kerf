@@ -1,4 +1,5 @@
 import {
+  compareSnapshots,
   createSnapshot,
   findTemplate,
   formValues,
@@ -17,6 +18,7 @@ import {
   previewRequest,
   previewState,
   type ReadyPreview,
+  WhatChanges,
 } from './Preview.tsx';
 
 const template = findTemplate('swing-set-a-frame') as TemplateDefinition;
@@ -227,5 +229,45 @@ describe('previewRequest for a new project', () => {
         structuralInputs: project.snapshot?.structuralInputs,
       },
     });
+  });
+});
+
+describe('what changes', () => {
+  // A taller beam: longer legs and crossbars, and longer boards to buy.
+  const taller = snapshotOf({ ...params, beamHeight: (params.beamHeight as number) + 12 });
+  const compared = compareSnapshots(template, project.snapshot as never, taller);
+  const ready: ReadyPreview = {
+    kind: 'ready',
+    plan: planFrom(taller),
+    changes: indexChanges(compared.changes),
+    truncated: compared.truncated,
+  };
+
+  it('lists only the changed numbers, each with the saved one', () => {
+    const text = renderText(<WhatChanges state={ready} />);
+    expect(text).toContain('What changes');
+    expect(text).toContain('Preview, not saved');
+    const saved = planFrom(project.snapshot as { outputs: unknown });
+    const leg = ready.plan.cutList.findIndex((row) => row.name.includes('leg'));
+    const row = ready.plan.cutList[leg];
+    const before = saved.cutList[leg];
+    if (!row || !before) throw new Error('needs a leg');
+    expect(row.length).not.toBe(before.length);
+    expect(text).toContain(
+      `${row.letter} · ${row.name}, length ${row.length} was ${before.length}`,
+    );
+    // The beam is the same length, so it is not listed.
+    expect(text).not.toContain('Beam, length');
+    expect(text).toContain('The full preview follows the form.');
+  });
+
+  it('says so while it is for the earlier values', () => {
+    const text = renderText(<WhatChanges state={{ kind: 'updating', previous: ready }} />);
+    expect(text).toContain('Earlier values, not saved');
+  });
+
+  it('shows nothing while nothing changes', () => {
+    expect(render(<WhatChanges state={{ kind: 'saved' }} />)).toBe('');
+    expect(render(<WhatChanges state={{ ...ready, changes: indexChanges([]) }} />)).toBe('');
   });
 });

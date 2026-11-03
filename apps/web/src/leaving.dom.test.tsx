@@ -100,6 +100,46 @@ describe('leaving the project form', () => {
   });
 });
 
+describe('Edit opened from a mode', () => {
+  const from = [
+    { mode: 'shop', label: 'Shopping' },
+    { mode: 'build', label: 'Building' },
+  ] as const;
+  const back = () => document.querySelector('.k-titlebar__back') as HTMLAnchorElement;
+
+  for (const { mode, label } of from) {
+    const returned = `#/projects/${project.id}/${mode}`;
+    const edit = href({ screen: 'edit-project', id: project.id, from: mode });
+
+    it(`goes back to ${label} after Save`, async () => {
+      server();
+      await goTo(edit);
+      const { container } = mount(<App />);
+      await loaded();
+      await type('project-name', 'Swing set for the oak');
+      await click(container.querySelector('button[type="submit"]') as Element);
+      await loaded();
+      expect(window.location.hash).toBe(returned);
+    });
+
+    it(`goes back to ${label} on Cancel and on its back link, asking first with a change`, async () => {
+      server();
+      await goTo(edit);
+      const { container } = mount(<App />);
+      await loaded();
+      expect(back().textContent).toBe(label);
+      expect(back().getAttribute('href')).toBe(returned);
+      expect(byText(container, 'a', 'Cancel').getAttribute('href')).toBe(returned);
+
+      await type('project-name', 'Swing set for the oak');
+      await click(back());
+      expect(asking()).toBe(true);
+      await click(byText(document.body, 'button', 'Leave without saving'));
+      expect(window.location.hash).toBe(returned);
+    });
+  }
+});
+
 describe('leaving My toolbox', () => {
   it('asks with a change not saved, and not once it is saved', async () => {
     server();

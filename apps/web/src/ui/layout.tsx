@@ -61,11 +61,18 @@ export function Sidebar(props: {
 /**
  * A main column with an aside beside it that stays in view as the page scrolls, from 60rem of
  * width, such as a form and its preview. The aside's `head`, such as the form's actions, stays
- * at its top while the rest of the aside scrolls. Narrower, the aside follows the main column.
+ * at its top while the rest of the aside scrolls. Narrower, the aside follows the main column,
+ * and `lead`, such as a short summary of the aside, comes before both, since the aside is then
+ * out of sight.
  */
-export function WithAside(props: { head?: ReactNode; children: [ReactNode, ReactNode] }) {
+export function WithAside(props: {
+  head?: ReactNode;
+  lead?: ReactNode;
+  children: [ReactNode, ReactNode];
+}) {
   return (
     <div className="l-with-aside">
+      {props.lead && <div className="l-with-aside__lead">{props.lead}</div>}
       <div>
         <div>{props.children[0]}</div>
         <div>

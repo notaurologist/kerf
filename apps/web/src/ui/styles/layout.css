@@ -59,25 +59,38 @@
     container-type: inline-size;
   }
 
-  .l-with-aside > div,
-  .l-with-aside > div > :last-child {
+  .l-with-aside > :last-child,
+  .l-with-aside > :last-child > :last-child {
     display: flex;
     flex-direction: column;
     gap: var(--space-l);
   }
 
-  .l-with-aside > div > :first-child {
+  .l-with-aside > :last-child > :first-child,
+  .l-with-aside__lead {
     max-inline-size: var(--measure);
   }
 
+  .l-with-aside__lead {
+    margin-block-end: var(--space-l);
+  }
+
+  .l-with-aside__lead:empty {
+    display: none;
+  }
+
   @container (width >= 60rem) {
-    .l-with-aside > div {
+    .l-with-aside__lead {
+      display: none;
+    }
+
+    .l-with-aside > :last-child {
       display: grid;
       grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
       align-items: start;
     }
 
-    .l-with-aside > div > :last-child {
+    .l-with-aside > :last-child > :last-child {
       position: sticky;
       inset-block-start: var(--space-s);
       max-block-size: calc(100dvh - 2 * var(--space-s));

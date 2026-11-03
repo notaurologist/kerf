@@ -32,7 +32,7 @@ import {
 import { EditorActions, type EditorSaveState } from './EditorActions.tsx';
 import { EditorFields, shownParts } from './EditorFields.tsx';
 import { belongsTo, NO_ISSUES, placeIssues, schemaIssues } from './issues.ts';
-import { PreviewPane, usePreview } from './Preview.tsx';
+import { PreviewPane, usePreview, WhatChanges } from './Preview.tsx';
 import { save } from './save.ts';
 import { type Copied, type EditorValues, newTitle } from './start.ts';
 
@@ -292,7 +292,8 @@ export function ProjectEditor(props: {
             </Text>
           </InfoNotice>
         )}
-        <WithAside head={actions}>
+        {/* The changed numbers beside the header's Save, while the preview is below the form. */}
+        <WithAside head={actions} lead={showsPlan && <WhatChanges state={preview} />}>
           <EditorFields
             template={template}
             draft={draft}

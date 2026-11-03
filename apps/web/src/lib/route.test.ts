@@ -98,6 +98,7 @@ describe('parseRoute', () => {
     [`#/projects/${ID}/edit?from=cut-list`, { screen: 'edit-project', id: ID, from: 'cut-list' }],
     [`#/projects/${ID}/edit?from=summary`, { screen: 'edit-project', id: ID }],
     [`#/projects/${ID}/edit?from=shop`, { screen: 'edit-project', id: ID, from: 'shop' }],
+    [`#/projects/${ID}/edit?from=build`, { screen: 'edit-project', id: ID, from: 'build' }],
     [`#/projects/${ID}/edit?from=elsewhere`, { screen: 'edit-project', id: ID }],
     [
       `#/projects/${ID}/edit?from=cut-list&field=s-moisture.low`,
@@ -166,7 +167,7 @@ describe('parseRoute', () => {
 });
 
 describe('editReturn', () => {
-  it('goes back to the section Edit was opened from, or to Shopping mode', () => {
+  it('goes back to the section Edit was opened from, or to Shopping or Building mode', () => {
     expect(editReturn('abc', 'cut-list')).toEqual({
       screen: 'project',
       id: 'abc',
@@ -174,6 +175,7 @@ describe('editReturn', () => {
     });
     expect(editReturn('abc', undefined)).toEqual({ screen: 'project', id: 'abc' });
     expect(editReturn('abc', 'shop')).toEqual({ screen: 'shop', id: 'abc' });
+    expect(editReturn('abc', 'build')).toEqual({ screen: 'build', id: 'abc' });
   });
 });
 

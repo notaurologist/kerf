@@ -20,7 +20,15 @@ import {
   setLoginRequiredHandler,
 } from './lib/api.ts';
 import { changeScreen } from './lib/moves.ts';
-import { href, isMode, type PlaceId, placeOf, type Route, useRoute } from './lib/route.ts';
+import {
+  editReturn,
+  href,
+  isMode,
+  type PlaceId,
+  placeOf,
+  type Route,
+  useRoute,
+} from './lib/route.ts';
 import { useScreenChange } from './lib/screenChange.ts';
 import { SessionReturns } from './lib/session.ts';
 import {
@@ -132,8 +140,18 @@ export function frameFor(route: Route): { place: PlaceId; top: boolean; back?: B
       return route.term ? up('Glossary', 'glossary') : up('Workshop', 'workshop');
     case 'trash':
       return up('Workshop', 'workshop');
+    // Edit goes back where it was opened: a mode by its name, else the project's plan.
     case 'edit-project':
-      return { place, top: false, back: 'project' };
+      return route.from === 'shop' || route.from === 'build'
+        ? {
+            place,
+            top: false,
+            back: {
+              label: route.from === 'shop' ? 'Shopping' : 'Building',
+              href: href(editReturn(route.id, route.from)),
+            },
+          }
+        : { place, top: false, back: 'project' };
     default:
       return up('Projects', 'projects');
   }
