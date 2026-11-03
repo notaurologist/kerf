@@ -1,11 +1,22 @@
-import { type Part, type Placement, swingSetAFrame, type Vec3 } from '@kerf/core';
+import {
+  type HardwareItem,
+  type Hole,
+  type Part,
+  type Placement,
+  structural,
+  swingSetAFrame,
+  type Vec3,
+} from '@kerf/core';
+import { type Bolt, boltedLap, type Side } from '../../boltedLap.ts';
+import { compare } from '../../compare.ts';
 import { type Member, type Plane, type Trimmed, trim } from '../../trim.ts';
 
-// The swing set's design with every part's end cuts, length, and placement derived from trim
-// joints (docs/explorations/joint-model.md, step 2). The template still gives the closing
-// geometry: the splay, where each foot is cut, and how far the boards run past the legs. Each
-// part is declared by where it runs and the planes it is cut to, as in the spec's Derived
-// geometry and Placements.
+// The swing set's design with its parts' end cuts, lengths, and placements derived from trim
+// joints (docs/explorations/joint-model.md, step 2), and their bolt holes and the bolts' grips from
+// bolted laps (step 3). The template still gives the closing geometry: the splay, where each foot
+// is cut, how far the boards run past the legs, and where the bolts go. Each part is declared by
+// where it runs and the planes it is cut to, and each bolt by its line and the parts it passes
+// through, as in the spec's Derived geometry, Placements, and Bolt layout.
 
 const RAD = Math.PI / 180;
 const X: Vec3 = { x: 1, y: 0, z: 0 };
@@ -13,6 +24,7 @@ const MINUS_X: Vec3 = { x: -1, y: 0, z: 0 };
 const Y: Vec3 = { x: 0, y: 1, z: 0 };
 const MINUS_Y: Vec3 = { x: 0, y: -1, z: 0 };
 const Z: Vec3 = { x: 0, y: 0, z: 1 };
+const MINUS_Z: Vec3 = { x: 0, y: 0, z: -1 };
 
 interface Trim {
   partId: string;
@@ -134,7 +146,7 @@ export const design: typeof swingSetAFrame.design = (input, plyBolts) => {
     through: t.member.through,
   }));
 
-  const parts = made.output.parts.map((part): Part => {
+  const trimmed = made.output.parts.map((part): Part => {
     const [first, ...others] = trims.filter((t) => t.partId === part.id).map((t) => t.cut);
     if (!first) return part;
     for (const other of others) {
@@ -158,8 +170,130 @@ export const design: typeof swingSetAFrame.design = (input, plyBolts) => {
     };
   });
 
-  return { ok: true, output: { ...made.output, parts, placements } };
+  // Bolts (spec, Top of the leg and Bolt layout), in the order each part lists its holes.
+  const h = params.hardware;
+  const piece = (partId: string, instance: number, from: Side) => {
+    const part = trimmed.find((p) => p.id === partId);
+    const placement = placements.find((p) => p.partId === partId && p.instance === instance);
+    if (!part || !placement) throw new Error(`No ${partId} ${instance} to bolt.`);
+    return { part, placement, from };
+  };
+  const plies = Array.from({ length: dims.plies }, (_, i) => piece('beam', i, 'near-face'));
+
+  // Leg to beam: level at the beam's mid-depth on the frame's centerline, back to front, each leg
+  // drilled from its outer edge and each ply from its back face.
+  const legBeam: Bolt[] = frames.map((frame, i) => ({
+    hardwareId: 'leg-beam-bolts',
+    diameter: h.legBoltDiameter,
+    point: { x: frame.legsFrom + dims.t / 2, y: 0, z: dims.H + dims.bd / 2 },
+    direction: MINUS_Y,
+    stack: [piece('leg-back', i, 'far-edge'), ...plies, piece('leg-front', i, 'far-edge')],
+  }));
+
+  // Crossbar and gusset: across the frame, on the leg's centerline, one in the middle of each
+  // equal strip of the board's width, through the board and then the leg from the outside face.
+  const legCenter = (z: number) => dims.bw / 2 + (dims.H - z) * Math.tan(a) + dims.w / (2 * cos);
+  const boardBolts = (
+    partId: string,
+    hardwareId: string,
+    bolts: { diameter: number; perJoint: number },
+    bottom: number,
+    width: number,
+  ): Bolt[] =>
+    Array.from({ length: bolts.perJoint }, (_, k) => bottom + ((k + 0.5) * width) / bolts.perJoint)
+      .flatMap((z) => [
+        { leg: 'leg-front', y: -legCenter(z), z },
+        { leg: 'leg-back', y: legCenter(z), z },
+      ])
+      .flatMap(({ leg, y, z }) =>
+        frames.map((frame, i) => {
+          const board = piece(partId, i, 'near-face');
+          const legPiece = piece(leg, i, 'near-face');
+          return {
+            hardwareId,
+            diameter: bolts.diameter,
+            point: { x: 0, y, z },
+            direction: X,
+            stack: frame.outward < 0 ? [board, legPiece] : [legPiece, board],
+          };
+        }),
+      );
+
+  // Vertical hanger bolts, down through the beam's centerline: in the ply they cut most, the
+  // seam of two plies or the middle of three. Horizontal ones are drilled through the bracket.
+  const m = h.hangerMounting;
+  const hangers: Bolt[] =
+    m?.kind === 'vertical-bolt'
+      ? made.output.swings.hangersX.map((x) => ({
+          hardwareId: swingSetAFrame.HANGER_BOLTS,
+          diameter: m.diameter,
+          point: { x, y: 0, z: top },
+          direction: MINUS_Z,
+          stack: [piece('beam', Math.floor((dims.plies - 1) / 2), 'far-edge')],
+        }))
+      : [];
+
+  const bolts = [
+    ...legBeam,
+    ...boardBolts('crossbar', 'crossbar-bolts', h.crossbarBolts, dims.zc - dims.cw, dims.cw),
+    ...boardBolts('gusset', 'gusset-bolts', h.gussetBolts, dims.H - dims.gh, dims.gh),
+    ...hangers,
+  ];
+  const holes = new Map<string, Hole[]>();
+  const grips = new Map<string, number>();
+  for (const bolt of bolts) {
+    const lapped = boltedLap(bolt);
+    if (!lapped.ok) {
+      throw new Error(
+        `${bolt.hardwareId} at ${lapped.partId} ${lapped.instance}: ${lapped.message}`,
+      );
+    }
+    const grip = grips.get(bolt.hardwareId);
+    if (grip !== undefined && Math.abs(grip - lapped.grip) > 1e-9) {
+      throw new Error(`The ${bolt.hardwareId} have different grips.`);
+    }
+    grips.set(bolt.hardwareId, lapped.grip);
+    // A part's pieces share its hole list, so a hole another piece already has is not listed again.
+    for (const { partId, hole } of lapped.holes) {
+      const list = holes.get(partId) ?? [];
+      if (!list.some((other) => compare(other, hole).length === 0)) list.push(hole);
+      holes.set(partId, list);
+    }
+  }
+
+  const parts = trimmed.map((part) => ({ ...part, holes: holes.get(part.id) ?? [] }));
+  const legBeamGrip = grips.get('leg-beam-bolts');
+  if (legBeamGrip === undefined) throw new Error('No leg-to-beam bolts.');
+  return {
+    ok: true,
+    output: {
+      ...made.output,
+      geometry: { ...g, boltGrip: legBeamGrip },
+      parts,
+      placements,
+      hardware: made.output.hardware.map((item) => withGrip(item, grips.get(item.id))),
+    },
+  };
 };
+
+/**
+ * A bolt's grip from its laps, and the lengths that fit it (#449): through the grip, its washers,
+ * and its nut, and at most one diameter past the nut (CPSC Pub. 324, p. 3), as the template has it.
+ */
+function withGrip(item: HardwareItem, grip: number | undefined): HardwareItem {
+  if (!item.bolt || grip === undefined) return item;
+  const b = item.bolt;
+  const fits = b.fits && structural.boltLength(b.diameter, grip, b.washers, b.nut, b.diameter);
+  return {
+    ...item,
+    bolt: {
+      ...b,
+      grip,
+      ...(fits?.length ? { length: fits.length } : {}),
+      ...(fits ? { fits: { min: fits.min, max: fits.max } } : {}),
+    },
+  };
+}
 
 /** Which edge each of a part's marked lengths is, by role: a leg's either edge; a board's top, then bottom. */
 const MARKS: Record<string, readonly ('reference' | 'far')[]> = {

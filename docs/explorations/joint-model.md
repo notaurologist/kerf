@@ -121,6 +121,10 @@ The beam's deeper-stock comparison and the starting questions' bolt suggestions 
 
 Step 2 (#552): `packages/model/src/trim.ts` cuts a part to a plane at each end. The swing set's joint-based design declares every part that way: the beam plies square at x = 0 and L, the legs level at the top of the beam and at the foot cut, and the crossbars and gussets parallel to the legs' outer faces, `past` beyond them. Every part's length, end cuts, marked edges, and placement come from the trims, and the swing set reaches parity in all 10 cases.
 
+Step 3 (#553): `packages/model/src/boltedLap.ts` takes a bolt's line and the parts it passes through, in order, each with the side it is drilled from (near or far face, reference or far edge). Each hole is where the line runs inside that part, clipped to its stock, end cuts, and tapers; the grip is the sum of the holes. It refuses a gap or overlap between parts along the bolt, a bolt that misses a part or doesn't pass through the named side, and a part with notches, cutouts, or joinery, which would make it concave. The side is the template's choice: the swing set drills each leg from its outer edge and the beam plies from the back, and the same local hole on both frames is listed once. The swing set's joint-based design declares every placed bolt: leg to beam, crossbar, gusset, and vertical hanger bolts. Its holes, the leg-to-beam grip in its geometry, and each bolt's grip and lengths to buy come from the laps. It reaches parity in the 10 fixture cases and three more: the spec's edge of range, a three-ply beam, and other bolt counts at each joint.
+
+Still from the template: the grip printed in hardware notes and flag text, which it formats from its own value (the same within the tolerance), and the grips of ply bolts and horizontal hanger bolts, which are not placed.
+
 ## Still open
 
 - The parity test's tolerance (exact display, 1e-9 before display) is used as written until the owner changes it.
