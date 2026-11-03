@@ -3343,7 +3343,29 @@
               "value": 991.5913206296021,
               "unit": "psi"
             },
-            "margin": 0.8276342778569249
+            "margin": 0.8276342778569249,
+            "deeperStock": [
+              {
+                "subject": "Top beam, 4x8",
+                "margin": 1.3155384003110364,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 2.654889343562836
+                }
+              },
+              {
+                "subject": "Top beam, 3 plies of 2x8",
+                "margin": 1.0411890268770343,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 2.0863745513648992
+                }
+              }
+            ]
           },
           "shear": {
             "kind": "beam-shear",
@@ -7951,7 +7973,39 @@
               "value": 891.1625014175299,
               "unit": "psi"
             },
-            "margin": 0.6941639645348296
+            "margin": 0.6941639645348296,
+            "deeperStock": [
+              {
+                "subject": "Top beam, 2 plies of 2x8",
+                "margin": 1.0148652620007972,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 2.0306920905250916
+                }
+              },
+              {
+                "subject": "Top beam, 4x8",
+                "margin": 1.4102412349685771,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 2.8514418936210264
+                }
+              },
+              {
+                "subject": "Top beam, 3 plies of 2x8",
+                "margin": 1.4988192958287112,
+                "breakEven": {
+                  "key": "dynamicFactor",
+                  "symbol": "C_dyn",
+                  "label": "Dynamic factor",
+                  "value": 3.046038135787637
+                }
+              }
+            ]
           },
           "shear": {
             "kind": "beam-shear",

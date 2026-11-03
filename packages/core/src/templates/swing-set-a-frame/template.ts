@@ -107,10 +107,12 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * and brace them, plumb them and backfill the leg holes or anchor the feet, tighten every bolt and
  * cap its end, and hang the swings, each with the CPSC rules for it. It also asks which order the
  * frame goes up in (#451). No number changes.
- * Version 32 computes the uplift at each foot on pads and checks one ground anchor against its
+ * Version 32 gives bending in the next deeper beam stock, with its margin and break-even dynamic
+ * factor, so the stock can be chosen against them (#466). The plan's own numbers do not change.
+ * Version 33 computes the uplift at each foot on pads and checks one ground anchor against its
  * rated pull-out, a new hardware input (#467). No part, cut, or bolt moves.
  */
-export const TEMPLATE_VERSION = 32;
+export const TEMPLATE_VERSION = 33;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
@@ -291,7 +293,11 @@ function hangerHoleNotes(p: SwingSetParams): string[] {
   ];
 }
 
-export function generate(input: unknown): GenerateResult<SwingSetOutput> {
+export function generate(
+  input: unknown,
+  /** False for a beam size compared in the structural review, not the plan's own. */
+  plyBolts = true,
+): GenerateResult<SwingSetOutput> {
   const parsed = SwingSetParams.safeParse(input);
   if (!parsed.success) return { ok: false, issues: parseIssues(parsed.error) };
   const p = parsed.data;
@@ -340,7 +346,7 @@ export function generate(input: unknown): GenerateResult<SwingSetOutput> {
   const issues = [
     ...frameIssues,
     ...(fits ? validateSwings(dims, swings) : []),
-    ...validateHardware(p, dims),
+    ...validateHardware(p, dims, plyBolts),
   ];
   if (issues.length > 0) return { ok: false, issues };
 

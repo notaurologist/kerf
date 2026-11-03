@@ -31,8 +31,11 @@ const FRAMES = 2;
 const JOINTS = 4;
 const FEET = 4;
 
-/** Inputs the hardware needs that depend on other choices. */
-export function validateHardware(p: SwingSetParams, dims: Dimensions): Issue[] {
+/**
+ * Inputs the hardware needs that depend on other choices. A beam compared in the structural review
+ * is generated without its ply bolts, which the beam checks do not read.
+ */
+export function validateHardware(p: SwingSetParams, dims: Dimensions, plyBolts = true): Issue[] {
   const issues: Issue[] = [];
   const m = p.hardware.hangerMounting;
   if (m?.kind === 'horizontal-bolts') {
@@ -45,7 +48,7 @@ export function validateHardware(p: SwingSetParams, dims: Dimensions): Issue[] {
       });
     }
   }
-  if (p.beamPlies > 1 && p.hardware.plyBolts === undefined) {
+  if (plyBolts && p.beamPlies > 1 && p.hardware.plyBolts === undefined) {
     issues.push({
       code: 'ply-bolts-missing',
       message: 'A built-up beam needs ply bolts: enter their diameter and count.',
