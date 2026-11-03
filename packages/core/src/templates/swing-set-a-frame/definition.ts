@@ -103,8 +103,14 @@ function beamChecks(review: Pick<SwingSetStructuralReview, 'beam' | 'hanger'>) {
 }
 
 /** The plan's checks, in the order the structural review lists them. */
-function reviewChecks(review: Pick<SwingSetStructuralReview, 'beam' | 'hanger' | 'legs'>) {
-  return [...beamChecks(review), ...(review.legs ? [review.legs] : [])];
+function reviewChecks(
+  review: Pick<SwingSetStructuralReview, 'beam' | 'hanger' | 'anchors' | 'legs'>,
+) {
+  return [
+    ...beamChecks(review),
+    ...(review.anchors ? [review.anchors] : []),
+    ...(review.legs ? [review.legs] : []),
+  ];
 }
 
 /** Everything but each line's other stock sizes, which take this to work out. */
@@ -187,10 +193,12 @@ export const swingSetAFrame: TemplateDefinition<
   // leaves out each part list that is empty (#430); reading fills it back in, so older shapes
   // read unchanged. Shape 17 adds the project's suggested values (#417); every older plan's
   // values were entered, so it reads with none. Shape 18 adds a check's results in the next deeper
-  // stock (#466), optional. Shape 19 adds the legs' species, grade, and incising as structural
-  // inputs and the legs' column check to the review (#468), both optional: a plan stored before it
-  // has neither, and its review lists the checks it was made with.
-  snapshotVersion: 19,
+  // stock (#466), optional.
+  // Shape 19 adds the ground anchor check on pads (#467), optional: a plan stored before it shows
+  // no anchor check until it is regenerated. Shape 20 adds the legs' species, grade, and incising
+  // as structural inputs and the legs' column check to the review (#468), both optional: a plan
+  // stored before it has neither, and its review lists the checks it was made with.
+  snapshotVersion: 20,
   snapshotUpgrades: {
     1: (snapshot) => snapshot,
     2: (snapshot) => snapshot,
@@ -210,6 +218,7 @@ export const swingSetAFrame: TemplateDefinition<
     16: noSuggestions,
     17: (snapshot) => snapshot,
     18: (snapshot) => snapshot,
+    19: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   questions: SWING_SET_QUESTIONS,

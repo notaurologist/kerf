@@ -7,6 +7,7 @@ import { takeFlashText } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
 import { usePlanMoves } from '../../lib/planMoves.ts';
+import { printSet } from '../../lib/print.ts';
 import { describeReset } from '../../lib/progress.ts';
 import { useProject } from '../../lib/projectStore.ts';
 import { href, redirect } from '../../lib/route.ts';
@@ -20,6 +21,7 @@ import {
   Definitions,
   IconButtonLink,
   InfoTip,
+  MenuButton,
   Notice,
   PlanHead,
   PlanSection,
@@ -28,6 +30,7 @@ import {
   Stack,
   StatusLine,
   StatusTag,
+  Text,
   useFrameProject,
   WithContents,
 } from '../../ui/index.ts';
@@ -59,6 +62,8 @@ const VALUES_USED_ID = 'values-used';
 // stored plan is shown as stored; the web app computes none of its numbers.
 
 const CUT_LIST_INTRO = `Lengths are long point to long point, rounded to 1/16". Angles are miter-saw settings (0° is square), with the angle to the board's edge for a protractor or sliding bevel.`;
+const SHOP_SET_NOTE =
+  'The shop set: the cut list, boards, and build steps. The diagrams, structural review, and shopping list print with the whole plan.';
 const BUILD_STEPS_INTRO =
   'Methods are chosen from the tools in your toolbox. Change your toolbox to change them.';
 
@@ -119,6 +124,26 @@ export function ProjectView(props: {
           ])
         : [],
     [plan, steps, hasSteps, readings],
+  );
+  // The shop set's terms: those its sections use, without the structural review's or the
+  // shopping list's (#469).
+  const shopTerms = useMemo(
+    () =>
+      plan.ok
+        ? planTerms(
+            {
+              ...plan.plan,
+              checks: [],
+              movement: [],
+              checklist: [],
+              hardwareNotes: [],
+              lumber: { ...plan.plan.lumber, notes: [], selection: [] },
+            },
+            steps?.steps ?? [],
+            [CUT_LIST_INTRO, ...(hasSteps ? [BUILD_STEPS_INTRO] : [])],
+          )
+        : [],
+    [plan, steps, hasSteps],
   );
   const shown = (id: PlanSectionId) =>
     (id !== 'diagrams' || hasDrawings) && (id !== 'build-steps' || hasSteps);
@@ -215,14 +240,19 @@ export function ProjectView(props: {
   });
   // Every section stays in the page, so print gives the whole plan in order A from any of them;
   // on screen only the current one shows.
-  const section = (id: PlanSectionId) => ({
-    id,
-    title: PLAN_SECTIONS.find((s) => s.id === id)?.title ?? id,
-    project: project.name,
-    hidden: id !== current.id,
-    // The first section shares the printed first page with the header (#119).
-    ...(id === sections[0]?.id ? { newPage: false } : {}),
-  });
+  // The shop set prints some of them too (#469).
+  const section = (id: PlanSectionId) => {
+    const listed = PLAN_SECTIONS.find((s) => s.id === id);
+    return {
+      id,
+      title: listed?.title ?? id,
+      project: project.name,
+      hidden: id !== current.id,
+      sets: listed?.shop ? ('both' as const) : ('whole' as const),
+      // The first section shares the printed first page with the header (#119).
+      ...(id === sections[0]?.id ? { newPage: false } : {}),
+    };
+  };
   return (
     <Stack gap="l">
       <PlanHead>
@@ -232,7 +262,27 @@ export function ProjectView(props: {
           actions={
             // Quiet: the next mode in the header is the screen's one primary (Stage 10).
             plan.ok &&
-            editHref && <IconButtonLink href={editHref} icon="edit" label="Edit" variant="quiet" />
+            editHref && (
+              <>
+                <IconButtonLink href={editHref} icon="edit" label="Edit" variant="quiet" />
+                <MenuButton
+                  icon="print"
+                  label="Print"
+                  actions={[
+                    {
+                      label: 'Print the shop set',
+                      detail: 'The cut list, boards, and build steps.',
+                      onSelect: () => printSet('shop'),
+                    },
+                    {
+                      label: 'Print the whole plan',
+                      detail: 'Every section, with the structural review and its working.',
+                      onSelect: () => printSet('whole'),
+                    },
+                  ]}
+                />
+              </>
+            )
           }
           tags={
             <>
@@ -255,6 +305,7 @@ export function ProjectView(props: {
               reviewHref={at('structural-review')}
             />
             <ModeButtons project={project} plan={plan.plan} steps={steps?.steps ?? []} />
+            <Text shopSetOnly>{SHOP_SET_NOTE}</Text>
           </>
         )}
         <VersionNotice
@@ -354,6 +405,7 @@ export function ProjectView(props: {
           {/* A term's popover cannot open on paper, so the printed plan ends with the terms it
               uses. Never shown on screen, where each term opens in place (#178). */}
           <TermsUsed terms={terms} project={project.name} />
+          <TermsUsed terms={shopTerms} project={project.name} shop />
           <SectionPager
             previous={previous && { title: previous.title, href: at(previous.id) }}
             next={next && { title: next.title, href: at(next.id) }}
@@ -364,13 +416,25 @@ export function ProjectView(props: {
   );
 }
 
-function TermsUsed(props: { terms: ReturnType<typeof planTerms>; project: string }) {
+function TermsUsed(props: {
+  terms: ReturnType<typeof planTerms>;
+  project: string;
+  /** The shop set's, which only it prints. */
+  shop?: boolean;
+}) {
   if (props.terms.length === 0) return null;
+  const id = props.shop ? 'shop-terms-used' : 'terms-used';
   return (
-    <PlanSection id="terms-used" title="Terms used in this plan" project={props.project} hidden>
+    <PlanSection
+      id={id}
+      title="Terms used in this plan"
+      project={props.project}
+      hidden
+      sets={props.shop ? 'shop' : 'whole'}
+    >
       <Definitions
         items={props.terms.map((entry) => ({
-          id: `terms-used-${entry.id}`,
+          id: `${id}-${entry.id}`,
           term: entry.term,
           definition: entry.definition,
         }))}

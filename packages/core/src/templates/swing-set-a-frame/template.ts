@@ -109,10 +109,13 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * frame goes up in (#451). No number changes.
  * Version 32 gives bending in the next deeper beam stock, with its margin and break-even dynamic
  * factor, so the stock can be chosen against them (#466). The plan's own numbers do not change.
- * Version 33 checks the longer leg as a column in compression (NDS 2024 3.6.3 and 3.7.1), with
- * the legs' species, grade, and incising as structural inputs (#468). No other output changes.
+ * Version 33 computes the uplift at each foot on pads and checks one ground anchor against its
+ * rated pull-out, a new hardware input (#467). No part, cut, or bolt moves.
+ * Version 34 checks the longer leg as a column in compression (NDS 2024 3.6.3 and 3.7.1), with
+ * the legs' species, grade, and incising as structural inputs (#468). The ground anchor check's
+ * note on the legs' weight now names what is missing for it. No other output changes.
  */
-export const TEMPLATE_VERSION = 33;
+export const TEMPLATE_VERSION = 34;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

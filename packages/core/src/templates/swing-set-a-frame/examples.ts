@@ -68,6 +68,7 @@ export const EXAMPLES: readonly {
         ...WORKED_EXAMPLE.hardware,
         plyBolts: { diameter: 0.5, count: 6 },
         anchorsPerFoot: 1,
+        anchorRating: 500,
         hangerMounting: {
           kind: 'horizontal-bolts',
           diameter: 0.375,

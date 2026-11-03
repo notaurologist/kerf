@@ -52,6 +52,7 @@ export {
   WithAside,
 } from './layout.tsx';
 export { MeasureTable } from './MeasureTable.tsx';
+export { MenuButton } from './MenuButton.tsx';
 export {
   Changed,
   Glance,
