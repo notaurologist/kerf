@@ -72,6 +72,8 @@ Not covered in version 1: metal A-frame brackets, legs with seat cuts under the 
 
 The ground is the line z_g(y) = k·y with k = g / 12, the same at every x.
 
+Every number has a range in the parameter schema (#421, November 2, 2026). Those that had none take one from the beam's: crossbar height and seat height at most 144 (the tallest beam), frame inset at most 120 (half the longest beam), swing centers 0 to 240, hanger spacing and seat width at most 240, and a footprint depth at most 360, past anything a 35° splay reaches from the tallest beam and deepest burial (about 280). Each is wider than Validation already allows, so no plan changes and the template version stays the same.
+
 ## Derived geometry
 
 Each A-frame is symmetric about y = 0 above the ground, so these formulas are given for the back leg (positive y). The front leg is the mirror image, except at the foot, where its own ground height applies: replace k with −k.
@@ -360,6 +362,7 @@ Rejected combinations, each with a message saying which values conflict:
 - More than one ply of anything other than 2x stock.
 - A seat closer than 8 inches to the other seat or to a frame's inside face (CPSC).
 - A seat underside less than 8 inches above the ground (CPSC).
+- A seat at or above the beam (h_s ≥ H), which leaves no chain to hang it from.
 - Hangers of the two swings overlapping, or a hanger outside the span between the frames' inside faces.
 - A built-up beam without ply bolts. Pads without an anchor count generate, with the anchors' quantity still needed (#406).
 - Any length, stock dimension, or angle outside its range in the parameter schema.

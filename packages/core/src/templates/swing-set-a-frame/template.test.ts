@@ -257,6 +257,12 @@ describe('swings and layout', () => {
     expect(generate(withSwings({ seatHeight: 8 })).ok).toBe(true);
   });
 
+  it('rejects a seat at or above the beam, which leaves no chain', () => {
+    // 96 is the beam's height, so the chain would be 0 long, and at 100 it would be −4.
+    expect(issueCodes(withSwings({ seatHeight: 96 }))).toEqual(['seat-above-beam']);
+    expect(issueCodes(withSwings({ seatHeight: 100 }))).toEqual(['seat-above-beam']);
+  });
+
   it('flags sloped ground but not level ground', () => {
     const slopeFlag = (o: SwingSetOutput) => o.flags.some((f) => f.ask.includes('sloped ground'));
     expect(slopeFlag(output)).toBe(true);
@@ -467,6 +473,12 @@ describe('validation', () => {
     expect(issueCodes({ ...example, beamLength: 48, frameInset: 22 })).toContain(
       'frames-do-not-fit',
     );
+  });
+
+  it('checks no swings against frames that overlap, which leave no span between them', () => {
+    // At 120 in from each end of a 120 beam, the inside faces are at 123.5 and −3.5, a span a
+    // hanger message cannot name (#421).
+    expect(issueCodes({ ...example, frameInset: 120 })).toEqual(['frames-do-not-fit']);
   });
 });
 
