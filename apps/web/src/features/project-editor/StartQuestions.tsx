@@ -160,9 +160,9 @@ export function StartQuestions(props: {
         <ErrorSummary items={summary} general={issues.general} attempt={attempt} />
         {props.starts}
         <Text tone="muted">
-          A few questions about who will use it and where. Kerf fills in the rest from the worked
-          example and stated rules of thumb, and you can change any value before creating the
-          project.
+          A few questions about what you are building and where it goes. Kerf fills in the rest from
+          the worked example and stated rules of thumb, and you can change any value before creating
+          the project.
         </Text>
         {failure && (
           <SaveFailed

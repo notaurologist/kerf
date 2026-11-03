@@ -1,4 +1,5 @@
 import { entryEcho, type FormField } from '@kerf/core';
+import type { ReactNode } from 'react';
 import { Field, Select, TextInput, YesNo } from '../ui/index.ts';
 
 // One field of a form described as data (core's FormField): a template's parameters and inputs,
@@ -29,7 +30,7 @@ export function FieldInput(props: {
   /** Where a suggested value came from (#163); see `Field`. */
   about?: string;
   /** What the current plan gives to compare this value against; see `Field`. */
-  compare?: string;
+  compare?: ReactNode;
 }) {
   const { field, text } = props;
   const unit = field.unit || UNITS[field.kind];

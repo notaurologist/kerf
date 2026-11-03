@@ -175,6 +175,16 @@ describe('every template', () => {
     expect(templateText(t).filter((text) => VERDICT_WORDS.test(text))).toEqual([]);
   });
 
+  // The structural working keeps its impersonal register ("Entered by the owner"), so only the
+  // questions and what they suggest are read here.
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))('%s asks its questions of you', (_, t) => {
+    const suggestions = (t.questions?.examples ?? []).flatMap((a) => t.questions?.suggest(a) ?? []);
+    const text = strings(
+      asJson([t.questions?.form, suggestions, suggestions.map((s) => describeBasis(s.basis))]),
+    );
+    expect(text.filter((words) => /\bthe owner\b/i.test(words))).toEqual([]);
+  });
+
   it.each(TEMPLATES.map((t) => [t.id, t] as const))('%s names no brands', (_, t) => {
     const named = templateText(t).filter((text) => BRAND_NAMES.test(withoutBrandExceptions(text)));
     expect(named).toEqual([]);

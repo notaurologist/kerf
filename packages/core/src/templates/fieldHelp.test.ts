@@ -22,3 +22,19 @@ describe.each(TEMPLATES.map((t) => [t.id, t] as const))('field help: %s', (_, te
     expect(withoutHelp(template.form.params, (path) => confirm.has(path))).toEqual([]);
   });
 });
+
+describe.each(
+  TEMPLATES.flatMap((t) => (t.questions ? [[t.id, t.form, t.questions.form] as const] : [])),
+)('starting question help: %s', (_, form, questions) => {
+  it('says how to find a structural input as the Edit form does', () => {
+    const inputs = new Map(form.structuralInputs.flatMap((s) => s.fields).map((f) => [f.path, f]));
+    const differ = questions
+      .flatMap((s) => s.fields)
+      .filter((f) => {
+        const help = inputs.get(f.path)?.help;
+        return help !== undefined && !f.help?.includes(help);
+      })
+      .map((f) => f.path);
+    expect(differ).toEqual([]);
+  });
+});
