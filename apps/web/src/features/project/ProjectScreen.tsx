@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useArrowKeys } from '../../lib/arrowKeys.ts';
 import { type DrawingsState, useDrawings } from '../../lib/drawings.ts';
 import { inputFieldId } from '../../lib/fieldIds.ts';
-import { takeFlash } from '../../lib/flash.ts';
+import { takeFlashText } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
 import { useReadProject } from '../../lib/plan.ts';
 import { usePlanMoves } from '../../lib/planMoves.ts';
@@ -165,7 +165,7 @@ export function ProjectView(props: {
   );
   // "Saved." from the editor stays until the next action (#67), not a toast that disappears. A
   // regenerate that clears ticks says so the same way (#57).
-  const [flash, setFlashLine] = useState(takeFlash);
+  const [flash, setFlashLine] = useState(takeFlashText);
   const inputHref = (key: string) => {
     const field = template && inputFieldId(template.form, key);
     return href({
@@ -240,7 +240,7 @@ export function ProjectView(props: {
         <VersionNotice
           project={project}
           onRegenerated={(p) => {
-            setFlashLine(describeReset(p.progressReset));
+            setFlashLine(describeReset(p.progressReset, p));
             props.onChange?.(p);
           }}
           onNewer={props.onChange}

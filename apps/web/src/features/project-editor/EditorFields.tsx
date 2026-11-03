@@ -8,7 +8,7 @@ import {
   type TemplateDefinition,
   visibleFields,
 } from '@kerf/core';
-import type { SetStateAction } from 'react';
+import type { ReactNode, SetStateAction } from 'react';
 import { FieldInput } from '../../lib/FieldInput.tsx';
 import { fieldId } from '../../lib/fieldIds.ts';
 import { STATUS_LABELS, STATUSES } from '../../lib/types.ts';
@@ -17,6 +17,7 @@ import {
   Field,
   FieldGroup,
   InfoNotice,
+  MeasureTable,
   Select,
   Stack,
   Text,
@@ -152,13 +153,31 @@ export function shownParts(template: TemplateDefinition, params: FormValues, inp
  * Where each check that uses this input reaches margin 1.0 as it grows, from the plan for the
  * values in the form (#401), so a value can be chosen against it.
  */
-function compareWith(plan: Plan | null, path: string): string | undefined {
-  const lines = (plan?.checks ?? []).flatMap((c) =>
+function compareWith(plan: Plan | null, path: string): ReactNode {
+  const rows = (plan?.checks ?? []).flatMap((c) =>
     c.status !== 'not-computed' && c.breakEven?.key === path
-      ? [`${c.subject}, ${c.title.toLowerCase()}: ${structural.formatBreakEven(c.breakEven)}`]
+      ? [{ check: `${c.subject}, ${c.title.toLowerCase()}`, breakEven: c.breakEven }]
       : [],
   );
-  return lines.length > 0 ? `With the other inputs as entered: ${lines.join('; ')}.` : undefined;
+  const label = rows[0]?.breakEven.label;
+  if (!label) return undefined;
+  return (
+    <MeasureTable
+      caption={`With the other inputs as entered, each check has margin 1.0 or more while the ${label.toLowerCase()} is:`}
+      columns={[
+        { key: 'check', label: 'Check', cell: (r) => r.check },
+        {
+          key: 'limit',
+          label,
+          cell: (r) => structural.formatBreakEvenLimit(r.breakEven),
+        },
+      ]}
+      rows={rows}
+      rowKey={(r) => r.check}
+      keepTable
+      narrow
+    />
+  );
 }
 
 /**

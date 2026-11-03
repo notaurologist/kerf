@@ -27,3 +27,33 @@ describe('describeReset', () => {
     );
   });
 });
+
+describe('describeReset, with the project after the save', () => {
+  const progress = (done: { shopping?: number; pieces?: number; steps?: number }) => ({
+    shopping: { done: done.shopping ?? 0, total: 11 },
+    pieces: { done: done.pieces ?? 0, total: 9 },
+    steps: { done: done.steps ?? 0, total: 14 },
+    nextStep: null,
+    resumeStep: null,
+  });
+  const counted = '3 items marked done were reset because their numbers changed.';
+
+  it('says why the status stays when nothing bought, cut, or built is left', () => {
+    expect(describeReset(reset(3, 0), { status: 'in-progress', progress: progress({}) })).toBe(
+      `${counted} The status stays In progress, because what you bought or built before this change is still done. Change it in Edit if it no longer fits.`,
+    );
+    expect(describeReset(reset(3, 0), { status: 'built', progress: progress({}) })).toContain(
+      'The status stays Built,',
+    );
+  });
+
+  it('says nothing about the status while some work is still ticked, or for a Planned project', () => {
+    for (const done of [{ shopping: 1 }, { pieces: 1 }, { steps: 1 }]) {
+      expect(describeReset(reset(3, 0), { status: 'in-progress', progress: progress(done) })).toBe(
+        counted,
+      );
+    }
+    expect(describeReset(reset(3, 0), { status: 'planned', progress: progress({}) })).toBe(counted);
+    expect(describeReset(reset(3, 0), { status: 'in-progress', progress: null })).toBe(counted);
+  });
+});

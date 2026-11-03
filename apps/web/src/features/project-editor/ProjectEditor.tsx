@@ -197,7 +197,11 @@ export function ProjectEditor(props: {
     setSaveState({ state: 'idle' });
     if (result.ok) {
       const reset = 'progressReset' in result.value ? result.value.progressReset : undefined;
-      setFlash(project ? ['Saved.', describeReset(reset)].filter(Boolean).join(' ') : 'Created.');
+      setFlash(
+        project
+          ? ['Saved.', describeReset(reset, result.value)].filter(Boolean).join(' ')
+          : 'Created.',
+      );
       projectStore.set(result.value);
       navigate(editReturn(result.value.id, props.from));
       return;

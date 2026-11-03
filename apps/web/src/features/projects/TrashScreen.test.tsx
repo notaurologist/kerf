@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { TrashedProject } from '../../lib/types.ts';
-import { renderText } from '../../test/render.tsx';
+import { render, renderText } from '../../test/render.tsx';
+import { Restored } from './Restored.tsx';
 import { TrashList } from './TrashScreen.tsx';
 
 const trashed: TrashedProject = {
@@ -33,11 +34,12 @@ describe('TrashList', () => {
       `Deleted ${day(trashed.deletedAt)}. Deleted for good on ${day(trashed.purgeAt)}.`,
     );
     expect(text).toContain('Restore');
-    expect(text).toContain('Delete for good');
+    expect(text).toContain('Delete project for good');
   });
 
-  it('says what the last action did', () => {
-    const text = renderText(<TrashList projects={[]} said="Restored “Shed”." onGone={() => {}} />);
-    expect(text).toContain('Restored “Shed”.');
+  it('says what the last action did, linking a restored project', () => {
+    const said = <Restored project={{ id: trashed.id, name: 'Shed' }} />;
+    const element = <TrashList projects={[]} said={said} onGone={() => {}} />;
+    expect(render(element)).toContain(`Restored “<a href="#/projects/${trashed.id}">Shed</a>”.`);
   });
 });

@@ -52,6 +52,9 @@ describe('WorkshopScreen', () => {
       ['Download a backup', '/api/export'],
     ]);
     expect(container.querySelector('a[href="/api/export"]')?.hasAttribute('download')).toBe(true);
+    expect(container.textContent).toContain(
+      'Kerf cannot load this file back in; a full restore comes from a database dump',
+    );
   });
 
   it('has the theme in words and Log out', async () => {

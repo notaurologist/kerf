@@ -5,6 +5,7 @@ import { type Suggestion, type SuggestionBasis, startingQuestions } from '../../
 import { formatLength } from '../../units/length.ts';
 import { boltSuggestions } from './boltSuggestions.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
+import { RIDER_WEIGHT_HELP } from './form.ts';
 import { CLEARANCES } from './layout.ts';
 import { BEAM_HEIGHT } from './params.ts';
 import { SwingSetStructuralInputs } from './structural.ts';
@@ -78,14 +79,14 @@ const QUESTIONS: readonly FormSection[] = [
         label: 'Heaviest rider on the left swing, with seat and chain',
         kind: 'number',
         unit: 'lb',
-        help: '0 for a swing left empty. This is the load the structural checks use.',
+        help: `${RIDER_WEIGHT_HELP} This is the load the structural checks use.`,
       },
       {
         path: 'riderWeights.1',
         label: 'Heaviest rider on the right swing, with seat and chain',
         kind: 'number',
         unit: 'lb',
-        help: '0 for a swing left empty.',
+        help: RIDER_WEIGHT_HELP,
       },
     ],
   },
