@@ -1,7 +1,7 @@
 import { dovetailGeometry } from '../joinery/dovetails.ts';
 import { plateScrewOffsets } from '../model/cupHinge.ts';
 import { boredSide } from '../model/operations.ts';
-import type { BoredHole, Dovetails, Part, Placement, Vec3 } from '../model/types.ts';
+import type { BoredHole, Dovetails, Mortise, Part, Placement, Vec3 } from '../model/types.ts';
 import type { HardwareLine } from '../outputs/hardwareList.ts';
 
 // Whether a plan's parts go together, from what each part records and where each piece is placed
@@ -168,6 +168,14 @@ function withinProblems(pieces: readonly Piece[]): FitProblem[] {
               `A mortise for ${m.withPart} in the ${m.side} runs past the part, from ${m.a0} to ${m.a1} across a side ${across} wide.`,
             ];
       }),
+      ...part.mortises.flatMap((m) => {
+        const h = held(m);
+        return h.u0 < h.u1 && h.a0 < h.a1
+          ? []
+          : [
+              `A mortise for ${m.withPart} leaves ${m.room?.length} of room, as long as the mortise or longer.`,
+            ];
+      }),
       ...part.grooves.flatMap((g) =>
         within(g.u0, [0, L]) &&
         within(g.u1, [0, L]) &&
@@ -299,9 +307,22 @@ function tipIn(
   );
 }
 
+/** The part of a mortise its tenon fills: the whole pocket less any room left for movement. */
+function held(m: Mortise): { u0: number; u1: number; a0: number; a1: number } {
+  const rect = { u0: m.u0, u1: m.u1, a0: m.a0, a1: m.a1 };
+  if (!m.room) return rect;
+  const { at, length } = m.room;
+  if (at === 'u0') rect.u0 += length;
+  if (at === 'u1') rect.u1 -= length;
+  if (at === 'a0') rect.a0 += length;
+  if (at === 'a1') rect.a1 -= length;
+  return rect;
+}
+
 /**
  * Mortises and tenons: each mortise holds a tenon of the part it names (by ID or role), the same
- * size, reaching its bottom; each tenon sits in a mortise that way or in a groove, as a stub tenon.
+ * size as the mortise less any room it leaves for movement, reaching its bottom; each tenon sits
+ * in a mortise that way or in a groove, as a stub tenon.
  */
 function tenonProblems(pieces: readonly Piece[]): FitProblem[] {
   const named = (p: Piece, name: string) => p.part.id === name || p.part.role === name;
@@ -311,7 +332,7 @@ function tenonProblems(pieces: readonly Piece[]): FitProblem[] {
         (m) =>
           named(p, m.withPart) &&
           same(t.length, m.depth) &&
-          tipIn(p, t, h, m.side, m, m.depth, 'exactly'),
+          tipIn(p, t, h, m.side, held(m), m.depth, 'exactly'),
       ),
     );
   const inGroove = (p: Piece, t: Part['tenons'][number]) =>
@@ -338,7 +359,7 @@ function tenonProblems(pieces: readonly Piece[]): FitProblem[] {
         (p) =>
           named(p, m.withPart) &&
           p.part.tenons.some(
-            (t) => same(t.length, m.depth) && tipIn(p, t, h, m.side, m, m.depth, 'exactly'),
+            (t) => same(t.length, m.depth) && tipIn(p, t, h, m.side, held(m), m.depth, 'exactly'),
           ),
       )
         ? []

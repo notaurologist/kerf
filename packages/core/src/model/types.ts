@@ -180,6 +180,14 @@ export const Mortise = z.object({
   a0: z.number(),
   a1: z.number(),
   depth: z.number(),
+  /**
+   * Room left past the tenon on one side, so the part can move across its grain there while the
+   * tenon is held at the other (DOMAIN.md, Joints that let wood move): the side of the pocket it is
+   * at and its length. `u0` to `u1` and `a0` to `a1` are the whole pocket, room included.
+   */
+  room: z
+    .object({ at: z.enum(['u0', 'u1', 'a0', 'a1']), length: z.number().positive() })
+    .optional(),
 });
 export type Mortise = z.infer<typeof Mortise>;
 
