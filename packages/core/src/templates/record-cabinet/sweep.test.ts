@@ -58,15 +58,7 @@ describe('the record cabinet across its ranges', () => {
     expect(swept.made).toBeGreaterThan(150);
   });
 
-  // A top track can be cut deeper than the top is thick (#574). Remove this when it is refused.
-  const known = (failure: string) =>
-    failure.endsWith('top 0: A dado for door-rail runs past the part.');
-
   it('never throws, and every plan goes together, reads back, and shows', () => {
-    expect(swept.failures.filter((f) => !known(f))).toEqual([]);
-  });
-
-  it('still finds the top tracks cut through the top (#574)', () => {
-    expect(swept.failures.filter(known).length).toBeGreaterThan(0);
+    expect(swept.failures).toEqual([]);
   });
 });
