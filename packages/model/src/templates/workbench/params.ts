@@ -1,4 +1,4 @@
-import type { BoardStock, CupHinge, DrawerSlide, PanelAllowances } from '@kerf/core';
+import type { BoardStock, CupHinge, DrawerSlide, PanelAllowances, ViseScrew } from '@kerf/core';
 
 // The workbench's parameters (docs/templates/workbench.md, Parameters), in inches. The schema,
 // form, and starting questions come with the template's definition.
@@ -65,6 +65,19 @@ export interface WorkbenchParams {
     hingeFromEnd: number;
     hinge: CupHinge;
   };
+  /** c: both vises' chops. */
+  chopThickness: number;
+  /**
+   * The vises and dog holes. The face vise's chop is as tall as `height`, its screw `screwBelow`
+   * the top's underside; the end vise's block is `blockHeight` under the top. Dog holes are
+   * `spacing` apart on center, `fromFront` in from the top's front edge, and stopped `stopShort`
+   * above the top's underside where something is under it. Each screw is from its maker.
+   */
+  vise: {
+    face: { height: number; screwBelow: number; screw: ViseScrew };
+    end: { blockHeight: number; screw: ViseScrew };
+    dogs: { diameter: number; spacing: number; fromFront: number; stopShort: number };
+  };
   board: BoardStock;
   allowances: PanelAllowances;
   kerf: number;
@@ -121,6 +134,34 @@ export const EXAMPLE: WorkbenchParams = {
       minThickness: 0.625,
       maxThickness: 1,
     },
+  },
+  chopThickness: 2.5,
+  // The screws' sizes are illustrative, until the owner enters theirs.
+  vise: {
+    face: {
+      height: 14,
+      screwBelow: 4,
+      screw: {
+        screwHole: 1.125,
+        maxOpening: 8,
+        guides: 1,
+        guideHole: 0.875,
+        guideFromScrew: 5,
+        mountingScrews: 4,
+      },
+    },
+    end: {
+      blockHeight: 3.5,
+      screw: {
+        screwHole: 1.125,
+        maxOpening: 8,
+        guides: 2,
+        guideHole: 0.875,
+        guideFromScrew: 4,
+        mountingScrews: 4,
+      },
+    },
+    dogs: { diameter: 0.75, spacing: 4, fromFront: 2, stopShort: 0.25 },
   },
   board: { nominal: '4/4 cherry', thickness: 0.8125, width: 5.5, buyableFeet: [6, 8, 10] },
   allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },

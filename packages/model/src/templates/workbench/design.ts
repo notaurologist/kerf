@@ -20,6 +20,8 @@ import {
   stripGlueUp,
   type Tenon,
   type Vec3,
+  viseHoles,
+  viseScrewItem,
 } from '@kerf/core';
 import type { PlacedPart } from '../../boltedLap.ts';
 import { compare } from '../../compare.ts';
@@ -159,7 +161,7 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
   // are its far face and far edge, which makes the front left and back right legs one part and
   // the other two its mirror (a placement is right-handed).
   const legFrames = [
-    { id: 'leg-a', foot: 0, across: X, through: Y, corner: { x: legX[0], y: legY[0] } },
+    { id: 'leg-vise', foot: 0, across: X, through: Y, corner: { x: legX[0], y: legY[0] } },
     { id: 'leg-b', foot: 1, across: Y, through: minus(X), corner: { x: legX[1] + s, y: legY[0] } },
     { id: 'leg-b', foot: 0, across: minus(Y), through: X, corner: { x: legX[0], y: legY[1] + s } },
     {
@@ -758,6 +760,136 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
     return [hinge, meeting, ...rails, doorPanel];
   });
 
+  // The face vise at the front left: its chop in front of the front-left leg, which is the bench's
+  // jaw, from the top's left end to the leg's inner face. The screw and its one guide bar below it
+  // pass through the chop and the leg, the screw clear below the end rail.
+  const v = p.vise;
+  const faceChop = cut(
+    'face-chop',
+    0,
+    (length: number) => strips(p.chopThickness, v.face.height, length, 'width'),
+    {
+      along: X,
+      across: minus(Z),
+      through: Y,
+      referenceEdge: { x: 0, y: -p.chopThickness, z: p.height },
+      width: v.face.height,
+    },
+    [plane(0, X), plane(legX[0] + s, X)],
+  );
+  const screwZ = underside - v.face.screwBelow;
+  const legHoles = (() => {
+    // Bored from the leg's front face; the guide bar goes below the screw, down the leg, so the
+    // holes are laid out from the leg's top end and turned back.
+    const leg = frontLeft;
+    const L = leg.part.length;
+    const top = dot(leg.placement.origin, Z) + L;
+    const center = { u: top - screwZ, v: s / 2 };
+    return viseHoles(v.face.screw, { center, thickness: s, guidesAlong: 'u' }).map((h) => ({
+      ...h,
+      entry: { ...h.entry, u: L - h.entry.u },
+    }));
+  })();
+  features.add(frontLeft, { boredHoles: legHoles });
+  // The chop runs down from the top's surface, so its v is down: the guide bar comes out below.
+  features.add(faceChop, {
+    boredHoles: viseHoles(v.face.screw, {
+      center: { u: legX[0] + s / 2, v: p.height - screwZ },
+      thickness: p.chopThickness,
+      guidesAlong: 'v',
+    }),
+  });
+
+  // The end vise at the right end: a jaw block glued under the top's overhang, from the legs to the
+  // top's end, grain along the bench like the top; the chop across the top's end, as tall as the
+  // top and block; the screw centered, a guide bar either side.
+  const blockBottom = underside - v.end.blockHeight;
+  const block = cut(
+    'vise-block',
+    0,
+    (length: number) => strips(v.end.blockHeight, p.topDepth, length, 'width'),
+    {
+      along: X,
+      across: Y,
+      through: Z,
+      referenceEdge: { x: 0, y: 0, z: blockBottom },
+      width: p.topDepth,
+    },
+    [housingPlane(frontRight, sideOf(frontRight, minus(X)), 0), plane(p.topLength, X)],
+  );
+  const chopHeight = v.end.blockHeight + p.topThickness;
+  const endChop = cut(
+    'end-chop',
+    0,
+    (length: number) => strips(p.chopThickness, chopHeight, length, 'width'),
+    {
+      along: Y,
+      across: Z,
+      through: X,
+      referenceEdge: { x: p.topLength, y: 0, z: blockBottom },
+      width: chopHeight,
+    },
+    [plane(0, Y), plane(p.topDepth, Y)],
+  );
+  const endCenter = { u: p.topDepth / 2, v: v.end.blockHeight / 2 };
+  const chopHoles = viseHoles(v.end.screw, {
+    center: endCenter,
+    thickness: p.chopThickness,
+    guidesAlong: 'u',
+  });
+  features.add(endChop, { boredHoles: chopHoles });
+  // The same holes run on through the block, along its length from the top's end.
+  const blockLength = block.part.length;
+  features.add(block, {
+    boredHoles: chopHoles.map((h) => ({
+      ...h,
+      entry: { u: blockLength, v: h.entry.u, n: h.entry.v },
+      direction: { u: -1, v: 0, n: 0 },
+      depth: blockLength,
+    })),
+  });
+
+  // Dog holes along the front, every `spacing` back from the end chop's, skipping any that would cut
+  // into a leg's mortise. Through where nothing is under the top, stopped short of its underside
+  // over the case, the legs, and the vise block.
+  const dog = v.dogs;
+  const r = dog.diameter / 2;
+  const clearOfMortises = (x: number) =>
+    features
+      .of(top)
+      .mortises.every(
+        (m) =>
+          x + r <= m.u0 || x - r >= m.u1 || dog.fromFront + r <= m.a0 || dog.fromFront - r >= m.a1,
+      );
+  const open = (x: number) => x + r <= legX[0];
+  const dogs: number[] = [];
+  const chopDog = p.topLength + p.chopThickness / 2;
+  for (let x = chopDog - dog.spacing; x - r >= 0; x -= dog.spacing) {
+    if (clearOfMortises(x)) dogs.push(x);
+  }
+  features.add(top, {
+    boredHoles: dogs.map((x) => ({
+      use: 'for a dog',
+      diameter: dog.diameter,
+      entry: { u: x, v: dog.fromFront, n: p.topThickness },
+      direction: { u: 0, v: 0, n: -1 },
+      depth: open(x) ? p.topThickness : p.topThickness - dog.stopShort,
+      through: open(x),
+    })),
+  });
+  features.add(endChop, {
+    boredHoles: [
+      {
+        use: 'for a dog',
+        diameter: dog.diameter,
+        entry: { u: dog.fromFront, v: chopHeight, n: p.chopThickness / 2 },
+        direction: { u: 0, v: -1, n: 0 },
+        depth: chopHeight,
+        through: true,
+      },
+    ],
+  });
+
   const placed = [
     top,
     ...feet,
@@ -771,12 +903,23 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
     caseBack,
     ...drawers,
     ...doors,
+    faceChop,
+    block,
+    endChop,
   ];
   return {
     parts: features.parts(placed),
     placements: placed.map((q) => q.placement),
     hardware: [
       cupHingeItem({ id: 'hinge', name: 'Concealed cup hinges', group: 'Hinges' }, door.hinge, 4),
+      viseScrewItem(
+        { id: 'face-vise', name: 'Face vise screw', group: 'Vise hardware' },
+        v.face.screw,
+      ),
+      viseScrewItem(
+        { id: 'end-vise', name: 'End vise screw', group: 'Vise hardware' },
+        v.end.screw,
+      ),
     ],
     geometry: {
       underside,
@@ -833,7 +976,8 @@ function blank(id: string, name: string, stock: PartStock, length: number): Part
 
 const NAMES: Record<string, string> = {
   foot: 'Foot',
-  'leg-a': 'Leg, front left and back right',
+  'leg-vise': 'Leg, front left, behind the face vise',
+  'leg-a': 'Leg, back right',
   'leg-b': 'Leg, front right and back left',
   'end-rail': 'End rail',
   'low-rail': 'Low rail',
@@ -847,7 +991,7 @@ const NAMES: Record<string, string> = {
 };
 
 /** Both legs are a leg, so the joints into the top and feet name them by it. */
-const ROLES: Record<string, string> = { 'leg-a': 'leg', 'leg-b': 'leg' };
+const ROLES: Record<string, string> = { 'leg-vise': 'leg', 'leg-a': 'leg', 'leg-b': 'leg' };
 
 function frame(
   id: string,
@@ -926,6 +1070,11 @@ class Features {
     for (const key of Object.keys(held) as (keyof Found)[]) {
       (held[key] as unknown[]).push(...((more[key] as unknown[] | undefined) ?? []));
     }
+  }
+
+  /** What one instance has gathered so far. */
+  of(piece: PlacedPart): Found {
+    return this.found.get(piece.placement.partId)?.get(piece.placement.instance) ?? none();
   }
 
   /** One part per ID, with its features, quantity, and stock. */

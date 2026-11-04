@@ -46,7 +46,8 @@ describe('the base, from its joints', () => {
     expect(lengths).toEqual({
       top: [61.875, 1],
       foot: [18.625, 2],
-      'leg-a': [32.875, 2],
+      'leg-vise': [32.875, 1],
+      'leg-a': [32.875, 1],
       'leg-b': [32.875, 2],
       'end-rail': [14.125, 2],
       'low-rail': [49.375, 2],
@@ -84,6 +85,11 @@ describe('the base, from its joints', () => {
       'door-stile-meeting': [14.75, 2],
       'door-rail': [18.84375, 4],
       'door-panel': [11.4375, 2],
+      // The face chop from the top's end to the front-left leg's inner face, 5 + 3; the vise block
+      // from the right legs' outer face to the top's end, 5; the end chop across the top, 17-5/8.
+      'face-chop': [8, 1],
+      'vise-block': [5, 1],
+      'end-chop': [17.625, 1],
     });
   });
 
@@ -320,7 +326,66 @@ describe('the base, from its joints', () => {
       { u: 2.625, v: 1.4375 },
       { u: 3.875, v: 1.4375 },
     ]);
-    expect(example.hardware.map((h) => [h.id, h.quantity])).toEqual([['hinge', 4]]);
+    expect(example.hardware.map((h) => [h.id, h.quantity])).toEqual([
+      ['hinge', 4],
+      ['face-vise', 1],
+      ['end-vise', 1],
+    ]);
+  });
+
+  it('bores the face vise through its chop and the front-left leg, the guide below the screw', () => {
+    // The screw 4 below the top's underside, z = 27-5/8, clear of the end rail's mortise, which
+    // starts at 28-7/8; the guide bar 5 below it, z = 22-5/8. The leg starts at z = 1-1/4, and
+    // the chop's v runs down from the top's surface at 34-1/8.
+    expect(part('leg-vise').boredHoles.map((h) => [h.use, h.entry.u, h.entry.v, h.depth])).toEqual([
+      ['for the screw', 26.375, 1.5, 3],
+      ['for a guide bar', 21.375, 1.5, 3],
+    ]);
+    expect(part('face-chop').boredHoles.map((h) => [h.entry.u, h.entry.v])).toEqual([
+      [6.5, 6.5],
+      [6.5, 11.5],
+    ]);
+    expect(placement('face-chop', 0).origin).toEqual({ x: 0, y: -2.5, z: 34.125 });
+  });
+
+  it('runs the end vise’s screw and guide bars through the chop and the block under the top', () => {
+    // The block 3-1/2 under the top, z 28-1/8 to 31-5/8; the screw centered on the top's depth,
+    // 8-13/16, and 1-3/4 up; the guide bars 4 either side.
+    const along = (id: string) => part(id).boredHoles.filter((h) => h.use !== 'for a dog');
+    expect(along('end-chop').map((h) => [h.entry.u, h.entry.v])).toEqual([
+      [8.8125, 1.75],
+      [12.8125, 1.75],
+      [4.8125, 1.75],
+    ]);
+    expect(along('vise-block').map((h) => [h.entry.v, h.entry.n, h.depth])).toEqual([
+      [8.8125, 1.75, 5],
+      [12.8125, 1.75, 5],
+      [4.8125, 1.75, 5],
+    ]);
+  });
+
+  it('bores dog holes every 4 back from the end chop’s, through only where nothing is under', () => {
+    // The chop's dog at x = 61-7/8 + 1-1/4 = 63-1/8, so the top's at 59-1/8, 55-1/8, ... 3-1/8.
+    // 55-1/8 and 7-1/8 would cut into the front legs' mortises, so they are left out. Over the
+    // block and the case the holes stop 1/4 short; past the front-left leg, at 3-1/8, they go
+    // through.
+    const dogs = part('top').boredHoles;
+    expect(dogs.map((h) => h.entry.u)).toEqual([
+      59.125, 51.125, 47.125, 43.125, 39.125, 35.125, 31.125, 27.125, 23.125, 19.125, 15.125,
+      11.125, 3.125,
+    ]);
+    expect(dogs.filter((h) => h.through).map((h) => h.entry.u)).toEqual([3.125]);
+    expect(dogs[0]?.depth).toBe(2.25);
+    expect(part('end-chop').boredHoles.at(-1)?.entry).toEqual({ u: 2, v: 6, n: 1.25 });
+  });
+
+  it('stops a dog hole that reaches over the front-left leg', () => {
+    // A 63-1/2 top puts the chop's dog at 64-3/4 and one of the top's at 64-3/4 − 15 × 4 =
+    // 4-3/4, which reaches 5-1/8, past the leg's outer face at 5: stopped, not through.
+    const longer = base({ ...EXAMPLE, topLength: 63.5 });
+    if (!longer.ok) throw new Error(longer.message);
+    const near = part('top', longer.base).boredHoles.find((h) => h.entry.u === 4.75);
+    expect(near).toMatchObject({ through: false, depth: 2.25 });
   });
 
   it('passes the fit checks', () => {
