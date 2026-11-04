@@ -230,7 +230,7 @@ The sweep (800 draws, `sweep.test.ts`) then found three more template problems t
 - the movement gaps outgrow their grooves on a long or deep bench
 - a short case leaves doors too short for their hinges
 
-The last two needed refusals the spec had not listed. The edge-of-range example hits the third.
+The last two needed refusals the spec had not listed. The edge-of-range example hits the third. Once the fit checks could see parts that overlap and holes that come out into another part (#618), the sweep found three more: the face vise's screw running into the end rail, the end vise's guide bars running into the right legs, and an end rail as thick as the legs in the end vise screw's way. Each is now refused.
 
 ### What else the build showed
 
