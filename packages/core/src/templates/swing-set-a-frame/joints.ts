@@ -37,7 +37,7 @@ export function joined(
   dims: Dimensions,
   g: FrameGeometry,
   swings: SwingGeometry,
-  made: { parts: Part[]; placements: Placement[]; hardware: HardwareItem[] },
+  made: { parts: Part[]; hardware: HardwareItem[] },
 ): { geometry: FrameGeometry; parts: Part[]; placements: Placement[]; hardware: HardwareItem[] } {
   const a = g.splay * RAD;
   const sin = Math.sin(a);
@@ -153,6 +153,10 @@ export function joined(
         throw new Error(`The pieces of ${part.id} are trimmed to different lengths.`);
       }
     }
+    // The geometry's lengths are read by checks and the structural model, so they must agree.
+    if (Math.abs(first.length - part.length) > 1e-9) {
+      throw new Error(`${part.id}: the joints give ${first.length}, the geometry ${part.length}.`);
+    }
     const edges = MARKS[part.role]?.map((edge) => first.edges[edge]) ?? [];
     if (edges.length !== part.markLengths.length) {
       throw new Error(`${part.id} marks ${part.markLengths.length} lengths, not ${edges.length}.`);
@@ -263,6 +267,11 @@ export function joined(
   const parts = trimmed.map((part) => ({ ...part, holes: holes.get(part.id) ?? [] }));
   const legBeamGrip = grips.get('leg-beam-bolts');
   if (legBeamGrip === undefined) throw new Error('No leg-to-beam bolts.');
+  if (Math.abs(legBeamGrip - g.boltGrip) > 1e-9) {
+    throw new Error(
+      `The leg-to-beam bolts' grip: the joints give ${legBeamGrip}, the geometry ${g.boltGrip}.`,
+    );
+  }
   return {
     geometry: { ...g, boltGrip: legBeamGrip },
     parts,

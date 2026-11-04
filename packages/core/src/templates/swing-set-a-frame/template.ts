@@ -48,7 +48,6 @@ import {
 import { joined } from './joints.ts';
 import { SiteLayout, SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
-import { placements } from './placements.ts';
 import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.ts';
 
 /**
@@ -369,7 +368,6 @@ export function generate(
   // The parts as the template stands them, then cut, placed, and drilled by their joints.
   const made = joined(p, dims, frame, swings, {
     parts: withLetters(parts(p, dims, frame)),
-    placements: placements(dims, frame),
     hardware: hardware(p, dims, frame),
   });
   const g = made.geometry;

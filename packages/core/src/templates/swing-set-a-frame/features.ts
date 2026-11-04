@@ -9,26 +9,17 @@ import {
   spacingInRow,
   spreadAcrossGrain,
 } from '../../structural/boltDistances.ts';
-import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
 import type { Dimensions, FrameGeometry } from './geometry.ts';
-import { HANGER_BOLTS } from './hardware.ts';
-import { swingGeometry } from './layout.ts';
 import type { SwingSetParams } from './params.ts';
 import { LEG_IDS } from './validate.ts';
 
-// Holes, bolt areas, and the flush cut, in each part's own frame (spec, Holes and joints;
-// template version 4; crossbar and gusset bolt holes, spec, Bolt layout, template version 6). Frames as in placements.ts: u along the part from its first end, v across
-// from its reference edge, n through its thickness.
+// Bolt areas and the flush cut, in each part's own frame (spec, Holes and joints): u along the part
+// from its first end, v across from its reference edge, n through its thickness. The bolt holes and
+// each part's placement are its joints' (joints.ts).
 
 const RAD = Math.PI / 180;
-
-/** A hole's size for its bolt: drilled over the bolt's diameter (NDS 2024 12.1.3.2, #110). */
-const boltHole = (boltDiameter: number) => ({
-  diameter: boltHoleDiameter(boltDiameter),
-  boltDiameter,
-});
 
 export interface PartFeatures {
   referenceEdge: string;
@@ -123,23 +114,6 @@ export function features(
   const cos = Math.cos(a);
   const tan = Math.tan(a);
   const h = p.hardware;
-  const top = dims.H + dims.bd;
-  const plyThickness = dims.bw / dims.plies;
-
-  // Leg-to-beam bolt (spec, Top of the leg): horizontal, at mid-depth of the beam, through the
-  // middle of the leg's thickness. It enters the leg's outer edge and leaves through the flush
-  // cut, so it meets the outer face at α from square (the tilted bearing face on the checklist).
-  const boltZ = dims.H + dims.bd / 2;
-  const legBoltHole: Hole = {
-    hardwareId: 'leg-beam-bolts',
-    ...boltHole(h.legBoltDiameter),
-    // On the outer edge (v = w), where z = top + w·sin α − u·cos α equals the bolt's height.
-    entry: { u: (top + dims.w * sin - boltZ) / cos, v: dims.w, n: dims.t / 2 },
-    // Toward the beam, horizontally: in the leg's frame, (−sin α, −cos α, 0).
-    direction: { u: -sin, v: -cos, n: 0 },
-    // Outer face to flush face at the bolt's height: w / cos α − (bd/2)·tan α.
-    length: dims.w / cos - (dims.bd / 2) * tan,
-  };
 
   // The flush cut (spec, Top of the leg): a vertical face at y = bw/2, from the beam's underside
   // to the top cut. On the leg it starts on the inner edge bd / cos α from the top corner and ends
@@ -151,71 +125,6 @@ export function features(
     angleToEdge: g.splay,
   };
 
-  // Crossbar and gusset bolts (spec, Bolt layout; template version 6): on the leg's centerline,
-  // one in the middle of each equal strip across the board's width. Each is a hole through the
-  // board and through the leg.
-  const boardHoles = boardBolts(p, dims, g);
-  const throughHole = (
-    hardwareId: string,
-    diameter: number,
-    u: number,
-    v: number,
-    length: number,
-  ): Hole => ({
-    hardwareId,
-    ...boltHole(diameter),
-    entry: { u, v, n: 0 },
-    direction: { u: 0, v: 0, n: 1 },
-    length,
-  });
-  const boardFeatures = (board: BoardBolts): Hole[] =>
-    board.vs.flatMap((v) => [
-      throughHole(board.hardwareId, board.diameter, v * tan + board.toBoltLine, v, board.thickness),
-      throughHole(
-        board.hardwareId,
-        board.diameter,
-        board.length - v * tan - board.toBoltLine,
-        v,
-        board.thickness,
-      ),
-    ]);
-  // In the leg's frame, a bolt at height z on the centerline: u = (top + (w/2)·sin α − z) / cos α.
-  const legHoles = [boardHoles.crossbar, boardHoles.gusset].flatMap((board) =>
-    board.vs.map((v) =>
-      throughHole(
-        board.hardwareId,
-        board.diameter,
-        (top + (dims.w / 2) * sin - (board.bottomZ + v)) / cos,
-        dims.w / 2,
-        dims.t,
-      ),
-    ),
-  );
-
-  // The beam: one leg-to-beam bolt hole per frame, at the frame's centerline and the beam's
-  // mid-depth, through each ply. Ply bolts, for a built-up beam, go anywhere along the beam.
-  const beamHoles: Hole[] = g.supportsX.map((x) => ({
-    hardwareId: 'leg-beam-bolts',
-    ...boltHole(h.legBoltDiameter),
-    entry: { u: x, v: dims.bd / 2, n: 0 },
-    direction: { u: 0, v: 0, n: 1 },
-    length: plyThickness,
-  }));
-  // A vertical hanger bolt goes down through the beam at each hanger, on the beam's centerline:
-  // in a built-up beam, n is in the frame of the ply it cuts most (the seam of two plies, the
-  // middle of three). Horizontal bolts are drilled through the bracket's own holes, wherever the
-  // bracket puts them along the beam, so they are not placed.
-  const m = h.hangerMounting;
-  const hangerHoles: Hole[] =
-    m?.kind === 'vertical-bolt'
-      ? swingGeometry(p).hangersX.map((x) => ({
-          hardwareId: HANGER_BOLTS,
-          ...boltHole(m.diameter),
-          entry: { u: x, v: dims.bd, n: dims.plies === 2 ? plyThickness : plyThickness / 2 },
-          direction: { u: 0, v: -1, n: 0 },
-          length: dims.bd,
-        }))
-      : [];
   const plyArea: BoltArea[] =
     dims.plies > 1 && h.plyBolts
       ? [
@@ -237,7 +146,8 @@ export function features(
   return {
     beam: {
       referenceEdge: 'bottom edge',
-      holes: [...beamHoles, ...hangerHoles],
+      // Every bolt hole is its bolted lap's (joints.ts).
+      holes: [],
       boltAreas: plyArea,
       tapers: [],
       dadoes: [],
@@ -255,7 +165,7 @@ export function features(
     },
     leg: {
       referenceEdge: 'inner edge, against the beam',
-      holes: [legBoltHole, ...legHoles],
+      holes: [],
       boltAreas: [],
       tapers: [flushCut],
       dadoes: [],
@@ -273,7 +183,7 @@ export function features(
     },
     crossbar: {
       referenceEdge: 'bottom edge',
-      holes: boardFeatures(boardHoles.crossbar),
+      holes: [],
       boltAreas: [],
       tapers: [],
       dadoes: [],
@@ -291,7 +201,7 @@ export function features(
     },
     gusset: {
       referenceEdge: 'bottom edge',
-      holes: boardFeatures(boardHoles.gusset),
+      holes: [],
       boltAreas: [],
       tapers: [],
       dadoes: [],
