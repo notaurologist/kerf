@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { FlagCategory } from '../knowledge/categories.ts';
-import { PartStock } from '../lumber/panel.ts';
+import { PartStock } from '../lumber/partStock.ts';
 import { MissingInput } from '../structural/types.ts';
 
 // Shared shapes of template output. Each is a Zod schema with its type inferred from it, so the

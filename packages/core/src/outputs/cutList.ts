@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { isBoardStock, isPanel, type PartStock } from '../lumber/panel.ts';
+import { isBoardStock, isPanel, isStripGlueUp, type PartStock } from '../lumber/partStock.ts';
+import type { StripGlueUp } from '../lumber/strips.ts';
 import type { Part } from '../model/types.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
@@ -30,6 +31,19 @@ export const CutListRow = z.object({
       recipe: z.string(),
     })
     .optional(),
+  /** A strip glue-up's strips and how they are glued up; left out for other parts. */
+  strips: z
+    .object({
+      /** How many strips, glued face to face. */
+      strips: z.number().int().positive(),
+      /** Each strip's ripped width. */
+      stripWidth: z.string(),
+      /** Each strip's length before gluing. */
+      stripLength: z.string(),
+      /** The strips, their size, the boards they come from, and the glue-up, as one sentence. */
+      recipe: z.string(),
+    })
+    .optional(),
   /** Overall length, long point to long point. */
   length: z.string(),
   /** Each end: the saw setting and the angle to the board's edge, labeled (DOMAIN.md, Units). */
@@ -52,6 +66,7 @@ const size = (s: { thickness: number; width: number }) =>
 function stockText(stock: PartStock): string {
   // Board stock named by its size, as the owner's often is, is not given it twice.
   if (isBoardStock(stock) && stock.nominal === size(stock)) return stock.nominal;
+  if (isStripGlueUp(stock)) return `Glue-up (${size(stock)})`;
   if (!isPanel(stock)) return `${stock.nominal} (${size(stock)})`;
   return `${stock.boards === 1 ? 'Board' : 'Panel'} (${size(stock)})`;
 }
@@ -80,6 +95,32 @@ function panelOf(stock: PartStock): CutListRow['panel'] {
   return { width, boardLength, boards, recipe };
 }
 
+function stripsOf(stock: StripGlueUp): NonNullable<CutListRow['strips']> {
+  const { board, strips, stripsPerBoard } = stock;
+  const stripWidth = formatLength(stock.stripWidth);
+  const stripLength = formatLength(stock.stripLength);
+  const [stacked, ripped] =
+    stock.stackedAcross === 'width'
+      ? [stock.width, stock.thickness]
+      : [stock.thickness, stock.width];
+  const named = board.byBoardFoot
+    ? `${board.nominal} (${formatLength(board.thickness)} thick)`
+    : board.nominal === size(board)
+      ? board.nominal
+      : `${board.nominal} (${size(board)})`;
+  // Random widths: the least width that gives this many strips says what to pick at the yard.
+  const fromEach =
+    stock.minBoardWidth === undefined
+      ? `${stripsPerBoard} ripped from each board`
+      : `${stripsPerBoard} ripped from each board at least ${formatLength(stock.minBoardWidth)} wide`;
+  const trimmed =
+    stock.gluedAcross - stacked > 1e-9
+      ? `glued face to face to ${formatLength(stock.gluedAcross)} and ripped to ${formatLength(stacked)}`
+      : `glued face to face to ${formatLength(stacked)}`;
+  const recipe = `${strips} strips of ${named}, each ${stripWidth} wide and ${stripLength} long, ${fromEach}, ${trimmed}, then flattened to ${formatLength(ripped)}`;
+  return { strips, stripWidth, stripLength, recipe };
+}
+
 /**
  * What a template calls an end, such as "Top" for "Top: level cut", so a drawing and a step label
  * the end with the name its text uses. Undefined for an end the template does not name.
@@ -102,6 +143,7 @@ export function cutList(parts: readonly Part[]): CutListRow[] {
     quantity: part.quantity,
     stock: stockText(part.stock),
     ...(isPanel(part.stock) ? { panel: panelOf(part.stock) } : {}),
+    ...(isStripGlueUp(part.stock) ? { strips: stripsOf(part.stock) } : {}),
     length: formatLength(part.length),
     ends: part.ends.map((end) => endText(end.setting, end.description)),
     endsParallel: part.endsParallel,

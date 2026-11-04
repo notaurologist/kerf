@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { isPanel, type PanelStock } from '../lumber/panel.ts';
+import type { PanelStock } from '../lumber/panel.ts';
+import { isPanel } from '../lumber/partStock.ts';
 import { boltHoleDiameter } from '../structural/boltHoles.ts';
 import type { Dado, HardwareItem, Part } from './types.ts';
 

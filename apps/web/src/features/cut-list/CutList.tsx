@@ -163,12 +163,18 @@ function Details(props: {
       <Text tone="muted" size="small">
         {row.endsParallel ? 'Ends parallel.' : 'Ends mirror each other.'}
       </Text>
-      {(row.marks.length > 0 || row.notes.length > 0 || row.panel) && (
+      {(row.marks.length > 0 || row.notes.length > 0 || row.panel || row.strips) && (
         <PlainList gap="xs">
           {row.panel && (
             <li>
               {panelMade(row.panel)}{' '}
               {marked(`${path}.panel.recipe`, <Readings text={row.panel.recipe} />)}.
+            </li>
+          )}
+          {row.strips && (
+            <li>
+              Glued up from {marked(`${path}.strips.recipe`, <Readings text={row.strips.recipe} />)}
+              .
             </li>
           )}
           {row.marks.map((m, i) => (
