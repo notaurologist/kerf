@@ -453,6 +453,29 @@ describe('refusals (spec, Validation)', () => {
     ).toEqual(['recess-into-groove']);
   });
 
+  it('refuses a top track as deep as the top is thick (#574)', () => {
+    const door = (topDepth: number, bottomDepth = 0.25) => ({
+      ...WORKED_EXAMPLE.door,
+      topDepth,
+      bottomDepth,
+    });
+    // t = 3/4: a 3/4 track cuts through, and 11/16 leaves 1/16.
+    expect(refused({ door: door(0.75) })).toEqual(['track-through-top']);
+    expect(refused({ door: door(0.6875) })).toEqual([]);
+    expect(refused({ door: door(0.75), doors: 'none' })).toEqual([]);
+    const issue = (over: Partial<RecordCabinetParams>) => {
+      const result = recordCabinet.generate({ ...WORKED_EXAMPLE, ...over }, {});
+      return result.ok ? undefined : result.issues.find((i) => i.code === 'track-through-top');
+    };
+    expect(issue({ door: door(0.875) })?.message).toBe(
+      'Top tracks 7/8" deep cut through the 3/4" top. Make the tracks at least 1/2" deep, enough to lift a door in, and less than 3/4", or make the top thicker.',
+    );
+    // Seated 3/8, a door needs a 3/4 top track to lift in, which no 3/4 top can hold.
+    expect(issue({ door: door(0.75, 0.375) })?.message).toMatch(
+      /needs a top track 3\/4" deep to lift in, so the top must be thicker than that/,
+    );
+  });
+
   it('refuses a door frame wider than one board gives (#563)', () => {
     // From 3-1/2" boards with the 1/2" rip allowance, a stile or rail is at most 3" wide. Wider,
     // it would be glued up and flattened thinner than the door the tracks are cut for.
@@ -497,6 +520,21 @@ describe('a cabinet with no doors (#501)', () => {
   it('asks for the door sizes when the doors slide', () => {
     const parsed = recordCabinet.params.safeParse({ ...noSizes, doors: 'sliding' });
     expect(parsed.error?.issues.map((i) => i.path)).toEqual([['door']]);
+  });
+});
+
+describe('flags', () => {
+  it('shows the wood left above the top’s door tracks: 3/4 − 9/16 = 3/16 (#574)', () => {
+    const flag = worked.review.flags.find((f) => f.ask.includes('door tracks'));
+    expect(flag).toMatchObject({ category: 'load-bearing', partIds: ['top'] });
+    expect(flag?.ask).toMatch(/whether 3\/16" of wood above the door tracks/);
+    expect(flag?.why).toMatch(/Tracks 9\/16" deep in the underside of a 3\/4" top leave 3\/16"/);
+  });
+
+  it('has no track flag without doors', () => {
+    const result = recordCabinet.generate({ ...WORKED_EXAMPLE, doors: 'none' }, {});
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    expect(result.output.review.flags.some((f) => f.ask.includes('door tracks'))).toBe(false);
   });
 });
 

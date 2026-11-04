@@ -27,8 +27,10 @@ export const TEMPLATE_ID = 'record-cabinet';
  * Version 19 sizes a door panel's tongue rabbets and its place in the door from the panel's
  * stock, so a one-board panel thicker than the panel thickness still leaves a tongue as thick as
  * the groove (#562). The worked examples' panels are glued up, so their output is the same.
+ * Version 20 flags the wood left above the top's door tracks, t − d_u, for an experienced builder,
+ * and refuses tracks as deep as the top is thick (#574).
  */
-export const TEMPLATE_VERSION = 19;
+export const TEMPLATE_VERSION = 20;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
