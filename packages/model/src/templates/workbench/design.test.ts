@@ -61,6 +61,22 @@ describe('the base, from its joints', () => {
       'shelf-lower': [44.75, 1],
       divider: [3.625, 1],
       'case-back': [24.8125, 1],
+      // Upper openings 21-13/16 by 3-1/4: fronts 1/16 in all round, 21-11/16. Boxes 1/2 in from
+      // each side, 20-13/16 wide, 14 deep on 14" slides (15-3/4 − 13/16 leaves 14-15/16).
+      // Bottoms between the side grooves' bottoms, 20-5/16, less 2 × 1/32.
+      'upper-drawer-front': [21.6875, 2],
+      'upper-drawer-box-front': [20.8125, 2],
+      'upper-drawer-box-back': [20.8125, 2],
+      'upper-drawer-side-left': [14, 2],
+      'upper-drawer-side-right': [14, 2],
+      'upper-drawer-bottom': [20.25, 2],
+      // The lower opening, 44-3/8 by 4-1/2.
+      'lower-drawer-front': [44.25, 1],
+      'lower-drawer-box-front': [43.375, 1],
+      'lower-drawer-box-back': [43.375, 1],
+      'lower-drawer-side-left': [14, 1],
+      'lower-drawer-side-right': [14, 1],
+      'lower-drawer-bottom': [42.8125, 1],
     });
   });
 
@@ -210,6 +226,64 @@ describe('the base, from its joints', () => {
     expect(part('case-back').stock.width).toBe(44.875);
     expect(placement('case-back', 0).origin).toEqual({ x: 8.5, y: 15.75, z: 6.40625 });
     expect(part('case-back').rabbets).toHaveLength(8);
+  });
+
+  it('sizes each drawer box from its opening and the slides', () => {
+    // Upper: 3-1/4 − 2 × 1/4 = 2-3/4 tall, from z = 27-5/8 + 1/4; the back stands on the
+    // bottom's groove, 1/4 + 1/4 up, so 2-1/4 tall. Lower: 4 tall, back 3-1/2.
+    expect(part('upper-drawer-box-front').stock).toMatchObject({ width: 2.75, thickness: 0.5 });
+    expect(part('upper-drawer-box-back').stock.width).toBe(2.25);
+    expect(part('lower-drawer-box-back').stock.width).toBe(3.5);
+    expect(placement('upper-drawer-side-left', 0).origin).toEqual({
+      x: 9.25,
+      y: 0.8125,
+      z: 27.875,
+    });
+    // The right-hand upper drawer, past the divider at 31-5/16: its box from 31-13/16.
+    expect(placement('upper-drawer-side-left', 1).origin).toEqual({
+      x: 31.8125,
+      y: 0.8125,
+      z: 27.875,
+    });
+  });
+
+  it('dovetails each box, tails on the sides, the back corners across the back alone', () => {
+    // 2-3/4 wide: (2-3/4 − 3/4 + 1/4) / 2 = 1-1/8 on center, so 2 tails. The back's 2-1/4:
+    // 1-3/4 / 1 is under 2, so 1 tail, across the side from 1/2 up.
+    const layout = (tails: number) => ({ tails, slope: 8, halfPin: 0.375, pin: 0.25 });
+    expect(part('upper-drawer-side-left').dovetails).toEqual([
+      { board: 'tails', withPart: 'upper-drawer-box-front', end: 0, baseline: 0.5, ...layout(2) },
+      {
+        board: 'tails',
+        withPart: 'upper-drawer-box-back',
+        end: 1,
+        baseline: 0.5,
+        ...layout(1),
+        span: { v0: 0.5, v1: 2.75 },
+      },
+    ]);
+    expect(part('upper-drawer-box-back').dovetails.map((d) => d.board)).toEqual(['pins', 'pins']);
+  });
+
+  it('floats each bottom in the box front and sides, its top flush with their grooves', () => {
+    // Across: from the front groove's bottom at y = 1-5/16 − 1/4, 1/8 short, to the back's
+    // outside face at 14-13/16: 13-5/8. Its top at the groove's upper wall, 1/2 up: z = 28-3/8.
+    expect(part('upper-drawer-bottom').stock).toMatchObject({ width: 13.625, thickness: 0.5 });
+    expect(placement('upper-drawer-bottom', 0).origin).toEqual({
+      x: 9.53125,
+      y: 1.1875,
+      z: 27.875,
+    });
+    expect(part('upper-drawer-bottom').rabbets.map((r) => [r.edge, r.face])).toEqual([
+      ['reference', 'near'],
+      ['first-end', 'near'],
+      ['second-end', 'near'],
+    ]);
+  });
+
+  it('insets each front 1/16 inside its opening, at its board’s 13/16', () => {
+    expect(part('upper-drawer-front').stock).toMatchObject({ width: 3.125, thickness: 0.8125 });
+    expect(placement('upper-drawer-front', 0).origin).toEqual({ x: 8.8125, y: 0.8125, z: 27.6875 });
   });
 
   it('passes the fit checks', () => {

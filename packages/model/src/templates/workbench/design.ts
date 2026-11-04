@@ -489,19 +489,17 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
   ): PlacedPart[] => {
     const id = (part: string) => `${prefix}-${part}`;
     const g = d.frontGap;
-    // The inset front, flush with the case front, its show face at y = 0.
+    // The inset front, flush with the case front, its show face at y = 0. A front within the
+    // flattening allowance of its board keeps the board's thickness, so it is placed by its stock.
     const frontLength = x1 - x0 - 2 * g;
+    const frontStock = panel(z1 - z0 - 2 * g, d.frontThickness)(frontLength);
+    const ft = frontStock.thickness;
     const front: PlacedPart = {
-      part: blank(
-        id('front'),
-        '',
-        panel(z1 - z0 - 2 * g, d.frontThickness)(frontLength),
-        frontLength,
-      ),
+      part: blank(id('front'), '', frontStock, frontLength),
       placement: frame(
         id('front'),
         instance,
-        { x: x0 + g, y: legY[0] + d.frontThickness, z: z0 + g },
+        { x: x0 + g, y: legY[0] + ft, z: z0 + g },
         X,
         Z,
         minus(Y),
@@ -509,7 +507,7 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
     };
     // The box, behind the front, as wide and deep as the slides allow.
     const sized = drawerBox(
-      { width: x1 - x0, depth: backFront - legY[0] - d.frontThickness },
+      { width: x1 - x0, depth: backFront - legY[0] - ft },
       p.slides,
       'slides',
     );
@@ -517,7 +515,7 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
     if (sized.status === 'input-needed') throw new Refusal('The slides’ figures are needed.');
     const { width: w, depth } = sized.size;
     const bx0 = x0 + (x1 - x0 - w) / 2;
-    const by0 = legY[0] + d.frontThickness;
+    const by0 = legY[0] + ft;
     const bz0 = z0 + d.clearance;
     const h = z1 - z0 - 2 * d.clearance;
     const acrossBox: [Plane, Plane] = [plane(bx0, X), plane(bx0 + w, X)];
