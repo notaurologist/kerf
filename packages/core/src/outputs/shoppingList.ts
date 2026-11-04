@@ -1,5 +1,7 @@
 import { z } from 'zod';
-import { type BoardStock, isBoardStock, isPanel } from '../lumber/panel.ts';
+import type { BoardStock } from '../lumber/panel.ts';
+import { isBoardStock, isPanel, isStripGlueUp } from '../lumber/partStock.ts';
+import { stripBoardsFor } from '../lumber/strips.ts';
 import { Issue, type Part } from '../model/types.ts';
 import { formatMargin } from '../structural/types.ts';
 import { formatBoardLength, formatLength, formatLimit } from '../units/length.ts';
@@ -7,7 +9,8 @@ import { formatBoardLength, formatLength, formatLimit } from '../units/length.ts
 // Groups parts into boards to buy (PRODUCT.md, MVP feature 4; DOMAIN.md, Buyable lengths).
 // This is simple grouping, not optimization: first-fit decreasing into the longest board, then
 // each board is shortened to the smallest buyable length that still holds its pieces. A panel's
-// boards are pieces of its board stock, each the panel's board length.
+// boards are pieces of its board stock, each the panel's board length. A strip glue-up's boards
+// are too, each its strips' length, and enough of them for the strips ripped side by side.
 
 export interface BoardOptions {
   /** Width of the saw blade's cut, charged once per piece. */
@@ -318,6 +321,13 @@ export function planLumber(
         stock.board.buyableFeet,
         { partId: part.id, name: `${part.name} board`, length: stock.boardLength },
         part.quantity * stock.boards,
+      );
+    } else if (isStripGlueUp(stock)) {
+      add(
+        stock.board,
+        stock.board.buyableFeet,
+        { partId: part.id, name: `${part.name} board for strips`, length: stock.stripLength },
+        stripBoardsFor(stock, part.quantity),
       );
     } else {
       add(
