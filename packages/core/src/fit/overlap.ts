@@ -1,12 +1,13 @@
 import { clipPolygon } from '../geometry/clip.ts';
 import { convexPieces } from '../geometry/convex.ts';
-import { partOutline, type UV } from '../geometry/outline.ts';
+import { partOutline, tenonProfile, type UV } from '../geometry/outline.ts';
 import type { Part, Placement, Vec3 } from '../model/types.ts';
 
 // Each placed part as convex solids, for checking that parts don't occupy the same space (#618):
 // its outline, with its end cuts, notches, and cutouts, split into convex pieces and run through
 // its thickness, stopping at the shoulder of each tenon thinner than the part, with that tenon a
-// box of its own, as the drawings make it (`geometry/solid.ts`). Two convex solids overlap unless some axis separates them (the separating axis
+// prism of its own across its width, square or mitered at its end, as the drawings make it
+// (`geometry/solid.ts`). Two convex solids overlap unless some axis separates them (the separating axis
 // test, for convex polyhedra: each one's face normals, and the cross products of their edges).
 
 export interface Hull {
@@ -56,15 +57,18 @@ export function hulls(part: Part, pl: Placement): Hull[] {
     (o, t) => clipPolygon(o, (p) => (t.end === 0 ? p.u - t.length : L - t.length - p.u), lerp),
     partOutline(part),
   );
-  const tenons = cheeked.map((t) => {
-    const u0 = t.end === 0 ? 0 : L - t.length;
-    const rect = [
-      { u: u0, v: t.v0 },
-      { u: u0 + t.length, v: t.v0 },
-      { u: u0 + t.length, v: t.v0 + t.width },
-      { u: u0, v: t.v0 + t.width },
-    ];
-    return prism(rect, t.n0, t.n0 + t.thickness);
+  // A tenon is its outline seen on edge, in u and n, run across its width.
+  const tenons = cheeked.map((t): Hull => {
+    const profile = tenonProfile(part, t);
+    const sides = profile.map((p, i) => {
+      const q = profile[(i + 1) % profile.length] ?? p;
+      return add(scale(pl.along, q.u - p.u), scale(pl.through, q.n - p.n));
+    });
+    return {
+      points: profile.flatMap((p) => [at(p.u, t.v0, p.n), at(p.u, t.v0 + t.width, p.n)]),
+      normals: [pl.across, ...sides.flatMap((d) => unit(cross(d, pl.across)) ?? [])],
+      edges: [pl.across, ...sides.flatMap((d) => unit(d) ?? [])],
+    };
   });
   return [...convexPieces(body).map(({ points }) => prism(points, 0, T)), ...tenons];
 }

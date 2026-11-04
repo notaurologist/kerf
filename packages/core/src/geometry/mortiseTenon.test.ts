@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Inventory } from '../inventory/tools.ts';
+import { fillMethodText, findMethod } from '../knowledge/methods.ts';
 import { stock } from '../lumber/stock.ts';
 import { cutAndDrillOperations } from '../model/operations.ts';
-import type { Part, Placement } from '../model/types.ts';
+import type { Part, Placement, Vec3 } from '../model/types.ts';
 import { selectMethod } from '../steps/select.ts';
 import { cutDetail } from './cutDetail.ts';
 import { partOutline, type UV } from './outline.ts';
@@ -130,6 +131,120 @@ describe('tenons', () => {
       (p) => p.kind === 'line' && p.role === 'visible' && p.points.length === 2,
     );
     expect(shoulders.map((p) => (p.kind === 'line' ? p.points[0]?.x : null))).toEqual([1, 19]);
+  });
+});
+
+describe('mitered tenons', () => {
+  // The apron's tenons mitered 45° across their 1/2" thickness, long at the far cheek (n = 1): the
+  // near cheek (n = 1/2) is 1/2 · tan 45° = 1/2 shorter, so it ends 1/2 in from each end.
+  const mitered: Part = {
+    ...apron,
+    tenons: apron.tenons.map((t) => ({ ...t, miter: { angle: 45, long: 'far' as const } })),
+  };
+  const pl: Placement = {
+    partId: 'apron',
+    instance: 0,
+    origin: { x: 0, y: 0, z: 0 },
+    along: { x: 1, y: 0, z: 0 },
+    across: { x: 0, y: 1, z: 0 },
+    through: { x: 0, y: 0, z: 1 },
+  };
+
+  it('are drawn with the end sloped from the far cheek at the end to the near cheek 1/2 in', () => {
+    const points = solid(mitered, pl).faces.flatMap((f) => f.points);
+    // At the near cheek, z = 1/2, the tenon reaches x = 1/2 and 19-1/2; at the far, z = 1, the ends.
+    const xsAt = (z: number) =>
+      [...new Set(points.filter((p) => p.z === z).map((p) => Math.round(p.x * 1e9) / 1e9))].sort(
+        (a, b) => a - b,
+      );
+    expect(xsAt(0.5)).toEqual([0.5, 1, 19, 19.5]);
+    expect(xsAt(1)).toContain(0);
+    expect(xsAt(1)).toContain(20);
+    // Every face is wound counterclockwise seen from outside: its normal agrees with the turn of
+    // its points (Newell's sum, which holds when three points in a row are in line).
+    for (const f of solid(mitered, pl).faces) {
+      const turn = f.points.reduce(
+        (sum, a, i) => {
+          const b = f.points[(i + 1) % f.points.length] as Vec3;
+          return {
+            x: sum.x + (a.y - b.y) * (a.z + b.z),
+            y: sum.y + (a.z - b.z) * (a.x + b.x),
+            z: sum.z + (a.x - b.x) * (a.y + b.y),
+          };
+        },
+        { x: 0, y: 0, z: 0 },
+      );
+      expect(turn.x * f.normal.x + turn.y * f.normal.y + turn.z * f.normal.z).toBeGreaterThan(0);
+    }
+  });
+
+  it('are long at the near cheek when the miter says so', () => {
+    const near: Part = {
+      ...apron,
+      tenons: apron.tenons.map((t) => ({ ...t, miter: { angle: 45, long: 'near' as const } })),
+    };
+    const points = solid(near, pl).faces.flatMap((f) => f.points);
+    const xsAt = (z: number) =>
+      new Set(points.filter((p) => p.z === z).map((p) => Math.round(p.x * 1e9) / 1e9));
+    expect(xsAt(0.5).has(0)).toBe(true);
+    expect(xsAt(1).has(0)).toBe(false);
+    expect(xsAt(1).has(0.5)).toBe(true);
+  });
+
+  it('become a miter operation after each tenon, its short cheek 1/2 shorter', () => {
+    const ops = cutAndDrillOperations([mitered], []).filter((o) => o.type.startsWith('tenon'));
+    expect(ops.map((o) => o.id)).toEqual([
+      'apron/tenon-0',
+      'apron/tenon-miter-0',
+      'apron/tenon-1',
+      'apron/tenon-miter-1',
+    ]);
+    expect(ops[1]).toEqual({
+      id: 'apron/tenon-miter-0',
+      type: 'tenon-miter',
+      partId: 'apron',
+      count: 2,
+      tenon: 0,
+      end: 0,
+      angle: 45,
+      setback: expect.closeTo(0.5, 12),
+      long: 'far',
+      tenonThickness: 0.5,
+      width: 2.5,
+    });
+  });
+
+  it('are noted on the cut detail, the short cheek dashed behind the long one on the face shown', () => {
+    const detail = cutDetail(mitered);
+    expect(detail.notes).toContain(
+      'Tenon at the first end, on the left: 1" long, 1/2" thick, 2-1/2" wide, 1/2" from the back face and 1/2" from the bottom edge. Its end is mitered 45.0° across the thickness: the cheek toward the face shown is the long one, and the other is 1/2" shorter.',
+    );
+    const hidden = detail.primitives.filter(
+      (p) => p.kind === 'line' && p.role === 'hidden' && p.points.length === 2,
+    );
+    const xs = hidden.map((p) => (p.kind === 'line' ? (p.points[0]?.x ?? 0) : 0));
+    expect(xs).toHaveLength(2);
+    expect(xs[0]).toBeCloseTo(0.5, 12);
+    expect(xs[1]).toBeCloseTo(19.5, 12);
+  });
+
+  it('are made by hand saw or chisel, with the setback and angle in the text', () => {
+    const [op] = cutAndDrillOperations([mitered], []).filter((o) => o.type === 'tenon-miter');
+    if (!op) throw new Error('no miter');
+    const marking = ['tape-measure', 'combination-square', 'clamps'];
+    const tools = (...ids: string[]): Inventory => ({
+      tools: ids.map((toolTypeId) => ({ toolTypeId, capabilities: {} })),
+    });
+    expect(selectMethod(op, tools(...marking, 'hand-saw', 'chisel')).chosen?.id).toBe(
+      'tenon-miter-hand-saw',
+    );
+    expect(selectMethod(op, tools(...marking, 'chisel')).chosen?.id).toBe('tenon-miter-chisel');
+    expect(fillMethodText(findMethod('tenon-miter-hand-saw')?.setup.join(' ') ?? '', op)).toContain(
+      '1/2" back from the end of the 1/2" tenon',
+    );
+    expect(fillMethodText(findMethod('tenon-miter-chisel')?.setup.join(' ') ?? '', op)).toContain(
+      'The lines lie at 45.0°.',
+    );
   });
 });
 

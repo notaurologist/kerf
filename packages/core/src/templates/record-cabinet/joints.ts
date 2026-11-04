@@ -21,7 +21,7 @@ import type {
 } from '../../model/types.ts';
 import { type CabinetGeometry, PANEL_END_GAP } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
-import { SCREW_INSET, SHOULDER } from './parts.ts';
+import { apronTenons, SCREW_INSET, SHOULDER } from './parts.ts';
 import type { Allowances } from './structural.ts';
 
 // The record cabinet's joints (decision 0020): the sides, partitions, and back rails housed in
@@ -164,20 +164,34 @@ export function joined(
   }
 
   // Aprons: tenons into the legs' inside faces, with shoulders above and below, centered in the
-  // apron's thickness. Each runs where the template stands it; its length comes from the tenons.
+  // apron's thickness, each mitered where it meets the other apron's tenon inside the leg. Each
+  // runs where the template stands it; its length comes from the tenons.
   const legs = [0, 1, 2, 3].map(
     (i): PlacedPart => ({ part: partOf('leg'), placement: placementOf('leg', i) }),
   );
   const shoulder = SHOULDER;
-  // The side aprons first: they enter each leg's near face, which the leg lists first.
-  const aprons = (
-    [
-      ['apron-short', 0, 0, 2],
-      ['apron-short', 1, 1, 3],
-      ['apron-long', 0, 0, 1],
-      ['apron-long', 1, 2, 3],
-    ] as const
-  ).map(([id, instance, first, second]) => {
+  // Each apron's legs at its first end and its second.
+  const layout = [
+    ['apron-short', 0, 2, 0],
+    ['apron-short', 1, 1, 3],
+    ['apron-long', 0, 0, 1],
+    ['apron-long', 1, 3, 2],
+  ] as const;
+  // Two aprons enter each leg, and their tenons meet inside it: the way each runs toward its tip.
+  const entering = layout.flatMap(([id, instance, first, second]) => {
+    const along = placementOf(id, instance).along;
+    const back = { x: -along.x, y: -along.y, z: -along.z };
+    return [
+      { leg: first, id, instance, toward: back },
+      { leg: second, id, instance, toward: along },
+    ];
+  });
+  const meet = apronTenons(p, partOf('apron-long').stock.thickness).meet;
+  const meeting = (leg: number, id: string, instance: number) =>
+    meet
+      ? entering.find((e) => e.leg === leg && !(e.id === id && e.instance === instance))?.toward
+      : undefined;
+  const aprons = layout.map(([id, instance, first, second]) => {
     const pl = placementOf(id, instance);
     const into = (leg: PlacedPart, toward: Vec3) => {
       const side = sideEntered(leg, toward);
@@ -205,6 +219,7 @@ export function joined(
         tenon,
         // The template's mortises name what they house by role.
         withPart: piece.part.role,
+        meets: meeting(end === 0 ? first : second, id, instance),
       }),
     );
     return { piece, joints };

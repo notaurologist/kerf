@@ -4,7 +4,7 @@ import type { PanelStock } from '../lumber/panel.ts';
 import { isPanel, isStripGlueUp } from '../lumber/partStock.ts';
 import { type StripGlueUp, stripBoardsFor } from '../lumber/strips.ts';
 import { boltHoleDiameter } from '../structural/boltHoles.ts';
-import type { BoredHole, Dado, HardwareItem, Part } from './types.ts';
+import { type BoredHole, type Dado, type HardwareItem, miterSetback, type Part } from './types.ts';
 
 // Operations: what needs to happen to each part, before any choice of how (DOMAIN.md, Operations).
 // Methods (#104) say how, given tools; build steps (#105) order them. Generic: the cuts and bolt
@@ -244,6 +244,21 @@ export const Operation = z.discriminatedUnion('type', [
     cheekFront: z.number(),
     shoulderReference: z.number(),
     shoulderFar: z.number(),
+  }),
+  /**
+   * A tenon's end mitered across its thickness (Tenon.miter), after the tenon is cut: `angle` from
+   * square, the short cheek `setback` shorter than the long one, which faces `long`.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('tenon-miter'),
+    tenon: z.number().int().nonnegative(),
+    end,
+    angle: z.number(),
+    setback: z.number(),
+    long: z.enum(['near', 'far']),
+    tenonThickness: z.number(),
+    width: z.number(),
   }),
   /**
    * Through dovetails' tails on a square end (Part.dovetails): `tails` of them, each `tailWide` at
@@ -543,6 +558,21 @@ export function cutAndDrillOperations(
         shoulderReference: t.v0,
         shoulderFar: width - t.v0 - t.width,
       });
+      if (t.miter) {
+        ops.push({
+          id: `${part.id}/tenon-miter-${i}`,
+          type: 'tenon-miter',
+          partId: part.id,
+          count: part.quantity,
+          tenon: i,
+          end: t.end,
+          angle: t.miter.angle,
+          setback: miterSetback(t),
+          long: t.miter.long,
+          tenonThickness: t.thickness,
+          width: t.width,
+        });
+      }
     });
     part.dovetails.forEach((d, i) => {
       const id = `${part.id}/dovetails-${i}`;
@@ -1046,6 +1076,7 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   cutout: 'Cutout',
   mortise: 'Mortise',
   tenon: 'Tenon',
+  'tenon-miter': 'Miter a tenon’s end',
   'dovetail-tails': 'Dovetail tails',
   'dovetail-pins': 'Dovetail pins',
   'screw-holes': 'Screw holes',

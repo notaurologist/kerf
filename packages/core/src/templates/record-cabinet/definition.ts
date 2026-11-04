@@ -223,7 +223,7 @@ export const recordCabinet: TemplateDefinition<
   storedOutputs: StoredRecordCabinetOutputs,
   form: RECORD_CABINET_FORM,
   checkFields,
-  snapshotVersion: 11,
+  snapshotVersion: 12,
   // Shape 3 to 4 adds assembly and finish operations, which older plans simply do not have.
   snapshotUpgrades: {
     1: addFlattening,
@@ -239,6 +239,9 @@ export const recordCabinet: TemplateDefinition<
     9: (snapshot) => snapshot,
     // Shape 10 to 11 adds the project's suggested values (#417): every older plan's were entered.
     10: noSuggestions,
+    // Shape 11 to 12 adds a tenon's miter and the operation that cuts it, which older plans do not
+    // have.
+    11: (snapshot) => snapshot,
   },
   examples: EXAMPLES,
   questions: CABINET_QUESTIONS,

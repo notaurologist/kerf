@@ -352,6 +352,62 @@ describe('parts that overlap', () => {
   });
 });
 
+describe('two tenons that meet inside a leg', () => {
+  // A 2" square leg standing along z at the corner, x and y 0 to 2. Two 1" aprons, 3" wide, set
+  // back 1/4 from the leg's outside faces (x = 0 and y = 0), each with a tenon 1-1/4 long, 1/4
+  // thick, centered in the apron (n 3/8 to 5/8), 2" wide from 1/2 above its bottom at z = 2. Apron
+  // a runs along x, its far face outside at y = 1/4, so its tenon is y 5/8 to 7/8 and its tip at
+  // x = 3/4. Apron b runs along y, its near face outside at x = 1/4, its tenon x 5/8 to 7/8 and its
+  // tip at y = 3/4.
+  const tenon = { end: 0 as const, length: 1.25, n0: 0.375, thickness: 0.25, v0: 0.5, width: 2 };
+  const mortise = { u0: 2.5, u1: 4.5, a0: 0.625, a1: 0.875, depth: 1.25 };
+  const leg = part('leg', 10, 2, 2, {
+    mortises: [
+      { withPart: 'a', side: 'far-edge', ...mortise },
+      { withPart: 'b', side: 'far', ...mortise },
+    ],
+  });
+  const placed = [
+    place('leg', at(0, 0, 0), Z, X, Y),
+    place('a', at(0.75, 1.25, 2), X, Z, minus(Y)),
+    place('b', at(0.25, 0.75, 2), Y, Z, X),
+  ];
+  const aprons = (a: Part['tenons'][number]['miter'], b: Part['tenons'][number]['miter']) => [
+    leg,
+    part('a', 6, 3, 1, { tenons: [{ ...tenon, ...(a ? { miter: a } : {}) }] }),
+    part('b', 6, 3, 1, { tenons: [{ ...tenon, ...(b ? { miter: b } : {}) }] }),
+  ];
+
+  it('report square tenons that run into each other: x and y 3/4 to 7/8, 1/8 each way', () => {
+    expect(checks(aprons(undefined, undefined), placed)).toEqual(['overlap a']);
+  });
+
+  it('accept them mitered 45° from the outside cheeks, 1/4 apart along x', () => {
+    // a's long point at y = 5/8 reaches x = 3/4, its short cheek at y = 7/8 stops at x = 1, so it
+    // keeps x − y ≥ 1/8; b's keeps y − x ≥ 1/8, so x − y ≤ −1/8.
+    expect(checks(aprons({ angle: 45, long: 'far' }, { angle: 45, long: 'near' }), placed)).toEqual(
+      [],
+    );
+  });
+
+  it('report them mitered from their inside cheeks, which leaves the long points in the way', () => {
+    // Each then keeps x + y ≥ 1-5/8, and both are in x and y 3/4 to 7/8 above that line: a
+    // triangle 1/8 on each leg around (7/8, 7/8).
+    expect(checks(aprons({ angle: 45, long: 'near' }, { angle: 45, long: 'far' }), placed)).toEqual(
+      ['overlap a'],
+    );
+  });
+
+  it('report a miter that runs back past the tenon’s shoulder', () => {
+    // A 60° miter across 1/4 sets the short cheek back 1/4 · tan 60° = 0.433, short of 1-1/4; on
+    // a tenon 3/8 long it runs past the shoulder.
+    const short = part('a', 6, 3, 1, {
+      tenons: [{ ...tenon, length: 0.375, miter: { angle: 60, long: 'far' } }],
+    });
+    expect(checks([short], [place('a', at(0, 0, 0), X, Z, minus(Y))])).toContain('within a');
+  });
+});
+
 describe('holes that go through', () => {
   // A 2 thick block, a 3/4 hole bored down through it at its middle, onto a board below.
   const block = (holes: Part['boredHoles']) => part('block', 6, 6, 2, { boredHoles: holes });

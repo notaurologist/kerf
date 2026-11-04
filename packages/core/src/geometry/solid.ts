@@ -2,12 +2,12 @@ import { boredSide } from '../model/operations.ts';
 import type { BoredHole, LocalPoint, Mortise, Part, Placement } from '../model/types.ts';
 import { clipPolygon } from './clip.ts';
 import { convexPieces, isConvex } from './convex.ts';
-import { partOutline, type UV } from './outline.ts';
+import { partOutline, tenonProfile, type UN, type UV } from './outline.ts';
 import { add, centroid, cross, dot, scale, sub, unit, type Vec3 } from './vec.ts';
 
 // A part instance as a solid: its outline extruded through its thickness and placed in 3D by its
-// placement (#49). Every part is a prism, but for a tenon thinner than the part, which is a box of
-// its own beyond the shoulder. A face with a notch or cutout is concave, so it comes in convex
+// placement (#49). Every part is a prism, but for a tenon thinner than the part, which is a prism
+// of its own beyond the shoulder: its outline seen on edge, square or mitered, run across its width. A face with a notch or cutout is concave, so it comes in convex
 // pieces for depth ordering, with the edges between them marked as not the part's own. Each dado,
 // mortise, and bored hole is drawn as its outline on the face or edge it is cut into: a decal,
 // painted over that face. A mortise or hole that goes through is outlined where it comes out too.
@@ -46,7 +46,7 @@ function toWorld(pl: Placement, u: number, v: number, n = 0): Vec3 {
 export function solid(part: Part, pl: Placement, offset: Vec3 = { x: 0, y: 0, z: 0 }): Solid {
   const T = part.stock.thickness;
   const L = part.length;
-  // The body stops at the shoulder of each tenon thinner than the part; the tenon is its own box.
+  // The body stops at the shoulder of each tenon thinner than the part; the tenon is its own prism.
   const cheeked = part.tenons.filter((t) => t.thickness < T - 1e-9);
   const lerp = (a: UV, b: UV, f: number): UV => ({
     u: a.u + (b.u - a.u) * f,
@@ -125,10 +125,7 @@ export function solid(part: Part, pl: Placement, offset: Vec3 = { x: 0, y: 0, z:
   }
   for (const hole of part.boredHoles) faces.push(...holeOutlines(pl, hole, at));
   for (const t of cheeked) {
-    const u0 = t.end === 0 ? 0 : L - t.length;
-    faces.push(
-      ...box(pl, offset, [u0, u0 + t.length], [t.v0, t.v0 + t.width], [t.n0, t.n0 + t.thickness]),
-    );
+    faces.push(...acrossPrism(pl, offset, tenonProfile(part, t), [t.v0, t.v0 + t.width]));
   }
   // Side faces: the outline is counterclockwise in (u, v), so (dv, −du) points out.
   for (let i = 0; i < outline.length; i++) {
@@ -258,30 +255,40 @@ function tapered(
   return { partId: pl.partId, instance: pl.instance, faces };
 }
 
-/** A box's six faces, each counterclockwise seen from outside, from ranges in u, v, and n. */
-function box(
+/**
+ * A prism run across the part from v0 to v1, from an outline seen on edge, counterclockwise in u
+ * and n: its two ends and a side for each edge of the outline, each counterclockwise seen from
+ * outside.
+ */
+function acrossPrism(
   pl: Placement,
   offset: Vec3,
-  [u0, u1]: [number, number],
+  profile: readonly UN[],
   [v0, v1]: [number, number],
-  [n0, n1]: [number, number],
 ): Face[] {
-  const p = (u: number, v: number, n: number) => add(toWorld(pl, u, v, n), offset);
-  const neg = (d: Vec3) => scale(d, -1);
-  return [
-    {
-      points: [p(u0, v0, n0), p(u0, v1, n0), p(u1, v1, n0), p(u1, v0, n0)],
-      normal: neg(pl.through),
-    },
-    { points: [p(u0, v0, n1), p(u1, v0, n1), p(u1, v1, n1), p(u0, v1, n1)], normal: pl.through },
-    {
-      points: [p(u0, v0, n0), p(u1, v0, n0), p(u1, v0, n1), p(u0, v0, n1)],
-      normal: neg(pl.across),
-    },
-    { points: [p(u0, v1, n0), p(u0, v1, n1), p(u1, v1, n1), p(u1, v1, n0)], normal: pl.across },
-    { points: [p(u0, v0, n0), p(u0, v0, n1), p(u0, v1, n1), p(u0, v1, n0)], normal: neg(pl.along) },
-    { points: [p(u1, v0, n0), p(u1, v1, n0), p(u1, v1, n1), p(u1, v0, n1)], normal: pl.along },
+  const p = (q: UN, v: number) => add(toWorld(pl, q.u, v, q.n), offset);
+  const facing = (points: Vec3[], normal: Vec3): Face => {
+    const [a, b, c] = points as [Vec3, Vec3, Vec3];
+    const turn = cross(sub(b, a), sub(c, a));
+    return { points: dot(turn, normal) < 0 ? points.reverse() : points, normal };
+  };
+  const faces = [
+    facing(
+      profile.map((q) => p(q, v0)),
+      scale(pl.across, -1),
+    ),
+    facing(
+      profile.map((q) => p(q, v1)),
+      pl.across,
+    ),
   ];
+  profile.forEach((a, i) => {
+    const b = profile[(i + 1) % profile.length] as UN;
+    // The outline is counterclockwise in (u, n), so (dn, −du) points out.
+    const normal = unit(add(scale(pl.along, b.n - a.n), scale(pl.through, -(b.u - a.u))));
+    faces.push(facing([p(a, v0), p(b, v0), p(b, v1), p(a, v1)], normal));
+  });
+  return faces;
 }
 
 export const solidCentroid = (s: Solid): Vec3 => centroid(s.faces.flatMap((f) => f.points));

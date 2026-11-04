@@ -36,8 +36,12 @@ export const TEMPLATE_ID = 'record-cabinet';
  * before. The doors' tracks, grooves, tenons and tongues, and the aprons' mortises and tenons, are
  * sized from the planed parts (#609). The worked examples' boards are within the allowance, so
  * their output is the same.
+ * Version 22 miters the aprons' tenons where two meet inside a leg, 45° from a long point at the
+ * outside cheek, as data the drawings, cut details, and build steps show, and turns the back
+ * apron and the left side apron end for end so every apron's far face is outside (#629). Tenons
+ * that would still run into each other, or are too short to miter, are refused.
  */
-export const TEMPLATE_VERSION = 21;
+export const TEMPLATE_VERSION = 22;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,

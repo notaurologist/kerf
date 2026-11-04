@@ -20,6 +20,7 @@ import { entering, housingPlane, sideEntered } from './housedEnd.ts';
 
 /** Below this, two lengths are the same. */
 const EPSILON = 1e-9;
+const RAD = Math.PI / 180;
 
 const dot = (a: Vec3, b: Vec3) => a.x * b.x + a.y * b.y + a.z * b.z;
 const sub = (a: Vec3, b: Vec3): Vec3 => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
@@ -49,6 +50,37 @@ export interface MortiseAndTenon {
   tenon: TenonSize;
   /** What the mortise records it houses; the tenoned part's ID unless the template names its role. */
   withPart?: string;
+  /**
+   * The way another tenon runs toward its tip where it meets this one inside the mortised part,
+   * as two aprons' tenons do in a leg: this tenon's end is mitered to clear it.
+   */
+  meets?: Vec3;
+}
+
+/**
+ * The miter that lets a tenon clear another meeting it inside the mortised part, both lying in
+ * the plane of this tenon's thickness: the end cut along the line halfway between the two
+ * tenons, 90° less half the angle between the ways they run, so two tenons at right angles are
+ * each mitered 45°. The cheek on the side the other tenon runs toward is the long one.
+ */
+function meetingMiter(
+  tenoned: PlacedPart,
+  end: 0 | 1,
+  meets: Vec3,
+): { ok: true; miter: NonNullable<Tenon['miter']> } | Refused {
+  const pl = tenoned.placement;
+  const length = Math.hypot(meets.x, meets.y, meets.z);
+  const other = plus({ x: 0, y: 0, z: 0 }, meets, 1 / length);
+  const toward = end === 1 ? pl.along : plus({ x: 0, y: 0, z: 0 }, pl.along, -1);
+  if (!(length > EPSILON) || Math.abs(dot(other, pl.across)) > EPSILON) {
+    return { ok: false, message: 'The other tenon does not meet this one across its thickness.' };
+  }
+  const between = Math.acos(Math.max(-1, Math.min(1, dot(toward, other)))) / RAD;
+  const angle = 90 - between / 2;
+  if (!(angle > EPSILON && angle < 90 - EPSILON)) {
+    return { ok: false, message: 'The tenons run in line, so a miter does not part them.' };
+  }
+  return { ok: true, miter: { angle, long: dot(other, pl.through) > 0 ? 'far' : 'near' } };
 }
 
 /** The tenon on the end and the mortise it fits, on whichever side of the mortised part it enters. */
@@ -65,11 +97,13 @@ export function mortiseAndTenon(
     [tenon.n0, tenon.n0 + tenon.thickness],
   );
   if (!found.ok) return found;
+  const mitered = joint.meets ? meetingMiter(tenoned, end, joint.meets) : undefined;
+  if (mitered && !mitered.ok) return mitered;
   const { side, u0, u1, a0, a1 } = found.entering;
   return {
     ok: true,
     mortise: { withPart: joint.withPart ?? tenoned.part.id, side, u0, u1, a0, a1, depth },
-    tenon: { end, length: depth, ...tenon },
+    tenon: { end, length: depth, ...tenon, ...(mitered ? { miter: mitered.miter } : {}) },
   };
 }
 

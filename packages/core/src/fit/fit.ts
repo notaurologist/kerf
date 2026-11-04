@@ -1,7 +1,15 @@
 import { cornerGeometry, dovetailSpan } from '../joinery/dovetails.ts';
 import { plateScrewOffsets } from '../model/cupHinge.ts';
 import { boredSide } from '../model/operations.ts';
-import type { BoredHole, Dovetails, Mortise, Part, Placement, Vec3 } from '../model/types.ts';
+import {
+  type BoredHole,
+  type Dovetails,
+  type Mortise,
+  miterSetback,
+  type Part,
+  type Placement,
+  type Vec3,
+} from '../model/types.ts';
 import type { HardwareLine } from '../outputs/hardwareList.ts';
 import { bounds, type Hull, hulls, inside, overlapDepth } from './overlap.ts';
 
@@ -204,6 +212,11 @@ function withinProblems(pieces: readonly Piece[]): FitProblem[] {
         within(t.length, [0, L])
           ? []
           : [`The tenon on end ${t.end} runs past the part's end.`],
+      ),
+      ...part.tenons.flatMap((t) =>
+        miterSetback(t) < t.length
+          ? []
+          : [`The miter on the tenon on end ${t.end} runs back past its shoulder.`],
       ),
       ...part.dovetails.flatMap((d) => {
         const at = `The dovetail ${d.board} on end ${d.end}`;
@@ -861,9 +874,9 @@ function mortiseBox(h: Piece, m: Mortise): Box {
  * The pairs a joint puts one inside the other, by index. A part may reach into another where it
  * is named by one of that part's joints (a mortise, dado, or dovetails) or where it reaches into
  * one of that part's cuts (a mortise, dado, or groove), as a tenon, a housed end, a tongue, or a
- * door's edge in its track does; and two parts may meet inside a third's mortises, as tenons
- * mitered where they meet in a leg do. Their fit is the joint checks'; the overlap check leaves
- * the pair out whole.
+ * door's edge in its track does. Their fit is the joint checks'; the overlap check leaves the pair
+ * out whole. Two parts that meet inside a third, as two tenons in one leg do, are not joined to
+ * each other: their solids have to clear, a mitered tenon's included.
  */
 function joinedPairs(pieces: readonly Piece[], solids: readonly Hull[][]): Set<string> {
   const named = (p: Piece, name: string) => p.part.id === name || p.part.role === name;
@@ -880,9 +893,7 @@ function joinedPairs(pieces: readonly Piece[], solids: readonly Hull[][]): Set<s
     const names = [...h.part.mortises, ...h.part.dadoes, ...h.part.dovetails].map(
       (f) => f.withPart,
     );
-    const mortises = h.part.mortises.map((m) => mortiseBox(h, m));
-    const cuts = [...grooveBoxes(h), ...mortises];
-    const inMortises: number[] = [];
+    const cuts = [...grooveBoxes(h), ...h.part.mortises.map((m) => mortiseBox(h, m))];
     pieces.forEach((p, j) => {
       if (i === j) return;
       if (names.some((name) => named(p, name)) || reaches(j, h, cuts)) join(i, j);
@@ -903,11 +914,7 @@ function joinedPairs(pieces: readonly Piece[], solids: readonly Hull[][]): Set<s
         ),
       );
       if (stub) join(i, j);
-      if (reaches(j, h, mortises)) inMortises.push(j);
     });
-    for (const [k, a] of inMortises.entries()) {
-      for (const b of inMortises.slice(k + 1)) join(a, b);
-    }
   });
   return pairs;
 }

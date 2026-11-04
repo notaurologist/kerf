@@ -205,7 +205,7 @@
           "endsParallel": true,
           "marks": [],
           "notes": [
-            "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
+            "A tenon at each end goes into a leg, its end mitered where it meets the other apron’s tenon inside. The face the cut detail shows goes outside, and its cheek is the long one."
           ],
           "settings": [
             "0.0°",
@@ -232,7 +232,7 @@
           "endsParallel": true,
           "marks": [],
           "notes": [
-            "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
+            "A tenon at each end goes into a leg, its end mitered where it meets the other apron’s tenon inside. The face the cut detail shows goes outside, and its cheek is the long one."
           ],
           "settings": [
             "0.0°",
@@ -2826,6 +2826,19 @@
           "shoulderFar": 0.25
         },
         {
+          "id": "apron-long/tenon-miter-0",
+          "count": 2,
+          "partId": "apron-long",
+          "type": "tenon-miter",
+          "tenon": 0,
+          "end": 0,
+          "angle": 45,
+          "setback": 0.24999999999999997,
+          "long": "far",
+          "tenonThickness": 0.25,
+          "width": 2
+        },
+        {
           "id": "apron-long/tenon-1",
           "count": 2,
           "partId": "apron-long",
@@ -2840,6 +2853,19 @@
           "cheekFront": 0.28125,
           "shoulderReference": 0.25,
           "shoulderFar": 0.25
+        },
+        {
+          "id": "apron-long/tenon-miter-1",
+          "count": 2,
+          "partId": "apron-long",
+          "type": "tenon-miter",
+          "tenon": 1,
+          "end": 1,
+          "angle": 45,
+          "setback": 0.24999999999999997,
+          "long": "far",
+          "tenonThickness": 0.25,
+          "width": 2
         },
         {
           "id": "apron-short/board-end-0",
@@ -2905,6 +2931,19 @@
           "shoulderFar": 0.25
         },
         {
+          "id": "apron-short/tenon-miter-0",
+          "count": 2,
+          "partId": "apron-short",
+          "type": "tenon-miter",
+          "tenon": 0,
+          "end": 0,
+          "angle": 45,
+          "setback": 0.24999999999999997,
+          "long": "far",
+          "tenonThickness": 0.25,
+          "width": 2
+        },
+        {
           "id": "apron-short/tenon-1",
           "count": 2,
           "partId": "apron-short",
@@ -2919,6 +2958,19 @@
           "cheekFront": 0.28125,
           "shoulderReference": 0.25,
           "shoulderFar": 0.25
+        },
+        {
+          "id": "apron-short/tenon-miter-1",
+          "count": 2,
+          "partId": "apron-short",
+          "type": "tenon-miter",
+          "tenon": 1,
+          "end": 1,
+          "angle": 45,
+          "setback": 0.24999999999999997,
+          "long": "far",
+          "tenonThickness": 0.25,
+          "width": 2
         },
         {
           "id": "cleat/board-end-0",
@@ -3871,9 +3923,13 @@
         "title": "Cut the tenons on the aprons",
         "operationIds": [
           "apron-long/tenon-0",
+          "apron-long/tenon-miter-0",
           "apron-long/tenon-1",
+          "apron-long/tenon-miter-1",
           "apron-short/tenon-0",
-          "apron-short/tenon-1"
+          "apron-short/tenon-miter-0",
+          "apron-short/tenon-1",
+          "apron-short/tenon-miter-1"
         ],
         "categories": []
       },
@@ -21893,6 +21949,112 @@
               },
               {
                 "operation": {
+                  "id": "apron-long/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-long/tenon-1",
                   "count": 2,
                   "partId": "apron-long",
@@ -21976,6 +22138,112 @@
                       },
                       {
                         "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-long/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
                         "anyOf": [
                           "Combination square",
                           "Rafter square"
@@ -22097,6 +22365,112 @@
               },
               {
                 "operation": {
+                  "id": "apron-short/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-short/tenon-1",
                   "count": 2,
                   "partId": "apron-short",
@@ -22180,6 +22554,112 @@
                       },
                       {
                         "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-short/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
                         "anyOf": [
                           "Combination square",
                           "Rafter square"
@@ -39085,6 +39565,83 @@
               },
               {
                 "operation": {
+                  "id": "apron-long/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 1/4\" back from the end of the 1/4\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-long/tenon-1",
                   "count": 2,
                   "partId": "apron-long",
@@ -39130,6 +39687,83 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-long/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 1/4\" back from the end of the 1/4\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               },
@@ -39185,6 +39819,83 @@
               },
               {
                 "operation": {
+                  "id": "apron-short/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 1/4\" back from the end of the 1/4\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-short/tenon-1",
                   "count": 2,
                   "partId": "apron-short",
@@ -39230,6 +39941,83 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-short/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 1/4\" back from the end of the 1/4\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               }
@@ -42251,7 +43039,7 @@
           "endsParallel": true,
           "marks": [],
           "notes": [
-            "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
+            "A tenon at each end goes into a leg, its end mitered where it meets the other apron’s tenon inside. The face the cut detail shows goes outside, and its cheek is the long one."
           ],
           "settings": [
             "0.0°",
@@ -42278,7 +43066,7 @@
           "endsParallel": true,
           "marks": [],
           "notes": [
-            "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
+            "A tenon at each end goes into a leg, its end mitered where it meets the other apron’s tenon inside. The face the cut detail shows goes outside, and its cheek is the long one."
           ],
           "settings": [
             "0.0°",
@@ -44011,6 +44799,19 @@
           "shoulderFar": 0.25
         },
         {
+          "id": "apron-long/tenon-miter-0",
+          "count": 2,
+          "partId": "apron-long",
+          "type": "tenon-miter",
+          "tenon": 0,
+          "end": 0,
+          "angle": 45,
+          "setback": 0.24999999999999997,
+          "long": "far",
+          "tenonThickness": 0.25,
+          "width": 2
+        },
+        {
           "id": "apron-long/tenon-1",
           "count": 2,
           "partId": "apron-long",
@@ -44025,6 +44826,19 @@
           "cheekFront": 0.28125,
           "shoulderReference": 0.25,
           "shoulderFar": 0.25
+        },
+        {
+          "id": "apron-long/tenon-miter-1",
+          "count": 2,
+          "partId": "apron-long",
+          "type": "tenon-miter",
+          "tenon": 1,
+          "end": 1,
+          "angle": 45,
+          "setback": 0.24999999999999997,
+          "long": "far",
+          "tenonThickness": 0.25,
+          "width": 2
         },
         {
           "id": "apron-short/board-end-0",
@@ -44090,6 +44904,19 @@
           "shoulderFar": 0.25
         },
         {
+          "id": "apron-short/tenon-miter-0",
+          "count": 2,
+          "partId": "apron-short",
+          "type": "tenon-miter",
+          "tenon": 0,
+          "end": 0,
+          "angle": 45,
+          "setback": 0.24999999999999997,
+          "long": "far",
+          "tenonThickness": 0.25,
+          "width": 2
+        },
+        {
           "id": "apron-short/tenon-1",
           "count": 2,
           "partId": "apron-short",
@@ -44104,6 +44931,19 @@
           "cheekFront": 0.28125,
           "shoulderReference": 0.25,
           "shoulderFar": 0.25
+        },
+        {
+          "id": "apron-short/tenon-miter-1",
+          "count": 2,
+          "partId": "apron-short",
+          "type": "tenon-miter",
+          "tenon": 1,
+          "end": 1,
+          "angle": 45,
+          "setback": 0.24999999999999997,
+          "long": "far",
+          "tenonThickness": 0.25,
+          "width": 2
         },
         {
           "id": "cleat/board-end-0",
@@ -45056,9 +45896,13 @@
         "title": "Cut the tenons on the aprons",
         "operationIds": [
           "apron-long/tenon-0",
+          "apron-long/tenon-miter-0",
           "apron-long/tenon-1",
+          "apron-long/tenon-miter-1",
           "apron-short/tenon-0",
-          "apron-short/tenon-1"
+          "apron-short/tenon-miter-0",
+          "apron-short/tenon-1",
+          "apron-short/tenon-miter-1"
         ],
         "categories": []
       },
@@ -63078,6 +63922,112 @@
               },
               {
                 "operation": {
+                  "id": "apron-long/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-long/tenon-1",
                   "count": 2,
                   "partId": "apron-long",
@@ -63161,6 +64111,112 @@
                       },
                       {
                         "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-long/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
                         "anyOf": [
                           "Combination square",
                           "Rafter square"
@@ -63282,6 +64338,112 @@
               },
               {
                 "operation": {
+                  "id": "apron-short/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-short/tenon-1",
                   "count": 2,
                   "partId": "apron-short",
@@ -63365,6 +64527,112 @@
                       },
                       {
                         "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-short/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
                         "anyOf": [
                           "Combination square",
                           "Rafter square"
@@ -80270,6 +81538,83 @@
               },
               {
                 "operation": {
+                  "id": "apron-long/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 1/4\" back from the end of the 1/4\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-long/tenon-1",
                   "count": 2,
                   "partId": "apron-long",
@@ -80315,6 +81660,83 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-long/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 1/4\" back from the end of the 1/4\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               },
@@ -80370,6 +81792,83 @@
               },
               {
                 "operation": {
+                  "id": "apron-short/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 1/4\" back from the end of the 1/4\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-short/tenon-1",
                   "count": 2,
                   "partId": "apron-short",
@@ -80415,6 +81914,83 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-short/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.24999999999999997,
+                  "long": "far",
+                  "tenonThickness": 0.25,
+                  "width": 2
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 1/4\" back from the end of the 1/4\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               }
@@ -83436,7 +85012,7 @@
           "endsParallel": true,
           "marks": [],
           "notes": [
-            "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
+            "A tenon at each end goes into a leg, its end mitered where it meets the other apron’s tenon inside. The face the cut detail shows goes outside, and its cheek is the long one."
           ],
           "settings": [
             "0.0°",
@@ -83463,7 +85039,7 @@
           "endsParallel": true,
           "marks": [],
           "notes": [
-            "A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it."
+            "A tenon at each end goes into a leg, its end mitered where it meets the other apron’s tenon inside. The face the cut detail shows goes outside, and its cheek is the long one."
           ],
           "settings": [
             "0.0°",
@@ -85601,6 +87177,19 @@
           "shoulderFar": 0.25
         },
         {
+          "id": "apron-long/tenon-miter-0",
+          "count": 2,
+          "partId": "apron-long",
+          "type": "tenon-miter",
+          "tenon": 0,
+          "end": 0,
+          "angle": 45,
+          "setback": 0.37499999999999994,
+          "long": "far",
+          "tenonThickness": 0.375,
+          "width": 1.5
+        },
+        {
           "id": "apron-long/tenon-1",
           "count": 2,
           "partId": "apron-long",
@@ -85615,6 +87204,19 @@
           "cheekFront": 0.34375,
           "shoulderReference": 0.25,
           "shoulderFar": 0.25
+        },
+        {
+          "id": "apron-long/tenon-miter-1",
+          "count": 2,
+          "partId": "apron-long",
+          "type": "tenon-miter",
+          "tenon": 1,
+          "end": 1,
+          "angle": 45,
+          "setback": 0.37499999999999994,
+          "long": "far",
+          "tenonThickness": 0.375,
+          "width": 1.5
         },
         {
           "id": "apron-short/board-end-0",
@@ -85680,6 +87282,19 @@
           "shoulderFar": 0.25
         },
         {
+          "id": "apron-short/tenon-miter-0",
+          "count": 2,
+          "partId": "apron-short",
+          "type": "tenon-miter",
+          "tenon": 0,
+          "end": 0,
+          "angle": 45,
+          "setback": 0.37499999999999994,
+          "long": "far",
+          "tenonThickness": 0.375,
+          "width": 1.5
+        },
+        {
           "id": "apron-short/tenon-1",
           "count": 2,
           "partId": "apron-short",
@@ -85694,6 +87309,19 @@
           "cheekFront": 0.34375,
           "shoulderReference": 0.25,
           "shoulderFar": 0.25
+        },
+        {
+          "id": "apron-short/tenon-miter-1",
+          "count": 2,
+          "partId": "apron-short",
+          "type": "tenon-miter",
+          "tenon": 1,
+          "end": 1,
+          "angle": 45,
+          "setback": 0.37499999999999994,
+          "long": "far",
+          "tenonThickness": 0.375,
+          "width": 1.5
         },
         {
           "id": "cleat/board-end-0",
@@ -86156,9 +87784,13 @@
         "title": "Cut the tenons on the aprons",
         "operationIds": [
           "apron-long/tenon-0",
+          "apron-long/tenon-miter-0",
           "apron-long/tenon-1",
+          "apron-long/tenon-miter-1",
           "apron-short/tenon-0",
-          "apron-short/tenon-1"
+          "apron-short/tenon-miter-0",
+          "apron-short/tenon-1",
+          "apron-short/tenon-miter-1"
         ],
         "categories": []
       },
@@ -96661,6 +98293,112 @@
               },
               {
                 "operation": {
+                  "id": "apron-long/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.37499999999999994,
+                  "long": "far",
+                  "tenonThickness": 0.375,
+                  "width": 1.5
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-long/tenon-1",
                   "count": 2,
                   "partId": "apron-long",
@@ -96744,6 +98482,112 @@
                       },
                       {
                         "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-long/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.37499999999999994,
+                  "long": "far",
+                  "tenonThickness": 0.375,
+                  "width": 1.5
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
                         "anyOf": [
                           "Combination square",
                           "Rafter square"
@@ -96865,6 +98709,112 @@
               },
               {
                 "operation": {
+                  "id": "apron-short/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.37499999999999994,
+                  "long": "far",
+                  "tenonThickness": 0.375,
+                  "width": 1.5
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-short/tenon-1",
                   "count": 2,
                   "partId": "apron-short",
@@ -96948,6 +98898,112 @@
                       },
                       {
                         "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-short/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.37499999999999994,
+                  "long": "far",
+                  "tenonThickness": 0.375,
+                  "width": 1.5
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "skills": [],
+                "alternatives": [
+                  {
+                    "methodId": "tenon-miter-chisel",
+                    "methodName": "With a chisel",
+                    "gaps": [
+                      {
+                        "use": "paring the miter",
+                        "anyOf": [
+                          "Chisel"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "holding the work",
+                        "anyOf": [
+                          "Clamps"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "methodId": "tenon-miter-hand-saw",
+                    "methodName": "With a hand saw",
+                    "gaps": [
+                      {
+                        "use": "sawing the miter",
+                        "anyOf": [
+                          "Hand saw"
+                        ]
+                      },
+                      {
+                        "use": "paring to the line",
+                        "anyOf": [
+                          "Chisel",
+                          "Block plane"
+                        ]
+                      },
+                      {
+                        "use": "measuring",
+                        "anyOf": [
+                          "Tape measure"
+                        ]
+                      },
+                      {
+                        "use": "marking a square line",
+                        "anyOf": [
+                          "Combination square",
+                          "Rafter square"
+                        ]
+                      },
+                      {
+                        "use": "joining marks with a straight line",
                         "anyOf": [
                           "Combination square",
                           "Rafter square"
@@ -106709,6 +108765,83 @@
               },
               {
                 "operation": {
+                  "id": "apron-long/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.37499999999999994,
+                  "long": "far",
+                  "tenonThickness": 0.375,
+                  "width": 1.5
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 3/8\" back from the end of the 3/8\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 1-1/2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-long/tenon-1",
                   "count": 2,
                   "partId": "apron-long",
@@ -106754,6 +108887,83 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-long/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-long",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.37499999999999994,
+                  "long": "far",
+                  "tenonThickness": 0.375,
+                  "width": 1.5
+                },
+                "partIds": [
+                  "apron-long"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 3/8\" back from the end of the 3/8\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 1-1/2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               },
@@ -106809,6 +109019,83 @@
               },
               {
                 "operation": {
+                  "id": "apron-short/tenon-miter-0",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 0,
+                  "end": 0,
+                  "angle": 45,
+                  "setback": 0.37499999999999994,
+                  "long": "far",
+                  "tenonThickness": 0.375,
+                  "width": 1.5
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 3/8\" back from the end of the 3/8\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 1-1/2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
                   "id": "apron-short/tenon-1",
                   "count": 2,
                   "partId": "apron-short",
@@ -106854,6 +109141,83 @@
                     ]
                   }
                 ],
+                "inputNeeded": [],
+                "suggestions": []
+              },
+              {
+                "operation": {
+                  "id": "apron-short/tenon-miter-1",
+                  "count": 2,
+                  "partId": "apron-short",
+                  "type": "tenon-miter",
+                  "tenon": 1,
+                  "end": 1,
+                  "angle": 45,
+                  "setback": 0.37499999999999994,
+                  "long": "far",
+                  "tenonThickness": 0.375,
+                  "width": 1.5
+                },
+                "partIds": [
+                  "apron-short"
+                ],
+                "method": {
+                  "id": "tenon-miter-chisel",
+                  "name": "With a chisel",
+                  "tools": [
+                    {
+                      "use": "paring the miter",
+                      "toolTypeId": "chisel"
+                    },
+                    {
+                      "use": "measuring",
+                      "toolTypeId": "tape-measure"
+                    },
+                    {
+                      "use": "marking a square line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "joining marks with a straight line",
+                      "toolTypeId": "combination-square"
+                    },
+                    {
+                      "use": "holding the work",
+                      "toolTypeId": "clamps"
+                    }
+                  ],
+                  "setup": [
+                    "Find the long cheek on the cut detail. Square a line across the other, short cheek, 3/8\" back from the end of the 3/8\" tenon.",
+                    "On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at 45.0°.",
+                    "Clamp the part flat, short cheek up, with the tenon over the edge of the bench."
+                  ],
+                  "technique": [
+                    "Pare the waste off the end in thin slices, working from each edge toward the middle of the 1-1/2\" width, down toward the lines.",
+                    "Take the last slices to the lines on both edges, so the end is flat.",
+                    "Cut 2 this way."
+                  ],
+                  "mistakes": [
+                    "Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.",
+                    "Paring off thick slices splits the tenon along its grain. Take thin slices."
+                  ],
+                  "safety": [
+                    {
+                      "text": "Clamp the work down, so both hands are free for the tool.",
+                      "sources": [
+                        {
+                          "source": "osha-3080",
+                          "locator": "Power tools, general precautions, p. 4"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "skills": [
+                  "measure-and-mark",
+                  "square-a-line",
+                  "pare-to-a-line"
+                ],
+                "alternatives": [],
                 "inputNeeded": [],
                 "suggestions": []
               }

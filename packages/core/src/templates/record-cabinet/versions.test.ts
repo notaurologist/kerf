@@ -24,6 +24,7 @@ import v18 from './snapshots/v18.json' with { type: 'json' };
 import v19 from './snapshots/v19.json' with { type: 'json' };
 import v20 from './snapshots/v20.json' with { type: 'json' };
 import v21 from './snapshots/v21.json' with { type: 'json' };
+import v22 from './snapshots/v22.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -349,5 +350,66 @@ describe('record-cabinet template versions', () => {
     // Hand check in template.test.ts: a 1-1/4" board planed 1/2 to 3/4 parts. The examples'
     // boards are within the 1/16 flattening allowance of their panels, so nothing is planed.
     expect(changes(v20, v21)).toEqual([]);
+  });
+
+  it('version 22 miters the aprons’ tenons where they meet in a leg, every apron outside-out (#629)', () => {
+    // Hand check in template.test.ts: the worked example's 1" tenons meet past 27/32 and clear,
+    // mitered, up to 1-3/32; the edge of range's 1-1/4" tenons on 1-3/4" legs meet past 1-1/32
+    // and clear up to 1-13/32. The design changes, and the cut list only by the aprons' note: no
+    // lumber or review.
+    const list = changes(v21, v22);
+    expect(new Set(kinds(list).map((k) => k.split('[]')[0]))).toEqual(
+      new Set([
+        'outputs.cutList',
+        'outputs.design.operations',
+        'outputs.design.parts',
+        'outputs.design.placements',
+      ]),
+    );
+    const cutList = list.filter((c) => c.path.startsWith('outputs.cutList'));
+    expect(new Set(cutList.map((c) => c.after))).toEqual(
+      new Set([
+        'A tenon at each end goes into a leg, its end mitered where it meets the other apron’s tenon inside. The face the cut detail shows goes outside, and its cheek is the long one.',
+      ]),
+    );
+    type Design = {
+      parts: { id: string; tenons?: { miter?: unknown }[]; mortises?: unknown[] }[];
+      placements: { partId: string; instance: number; along: Vec; through: Vec }[];
+      operations: { id: string; type: string }[];
+    };
+    type Vec = { x: number; y: number; z: number };
+    const designs = (fixture: readonly unknown[]) =>
+      current(fixture).map((s) => (s as { outputs: { design: Design } }).outputs.design);
+    const before = designs(v21);
+    for (const [i, after] of designs(v22).entries()) {
+      const was = before[i] as Design;
+      // Every apron tenon is mitered 45°, long at the far cheek, which is outside.
+      for (const id of ['apron-long', 'apron-short']) {
+        const tenons = after.parts.find((p) => p.id === id)?.tenons ?? [];
+        expect(tenons.map((t) => t.miter)).toEqual([
+          { angle: 45, long: 'far' },
+          { angle: 45, long: 'far' },
+        ]);
+      }
+      // The operations are the same, with a miter after each apron tenon.
+      expect(after.operations.filter((o) => o.type !== 'tenon-miter')).toEqual(was.operations);
+      expect(after.operations.filter((o) => o.type === 'tenon-miter').map((o) => o.id)).toEqual([
+        'apron-long/tenon-miter-0',
+        'apron-long/tenon-miter-1',
+        'apron-short/tenon-miter-0',
+        'apron-short/tenon-miter-1',
+      ]);
+      // The back apron and the left side apron turn end for end; nothing else moves.
+      const moved = after.placements
+        .filter((pl, k) => JSON.stringify(pl) !== JSON.stringify(was.placements[k]))
+        .map((pl) => [pl.partId, pl.instance, pl.along, pl.through]);
+      expect(moved).toEqual([
+        ['apron-long', 1, { x: -1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }],
+        ['apron-short', 0, { x: 0, y: -1, z: 0 }, { x: -1, y: 0, z: 0 }],
+      ]);
+      // The leg's two mortises, the same size, are listed in the other order.
+      const mortises = (d: Design) => d.parts.find((p) => p.id === 'leg')?.mortises ?? [];
+      expect(mortises(after)).toEqual([...mortises(was)].reverse());
+    }
   });
 });

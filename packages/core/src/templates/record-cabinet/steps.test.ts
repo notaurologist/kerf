@@ -54,9 +54,13 @@ describe('assembling and finishing the record cabinet', () => {
     expect(step('dadoes')).toContain('top/dado-4');
     expect(step('tenons')).toEqual([
       'apron-long/tenon-0',
+      'apron-long/tenon-miter-0',
       'apron-long/tenon-1',
+      'apron-long/tenon-miter-1',
       'apron-short/tenon-0',
+      'apron-short/tenon-miter-0',
       'apron-short/tenon-1',
+      'apron-short/tenon-miter-1',
     ]);
     expect(step('door-joints')).toContain('door-rail/tenon-0');
     expect(step('door-joints')).toContain('door-stile-outer/finger-recess-0');

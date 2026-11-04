@@ -202,8 +202,20 @@ export const Tenon = z.object({
   thickness: z.number(),
   v0: z.number(),
   width: z.number(),
+  /**
+   * The tenon's end cut at an angle across its thickness, so it clears another tenon that meets it
+   * inside the mortised part: `angle` from square, as a miter saw reads. The cheek on the `long`
+   * face's side keeps the whole `length`; the other is `thickness · tan(angle)` shorter. Seen on
+   * edge, the end runs straight from one to the other.
+   */
+  miter: z.object({ angle: z.number().gt(0).lt(90), long: z.enum(['near', 'far']) }).optional(),
 });
 export type Tenon = z.infer<typeof Tenon>;
+
+/** How much shorter a mitered tenon's short cheek is than its long one: thickness · tan(angle). */
+export function miterSetback(tenon: Tenon): number {
+  return tenon.miter ? tenon.thickness * Math.tan((tenon.miter.angle * Math.PI) / 180) : 0;
+}
 
 /**
  * How a corner's through dovetails are laid out across the boards' shared width, read the same on
