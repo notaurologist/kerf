@@ -150,7 +150,11 @@ function sizes(boardThickness: number): Suggestion[] {
     param('drawerBand', w.drawerBand, EXAMPLE),
     param('upperOpening', w.upperOpening, EXAMPLE),
     param('back.grooveWidth', 0.25, rule('a 1/4" groove, the width of a common straight bit')),
-    param('back.grooveDepth', 0.375, rule('a 3/8" groove, deep enough to hold the panel as it moves')),
+    param(
+      'back.grooveDepth',
+      0.375,
+      rule('a 3/8" groove, deep enough to hold the panel as it moves'),
+    ),
     param('back.inset', 0.375, rule('3/8" in from the case’s back edge')),
     param('back.shelfGap', 0.0625, rule('the lower shelves 1/16" clear of the back')),
     param('drawer.boxThickness', 0.5, rule('1/2" box parts, planed from the board stock')),

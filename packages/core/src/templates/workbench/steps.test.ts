@@ -55,7 +55,7 @@ describe('building the workbench', () => {
   it('bores the dog holes and the vises’ holes after the bench is together', () => {
     const vises = steps.find((s) => s.id === 'vises')?.operationIds ?? [];
     const bored = ops.filter((op) => op.type === 'bore' || op.type === 'stopped-bore');
-    expect(vises.sort()).toEqual(bored.map((op) => op.id).sort());
+    expect([...vises].sort()).toEqual(bored.map((op) => op.id).sort());
     // One operation for each size of hole in a part: the screw's, the guide bars', and on the end
     // chop a dog hole; through and stopped dog holes in the top.
     expect(bored.map((op) => 'partId' in op && op.partId).sort()).toEqual([
