@@ -5,6 +5,7 @@ import { housingPlane } from './housedEnd.ts';
 import {
   floatingPanel,
   mortiseAndTenon,
+  panelInFaces,
   slottedScrews,
   tenonInGroove,
   throughTenon,
@@ -186,6 +187,85 @@ describe('throughTenon', () => {
       ok: false,
     });
     expect(throughTenon({ ...past, lengthen: { toward: Y, by: 0 } })).toMatchObject({ ok: false });
+  });
+});
+
+describe('panelInFaces', () => {
+  // A box 10" wide, 3/4" boards: a bottom (z 0 to 3/4) and a top (z 8 to 8-3/4), each 10 long
+  // along x and 4 wide along y, and sides between them standing on the bottom, inner faces at
+  // x = 3/4 and 9-1/4. A 1/2" panel stands in the plane y = 3, its grain up, in grooves 1/4 wide
+  // and 3/8 deep cut into each part's inner face, 1/32 short at each end and 1/16 at each edge.
+  const board = (id: string, length: number) => part(id, length, 4, 0.75);
+  const frame = [
+    { ...placed(board('bottom', 10), at(0, 0, 0), X, Y, Z), face: 'far' as const },
+    { ...placed(board('top', 10), at(0, 0, 8), X, Y, Z), face: 'near' as const },
+    { ...placed(board('left', 7.25), at(0.75, 0, 0.75), Z, Y, minus(X)), face: 'near' as const },
+    { ...placed(board('right', 7.25), at(9.25, 0, 8), minus(Z), Y, X), face: 'near' as const },
+  ];
+  const joint = {
+    frame,
+    groove: { width: 0.25, depth: 0.375 },
+    panel: { id: 'panel', thickness: 0.5, along: Z, across: X, through: Y },
+    middle: 3,
+    gaps: { ends: 1 / 32, edges: 1 / 16 },
+  };
+
+  it('sizes the panel between the grooves’ bottoms, less its gaps', () => {
+    // Up: from z = 3/4 − 3/8 to 8 + 3/8, 8 long, less 2 × 1/32: 7-15/16. Across: from x = 3/8 to
+    // 9-5/8, 9-1/4, less 2 × 1/16: 9-1/8. Its near face at y = 3 − 1/4.
+    expect(panelInFaces(joint)).toMatchObject({
+      ok: true,
+      length: 7.9375,
+      width: 9.125,
+      origin: { x: 0.4375, y: 2.75, z: 0.40625 },
+    });
+  });
+
+  it('grooves each part end to end, centered on the panel: y 2-7/8 to 3-1/8', () => {
+    const made = panelInFaces(joint);
+    if (!made.ok) throw new Error(made.message);
+    const groove = (face: 'near' | 'far', u1: number) => ({
+      withPart: 'panel',
+      face,
+      u0: 0,
+      u1,
+      v0: 2.875,
+      v1: 3.125,
+      depth: 0.375,
+    });
+    expect(made.dadoes).toEqual([
+      { partId: 'bottom', dado: groove('far', 10) },
+      { partId: 'top', dado: groove('near', 10) },
+      { partId: 'left', dado: groove('near', 7.25) },
+      { partId: 'right', dado: groove('near', 7.25) },
+    ]);
+  });
+
+  it('measures each groove from its part’s own reference edge', () => {
+    // The right side turned to run across −y from its back edge at y = 4: the panel's middle is
+    // 4 − 3 = 1 from it, so its groove is v 7/8 to 1-1/8.
+    const turned = {
+      ...placed(board('right', 7.25), at(9.25, 4, 0.75), Z, minus(Y), X),
+      face: 'near' as const,
+    };
+    const made = panelInFaces({ ...joint, frame: [...frame.slice(0, 3), turned] });
+    if (!made.ok) throw new Error(made.message);
+    expect(made.dadoes[3]?.dado).toMatchObject({ v0: 0.875, v1: 1.125 });
+    expect(made.width).toBe(9.125);
+  });
+
+  it('rabbets every edge on both faces to a 1/4 tongue, 3/8 long', () => {
+    const made = panelInFaces(joint);
+    if (!made.ok) throw new Error(made.message);
+    expect(made.rabbets).toHaveLength(8);
+    for (const r of made.rabbets) expect(r).toMatchObject({ width: 0.375, depth: 0.125 });
+  });
+
+  it('refuses a panel no thicker than its grooves, or held on three sides', () => {
+    expect(panelInFaces({ ...joint, panel: { ...joint.panel, thickness: 0.25 } })).toMatchObject({
+      ok: false,
+    });
+    expect(panelInFaces({ ...joint, frame: frame.slice(0, 3) })).toMatchObject({ ok: false });
   });
 });
 

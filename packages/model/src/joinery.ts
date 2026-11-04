@@ -1,4 +1,13 @@
-import type { EdgeGroove, EdgeRabbet, Mortise, Part, ScrewHole, Tenon, Vec3 } from '@kerf/core';
+import type {
+  Dado,
+  EdgeGroove,
+  EdgeRabbet,
+  Mortise,
+  Part,
+  ScrewHole,
+  Tenon,
+  Vec3,
+} from '@kerf/core';
 import type { PlacedPart } from './boltedLap.ts';
 import { entering, housingPlane, sideEntered } from './housedEnd.ts';
 
@@ -247,6 +256,97 @@ export function floatingPanel(joint: FloatingPanel):
     grooves,
     origin,
     length: s1 - s0 - 2 * gaps.ends,
+    rabbets: (['reference', 'far', 'first-end', 'second-end'] as const).flatMap((edge) =>
+      (['near', 'far'] as const).map((face) => ({
+        edge,
+        face,
+        width: groove.depth,
+        depth: tongue,
+      })),
+    ),
+  };
+}
+
+export interface PanelInFaces {
+  /** The parts around the panel, each with the face its groove is cut into. */
+  frame: readonly (PlacedPart & { face: Dado['face'] })[];
+  groove: { width: number; depth: number };
+  /** The panel's ID and thickness, and the directions it runs: its grain along `along`. */
+  panel: { id: string; thickness: number; along: Vec3; across: Vec3; through: Vec3 };
+  /** Where the panel's middle is along `through`; the grooves are centered on it. */
+  middle: number;
+  /** Short of each groove's bottom: at each end, along the grain, and at each edge, across it. */
+  gaps: { ends: number; edges: number };
+}
+
+/**
+ * A panel floating in grooves cut into the faces of the parts around it, end to end along each,
+ * unglued (DOMAIN.md, Joints that let wood move): each groove, centered on the panel, and the
+ * panel's size and place between their bottoms less its gaps, rabbeted on both faces at every edge
+ * to a tongue as thick as the grooves are wide.
+ */
+export function panelInFaces(joint: PanelInFaces):
+  | {
+      ok: true;
+      dadoes: { partId: string; dado: Dado }[];
+      origin: Vec3;
+      length: number;
+      width: number;
+      rabbets: EdgeRabbet[];
+    }
+  | Refused {
+  const { frame, groove, panel, middle, gaps } = joint;
+  const T = panel.thickness;
+  const tongue = (T - groove.width) / 2;
+  if (tongue <= 0) return { ok: false, message: 'The panel is no thicker than the grooves.' };
+  const dadoes: { partId: string; dado: Dado }[] = [];
+  const ends: number[] = [];
+  const edges: number[] = [];
+  for (const f of frame) {
+    const pl = f.placement;
+    // The groove runs along the part, across its face, centered on the panel's middle.
+    if (!parallel(pl.across, panel.through)) {
+      return { ok: false, message: 'A groove would not run along its part in the panel’s plane.' };
+    }
+    const center = (middle - dot(pl.origin, panel.through)) * dot(pl.across, panel.through);
+    const v0 = center - groove.width / 2;
+    const v1 = center + groove.width / 2;
+    if (v0 < -EPSILON || v1 > f.part.stock.width + EPSILON) {
+      return { ok: false, message: 'A groove runs off its part’s face.' };
+    }
+    dadoes.push({
+      partId: f.part.id,
+      dado: {
+        withPart: panel.id,
+        face: f.face,
+        u0: 0,
+        u1: f.part.length,
+        v0,
+        v1,
+        depth: groove.depth,
+      },
+    });
+    const bottom = housingPlane(f, f.face, groove.depth);
+    if (parallel(bottom.normal, panel.along)) ends.push(dot(bottom.point, panel.along));
+    else if (parallel(bottom.normal, panel.across)) edges.push(dot(bottom.point, panel.across));
+    else return { ok: false, message: 'A grooved face does not meet the panel’s edge or end.' };
+  }
+  if (ends.length !== 2 || edges.length !== 2) {
+    return { ok: false, message: 'The panel is not held at both ends and both edges.' };
+  }
+  const [s0, s1] = ends.sort((a, b) => a - b) as [number, number];
+  const [e0, e1] = edges.sort((a, b) => a - b) as [number, number];
+  const origin = plus(
+    plus(plus({ x: 0, y: 0, z: 0 }, panel.along, s0 + gaps.ends), panel.across, e0 + gaps.edges),
+    panel.through,
+    middle - T / 2,
+  );
+  return {
+    ok: true,
+    dadoes,
+    origin,
+    length: s1 - s0 - 2 * gaps.ends,
+    width: e1 - e0 - 2 * gaps.edges,
     rabbets: (['reference', 'far', 'first-end', 'second-end'] as const).flatMap((edge) =>
       (['near', 'far'] as const).map((face) => ({
         edge,
