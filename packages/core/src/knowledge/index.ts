@@ -6,3 +6,4 @@ export * from './illustrations.ts';
 export * from './methods.ts';
 export * from './skills.ts';
 export * from './tools.ts';
+export * from './workHeight.ts';
