@@ -55,6 +55,10 @@ For our backyard: two swings, used by kids (7 and 10) and adults.
 
 A low cabinet with record bays and room on the top for a turntable or whatever else stands there, to stand under a window. It was chosen to test which parts of Kerf are generic (#99), not taken from the candidates below. Its case is solid-wood panels edge-glued from boards bought at a home center or a lumber dealer, joined with dadoes and glue. Starting questions about the window, the turntable and speaker, and where the boards come from suggest every parameter. The plan reports shelf sag and wood movement, and its build steps run from cutting boards through gluing up the panels and the case to finishing. The spec is `docs/templates/record-cabinet.md`.
 
+## Third template: workbench
+
+A hardwood workbench with a face vise and an end vise, its legs tenoned through a thick top, and a case of two drawers over one and two doors between the legs. It was made from the owner's photos (#576) and built joint-first, as the deciding test of declaring each part's joints (decision 0020). The top and legs are glued up from strips of the same boards as the case. Starting questions about the owner's height, the space, and where the boards come from suggest every size; the slides', hinges', and vise screws' figures come from their instructions. The plan reports the top's sag and wood movement. The spec is `docs/templates/workbench.md`.
+
 ## MVP features
 
 1. **Tool inventory.** A list of tool types I own (for example, circular saw, drill/driver, rafter square), picked from a library of generic tool types, with the capabilities that matter for choosing a method (for example, how far a saw bevels). A tool the library lacks is a reason to add it to the library; Kerf keeps no tools it cannot use (#363).
@@ -94,7 +98,7 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 
 ## After the MVP (candidates)
 
-- More templates: workbench, bookshelf, box, cutting board, outdoor bench. New templates are made in Claude Code, starting from pictures of what I want (0019).
+- More templates: bookshelf, box, cutting board, outdoor bench. New templates are made in Claude Code, starting from pictures of what I want (0019).
 - Template families: generalize templates so one covers a kind of furniture through its options, such as a case for bookshelves and boxes, or a leg-and-apron frame for benches and workbenches (#100).
 - References to past projects: when a step uses a method or skill I've used before, the step points back to it ("you cut these angles on the swing set legs"). Built on the project history recorded in the MVP.
 - Skill progression (the Fitbod-like part: what I've done, what to try next).
