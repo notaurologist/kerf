@@ -321,7 +321,47 @@ export const TOOL_TYPES = [
     description: 'A drill mounted on a column over a table, so holes go straight into the work.',
     group: 'drilling-and-driving',
     protection: ['eyes'],
-    capabilities: [],
+    capabilities: [
+      {
+        id: 'throat',
+        label: 'Column to the center of the bit',
+        kind: 'length',
+        help: 'Decides how far in from an edge of a part the press can bore a hole.',
+        readFrom:
+          "Measure from the front of the column to the center of the chuck. The maker's size for the press is often twice this.",
+        min: SIXTEENTH,
+        max: 36,
+      },
+      {
+        id: 'quillTravel',
+        label: 'Deepest hole in one stroke',
+        kind: 'length',
+        help: 'Decides whether a hole is bored in one stroke of the handle without moving the table.',
+        readFrom:
+          "Lower the chuck with the handle as far as it goes and measure how far it moved, or read the quill travel in the maker's manual.",
+        min: SIXTEENTH,
+        max: 12,
+      },
+    ],
+  },
+  {
+    id: 'forstner-bits',
+    name: 'Forstner bits',
+    description:
+      'Drill bits with a rim that cuts a clean, flat-bottomed hole, for holes that stop partway into the wood.',
+    group: 'drilling-and-driving',
+    protection: [],
+    capabilities: [
+      {
+        id: 'reach',
+        label: 'Deepest hole from one side',
+        kind: 'length',
+        help: 'Decides how deep a hole the bit can bore. Include any extension you use.',
+        readFrom: 'Measure the longest bit, with its extension, from the chuck to the rim.',
+        min: SIXTEENTH,
+        max: 36,
+      },
+    ],
   },
   {
     id: 'spade-bits',

@@ -48,6 +48,7 @@ const part = {
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
 };
 const parts = [
   part,

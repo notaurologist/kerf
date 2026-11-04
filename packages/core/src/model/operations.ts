@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { PanelStock } from '../lumber/panel.ts';
 import { isPanel } from '../lumber/partStock.ts';
 import { boltHoleDiameter } from '../structural/boltHoles.ts';
-import type { Dado, HardwareItem, Part } from './types.ts';
+import type { BoredHole, Dado, HardwareItem, Part } from './types.ts';
 
 // Operations: what needs to happen to each part, before any choice of how (DOMAIN.md, Operations).
 // Methods (#104) say how, given tools; build steps (#105) order them. Generic: the cuts and bolt
@@ -28,6 +28,13 @@ const dadoFields = {
   width: z.number(),
   length: z.number(),
   depth: z.number(),
+};
+
+const boreFields = {
+  holes: z.array(z.number().int().nonnegative()).min(1),
+  diameter: z.number(),
+  depth: z.number(),
+  fromEdge: z.number(),
 };
 
 export const Operation = z.discriminatedUnion('type', [
@@ -219,6 +226,15 @@ export const Operation = z.discriminatedUnion('type', [
     height: z.number(),
     depth: z.number(),
   }),
+  /**
+   * Round holes bored through a part (Part.boredHoles), `holes` of them on each piece, all
+   * `diameter` across and `depth` long, by index into the part's bored holes. `fromEdge` is the
+   * farthest any of them is from the nearest edge of the side it enters, which a drill press must
+   * reach past its column.
+   */
+  z.object({ ...onPart, type: z.literal('bore'), ...boreFields }),
+  /** Round holes bored to a flat bottom `depth` in, stopped inside the part. */
+  z.object({ ...onPart, type: z.literal('stopped-bore'), ...boreFields }),
   /**
    * Coat every cut in a piece of treated lumber (Part.treated) with preservative: its ends and any
    * taper, notch, or other cut into it, `cuts` of them on each piece (IRC 2021 R317.1.1).
@@ -443,6 +459,7 @@ export function cutAndDrillOperations(
         depth: r.depth,
       });
     });
+    ops.push(...boreOperations(part));
     const screws = part.screwHoles;
     if (screws.length > 0) {
       const slots = screws.filter((h) => h.slot > 0);
@@ -524,7 +541,8 @@ export function treatmentOperations(
         part.tenons.length +
         part.grooves.length +
         part.rabbets.length +
-        part.recesses.length,
+        part.recesses.length +
+        part.boredHoles.length,
     }),
   );
   const holes = ops.flatMap((op): Operation[] => {
@@ -613,6 +631,50 @@ function dadoOperation(part: Part, d: Dado, i: number): Operation {
   throw new Error(
     `${base.id} reaches ${vEdges + uEdges} edges; add an operation type before using one`,
   );
+}
+
+/**
+ * A part's bored holes, one operation for each size: through or stopped, diameter, and depth, in
+ * the order each size first appears. Its ID is the index of that first hole.
+ */
+function boreOperations(part: Part): Operation[] {
+  const groups = new Map<string, number[]>();
+  part.boredHoles.forEach((h, i) => {
+    const key = `${h.through} ${h.diameter} ${h.depth}`;
+    groups.set(key, [...(groups.get(key) ?? []), i]);
+  });
+  return [...groups.values()].map((holes) => {
+    const first = part.boredHoles[holes[0] as number] as BoredHole;
+    return {
+      id: `${part.id}/bore-${holes[0]}`,
+      type: first.through ? 'bore' : 'stopped-bore',
+      partId: part.id,
+      count: part.quantity * holes.length,
+      holes,
+      diameter: first.diameter,
+      depth: first.depth,
+      fromEdge: Math.max(
+        ...holes.map((i) => fromNearestEdge(part, part.boredHoles[i] as BoredHole)),
+      ),
+    };
+  });
+}
+
+/**
+ * The side of a part a bored hole enters, by the axis its direction mostly follows: a face (n),
+ * an edge (v), or an end (u).
+ */
+export function boredSide(hole: BoredHole): 'u' | 'v' | 'n' {
+  const { u, v, n } = hole.direction;
+  const [a, b, c] = [Math.abs(u), Math.abs(v), Math.abs(n)];
+  return c >= a && c >= b ? 'n' : b >= a ? 'v' : 'u';
+}
+
+/** How far a bored hole's center is from the nearest edge of the side it enters. */
+function fromNearestEdge(part: Part, hole: BoredHole): number {
+  const size = { u: part.length, v: part.stock.width, n: part.stock.thickness };
+  const axes = (['u', 'v', 'n'] as const).filter((a) => a !== boredSide(hole));
+  return Math.min(...axes.flatMap((a) => [hole.entry[a], size[a] - hole.entry[a]]));
 }
 
 function panelOperations(part: Part, stock: PanelStock): Operation[] {
@@ -724,6 +786,8 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   groove: 'Groove',
   rabbet: 'Rabbet',
   'finger-recess': 'Finger recess',
+  bore: 'Bore holes',
+  'stopped-bore': 'Bore stopped holes',
   'bolt-holes': 'Bolt holes',
   'treat-cuts': 'Treat cuts',
   'treat-holes': 'Treat bolt holes',

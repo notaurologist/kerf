@@ -45,6 +45,7 @@ const side: Part = {
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
 };
 const operations = cutAndDrillOperations([side], []);
 const cuts = new Set(boardCuts(operations).map((op) => op.id));

@@ -248,6 +248,24 @@ export const FingerRecess = z.object({
 export type FingerRecess = z.infer<typeof FingerRecess>;
 
 /**
+ * A round hole bored into a part with no hardware through it, such as a hole for a bought
+ * accessory to stand in or a cup for a hinge. The bit enters at `entry`, on a face, edge, or square
+ * end, and goes `depth` along `direction` (a unit vector in the part's frame). A `through` hole
+ * comes out on the other side, so `depth` is the wood it crosses; a stopped one has a flat bottom
+ * inside the part.
+ */
+export const BoredHole = z.object({
+  /** What the hole is for, in the template's words, for the cut detail: "for a hold-down". */
+  use: z.string(),
+  diameter: z.number().positive(),
+  entry: LocalPoint,
+  direction: LocalPoint,
+  depth: z.number().positive(),
+  through: z.boolean(),
+});
+export type BoredHole = z.infer<typeof BoredHole>;
+
+/**
  * Every list defaults to empty. A stored snapshot leaves out an empty one (`snapshot/defaults.ts`)
  * and reading fills it back in, so a list added later changes nothing a template already stores.
  */
@@ -295,6 +313,7 @@ export const Part = z.object({
   grooves: z.array(EdgeGroove).default([]),
   rabbets: z.array(EdgeRabbet).default([]),
   recesses: z.array(FingerRecess).default([]),
+  boredHoles: z.array(BoredHole).default([]),
 });
 export type Part = z.infer<typeof Part>;
 
