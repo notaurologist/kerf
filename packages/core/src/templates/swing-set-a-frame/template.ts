@@ -45,9 +45,9 @@ import {
   PRESERVATIVE_GROUP,
   validateHardware,
 } from './hardware.ts';
+import { joined } from './joints.ts';
 import { SiteLayout, SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
-import { placements } from './placements.ts';
 import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.ts';
 
 /**
@@ -122,8 +122,12 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * Version 37 measures the leg's end distance and bolt spacing along its grain at the gusset joint,
  * where the beam's weight loads the leg at α to its grain (NDS 2024 12.5.1.2, Tables 12.5.1A and
  * 12.5.1B; #536). No part, cut, or bolt moves.
+ * Version 38 cuts, places, and drills the parts by their joints (decision 0020): trims give each
+ * part's end cuts, length, marked edges, and placement, and bolted laps give every bolt hole and
+ * each bolt's grip (#626). Their trigonometry is computed another way, so some numbers differ in
+ * their last bits; everything a plan shows is the same.
  */
-export const TEMPLATE_VERSION = 37;
+export const TEMPLATE_VERSION = 38;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
@@ -349,9 +353,9 @@ export function generate(
     };
   }
 
-  const g = frameGeometry(dims, splay);
+  const frame = frameGeometry(dims, splay);
   const swings = swingGeometry(p);
-  const frameIssues = validate(dims, g);
+  const frameIssues = validate(dims, frame);
   // Swings are checked against the span between the frames, which overlapping frames don't have.
   const fits = !frameIssues.some((issue) => issue.code === 'frames-do-not-fit');
   const issues = [
@@ -361,11 +365,17 @@ export function generate(
   ];
   if (issues.length > 0) return { ok: false, issues };
 
+  // The parts as the template stands them, then cut, placed, and drilled by their joints.
+  const made = joined(p, dims, frame, swings, {
+    parts: withLetters(parts(p, dims, frame)),
+    hardware: hardware(p, dims, frame),
+  });
+  const g = made.geometry;
   const joints = boltJoints(p, dims, g);
-  const madeParts = withLetters(parts(p, dims, g));
+  const madeParts = made.parts;
   // Every part is pressure-treated lumber: the beam checks take a waterborne treatment
   // (structural.ts), and the legs stand in or on the ground.
-  const madeHardware = [...hardware(p, dims, g), ...preservativeFor(madeParts, PRESERVATIVE_GROUP)];
+  const madeHardware = [...made.hardware, ...preservativeFor(madeParts, PRESERVATIVE_GROUP)];
   return {
     ok: true,
     output: {
@@ -374,7 +384,7 @@ export function generate(
       swings,
       layout: siteLayout(p, g, swings),
       parts: madeParts,
-      placements: placements(dims, g),
+      placements: made.placements,
       hardware: madeHardware,
       hardwareNotes: HARDWARE_NOTES,
       flags: [

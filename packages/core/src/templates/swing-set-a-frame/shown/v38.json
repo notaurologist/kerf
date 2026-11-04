@@ -161,10 +161,10 @@
               {
                 "partId": "leg-front",
                 "name": "Front leg (downhill)",
-                "length": 138.35412783771903
+                "length": 138.354127837719
               }
             ],
-            "offcut": 4.520872162280966
+            "offcut": 4.520872162280995
           },
           {
             "nominal": "4x4",
@@ -173,10 +173,10 @@
               {
                 "partId": "leg-front",
                 "name": "Front leg (downhill)",
-                "length": 138.35412783771903
+                "length": 138.354127837719
               }
             ],
-            "offcut": 4.520872162280966
+            "offcut": 4.520872162280995
           },
           {
             "nominal": "4x4",
@@ -226,15 +226,15 @@
               {
                 "partId": "gusset",
                 "name": "Gusset",
-                "length": 19.502190600525626
+                "length": 19.502190600525623
               },
               {
                 "partId": "gusset",
                 "name": "Gusset",
-                "length": 19.502190600525626
+                "length": 19.502190600525623
               }
             ],
-            "offcut": 55.74561879894875
+            "offcut": 55.745618798948755
           }
         ],
         "kerf": 0.125,
@@ -4040,12 +4040,12 @@
               "feet": 12,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 4.520872162280966,
+              "offcut": 4.520872162280995,
               "pieces": [
                 {
                   "partId": "leg-front",
                   "instance": 0,
-                  "length": 138.35412783771903,
+                  "length": 138.354127837719,
                   "operationIds": [
                     "leg-front/end-0",
                     "leg-front/end-1",
@@ -4553,12 +4553,12 @@
               "feet": 12,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 4.520872162280966,
+              "offcut": 4.520872162280995,
               "pieces": [
                 {
                   "partId": "leg-front",
                   "instance": 1,
-                  "length": 138.35412783771903,
+                  "length": 138.354127837719,
                   "operationIds": [
                     "leg-front/end-0",
                     "leg-front/end-1",
@@ -6400,12 +6400,12 @@
               "feet": 8,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 55.74561879894875,
+              "offcut": 55.745618798948755,
               "pieces": [
                 {
                   "partId": "gusset",
                   "instance": 0,
-                  "length": 19.502190600525626,
+                  "length": 19.502190600525623,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -6414,7 +6414,7 @@
                 {
                   "partId": "gusset",
                   "instance": 1,
-                  "length": 19.502190600525626,
+                  "length": 19.502190600525623,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -9086,12 +9086,12 @@
               "feet": 12,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 4.520872162280966,
+              "offcut": 4.520872162280995,
               "pieces": [
                 {
                   "partId": "leg-front",
                   "instance": 0,
-                  "length": 138.35412783771903,
+                  "length": 138.354127837719,
                   "operationIds": [
                     "leg-front/end-0",
                     "leg-front/end-1",
@@ -9370,12 +9370,12 @@
               "feet": 12,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 4.520872162280966,
+              "offcut": 4.520872162280995,
               "pieces": [
                 {
                   "partId": "leg-front",
                   "instance": 1,
-                  "length": 138.35412783771903,
+                  "length": 138.354127837719,
                   "operationIds": [
                     "leg-front/end-0",
                     "leg-front/end-1",
@@ -10406,12 +10406,12 @@
               "feet": 8,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 55.74561879894875,
+              "offcut": 55.745618798948755,
               "pieces": [
                 {
                   "partId": "gusset",
                   "instance": 0,
-                  "length": 19.502190600525626,
+                  "length": 19.502190600525623,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -10420,7 +10420,7 @@
                 {
                   "partId": "gusset",
                   "instance": 1,
-                  "length": 19.502190600525626,
+                  "length": 19.502190600525623,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -12946,10 +12946,10 @@
               {
                 "partId": "leg-front",
                 "name": "Front leg (downhill)",
-                "length": 138.35412783771903
+                "length": 138.354127837719
               }
             ],
-            "offcut": 4.520872162280966
+            "offcut": 4.520872162280995
           },
           {
             "nominal": "4x4",
@@ -12958,10 +12958,10 @@
               {
                 "partId": "leg-front",
                 "name": "Front leg (downhill)",
-                "length": 138.35412783771903
+                "length": 138.354127837719
               }
             ],
-            "offcut": 4.520872162280966
+            "offcut": 4.520872162280995
           },
           {
             "nominal": "4x4",
@@ -13011,15 +13011,15 @@
               {
                 "partId": "gusset",
                 "name": "Gusset",
-                "length": 19.502190600525626
+                "length": 19.502190600525623
               },
               {
                 "partId": "gusset",
                 "name": "Gusset",
-                "length": 19.502190600525626
+                "length": 19.502190600525623
               }
             ],
-            "offcut": 55.74561879894875
+            "offcut": 55.745618798948755
           }
         ],
         "kerf": 0.125,
@@ -15021,12 +15021,12 @@
               "feet": 12,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 4.520872162280966,
+              "offcut": 4.520872162280995,
               "pieces": [
                 {
                   "partId": "leg-front",
                   "instance": 0,
-                  "length": 138.35412783771903,
+                  "length": 138.354127837719,
                   "operationIds": [
                     "leg-front/end-0",
                     "leg-front/end-1",
@@ -15534,12 +15534,12 @@
               "feet": 12,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 4.520872162280966,
+              "offcut": 4.520872162280995,
               "pieces": [
                 {
                   "partId": "leg-front",
                   "instance": 1,
-                  "length": 138.35412783771903,
+                  "length": 138.354127837719,
                   "operationIds": [
                     "leg-front/end-0",
                     "leg-front/end-1",
@@ -17381,12 +17381,12 @@
               "feet": 8,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 55.74561879894875,
+              "offcut": 55.745618798948755,
               "pieces": [
                 {
                   "partId": "gusset",
                   "instance": 0,
-                  "length": 19.502190600525626,
+                  "length": 19.502190600525623,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -17395,7 +17395,7 @@
                 {
                   "partId": "gusset",
                   "instance": 1,
-                  "length": 19.502190600525626,
+                  "length": 19.502190600525623,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -20067,12 +20067,12 @@
               "feet": 12,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 4.520872162280966,
+              "offcut": 4.520872162280995,
               "pieces": [
                 {
                   "partId": "leg-front",
                   "instance": 0,
-                  "length": 138.35412783771903,
+                  "length": 138.354127837719,
                   "operationIds": [
                     "leg-front/end-0",
                     "leg-front/end-1",
@@ -20351,12 +20351,12 @@
               "feet": 12,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 4.520872162280966,
+              "offcut": 4.520872162280995,
               "pieces": [
                 {
                   "partId": "leg-front",
                   "instance": 1,
-                  "length": 138.35412783771903,
+                  "length": 138.354127837719,
                   "operationIds": [
                     "leg-front/end-0",
                     "leg-front/end-1",
@@ -21387,12 +21387,12 @@
               "feet": 8,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 55.74561879894875,
+              "offcut": 55.745618798948755,
               "pieces": [
                 {
                   "partId": "gusset",
                   "instance": 0,
-                  "length": 19.502190600525626,
+                  "length": 19.502190600525623,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -21401,7 +21401,7 @@
                 {
                   "partId": "gusset",
                   "instance": 1,
-                  "length": 19.502190600525626,
+                  "length": 19.502190600525623,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -23996,15 +23996,15 @@
               {
                 "partId": "gusset",
                 "name": "Gusset",
-                "length": 18.97542358336365
+                "length": 18.975423583363654
               },
               {
                 "partId": "gusset",
                 "name": "Gusset",
-                "length": 18.97542358336365
+                "length": 18.975423583363654
               }
             ],
-            "offcut": 56.7991528332727
+            "offcut": 56.79915283327269
           }
         ],
         "kerf": 0.125,
@@ -31249,12 +31249,12 @@
               "feet": 8,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 56.7991528332727,
+              "offcut": 56.79915283327269,
               "pieces": [
                 {
                   "partId": "gusset",
                   "instance": 0,
-                  "length": 18.97542358336365,
+                  "length": 18.975423583363654,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -31263,7 +31263,7 @@
                 {
                   "partId": "gusset",
                   "instance": 1,
-                  "length": 18.97542358336365,
+                  "length": 18.975423583363654,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -35891,12 +35891,12 @@
               "feet": 8,
               "trimPerEnd": 0.5,
               "kerf": 0.125,
-              "offcut": 56.7991528332727,
+              "offcut": 56.79915283327269,
               "pieces": [
                 {
                   "partId": "gusset",
                   "instance": 0,
-                  "length": 18.97542358336365,
+                  "length": 18.975423583363654,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"
@@ -35905,7 +35905,7 @@
                 {
                   "partId": "gusset",
                   "instance": 1,
-                  "length": 18.97542358336365,
+                  "length": 18.975423583363654,
                   "operationIds": [
                     "gusset/end-0",
                     "gusset/end-1"

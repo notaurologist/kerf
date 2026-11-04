@@ -40,6 +40,7 @@ import v33 from './snapshots/v33.json' with { type: 'json' };
 import v34 from './snapshots/v34.json' with { type: 'json' };
 import v35 from './snapshots/v35.json' with { type: 'json' };
 import v36 from './snapshots/v36.json' with { type: 'json' };
+import v37 from './snapshots/v37.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -252,6 +253,16 @@ const isVersion37 = (c: { path: string; before?: unknown; after?: unknown }) =>
       String(c.after).startsWith("In the leg the beam's weight acts at")));
 
 /**
+ * Version 38's change (#626): the parts are cut, placed, and drilled by their joints, whose
+ * trigonometry is computed another way, so some numbers differ in their last bits and nothing more.
+ * Set aside like version 18's.
+ */
+const isVersion38 = (c: { before?: unknown; after?: unknown }) =>
+  typeof c.before === 'number' &&
+  typeof c.after === 'number' &&
+  Math.abs(c.before - c.after) <= 1e-9 * Math.max(1, Math.abs(c.before));
+
+/**
  * What regenerating with the current version changes in the stored outputs, field by field; or,
  * given `later`, a later version's fixture of the same example, what that version changed.
  */
@@ -299,7 +310,8 @@ function regenerated(
         (keepVersion34 || !isVersion34(c)) &&
         (keepVersion35 || !isVersion35(c)) &&
         (keepVersion36 || later !== undefined || !isVersion36(c)) &&
-        (keepVersion37 || !isVersion37(c)),
+        (keepVersion37 || !isVersion37(c)) &&
+        !isVersion38(c),
     ),
   };
   return keepVersion18
@@ -823,7 +835,8 @@ describe('swing-set template versions', () => {
           !isVersion34(c) &&
           !isVersion35(c) &&
           !isVersion36(c) &&
-          !isVersion37(c),
+          !isVersion37(c) &&
+          !isVersion38(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1318,5 +1331,16 @@ describe('swing-set template versions', () => {
       ["End distance under the beam's weight", 7.3739],
       ["Spacing between bolts in a row under the beam's weight", 3.8576],
     ]);
+  });
+
+  it('version 38 cuts, places, and drills the parts by their joints, and changes only last bits (#626)', () => {
+    const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+    for (const stored of v37) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(37);
+      const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
+      expect(changes.filter((c) => !isVersion38(c))).toEqual([]);
+      expect(changes.length).toBeGreaterThan(0);
+    }
   });
 });
