@@ -1,4 +1,4 @@
-import type { EdgeGroove, Part, Placement, Vec3 } from '@kerf/core';
+import { type EdgeGroove, fitProblems, type Part, type Placement, type Vec3 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import type { PlacedPart } from './boltedLap.ts';
 import { housingPlane } from './housedEnd.ts';
@@ -8,6 +8,7 @@ import {
   panelInFaces,
   slottedScrews,
   tenonInGroove,
+  throughDovetails,
   throughTenon,
 } from './joinery.ts';
 import { type Member, type Plane, trim } from './trim.ts';
@@ -283,6 +284,59 @@ describe('panelInFaces', () => {
       ok: false,
     });
     expect(panelInFaces({ ...joint, frame: frame.slice(0, 3) })).toMatchObject({ ok: false });
+  });
+});
+
+describe('throughDovetails', () => {
+  // A drawer's front left corner, boards 1/2 thick. The front runs along x from x = 0, its
+  // outside face at y = 0, 4 tall from z = `bottom`. The side runs back along y from y = 0, its
+  // outside face at x = 0, 4 tall from z = 0. Each end reaches the other's outside face.
+  const front = (bottom: number, height: number) =>
+    placed(part('front', 10, height, 0.5), at(0, 0.5, bottom), X, Z, minus(Y));
+  const side = placed(part('side', 12, 4, 0.5), at(0, 0, 0), Y, Z, X);
+  const corner = (f: PlacedPart) =>
+    throughDovetails({ tails: side, tailsEnd: 0, pins: f, pinsEnd: 0, slope: 8 });
+  // 4 wide: (4 − 3/4 + 1/4) / 2 = 1.75 on center, so 2 tails.
+  const layout = { tails: 2, slope: 8, halfPin: 0.375, pin: 0.25 };
+
+  it('lays tails on the side and pins on the front, each to the other’s thickness', () => {
+    expect(corner(front(0, 4))).toEqual({
+      ok: true,
+      tails: { board: 'tails', withPart: 'front', end: 0, baseline: 0.5, ...layout },
+      // The side enters the front's inside face (near, at y = 1/2), so its outside is far.
+      pins: { board: 'pins', withPart: 'side', end: 0, baseline: 0.5, outside: 'far', ...layout },
+    });
+  });
+
+  it('lays the joint across the width a short board shares, z 1 to 4', () => {
+    // 3 wide: (3 − 3/4 + 1/4) / 2 = 1.25 on center, still 2 tails.
+    const made = corner(front(1, 3));
+    expect(made).toMatchObject({
+      ok: true,
+      tails: { ...layout, span: { v0: 1, v1: 4 } },
+      pins: { ...layout },
+    });
+    if (made.ok) expect(made.pins).not.toHaveProperty('span');
+  });
+
+  it('makes cuts core’s fit checks match, full width and short', () => {
+    for (const f of [front(0, 4), front(1, 3)]) {
+      const made = corner(f);
+      if (!made.ok) throw new Error(made.message);
+      const parts = [
+        { ...side.part, dovetails: [made.tails] },
+        { ...f.part, dovetails: [made.pins] },
+      ];
+      expect(fitProblems({ parts, placements: [side.placement, f.placement] })).toEqual([]);
+    }
+  });
+
+  it('refuses boards that stop short of each other’s outside face, or do not overlap', () => {
+    const shortSide = placed(part('side', 12, 4, 0.5), at(0, 0.125, 0), Y, Z, X);
+    expect(
+      throughDovetails({ tails: shortSide, tailsEnd: 0, pins: front(0, 4), pinsEnd: 0, slope: 8 }),
+    ).toMatchObject({ ok: false });
+    expect(corner(front(5, 3))).toMatchObject({ ok: false });
   });
 });
 

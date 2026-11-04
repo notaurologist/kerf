@@ -1,12 +1,14 @@
-import type {
-  Dado,
-  EdgeGroove,
-  EdgeRabbet,
-  Mortise,
-  Part,
-  ScrewHole,
-  Tenon,
-  Vec3,
+import {
+  type Dado,
+  type Dovetails,
+  type EdgeGroove,
+  type EdgeRabbet,
+  type Mortise,
+  type Part,
+  type ScrewHole,
+  suggestDovetailLayout,
+  type Tenon,
+  type Vec3,
 } from '@kerf/core';
 import type { PlacedPart } from './boltedLap.ts';
 import { entering, housingPlane, sideEntered } from './housedEnd.ts';
@@ -127,6 +129,82 @@ export function throughTenon(
     return { ok: false, message: 'The lengthened mortise runs past the part.' };
   }
   return { ok: true, mortise, tenon: made.tenon };
+}
+
+export interface ThroughDovetails {
+  /** The board with the tails, trimmed flush with the pin board's outside face at this end. */
+  tails: PlacedPart;
+  tailsEnd: 0 | 1;
+  /** The board with the pins, trimmed flush with the tail board's outside face at this end. */
+  pins: PlacedPart;
+  pinsEnd: 0 | 1;
+  /** The slope, 1 in `slope`. */
+  slope: number;
+}
+
+/**
+ * Through dovetails at a corner where two boards' ends meet, their widths running the same way:
+ * each end reaches through the other board to its outside face. The joint lies across the width
+ * the boards share, as where a drawer's back is cut short, with the suggested layout for it.
+ */
+export function throughDovetails(
+  joint: ThroughDovetails,
+): { ok: true; tails: Dovetails; pins: Dovetails } | Refused {
+  const { tails, pins, tailsEnd, pinsEnd, slope } = joint;
+  const t = tails.placement;
+  const p = pins.placement;
+  if (!parallel(t.across, p.across)) {
+    return { ok: false, message: 'The boards’ widths do not run the same way.' };
+  }
+  // Each board's width, from its reference edge, where the other board is.
+  const shared = (of: PlacedPart, other: PlacedPart): [number, number] => {
+    const start = dot(sub(other.placement.origin, of.placement.origin), of.placement.across);
+    const end = start + other.part.stock.width * dot(other.placement.across, of.placement.across);
+    return [Math.max(0, Math.min(start, end)), Math.min(of.part.stock.width, Math.max(start, end))];
+  };
+  const tailSpan = shared(tails, pins);
+  const pinSpan = shared(pins, tails);
+  const width = tailSpan[1] - tailSpan[0];
+  if (width <= EPSILON || Math.abs(width - (pinSpan[1] - pinSpan[0])) > EPSILON) {
+    return { ok: false, message: 'The boards do not overlap across their widths.' };
+  }
+  const T = tails.part.stock.thickness;
+  const P = pins.part.stock.thickness;
+  const intoPins = entering(pins, tails, tailsEnd, P, tailSpan, [0, T]);
+  if (!intoPins.ok) return intoPins;
+  const intoTails = entering(tails, pins, pinsEnd, T, pinSpan, [0, P]);
+  if (!intoTails.ok) return intoTails;
+  const faces = ['near', 'far'];
+  if (!faces.includes(intoPins.entering.side) || !faces.includes(intoTails.entering.side)) {
+    return { ok: false, message: 'Dovetails go into a board’s face, not its edge.' };
+  }
+  const layout = suggestDovetailLayout(width, slope, P);
+  if (!layout) return { ok: false, message: 'No dovetail layout fits the corner.' };
+  const span = (range: [number, number], of: PlacedPart) =>
+    range[0] > EPSILON || range[1] < of.part.stock.width - EPSILON
+      ? { span: { v0: range[0], v1: range[1] } }
+      : {};
+  return {
+    ok: true,
+    tails: {
+      board: 'tails',
+      withPart: pins.part.id,
+      end: tailsEnd,
+      baseline: P,
+      ...layout,
+      ...span(tailSpan, tails),
+    },
+    pins: {
+      board: 'pins',
+      withPart: tails.part.id,
+      end: pinsEnd,
+      baseline: T,
+      // The tails come through the pin board to the face away from the one they enter.
+      outside: intoPins.entering.side === 'near' ? 'far' : 'near',
+      ...layout,
+      ...span(pinSpan, pins),
+    },
+  };
 }
 
 export interface TenonInGroove {
