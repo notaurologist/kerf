@@ -1,15 +1,16 @@
-import type { Part, Placement } from '../model/types.ts';
+import { boredSide } from '../model/operations.ts';
+import type { BoredHole, LocalPoint, Mortise, Part, Placement } from '../model/types.ts';
 import { clipPolygon } from './clip.ts';
 import { convexPieces, isConvex } from './convex.ts';
 import { partOutline, type UV } from './outline.ts';
-import { add, centroid, cross, scale, sub, unit, type Vec3 } from './vec.ts';
+import { add, centroid, cross, dot, scale, sub, unit, type Vec3 } from './vec.ts';
 
 // A part instance as a solid: its outline extruded through its thickness and placed in 3D by its
 // placement (#49). Every part is a prism, but for a tenon thinner than the part, which is a box of
 // its own beyond the shoulder. A face with a notch or cutout is concave, so it comes in convex
-// pieces for depth ordering, with the edges between them marked as not the part's own. Each dado
-// and mortise is drawn as its outline on the face or edge it is cut into: a decal, painted over
-// that face.
+// pieces for depth ordering, with the edges between them marked as not the part's own. Each dado,
+// mortise, and bored hole is drawn as its outline on the face or edge it is cut into: a decal,
+// painted over that face. A mortise or hole that goes through is outlined where it comes out too.
 
 interface Face {
   points: Vec3[];
@@ -26,6 +27,16 @@ export interface Solid {
   instance: number;
   faces: Face[];
 }
+
+const opposite: Record<Mortise['side'], Mortise['side']> = {
+  near: 'far',
+  far: 'near',
+  'reference-edge': 'far-edge',
+  'far-edge': 'reference-edge',
+};
+
+/** Sides of the polygon a round hole's outline is drawn as. */
+const ROUND = 24;
 
 /** A point in a part's frame, in template coordinates. */
 function toWorld(pl: Placement, u: number, v: number, n = 0): Vec3 {
@@ -88,25 +99,31 @@ export function solid(part: Part, pl: Placement, offset: Vec3 = { x: 0, y: 0, z:
       [m.u1, m.a1],
       [m.u0, m.a1],
     ];
-    if (onEdge) {
-      const far = m.side === 'far-edge';
-      const v = far ? part.stock.width : 0;
-      const points = corners.map(([u, n]) => at({ u, v }, n));
-      faces.push({
-        points: far ? points.reverse() : points,
-        normal: far ? pl.across : scale(pl.across, -1),
-        decal: true,
-      });
-    } else {
-      const far = m.side === 'far';
-      const points = corners.map(([u, v]) => at({ u, v }, far ? T : 0));
-      faces.push({
-        points: far ? points : points.reverse(),
-        normal: far ? pl.through : scale(pl.through, -1),
-        decal: true,
-      });
+    // A mortise as deep as the part is through it: the tenon shows on the other side too.
+    const through = m.depth >= (onEdge ? part.stock.width : T) - 1e-9;
+    const sides = through ? [m.side, opposite[m.side]] : [m.side];
+    for (const side of sides) {
+      if (side === 'reference-edge' || side === 'far-edge') {
+        const far = side === 'far-edge';
+        const v = far ? part.stock.width : 0;
+        const points = corners.map(([u, n]) => at({ u, v }, n));
+        faces.push({
+          points: far ? points.reverse() : points,
+          normal: far ? pl.across : scale(pl.across, -1),
+          decal: true,
+        });
+      } else {
+        const far = side === 'far';
+        const points = corners.map(([u, v]) => at({ u, v }, far ? T : 0));
+        faces.push({
+          points: far ? points : points.reverse(),
+          normal: far ? pl.through : scale(pl.through, -1),
+          decal: true,
+        });
+      }
     }
   }
+  for (const hole of part.boredHoles) faces.push(...holeOutlines(pl, hole, at));
   for (const t of cheeked) {
     const u0 = t.end === 0 ? 0 : L - t.length;
     faces.push(
@@ -124,6 +141,57 @@ export function solid(part: Part, pl: Placement, offset: Vec3 = { x: 0, y: 0, z:
     faces.push({ points: [at(a, 0), at(b, 0), at(b, T), at(a, T)], normal });
   }
   return { partId: pl.partId, instance: pl.instance, faces };
+}
+
+/**
+ * A bored hole's outline where it enters, and where it comes out when it goes through: the bore,
+ * a cylinder about its direction, cut by the plane of that face (square to the axis it mostly
+ * runs along), as a polygon of ROUND sides counterclockwise seen from outside.
+ */
+function holeOutlines(pl: Placement, hole: BoredHole, at: (p: UV, n: number) => Vec3): Face[] {
+  const axis = boredSide(hole);
+  const d = hole.direction;
+  const k = Math.hypot(d.u, d.v, d.n);
+  const dir: LocalPoint = { u: d.u / k, v: d.v / k, n: d.n / k };
+  const out = { u: pl.along, v: pl.across, n: pl.through }[axis];
+  // Two directions square to the bore and to each other.
+  const helper: LocalPoint = Math.abs(dir.u) < 0.9 ? { u: 1, v: 0, n: 0 } : { u: 0, v: 1, n: 0 };
+  const crossL = (a: LocalPoint, b: LocalPoint): LocalPoint => ({
+    u: a.v * b.n - a.n * b.v,
+    v: a.n * b.u - a.u * b.n,
+    n: a.u * b.v - a.v * b.u,
+  });
+  const e1 = crossL(dir, helper);
+  const k1 = Math.hypot(e1.u, e1.v, e1.n);
+  const a: LocalPoint = { u: e1.u / k1, v: e1.v / k1, n: e1.n / k1 };
+  const b = crossL(dir, a);
+  const r = hole.diameter / 2;
+  const exit: LocalPoint = {
+    u: hole.entry.u + dir.u * hole.depth,
+    v: hole.entry.v + dir.v * hole.depth,
+    n: hole.entry.n + dir.n * hole.depth,
+  };
+  // The bore runs into the part, so the entry face faces against it and the exit face with it.
+  const ends: [LocalPoint, number][] = [[hole.entry, -Math.sign(dir[axis])]];
+  if (hole.through) ends.push([exit, Math.sign(dir[axis])]);
+  return ends.map(([c, sign]) => {
+    const ring = Array.from({ length: ROUND }, (_, i) => {
+      const t = (2 * Math.PI * i) / ROUND;
+      const p: LocalPoint = {
+        u: c.u + r * (Math.cos(t) * a.u + Math.sin(t) * b.u),
+        v: c.v + r * (Math.cos(t) * a.v + Math.sin(t) * b.v),
+        n: c.n + r * (Math.cos(t) * a.n + Math.sin(t) * b.n),
+      };
+      // Slid along the bore onto the face's plane.
+      const f = (c[axis] - p[axis]) / dir[axis];
+      return { u: p.u + f * dir.u, v: p.v + f * dir.v, n: p.n + f * dir.n };
+    });
+    const points = ring.map((p) => at({ u: p.u, v: p.v }, p.n));
+    const normal = scale(out, sign);
+    const [p0, p1, p2] = points as [Vec3, Vec3, Vec3];
+    const turn = cross(sub(p1, p0), sub(p2, p0));
+    return { points: dot(turn, normal) < 0 ? points.reverse() : points, normal, decal: true };
+  });
 }
 
 /**
