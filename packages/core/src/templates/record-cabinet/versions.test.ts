@@ -23,6 +23,7 @@ import v17 from './snapshots/v17.json' with { type: 'json' };
 import v18 from './snapshots/v18.json' with { type: 'json' };
 import v19 from './snapshots/v19.json' with { type: 'json' };
 import v20 from './snapshots/v20.json' with { type: 'json' };
+import v21 from './snapshots/v21.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -342,5 +343,11 @@ describe('record-cabinet template versions', () => {
       ),
     );
     expect(doors).toContain(true);
+  });
+
+  it('version 21 planes parts thinner than their board, which no example has (#609)', () => {
+    // Hand check in template.test.ts: a 1-1/4" board planed 1/2 to 3/4 parts. The examples'
+    // boards are within the 1/16 flattening allowance of their panels, so nothing is planed.
+    expect(changes(v20, v21)).toEqual([]);
   });
 });

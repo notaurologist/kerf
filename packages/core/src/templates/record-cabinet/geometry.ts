@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { oneBoardThickness } from '../../lumber/panel.ts';
 import type { Issue } from '../../model/types.ts';
 import { formatLength } from '../../units/length.ts';
 import type { RecordCabinetParams } from './params.ts';
@@ -40,7 +41,7 @@ export const CabinetGeometry = z.object({
   /** The sliding doors and their tracks (spec, Sliding doors on the end bays); none without doors. */
   door: z
     .object({
-      /** t_d: the board's thickness, which the stiles and rails keep. */
+      /** t_d: the stiles' and rails' thickness, ripped from one board (oneBoardThicknessOf). */
       thickness: z.number(),
       /** Each track's width, t_d + c_g. */
       trackWidth: z.number(),
@@ -68,14 +69,22 @@ export const RECESS = { along: 3, across: 0.75, depth: 0.25 } as const;
 /** A floating panel's margin at each end, along its grain (DOMAIN.md, Joints that let wood move). */
 const PANEL_END_GAP = 1 / 32;
 
-/** The board's actual thickness, which a part ripped from one board keeps. */
-const boardThickness = (p: RecordCabinetParams) =>
-  p.board.source === 'store' ? p.board.thickness : p.board.surfaced;
+/**
+ * What a part ripped from one board comes out at, such as a door's stiles and rails or an apron:
+ * the board's thickness, or the panel thickness planed from it when that is thinner than the
+ * board less the flattening allowance.
+ */
+export const oneBoardThicknessOf = (p: RecordCabinetParams) =>
+  oneBoardThickness(
+    p.panelThickness,
+    { thickness: p.board.source === 'store' ? p.board.thickness : p.board.surfaced },
+    p.allowances,
+  );
 
 function doorGeometry(p: RecordCabinetParams, bayWidth: number): CabinetGeometry['door'] {
   const d = p.door;
   if (p.doors === 'none' || !d) return undefined;
-  const thickness = boardThickness(p);
+  const thickness = oneBoardThicknessOf(p);
   const trackWidth = thickness + d.clearance;
   const trackZone = 3 * d.land + 2 * trackWidth;
   const height = p.bayHeight + 2 * d.bottomDepth;

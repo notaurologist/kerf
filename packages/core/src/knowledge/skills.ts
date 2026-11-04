@@ -93,6 +93,12 @@ export const SKILLS = [
       'Take the faces down evenly until a straightedge laid across and along the panel touches everywhere, with no step at any joint.',
   },
   {
+    id: 'plane-to-thickness',
+    name: 'Planing to thickness',
+    description:
+      'Take the faces down evenly, a thin layer at a time, until the piece is the same thickness everywhere and both faces are flat.',
+  },
+  {
     id: 'glue-up-strips',
     name: 'Gluing strips face to face',
     description:

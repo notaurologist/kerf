@@ -85,6 +85,33 @@ describe('panelStock', () => {
     expect(panelStock({ thickness: 0.75, width: 3, length: 20, board, allowances }).ok).toBe(true);
   });
 
+  it('planes a part of one board thinner than the board less flattening, from the board', () => {
+    // 1/2" from one 13/16" board: 13/16 − 1/2 = 5/16 planed off, and no flattening.
+    const half = panelStock({ thickness: 0.5, width: 3, length: 20, board: cherry, allowances });
+    expect(half).toMatchObject({
+      ok: true,
+      stock: { boards: 1, thickness: 0.5, planeOff: 0.3125 },
+    });
+  });
+
+  it('flattens a glued-up panel, then planes it the rest of the way', () => {
+    // 1/2" glued up from 13/16" boards: flattened 1/16 to 3/4, then 3/4 − 1/2 = 1/4 planed off.
+    const half = panelStock({ thickness: 0.5, width: 15, length: 20, board: cherry, allowances });
+    expect(half).toMatchObject({ ok: true, stock: { boards: 3, thickness: 0.5, planeOff: 0.25 } });
+  });
+
+  it('keeps a part of one board within the flattening allowance at the board, unplaned', () => {
+    // 3/4" and 25/32" are within 1/16 of 13/16": one board is not flattened, so it stays 13/16.
+    for (const thickness of [0.75, 0.78125, 0.8125]) {
+      const one = panelStock({ thickness, width: 3, length: 20, board: cherry, allowances });
+      if (!one.ok) throw new Error(one.issue.message);
+      expect(one.stock.thickness).toBe(0.8125);
+      expect(one.stock).not.toHaveProperty('planeOff');
+    }
+    // A glued-up panel at the flattened thickness is flattened only.
+    expect(made(15)).not.toHaveProperty('planeOff');
+  });
+
   it('refuses boards that jointing both edges would use up', () => {
     const result = panelStock({
       thickness: 0.75,
@@ -101,5 +128,8 @@ describe('PartStock', () => {
   it('reads dimension lumber and panel stock back unchanged', () => {
     expect(PartStock.parse(stock('2x4'))).toEqual(stock('2x4'));
     expect(PartStock.parse(made(15))).toEqual(made(15));
+    const planed = panelStock({ thickness: 0.5, width: 3, length: 20, board: cherry, allowances });
+    if (!planed.ok) throw new Error(planed.issue.message);
+    expect(PartStock.parse(planed.stock)).toEqual(planed.stock);
   });
 });

@@ -117,6 +117,18 @@ export const Operation = z.discriminatedUnion('type', [
     thickness: z.number(),
   }),
   /**
+   * Plane a board, or a glued-up panel once it is flattened, down to `thickness`, taking
+   * `planeOff` off its two faces. `width` is the face's width, which the planer takes.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('plane-to-thickness'),
+    width: z.number(),
+    length: z.number(),
+    thickness: z.number(),
+    planeOff: z.number(),
+  }),
+  /**
    * A dado (Part.dadoes) that reaches two opposite edges. `length` runs between them; `width` is
    * across it, the housed part's thickness.
    */
@@ -438,7 +450,8 @@ export type OperationType = Operation['type'];
  * square end is a crosscut and an angled one a miter; an end measured from the reference face
  * (a bevel) has no operation type yet and is refused rather than mislabeled. A panel part first
  * has its boards cut to length, their glued edges jointed, the boards glued up and flattened, and
- * the panel ripped to width; a panel of one board is only cut to length and ripped. A strip
+ * the panel ripped to width; a panel of one board is only cut to length and ripped. Either is
+ * planed to thickness before it is ripped when it is thinner than that leaves it. A strip
  * glue-up has its boards cut to length and ripped into strips, the strips glued face to face and
  * flattened, and the glue-up ripped to its size across the strips if it is over. A plan with
  * glued-up panels or strip glue-ups first lets its lumber settle indoors.
@@ -841,7 +854,7 @@ function fromNearestEdge(part: Part, hole: BoredHole): number {
 }
 
 function panelOperations(part: Part, stock: PanelStock): Operation[] {
-  const { board, boards, boardLength: length, gluedWidth } = stock;
+  const { board, boards, boardLength: length, gluedWidth, planeOff } = stock;
   const onPart = { partId: part.id };
   const ops: Operation[] = ([0, 1] as const).map((e) => ({
     id: `${part.id}/board-end-${e}`,
@@ -879,9 +892,21 @@ function panelOperations(part: Part, stock: PanelStock): Operation[] {
         count: part.quantity,
         width: gluedWidth,
         length,
-        thickness: stock.thickness,
+        thickness: stock.thickness + (planeOff ?? 0),
       },
     );
+  }
+  if (planeOff !== undefined) {
+    ops.push({
+      id: `${part.id}/plane`,
+      type: 'plane-to-thickness',
+      ...onPart,
+      count: part.quantity,
+      width: gluedWidth,
+      length,
+      thickness: stock.thickness,
+      planeOff,
+    });
   }
   ops.push({
     id: `${part.id}/rip`,
@@ -1004,6 +1029,7 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   'joint-edges': 'Joint edges',
   'glue-up': 'Glue up',
   flatten: 'Flatten',
+  'plane-to-thickness': 'Plane to thickness',
   'rip-strips': 'Rip into strips',
   'glue-up-strips': 'Glue up strips',
   'flatten-strips': 'Flatten the glue-up',
