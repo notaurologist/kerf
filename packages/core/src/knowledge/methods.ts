@@ -70,6 +70,9 @@ export const Method = z.object({
     'joint-edges',
     'glue-up',
     'flatten',
+    'rip-strips',
+    'glue-up-strips',
+    'flatten-strips',
     'rip',
     'dado',
     'stopped-dado',
@@ -79,10 +82,16 @@ export const Method = z.object({
     'cutout',
     'mortise',
     'tenon',
+    'dovetail-tails',
+    'dovetail-pins',
     'screw-holes',
     'groove',
     'rabbet',
     'finger-recess',
+    'bore',
+    'stopped-bore',
+    'hinge-cups',
+    'hinge-plates',
     'bolt-holes',
     'treat-cuts',
     'treat-holes',
@@ -120,14 +129,24 @@ export type Method = z.infer<typeof Method>;
 
 // Values a method's text can name, by operation type: each is a field of the operation or follows
 // from its fields. `offset` is where an angled line's short point sits along the far edge,
-// measured square from the long point: width · tan(setting).
-type Kind = 'length' | 'angle' | 'count';
+// measured square from the long point: width · tan(setting). A `ratio` is a slope, 1 across in n
+// along, shown as 1:n; its angle from square is atan(1 / n).
+type Kind = 'length' | 'angle' | 'count' | 'ratio';
 type ValuesOf<T extends OperationType> = Record<
   string,
   { kind: Kind; of: (op: Extract<Operation, { type: T }>) => number }
 >;
 const RAD = Math.PI / 180;
 const count = { kind: 'count', of: (op: { count: number }) => op.count } as const;
+
+function boreValues() {
+  return {
+    count,
+    diameter: { kind: 'length', of: (op: { diameter: number }) => op.diameter },
+    depth: { kind: 'length', of: (op: { depth: number }) => op.depth },
+    fromEdge: { kind: 'length', of: (op: { fromEdge: number }) => op.fromEdge },
+  } as const;
+}
 
 export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
   crosscut: {
@@ -160,6 +179,27 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     length: { kind: 'length', of: (op) => op.length },
   },
   flatten: {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  'rip-strips': {
+    count,
+    boards: { kind: 'count', of: (op) => op.boards },
+    perBoard: { kind: 'count', of: (op) => op.perBoard },
+    stripWidth: { kind: 'length', of: (op) => op.stripWidth },
+    length: { kind: 'length', of: (op) => op.length },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  'glue-up-strips': {
+    count,
+    strips: { kind: 'count', of: (op) => op.strips },
+    width: { kind: 'length', of: (op) => op.width },
+    depth: { kind: 'length', of: (op) => op.depth },
+    length: { kind: 'length', of: (op) => op.length },
+  },
+  'flatten-strips': {
     count,
     width: { kind: 'length', of: (op) => op.width },
     length: { kind: 'length', of: (op) => op.length },
@@ -231,6 +271,14 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     height: { kind: 'length', of: (op) => op.height },
     depth: { kind: 'length', of: (op) => op.depth },
   },
+  bore: boreValues(),
+  'stopped-bore': boreValues(),
+  'hinge-cups': {
+    ...boreValues(),
+    edgeToCenter: { kind: 'length', of: (op) => op.edgeToCenter },
+    cupFromEdge: { kind: 'length', of: (op) => op.cupFromEdge },
+  },
+  'hinge-plates': { count, screws: { kind: 'count', of: (op) => op.screws } },
   'screw-holes': {
     count,
     round: { kind: 'count', of: (op) => op.round },
@@ -245,6 +293,28 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     width: { kind: 'length', of: (op) => op.width },
     cheekBack: { kind: 'length', of: (op) => op.cheekBack },
     cheekFront: { kind: 'length', of: (op) => op.cheekFront },
+  },
+  'dovetail-tails': {
+    count,
+    tails: { kind: 'count', of: (op) => op.tails },
+    slope: { kind: 'ratio', of: (op) => op.slope },
+    slopeRun: { kind: 'count', of: (op) => op.slope },
+    slopeAngle: { kind: 'angle', of: (op) => Math.atan(1 / op.slope) / RAD },
+    baseline: { kind: 'length', of: (op) => op.baseline },
+    halfPin: { kind: 'length', of: (op) => op.halfPin },
+    pin: { kind: 'length', of: (op) => op.pin },
+    tailWide: { kind: 'length', of: (op) => op.tailWide },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  'dovetail-pins': {
+    count,
+    pins: { kind: 'count', of: (op) => op.pins },
+    slope: { kind: 'ratio', of: (op) => op.slope },
+    slopeAngle: { kind: 'angle', of: (op) => Math.atan(1 / op.slope) / RAD },
+    baseline: { kind: 'length', of: (op) => op.baseline },
+    halfPin: { kind: 'length', of: (op) => op.halfPin },
+    pin: { kind: 'length', of: (op) => op.pin },
+    thickness: { kind: 'length', of: (op) => op.thickness },
   },
   'bolt-holes': {
     count,
@@ -294,7 +364,9 @@ export function fillMethodText(text: string, op: Operation): string {
       ? formatLength(n)
       : value.kind === 'angle'
         ? formatAngle(n)
-        : `${n}`;
+        : value.kind === 'ratio'
+          ? `1:${n}`
+          : `${n}`;
   });
 }
 
@@ -449,6 +521,17 @@ const RIP_BLADE = {
     {
       source: 'osha-woodworking-etool',
       locator: 'Table Saws: kickbacks',
+      url: `${ETOOL}/table-saws`,
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const NARROW_RIP = {
+  text: 'A strip leaves little room between the blade and the fence. Keep your hands out of the line of the cut, push the strip past the blade with a push stick, and where the fence side is too narrow for one, rip with a filler piece between the fence and the blade.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Table Saws: point of operation and kickbacks, work practices',
       url: `${ETOOL}/table-saws`,
     },
   ],
@@ -1237,6 +1320,250 @@ export const METHODS = [
     moreAccurateThan: [],
   },
 
+  // Rip into strips (a strip glue-up's boards). OSHA Woodworking eTool, Table Saws: a push stick
+  // for small pieces and for pushing stock past the blade, hands out of the line of the cut, and
+  // a filler piece where there is little clearance on the fence side.
+  {
+    id: 'rip-strips-table-saw',
+    operation: 'rip-strips',
+    name: 'With a table saw',
+    tools: [{ use: 'ripping the strips', anyOf: [{ tool: 'table-saw' }] }, TAPE],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'Set the fence {stripWidth} from the blade, measured to the side of a tooth facing the fence.',
+      'Cut a push stick from scrap, narrow enough to fit between the blade and the fence.',
+    ],
+    technique: [
+      'Hold the straighter edge of the board against the fence and rip a strip off it at an even speed for the whole {length}, finishing the cut with the push stick.',
+      'Rip the next strip with the freshly sawn edge against the fence, and so on across the board, {perBoard} strips from each board.',
+      'Rip {count} strips this way, from {boards} boards.',
+    ],
+    mistakes: [
+      'Letting the board drift from the fence leaves a strip narrower than {stripWidth} along part of it, a low spot that flattening may not reach. Keep the board tight to the fence until the strip is past the blade.',
+      'Ripping the last narrow piece of a board with your fingers near the blade puts them in the line of the cut. Use the push stick, or leave that piece as waste.',
+    ],
+    safety: [
+      NARROW_RIP,
+      TABLE_SAW_KICKBACK,
+      RIP_BLADE,
+      GUARDS_STAY_ON,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
+    flags: [categoryFlag('table-saw')],
+    easierThan: ['rip-strips-track-saw'],
+    moreAccurateThan: ['rip-strips-band-saw', 'rip-strips-track-saw'],
+  },
+  {
+    id: 'rip-strips-band-saw',
+    operation: 'rip-strips',
+    name: 'With a band saw and a fence',
+    tools: [{ use: 'ripping the strips', anyOf: [{ tool: 'band-saw' }] }, TAPE],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'Set the fence {stripWidth} from the blade, and set the upper guide a little above the board, {thickness} thick.',
+      'Cut a push stick from scrap, narrow enough to fit between the blade and the fence.',
+    ],
+    technique: [
+      'Hold the board against the fence and feed it at an even speed for the whole {length}, finishing the cut with the push stick.',
+      'Rip the next strip with the freshly sawn edge against the fence, and so on across the board, {perBoard} strips from each board.',
+      'Rip {count} strips this way, from {boards} boards.',
+    ],
+    mistakes: [
+      'A band saw blade can lead to one side, so the board walks off the fence and the strip narrows. Make a test rip in scrap, and angle the fence to match the way the blade leads.',
+    ],
+    safety: [BAND_SAW_GUARD, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [],
+    easierThan: ['rip-strips-table-saw', 'rip-strips-track-saw'],
+    moreAccurateThan: ['rip-strips-track-saw'],
+  },
+  {
+    id: 'rip-strips-track-saw',
+    operation: 'rip-strips',
+    name: 'With a track saw',
+    tools: [{ use: 'ripping the strips', anyOf: [{ tool: 'track-saw' }] }, TAPE, CLAMPS],
+    skills: ['measure-and-mark', 'rip-along-a-fence'],
+    setup: ['Support the board flat on a sacrificial surface and clamp it.'],
+    technique: [
+      'Mark {stripWidth} in from the edge at both ends.',
+      'Lay the rail on the marks with the rail on the wide part of the board and the blade on the waste side of the strip, and cut the full {length}.',
+      'Mark and rip the next strip from the freshly sawn edge, and so on across the board, {perBoard} strips from each board.',
+      'Rip {count} strips this way, from {boards} boards.',
+    ],
+    mistakes: [
+      'Setting the rail on the strip side of the marks makes the strip narrow by the width of the blade. Keep the blade on the waste side.',
+      'Once the board gets narrow, the rail no longer sits flat on it and rocks during the cut. Leave the last narrow piece as waste.',
+    ],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Glue up strips (face to face). Wood Handbook ch. 10 (pp. 10-14 to 10-16): glue left open too
+  // long dries and does not wet the other surface, leaving a thick, weak glue line; pressure must
+  // be moderately high for the wood's density, higher for dense hardwoods, but too much starves
+  // the joint; uneven pressure from poorly mated surfaces makes thick and starved spots.
+  {
+    id: 'glue-up-strips-in-sections',
+    operation: 'glue-up-strips',
+    name: 'In sections, with clamps and cauls',
+    tools: [
+      {
+        use: 'clamping the strips',
+        anyOf: [{ tool: 'clamps', needs: [{ capability: 'maxOpening', atLeast: 'width' }] }],
+      },
+    ],
+    skills: ['glue-up-strips'],
+    setup: [
+      'Lay the {strips} strips out in order, turned so the faces that meet are flat and clean, and mark a line across them so they go back the same way.',
+      'Clamp them dry to check that every glue line closes along its length with light pressure, and open the clamps past {width}.',
+      'Cut straight scrap boards for cauls, as long as the glue-up is wide.',
+    ],
+    technique: [
+      'Glue a few strips at a time into sections: spread glue evenly on every face that meets another, bring them together, and clamp them.',
+      'Put clamps along the length close enough together that a small bead of glue squeezes out along every glue line, alternating them on the two faces that show the strips’ edges, and clamp cauls across to hold the strips level.',
+      'Once a section’s glue holds, scrape off the squeeze-out on its faces, then glue the sections together the same way.',
+      'Leave the last glue-up clamped for as long as the glue maker says.',
+      'Glue up {count} this way.',
+    ],
+    mistakes: [
+      'Spreading glue on every strip at once can take so long that the first faces dry before the clamps go on, and dried glue does not wet the other face. A section of a few strips goes together before that.',
+      'Clamping as hard as you can squeezes out the glue the joint needs. Tighten only until a small, even bead appears.',
+      'Strips that slip out of level leave a step on the edge faces deeper than flattening takes off. Keep the cauls tight and check each glue line with your fingers before the final tightening.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['glue-up-strips-at-once'],
+  },
+  {
+    id: 'glue-up-strips-at-once',
+    operation: 'glue-up-strips',
+    name: 'All at once, with clamps and cauls',
+    tools: [
+      {
+        use: 'clamping the strips',
+        anyOf: [{ tool: 'clamps', needs: [{ capability: 'maxOpening', atLeast: 'width' }] }],
+      },
+    ],
+    skills: ['glue-up-strips'],
+    setup: [
+      'Lay the {strips} strips out in order, turned so the faces that meet are flat and clean, and mark a line across them so they go back the same way.',
+      'Clamp them dry to check that every glue line closes along its length with light pressure, and open the clamps past {width}.',
+      'Cut straight scrap boards for cauls, as long as the glue-up is wide, and have a helper ready.',
+    ],
+    technique: [
+      'Spread glue evenly on every face that meets another, working quickly, and bring all {strips} strips together.',
+      'Put clamps along the length close enough together that a small bead of glue squeezes out along every glue line, alternating them on the two faces that show the strips’ edges, and clamp cauls across to hold the strips level.',
+      'Leave the glue-up clamped for as long as the glue maker says.',
+      'Glue up {count} this way.',
+    ],
+    mistakes: [
+      'Glue left open too long dries and does not wet the face it meets, leaving a weak glue line. Use a glue with a long open time, spread it quickly, or glue up in sections instead.',
+      'Clamping as hard as you can squeezes out the glue the joint needs. Tighten only until a small, even bead appears.',
+      'Strips that slip out of level leave a step on the edge faces deeper than flattening takes off. Keep the cauls tight and check each glue line with your fingers before the final tightening.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Flatten a strip glue-up (its two faces of sawn strip edges). Wood Handbook ch. 10 (p. 10-16):
+  // a glue-up surfaced before the water from the glue dries back gets sunken glue lines.
+  {
+    id: 'flatten-strips-thickness-planer',
+    operation: 'flatten-strips',
+    name: 'With a thickness planer',
+    tools: [
+      {
+        use: 'planing the faces',
+        anyOf: [
+          { tool: 'thickness-planer', needs: [{ capability: 'maxWidth', atLeast: 'width' }] },
+        ],
+      },
+      STRAIGHTEDGE,
+    ],
+    skills: ['flatten-a-glue-up'],
+    setup: [
+      'Let the glue-up rest for several days, so the wood along the glue lines dries back before you plane it.',
+      'Scrape off the dried glue on both faces that show the strips’ edges.',
+      'Set it on a flat surface. If it rocks, take the high corners down first: a planer copies a twist from the face beneath it.',
+    ],
+    technique: [
+      'Feed the glue-up with the grain on one edge face, taking light cuts, and turn it over each time so both faces come down evenly.',
+      'Stop when a straightedge laid across the {width} face touches everywhere, and plane both faces evenly down to {thickness} between them.',
+      'Flatten {count} this way.',
+    ],
+    mistakes: [
+      'Planing soon after glue-up leaves glue lines that sink below the surface as they dry. Wait several days.',
+      'Dried glue left on the faces dulls the knives. Scrape it off first.',
+    ],
+    safety: [PLANER_ROLLS, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('jointer-planer-lathe')],
+    easierThan: ['flatten-strips-router-sled', 'flatten-strips-hand-plane'],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'flatten-strips-router-sled',
+    operation: 'flatten-strips',
+    name: 'With a router on a sled',
+    tools: [{ use: 'cutting the faces flat', anyOf: [{ tool: 'router' }] }, STRAIGHTEDGE, CLAMPS],
+    skills: ['rout-along-a-guide', 'flatten-a-glue-up'],
+    setup: [
+      'Let the glue-up rest for several days, so the wood along the glue lines dries back before you rout it.',
+      'Scrape off the dried glue on both faces that show the strips’ edges.',
+      'Clamp two straight rails along both sides of the glue-up, their top edges level with each other and above the highest point of the face, and wedge the glue-up so it does not rock.',
+      'Make a sled that spans the rails with the router riding on it, and fit a wide straight bit set to reach the lowest spot.',
+    ],
+    technique: [
+      'Slide the sled along the rails and move the router across it in overlapping strokes, until the whole face is cut.',
+      'Turn the glue-up over, set it on the flattened face, and rout the other face the same way, lowering the bit until the glue-up is {thickness} between the two faces.',
+      'Check with a straightedge laid across the {width} face, along it, and corner to corner.',
+      'Flatten {count} this way.',
+    ],
+    mistakes: [
+      'Rails that are not level with each other cut a twist into the face. Check them with a straightedge laid across both before you start.',
+      'Taking the full depth at once makes the bit chatter and tear out. Lower it a little at a time.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED, CLAMP_THE_WORK, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('router')],
+    easierThan: ['flatten-strips-hand-plane'],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'flatten-strips-hand-plane',
+    operation: 'flatten-strips',
+    name: 'With a bench plane',
+    tools: [{ use: 'planing the faces', anyOf: [{ tool: 'bench-plane' }] }, STRAIGHTEDGE, CLAMPS],
+    skills: ['flatten-a-glue-up'],
+    setup: [
+      'Let the glue-up rest for several days, so the wood along the glue lines dries back before you plane it.',
+      'Scrape off the dried glue on both faces that show the strips’ edges, and clamp the glue-up so it does not rock.',
+    ],
+    technique: [
+      'Find the high spots with a straightedge laid across the {width} face, along it, and corner to corner, and mark them.',
+      'Plane the high spots down across the glue lines, then plane the whole face with the grain until the straightedge touches everywhere.',
+      'Turn the glue-up over and plane the other face the same way, until the glue-up is {thickness} between the two faces.',
+      'Flatten {count} this way.',
+    ],
+    mistakes: [
+      'Planing only along the length leaves the strips’ edges at different heights. Plane across the glue lines first.',
+      'A dull blade tears the grain where it changes direction from one strip to the next. Sharpen it, and take thin shavings.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['flatten-strips-router-sled'],
+  },
+
   // Rip (a panel or board to its finished width)
   {
     id: 'rip-table-saw',
@@ -1877,6 +2204,149 @@ export const METHODS = [
     moreAccurateThan: ['tenon-hand-saw'],
   },
 
+  // Dovetail tails, then pins fitted to them (DOMAIN.md, Dovetails)
+  {
+    id: 'dovetail-tails-router-jig',
+    operation: 'dovetail-tails',
+    name: 'With a router and a dovetail jig',
+    tools: [
+      { use: 'cutting the tails', anyOf: [{ tool: 'router' }] },
+      { use: 'guiding the router', anyOf: [{ tool: 'dovetail-jig' }] },
+      TAPE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'rout-along-a-guide', 'cut-dovetails'],
+    setup: [
+      "Fit the jig's dovetail bit, the one its manual gives for through tails, with sides at {slopeAngle} from square, a slope of {slope}, or the nearest the jig offers.",
+      "Set the bit to cut {baseline} deep, the thickness of the board the pins go in, as the jig's manual says.",
+      'Set the fingers to the layout on the cut detail: a half pin {halfPin} wide at each edge, then {tails} tails, each {tailWide} wide at the end, with a pin {pin} wide between each two.',
+      'Rout a scrap of the same thickness first, and check the layout and depth on it.',
+    ],
+    technique: [
+      'Clamp the board in the jig, end up against the fingers, with a scrap clamped behind it where the bit comes out.',
+      'Rout between the fingers, keeping the bit’s guide against each finger, from one edge to the other.',
+      'Let the bit stop before you lift the router off the jig.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'A jig whose fingers cannot move cuts its own spacing, not the plan’s. Use one whose fingers can be set to the layout, or ask an experienced builder before changing the layout.',
+      'Lifting the router while the bit turns gouges the fingers and the tails. Let it stop first.',
+      'Routing without a scrap behind the board splinters the face where the bit comes out. Clamp one there.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('router')],
+    easierThan: ['dovetail-tails-hand-saw'],
+    moreAccurateThan: ['dovetail-tails-hand-saw'],
+  },
+  {
+    id: 'dovetail-tails-hand-saw',
+    operation: 'dovetail-tails',
+    name: 'By hand, with a saw and a chisel',
+    tools: [
+      { use: 'sawing the tail walls', anyOf: [{ tool: 'hand-saw' }] },
+      { use: 'chopping out the waste', anyOf: [{ tool: 'chisel' }] },
+      { use: 'setting the slope', anyOf: [{ tool: 'sliding-bevel' }] },
+      { use: 'scribing the baseline', anyOf: [{ tool: 'combination-square' }] },
+      SQUARE,
+      TAPE,
+      CLAMPS,
+    ],
+    skills: [
+      'measure-and-mark',
+      'lay-out-an-angle',
+      'saw-by-hand',
+      'pare-to-a-line',
+      'cut-dovetails',
+    ],
+    setup: [
+      'Set the combination square to {baseline}, the thickness of the board the pins go in, and scribe the baseline that far from the end on both faces and both edges.',
+      'Set the sliding bevel to the slope, {slope}: on a straight-edged scrap, square a line across, measure {slopeRun} inches along the edge from it and one inch along the line, and set the bevel to the line between those marks.',
+      'On the end, mark a half pin {halfPin} wide in from each edge, then {tails} tails, each {tailWide} wide, with a pin {pin} wide between each two.',
+      'Square the marks across the end, then carry each down both faces to the baseline with the bevel, the tails widest at the end. Mark the waste between them with an X.',
+    ],
+    technique: [
+      'Clamp the board upright, and saw down each tail wall on the waste side of the line, square across the end, stopping at the baseline on both faces.',
+      'Saw off the half-pin waste at each edge, down the wall and then across at the baseline.',
+      'Chop out the waste between the tails with the chisel, its flat side on the baseline, halfway through from one face and then from the other.',
+      'Pare the walls and the baseline flat and square to the faces.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Sawing past the baseline leaves a kerf that shows on the finished corner. Stop at the line on both faces.',
+      'Chopping all the way through from one face breaks out the far face at the baseline. Chop halfway from each face.',
+      'Sawing out of square across the end makes the pins bind on one face. Watch the saw from the side, and keep it square to the face.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'dovetail-pins-router-jig',
+    operation: 'dovetail-pins',
+    name: 'With a router and a dovetail jig',
+    tools: [
+      { use: 'cutting the pins', anyOf: [{ tool: 'router' }] },
+      { use: 'guiding the router', anyOf: [{ tool: 'dovetail-jig' }] },
+      CLAMPS,
+    ],
+    skills: ['rout-along-a-guide', 'cut-dovetails'],
+    setup: [
+      "Fit the straight bit the jig's manual gives for pins, and set it to cut {baseline} deep, the thickness of the tail board.",
+      "Turn or set the fingers to the pin side, as the jig's manual says, keeping the layout the tails were cut to: {pins} pins between the tails and a half pin at each edge, {pin} and {halfPin} wide at the outside face.",
+      'Rout a scrap of the same thickness, and fit it to a tail board before cutting the parts. Move the fingers as the manual says until it fits.',
+    ],
+    technique: [
+      'Clamp the board in the jig, end up against the fingers, its outside face where the manual says, with a scrap behind it.',
+      'Rout out the sockets between the fingers, keeping the bit’s guide against each finger.',
+      'Let the bit stop before you lift the router off the jig.',
+      'Fit each corner dry with its tails, and pare where it binds.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Cutting the parts before the scrap fits leaves every corner loose or too tight. Fit the scrap first.',
+      'Clamping the board with its inside face out puts the narrow end of the pins on the wrong face, and the tails will not go in. Check which face the manual puts outward.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('router')],
+    easierThan: ['dovetail-pins-hand-saw'],
+    moreAccurateThan: ['dovetail-pins-hand-saw'],
+  },
+  {
+    id: 'dovetail-pins-hand-saw',
+    operation: 'dovetail-pins',
+    name: 'By hand, marked from the tails',
+    tools: [
+      { use: 'sawing the pin walls', anyOf: [{ tool: 'hand-saw' }] },
+      { use: 'chopping out the waste', anyOf: [{ tool: 'chisel' }] },
+      { use: 'scribing the baseline', anyOf: [{ tool: 'combination-square' }] },
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'pare-to-a-line', 'cut-dovetails'],
+    setup: [
+      'Set the combination square to {baseline}, the thickness of the tail board, and scribe the baseline that far from the end on both faces.',
+      'Clamp the pin board upright, its end level with a flat board beside it. Lay the finished tail board on the end, its baseline along the pin board’s inside face and its edges flush, and knife around each tail onto the end.',
+      'Square the marks down both faces to the baseline, and mark the waste, the sockets for the tails, with an X. The pins come out {pin} wide, and {halfPin} at the edges, at the outside face, wider at the inside.',
+    ],
+    technique: [
+      'Saw down each pin wall on the waste side of the knife line, following the slope across the end, stopping at the baseline on both faces.',
+      'Chop out the sockets with the chisel, its flat side on the baseline, halfway through from one face and then from the other.',
+      'Pare the walls to the knife lines, and the baseline flat.',
+      'Fit the corner part way with its tails, and pare where it binds, shown by shiny marks on the pins.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Sawing on the knife line, or the pin side of it, leaves the joint loose. Saw on the waste side and pare to the line.',
+      'Driving a tight corner all the way together splits the tail board. Fit it part way, take it apart, and pare.',
+      'Marking from a tail board other than the one this corner is made from leaves a corner that does not fit. Number each pair of boards and mark from its own tails.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
   // Screw holes, round or slotted (DOMAIN.md, Joints that let wood move)
   {
     id: 'screw-holes-drill',
@@ -2074,6 +2544,338 @@ export const METHODS = [
     safety: [CLAMP_THE_WORK],
     flags: [],
     easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Bored holes, through and stopped
+  {
+    id: 'bore-drill-press',
+    operation: 'bore',
+    name: 'With a drill press',
+    tools: [
+      {
+        use: 'boring the holes',
+        anyOf: [
+          {
+            tool: 'drill-press',
+            needs: [
+              { capability: 'throat', atLeast: 'fromEdge' },
+              { capability: 'quillTravel', atLeast: 'depth' },
+            ],
+          },
+        ],
+      },
+      {
+        use: 'cutting the hole',
+        anyOf: [
+          { tool: 'forstner-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] },
+          { tool: 'spade-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] },
+        ],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'bore-to-a-depth'],
+    setup: [
+      'Mark each hole center from the cut detail on the side you bore from.',
+      'Chuck a {diameter} bit and run it at a slow speed for a bit that size.',
+      'Lay a scrap board under the part, so the bit comes out into it without tearing the far side.',
+    ],
+    technique: [
+      'Line the bit up on a mark, clamp the part to the table, and bore through the {depth} of wood, lifting the bit now and then to clear the chips.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Holding the part by hand lets the bit catch and spin it. Clamp it to the table for every hole.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: ['bore-drill-one-side', 'bore-drill-both-sides'],
+    moreAccurateThan: ['bore-drill-one-side', 'bore-drill-both-sides'],
+  },
+  {
+    id: 'bore-drill-one-side',
+    operation: 'bore',
+    name: 'With a drill, from one side',
+    tools: [
+      { use: 'drilling', anyOf: [{ tool: 'drill-driver' }] },
+      {
+        use: 'boring the hole',
+        anyOf: [
+          { tool: 'auger-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] },
+          { tool: 'spade-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] },
+        ],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'drill-straight'],
+    setup: [
+      'Mark each hole center from the cut detail on the side you bore from.',
+      'Chuck a {diameter} bit, and clamp a scrap board tight under the part where the bit comes out.',
+    ],
+    technique: [
+      'Stand a square on the part beside the bit, and bore through the {depth} of wood, checking square from two directions as the bit starts.',
+      'Back the bit out every inch or so to clear the chips.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Letting the drill tilt puts the hole off square, so what stands in it leans. Check square from two directions as the bit starts, and again halfway.',
+      'Pushing the bit out through the far face with nothing behind it tears out the wood around the hole. Clamp a scrap board tight behind it.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: ['bore-drill-both-sides'],
+    moreAccurateThan: ['bore-drill-both-sides'],
+  },
+  {
+    id: 'bore-drill-both-sides',
+    operation: 'bore',
+    name: 'With a drill, from both sides',
+    tools: [
+      { use: 'drilling', anyOf: [{ tool: 'drill-driver' }] },
+      {
+        use: 'boring the hole',
+        anyOf: [
+          { tool: 'auger-bits', needs: [{ capability: 'reach', atLeast: 'depth', passes: 2 }] },
+          { tool: 'spade-bits', needs: [{ capability: 'reach', atLeast: 'depth', passes: 2 }] },
+        ],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'drill-straight', 'drill-from-both-sides'],
+    setup: [
+      'Mark each hole center from the cut detail on both sides, measured from the same end and edge.',
+      'Chuck a {diameter} bit.',
+    ],
+    technique: [
+      'Stand a square on the part beside the bit, and bore past halfway through the {depth} of wood.',
+      'Turn the part over and bore from the other mark until the holes meet.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Marking the two sides from different references makes the holes miss in the middle. Measure both marks from the same end and the same edge.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'stopped-bore-drill-press',
+    operation: 'stopped-bore',
+    name: 'With a drill press and its depth stop',
+    tools: [
+      {
+        use: 'boring the holes',
+        anyOf: [
+          {
+            tool: 'drill-press',
+            needs: [
+              { capability: 'throat', atLeast: 'fromEdge' },
+              { capability: 'quillTravel', atLeast: 'depth' },
+            ],
+          },
+        ],
+      },
+      {
+        use: 'cutting a flat-bottomed hole',
+        anyOf: [{ tool: 'forstner-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] }],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'bore-to-a-depth'],
+    setup: [
+      'Mark each hole center from the cut detail on the side you bore from.',
+      'Chuck a {diameter} bit, and set the depth stop so the rim stops {depth} into a scrap the same thickness. Check the depth in the scrap before boring the part.',
+    ],
+    technique: [
+      'Line the bit up on a mark, clamp the part to the table, and bore down to the stop.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Setting the stop from the bit’s center point rather than its rim leaves the hole too shallow. Measure the depth in the scrap at the rim’s cut.',
+      'Holding the part by hand lets the bit catch and spin it. Clamp it to the table for every hole.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: ['stopped-bore-drill'],
+    moreAccurateThan: ['stopped-bore-drill'],
+  },
+  {
+    id: 'stopped-bore-drill',
+    operation: 'stopped-bore',
+    name: 'With a drill and a mark on the bit',
+    tools: [
+      { use: 'drilling', anyOf: [{ tool: 'drill-driver' }] },
+      {
+        use: 'cutting a flat-bottomed hole',
+        anyOf: [{ tool: 'forstner-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] }],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'drill-straight', 'bore-to-a-depth'],
+    setup: [
+      'Mark each hole center from the cut detail on the side you bore from, and clamp the part down.',
+      'Chuck a {diameter} bit, and wrap tape around it {depth} up from the rim.',
+    ],
+    technique: [
+      'Set the bit’s center point on the mark, stand a square beside the bit, and start slowly so the rim cuts a full circle before you push.',
+      'Bore until the tape reaches the face, then measure the depth and bore a little more if it is short.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Starting fast lets the bit skate off the mark. Start slowly, with the center point pressed into the mark.',
+      'Boring past the tape can break through a thin part. Stop at the tape and measure before going deeper.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  // Concealed hinges: the cups bored in the part the hinge hangs, and the plates screwed to the
+  // other part. The drill press with a fence is the more accurate way to bore a cup (Fine
+  // Homebuilding, Striegler, issue 213); a jig carries the same guidance to a drill.
+  {
+    id: 'hinge-cups-drill-press',
+    operation: 'hinge-cups',
+    name: 'With a drill press and a fence',
+    tools: [
+      {
+        use: 'boring the cups',
+        anyOf: [
+          {
+            tool: 'drill-press',
+            needs: [
+              { capability: 'throat', atLeast: 'fromEdge' },
+              { capability: 'quillTravel', atLeast: 'depth' },
+            ],
+          },
+        ],
+      },
+      {
+        use: 'cutting a flat-bottomed cup',
+        anyOf: [{ tool: 'forstner-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] }],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'bore-to-a-depth'],
+    setup: [
+      'Mark the back face of each part, and each cup’s center from the cut detail.',
+      'Chuck a {diameter} bit. A hinge-cup bit of that size is sold on its own if your set has none.',
+      'Clamp a straight board to the table as a fence, {edgeToCenter} from the bit’s center, so each cup’s rim is {cupFromEdge} in from the edge.',
+      'Set the depth stop, and bore a test cup {depth} deep in a scrap the same thickness: check its depth and its distance from the edge, and that the hinge’s cup sits flat in it.',
+    ],
+    technique: [
+      'Lay the part back face up with its edge against the fence, line the bit up on a mark, clamp the part to the table, and bore down to the stop.',
+      'Bore {count} cups this way.',
+    ],
+    mistakes: [
+      'Boring into the front face puts the hinge on the wrong side. Bore with the marked back face up.',
+      'Setting the stop from the bit’s center point rather than its rim leaves the cup too shallow, so the hinge does not sit flat. Measure the test cup at the rim’s cut.',
+      'Holding the part by hand lets the bit catch and spin it. Clamp it to the table for every cup.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['hinge-cups-jig'],
+  },
+  {
+    id: 'hinge-cups-jig',
+    operation: 'hinge-cups',
+    name: 'With a drill and a hinge-boring jig',
+    tools: [
+      { use: 'driving the bit', anyOf: [{ tool: 'drill-driver' }] },
+      { use: 'guiding the bit square, at its distance and depth', anyOf: [{ tool: 'hinge-jig' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'bore-to-a-depth'],
+    setup: [
+      'Mark the back face of each part, and each cup’s center from the cut detail.',
+      'Fit the jig’s {diameter} bit in the drill, and set its depth stop for a cup {depth} deep.',
+      'Set the jig’s fence so each cup’s rim is {cupFromEdge} in from the edge.',
+      'Bore a test cup in a scrap the same thickness: check its depth and its distance from the edge, and that the hinge’s cup sits flat in it.',
+    ],
+    technique: [
+      'Clamp the part down back face up, set the jig’s fence against the edge with its center line on a mark, and clamp the jig or hold it firmly.',
+      'Let the bit come up to speed before it touches the wood, then bore through the jig’s guide down to the stop.',
+      'Bore {count} cups this way.',
+    ],
+    mistakes: [
+      'Boring into the front face puts the hinge on the wrong side. Bore with the marked back face up.',
+      'Letting the jig’s fence slip away from the edge as the bit starts moves the cup. Hold the fence tight to the edge until the bit has cut a full circle.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'hinge-plates-drill-driver',
+    operation: 'hinge-plates',
+    name: 'With a drill/driver',
+    tools: [
+      { use: 'drilling pilot holes and driving the screws', anyOf: [{ tool: 'drill-driver' }] },
+      TAPE,
+      SQUARE,
+    ],
+    skills: ['measure-and-mark', 'drive-a-screw'],
+    setup: [
+      'Mark each plate’s screw holes on the face from the cut detail.',
+      'Chuck a bit for the pilot holes, the size the hinge’s maker says for the plate’s screws.',
+    ],
+    technique: [
+      'Drill a pilot hole at each mark, as deep as the screws go.',
+      'Set a plate on its marks the way the maker’s diagram shows, and drive its {screws} screws until each head is snug.',
+      'Screw on {count} plates this way.',
+    ],
+    mistakes: [
+      'A screw driven at full speed strips its hole in the side, and the plate works loose. Set the clutch low and drive the last turns slowly.',
+      'Setting a plate turned around puts the hinge’s arm on the wrong side. Check it against the maker’s diagram before driving.',
+    ],
+    safety: [EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['hinge-plates-impact-driver'],
+  },
+  {
+    id: 'hinge-plates-impact-driver',
+    operation: 'hinge-plates',
+    name: 'With a drill and an impact driver',
+    tools: [
+      { use: 'drilling pilot holes', anyOf: [{ tool: 'drill-driver' }] },
+      { use: 'driving the screws', anyOf: [{ tool: 'impact-driver' }] },
+      TAPE,
+      SQUARE,
+    ],
+    skills: ['measure-and-mark', 'drive-a-screw'],
+    setup: [
+      'Mark each plate’s screw holes on the face from the cut detail.',
+      'Chuck a bit for the pilot holes, the size the hinge’s maker says for the plate’s screws.',
+    ],
+    technique: [
+      'Drill a pilot hole at each mark, as deep as the screws go.',
+      'Set a plate on its marks the way the maker’s diagram shows, and drive its {screws} screws in short bursts until each head is snug.',
+      'Screw on {count} plates this way.',
+    ],
+    mistakes: [
+      'An impact driver drives a small screw too far before you can stop it, stripping its hole. Finish each one by hand, or in short bursts.',
+    ],
+    safety: [EYE_PROTECTION],
+    flags: [],
+    easierThan: ['hinge-plates-drill-driver'],
     moreAccurateThan: [],
   },
 

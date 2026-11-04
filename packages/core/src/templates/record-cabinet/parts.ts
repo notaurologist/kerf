@@ -310,10 +310,13 @@ export function cabinetParts(
     cutouts: [],
     mortises: [],
     tenons: [],
+    dovetails: [],
     screwHoles: [],
     grooves: [],
     rabbets: [],
     recesses: [],
+    boredHoles: [],
+    hingePlates: [],
   };
   const panel = (id: string, name: string, quantity: number, dadoes: Dado[], note: string) => ({
     ...base,

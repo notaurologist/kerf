@@ -149,6 +149,13 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <path d="M12 2 V7 L15 8.5 L9 11.5 L15 14.5 L9 17.5 L12 19 V22" />
     </>
   ),
+  'forstner-bits': (
+    <>
+      <path d="M12 2 V12" />
+      <rect x="7.5" y="12" width="9" height="6" rx="0.6" />
+      <path d="M8 18 V20.5 M16 18 V20.5 M12 18 V21" />
+    </>
+  ),
   'socket-wrench': (
     <>
       <g transform="rotate(-45 12 12)">
@@ -196,6 +203,19 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <path d="M3 13 H6 M18 13 H21 M3 13 V15 M21 13 V15 M12 4 V2 M10 2 H14 M5 17.5 V21 M19 17.5 V21" />
     </>
   ),
+  'hinge-jig': (
+    <>
+      <rect x="3" y="15" width="18" height="5" rx="0.6" />
+      <rect x="7" y="8" width="10" height="7" rx="0.6" />
+      <path d="M3 15 V11 H7 M10 8 V3 M14 8 V3 M10 3 H14 M10 20 V17.5 H14 V20" />
+    </>
+  ),
+  'dovetail-jig': (
+    <>
+      <rect x="2" y="13" width="20" height="7" rx="0.6" />
+      <path d="M3 13 V7 H6 V13 M8.5 13 V7 H11.5 V13 M14 13 V7 H17 V13 M19.5 13 V7 H21 V13 M6 16.5 H18" />
+    </>
+  ),
   chisel: (
     <>
       <g transform="rotate(-45 12 12)">
@@ -203,6 +223,11 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
         <rect x="10" y="10.4" width="1.5" height="3.2" rx="0.6" />
         <path d="M11.5 10.9 H20 L22 13.1 H11.5" />
       </g>
+    </>
+  ),
+  'bench-plane': (
+    <>
+      <path d="M1 18 H23 V15.5 L21 14 H3 L1 15.5 Z M5 14 V12 A1.5 1.5 0 0 1 8 12 V14 M14 14 L16 8 H18.5 L18 14 M11 14 L13.5 10" />
     </>
   ),
   'block-plane': (

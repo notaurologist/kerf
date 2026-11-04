@@ -93,6 +93,18 @@ export const SKILLS = [
       'Take the faces down evenly until a straightedge laid across and along the panel touches everywhere, with no step at any joint.',
   },
   {
+    id: 'glue-up-strips',
+    name: 'Gluing strips face to face',
+    description:
+      'Spread glue on every face that meets another, bring the strips together in order before the glue dries, and clamp them along their length until a small bead squeezes out of every glue line, with their edges level.',
+  },
+  {
+    id: 'flatten-a-glue-up',
+    name: 'Flattening a thick glue-up',
+    description:
+      "Take both faces that show the strips' edges down evenly until a straightedge laid across, along, and corner to corner touches everywhere, with no step at any glue line and no twist.",
+  },
+  {
     id: 'settle-lumber',
     name: 'Letting lumber settle',
     description:
@@ -121,6 +133,12 @@ export const SKILLS = [
     name: 'Cutting a tenon',
     description:
       'Mark the shoulder around the part, cut the cheeks on the waste side to a steady thickness, and trim until it slides into its mortise with hand pressure.',
+  },
+  {
+    id: 'cut-dovetails',
+    name: 'Cutting dovetails',
+    description:
+      'Scribe the baseline at the other board’s thickness, saw each wall on the waste side square across the end, chop the waste halfway from each face, and mark the pins from the finished tails so the two fit as a pair.',
   },
   {
     id: 'fit-an-assembly',
@@ -157,6 +175,12 @@ export const SKILLS = [
     name: 'Drilling to meet from both sides',
     description:
       'Mark the hole center on both outer faces from the same reference, drill each side past halfway, and check that the holes meet.',
+  },
+  {
+    id: 'bore-to-a-depth',
+    name: 'Boring holes to a depth',
+    description:
+      'Set a stop or mark on the bit so every hole ends at the same depth, with its center on the mark and the bit square to the face.',
   },
   {
     id: 'ease-an-edge',

@@ -49,10 +49,13 @@ const leg: Part = {
   cutouts: [],
   mortises: [],
   tenons: [],
+  dovetails: [],
   screwHoles: [],
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
+  hingePlates: [],
 };
 const pl: Placement = {
   partId: 'leg',

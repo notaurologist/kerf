@@ -27,10 +27,13 @@ const base = {
   cutouts: [],
   mortises: [],
   tenons: [],
+  dovetails: [],
   screwHoles: [],
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
+  hingePlates: [],
   stock: stock('2x4'),
 };
 const stile: Part = {

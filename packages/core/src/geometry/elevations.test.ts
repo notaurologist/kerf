@@ -30,10 +30,13 @@ const board = (id: string, letter: string): Part => ({
   cutouts: [],
   mortises: [],
   tenons: [],
+  dovetails: [],
   screwHoles: [],
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
+  hingePlates: [],
 });
 const at = (x: number, y: number, z: number) => ({ x, y, z });
 /** Lying flat: along x, across y, through z (up). */

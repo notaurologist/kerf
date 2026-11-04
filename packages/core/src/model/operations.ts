@@ -1,13 +1,16 @@
 import { z } from 'zod';
-import { isPanel, type PanelStock } from '../lumber/panel.ts';
+import { dovetailGeometry } from '../joinery/dovetails.ts';
+import type { PanelStock } from '../lumber/panel.ts';
+import { isPanel, isStripGlueUp } from '../lumber/partStock.ts';
+import { type StripGlueUp, stripBoardsFor } from '../lumber/strips.ts';
 import { boltHoleDiameter } from '../structural/boltHoles.ts';
-import type { Dado, HardwareItem, Part } from './types.ts';
+import type { BoredHole, Dado, HardwareItem, Part } from './types.ts';
 
 // Operations: what needs to happen to each part, before any choice of how (DOMAIN.md, Operations).
 // Methods (#104) say how, given tools; build steps (#105) order them. Generic: the cuts and bolt
 // holes come from data every template's parts and hardware already carry, so their numbers are
-// the cut list's own, and so does the work of making a panel from boards (DOMAIN.md, Edge-glued
-// panels). A template adds the work its parts do not describe, such as easing edges or site work. Types cover what templates use; add one when a template needs it.
+// the cut list's own, and so does the work of making a panel from boards or a glue-up from strips
+// (DOMAIN.md, Lumber basics). A template adds the work its parts do not describe, such as easing edges or site work. Types cover what templates use; add one when a template needs it.
 
 const end = z.union([z.literal(0), z.literal(1)]);
 const base = {
@@ -29,6 +32,13 @@ const dadoFields = {
   depth: z.number(),
 };
 
+const boreFields = {
+  holes: z.array(z.number().int().nonnegative()).min(1),
+  diameter: z.number(),
+  depth: z.number(),
+  fromEdge: z.number(),
+};
+
 export const Operation = z.discriminatedUnion('type', [
   /** A square cut across the board at one end. */
   z.object({
@@ -39,8 +49,8 @@ export const Operation = z.discriminatedUnion('type', [
     width: z.number(),
     thickness: z.number(),
     /**
-     * True when it cuts a panel's boards to their length before gluing, in the cutting steps. A
-     * panel's own end cuts come after glue-up and leave this out.
+     * True when it cuts a panel's or a strip glue-up's boards to their length before gluing, in the
+     * cutting steps. The glued-up part's own end cuts come after glue-up and leave this out.
      */
     panelBoards: z.literal(true).optional(),
   }),
@@ -60,6 +70,43 @@ export const Operation = z.discriminatedUnion('type', [
     /** Width across the boards once glued, which the clamps reach across. */
     width: z.number(),
     length: z.number(),
+  }),
+  /**
+   * Rip each of a strip glue-up's boards into strips, `perBoard` side by side, `stripWidth` wide
+   * and `thickness` thick (the board's), across `boards` boards: `count` strips in all.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('rip-strips'),
+    boards: z.number().int().positive(),
+    perBoard: z.number().int().positive(),
+    stripWidth: z.number(),
+    length: z.number(),
+    thickness: z.number(),
+  }),
+  /**
+   * Glue a strip glue-up's strips face to face and clamp them until the glue sets. `width` is the
+   * size across the strips once glued, which the clamps reach across, and `depth` each strip's
+   * ripped width, the depth of every glue line.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('glue-up-strips'),
+    strips: z.number().int().min(2),
+    width: z.number(),
+    depth: z.number(),
+    length: z.number(),
+  }),
+  /**
+   * Bring the two faces of a strip glue-up that show the strips' sawn edges flat and level across
+   * its glue lines, to `thickness` between them. `width` is each face's width, across the strips.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('flatten-strips'),
+    width: z.number(),
+    length: z.number(),
+    thickness: z.number(),
   }),
   /** Bring the faces of a glued-up panel flat and level across its joints, to `thickness`. */
   z.object({
@@ -104,7 +151,10 @@ export const Operation = z.discriminatedUnion('type', [
     depth: z.number(),
     thickness: z.number(),
   }),
-  /** A cut along the grain, taking a panel or board down to its finished width. */
+  /**
+   * A cut along the grain, taking a panel, board, or strip glue-up down to its finished width, or
+   * for a glue-up, the finished size across its strips.
+   */
   z.object({
     ...onPart,
     type: z.literal('rip'),
@@ -179,6 +229,41 @@ export const Operation = z.discriminatedUnion('type', [
     shoulderFar: z.number(),
   }),
   /**
+   * Through dovetails' tails on a square end (Part.dovetails): `tails` of them, each `tailWide` at
+   * the end, sloped 1:`slope` on the faces down to the baseline `baseline` in, between half pins
+   * `halfPin` wide at the edges and pins `pin` wide, cut through the board's `thickness`.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('dovetail-tails'),
+    dovetails: z.number().int().nonnegative(),
+    end,
+    tails: z.number().int().positive(),
+    slope: z.number(),
+    baseline: z.number(),
+    halfPin: z.number(),
+    pin: z.number(),
+    tailWide: z.number(),
+    thickness: z.number(),
+  }),
+  /**
+   * Through dovetails' pins on a square end (Part.dovetails), fitted to the tails: `pins` between
+   * the tails and a half pin at each edge, `pin` and `halfPin` wide at the outside face and sloped
+   * 1:`slope` across the board's `thickness`, cut down to the baseline `baseline` in.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('dovetail-pins'),
+    dovetails: z.number().int().nonnegative(),
+    end,
+    pins: z.number().int().nonnegative(),
+    slope: z.number(),
+    baseline: z.number(),
+    halfPin: z.number(),
+    pin: z.number(),
+    thickness: z.number(),
+  }),
+  /**
    * Clearance holes for wood screws through a part (Part.screwHoles), `round` of them round and
    * `slotted` lengthened by `slot` so what they hold can move. Counts are per piece.
    */
@@ -217,6 +302,38 @@ export const Operation = z.discriminatedUnion('type', [
     width: z.number(),
     height: z.number(),
     depth: z.number(),
+  }),
+  /**
+   * Round holes bored through a part (Part.boredHoles), `holes` of them on each piece, all
+   * `diameter` across and `depth` long, by index into the part's bored holes. `fromEdge` is the
+   * farthest any of them is from the nearest edge of the side it enters, which a drill press must
+   * reach past its column.
+   */
+  z.object({ ...onPart, type: z.literal('bore'), ...boreFields }),
+  /** Round holes bored to a flat bottom `depth` in, stopped inside the part. */
+  z.object({ ...onPart, type: z.literal('stopped-bore'), ...boreFields }),
+  /**
+   * The cups of concealed hinge `hardwareId` (BoredHole.hinge), bored to a flat bottom like a
+   * stopped bore. `edgeToCenter` is the nearest any cup's center is to an edge along the part,
+   * where a fence or jig registers, and `cupFromEdge` the same to the cup's rim.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('hinge-cups'),
+    hardwareId: z.string(),
+    ...boreFields,
+    edgeToCenter: z.number(),
+    cupFromEdge: z.number(),
+  }),
+  /**
+   * The mounting plates of concealed hinge `hardwareId` screwed to a part (Part.hingePlates),
+   * `count` in all, each with `screws` screws.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('hinge-plates'),
+    hardwareId: z.string(),
+    screws: z.number().int().positive(),
   }),
   /**
    * Coat every cut in a piece of treated lumber (Part.treated) with preservative: its ends and any
@@ -316,8 +433,10 @@ export type OperationType = Operation['type'];
  * square end is a crosscut and an angled one a miter; an end measured from the reference face
  * (a bevel) has no operation type yet and is refused rather than mislabeled. A panel part first
  * has its boards cut to length, their glued edges jointed, the boards glued up and flattened, and
- * the panel ripped to width; a panel of one board is only cut to length and ripped. A plan with
- * glued-up panels first lets its lumber settle indoors.
+ * the panel ripped to width; a panel of one board is only cut to length and ripped. A strip
+ * glue-up has its boards cut to length and ripped into strips, the strips glued face to face and
+ * flattened, and the glue-up ripped to its size across the strips if it is over. A plan with
+ * glued-up panels or strip glue-ups first lets its lumber settle indoors.
  */
 export function cutAndDrillOperations(
   parts: readonly Part[],
@@ -325,13 +444,16 @@ export function cutAndDrillOperations(
 ): Operation[] {
   const ops: Operation[] = [];
   // Glued-up wood should be near its service moisture content first (DOMAIN.md, Wood movement).
-  const glued = parts.filter((p) => isPanel(p.stock) && p.stock.boards > 1).map((p) => p.id);
+  const glued = parts
+    .filter((p) => (isPanel(p.stock) && p.stock.boards > 1) || isStripGlueUp(p.stock))
+    .map((p) => p.id);
   if (glued.length > 0) {
     ops.push({ id: 'lumber/acclimate', type: 'acclimate', count: 1, partIds: glued });
   }
   for (const part of parts) {
     const { width, thickness } = part.stock;
     if (isPanel(part.stock)) ops.push(...panelOperations(part, part.stock));
+    if (isStripGlueUp(part.stock)) ops.push(...stripOperations(part, part.stock));
     part.ends.forEach((cut, e) => {
       const at = { partId: part.id, count: part.quantity, end: e as 0 | 1, width, thickness };
       const id = `${part.id}/end-${e}`;
@@ -404,6 +526,30 @@ export function cutAndDrillOperations(
         shoulderFar: width - t.v0 - t.width,
       });
     });
+    part.dovetails.forEach((d, i) => {
+      const id = `${part.id}/dovetails-${i}`;
+      if (part.ends[d.end].setting !== 0) throw new Error(`${id} is on an angled end`);
+      const run = d.board === 'tails' ? d.baseline : thickness;
+      const geometry = dovetailGeometry(d, width, run);
+      if (!geometry) throw new Error(`${id}: its tails do not fit across the part`);
+      const at = {
+        id,
+        partId: part.id,
+        count: part.quantity,
+        dovetails: i,
+        end: d.end,
+        slope: d.slope,
+        baseline: d.baseline,
+        halfPin: d.halfPin,
+        pin: d.pin,
+        thickness,
+      };
+      ops.push(
+        d.board === 'tails'
+          ? { ...at, type: 'dovetail-tails', tails: d.tails, tailWide: geometry.tailWide }
+          : { ...at, type: 'dovetail-pins', pins: d.tails - 1 },
+      );
+    });
     part.grooves.forEach((g, i) => {
       const L = part.length;
       ops.push({
@@ -442,6 +588,7 @@ export function cutAndDrillOperations(
         depth: r.depth,
       });
     });
+    ops.push(...boreOperations(part), ...plateOperations(part));
     const screws = part.screwHoles;
     if (screws.length > 0) {
       const slots = screws.filter((h) => h.slot > 0);
@@ -521,9 +668,11 @@ export function treatmentOperations(
         part.dadoes.length +
         part.mortises.length +
         part.tenons.length +
+        part.dovetails.length +
         part.grooves.length +
         part.rabbets.length +
-        part.recesses.length,
+        part.recesses.length +
+        part.boredHoles.length,
     }),
   );
   const holes = ops.flatMap((op): Operation[] => {
@@ -614,6 +763,77 @@ function dadoOperation(part: Part, d: Dado, i: number): Operation {
   );
 }
 
+/**
+ * A part's bored holes, one operation for each size: through or stopped, diameter, and depth, in
+ * the order each size first appears. Its ID is the index of that first hole.
+ */
+function boreOperations(part: Part): Operation[] {
+  const groups = new Map<string, number[]>();
+  part.boredHoles.forEach((h, i) => {
+    const key = `${h.hinge ?? ''} ${h.through} ${h.diameter} ${h.depth}`;
+    groups.set(key, [...(groups.get(key) ?? []), i]);
+  });
+  return [...groups.values()].map((holes): Operation => {
+    const first = part.boredHoles[holes[0] as number] as BoredHole;
+    const bored = holes.map((i) => part.boredHoles[i] as BoredHole);
+    const fields = {
+      id: `${part.id}/bore-${holes[0]}`,
+      partId: part.id,
+      count: part.quantity * holes.length,
+      holes,
+      diameter: first.diameter,
+      depth: first.depth,
+      fromEdge: Math.max(...bored.map((h) => fromNearestEdge(part, h))),
+    };
+    if (first.hinge === undefined) {
+      return { ...fields, type: first.through ? 'bore' : 'stopped-bore' };
+    }
+    const edgeToCenter = Math.min(
+      ...bored.map((h) => Math.min(h.entry.v, part.stock.width - h.entry.v)),
+    );
+    return {
+      ...fields,
+      type: 'hinge-cups',
+      hardwareId: first.hinge,
+      edgeToCenter,
+      cupFromEdge: edgeToCenter - first.diameter / 2,
+    };
+  });
+}
+
+/** A part's hinge plates, one operation for each hinge item, in the order each first appears. */
+function plateOperations(part: Part): Operation[] {
+  const items = [...new Set(part.hingePlates.map((p) => p.hardwareId))];
+  return items.map((hardwareId) => {
+    const plates = part.hingePlates.filter((p) => p.hardwareId === hardwareId);
+    return {
+      id: `${part.id}/hinge-plates-${hardwareId}`,
+      type: 'hinge-plates',
+      partId: part.id,
+      count: part.quantity * plates.length,
+      hardwareId,
+      screws: Math.max(...plates.map((p) => p.screws.length)),
+    };
+  });
+}
+
+/**
+ * The side of a part a bored hole enters, by the axis its direction mostly follows: a face (n),
+ * an edge (v), or an end (u).
+ */
+export function boredSide(hole: BoredHole): 'u' | 'v' | 'n' {
+  const { u, v, n } = hole.direction;
+  const [a, b, c] = [Math.abs(u), Math.abs(v), Math.abs(n)];
+  return c >= a && c >= b ? 'n' : b >= a ? 'v' : 'u';
+}
+
+/** How far a bored hole's center is from the nearest edge of the side it enters. */
+function fromNearestEdge(part: Part, hole: BoredHole): number {
+  const size = { u: part.length, v: part.stock.width, n: part.stock.thickness };
+  const axes = (['u', 'v', 'n'] as const).filter((a) => a !== boredSide(hole));
+  return Math.min(...axes.flatMap((a) => [hole.entry[a], size[a] - hole.entry[a]]));
+}
+
 function panelOperations(part: Part, stock: PanelStock): Operation[] {
   const { board, boards, boardLength: length, gluedWidth } = stock;
   const onPart = { partId: part.id };
@@ -669,6 +889,73 @@ function panelOperations(part: Part, stock: PanelStock): Operation[] {
   return ops;
 }
 
+/** Sizes within this of each other are taken as equal, so float error adds no rip. */
+const SAME_SIZE = 1e-9;
+
+function stripOperations(part: Part, stock: StripGlueUp): Operation[] {
+  const { board, strips, stripWidth, stripLength: length, gluedAcross } = stock;
+  const onPart = { partId: part.id };
+  const boards = stripBoardsFor(stock, part.quantity);
+  const [stacked, across] =
+    stock.stackedAcross === 'width'
+      ? [stock.width, stock.thickness]
+      : [stock.thickness, stock.width];
+  const ops: Operation[] = ([0, 1] as const).map((e) => ({
+    id: `${part.id}/board-end-${e}`,
+    type: 'crosscut',
+    ...onPart,
+    count: boards,
+    end: e,
+    width: board.width,
+    thickness: board.thickness,
+    panelBoards: true,
+  }));
+  ops.push(
+    {
+      id: `${part.id}/rip-strips`,
+      type: 'rip-strips',
+      ...onPart,
+      count: part.quantity * strips,
+      boards,
+      perBoard: stock.stripsPerBoard,
+      stripWidth,
+      length,
+      thickness: board.thickness,
+    },
+    {
+      id: `${part.id}/glue-up`,
+      type: 'glue-up-strips',
+      ...onPart,
+      count: part.quantity,
+      strips,
+      width: gluedAcross,
+      depth: stripWidth,
+      length,
+    },
+    {
+      id: `${part.id}/flatten`,
+      type: 'flatten-strips',
+      ...onPart,
+      count: part.quantity,
+      width: gluedAcross,
+      length,
+      thickness: across,
+    },
+  );
+  if (gluedAcross > stacked + SAME_SIZE) {
+    ops.push({
+      id: `${part.id}/rip`,
+      type: 'rip',
+      ...onPart,
+      count: part.quantity,
+      width: stacked,
+      length,
+      thickness: across,
+    });
+  }
+  return ops;
+}
+
 /**
  * The operations done while breaking boards into pieces: cutting steps go board by board (#58)
  * and do these for each piece. Every other operation is ordered by the template's step outline.
@@ -679,8 +966,9 @@ type OnPart = Extract<Operation, { partId: string }>;
 
 /**
  * The operations cutting steps do on each piece as boards are broken down: its end cuts and
- * tapers, or for a panel's boards, the cuts to their length. A panel's own end cuts and tapers
- * come after glue-up, so the template's step outline places them with its other work.
+ * tapers, or for a panel's or strip glue-up's boards, the cuts to their length. The glued-up
+ * part's own end cuts and tapers come after glue-up, so the template's step outline places them
+ * with its other work.
  */
 export function boardCuts(operations: readonly Operation[]): OnPart[] {
   const panels = new Set(
@@ -710,6 +998,9 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   'joint-edges': 'Joint edges',
   'glue-up': 'Glue up',
   flatten: 'Flatten',
+  'rip-strips': 'Rip into strips',
+  'glue-up-strips': 'Glue up strips',
+  'flatten-strips': 'Flatten the glue-up',
   rip: 'Rip to width',
   dado: 'Dado',
   'stopped-dado': 'Stopped dado',
@@ -719,10 +1010,16 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   cutout: 'Cutout',
   mortise: 'Mortise',
   tenon: 'Tenon',
+  'dovetail-tails': 'Dovetail tails',
+  'dovetail-pins': 'Dovetail pins',
   'screw-holes': 'Screw holes',
   groove: 'Groove',
   rabbet: 'Rabbet',
   'finger-recess': 'Finger recess',
+  bore: 'Bore holes',
+  'stopped-bore': 'Bore stopped holes',
+  'hinge-cups': 'Bore hinge cups',
+  'hinge-plates': 'Screw on hinge plates',
   'bolt-holes': 'Bolt holes',
   'treat-cuts': 'Treat cuts',
   'treat-holes': 'Treat bolt holes',

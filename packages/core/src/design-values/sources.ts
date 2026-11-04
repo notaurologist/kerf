@@ -181,6 +181,64 @@ export const SOURCES = {
     url: 'https://preservedwood.org/how-to/field-treatment/',
     note: 'For how to apply a field treatment: brushed on, worked into holes, as the label says.',
   },
+  'wikipedia-dovetail-joint': {
+    title: 'Dovetail joint',
+    publisher: 'Wikipedia',
+    edition: 'Article, read November 2026',
+    url: 'https://en.wikipedia.org/wiki/Dovetail_joint',
+    note: 'Gives 1:6 in softwood and 1:8 in hardwood, and says the slope does not change the joint’s strength in either.',
+  },
+  'fww-laying-out-dovetails': {
+    title: 'Laying Out Dovetails',
+    publisher: 'Fine Woodworking (Chris Gochnour)',
+    edition: 'Issue 190, March/April 2007; web page read November 2026',
+    url: 'https://www.finewoodworking.com/2007/02/06/laying-out-dovetails',
+    note: 'Gives 1:6 in softwood and 1:8 in hardwood because softwood fibers compress more easily, half pins 1/4" to 3/8" and interior pins 1/8" to 1/4" at their narrow ends, spacing 3/4" to 2" on center, and the baseline at the mating board’s thickness.',
+  },
+  'popular-woodworking-round-holes-2010': {
+    title: 'I Have a Dog in this Fight',
+    publisher: 'Popular Woodworking, Shop Blog (Christopher Schwarz)',
+    edition: 'Blog post, April 26, 2010, read November 2026',
+    url: 'https://www.popularwoodworking.com/editors-blog/i-have-a-dog-in-this-fight/',
+    note: 'For the common round hole that bought hold-downs and stops fit. A Lost Art Press post making the same point could not be read: its site refused automated readers.',
+  },
+  'woodcraft-drawer-slides-2014': {
+    title: 'Drawer Slides: The Inside Story',
+    publisher: 'Woodcraft Magazine (Ken Burton)',
+    edition: 'Published April 8, 2014, updated July 2, 2026; web page read November 4, 2026',
+    url: 'https://www.woodcraft.com/blogs/cabinetry-furniture-making/drawer-slides-the-inside-story',
+    note: 'Gives the lengths most slides are sold in (even lengths from 10" to 28", with 15" and 21" as well), slides other than undermount about 1" shorter than the case is deep, and 1/2" of space per side-mount slide, with the advice to check the slides’ own figures and to buy them before building.',
+  },
+  'woodsmith-metal-drawer-slides-2019': {
+    title: 'Metal Drawer Slides',
+    publisher: 'Woodsmith (Ted Raife)',
+    edition: 'Web article, June 13, 2019; read November 4, 2026',
+    url: 'https://woodsmith.com/article/metal-drawer-slides',
+    note: 'Gives 1/2" of clearance on each side of the drawer for a typical side-mount slide, so the box is 1" narrower than its opening. It gives no lengths sold.',
+  },
+  'fww-work-at-right-height-2017': {
+    title: 'Tricks for Working at the Right Height',
+    publisher: 'Fine Woodworking (Christian Becksvoort)',
+    edition: 'Issue 265, Tools & Shops 2018; web page November 1, 2017, read November 4, 2026',
+    url: 'https://www.finewoodworking.com/2017/11/01/work-at-the-right-height',
+    note: 'Gives a work surface at about the wrist as suiting most work, lower for planing, which takes more upper-body strength, and higher for sawing joinery and carving. Only the free part of the article was read.',
+  },
+  'popular-woodworking-best-bench-height-2019': {
+    title: 'The Best Height for a Workbench',
+    publisher:
+      'Popular Woodworking, Editors’ Blog (excerpt from Jim Tolpin, The New Traditional Woodworker)',
+    edition: 'Blog post, January 31, 2019, read November 4, 2026',
+    url: 'https://www.popularwoodworking.com/editors-blog/the-best-height-for-a-workbench/',
+    note: 'Gives wrist height as the compromise for most people, a planing surface at the wrist, and a joinery surface at or just below the elbow, as starting points for each person to adjust.',
+  },
+  'ansur-ii-explorer': {
+    title: 'ANSUR II Data Explorer',
+    publisher:
+      'ErgoAssessment, from the public data of the 2012 Anthropometric Survey of U.S. Army Personnel (Gordon et al., NATICK/TR-15/007, 2014)',
+    edition: 'Web page read November 4, 2026',
+    url: 'https://ergoassessment.cam/ansur-2-data-explorer/',
+    note: 'Medians, standing barefoot: stature 175.5 cm for 4,082 men and 162.6 cm for 1,986 women; wrist height, floor to the wrist with the arms hanging at the sides, 84.7 cm and 79.4 cm. The survey’s own report could not be read: its host refused automated readers.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

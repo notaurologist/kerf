@@ -321,7 +321,47 @@ export const TOOL_TYPES = [
     description: 'A drill mounted on a column over a table, so holes go straight into the work.',
     group: 'drilling-and-driving',
     protection: ['eyes'],
-    capabilities: [],
+    capabilities: [
+      {
+        id: 'throat',
+        label: 'Column to the center of the bit',
+        kind: 'length',
+        help: 'Decides how far in from an edge of a part the press can bore a hole.',
+        readFrom:
+          "Measure from the front of the column to the center of the chuck. The maker's size for the press is often twice this.",
+        min: SIXTEENTH,
+        max: 36,
+      },
+      {
+        id: 'quillTravel',
+        label: 'Deepest hole in one stroke',
+        kind: 'length',
+        help: 'Decides whether a hole is bored in one stroke of the handle without moving the table.',
+        readFrom:
+          "Lower the chuck with the handle as far as it goes and measure how far it moved, or read the quill travel in the maker's manual.",
+        min: SIXTEENTH,
+        max: 12,
+      },
+    ],
+  },
+  {
+    id: 'forstner-bits',
+    name: 'Forstner bits',
+    description:
+      'Drill bits with a rim that cuts a clean, flat-bottomed hole, for holes that stop partway into the wood.',
+    group: 'drilling-and-driving',
+    protection: [],
+    capabilities: [
+      {
+        id: 'reach',
+        label: 'Deepest hole from one side',
+        kind: 'length',
+        help: 'Decides how deep a hole the bit can bore. Include any extension you use.',
+        readFrom: 'Measure the longest bit, with its extension, from the chuck to the rim.',
+        min: SIXTEENTH,
+        max: 36,
+      },
+    ],
   },
   {
     id: 'spade-bits',
@@ -360,6 +400,15 @@ export const TOOL_TYPES = [
         max: 36,
       },
     ],
+  },
+  {
+    id: 'hinge-jig',
+    name: 'Hinge-boring jig',
+    description:
+      "A guide that sits against a part's edge and holds a cup bit square, with a fence for the cup's distance from the edge and a stop for its depth. Kerf's methods use it in a drill to bore concealed hinges' cups.",
+    group: 'drilling-and-driving',
+    protection: [],
+    capabilities: [],
   },
   {
     id: 'socket-wrench',
@@ -412,6 +461,15 @@ export const TOOL_TYPES = [
     capabilities: [],
   },
   {
+    id: 'dovetail-jig',
+    name: 'Dovetail jig',
+    description:
+      "A template the boards clamp into, with fingers that guide a router to cut tails and pins. Kerf's methods need one whose fingers can be moved to the plan's layout, for through dovetails.",
+    group: 'shaping',
+    protection: [],
+    capabilities: [],
+  },
+  {
     id: 'jointer',
     name: 'Jointer',
     description:
@@ -443,6 +501,15 @@ export const TOOL_TYPES = [
     name: 'Chisel',
     description:
       "A steel blade sharpened at its end, pushed or tapped to pare wood. Kerf's methods use it to bring a cut down to its line.",
+    group: 'shaping',
+    protection: [],
+    capabilities: [],
+  },
+  {
+    id: 'bench-plane',
+    name: 'Bench plane',
+    description:
+      'A hand plane held in both hands, long enough to bridge low spots, for flattening a face too wide for a planer.',
     group: 'shaping',
     protection: [],
     capabilities: [],

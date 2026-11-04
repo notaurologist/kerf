@@ -355,6 +355,16 @@ export function structuralReview(
       why: `Dadoes ${formatLength(p.dadoDepth)} deep on both faces of a ${formatLength(t)} partition leave ${formatLength(g.partitionLeft)} between them, and no source gives a limit.`,
       ...concerns(['partition']),
     },
+    ...(g.door && p.door
+      ? [
+          {
+            category: 'load-bearing' as const,
+            ask: `Ask an experienced builder whether ${formatLength(t - p.door.topDepth)} of wood above the door tracks holds the top's front edge.`,
+            why: `Tracks ${formatLength(p.door.topDepth)} deep in the underside of a ${formatLength(t)} top leave ${formatLength(t - p.door.topDepth)} above them, and no source gives a limit.`,
+            ...concerns(['top']),
+          },
+        ]
+      : []),
     {
       category: 'wood-movement',
       ask: 'Ask an experienced builder whether the back rails, glued into dadoes with their grain across the sides’ grain, will let the sides move.',

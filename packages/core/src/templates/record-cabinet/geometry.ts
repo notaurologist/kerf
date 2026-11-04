@@ -177,6 +177,19 @@ export function validate(p: RecordCabinetParams, g: CabinetGeometry): Issue[] {
       ['door.topDepth', 'door.bottomDepth'],
     );
   }
+  // The top is at least 13" deep, wider than any board, so it is always glued up to t.
+  if (g.door && d && d.topDepth >= p.panelThickness) {
+    const lift = 2 * d.bottomDepth;
+    const fix =
+      lift < p.panelThickness
+        ? `Make the tracks at least ${len(lift)} deep, enough to lift a door in, and less than ${len(p.panelThickness)}, or make the top thicker.`
+        : `A door seated ${len(d.bottomDepth)} in its bottom track needs a top track ${len(lift)} deep to lift in, so the top must be thicker than that, or the bottom tracks shallower.`;
+    refuse(
+      'track-through-top',
+      `Top tracks ${len(d.topDepth)} deep cut through the ${len(p.panelThickness)} top. ${fix}`,
+      ['door.topDepth', 'panelThickness', 'door.bottomDepth'],
+    );
+  }
   if (g.door && d && d.grooveDepth >= d.frameWidth) {
     refuse(
       'groove-past-frame',

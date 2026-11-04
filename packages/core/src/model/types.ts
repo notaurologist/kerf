@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { FlagCategory } from '../knowledge/categories.ts';
-import { PartStock } from '../lumber/panel.ts';
+import { PartStock } from '../lumber/partStock.ts';
 import { MissingInput } from '../structural/types.ts';
+import { CupHinge } from './cupHinge.ts';
 
 // Shared shapes of template output. Each is a Zod schema with its type inferred from it, so the
 // same definition types the code and parses a project snapshot (decision 0003). These are what a
@@ -197,6 +198,45 @@ export const Tenon = z.object({
 export type Tenon = z.infer<typeof Tenon>;
 
 /**
+ * How a corner's through dovetails are laid out across the boards' shared width, read the same on
+ * both boards (`joinery/dovetails.ts`): `tails` tails between a half pin `halfPin` wide at each
+ * edge and a pin `pin` wide between each two tails, every pin measured at its narrow end, where
+ * the tails are widest. Each tail's sides slope 1 across in `slope` along (the 8 of 1:8).
+ */
+const dovetailLayout = {
+  tails: z.number().int().positive(),
+  slope: z.number().positive(),
+  halfPin: z.number().positive(),
+  pin: z.number().positive(),
+};
+
+/**
+ * A through-dovetailed corner at a square end, on one of its two boards. Tails are cut through
+ * the tail board's thickness, sloped on its faces and widest at its end. Pins are cut on the pin
+ * board's end, sloped across its thickness, narrowest at its `outside` face, which lies flush
+ * with the tail board's end. `baseline` is how far in from the end the cuts stop: the other
+ * board's thickness. `withPart` names the other board by ID or role.
+ */
+export const Dovetails = z.discriminatedUnion('board', [
+  z.object({
+    board: z.literal('tails'),
+    withPart: z.string(),
+    end,
+    baseline: z.number(),
+    ...dovetailLayout,
+  }),
+  z.object({
+    board: z.literal('pins'),
+    withPart: z.string(),
+    end,
+    baseline: z.number(),
+    outside: z.enum(['near', 'far']),
+    ...dovetailLayout,
+  }),
+]);
+export type Dovetails = z.infer<typeof Dovetails>;
+
+/**
  * A hole a wood screw passes through, square to the part's face at (u, v): round, or a slot
  * `slot` longer than the round hole, toward the second end (`along`) or the far edge (`across`),
  * so the part the screw holds can move (DOMAIN.md, Joints that let wood move).
@@ -248,6 +288,40 @@ export const FingerRecess = z.object({
 export type FingerRecess = z.infer<typeof FingerRecess>;
 
 /**
+ * A round hole bored into a part with no hardware through it, such as a hole for a bought
+ * accessory to stand in or a cup for a hinge. The bit enters at `entry`, on a face, edge, or square
+ * end, and goes `depth` along `direction` (a unit vector in the part's frame). A `through` hole
+ * comes out on the other side, so `depth` is the wood it crosses; a stopped one has a flat bottom
+ * inside the part.
+ */
+export const BoredHole = z.object({
+  /** What the hole is for, in the template's words, for the cut detail: "for a hold-down". */
+  use: z.string(),
+  diameter: z.number().positive(),
+  entry: LocalPoint,
+  direction: LocalPoint,
+  depth: z.number().positive(),
+  through: z.boolean(),
+  /**
+   * Set on a concealed hinge's cup: the hinge's hardware item ID. The cup is bored with the
+   * hinge's own methods, and its plate on the other part names the same item (HingePlate).
+   */
+  hinge: z.string().optional(),
+});
+export type BoredHole = z.infer<typeof BoredHole>;
+
+/**
+ * Where a concealed hinge's mounting plate screws to a part, opposite the hinge's cup in the part
+ * it hangs (BoredHole.hinge): the face it sits on, and each of its screws at (u, v) on that face.
+ */
+export const HingePlate = z.object({
+  hardwareId: z.string(),
+  face: z.enum(['near', 'far']),
+  screws: z.array(z.object({ u: z.number(), v: z.number() })).min(1),
+});
+export type HingePlate = z.infer<typeof HingePlate>;
+
+/**
  * Every list defaults to empty. A stored snapshot leaves out an empty one (`snapshot/defaults.ts`)
  * and reading fills it back in, so a list added later changes nothing a template already stores.
  */
@@ -291,10 +365,13 @@ export const Part = z.object({
   cutouts: z.array(Cutout).default([]),
   mortises: z.array(Mortise).default([]),
   tenons: z.array(Tenon).default([]),
+  dovetails: z.array(Dovetails).default([]),
   screwHoles: z.array(ScrewHole).default([]),
   grooves: z.array(EdgeGroove).default([]),
   rabbets: z.array(EdgeRabbet).default([]),
   recesses: z.array(FingerRecess).default([]),
+  boredHoles: z.array(BoredHole).default([]),
+  hingePlates: z.array(HingePlate).default([]),
 });
 export type Part = z.infer<typeof Part>;
 
@@ -357,6 +434,8 @@ export const HardwareItem = z.object({
       cap: z.boolean(),
     })
     .optional(),
+  /** A concealed hinge's sizes, as the owner entered them from its maker (`model/cupHinge.ts`). */
+  hinge: CupHinge.optional(),
   /** True when the item carries load and its size was confirmed with an experienced builder. */
   structural: z.boolean(),
   notes: z.array(z.string()),

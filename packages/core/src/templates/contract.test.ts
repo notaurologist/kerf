@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { fitProblems } from '../fit/index.ts';
 import { solid } from '../geometry/solid.ts';
 import { preservativeFor } from '../lumber/treatment.ts';
 import { buildFromForm, confirmedPaths, formValues, readPath } from '../model/form.ts';
@@ -160,6 +161,14 @@ describe('every template', () => {
     expect(t.storedOutputs.parse(asJson(made.output.outputs))).toEqual(outputs);
     const read = readSnapshot(TEMPLATES, asJson(made.output));
     expect(read.ok && asJson(read.snapshot.outputs)).toEqual(outputs);
+  });
+
+  it.each(examples)('%s, %s: has parts that go together (#570)', (_, __, t, e) => {
+    const outputs = t.storedOutputs.parse(generated(t, e));
+    const assembly = t.assembly(outputs);
+    expect(assembly).not.toBeNull();
+    if (!assembly) return;
+    expect(fitProblems(assembly.scene, t.plan(outputs).hardware)).toEqual([]);
   });
 
   it.each(examples)('%s, %s: parses as the editor builds it from its form', (_, __, t, e) => {

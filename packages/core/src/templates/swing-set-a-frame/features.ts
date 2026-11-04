@@ -40,10 +40,13 @@ export interface PartFeatures {
   cutouts: Cutout[];
   mortises: [];
   tenons: [];
+  dovetails: [];
   screwHoles: [];
   grooves: [];
   rabbets: [];
   recesses: [];
+  boredHoles: [];
+  hingePlates: [];
 }
 
 /** Where a board's bolts go, at each end, in the board's own frame. */
@@ -242,10 +245,13 @@ export function features(
       cutouts: [],
       mortises: [],
       tenons: [],
+      dovetails: [],
       screwHoles: [],
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
+      hingePlates: [],
     },
     leg: {
       referenceEdge: 'inner edge, against the beam',
@@ -257,10 +263,13 @@ export function features(
       cutouts: [],
       mortises: [],
       tenons: [],
+      dovetails: [],
       screwHoles: [],
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
+      hingePlates: [],
     },
     crossbar: {
       referenceEdge: 'bottom edge',
@@ -272,10 +281,13 @@ export function features(
       cutouts: [],
       mortises: [],
       tenons: [],
+      dovetails: [],
       screwHoles: [],
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
+      hingePlates: [],
     },
     gusset: {
       referenceEdge: 'bottom edge',
@@ -287,10 +299,13 @@ export function features(
       cutouts: [],
       mortises: [],
       tenons: [],
+      dovetails: [],
       screwHoles: [],
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
+      hingePlates: [],
     },
   };
 }
