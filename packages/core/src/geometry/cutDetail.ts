@@ -43,6 +43,7 @@ function windows(part: Part, outline: readonly UV[]): Window[] {
     [max - reach, max],
     ...part.holes.map((h) => [h.entry.u - W, h.entry.u + W]),
     ...part.boredHoles.map((h) => [h.entry.u - W, h.entry.u + W]),
+    ...part.hingePlates.flatMap((p) => p.screws.map((s) => [s.u - W, s.u + W])),
     ...part.tapers.map((tp) => [min, Math.max(tp.start.u, tp.end.u) + W]),
   ]
     .map(([a, b]) => [Math.max(min, a as number), Math.min(max, b as number)] as const)
@@ -351,6 +352,33 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
           });
         }
       }
+    }
+  }
+
+  // Hinge plates' screws: a cross at each, solid on the face shown and dashed on the back.
+  for (const plate of part.hingePlates) {
+    const role = plate.face === 'far' ? 'center' : 'hidden';
+    for (const s of plate.screws) {
+      const c = page({ u: s.u, v: s.v });
+      const r = 0.06 * W;
+      prims.push({
+        kind: 'line',
+        role,
+        points: [
+          { x: c.x - r, y: c.y },
+          { x: c.x + r, y: c.y },
+        ],
+        part: ref,
+      });
+      prims.push({
+        kind: 'line',
+        role,
+        points: [
+          { x: c.x, y: c.y - r },
+          { x: c.x, y: c.y + r },
+        ],
+        part: ref,
+      });
     }
   }
 
@@ -699,6 +727,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     }),
     ...screwNotes(part),
     ...boredNotes(part),
+    ...plateNotes(part),
     ...part.grooves.map((g) => {
       const edge = g.edge === 'reference' ? `the ${part.referenceEdge}` : 'the far edge';
       const through = g.u0 <= 1e-9 && g.u1 >= L - 1e-9;
@@ -808,6 +837,21 @@ function boredNotes(part: Part): string[] {
     const count = hs.length === 1 ? 'one' : `${hs.length}`;
     const holes = hs.length === 1 ? 'hole' : 'holes';
     return `Bore ${count} ${diameter} ${holes} ${use}, ${deep}, into ${side}${dashed}, ${place}${along}.`;
+  });
+}
+
+/** Where each hinge plate's screws go, in words, one line for each plate. */
+function plateNotes(part: Part): string[] {
+  return part.hingePlates.map((plate) => {
+    const face = plate.face === 'far' ? 'the face shown' : 'the back face (dashed)';
+    const at = plate.screws
+      .map(
+        (s) =>
+          `${formatLength(s.u)} from the first end and ${formatLength(s.v)} from the ${part.referenceEdge}`,
+      )
+      .join('; ');
+    const screws = plate.screws.length === 1 ? 'its screw' : 'its screws';
+    return `Hinge plate on ${face}, ${screws} at ${at}.`;
   });
 }
 

@@ -33,6 +33,7 @@ const base = {
   rabbets: [],
   recesses: [],
   boredHoles: [],
+  hingePlates: [],
   stock: stock('2x4'),
 };
 const stile: Part = {

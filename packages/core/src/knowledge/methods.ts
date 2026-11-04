@@ -90,6 +90,8 @@ export const Method = z.object({
     'finger-recess',
     'bore',
     'stopped-bore',
+    'hinge-cups',
+    'hinge-plates',
     'bolt-holes',
     'treat-cuts',
     'treat-holes',
@@ -271,6 +273,12 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
   },
   bore: boreValues(),
   'stopped-bore': boreValues(),
+  'hinge-cups': {
+    ...boreValues(),
+    edgeToCenter: { kind: 'length', of: (op) => op.edgeToCenter },
+    cupFromEdge: { kind: 'length', of: (op) => op.cupFromEdge },
+  },
+  'hinge-plates': { count, screws: { kind: 'count', of: (op) => op.screws } },
   'screw-holes': {
     count,
     round: { kind: 'count', of: (op) => op.round },
@@ -2731,6 +2739,143 @@ export const METHODS = [
     safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
     flags: [],
     easierThan: [],
+    moreAccurateThan: [],
+  },
+  // Concealed hinges: the cups bored in the part the hinge hangs, and the plates screwed to the
+  // other part. The drill press with a fence is the more accurate way to bore a cup (Fine
+  // Homebuilding, Striegler, issue 213); a jig carries the same guidance to a drill.
+  {
+    id: 'hinge-cups-drill-press',
+    operation: 'hinge-cups',
+    name: 'With a drill press and a fence',
+    tools: [
+      {
+        use: 'boring the cups',
+        anyOf: [
+          {
+            tool: 'drill-press',
+            needs: [
+              { capability: 'throat', atLeast: 'fromEdge' },
+              { capability: 'quillTravel', atLeast: 'depth' },
+            ],
+          },
+        ],
+      },
+      {
+        use: 'cutting a flat-bottomed cup',
+        anyOf: [{ tool: 'forstner-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] }],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'bore-to-a-depth'],
+    setup: [
+      'Mark the back face of each part, and each cup’s center from the cut detail.',
+      'Chuck a {diameter} bit. A hinge-cup bit of that size is sold on its own if your set has none.',
+      'Clamp a straight board to the table as a fence, {edgeToCenter} from the bit’s center, so each cup’s rim is {cupFromEdge} in from the edge.',
+      'Set the depth stop, and bore a test cup {depth} deep in a scrap the same thickness: check its depth and its distance from the edge, and that the hinge’s cup sits flat in it.',
+    ],
+    technique: [
+      'Lay the part back face up with its edge against the fence, line the bit up on a mark, clamp the part to the table, and bore down to the stop.',
+      'Bore {count} cups this way.',
+    ],
+    mistakes: [
+      'Boring into the front face puts the hinge on the wrong side. Bore with the marked back face up.',
+      'Setting the stop from the bit’s center point rather than its rim leaves the cup too shallow, so the hinge does not sit flat. Measure the test cup at the rim’s cut.',
+      'Holding the part by hand lets the bit catch and spin it. Clamp it to the table for every cup.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['hinge-cups-jig'],
+  },
+  {
+    id: 'hinge-cups-jig',
+    operation: 'hinge-cups',
+    name: 'With a drill and a hinge-boring jig',
+    tools: [
+      { use: 'driving the bit', anyOf: [{ tool: 'drill-driver' }] },
+      { use: 'guiding the bit square, at its distance and depth', anyOf: [{ tool: 'hinge-jig' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'bore-to-a-depth'],
+    setup: [
+      'Mark the back face of each part, and each cup’s center from the cut detail.',
+      'Fit the jig’s {diameter} bit in the drill, and set its depth stop for a cup {depth} deep.',
+      'Set the jig’s fence so each cup’s rim is {cupFromEdge} in from the edge.',
+      'Bore a test cup in a scrap the same thickness: check its depth and its distance from the edge, and that the hinge’s cup sits flat in it.',
+    ],
+    technique: [
+      'Clamp the part down back face up, set the jig’s fence against the edge with its center line on a mark, and clamp the jig or hold it firmly.',
+      'Let the bit come up to speed before it touches the wood, then bore through the jig’s guide down to the stop.',
+      'Bore {count} cups this way.',
+    ],
+    mistakes: [
+      'Boring into the front face puts the hinge on the wrong side. Bore with the marked back face up.',
+      'Letting the jig’s fence slip away from the edge as the bit starts moves the cup. Hold the fence tight to the edge until the bit has cut a full circle.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'hinge-plates-drill-driver',
+    operation: 'hinge-plates',
+    name: 'With a drill/driver',
+    tools: [
+      { use: 'drilling pilot holes and driving the screws', anyOf: [{ tool: 'drill-driver' }] },
+      TAPE,
+      SQUARE,
+    ],
+    skills: ['measure-and-mark', 'drive-a-screw'],
+    setup: [
+      'Mark each plate’s screw holes on the face from the cut detail.',
+      'Chuck a bit for the pilot holes, the size the hinge’s maker says for the plate’s screws.',
+    ],
+    technique: [
+      'Drill a pilot hole at each mark, as deep as the screws go.',
+      'Set a plate on its marks the way the maker’s diagram shows, and drive its {screws} screws until each head is snug.',
+      'Screw on {count} plates this way.',
+    ],
+    mistakes: [
+      'A screw driven at full speed strips its hole in the side, and the plate works loose. Set the clutch low and drive the last turns slowly.',
+      'Setting a plate turned around puts the hinge’s arm on the wrong side. Check it against the maker’s diagram before driving.',
+    ],
+    safety: [EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['hinge-plates-impact-driver'],
+  },
+  {
+    id: 'hinge-plates-impact-driver',
+    operation: 'hinge-plates',
+    name: 'With a drill and an impact driver',
+    tools: [
+      { use: 'drilling pilot holes', anyOf: [{ tool: 'drill-driver' }] },
+      { use: 'driving the screws', anyOf: [{ tool: 'impact-driver' }] },
+      TAPE,
+      SQUARE,
+    ],
+    skills: ['measure-and-mark', 'drive-a-screw'],
+    setup: [
+      'Mark each plate’s screw holes on the face from the cut detail.',
+      'Chuck a bit for the pilot holes, the size the hinge’s maker says for the plate’s screws.',
+    ],
+    technique: [
+      'Drill a pilot hole at each mark, as deep as the screws go.',
+      'Set a plate on its marks the way the maker’s diagram shows, and drive its {screws} screws in short bursts until each head is snug.',
+      'Screw on {count} plates this way.',
+    ],
+    mistakes: [
+      'An impact driver drives a small screw too far before you can stop it, stripping its hole. Finish each one by hand, or in short bursts.',
+    ],
+    safety: [EYE_PROTECTION],
+    flags: [],
+    easierThan: ['hinge-plates-drill-driver'],
     moreAccurateThan: [],
   },
 

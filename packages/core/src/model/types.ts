@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { FlagCategory } from '../knowledge/categories.ts';
 import { PartStock } from '../lumber/partStock.ts';
 import { MissingInput } from '../structural/types.ts';
+import { CupHinge } from './cupHinge.ts';
 
 // Shared shapes of template output. Each is a Zod schema with its type inferred from it, so the
 // same definition types the code and parses a project snapshot (decision 0003). These are what a
@@ -301,8 +302,24 @@ export const BoredHole = z.object({
   direction: LocalPoint,
   depth: z.number().positive(),
   through: z.boolean(),
+  /**
+   * Set on a concealed hinge's cup: the hinge's hardware item ID. The cup is bored with the
+   * hinge's own methods, and its plate on the other part names the same item (HingePlate).
+   */
+  hinge: z.string().optional(),
 });
 export type BoredHole = z.infer<typeof BoredHole>;
+
+/**
+ * Where a concealed hinge's mounting plate screws to a part, opposite the hinge's cup in the part
+ * it hangs (BoredHole.hinge): the face it sits on, and each of its screws at (u, v) on that face.
+ */
+export const HingePlate = z.object({
+  hardwareId: z.string(),
+  face: z.enum(['near', 'far']),
+  screws: z.array(z.object({ u: z.number(), v: z.number() })).min(1),
+});
+export type HingePlate = z.infer<typeof HingePlate>;
 
 /**
  * Every list defaults to empty. A stored snapshot leaves out an empty one (`snapshot/defaults.ts`)
@@ -354,6 +371,7 @@ export const Part = z.object({
   rabbets: z.array(EdgeRabbet).default([]),
   recesses: z.array(FingerRecess).default([]),
   boredHoles: z.array(BoredHole).default([]),
+  hingePlates: z.array(HingePlate).default([]),
 });
 export type Part = z.infer<typeof Part>;
 
@@ -416,6 +434,8 @@ export const HardwareItem = z.object({
       cap: z.boolean(),
     })
     .optional(),
+  /** A concealed hinge's sizes, as the owner entered them from its maker (`model/cupHinge.ts`). */
+  hinge: CupHinge.optional(),
   /** True when the item carries load and its size was confirmed with an experienced builder. */
   structural: z.boolean(),
   notes: z.array(z.string()),

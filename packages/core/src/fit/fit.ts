@@ -1,4 +1,5 @@
 import { dovetailGeometry } from '../joinery/dovetails.ts';
+import { plateScrewOffsets } from '../model/cupHinge.ts';
 import { boredSide } from '../model/operations.ts';
 import type { BoredHole, Dovetails, Part, Placement, Vec3 } from '../model/types.ts';
 import type { HardwareLine } from '../outputs/hardwareList.ts';
@@ -6,12 +7,12 @@ import type { HardwareLine } from '../outputs/hardwareList.ts';
 // Whether a plan's parts go together, from what each part records and where each piece is placed
 // (#570). Every joint is written on its parts twice, once on each side, and these check that the
 // two sides agree: a dado holds the end it names, a mortise the tenon, a groove the tongue, a tail
-// board's tails its pin board's pins, and a bolt's holes line up through the parts it passes, as
-// long as its grip. Generic: they know joints, not what a template builds. Run in tests on every
+// board's tails its pin board's pins, a bolt's holes line up through the parts it passes, as
+// long as its grip, and a concealed hinge's cup meets its plate. Generic: they know joints, not what a template builds. Run in tests on every
 // template's output.
 
 export interface FitProblem {
-  check: 'within' | 'dado' | 'mortise' | 'tenon' | 'tongue' | 'dovetail' | 'bolt';
+  check: 'within' | 'dado' | 'mortise' | 'tenon' | 'tongue' | 'dovetail' | 'bolt' | 'hinge';
   partId: string;
   instance: number;
   message: string;
@@ -589,6 +590,125 @@ function boltProblems(pieces: readonly Piece[], hardware: readonly HardwareLine[
   });
 }
 
+/**
+ * Concealed hinges: each cup, in a face of the part it hangs, meets exactly one plate of the same
+ * hinge on the face of another part that looks toward it, square to it, with the cup's part as
+ * thick as the hinge allows. The plate's screws sit where the hinge's sizes put them from the
+ * cup's center: on a line the plate's setback behind the face the cup is bored in, centered on the
+ * cup's height along the part it hangs, and spaced as the plate's are; the cup's rim is as far in
+ * from the edge toward the plate as the hinge says, and that edge stops short of the plate's part.
+ * Each plate meets one cup.
+ */
+function hingeProblems(pieces: readonly Piece[], hardware: readonly HardwareLine[]): FitProblem[] {
+  const hinges = new Map(hardware.flatMap((l) => (l.hinge ? [[l.hinge.item, l.hinge]] : [])));
+  const plates = pieces.flatMap((p) =>
+    p.part.hingePlates.map((plate) => ({ piece: p, plate, cups: 0 })),
+  );
+  const problems: FitProblem[] = [];
+  const at = (p: Piece) => ({ partId: p.part.id, instance: p.placement.instance });
+  const fail = (p: Piece, message: string) => problems.push({ check: 'hinge', ...at(p), message });
+  const scaled = (a: Vec3, k: number) => ({ x: a.x * k, y: a.y * k, z: a.z * k });
+  const sub = (a: Vec3, b: Vec3) => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
+  for (const piece of pieces) {
+    const { part, placement: pl } = piece;
+    const W = part.stock.width;
+    for (const hole of part.boredHoles) {
+      if (hole.hinge === undefined) continue;
+      const name = `The cup for ${hole.hinge} at u ${hole.entry.u}`;
+      const hinge = hinges.get(hole.hinge);
+      if (!hinge) {
+        fail(piece, `${name} has no hinge in the hardware list.`);
+        continue;
+      }
+      if (boredSide(hole) !== 'n') {
+        fail(piece, `${name} is not bored into a face.`);
+        continue;
+      }
+      if (!within(part.stock.thickness, [hinge.minThickness, hinge.maxThickness])) {
+        fail(
+          piece,
+          `${name} is in a part ${part.stock.thickness} thick, outside the ${hinge.minThickness} to ${hinge.maxThickness} the hinge allows.`,
+        );
+      }
+      if (!same(hole.diameter, hinge.cupDiameter) || !same(hole.depth, hinge.cupDepth)) {
+        fail(piece, `${name} is not the size the hinge's cup is.`);
+      }
+      const d = hole.direction;
+      const out = scaled(
+        {
+          x: pl.along.x * d.u + pl.across.x * d.v + pl.through.x * d.n,
+          y: pl.along.y * d.u + pl.across.y * d.v + pl.through.y * d.n,
+          z: pl.along.z * d.u + pl.across.z * d.v + pl.through.z * d.n,
+        },
+        -1,
+      );
+      const center = toWorld(pl, hole.entry);
+      const offsets = plateScrewOffsets(hinge);
+      const met = plates.filter(({ piece: other, plate }) => {
+        if (plate.hardwareId !== hole.hinge || plate.screws.length !== offsets.length) return false;
+        const T = other.part.stock.thickness;
+        const screws = plate.screws.map((s) =>
+          sub(toWorld(other.placement, { ...s, n: plate.face === 'near' ? 0 : T }), center),
+        );
+        const heights = screws.map((r) => dot(r, pl.along)).sort((a, b) => a - b);
+        const sideways = screws.map((r) => dot(r, pl.across));
+        const normal = scaled(other.placement.through, plate.face === 'near' ? -1 : 1);
+        return (
+          screws.every((r) => same(dot(r, out), hinge.plateSetback)) &&
+          heights.every((h, i) => same(h, offsets[i] as number)) &&
+          sideways.every((l) => same(l, sideways[0] as number)) &&
+          same(Math.abs(dot(normal, pl.across)), 1) &&
+          dot(normal, scaled(screws[0] as Vec3, -1)) > EPSILON
+        );
+      });
+      if (met.length !== 1) {
+        fail(
+          piece,
+          met.length === 0
+            ? `${name} meets no plate where the hinge's sizes put it.`
+            : `${name} meets ${met.length} plates.`,
+        );
+        continue;
+      }
+      const match = met[0] as (typeof plates)[number];
+      match.cups += 1;
+      const first = match.plate.screws[0] as { u: number; v: number };
+      const T = match.piece.part.stock.thickness;
+      const toPlate = dot(
+        sub(
+          toWorld(match.piece.placement, { ...first, n: match.plate.face === 'near' ? 0 : T }),
+          center,
+        ),
+        pl.across,
+      );
+      const toEdge = toPlate < 0 ? hole.entry.v : W - hole.entry.v;
+      if (!same(toEdge - hole.diameter / 2, hinge.cupFromEdge)) {
+        fail(
+          piece,
+          `${name} has its rim ${toEdge - hole.diameter / 2} from the edge toward its plate, not the hinge's ${hinge.cupFromEdge}.`,
+        );
+      }
+      if (Math.abs(toPlate) < toEdge - EPSILON) {
+        fail(piece, `${name} is on an edge that runs into its plate's part.`);
+      }
+    }
+  }
+  for (const { piece, plate, cups } of plates) {
+    const L = piece.part.length;
+    const W = piece.part.stock.width;
+    if (!plate.screws.every((s) => within(s.u, [0, L]) && within(s.v, [0, W]))) {
+      fail(piece, `A plate for ${plate.hardwareId} has screws past the part.`);
+    }
+    if (cups !== 1) {
+      fail(
+        piece,
+        `A plate for ${plate.hardwareId} meets ${cups === 0 ? 'no cup' : `${cups} cups`}.`,
+      );
+    }
+  }
+  return problems;
+}
+
 /** Every way the parts fail to go together, or none. */
 export function fitProblems(
   scene: { parts: readonly Part[]; placements: readonly Placement[] },
@@ -605,5 +725,6 @@ export function fitProblems(
     ...tongueProblems(pieces),
     ...dovetailProblems(pieces),
     ...boltProblems(pieces, hardware),
+    ...hingeProblems(pieces, hardware),
   ];
 }
