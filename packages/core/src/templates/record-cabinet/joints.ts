@@ -320,6 +320,10 @@ export function joined(
   ];
   const parts = made.parts.map((part): Part => {
     let derived = placed.find((q) => q.part.id === part.id)?.part ?? part;
+    // Its stock was sized from the length the geometry gives, so the joints must agree with it.
+    if (Math.abs(derived.length - part.length) > 1e-9) {
+      throw new Error(`${part.id}: the joints give ${derived.length}, its stock ${part.length}.`);
+    }
     const own = dadoes.get(part.id);
     if (own || housedIds.has(part.id)) {
       derived = {
