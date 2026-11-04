@@ -1,4 +1,4 @@
-import { fitProblems, type Part, type Placement } from '@kerf/core';
+import { fitProblems, hardwareList, type Part, type Placement } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { base } from './design.ts';
 import { EXAMPLE } from './params.ts';
@@ -77,6 +77,13 @@ describe('the base, from its joints', () => {
       'lower-drawer-side-left': [14, 1],
       'lower-drawer-side-right': [14, 1],
       'lower-drawer-bottom': [42.8125, 1],
+      // The door opening, 44-3/8 between the sides by 21-5/8 − 6-3/4 = 14-7/8. Each door
+      // (44-3/8 − 3 × 1/16) / 2 = 22-3/32 wide and 14-7/8 − 1/8 = 14-3/4 tall. Rails 22-3/32 −
+      // 2 × 2 + 2 × 3/8; the panel 14-3/4 − 4 + 3/4, less 2 × 1/32.
+      'door-stile-hinge': [14.75, 2],
+      'door-stile-meeting': [14.75, 2],
+      'door-rail': [18.84375, 4],
+      'door-panel': [11.4375, 2],
     });
   });
 
@@ -286,12 +293,42 @@ describe('the base, from its joints', () => {
     expect(placement('upper-drawer-front', 0).origin).toEqual({ x: 8.8125, y: 0.8125, z: 27.6875 });
   });
 
+  it('makes each door a frame around a floating panel, the right one the left turned over', () => {
+    expect(placement('door-stile-hinge', 0).origin).toEqual({ x: 8.8125, y: 0, z: 6.8125 });
+    expect(placement('door-stile-hinge', 1).origin).toEqual({ x: 53.0625, y: 0, z: 21.5625 });
+    // Grooves 1/4 wide, centered in the 13/16 frame: (13/16 − 1/4) / 2 = 9/32 from each face.
+    expect(part('door-rail').grooves).toEqual([
+      { edge: 'far', u0: 0, u1: 18.84375, n0: 0.28125, width: 0.25, depth: 0.375 },
+    ]);
+    expect(part('door-rail').tenons.map((t) => [t.end, t.length, t.thickness, t.width])).toEqual([
+      [0, 0.375, 0.25, 2],
+      [1, 0.375, 0.25, 2],
+    ]);
+    // Across, 22-3/32 − 4 + 3/4 less 2 × 1/8: 18-19/32, 3/4 thick, 1/32 in from each face.
+    expect(part('door-panel').stock).toMatchObject({ width: 18.59375, thickness: 0.75 });
+    expect(placement('door-panel', 0).origin).toEqual({ x: 10.5625, y: 0.03125, z: 8.46875 });
+  });
+
+  it('bores two hinge cups in each hinge stile, and screws their plates to the case side', () => {
+    // Cups 3 from each end, their rims 3/16 in from the stile's outer edge: centers 3/16 + 35
+    // mm / 2 in. Plates 5/8 behind the door's back face, y = 13/16 + 5/8 = 1-7/16, their two
+    // screws 1-1/4 apart about the cup's height: z = 6-13/16 + 3 = 9-13/16, u 3-1/4 up the side.
+    const cups = part('door-stile-hinge').boredHoles;
+    expect(cups.map((c) => c.entry.u)).toEqual([3, 11.75]);
+    expect(cups[0]?.entry.v).toBeCloseTo(0.1875 + 35 / 25.4 / 2, 12);
+    expect(part('case-side-left').hingePlates[0]?.screws).toEqual([
+      { u: 2.625, v: 1.4375 },
+      { u: 3.875, v: 1.4375 },
+    ]);
+    expect(example.hardware.map((h) => [h.id, h.quantity])).toEqual([['hinge', 4]]);
+  });
+
   it('passes the fit checks', () => {
-    expect(fitProblems(example)).toEqual([]);
+    expect(fitProblems(example, hardwareList(example.hardware))).toEqual([]);
   });
 
   it('passes the fit checks with the back mortises left long for the top’s movement', () => {
-    expect(fitProblems(made(0.125))).toEqual([]);
+    expect(fitProblems(made(0.125), hardwareList(made(0.125).hardware))).toEqual([]);
   });
 
   it('refuses a top whose strips are wider than the board', () => {

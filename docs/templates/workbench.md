@@ -52,6 +52,7 @@ Every parameter starts from a suggestion with its basis (owner's standing prefer
 | — | Dovetail slope | 1:6 to 1:8 | 1:8 in hardwood, by convention ([Wikipedia](https://en.wikipedia.org/wiki/Dovetail_joint), [Fine Woodworking](https://www.finewoodworking.com/2007/02/06/laying-out-dovetails)); the strength rationale is disputed (#578) |
 | — | Slide side clearance and lengths | from the maker | Entered by the owner from the slide's instructions (#579). The worked example uses 1/2 per side, illustrative |
 | — | Drawers | | Box parts and bottoms 1/2, planed from the board stock (owner); inset fronts, flush with the case front, 1/16 in from the opening all round, 3/4 asked for (owner), which keeps the board's 13/16 when that is within the flattening allowance (#609); boxes 1/4 clear of their opening above and below; the bottom's groove 1/4 wide, 1/4 deep, 1/4 up from the box's bottom edge, the bottom's top flush with its upper wall; dovetails 1:8 with core's suggested layout (`rule-of-thumb`, owner, November 4, 2026) |
+| — | Doors | | Two inset doors, flush with the case front, 1/16 gap all round and between them, hung on the outer case sides; each a frame of stiles and rails 2 wide around a solid 3/4 panel, as thick as a part of one board, with stub tenons and grooves 3/8 deep and 1/4 wide; two cup hinges each, their cups 3 from the door's ends (`rule-of-thumb`, owner, November 4, 2026) |
 | — | Vise screws, hinges | from the maker | Entered by the owner (#581, #584). The hinges are concealed cup hinges, inset type (owner); a door thicker than the hinge allows is refused |
 | — | Board stock | as the record cabinet's | The record cabinet's board stock and allowances |
 
@@ -130,7 +131,11 @@ The owner's sizes, from their photo (`example`): overall 64-3/8 long and 20-1/8 
 | Box heights | 3-1/4 − 2·1/4; 4-1/2 − 2·1/4 | 2-3/4 and 4; the backs 1/2 less, 2-1/4 and 3-1/2 |
 | Dovetails | (width − 3/4 + 1/4) / 2" on center | 2 tails at each front corner and the lower back's, 1 at the upper backs' |
 | Drawer bottoms, 1/8 short at the front (illustrative) | between the side grooves' bottoms less 2·1/32; from the front groove's bottom to the back's outside face | 20-1/4 by 13-5/8, and 42-13/16 by 13-5/8 |
-| Door space | 21-5/8 − 6 | 15-5/8 high, 44-3/8 wide inside the case |
+| Door opening | the case bottom's top, 6-3/4, to the lower shelf's underside, 21-5/8 | 14-7/8 high, 44-3/8 wide inside the case |
+| Each door, 13/16 thick | (44-3/8 − 3·1/16) / 2; 14-7/8 − 2·1/16 | 22-3/32 wide, 14-3/4 high |
+| Stiles and rails | rails 22-3/32 − 2·2 + 2·3/8 | stiles 14-3/4, rails 18-27/32, all 2 wide |
+| Door panel, 1/8 at each edge (illustrative) | 18-27/32 − 2·1/8 across; 14-3/4 − 4 + 3/4 − 2·1/32 up | 18-19/32 by 11-7/16, 3/4 thick |
+| Hinge cups and plates (illustrative hinge: 35 mm cup 3/16 from the edge, plate 5/8 behind the door, two screws 1-1/4 apart) | cups 3 from each end of the hinge stile | cups at 3 and 11-3/4; plates at y = 1-7/16 on each case side |
 
 Tenon lengths, dado and groove depths, dovetail layouts, drawer box depths, and door sizes follow from the joints and the open issues, and are added to this example as each lands. An edge-of-range example (the shortest and tallest bench, a 4" top) is added before the build.
 

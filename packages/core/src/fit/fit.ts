@@ -736,7 +736,7 @@ function hingeProblems(pieces: readonly Piece[], hardware: readonly HardwareLine
       );
       const center = toWorld(pl, hole.entry);
       const offsets = plateScrewOffsets(hinge);
-      const met = plates.filter(({ piece: other, plate }) => {
+      const fits = plates.filter(({ piece: other, plate }) => {
         if (plate.hardwareId !== hole.hinge || plate.screws.length !== offsets.length) return false;
         const T = other.part.stock.thickness;
         const screws = plate.screws.map((s) =>
@@ -753,6 +753,15 @@ function hingeProblems(pieces: readonly Piece[], hardware: readonly HardwareLine
           dot(normal, scaled(screws[0] as Vec3, -1)) > EPSILON
         );
       });
+      // The arm reaches only the plate beside the cup: of those that fit, the nearest across.
+      const across = (o: (typeof plates)[number]) => {
+        const s0 = o.plate.screws[0] as { u: number; v: number };
+        const T = o.piece.part.stock.thickness;
+        const at = toWorld(o.piece.placement, { ...s0, n: o.plate.face === 'near' ? 0 : T });
+        return Math.abs(dot(sub(at, center), pl.across));
+      };
+      const nearest = Math.min(...fits.map(across));
+      const met = fits.filter((o) => same(across(o), nearest));
       if (met.length !== 1) {
         fail(
           piece,

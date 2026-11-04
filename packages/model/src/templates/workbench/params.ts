@@ -1,4 +1,4 @@
-import type { BoardStock, DrawerSlide, PanelAllowances } from '@kerf/core';
+import type { BoardStock, CupHinge, DrawerSlide, PanelAllowances } from '@kerf/core';
 
 // The workbench's parameters (docs/templates/workbench.md, Parameters), in inches. The schema,
 // form, and starting questions come with the template's definition.
@@ -52,6 +52,19 @@ export interface WorkbenchParams {
     groove: { width: number; depth: number; up: number };
     slope: number;
   };
+  /**
+   * The two inset doors: their gap all round and between them, the stiles' and rails' width, the
+   * panel grooves' width and depth (the stub tenons' too), each hinge's cup from its door's end,
+   * and the hinge, from its maker (hard rule 3).
+   */
+  door: {
+    gap: number;
+    frameWidth: number;
+    grooveWidth: number;
+    grooveDepth: number;
+    hingeFromEnd: number;
+    hinge: CupHinge;
+  };
   board: BoardStock;
   allowances: PanelAllowances;
   kerf: number;
@@ -89,6 +102,25 @@ export const EXAMPLE: WorkbenchParams = {
     clearance: 0.25,
     groove: { width: 0.25, depth: 0.25, up: 0.25 },
     slope: 8,
+  },
+  door: {
+    gap: 0.0625,
+    frameWidth: 2,
+    grooveWidth: 0.25,
+    grooveDepth: 0.375,
+    hingeFromEnd: 3,
+    // Illustrative, until the owner enters their hinge's figures: a 35 mm cup (Striegler, Fine
+    // Homebuilding 213), the rest made up for the example.
+    hinge: {
+      cupDiameter: 35 / 25.4,
+      cupDepth: 0.5,
+      cupFromEdge: 0.1875,
+      plateSetback: 0.625,
+      plateScrews: 2,
+      plateScrewSpacing: 1.25,
+      minThickness: 0.625,
+      maxThickness: 1,
+    },
   },
   board: { nominal: '4/4 cherry', thickness: 0.8125, width: 5.5, buyableFeet: [6, 8, 10] },
   allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },

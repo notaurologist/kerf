@@ -201,6 +201,58 @@ describe('a pair of concealed hinges', () => {
     ]);
   });
 
+  it('pairs each cup with the plate beside it when two doors hang from opposite sides', () => {
+    // A second door, the first turned end for end about y: x from 12-3/16 to 24-3/16, its hinge
+    // edge 1/16 from a second side whose inner face is at x = 24-1/4. Its cups are at the same
+    // heights as the first door's, so a plate on either side lines up with a cup on both doors.
+    const turned: Placement = {
+      partId: 'door',
+      instance: 1,
+      origin: { x: 24.1875, y: 0, z: 26 },
+      along: { x: 0, y: 0, z: -1 },
+      across: { x: -1, y: 0, z: 0 },
+      through: { x: 0, y: 1, z: 0 },
+    };
+    const farSideAt: Placement = {
+      partId: 'far-side',
+      instance: 0,
+      origin: { x: 24.25, y: 0, z: 30 },
+      along: { x: 0, y: 0, z: -1 },
+      across: { x: 0, y: 1, z: 0 },
+      through: { x: 1, y: 0, z: 0 },
+    };
+    const farSide = { ...sidePart, id: 'far-side' };
+    const { door, side } = placed();
+    const second = cupHingePair(
+      hinge,
+      'hinges',
+      { part: doorPart, placement: turned },
+      { part: farSide, placement: farSideAt },
+      { edge: 'reference', back: 'far', cups: [3, 21] },
+    );
+    const both = (plates: typeof second.plates) =>
+      fitProblems(
+        {
+          parts: [door, side, { ...farSide, hingePlates: plates }],
+          placements: [doorAt(0.0625), turned, sideAt, farSideAt],
+        },
+        hardwareList([
+          cupHingeItem({ id: 'hinges', name: 'Concealed hinge', group: 'Hinges' }, hinge, 4),
+        ]),
+      ).map((p) => p.message);
+    expect(both(second.plates)).toEqual([]);
+    // The far side's first plate raised 1/8: its cup's only fit is the near side's plate across
+    // the pair, so its rim is reported far from the edge, and that plate meets two cups.
+    const [first, rest] = second.plates;
+    if (!first || !rest) throw new Error('no plates');
+    const raised = { ...first, screws: first.screws.map((q) => ({ ...q, u: q.u + 0.125 })) };
+    expect(both([raised, rest])).toEqual([
+      "The cup for hinges at u 3 has its rim 10.4375 from the edge toward its plate, not the hinge's 0.1875.",
+      'A plate for hinges meets 2 cups.',
+      'A plate for hinges meets no cup.',
+    ]);
+  });
+
   it('finds a door thicker than the hinge allows', () => {
     // A 1" door: the cups and plates are worked out for it, but the hinge stops at 7/8".
     const thick = { ...doorPart, stock: { ...doorPart.stock, thickness: 1 } };
