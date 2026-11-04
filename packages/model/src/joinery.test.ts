@@ -2,7 +2,13 @@ import type { EdgeGroove, Part, Placement, Vec3 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import type { PlacedPart } from './boltedLap.ts';
 import { housingPlane } from './housedEnd.ts';
-import { floatingPanel, mortiseAndTenon, slottedScrews, tenonInGroove } from './joinery.ts';
+import {
+  floatingPanel,
+  mortiseAndTenon,
+  slottedScrews,
+  tenonInGroove,
+  throughTenon,
+} from './joinery.ts';
 import { type Member, type Plane, trim } from './trim.ts';
 
 // Hand-checked on small made-up parts, in inches.
@@ -102,6 +108,81 @@ describe('mortiseAndTenon', () => {
     ).toMatchObject({
       ok: false,
     });
+  });
+});
+
+describe('throughTenon', () => {
+  // A top 10" long along x, 6" wide along y, 2-1/2" thick from z = 0 up. A 3" square leg along z
+  // from z = −28, x from 2 to 5 and y from 1 to 4, trimmed flush with the top's upper face. Its
+  // tenon is 1" across x (3 to 4) and 1-1/2" through y (1.75 to 3.25).
+  const top = placed(part('top', 10, 6, 2.5), at(0, 0, 0), X, Y, Z);
+  const planeZ = (z: number): Plane => ({ point: at(0, 0, z), normal: Z });
+  const leg = (to: Plane) =>
+    cut(
+      'leg',
+      { along: Z, across: X, through: Y, referenceEdge: at(2, 1, 0), width: 3 },
+      [planeZ(-28), to],
+      3,
+    );
+  const flush = leg(housingPlane(top, 'near', 2.5));
+  const tenon = { v0: 1, width: 1, n0: 0.75, thickness: 1.5 };
+  const mortise = { withPart: 'leg', side: 'near', u0: 3, u1: 4, a0: 1.75, a1: 3.25, depth: 2.5 };
+
+  it('lengthens the leg through the top: from z = −28 to 2.5, 30-1/2', () => {
+    expect(flush.part.length).toBe(30.5);
+  });
+
+  it('cuts a mortise as deep as the top is thick, where the tenon enters its underside', () => {
+    expect(throughTenon({ mortised: top, tenoned: flush, end: 1, tenon })).toEqual({
+      ok: true,
+      mortise,
+      tenon: { end: 1, length: 2.5, ...tenon },
+    });
+  });
+
+  it('lengthens the mortise toward the side the top moves: 1/4 toward +y, a1 = 3.5', () => {
+    const made = throughTenon({
+      mortised: top,
+      tenoned: flush,
+      end: 1,
+      tenon,
+      lengthen: { toward: Y, by: 0.25 },
+    });
+    expect(made).toEqual({
+      ok: true,
+      mortise: { ...mortise, a1: 3.5 },
+      tenon: { end: 1, length: 2.5, ...tenon },
+    });
+  });
+
+  it('lengthens along the top the other way: 1/2 toward −x, u0 = 2.5', () => {
+    const made = throughTenon({
+      mortised: top,
+      tenoned: flush,
+      end: 1,
+      tenon,
+      lengthen: { toward: minus(X), by: 0.5 },
+    });
+    expect(made).toMatchObject({ ok: true, mortise: { ...mortise, u0: 2.5 } });
+  });
+
+  it('refuses a leg that stops inside the top', () => {
+    const short = leg(housingPlane(top, 'near', 2));
+    expect(throughTenon({ mortised: top, tenoned: short, end: 1, tenon })).toMatchObject({
+      ok: false,
+    });
+  });
+
+  it('refuses a mortise lengthened past the top, or at an angle to it', () => {
+    const past = { mortised: top, tenoned: flush, end: 1 as const, tenon };
+    // 1.75 − 2 = −0.25, past the top's front edge.
+    expect(throughTenon({ ...past, lengthen: { toward: minus(Y), by: 2 } })).toMatchObject({
+      ok: false,
+    });
+    expect(throughTenon({ ...past, lengthen: { toward: Z, by: 0.25 } })).toMatchObject({
+      ok: false,
+    });
+    expect(throughTenon({ ...past, lengthen: { toward: Y, by: 0 } })).toMatchObject({ ok: false });
   });
 });
 
