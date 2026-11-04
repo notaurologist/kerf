@@ -11,7 +11,7 @@ One file per decision. Format: context, decision, consequences. Never edit a pas
 | 0005 | Backend from the start; no PWA or offline use in the MVP | Accepted |
 | 0006 | Vercel for the web app and API, Neon for Postgres | Accepted |
 | 0007 | Single-user password login with server-side sessions | Accepted |
-| 0008 | Templates as versioned TypeScript functions | Accepted, amended by 0019 |
+| 0008 | Templates as versioned TypeScript functions | Accepted, amended by 0019 and 0020 |
 | 0009 | Knowledge base and design values as typed data in the repository | Accepted |
 | 0010 | Local pre-push checks, free CI, Vitest, Biome, and PGlite | Accepted |
 | 0011 | Toolchain versions at M0 | Accepted |
@@ -23,3 +23,4 @@ One file per decision. Format: context, decision, consequences. Never edit a pas
 | 0017 | Interaction tests in happy-dom | Accepted |
 | 0018 | Project revisions: a save or tick made on an older plan is refused | Accepted |
 | 0019 | Templates are made in Claude Code, starting from the owner's pictures | Accepted |
+| 0020 | Templates declare their parts' joints, and the joints give the geometry | Proposed |
