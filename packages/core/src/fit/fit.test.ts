@@ -155,6 +155,29 @@ describe('mortises and tenons', () => {
     expect(checks([post(off), rail()], offRail)).toEqual(['within post']);
   });
 
+  it('accepts a mortise left 1/8 long on any one side for movement, when it records the room', () => {
+    const room = (at: 'u0' | 'u1' | 'a0' | 'a1') => ({ at, length: 0.125 });
+    const left = [
+      { ...mortise, u0: 4.375, room: room('u0') },
+      { ...mortise, u1: 6.625, room: room('u1') },
+      { ...mortise, a0: 0.5, room: room('a0') },
+      { ...mortise, a1: 1, room: room('a1') },
+    ];
+    for (const m of left) expect(checks([post(m), rail()], placements)).toEqual([]);
+  });
+
+  it('reports room on the side the tenon is held at, and room as long as the mortise', () => {
+    // Left long below a0, but the room says above a1: the held part, 0.5 to 0.875, is not the tenon.
+    const wrongSide = { ...mortise, a0: 0.5, room: { at: 'a1' as const, length: 0.125 } };
+    expect(checks([post(wrongSide), rail()], placements)).toEqual(['mortise post', 'tenon rail']);
+    const all = { ...mortise, room: { at: 'u0' as const, length: 2 } };
+    expect(checks([post(all), rail()], placements)).toEqual([
+      'within post',
+      'mortise post',
+      'tenon rail',
+    ]);
+  });
+
   it('accepts a stub tenon in a groove along the other part, and reports one past it', () => {
     // A 2-wide stile along z, its far edge at x = 2 grooved 3/8 deep, 1/4 wide from 1/4. A rail
     // along x from 1.625 into it, its stub tenon 3/8 long, full width, 1/4 thick from 1/4.
