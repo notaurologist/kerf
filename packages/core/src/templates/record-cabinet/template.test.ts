@@ -55,6 +55,26 @@ describe('the worked example (spec, Worked example and The Shaker-modern base)',
     expect([g.legLength, g.longApron, g.shortApron, g.cleatLength]).toEqual([7.5, 51.5, 16, 14]);
   });
 
+  it('sizes each panel cut to length by its joints from the length they give', () => {
+    // Each board is the part's length plus the trim at both ends.
+    for (const id of [
+      'side-left',
+      'partition',
+      'rail',
+      'apron-long',
+      'apron-short',
+      'cleat',
+      'door-rail',
+      'door-panel',
+    ]) {
+      const p = part(worked, id);
+      if (!isPanel(p.stock)) throw new Error(`${id} is not a panel`);
+      expect(p.stock.boardLength, id).toBe(p.length + 2 * p.stock.allowances.trimPerEnd);
+    }
+    // The cleat runs between the legs' inside faces: 17 − 2 × 1-1/2.
+    expect(part(worked, 'cleat').length).toBe(14);
+  });
+
   it('lists the parts in cut-list order, the legs from leg stock', () => {
     expect(worked.cutList.map((r) => [r.letter, r.name, r.quantity, r.length])).toEqual([
       ['A', 'Top', 1, '54"'],

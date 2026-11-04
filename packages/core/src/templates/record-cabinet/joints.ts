@@ -19,16 +19,16 @@ import type {
   Tenon,
   Vec3,
 } from '../../model/types.ts';
-import { type CabinetGeometry, PANEL_END_GAP } from './geometry.ts';
+import { type CaseGeometry, PANEL_END_GAP } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
-import { apronTenons, SCREW_INSET, SHOULDER } from './parts.ts';
+import { apronTenons, SCREW_INSET, SHOULDER, type UncutPart } from './parts.ts';
 import type { Allowances } from './structural.ts';
 
 // The record cabinet's joints (decision 0020): the sides, partitions, and back rails housed in
 // dadoes, the aprons tenoned into the legs, each door's rails stub-tenoned into its stiles around a
 // floating panel, and the cleats screwed to the case bottom through slots. The parts say where each
 // one stands and how big each joint is; the joints give every length, end cut, dado, notch,
-// mortise, tenon, groove, rabbet, and screw hole.
+// mortise, tenon, groove, rabbet, and screw hole, and each part's stock is sized to its length.
 
 const X: Vec3 = { x: 1, y: 0, z: 0 };
 const MINUS_X: Vec3 = { x: -1, y: 0, z: 0 };
@@ -36,19 +36,34 @@ const Y: Vec3 = { x: 0, y: 1, z: 0 };
 const MINUS_Y: Vec3 = { x: 0, y: -1, z: 0 };
 const Z: Vec3 = { x: 0, y: 0, z: 1 };
 
+type Made = Part | (UncutPart & { letter: string });
+const isUncut = (part: Made): part is UncutPart & { letter: string } => 'at' in part.stock;
+
 export function joined(
   p: RecordCabinetParams,
-  g: CabinetGeometry,
+  g: CaseGeometry,
   allowances: Allowances,
-  made: { parts: Part[]; placements: Placement[] },
+  made: { parts: Made[]; placements: Placement[] },
 ): { parts: Part[]; placements: Placement[] } {
   const t = p.panelThickness;
   const j = p.dadoDepth;
   const dt = g.door?.trackZone ?? 0;
 
-  const partOf = (id: string) => {
+  const madeOf = (id: string) => {
     const part = made.parts.find((q) => q.id === id);
     if (!part) throw new Error(`No ${id}.`);
+    return part;
+  };
+  /** A part the template sizes whole. */
+  const partOf = (id: string) => {
+    const part = madeOf(id);
+    if (isUncut(part)) throw new Error(`${id} has no length until its joints give it one.`);
+    return part;
+  };
+  /** A part its joints cut to length. */
+  const uncutOf = (id: string) => {
+    const part = madeOf(id);
+    if (!isUncut(part)) throw new Error(`${id} is not cut to length by its joints.`);
     return part;
   };
   const placementOf = (id: string, instance: number) => {
@@ -59,16 +74,21 @@ export function joined(
   const top: PlacedPart = { part: partOf('top'), placement: placementOf('top', 0) };
   const bottom: PlacedPart = { part: partOf('bottom'), placement: placementOf('bottom', 0) };
 
-  /** A part trimmed to a plane at each end, with its length and placement from the trim. */
+  /**
+   * A part trimmed to a plane at each end, with its length, its stock, and its placement from the
+   * trim.
+   */
   const cut = (id: string, instance: number, member: Member, planes: [Plane, Plane]) => {
     const trimmed = trim(member, planes);
     if (!trimmed.ok) throw new Error(`${id} ${instance}, end ${trimmed.end}: ${trimmed.message}`);
+    const uncut = uncutOf(id);
     const part: Part = {
-      ...partOf(id),
+      ...uncut,
+      stock: uncut.stock.at(trimmed.length),
       length: trimmed.length,
       ends: [
-        { ...partOf(id).ends[0], ...trimmed.ends[0] },
-        { ...partOf(id).ends[1], ...trimmed.ends[1] },
+        { ...uncut.ends[0], ...trimmed.ends[0] },
+        { ...uncut.ends[1], ...trimmed.ends[1] },
       ],
       endsParallel: trimmed.endsParallel,
     };
@@ -101,7 +121,7 @@ export function joined(
         across: Y,
         through: MINUS_X,
         referenceEdge: { x: x + t, y: partition ? dt : 0, z: 0 },
-        width: partOf(id).stock.width,
+        width: uncutOf(id).stock.width,
       },
       [housingPlane(bottom, 'far', j), housingPlane(top, 'near', j)],
     );
@@ -120,7 +140,7 @@ export function joined(
         across: Z,
         through: MINUS_Y,
         referenceEdge: { x: 0, y: p.caseDepth, z: railZ },
-        width: partOf('rail').stock.width,
+        width: uncutOf('rail').stock.width,
       },
       [housingPlane(left, 'near', j), housingPlane(right, 'far', j)],
     );
@@ -186,23 +206,32 @@ export function joined(
       { leg: second, id, instance, toward: along },
     ];
   });
-  const meet = apronTenons(p, partOf('apron-long').stock.thickness).meet;
+  const meet = apronTenons(p, uncutOf('apron-long').stock.thickness).meet;
   const meeting = (leg: number, id: string, instance: number) =>
     meet
       ? entering.find((e) => e.leg === leg && !(e.id === id && e.instance === instance))?.toward
       : undefined;
+  /** The plane `depth` into the side of a leg that a part running `toward` it meets. */
+  const into = (leg: number, toward: Vec3, depth: number, what: string) => {
+    const placed = legs[leg] as PlacedPart;
+    const side = sideEntered(placed, toward);
+    if (!side) throw new Error(`${what} does not meet its leg square.`);
+    return housingPlane(placed, side, depth);
+  };
+  /** A part's legs, at its first end and its second, the planes `depth` into them. */
+  const betweenLegs = (pl: Placement, [first, second]: [number, number], depth: number) =>
+    [
+      into(first, { x: -pl.along.x, y: -pl.along.y, z: -pl.along.z }, depth, pl.partId),
+      into(second, pl.along, depth, pl.partId),
+    ] as [Plane, Plane];
   const aprons = layout.map(([id, instance, first, second]) => {
     const pl = placementOf(id, instance);
-    const into = (leg: PlacedPart, toward: Vec3) => {
-      const side = sideEntered(leg, toward);
-      if (!side) throw new Error(`${id} ${instance} does not meet its leg square.`);
-      return housingPlane(leg, side, p.tenonLength);
-    };
-    const back = { x: -pl.along.x, y: -pl.along.y, z: -pl.along.z };
-    const piece = cut(id, instance, memberOf(pl, partOf(id)), [
-      into(legs[first] as PlacedPart, back),
-      into(legs[second] as PlacedPart, pl.along),
-    ]);
+    const piece = cut(
+      id,
+      instance,
+      memberOf(pl, uncutOf(id).stock.width),
+      betweenLegs(pl, [first, second], p.tenonLength),
+    );
     const ta = piece.part.stock.thickness;
     const tenon = {
       v0: shoulder,
@@ -240,12 +269,12 @@ export function joined(
         const [left, right] = k === 0 ? [outer, inner] : [inner, outer];
         const rails = [2 * k, 2 * k + 1].map((instance) => {
           const pl = placementOf('door-rail', instance);
-          return cut('door-rail', instance, memberOf(pl, partOf('door-rail')), [
+          return cut('door-rail', instance, memberOf(pl, uncutOf('door-rail').stock.width), [
             housingPlane(left, 'far-edge', door.grooveDepth),
             housingPlane(right, 'far-edge', door.grooveDepth),
           ]);
         });
-        const panelPart = partOf('door-panel');
+        const panelPart = uncutOf('door-panel');
         const panelAt = placementOf('door-panel', k);
         const floating = floatingPanel({
           frame: [
@@ -281,17 +310,36 @@ export function joined(
           }),
         );
         const panel = {
-          part: { ...panelPart, length: floating.length, rabbets: floating.rabbets },
+          part: {
+            ...panelPart,
+            stock: panelPart.stock.at(floating.length),
+            length: floating.length,
+            rabbets: floating.rabbets,
+          },
           placement: { ...panelAt, origin: floating.origin },
         };
         return { rails, tenons, floating, panel };
       })
     : [];
 
+  // Each cleat runs between the inside faces of the legs at its side, the front one first.
+  const cleatLegs = [
+    [0, 2],
+    [1, 3],
+  ] as const;
+  const cleats = cleatLegs.map(([first, second], instance) => {
+    const pl = placementOf('cleat', instance);
+    return cut(
+      'cleat',
+      instance,
+      memberOf(pl, uncutOf('cleat').stock.width),
+      betweenLegs(pl, [first, second], 0),
+    );
+  });
+
   // Screws up through each cleat into the case bottom, which is held at its front edge and moves
   // toward the back: round at the front, slotted behind.
-  const screwHoles = [0, 1].map((instance) => {
-    const cleat: PlacedPart = { part: partOf('cleat'), placement: placementOf('cleat', instance) };
+  const screwHoles = cleats.map((cleat, instance) => {
     const L = cleat.part.length;
     const v = cleat.part.stock.width / 2;
     const made = slottedScrews({
@@ -331,14 +379,11 @@ export function joined(
     ...panels,
     ...rails,
     ...aprons.map((a) => a.piece),
+    ...cleats,
     ...doorParts.flatMap((d) => [...d.rails, d.panel]),
   ];
   const parts = made.parts.map((part): Part => {
-    let derived = placed.find((q) => q.part.id === part.id)?.part ?? part;
-    // Its stock was sized from the length the geometry gives, so the joints must agree with it.
-    if (Math.abs(derived.length - part.length) > 1e-9) {
-      throw new Error(`${part.id}: the joints give ${derived.length}, its stock ${part.length}.`);
-    }
+    let derived = placed.find((q) => q.part.id === part.id)?.part ?? partOf(part.id);
     const own = dadoes.get(part.id);
     if (own || housedIds.has(part.id)) {
       derived = {
@@ -363,12 +408,12 @@ export function joined(
 }
 
 /** A part as the template stands it, before its ends are cut: its origin is on its reference edge. */
-function memberOf(pl: Placement, part: Part): Member {
+function memberOf(pl: Placement, width: number): Member {
   return {
     along: pl.along,
     across: pl.across,
     through: pl.through,
     referenceEdge: pl.origin,
-    width: part.stock.width,
+    width,
   };
 }

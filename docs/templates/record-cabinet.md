@@ -237,9 +237,9 @@ The template says where each part stands and how big each joint is. The joints i
 - **The aprons:** tenoned into the legs' inside faces, l_t deep and t_t thick, with 1/4 shoulders above and below. The legs' mortises come from the same joint. Where the two aprons' tenons meet inside a leg, the joint miters each one's end (version 22, Mitered tenons).
 - **Each door's rails:** stub-tenoned into its stiles' grooves.
 - **Each door's panel:** floats in the frame's grooves, with its gap from the movement estimate at each edge across the grain and 1/32 at each end.
-- **The cleats:** screwed to the case bottom through slots, round at the front where it is held.
+- **The cleats:** each runs between the inside faces of the legs at its side, and is screwed to the case bottom through slots, round at the front where it is held.
 
-The doors' tracks, the legs' tapers, and the finger recesses belong to one part each, so they stay the template's. The lengths in Derived geometry size each part's stock, and the joints must give the same lengths.
+The doors' tracks, the legs' tapers, and the finger recesses belong to one part each, so they stay the template's. Each part the joints cut to length has its stock sized after they give the length (#632), so the formulas for those lengths here are worked examples to check the joints against, not code. A plan still stores the lengths in its geometry, read from the cut parts.
 
 ### Mitered tenons (version 22, #629)
 

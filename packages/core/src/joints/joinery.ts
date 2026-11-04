@@ -5,7 +5,6 @@ import type {
   EdgeGroove,
   EdgeRabbet,
   Mortise,
-  Part,
   ScrewHole,
   Tenon,
   Vec3,
@@ -292,8 +291,16 @@ export interface FloatingPanel {
   frame: readonly (PlacedPart & { edge: EdgeGroove['edge'] })[];
   /** The frame's grooves, centered in each part's thickness. */
   groove: { width: number; depth: number };
-  /** The panel, for its ID and stock, and the directions it runs: its grain along its length. */
-  panel: { part: Part; along: Vec3; across: Vec3; through: Vec3 };
+  /**
+   * The panel, for its stock's width and thickness, and the directions it runs: its grain along
+   * its length. Its length is the joint's.
+   */
+  panel: {
+    part: { stock: { width: number; thickness: number } };
+    along: Vec3;
+    across: Vec3;
+    through: Vec3;
+  };
   /** Short of each groove's bottom: at each end, along the grain, and at each edge, across it. */
   gaps: { ends: number; edges: number };
 }

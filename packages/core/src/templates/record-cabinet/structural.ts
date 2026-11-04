@@ -7,7 +7,7 @@ import { BeamChecks } from '../../structural/checks.ts';
 import { clearWoodChecks } from '../../structural/clearWood.ts';
 import { mapNeeded, type Needed, need, type Quantity } from '../../structural/types.ts';
 import { formatLength } from '../../units/length.ts';
-import { type CabinetGeometry, oneBoardThicknessOf } from './geometry.ts';
+import { type CaseGeometry, oneBoardThicknessOf } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
 
 // The structural model (spec, Structural model): the case bottom under records in each bay, the
@@ -99,7 +99,7 @@ function slotFor(p: RecordCabinetParams, inputs: Inputs): Slot {
  * Each door panel's gap at its edges across the grain: half its movement across the space between
  * the groove bottoms, plus 1/32" (DOMAIN.md, Joints that let wood move; spec, Sliding doors).
  */
-function panelGapFor(g: CabinetGeometry, inputs: Inputs): Slot {
+function panelGapFor(g: CaseGeometry, inputs: Inputs): Slot {
   const span = g.door?.panelSpan ?? 0;
   const { deltaD, entered } = movementAcross(span, inputs);
   const length = deltaD / 2 + PANEL_MARGIN;
@@ -112,11 +112,7 @@ function panelGapFor(g: CabinetGeometry, inputs: Inputs): Slot {
 }
 
 /** The case bottom's slots and the door panels' gaps, from the inputs. */
-export function allowancesFor(
-  p: RecordCabinetParams,
-  g: CabinetGeometry,
-  inputs: Inputs,
-): Allowances {
+export function allowancesFor(p: RecordCabinetParams, g: CaseGeometry, inputs: Inputs): Allowances {
   return { slot: slotFor(p, inputs), panelGap: panelGapFor(g, inputs) };
 }
 
@@ -183,7 +179,7 @@ export function checkFields(check: { subject: string }): FieldRef[] {
 
 export function structuralReview(
   p: RecordCabinetParams,
-  g: CabinetGeometry,
+  g: CaseGeometry,
   inputs: Inputs,
 ): RecordCabinetReview {
   const t = p.panelThickness;
