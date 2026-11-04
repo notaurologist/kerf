@@ -1,8 +1,15 @@
 import {
+  type BoredHole,
+  cupHingeIssues,
+  cupHingeItem,
+  cupHingePair,
   type Dado,
   type Dovetails,
   drawerBox,
+  type EdgeGroove,
   type EdgeRabbet,
+  type HardwareItem,
+  type HingePlate,
   type Mortise,
   type Notch,
   type Part,
@@ -18,9 +25,11 @@ import type { PlacedPart } from '../../boltedLap.ts';
 import { compare } from '../../compare.ts';
 import { housedEnd, housingPlane, sideEntered } from '../../housedEnd.ts';
 import {
+  floatingPanel,
   mortiseAndTenon,
   panelInFaces,
   type TenonSize,
+  tenonInGroove,
   throughDovetails,
   throughTenon,
 } from '../../joinery.ts';
@@ -45,6 +54,8 @@ const SQUARE = { setting: 0, description: 'Square', measuredFrom: 'reference-edg
 interface Base {
   parts: Part[];
   placements: Placement[];
+  /** The hardware the joints name, for now the doors' hinges. */
+  hardware: HardwareItem[];
   /** z_u, the top's underside; L_b and D_b, the base outside the legs; the legs' visible length. */
   geometry: {
     underside: number;
@@ -622,6 +633,131 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
     ...drawer('lower-drawer', 0, [openings.left, openings.right], openings.lower),
   ];
 
+  // Two inset doors under the drawers, each a frame of stiles and rails around a floating panel,
+  // hung on the outer case sides. The right door is the left turned end for end about the front-
+  // to-back axis, so the two are one set of parts.
+  const door = p.door;
+  const doorOpening = {
+    x: [openings.left, openings.right] as const,
+    z: [at(caseBottom, 'far', Z), at(lower, 'near', Z)] as const,
+  };
+  const dg = door.gap;
+  const doorWidth = (doorOpening.x[1] - doorOpening.x[0] - 3 * dg) / 2;
+  const doorHeight = doorOpening.z[1] - doorOpening.z[0] - 2 * dg;
+  const one = panel(door.frameWidth, p.board.thickness)(doorHeight);
+  const dt = one.thickness;
+  const center = {
+    x: (doorOpening.x[0] + doorOpening.x[1]) / 2,
+    z: (doorOpening.z[0] + doorOpening.z[1]) / 2,
+  };
+  const doors = [0, 1].flatMap((k) => {
+    const turn = (v: Vec3): Vec3 => (k === 0 ? v : { x: -v.x, y: v.y, z: -v.z });
+    const spot = (q: Vec3): Vec3 =>
+      k === 0 ? q : { x: 2 * center.x - q.x, y: q.y, z: 2 * center.z - q.z };
+    const x0 = doorOpening.x[0] + dg;
+    const z0 = doorOpening.z[0] + dg;
+    const member = (along: Vec3, across: Vec3, through: Vec3, corner: Vec3): Member => ({
+      along: turn(along),
+      across: turn(across),
+      through: turn(through),
+      referenceEdge: spot(corner),
+      width: door.frameWidth,
+    });
+    const ends = (a: number, b: number): [Plane, Plane] => [
+      { point: spot({ x: 0, y: 0, z: a }), normal: turn(Z) },
+      { point: spot({ x: 0, y: 0, z: b }), normal: turn(Z) },
+    ];
+    const stileStock = (length: number) => panel(door.frameWidth, p.board.thickness)(length);
+    const hinge = cut(
+      'door-stile-hinge',
+      k,
+      stileStock,
+      member(Z, X, Y, { x: x0, y: 0, z: 0 }),
+      ends(z0, z0 + doorHeight),
+    );
+    const meeting = cut(
+      'door-stile-meeting',
+      k,
+      stileStock,
+      member(Z, minus(X), minus(Y), { x: x0 + doorWidth, y: dt, z: 0 }),
+      ends(z0, z0 + doorHeight),
+    );
+    const railEnds = (): [Plane, Plane] => [
+      housingPlane(hinge, 'far-edge', door.grooveDepth),
+      housingPlane(meeting, 'far-edge', door.grooveDepth),
+    ];
+    const rails = [
+      cut(
+        'door-rail',
+        2 * k,
+        stileStock,
+        member(X, Z, minus(Y), { x: 0, y: dt, z: z0 }),
+        railEnds(),
+      ),
+      cut(
+        'door-rail',
+        2 * k + 1,
+        stileStock,
+        member(X, minus(Z), Y, { x: 0, y: 0, z: z0 + doorHeight }),
+        railEnds(),
+      ),
+    ];
+    // The panel, grain up, between the frame's groove bottoms less its gaps.
+    const across = doorWidth - 2 * door.frameWidth + 2 * door.grooveDepth - 2 * MOVEMENT_GAP;
+    const panelPart = blank('door-panel', '', panel(across)(doorHeight), doorHeight);
+    const floating = ok(
+      floatingPanel({
+        frame: [hinge, meeting, ...rails].map((q) => ({ ...q, edge: 'far' as const })),
+        groove: { width: door.grooveWidth, depth: door.grooveDepth },
+        panel: { part: panelPart, along: turn(Z), across: turn(X), through: turn(Y) },
+        gaps: { ends: END_GAP, edges: MOVEMENT_GAP },
+      }),
+    );
+    // The joint gives each frame part's groove, in the frame's order.
+    const framed = [hinge, meeting, ...rails];
+    for (const [i, { groove }] of floating.grooves.entries()) {
+      features.add(framed[i] as PlacedPart, { grooves: [groove] });
+    }
+    // Rails' stub tenons, as thick as the grooves are wide, into the stiles' grooves.
+    for (const rail of rails) {
+      for (const [end, stile] of [hinge, meeting].entries()) {
+        const grooved = {
+          ...stile,
+          part: {
+            ...stile.part,
+            grooves: floating.grooves
+              .filter((f) => f.partId === stile.part.id)
+              .map((f) => f.groove),
+          },
+        };
+        const made = ok(
+          tenonInGroove({ grooved, tenoned: rail, end: end as 0 | 1, v: [0, door.frameWidth] }),
+        );
+        features.add(rail, { tenons: [made.tenon] });
+      }
+    }
+    const doorPanel: PlacedPart = {
+      part: {
+        ...panelPart,
+        stock: panel(across)(floating.length),
+        length: floating.length,
+        rabbets: floating.rabbets,
+      },
+      placement: frame('door-panel', k, floating.origin, turn(Z), turn(X), turn(Y)),
+    };
+    // Two cup hinges on the hinge stile, 3 from each end, their plates on the case side beside it.
+    const issues = cupHingeIssues(door.hinge, 'door.hinge', dt, 'board.thickness');
+    if (issues.length > 0) throw new Refusal((issues[0] as { message: string }).message);
+    const hung = cupHingePair(door.hinge, 'hinge', hinge, sides[k] as PlacedPart, {
+      edge: 'reference',
+      back: 'far',
+      cups: [door.hingeFromEnd, doorHeight - door.hingeFromEnd],
+    });
+    features.add(hinge, { boredHoles: hung.cups });
+    features.add(sides[k] as PlacedPart, { hingePlates: hung.plates });
+    return [hinge, meeting, ...rails, doorPanel];
+  });
+
   const placed = [
     top,
     ...feet,
@@ -634,10 +770,14 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
     divider,
     caseBack,
     ...drawers,
+    ...doors,
   ];
   return {
     parts: features.parts(placed),
     placements: placed.map((q) => q.placement),
+    hardware: [
+      cupHingeItem({ id: 'hinge', name: 'Concealed cup hinges', group: 'Hinges' }, door.hinge, 4),
+    ],
     geometry: {
       underside,
       baseLength,
@@ -758,6 +898,9 @@ type Found = {
   notches: Notch[];
   rabbets: EdgeRabbet[];
   dovetails: Dovetails[];
+  grooves: EdgeGroove[];
+  boredHoles: BoredHole[];
+  hingePlates: HingePlate[];
 };
 const none = (): Found => ({
   mortises: [],
@@ -766,6 +909,9 @@ const none = (): Found => ({
   notches: [],
   rabbets: [],
   dovetails: [],
+  grooves: [],
+  boredHoles: [],
+  hingePlates: [],
 });
 
 class Features {

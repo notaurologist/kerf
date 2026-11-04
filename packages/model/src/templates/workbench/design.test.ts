@@ -1,4 +1,4 @@
-import { fitProblems, type Part, type Placement } from '@kerf/core';
+import { fitProblems, hardwareList, type Part, type Placement } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { base } from './design.ts';
 import { EXAMPLE } from './params.ts';
@@ -287,11 +287,11 @@ describe('the base, from its joints', () => {
   });
 
   it('passes the fit checks', () => {
-    expect(fitProblems(example)).toEqual([]);
+    expect(fitProblems(example, hardwareList(example.hardware))).toEqual([]);
   });
 
   it('passes the fit checks with the back mortises left long for the top’s movement', () => {
-    expect(fitProblems(made(0.125))).toEqual([]);
+    expect(fitProblems(made(0.125), hardwareList(made(0.125).hardware))).toEqual([]);
   });
 
   it('refuses a top whose strips are wider than the board', () => {
