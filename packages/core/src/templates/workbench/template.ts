@@ -52,7 +52,7 @@ const GROUP = 'Glue and finish';
 
 /**
  * A wood screw's length through `through` into `into`: the first's thickness plus about
- * two-thirds of the second's, to the nearest quarter inch, as the record cabinet's cleat screws.
+ * two-thirds of the second's, to the nearest quarter inch.
  */
 function screwLength(through: number, into: number) {
   const length = Math.round((through + (2 * into) / 3) * 4) / 4;

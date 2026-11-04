@@ -8,9 +8,9 @@ import { ViseScrew } from '../../model/viseScrew.ts';
 // entry asks for any number of parts or a size the display cannot show.
 
 const SIXTEENTH = 0.0625;
-/** Boards from a 1x2 (1-1/2") to a 1x12 (11-1/4"), rounded out to 12, as the record cabinet's. */
+/** Boards from a 1x2 (1-1/2") to a 1x12 (11-1/4"), rounded out to 12. */
 const BOARD_WIDTH = { min: 1.5, max: 12 } as const;
-/** 5/8" up to past 8/4 surfaced, as the record cabinet's. */
+/** 5/8" up to past 8/4 surfaced. */
 const BOARD_THICKNESS = { min: 0.625, max: 2 } as const;
 const LENGTHS = z.array(z.number().int().min(1).max(16)).min(1).max(4);
 const length = (min: number, max: number) => z.number().min(min).max(max);

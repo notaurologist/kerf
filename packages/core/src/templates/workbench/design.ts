@@ -118,7 +118,7 @@ const END_GAP = 1 / 32;
 /** Hardwood lengths, 4 to 16 ft in 1-ft steps (Wood Handbook, ch. 6, p. 6-3). */
 const DEALER_FEET = Array.from({ length: 13 }, (_, i) => i + 4);
 
-/** The boards everything is cut and glued from, as the record cabinet's. */
+/** The boards everything is cut and glued from. */
 function boardStock(board: WorkbenchParams['board']): BoardStock {
   return board.source === 'store'
     ? {

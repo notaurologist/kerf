@@ -51,7 +51,7 @@ const PANEL_MARGIN = 1 / 32;
 /**
  * Movement across `width`, ΔD = D · C · (M_high − M_low). Without the species, ring orientation,
  * and moisture range, sized for the species in Kerf that moves most across a flatsawn face over
- * the Wood Handbook's 6% to 10% indoors (Table 13-2), as the record cabinet does.
+ * the Wood Handbook's 6% to 10% indoors (Table 13-2).
  */
 function movementAcross(width: number, inputs: Inputs): number {
   const species = inputs.species ? woodSpecies(inputs.species) : undefined;

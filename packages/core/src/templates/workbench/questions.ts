@@ -28,7 +28,7 @@ const QUESTIONS: readonly FormSection[] = [
   { title: 'You', fields: [standingHeightField('stature')] },
   {
     title: 'The space',
-    help: 'Measure the floor where the bench will stand. Leave room to walk round it and to swing a long board.',
+    help: 'Measure the floor where the bench will stand. Leave room to walk round it and to turn a long board.',
     fields: [
       {
         path: 'space.length',
@@ -99,7 +99,7 @@ const ONE_BY_SIX: SuggestionBasis = {
   citation: 'American Softwood Lumber Standard, PS 20-10, Table 3, a dry 1x6 board',
 };
 const MEASURE = 'Measure the boards at your store.';
-/** A dealer's 4/4 hardwood surfaced two sides, as the record cabinet suggests. */
+/** A dealer's 4/4 hardwood surfaced two sides. */
 const DEALER = { quarters: 4, surfaced: 0.8125, planWidth: 6, wastePercent: 20 } as const;
 const STORE = { thickness: 0.75, width: 5.5, lengths: [6, 8, 10] } as const;
 const FLATTEN = 0.0625;
@@ -144,13 +144,13 @@ function sizes(boardThickness: number): Suggestion[] {
     param(
       'dadoDepth',
       sixteenthsDown(panel / 4),
-      rule('a quarter of the panel thickness, rounded down to 1/16", as the record cabinet’s'),
+      rule('a quarter of the panel thickness, rounded down to 1/16"'),
     ),
     param('stopSetback', 0.5, rule('far enough back that the end of the dado does not show')),
     param('drawerBand', w.drawerBand, EXAMPLE),
     param('upperOpening', w.upperOpening, EXAMPLE),
-    param('back.grooveWidth', 0.25, rule('a 1/4" groove, as the record cabinet’s doors')),
-    param('back.grooveDepth', 0.375, rule('a 3/8" groove, as the record cabinet’s doors')),
+    param('back.grooveWidth', 0.25, rule('a 1/4" groove, the width of a common straight bit')),
+    param('back.grooveDepth', 0.375, rule('a 3/8" groove, deep enough to hold the panel as it moves')),
     param('back.inset', 0.375, rule('3/8" in from the case’s back edge')),
     param('back.shelfGap', 0.0625, rule('the lower shelves 1/16" clear of the back')),
     param('drawer.boxThickness', 0.5, rule('1/2" box parts, planed from the board stock')),
@@ -164,7 +164,7 @@ function sizes(boardThickness: number): Suggestion[] {
     param('drawer.slope', 8, { kind: 'convention', name: 'a 1 in 8 dovetail slope in hardwood' }),
     ...typicalDrawerSlideSuggestions('slides'),
     param('door.gap', 0.0625, rule('1/16" round and between inset doors')),
-    param('door.frameWidth', 2, rule('a 2" frame, as the record cabinet’s doors')),
+    param('door.frameWidth', 2, rule('a 2" frame, in Shaker proportion')),
     param('door.grooveWidth', 0.25, rule('a 1/4" groove for the panel and stub tenons')),
     param('door.grooveDepth', 0.375, rule('a 3/8" groove for the panel and stub tenons')),
     param('door.hingeFromEnd', 3, rule('each hinge cup 3" from the door’s end')),
