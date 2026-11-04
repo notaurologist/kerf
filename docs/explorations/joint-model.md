@@ -174,6 +174,80 @@ One inconsistency surfaced: the cabinet's leg mortises record `withPart: 'apron'
 6. **Bring the formatters' rounding to `main`** with the joints, or the swing set's displayed angles can flip at half steps.
 7. **Remove the `generateWith` seams,** or keep them for the next experiment.
 
+## The workbench, built joint-first (#577), November 4, 2026
+
+The third template was the deciding test (#576): written from its spec with the joints from the start, not ported to parity. It lives in `packages/model/src/templates/workbench/` and is not in the app. As the owner chose, it covers what #577 asks for: the design, the structural review and movement, a sweep, and the edge-of-range examples. The definition, form, drawings, and build steps wait for the adoption decision. It was built in five stages, each its own pull request (#601, #607, #614, #617, #619), and this one.
+
+The four measures #576 set out before the build:
+
+### 1. Size
+
+| | Lines | Parts | Placements | Features cut |
+|---|---|---|---|---|
+| Record cabinet, hand-written (`parts.ts`, `geometry.ts`) | 889 | 14 | 29 | 44 |
+| Workbench, joint-first (`design.ts`) | 1,149 | 34 | 50 | 123 |
+
+Per part, the workbench takes 34 lines and the cabinet 64. Per feature cut (mortises, tenons, dadoes, notches, grooves, rabbets, dovetails, bored holes, hinge plates), it takes 9 and the cabinet 20. So it is about half the size of hand-written code for the same amount of design, though not smaller outright. The comparison is rough: `geometry.ts` holds the cabinet's validation, and `design.ts` the workbench's refusals, but the cabinet's part notes and board-selection text are in `parts.ts`, and the workbench has none yet.
+
+### 2. Hand-derived formulas
+
+About 35 remain, all of one kind: where a part stands or how big a joint is. They are:
+- the derived geometry the spec lists (the top's underside, the base outside the legs, the legs' corners)
+- the case's place on the low rails
+- the shelves' heights from the band split
+- the back's plane from its groove inset
+- each drawer box's place in its opening
+- each door's size from its gaps
+- the vises' screw heights
+- the dog-hole rules
+- the gap rules
+- the span the top's deflection is taken over
+
+The joints and core's hardware helpers give the rest: every part's length and end cuts, every origin, and all 123 features. Two of the remaining formulas are sizes: the door panel's width, which `floatingPanel` checks rather than gives, and the middle and lower shelves' depth, from the back's plane. The rest are positions. On the cabinet, lengths worked out by hand from other parts' positions are what went wrong (#561 to #563).
+
+### 3. New joints
+
+Four, each a small addition with hand-checked tests and a mutation that fails them:
+- **The through tenon:** a mortise as deep as the part, optionally left long on one side. About 10 minutes.
+- **A panel floating in grooves cut into faces:** about 12 minutes. A sign mutation survived the first tests, so a turned-part case was added.
+- **That panel open on one side,** and **flush with one wall:** about 10 minutes each.
+- **Through dovetails at a corner,** across the width the boards share: about 15 minutes. Core's fit checks accepted its cuts the first time.
+
+`joinery.ts` grew from 274 lines to 540. The doors needed no new joint: they reuse the record cabinet's `floatingPanel` and `tenonInGroove`, and core's hinge placement.
+
+### 4. Bugs the fit checks caught
+
+While the template was written, before any sweep, the fit checks caught one template bug. The top's and feet's mortises named `leg`, but the legs are two mirror-image parts, so no part had that ID or role.
+
+They also found four things wrong with the fit checks themselves, each fixed on `main` first:
+- a tongue held across two grooves at a panel's corners (#605)
+- a tongue rabbeted from one face (#612)
+- a groove cut into a face (#603)
+- a hinge cup matched to a plate on the far side of a pair of doors (#615), which was a bug
+
+The sweep (800 draws, `sweep.test.ts`) then found three more template problems that the hand-checked examples could not:
+- the doors were placed at y = 0 rather than at the case's front, which only differs when the top overhangs the front legs
+- the movement gaps outgrow their grooves on a long or deep bench
+- a short case leaves doors too short for their hinges
+
+The last two needed refusals the spec had not listed. The edge-of-range example hits the third.
+
+### What else the build showed
+
+- **Core gaps.** Seven generic gaps landed on `main` before the template could use them: #599, #603, #605, #608, #609, #612, and #615. The joints asked questions the hand-written templates never did: room left in a mortise, part-width dovetails, planing to thickness, panels in face grooves. Most of the time went there, not into the joints.
+- **One gap is open.** #618: the fit checks never check that two parts don't occupy the same space. A dog hole bored through the top into a leg would pass them. A template rule and a test guard against it here.
+- **Shared parts.** Every instance of a part must come out of its joints with the same features, or the design throws. That check caught two mutations, and it is how the two upper drawers, the two doors, and the end rails were confirmed to be one part each.
+
+### Against #576's rule
+
+#576 said to adopt if the template is clearly smaller, needs few hand-derived formulas, and its new joints were small additions, and not to if it fights the joints. Measured:
+- **Size:** smaller per part and per feature, but not outright.
+- **Formulas:** the ones that remain are almost all positions, with two sizes.
+- **Joints:** the new ones were small.
+- **Fighting the joints:** nothing did. The effort went into core, which the hand-written way would have needed too.
+
+The decision is the owner's.
+
 ## Still open
 
 - The parity test's tolerance (exact display, 1e-9 before display) is used as written until the owner changes it.
