@@ -30,6 +30,7 @@ const post: Part = {
   cutouts: [],
   mortises: [],
   tenons: [],
+  dovetails: [],
   screwHoles: [],
   grooves: [],
   rabbets: [],

@@ -412,6 +412,15 @@ export const TOOL_TYPES = [
     capabilities: [],
   },
   {
+    id: 'dovetail-jig',
+    name: 'Dovetail jig',
+    description:
+      "A template the boards clamp into, with fingers that guide a router to cut tails and pins. Kerf's methods need one whose fingers can be moved to the plan's layout, for through dovetails.",
+    group: 'shaping',
+    protection: [],
+    capabilities: [],
+  },
+  {
     id: 'jointer',
     name: 'Jointer',
     description:

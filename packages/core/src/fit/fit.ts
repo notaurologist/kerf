@@ -1,14 +1,16 @@
-import type { Part, Placement, Vec3 } from '../model/types.ts';
+import { dovetailGeometry } from '../joinery/dovetails.ts';
+import type { Dovetails, Part, Placement, Vec3 } from '../model/types.ts';
 import type { HardwareLine } from '../outputs/hardwareList.ts';
 
 // Whether a plan's parts go together, from what each part records and where each piece is placed
 // (#570). Every joint is written on its parts twice, once on each side, and these check that the
-// two sides agree: a dado holds the end it names, a mortise the tenon, a groove the tongue, and a
-// bolt's holes line up through the parts it passes, as long as its grip. Generic: they know joints,
-// not what a template builds. Run in tests on every template's output.
+// two sides agree: a dado holds the end it names, a mortise the tenon, a groove the tongue, a tail
+// board's tails its pin board's pins, and a bolt's holes line up through the parts it passes, as
+// long as its grip. Generic: they know joints, not what a template builds. Run in tests on every
+// template's output.
 
 export interface FitProblem {
-  check: 'within' | 'dado' | 'mortise' | 'tenon' | 'tongue' | 'bolt';
+  check: 'within' | 'dado' | 'mortise' | 'tenon' | 'tongue' | 'dovetail' | 'bolt';
   partId: string;
   instance: number;
   message: string;
@@ -127,6 +129,15 @@ function withinProblems(pieces: readonly Piece[]): FitProblem[] {
           ? []
           : [`The tenon on end ${t.end} runs past the part's end.`],
       ),
+      ...part.dovetails.flatMap((d) => {
+        const at = `The dovetail ${d.board} on end ${d.end}`;
+        if (part.ends[d.end].setting !== 0) return [`${at} are on an angled end.`];
+        if (!(d.baseline > 0 && within(d.baseline, [0, L])))
+          return [`${at} run ${d.baseline} in, past the part.`];
+        return dovetailGeometry(d, W, d.board === 'tails' ? d.baseline : T)
+          ? []
+          : [`${at} do not fit across the part's ${W} width.`];
+      }),
     ];
     return outside.map((message) => ({
       check: 'within' as const,
@@ -348,6 +359,82 @@ function tongueProblems(pieces: readonly Piece[]): FitProblem[] {
 }
 
 /**
+ * A corner's tail walls on one piece, in world coordinates, each as the four corners of its face:
+ * at the end and the baseline, on both faces. On a tail board each wall runs square through the
+ * thickness and slopes along the face; on a pin board it runs square along the face and slopes
+ * across the thickness, from the tails' wide end at the outside face.
+ */
+function dovetailWalls(p: Piece, d: Dovetails) {
+  const { length: L } = p.part;
+  const { width: W, thickness: T } = p.part.stock;
+  const g = dovetailGeometry(d, W, d.board === 'tails' ? d.baseline : T);
+  if (!g || p.part.ends[d.end].setting !== 0) return undefined;
+  const uEnd = d.end === 0 ? 0 : L;
+  const uBase = d.end === 0 ? d.baseline : L - d.baseline;
+  const world = (points: UVN[]) => points.map((q) => toWorld(p.placement, q));
+  return g.sides.map((s) => {
+    if (d.board === 'tails') {
+      return world([...grid([uEnd], [s.outside], [0, T]), ...grid([uBase], [s.inside], [0, T])]);
+    }
+    const [out, inn] = d.outside === 'near' ? [0, T] : [T, 0];
+    return world([
+      ...grid([uEnd, uBase], [s.outside], [out]),
+      ...grid([uEnd, uBase], [s.inside], [inn]),
+    ]);
+  });
+}
+
+const samePoint = (a: Vec3, b: Vec3) => same(a.x, b.x) && same(a.y, b.y) && same(a.z, b.z);
+const samePoints = (a: readonly Vec3[], b: readonly Vec3[]) =>
+  a.every((q) => b.some((r) => samePoint(q, r))) && b.every((q) => a.some((r) => samePoint(q, r)));
+
+/**
+ * Dovetails: each tail board's tails meet a pin board of the part they name, whose pins name the
+ * tail board back, and every tail wall is a pin wall. Their corners lie at each board's end and
+ * baseline and on both its faces, so the walls agreeing puts each baseline at the other board's
+ * thickness and the tail board's end flush with the pins' outside face.
+ */
+function dovetailProblems(pieces: readonly Piece[]): FitProblem[] {
+  const named = (p: Piece, name: string) => p.part.id === name || p.part.role === name;
+  const fits = (t: Piece, tails: Dovetails, p: Piece, pins: Dovetails) => {
+    const a = dovetailWalls(t, tails);
+    const b = dovetailWalls(p, pins);
+    return (
+      a !== undefined &&
+      b !== undefined &&
+      a.length === b.length &&
+      a.every((w) => b.some((v) => samePoints(w, v)))
+    );
+  };
+  return pieces.flatMap((h) =>
+    h.part.dovetails.flatMap((d) => {
+      const mates = pieces.filter((p) => p !== h && named(p, d.withPart));
+      const fitted = mates.some((p) =>
+        p.part.dovetails.some(
+          (e) =>
+            e.board !== d.board &&
+            named(h, e.withPart) &&
+            (d.board === 'tails' ? fits(h, d, p, e) : fits(p, e, h, d)),
+        ),
+      );
+      if (fitted) return [];
+      const other = d.board === 'tails' ? 'pins' : 'tails';
+      return [
+        {
+          check: 'dovetail' as const,
+          partId: h.part.id,
+          instance: h.placement.instance,
+          message:
+            mates.length === 0
+              ? `Dovetail ${d.board} on end ${d.end} name ${d.withPart}, which is not placed.`
+              : `The dovetail ${d.board} on end ${d.end}, ${d.baseline} to the baseline, meet no ${other} of ${d.withPart} that fit them.`,
+        },
+      ];
+    }),
+  );
+}
+
+/**
  * Bolts: the holes on one line, through the pieces each part's holes are drilled in, touch end to
  * end, and their total length is the grip of the bolt the hardware lists for them.
  */
@@ -456,6 +543,7 @@ export function fitProblems(
     ...dadoProblems(pieces),
     ...tenonProblems(pieces),
     ...tongueProblems(pieces),
+    ...dovetailProblems(pieces),
     ...boltProblems(pieces, hardware),
   ];
 }

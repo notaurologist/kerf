@@ -37,6 +37,7 @@ const side = (over: Partial<Part> = {}): Part => ({
   cutouts: [{ end: 0, v0: 1.5, v1: 4, depth: 1 }],
   mortises: [],
   tenons: [],
+  dovetails: [],
   screwHoles: [],
   grooves: [],
   rabbets: [],

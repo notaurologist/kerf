@@ -181,6 +181,20 @@ export const SOURCES = {
     url: 'https://preservedwood.org/how-to/field-treatment/',
     note: 'For how to apply a field treatment: brushed on, worked into holes, as the label says.',
   },
+  'wikipedia-dovetail-joint': {
+    title: 'Dovetail joint',
+    publisher: 'Wikipedia',
+    edition: 'Article, read November 2026',
+    url: 'https://en.wikipedia.org/wiki/Dovetail_joint',
+    note: 'Gives 1:6 in softwood and 1:8 in hardwood, and says the slope does not change the joint’s strength in either.',
+  },
+  'fww-laying-out-dovetails': {
+    title: 'Laying Out Dovetails',
+    publisher: 'Fine Woodworking (Chris Gochnour)',
+    edition: 'Issue 190, March/April 2007; web page read November 2026',
+    url: 'https://www.finewoodworking.com/2007/02/06/laying-out-dovetails',
+    note: 'Gives 1:6 in softwood and 1:8 in hardwood because softwood fibers compress more easily, half pins 1/4" to 3/8" and interior pins 1/8" to 1/4" at their narrow ends, spacing 3/4" to 2" on center, and the baseline at the mating board’s thickness.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

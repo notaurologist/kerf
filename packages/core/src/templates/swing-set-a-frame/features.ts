@@ -40,6 +40,7 @@ export interface PartFeatures {
   cutouts: Cutout[];
   mortises: [];
   tenons: [];
+  dovetails: [];
   screwHoles: [];
   grooves: [];
   rabbets: [];
@@ -242,6 +243,7 @@ export function features(
       cutouts: [],
       mortises: [],
       tenons: [],
+      dovetails: [],
       screwHoles: [],
       grooves: [],
       rabbets: [],
@@ -257,6 +259,7 @@ export function features(
       cutouts: [],
       mortises: [],
       tenons: [],
+      dovetails: [],
       screwHoles: [],
       grooves: [],
       rabbets: [],
@@ -272,6 +275,7 @@ export function features(
       cutouts: [],
       mortises: [],
       tenons: [],
+      dovetails: [],
       screwHoles: [],
       grooves: [],
       rabbets: [],
@@ -287,6 +291,7 @@ export function features(
       cutouts: [],
       mortises: [],
       tenons: [],
+      dovetails: [],
       screwHoles: [],
       grooves: [],
       rabbets: [],

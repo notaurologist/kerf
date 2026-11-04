@@ -30,6 +30,7 @@ const board = (id: string, letter: string): Part => ({
   cutouts: [],
   mortises: [],
   tenons: [],
+  dovetails: [],
   screwHoles: [],
   grooves: [],
   rabbets: [],

@@ -1,3 +1,4 @@
+import { type DovetailSide, dovetailGeometry } from '../joinery/dovetails.ts';
 import { type Part, widthTapers } from '../model/types.ts';
 import { endName } from '../outputs/cutList.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
@@ -11,10 +12,9 @@ import { boundsOf } from './primitives.ts';
 // the long axis across the page, the first end on the left and the reference edge at the bottom.
 // Overall length above, edge lengths below, each end's saw setting and angle to the edge with a
 // square line and arc, the reference face mark, the grain arrow, holes, dadoes (solid on the face
-// shown, dashed on the other), notches and cutouts in the outline, and a taper's waste drawn
-// dashed. A part
-// more than 10 times longer than wide is drawn in pieces around its ends and holes, with break
-// lines between; dimensions still give the full lengths.
+// shown, dashed on the other), notches and cutouts in the outline, a taper's waste drawn dashed,
+// and dovetails' waste hatched. A part more than 10 times longer than wide is drawn in pieces
+// around its ends and holes, with break lines between; dimensions still give the full lengths.
 
 const RAD = Math.PI / 180;
 /** Gap left on the page where a stretch of a long part is broken out, in widths. */
@@ -235,6 +235,54 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       points: [page({ u, v: t.v0 }), page({ u, v: t.v0 + t.width })],
       part: ref,
     });
+  }
+
+  // Dovetails: the waste between tails, hatched, its sloped walls on the face. On a pin board the
+  // tails' sockets, which run square along the face: hatched on the face shown, dashed on the other,
+  // the two set apart by the slope across the thickness.
+  for (const d of part.dovetails) {
+    const T = part.stock.thickness;
+    const g = dovetailGeometry(d, W, d.board === 'tails' ? d.baseline : T);
+    if (!g) continue;
+    const uEnd = d.end === 0 ? 0 : part.length;
+    const uBase = d.end === 0 ? d.baseline : part.length - d.baseline;
+    if (d.board === 'tails') {
+      const walls = [{ outside: 0, inside: 0 }, ...g.sides, { outside: W, inside: W }];
+      for (let i = 0; i + 1 < walls.length; i += 2) {
+        const [a, b] = [walls[i] as DovetailSide, walls[i + 1] as DovetailSide];
+        prims.push({
+          kind: 'polygon',
+          role: 'visible',
+          points: [
+            { u: uEnd, v: a.outside },
+            { u: uBase, v: a.inside },
+            { u: uBase, v: b.inside },
+            { u: uEnd, v: b.outside },
+          ].map(page),
+          fill: 'zone',
+          part: ref,
+        });
+      }
+    } else {
+      for (const face of ['far', 'near'] as const) {
+        const at = face === d.outside ? 'outside' : 'inside';
+        for (let i = 0; i + 1 < g.sides.length; i += 2) {
+          const [a, b] = [g.sides[i] as DovetailSide, g.sides[i + 1] as DovetailSide];
+          prims.push({
+            kind: 'polygon',
+            role: face === 'far' ? 'visible' : 'hidden',
+            points: [
+              { u: uEnd, v: a[at] },
+              { u: uBase, v: a[at] },
+              { u: uBase, v: b[at] },
+              { u: uEnd, v: b[at] },
+            ].map(page),
+            fill: face === 'far' ? 'zone' : 'none',
+            part: ref,
+          });
+        }
+      }
+    }
   }
 
   // Screw holes: a cross at each round hole; a slot drawn as its length the way it runs.
@@ -488,6 +536,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     ...part.cutouts.map((c) => fromEnd(c.end, c.depth)),
     ...part.mortises.flatMap((m) => [m.u0, m.u1]),
     ...part.tenons.map((t) => fromEnd(t.end, t.length)),
+    ...part.dovetails.map((d) => fromEnd(d.end, d.baseline)),
   ];
   const candidates = ws.flatMap((w) => [0.5, 0.25, 0.75].map((f) => w.u0 + f * (w.u1 - w.u0)));
   const clear =
@@ -608,6 +657,16 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
         (t) =>
           `Taper the back face too: from full thickness ${formatLength(t.start.u)} from the first end to ${formatLength(t.end.v)} thinner at the first end.`,
       ),
+    ...part.dovetails.map((d) => {
+      const slope = `1:${d.slope}`;
+      const g = dovetailGeometry(d, W, d.board === 'tails' ? d.baseline : part.stock.thickness);
+      if (d.board === 'tails') {
+        const wide = g ? `, each ${formatLength(g.tailWide)} wide at the end` : '';
+        return `Dovetail tails at ${whichEnd(d.end)}: ${d.tails} tails${wide}, sloped ${slope} on the faces and cut ${formatLength(d.baseline)} in to the baseline, between half pins ${formatLength(d.halfPin)} and pins ${formatLength(d.pin)} wide at their narrow ends. The waste is hatched.`;
+      }
+      const outside = d.outside === 'far' ? 'the face shown' : 'the back face';
+      return `Dovetail pins at ${whichEnd(d.end)}: ${d.tails - 1} pins and a half pin at each edge, ${formatLength(d.pin)} and ${formatLength(d.halfPin)} wide at ${outside}, sloped ${slope} across the thickness and cut ${formatLength(d.baseline)} in to the baseline. The tails' sockets are hatched on the face shown and dashed on the back.`;
+    }),
     ...part.tenons.map(
       (t) =>
         `Tenon at ${whichEnd(t.end)}: ${formatLength(t.length)} long, ${formatLength(t.thickness)} thick, ${formatLength(t.width)} wide, ${formatLength(t.n0)} from the back face and ${formatLength(t.v0)} from the ${part.referenceEdge}.`,

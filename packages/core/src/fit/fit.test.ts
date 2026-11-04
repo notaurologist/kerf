@@ -35,6 +35,7 @@ const part = (
   cutouts: [],
   mortises: [],
   tenons: [],
+  dovetails: [],
   screwHoles: [],
   grooves: [],
   rabbets: [],
@@ -239,5 +240,94 @@ describe('bolts', () => {
       place('b', at(45, -10, 1.5), Y, minus(X), Z, 1),
     ];
     expect(checks([a, b], placed, [line(3)])).toEqual([]);
+  });
+});
+
+describe('dovetails', () => {
+  // A drawer box's front corners. A front 12 long, 5-1/2 wide, 3/4 thick along x, its outside face
+  // at y = 0 (n = 3/4, the far face) and its inside at y = 3/4, with pins at both ends cut 1/2 in.
+  // Two sides 1/2 thick, 5-1/2 wide, running back along y from y = 0, at x 0 to 1/2 and 11-1/2 to
+  // 12, with tails at their first ends cut 3/4 in. Each corner: 3 tails at 1:8 between 3/8 half
+  // pins and 1/4 pins. Tails 4.25 / 3 = 1.41667 wide at the end, each wall moving 0.75 / 8 =
+  // 0.09375 in by the baseline, as on both boards.
+  const layout = { tails: 3, slope: 8, halfPin: 0.375, pin: 0.25 };
+  const pins = (end: 0 | 1, over: Partial<Part['dovetails'][number]> = {}) =>
+    ({
+      board: 'pins',
+      withPart: 'side',
+      end,
+      baseline: 0.5,
+      outside: 'far',
+      ...layout,
+      ...over,
+    }) as Part['dovetails'][number];
+  const tails = (over: Partial<Part['dovetails'][number]> = {}) =>
+    ({
+      board: 'tails',
+      withPart: 'front',
+      end: 0,
+      baseline: 0.75,
+      ...layout,
+      ...over,
+    }) as Part['dovetails'][number];
+  const front = (a = pins(0), b = pins(1)) => part('front', 12, 5.5, 0.75, { dovetails: [a, b] });
+  const side = (d = tails()) => part('side', 18, 5.5, 0.5, { quantity: 2, dovetails: [d] });
+  const placements = (sideX = 0) => [
+    place('front', at(0, 0.75, 0), X, Z, minus(Y)),
+    place('side', at(sideX, 0, 0), Y, Z, X, 0),
+    place('side', at(11.5, 0, 0), Y, Z, X, 1),
+  ];
+
+  it('accepts tails and pins cut from one layout, each to the other board’s thickness', () => {
+    expect(checks([front(), side()], placements())).toEqual([]);
+  });
+
+  it('reports pins narrow at the inside face, where the tails are narrowest', () => {
+    expect(checks([front(pins(0, { outside: 'near' })), side()], placements())).toEqual([
+      'dovetail front',
+      'dovetail side',
+    ]);
+  });
+
+  // Both sides share the part's tails, so a change to them misses at both corners.
+  it('reports a baseline that is not the other board’s thickness', () => {
+    expect(checks([front(), side(tails({ baseline: 0.5 }))], placements())).toEqual([
+      'dovetail front',
+      'dovetail front',
+      'dovetail side',
+      'dovetail side',
+    ]);
+    expect(checks([front(pins(0, { baseline: 0.75 })), side()], placements())).toEqual([
+      'dovetail front',
+      'dovetail side',
+    ]);
+  });
+
+  it('reports tails sloped 1:6 against pins at 1:8, and one side set 1/16 off the end', () => {
+    expect(checks([front(), side(tails({ slope: 6 }))], placements())).toEqual([
+      'dovetail front',
+      'dovetail front',
+      'dovetail side',
+      'dovetail side',
+    ]);
+    expect(checks([front(), side()], placements(1 / 16))).toEqual([
+      'dovetail front',
+      'dovetail side',
+    ]);
+  });
+
+  it('reports pins with no tails, and tails that do not fit across the part', () => {
+    expect(checks([front(), part('side', 18, 5.5, 0.5, { quantity: 2 })], placements())).toEqual([
+      'dovetail front',
+      'dovetail front',
+    ]);
+    // At 1:1 each wall moves 3/4 in, so a 1.41667 tail would end 1.5 narrower: below nothing.
+    expect(checks([front(), side(tails({ slope: 1 }))], placements())).toEqual([
+      'within side',
+      'dovetail front',
+      'dovetail front',
+      'dovetail side',
+      'dovetail side',
+    ]);
   });
 });

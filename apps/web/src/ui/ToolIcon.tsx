@@ -196,6 +196,12 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <path d="M3 13 H6 M18 13 H21 M3 13 V15 M21 13 V15 M12 4 V2 M10 2 H14 M5 17.5 V21 M19 17.5 V21" />
     </>
   ),
+  'dovetail-jig': (
+    <>
+      <rect x="2" y="13" width="20" height="7" rx="0.6" />
+      <path d="M3 13 V7 H6 V13 M8.5 13 V7 H11.5 V13 M14 13 V7 H17 V13 M19.5 13 V7 H21 V13 M6 16.5 H18" />
+    </>
+  ),
   chisel: (
     <>
       <g transform="rotate(-45 12 12)">
