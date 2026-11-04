@@ -126,11 +126,12 @@ describe('the worked example (spec, Holes and joints)', () => {
   });
 
   it('drills the leg for the crossbar and gusset bolts on its centerline', () => {
-    // u = (top + (w/2)·sin α − z) / cos α, top = 101.5: crossbar bolts at z = 34.5 + 1.375 and
+    // The bolted laps give each hole where the bolt's line runs inside the leg, so v is 1.75 to the
+    // last bits. u = (top + (w/2)·sin α − z) / cos α, top = 101.5: crossbar bolts at z = 34.5 + 1.375 and
     // 34.5 + 4.125, gusset bolts at z = 88.75 + 1.8125 and 88.75 + 5.4375.
     const holes = (leg.holes ?? [])
       .filter((h) => h.hardwareId !== 'leg-beam-bolts')
-      .map((h) => [h.hardwareId, h.entry.u.toFixed(3), h.entry.v]);
+      .map((h) => [h.hardwareId, h.entry.u.toFixed(3), Number(h.entry.v.toFixed(9))]);
     expect(holes).toEqual([
       ['crossbar-bolts', '70.474', 1.75],
       ['crossbar-bolts', '67.547', 1.75],
