@@ -93,6 +93,18 @@ export const SKILLS = [
       'Take the faces down evenly until a straightedge laid across and along the panel touches everywhere, with no step at any joint.',
   },
   {
+    id: 'glue-up-strips',
+    name: 'Gluing strips face to face',
+    description:
+      'Spread glue on every face that meets another, bring the strips together in order before the glue dries, and clamp them along their length until a small bead squeezes out of every glue line, with their edges level.',
+  },
+  {
+    id: 'flatten-a-glue-up',
+    name: 'Flattening a thick glue-up',
+    description:
+      "Take both faces that show the strips' edges down evenly until a straightedge laid across, along, and corner to corner touches everywhere, with no step at any glue line and no twist.",
+  },
+  {
     id: 'settle-lumber',
     name: 'Letting lumber settle',
     description:

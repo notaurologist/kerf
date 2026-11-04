@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { panelStock } from '../lumber/panel.ts';
 import { stock } from '../lumber/stock.ts';
+import { stripGlueUp } from '../lumber/strips.ts';
 import { boardCuts, cutAndDrillOperations, Operation, treatmentOperations } from './operations.ts';
 import type { HardwareItem, Part } from './types.ts';
 
@@ -238,6 +239,150 @@ describe('panel operations', () => {
       'post/taper-0',
       'side/board-end-0',
       'side/board-end-1',
+    ]);
+  });
+});
+
+describe('strip glue-up operations', () => {
+  const cherry = { nominal: '1x6 cherry', thickness: 0.75, width: 5.5, buyableFeet: [4, 6, 8] };
+  const allowances = { rip: 0.5, trimPerEnd: 1, flatten: 1 / 16 };
+  const glueUp = (
+    id: string,
+    quantity: number,
+    size: { thickness: number; width: number; length: number },
+    stackedAcross: 'thickness' | 'width',
+    given = allowances,
+  ): Part => {
+    const made = stripGlueUp({
+      ...size,
+      stackedAcross,
+      board: cherry,
+      allowances: given,
+      kerf: 0.125,
+    });
+    if (!made.ok) throw new Error(made.issue.message);
+    const { length } = size;
+    return { ...post, id, quantity, length, stock: made.stock, ends: [square, square], tapers: [] };
+  };
+  const top = glueUp('top', 1, { thickness: 2.5, width: 17.625, length: 61.875 }, 'width');
+  const leg = (given = allowances) =>
+    glueUp('leg', 4, { thickness: 3, width: 3, length: 34 }, 'thickness', given);
+
+  it('cuts the boards, rips them into strips, glues and flattens the strips, rips the glue-up, then cuts its ends', () => {
+    // lumber/strips.test.ts works the stock: 25 strips 2-9/16" wide (2-1/2" thick plus 1/16" to
+    // flatten), 2 from each 5-1/2" board, so 13 boards, each 61-7/8 + 2 · 1 = 63-7/8" long. The
+    // strips glue up to 25 · 3/4 = 18-3/4" across, which is flattened to 2-1/2" between its edge
+    // faces and ripped to 17-5/8".
+    const on = { partId: 'top' };
+    expect(cutAndDrillOperations([top], [])).toEqual([
+      // A plan with a strip glue-up lets its lumber settle first.
+      { id: 'lumber/acclimate', type: 'acclimate', count: 1, partIds: ['top'] },
+      {
+        id: 'top/board-end-0',
+        type: 'crosscut',
+        ...on,
+        count: 13,
+        end: 0,
+        width: 5.5,
+        thickness: 0.75,
+        panelBoards: true,
+      },
+      {
+        id: 'top/board-end-1',
+        type: 'crosscut',
+        ...on,
+        count: 13,
+        end: 1,
+        width: 5.5,
+        thickness: 0.75,
+        panelBoards: true,
+      },
+      {
+        id: 'top/rip-strips',
+        type: 'rip-strips',
+        ...on,
+        count: 25,
+        boards: 13,
+        perBoard: 2,
+        stripWidth: 2.5625,
+        length: 63.875,
+        thickness: 0.75,
+      },
+      {
+        id: 'top/glue-up',
+        type: 'glue-up-strips',
+        ...on,
+        count: 1,
+        strips: 25,
+        width: 18.75,
+        depth: 2.5625,
+        length: 63.875,
+      },
+      {
+        id: 'top/flatten',
+        type: 'flatten-strips',
+        ...on,
+        count: 1,
+        width: 18.75,
+        length: 63.875,
+        thickness: 2.5,
+      },
+      {
+        id: 'top/rip',
+        type: 'rip',
+        ...on,
+        count: 1,
+        width: 17.625,
+        length: 63.875,
+        thickness: 2.5,
+      },
+      { id: 'top/end-0', type: 'crosscut', ...on, count: 1, end: 0, width: 17.625, thickness: 2.5 },
+      { id: 'top/end-1', type: 'crosscut', ...on, count: 1, end: 1, width: 17.625, thickness: 2.5 },
+    ]);
+  });
+
+  it('counts the strips and shared boards of several parts, and rips across the stacked thickness', () => {
+    // 3" square legs of strips lying flat: 5 strips each, glued to 3-3/4" and ripped to 3", one
+    // 3-1/16" strip to a board. Four legs: 4 · 5 = 20 strips from 20 boards.
+    const ops = cutAndDrillOperations([leg()], []);
+    for (const op of ops) expect(Operation.safeParse(op).error).toBeUndefined();
+    const byId = (id: string) => ops.find((o) => o.id === id);
+    expect(byId('leg/board-end-0')).toMatchObject({ count: 20 });
+    expect(byId('leg/rip-strips')).toMatchObject({
+      count: 20,
+      boards: 20,
+      perBoard: 1,
+      stripWidth: 3.0625,
+      length: 36,
+    });
+    expect(byId('leg/glue-up')).toMatchObject({ count: 4, strips: 5, width: 3.75, depth: 3.0625 });
+    expect(byId('leg/flatten')).toMatchObject({ count: 4, width: 3.75, thickness: 3 });
+    expect(byId('leg/rip')).toMatchObject({ count: 4, width: 3, thickness: 3 });
+  });
+
+  it('leaves out the rip when the strips glue up to the size exactly', () => {
+    // With no rip allowance, 4 strips of 3/4" glue up to 3" exactly: 4 · 3/4 = 3.
+    const ids = cutAndDrillOperations([leg({ ...allowances, rip: 0 })], []).map((o) => o.id);
+    expect(ids).toEqual([
+      'lumber/acclimate',
+      'leg/board-end-0',
+      'leg/board-end-1',
+      'leg/rip-strips',
+      'leg/glue-up',
+      'leg/flatten',
+      'leg/end-0',
+      'leg/end-1',
+    ]);
+  });
+
+  it("cuts a glue-up's boards in the cutting steps and leaves its own end cuts for after glue-up", () => {
+    const ops = cutAndDrillOperations([post, top], []);
+    expect(boardCuts(ops).map((o) => o.id)).toEqual([
+      'post/end-0',
+      'post/end-1',
+      'post/taper-0',
+      'top/board-end-0',
+      'top/board-end-1',
     ]);
   });
 });
