@@ -67,7 +67,7 @@ export type CabinetGeometry = z.infer<typeof CabinetGeometry>;
 /** The finger recess in each door's outer stile, centered on it: rules of thumb (spec, Sliding doors). */
 export const RECESS = { along: 3, across: 0.75, depth: 0.25 } as const;
 /** A floating panel's margin at each end, along its grain (DOMAIN.md, Joints that let wood move). */
-const PANEL_END_GAP = 1 / 32;
+export const PANEL_END_GAP = 1 / 32;
 
 /**
  * What a part ripped from one board comes out at, such as a door's stiles and rails or an apron:
@@ -144,10 +144,20 @@ export function validate(p: RecordCabinetParams, g: CabinetGeometry): Issue[] {
       ['dadoDepth', 'panelThickness'],
     );
   }
-  if (p.stoppedSetback >= p.caseDepth) {
-    refuse('setback-too-deep', 'The stopped dadoes would stop past the back of the case.', [
+  // With doors, the partitions stop short of the front by the track zone, so they are the
+  // shallowest panels a stopped dado houses.
+  const shallowest = g.door && p.bays > 1 ? g.door.partitionDepth : p.caseDepth;
+  if (p.stoppedSetback >= shallowest) {
+    refuse('setback-too-deep', 'The stopped dadoes would stop past the back of the panels.', [
       'stoppedSetback',
     ]);
+  }
+  if (p.tenonThickness >= oneBoardThicknessOf(p)) {
+    refuse(
+      'tenon-thicker-than-apron',
+      `A ${len(p.tenonThickness)} tenon is as thick as the ${len(oneBoardThicknessOf(p))} aprons it is cut on.`,
+      ['tenonThickness', 'board.thickness'],
+    );
   }
   if (g.bayHeight < p.jacket) {
     refuse(

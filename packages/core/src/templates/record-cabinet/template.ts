@@ -4,6 +4,7 @@ import { cutAndDrillOperations, Operation } from '../../model/operations.ts';
 import { type GenerateResult, HardwareItem, Part, Placement } from '../../model/types.ts';
 import { formatLength } from '../../units/length.ts';
 import { CabinetGeometry, cabinetGeometry, validate } from './geometry.ts';
+import { joined } from './joints.ts';
 import { RecordCabinetParams } from './params.ts';
 import { cabinetParts } from './parts.ts';
 import type { Allowances } from './structural.ts';
@@ -82,7 +83,11 @@ export function generate(
   if (issues.length > 0) return { ok: false, issues };
   const made = cabinetParts(params, g, allowances);
   if (!made.ok) return made;
-  const parts = withLetters(made.parts);
+  const design = joined(params, g, allowances, {
+    parts: withLetters(made.parts),
+    placements: made.placements,
+  });
+  const parts = design.parts;
   const all = parts.map((part) => part.id);
   const has = (ids: readonly string[]) => all.filter((id) => ids.includes(id));
   const baseParts = has(['leg', 'apron-long', 'apron-short']);
@@ -179,7 +184,7 @@ export function generate(
       params,
       geometry: g,
       parts,
-      placements: made.placements,
+      placements: design.placements,
       operations,
       hardware,
       hardwareNotes: [

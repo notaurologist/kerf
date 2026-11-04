@@ -43,9 +43,9 @@ const RAD = Math.PI / 180;
 /** Each cleat's width, across the inside of a side apron: a rule of thumb, wide enough for a screw. */
 const CLEAT_WIDTH = 1;
 /** The round hole's distance from the cleat's front end, and the back slot's from its back end. */
-const SCREW_INSET = 1;
+export const SCREW_INSET = 1;
 /** The shoulder above and below each tenon, a rule of thumb (spec, The Shaker-modern base). */
-const SHOULDER = 0.25;
+export const SHOULDER = 0.25;
 
 export type CabinetPart = Omit<Part, 'letter'>;
 

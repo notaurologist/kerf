@@ -408,6 +408,14 @@ describe('refusals (spec, Validation)', () => {
     expect(refused({ dadoDepth: 0.375 })).toEqual(['dadoes-meet']);
   });
 
+  it('refuses a stopped dado past the back of a partition, and a tenon as thick as its apron', () => {
+    // With sliding doors the partitions stop 2-1/2 short of the 17 case's front: 14-1/2 deep. A
+    // 14-1/2 setback is past the partitions, though short of the sides.
+    expect(refused({ stoppedSetback: 14.5 })).toEqual(['setback-too-deep']);
+    // The aprons are one 13/16 board; a 13/16 tenon leaves no cheeks.
+    expect(refused({ tenonThickness: 0.8125 })).toContain('tenon-thicker-than-apron');
+  });
+
   it('refuses a leg with no taper, a tenon through the leg, and an apron off the leg', () => {
     expect(refused({ footSize: 1.5 })).toEqual(['foot-not-tapered']);
     expect(refused({ tenonLength: 1.5 })).toEqual(['tenon-too-long']);
