@@ -229,6 +229,18 @@ Each part's placement follows `DOMAIN.md`, Implications for the data model (Geom
 - the right side's right face is at x = W − o_s
 - the feet reach z = 0
 
+## Joints (decision 0020)
+
+The template says where each part stands and how big each joint is. The joints in core's `joints/` give the rest (`templates/record-cabinet/joints.ts`):
+- **The sides and partitions:** trimmed into dadoes in the case bottom and the top, j deep and stopped s_d from the front, which notch their front corners.
+- **Each back rail:** trimmed into dadoes in the panels on either side of its bay.
+- **The aprons:** tenoned into the legs' inside faces, l_t deep and t_t thick, with 1/4 shoulders above and below. The legs' mortises come from the same joint, and two aprons' tenons meet, mitered, inside each leg.
+- **Each door's rails:** stub-tenoned into its stiles' grooves.
+- **Each door's panel:** floats in the frame's grooves, with its gap from the movement estimate at each edge across the grain and 1/32 at each end.
+- **The cleats:** screwed to the case bottom through slots, round at the front where it is held.
+
+The doors' tracks, the legs' tapers, and the finger recesses belong to one part each, so they stay the template's. The lengths in Derived geometry size each part's stock, and the joints must give the same lengths.
+
 ## Hardware, operations, build steps, drawings
 
 - **Hardware:** glue, finish, and (from version 8) the wood screws that fasten the case to the base. The screws are `structural: false` and are not `confirmed` fields. They hold the case to the base through slotted holes so the case bottom can move; the case's weight rests on the cleats and the side aprons, and no structural check reads a screw size, so hard rule 3 has nothing to ask the owner to confirm. From version 16 (#449) Kerf computes the length from that rule of thumb, the cleat's thickness plus two-thirds of the case bottom's, to the nearest quarter inch, and names the line by it ("Wood screws, 1-1/4" long"). Rounding to the nearest adds at most 1/8", and a third of the thinnest case bottom the form allows (5/8") is 0.208", so the points always stop inside the bottom. The note gives the thicknesses, how far short of the top face the points stop, and to take the next shorter screw if the cut parts measure thinner; the gauge still comes from the lumber or hardware supplier. Worked example: 13/16 + 2/3 × 3/4 = 1.3125, so 1-1/4", stopping 0.8125 + 0.75 − 1.25 = 5/16" short. Edge of range: 1-1/16 + 2/3 × 1 = 1.729, so 1-3/4", also 5/16" short. What would change this: a check that depends on screw size or withdrawal (for example, if the case had to resist being pulled off the base). Then the screws become a confirmed field and a hardware check, with a source for the withdrawal value (#438).

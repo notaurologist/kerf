@@ -1,15 +1,6 @@
 import type { BoardGuideId } from '../../knowledge/boardSelection.ts';
 import { type BoardStock, panelStock } from '../../lumber/panel.ts';
-import type {
-  Dado,
-  EdgeGroove,
-  Issue,
-  Notch,
-  Part,
-  Placement,
-  Tenon,
-  Vec3,
-} from '../../model/types.ts';
+import type { Dado, Issue, Part, Placement, Vec3 } from '../../model/types.ts';
 import { formatLength, formatLimit } from '../../units/length.ts';
 import { type CabinetGeometry, RECESS } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
@@ -43,9 +34,9 @@ const RAD = Math.PI / 180;
 /** Each cleat's width, across the inside of a side apron: a rule of thumb, wide enough for a screw. */
 const CLEAT_WIDTH = 1;
 /** The round hole's distance from the cleat's front end, and the back slot's from its back end. */
-const SCREW_INSET = 1;
+export const SCREW_INSET = 1;
 /** The shoulder above and below each tenon, a rule of thumb (spec, The Shaker-modern base). */
-const SHOULDER = 0.25;
+export const SHOULDER = 0.25;
 
 export type CabinetPart = Omit<Part, 'letter'>;
 
@@ -102,21 +93,6 @@ export function cabinetParts(
   // With doors, the partitions start behind the tracks.
   const dt = door?.trackZone ?? 0;
   const partitionDepth = door?.partitionDepth ?? p.caseDepth;
-  // The top's dadoes across its underside, and the case bottom's across its top face, each from
-  // the back edge to s_d short of its panel's front.
-  const housed = (face: Dado['face'], v0: number, v1: number, dx: number): Dado[] =>
-    g.panelX.map((x, k) => {
-      const id = panelIds[k] as string;
-      return {
-        withPart: id,
-        face,
-        u0: x - dx,
-        u1: x - dx + t,
-        v0: v0 + (id === 'partition' ? dt : 0),
-        v1,
-        depth: j,
-      };
-    });
   // Each door's track, between the sides' inside faces: the front one first.
   const tracks = (
     face: Dado['face'],
@@ -135,14 +111,10 @@ export function cabinetParts(
           depth: sizes[depth],
         }))
       : [];
-  const topDadoes = [
-    ...housed('near', p.frontOverhang + p.stoppedSetback, g.topDepth, 0),
-    ...tracks('near', p.frontOverhang, 0, 'topDepth'),
-  ];
-  const bottomDadoes = [
-    ...housed('far', p.stoppedSetback, p.caseDepth, p.endOverhang),
-    ...tracks('far', 0, p.endOverhang, 'bottomDepth'),
-  ];
+  // The panels' dadoes in the top and case bottom are the joints' (joints.ts); the doors' tracks
+  // house no part's end, so they are the template's.
+  const topDadoes = tracks('near', p.frontOverhang, 0, 'topDepth');
+  const bottomDadoes = tracks('far', 0, p.endOverhang, 'bottomDepth');
 
   const topStock = stockFor(g.topDepth, p.width);
   const bottomStock = stockFor(p.caseDepth, g.caseWidth);
@@ -235,46 +207,6 @@ export function cabinetParts(
     });
     return { ok: false, issues };
   }
-  // A side or partition, on the face toward a bay: the back rail's dado.
-  const housings = (face: Dado['face'], depth: number): Dado[] => [
-    {
-      withPart: 'rail',
-      face,
-      u0: H - t - p.railHeight - z0,
-      u1: H - t - z0,
-      v0: depth - r,
-      v1: depth,
-      depth: j,
-    },
-  ];
-  // The front corner at each end, s_d long and j deep, fits the stopped dadoes.
-  const notches: Notch[] = ([0, 1] as const).map((end) => ({
-    end,
-    edge: 'reference',
-    along: j,
-    across: p.stoppedSetback,
-  }));
-
-  // Tenons, centered in the apron's thickness, with shoulders of SHOULDER above and below.
-  const tenonWidth = p.apronHeight - 2 * SHOULDER;
-  const n0 = (ta - p.tenonThickness) / 2;
-  const tenons: Tenon[] = ([0, 1] as const).map((end) => ({
-    end,
-    length: p.tenonLength,
-    n0,
-    thickness: p.tenonThickness,
-    v0: SHOULDER,
-    width: tenonWidth,
-  }));
-  // Each leg's two mortises, one in each inside face, where its two aprons' tenons go.
-  const a0 = s - p.apronSetback - ta + n0;
-  const mortise = {
-    u0: p.legShowing + SHOULDER,
-    u1: p.legShowing + SHOULDER + tenonWidth,
-    a0,
-    a1: a0 + p.tenonThickness,
-    depth: p.tenonLength,
-  };
   const taper = Math.atan((s - p.footSize) / p.legShowing) / RAD;
   const taperOf = (description: string, plane?: 'thickness') => ({
     description,
@@ -289,15 +221,6 @@ export function cabinetParts(
     width: s,
     buyableFeet: p.legStock.lengths,
   };
-  // Screws up through each cleat into the case bottom: round at the front, slotted behind.
-  const screwAt = (u: number, slotted: boolean) => ({
-    hardwareId: 'screws',
-    u,
-    v: CLEAT_WIDTH / 2,
-    slot: slotted ? slot.length : 0,
-    direction: 'along' as const,
-  });
-
   const base = {
     markLengths: [],
     ends: [square, square] as Part['ends'],
@@ -318,7 +241,7 @@ export function cabinetParts(
     boredHoles: [],
     hingePlates: [],
   };
-  const panel = (id: string, name: string, quantity: number, dadoes: Dado[], note: string) => ({
+  const panel = (id: string, name: string, quantity: number, note: string) => ({
     ...base,
     id,
     name,
@@ -329,8 +252,6 @@ export function cabinetParts(
     notes: [note],
     selection: [...SELECTION.panel],
     referenceEdge: 'front edge',
-    dadoes,
-    notches,
   });
   const apron = (id: string, name: string, length: number, stock: typeof longApronStock) => ({
     ...base,
@@ -345,23 +266,10 @@ export function cabinetParts(
     ],
     selection: [...SELECTION.rail],
     referenceEdge: 'bottom edge',
-    tenons,
   });
   const doorParts = (): CabinetPart[] => {
     if (!door || !sizes || !doorStock?.stile || !doorStock.rail || !doorStock.panel) return [];
     const ws = sizes.frameWidth;
-    const gs = sizes.grooveDepth;
-    const td = doorStock.stile.thickness;
-    // The panel grooves and the rails' stub tenons, centered in the frame's thickness.
-    const n0 = (td - p.tenonThickness) / 2;
-    const groove = (length: number): EdgeGroove => ({
-      edge: 'far',
-      u0: 0,
-      u1: length,
-      n0,
-      width: p.tenonThickness,
-      depth: gs,
-    });
     const stile = {
       ...base,
       role: 'stile',
@@ -370,10 +278,7 @@ export function cabinetParts(
       length: door.height,
       selection: [...SELECTION.frame],
       referenceEdge: 'edge away from the panel',
-      grooves: [groove(door.height)],
     };
-    // A one-board panel keeps its board's thickness, so the tongue is sized from the panel's stock.
-    const tongue = (doorStock.panel.thickness - p.tenonThickness) / 2;
     return [
       {
         ...stile,
@@ -412,15 +317,6 @@ export function cabinetParts(
         ],
         selection: [...SELECTION.frame],
         referenceEdge: 'outer edge',
-        tenons: ([0, 1] as const).map((end) => ({
-          end,
-          length: gs,
-          n0,
-          thickness: p.tenonThickness,
-          v0: 0,
-          width: ws,
-        })),
-        grooves: [groove(door.railLength)],
       },
       {
         ...base,
@@ -437,9 +333,6 @@ export function cabinetParts(
         ],
         selection: [...SELECTION.panel],
         referenceEdge: 'left edge',
-        rabbets: (['reference', 'far', 'first-end', 'second-end'] as const).flatMap((edge) =>
-          (['near', 'far'] as const).map((face) => ({ edge, face, width: gs, depth: tongue })),
-        ),
       },
     ];
   };
@@ -470,27 +363,14 @@ export function cabinetParts(
       referenceEdge: 'front edge',
       dadoes: bottomDadoes,
     },
-    panel(
-      'side-left',
-      'Left side',
-      1,
-      housings('near', p.caseDepth),
-      'Its dadoes face right, into the cabinet.',
-    ),
-    panel(
-      'side-right',
-      'Right side',
-      1,
-      housings('far', p.caseDepth),
-      'Its dadoes face left, into the cabinet.',
-    ),
+    panel('side-left', 'Left side', 1, 'Its dadoes face right, into the cabinet.'),
+    panel('side-right', 'Right side', 1, 'Its dadoes face left, into the cabinet.'),
     ...(p.bays > 1
       ? [
           panel(
             'partition',
             'Partition',
             p.bays - 1,
-            [...housings('near', partitionDepth), ...housings('far', partitionDepth)],
             door
               ? 'Dadoes on both faces, opposite each other. It stops behind the doors’ tracks.'
               : 'Dadoes on both faces, opposite each other.',
@@ -523,10 +403,6 @@ export function cabinetParts(
       selection: [...SELECTION.leg],
       referenceEdge: 'inside face',
       tapers: [taperOf('Inside face'), taperOf('Other inside face', 'thickness')],
-      mortises: [
-        { withPart: 'apron', side: 'near', ...mortise },
-        { withPart: 'apron', side: 'reference-edge', ...mortise },
-      ],
     },
     apron('apron-long', 'Front and back apron', g.longApron, longApronStock),
     apron('apron-short', 'Side apron', g.shortApron, shortApronStock),
@@ -544,11 +420,6 @@ export function cabinetParts(
       ],
       selection: [...SELECTION.rail],
       referenceEdge: 'inside edge',
-      screwHoles: [
-        screwAt(SCREW_INSET, false),
-        screwAt(g.cleatLength / 2, true),
-        screwAt(g.cleatLength - SCREW_INSET, true),
-      ],
     },
     ...doorParts(),
   ];
@@ -603,7 +474,6 @@ export function cabinetParts(
     // The left door runs in the front track and the right door in the back one, each against its
     // side when closed, centered in its track, and seated d_b in the bottom track.
     const td = door.thickness;
-    const tp = doorStock.panel.thickness;
     const x1 = (g.panelX[0] as number) + t;
     const x2 = g.panelX[p.bays] as number;
     const z = zb + t - sizes.bottomDepth;
@@ -625,15 +495,8 @@ export function cabinetParts(
       const xr0 = x + ws - gs;
       place('door-rail', 2 * k, at(xr0, y + td, z), X, Z, minusY);
       place('door-rail', 2 * k + 1, at(xr0, y, top), X, minusZ, Y);
-      const end = (door.height - 2 * ws + 2 * gs - door.panelLength) / 2;
-      place(
-        'door-panel',
-        k,
-        at(xr0 + panelGap.length, y + (td - tp) / 2, z + ws - gs + end),
-        Z,
-        X,
-        Y,
-      );
+      // Its door's corner: the floating panel joint places it in the frame (joints.ts).
+      place('door-panel', k, at(x, y, z), Z, X, Y);
     }
   }
   return { ok: true, parts, placements };
