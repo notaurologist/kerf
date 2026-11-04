@@ -401,20 +401,20 @@ describe('dadoes, notches, and cutouts', () => {
     depth: 0.1875,
   });
 
-  it('makes a through dado of one reaching two opposite edges, and a stopped dado of one reaching one', () => {
+  it('makes a through dado of one crossing the part, a groove of one along it, and a stopped dado of one reaching one edge', () => {
     const part = {
       ...housing,
       dadoes: [
         dado(6, 6.75, 0, 5.5), // across the width, edge to edge
-        dado(0, 20, 2, 2.75), // along the length, end to end
+        dado(0, 20, 2, 2.75), // along the length, end to end: with the grain, a groove
         dado(16, 19, 5, 5.5), // in from the far edge only
       ],
     };
-    const ops = cutAndDrillOperations([part], []).filter((o) => o.type.endsWith('dado'));
+    const ops = cutAndDrillOperations([part], []).filter((o) => /dado|groove/.test(o.type));
     const base = { partId: 'side', count: 1, depth: 0.1875 };
     expect(ops).toEqual([
       { id: 'side/dado-0', type: 'dado', ...base, dado: 0, length: 5.5, width: 0.75 },
-      { id: 'side/dado-1', type: 'dado', ...base, dado: 1, length: 20, width: 0.75 },
+      { id: 'side/dado-1', type: 'face-groove', ...base, dado: 1, length: 20, width: 0.75 },
       { id: 'side/dado-2', type: 'stopped-dado', ...base, dado: 2, length: 0.5, width: 3 },
     ]);
     for (const op of ops) expect(Operation.safeParse(op).error).toBeUndefined();

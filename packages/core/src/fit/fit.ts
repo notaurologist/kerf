@@ -217,7 +217,39 @@ function withinProblems(pieces: readonly Piece[]): FitProblem[] {
   });
 }
 
-/** Dadoes: each holds the end of a piece of the part it names, or that piece's edge, as a track. */
+/** Each tongue a part has: an edge or end rabbeted on both faces, as the corners of its face. */
+function tongues(part: Part) {
+  const { length: L } = part;
+  const { width: W, thickness: T } = part.stock;
+  const edges = ['reference', 'far', 'first-end', 'second-end'] as const;
+  return edges.flatMap((edge) => {
+    const near = part.rabbets.find((r) => r.edge === edge && r.face === 'near');
+    const far = part.rabbets.find((r) => r.edge === edge && r.face === 'far');
+    if (!near || !far) return [];
+    const n: [number, number] = [near.depth, T - far.depth];
+    const face =
+      edge === 'reference'
+        ? grid([0, L], [0], n)
+        : edge === 'far'
+          ? grid([0, L], [W], n)
+          : grid([edge === 'first-end' ? 0 : L], [0, W], n);
+    return [{ edge, thickness: n[1] - n[0], face }];
+  });
+}
+
+/** Whether every point, in the housing's frame, lies inside the dado, mouth to bottom. */
+function inDado(there: readonly UVN[], h: Piece, d: Part['dadoes'][number]): boolean {
+  const T = h.part.stock.thickness;
+  const inside: [number, number] = d.face === 'near' ? [0, d.depth] : [T - d.depth, T];
+  return there.every(
+    (c) => within(c.u, [d.u0, d.u1]) && within(c.v, [d.v0, d.v1]) && within(c.n, inside),
+  );
+}
+
+/**
+ * Dadoes: each holds the end of a piece of the part it names, that piece's edge, as a track, or
+ * its tongue, as a groove in a face holds a floating panel's.
+ */
 function dadoProblems(pieces: readonly Piece[]): FitProblem[] {
   return pieces.flatMap((h) =>
     h.part.dadoes.flatMap((d) => {
@@ -253,7 +285,10 @@ function dadoProblems(pieces: readonly Piece[]): FitProblem[] {
           ),
         ),
       );
-      if (holdsEnd || holdsEdge) return [];
+      const holdsTongue = candidates.some((p) =>
+        tongues(p.part).some((t) => inDado(between(p, h, t.face), h, d)),
+      );
+      if (holdsEnd || holdsEdge || holdsTongue) return [];
       return [
         {
           check: 'dado' as const,
@@ -395,37 +430,21 @@ function tenonProblems(pieces: readonly Piece[]): FitProblem[] {
  * piece, no thicker than the groove is wide, between its mouth and its bottom.
  */
 function tongueProblems(pieces: readonly Piece[]): FitProblem[] {
-  return pieces.flatMap((p) => {
-    const { length: L } = p.part;
-    const { width: W, thickness: T } = p.part.stock;
-    const edges = ['reference', 'far', 'first-end', 'second-end'] as const;
-    return edges.flatMap((edge) => {
-      const near = p.part.rabbets.find((r) => r.edge === edge && r.face === 'near');
-      const far = p.part.rabbets.find((r) => r.edge === edge && r.face === 'far');
-      if (!near || !far) return [];
-      const n: [number, number] = [near.depth, T - far.depth];
-      const face =
-        edge === 'reference'
-          ? grid([0, L], [0], n)
-          : edge === 'far'
-            ? grid([0, L], [W], n)
-            : grid([edge === 'first-end' ? 0 : L], [0, W], n);
-      const held = pieces.some(
-        (h) =>
-          h !== p &&
-          h.part.grooves.some((g) => {
-            const HW = h.part.stock.width;
-            const mouth = g.edge === 'far' ? HW : 0;
-            const bottom = g.edge === 'far' ? HW - g.depth : g.depth;
-            const span: [number, number] = [Math.min(mouth, bottom), Math.max(mouth, bottom)];
-            return between(p, h, face).every(
-              (c) =>
-                within(c.u, [g.u0, g.u1]) &&
-                within(c.n, [g.n0, g.n0 + g.width]) &&
-                within(c.v, span),
-            );
-          }),
-      );
+  return pieces.flatMap((p) =>
+    tongues(p.part).flatMap(({ edge, thickness, face }) => {
+      const inGroove = (h: Piece) =>
+        h.part.grooves.some((g) => {
+          const HW = h.part.stock.width;
+          const mouth = g.edge === 'far' ? HW : 0;
+          const bottom = g.edge === 'far' ? HW - g.depth : g.depth;
+          const span: [number, number] = [Math.min(mouth, bottom), Math.max(mouth, bottom)];
+          return between(p, h, face).every(
+            (c) =>
+              within(c.u, [g.u0, g.u1]) && within(c.n, [g.n0, g.n0 + g.width]) && within(c.v, span),
+          );
+        });
+      const inFace = (h: Piece) => h.part.dadoes.some((d) => inDado(between(p, h, face), h, d));
+      const held = pieces.some((h) => h !== p && (inGroove(h) || inFace(h)));
       return held
         ? []
         : [
@@ -433,11 +452,11 @@ function tongueProblems(pieces: readonly Piece[]): FitProblem[] {
               check: 'tongue' as const,
               partId: p.part.id,
               instance: p.placement.instance,
-              message: `The tongue on its ${edge} edge, ${n[1] - n[0]} thick, lies in no groove it fits.`,
+              message: `The tongue on its ${edge} edge, ${thickness} thick, lies in no groove it fits.`,
             },
           ];
-    });
-  });
+    }),
+  );
 }
 
 /**
