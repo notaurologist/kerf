@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { type BoardStock, type PanelAllowances, PartStock, panelStock } from './panel.ts';
+import { type BoardStock, type PanelAllowances, panelStock } from './panel.ts';
+import { PartStock } from './partStock.ts';
 import { stock } from './stock.ts';
 
 // 4/4 cherry surfaced two sides, 13/16" thick, which flattens to a 3/4" panel.

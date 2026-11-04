@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { Issue } from '../model/types.ts';
 import { formatLength } from '../units/length.ts';
-import { Stock } from './stock.ts';
 
 // Edge-glued panels (DOMAIN.md, Lumber basics): a part wider than a board, made from boards glued
 // edge to edge and then cut to its finished width and length. The boards run along the part's
@@ -71,23 +70,6 @@ export const PanelStock = z.object({
   allowances: PanelAllowances,
 });
 export type PanelStock = z.infer<typeof PanelStock>;
-
-/**
- * What a part is cut from: a panel glued from boards, board stock cut to length as it is sold
- * (such as square stock bought ready to cut), or dimension lumber. Board stock comes before dimension lumber, so
- * one named like a dimension size keeps its own lengths.
- */
-export const PartStock = z.union([PanelStock, BoardStock, Stock]);
-export type PartStock = z.infer<typeof PartStock>;
-
-export function isPanel(stock: PartStock): stock is PanelStock {
-  return 'boards' in stock;
-}
-
-/** Board stock a part is cut from directly, with no panel. */
-export function isBoardStock(stock: PartStock): stock is BoardStock {
-  return 'buyableFeet' in stock && !isPanel(stock);
-}
 
 /** Board counts within this of a whole number are taken as that number, so float error adds none. */
 const WHOLE = 1e-9;
