@@ -1,4 +1,4 @@
-import type { EdgeGroove, Part, Placement, Vec3 } from '@kerf/core';
+import { type EdgeGroove, fitProblems, type Part, type Placement, type Vec3 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import type { PlacedPart } from './boltedLap.ts';
 import { housingPlane } from './housedEnd.ts';
@@ -8,6 +8,7 @@ import {
   panelInFaces,
   slottedScrews,
   tenonInGroove,
+  throughDovetails,
   throughTenon,
 } from './joinery.ts';
 import { type Member, type Plane, trim } from './trim.ts';
@@ -261,11 +262,92 @@ describe('panelInFaces', () => {
     for (const r of made.rabbets) expect(r).toMatchObject({ width: 0.375, depth: 0.125 });
   });
 
+  it('runs a panel open on one side to where it is told, with no gap or tongue there', () => {
+    // No top: the panel runs up from the bottom's groove to z = 9, past where the top was. From
+    // 3/8 + 1/32 up to 9: 8-19/32 long. Rabbeted on its two edges and its bottom end only.
+    const made = panelInFaces({
+      ...joint,
+      frame: [frame[0], frame[2], frame[3]] as typeof frame,
+      open: 9,
+    });
+    if (!made.ok) throw new Error(made.message);
+    expect(made.length).toBe(8.59375);
+    expect(made.width).toBe(9.125);
+    expect(made.origin).toEqual({ x: 0.4375, y: 2.75, z: 0.40625 });
+    expect(new Set(made.rabbets.map((r) => r.edge))).toEqual(
+      new Set(['reference', 'far', 'first-end']),
+    );
+  });
+
+  it('sets a panel flush with its grooves’ far wall, rabbeted from the near face only', () => {
+    // The groove runs y 2-7/8 to 3-1/8; flush there, the 1/2 panel's far face is at 3-1/8 and its
+    // near face at 2-5/8, rabbeted 1/4 off the near face to the 1/4 tongue.
+    const made = panelInFaces({ ...joint, flush: 'far' });
+    if (!made.ok) throw new Error(made.message);
+    expect(made.origin.y).toBe(2.625);
+    expect(made.rabbets).toHaveLength(4);
+    for (const r of made.rabbets)
+      expect(r).toMatchObject({ face: 'near', width: 0.375, depth: 0.25 });
+  });
+
   it('refuses a panel no thicker than its grooves, or held on three sides', () => {
     expect(panelInFaces({ ...joint, panel: { ...joint.panel, thickness: 0.25 } })).toMatchObject({
       ok: false,
     });
     expect(panelInFaces({ ...joint, frame: frame.slice(0, 3) })).toMatchObject({ ok: false });
+  });
+});
+
+describe('throughDovetails', () => {
+  // A drawer's front left corner, boards 1/2 thick. The front runs along x from x = 0, its
+  // outside face at y = 0, 4 tall from z = `bottom`. The side runs back along y from y = 0, its
+  // outside face at x = 0, 4 tall from z = 0. Each end reaches the other's outside face.
+  const front = (bottom: number, height: number) =>
+    placed(part('front', 10, height, 0.5), at(0, 0.5, bottom), X, Z, minus(Y));
+  const side = placed(part('side', 12, 4, 0.5), at(0, 0, 0), Y, Z, X);
+  const corner = (f: PlacedPart) =>
+    throughDovetails({ tails: side, tailsEnd: 0, pins: f, pinsEnd: 0, slope: 8 });
+  // 4 wide: (4 − 3/4 + 1/4) / 2 = 1.75 on center, so 2 tails.
+  const layout = { tails: 2, slope: 8, halfPin: 0.375, pin: 0.25 };
+
+  it('lays tails on the side and pins on the front, each to the other’s thickness', () => {
+    expect(corner(front(0, 4))).toEqual({
+      ok: true,
+      tails: { board: 'tails', withPart: 'front', end: 0, baseline: 0.5, ...layout },
+      // The side enters the front's inside face (near, at y = 1/2), so its outside is far.
+      pins: { board: 'pins', withPart: 'side', end: 0, baseline: 0.5, outside: 'far', ...layout },
+    });
+  });
+
+  it('lays the joint across the width a short board shares, z 1 to 4', () => {
+    // 3 wide: (3 − 3/4 + 1/4) / 2 = 1.25 on center, still 2 tails.
+    const made = corner(front(1, 3));
+    expect(made).toMatchObject({
+      ok: true,
+      tails: { ...layout, span: { v0: 1, v1: 4 } },
+      pins: { ...layout },
+    });
+    if (made.ok) expect(made.pins).not.toHaveProperty('span');
+  });
+
+  it('makes cuts core’s fit checks match, full width and short', () => {
+    for (const f of [front(0, 4), front(1, 3)]) {
+      const made = corner(f);
+      if (!made.ok) throw new Error(made.message);
+      const parts = [
+        { ...side.part, dovetails: [made.tails] },
+        { ...f.part, dovetails: [made.pins] },
+      ];
+      expect(fitProblems({ parts, placements: [side.placement, f.placement] })).toEqual([]);
+    }
+  });
+
+  it('refuses boards that stop short of each other’s outside face, or do not overlap', () => {
+    const shortSide = placed(part('side', 12, 4, 0.5), at(0, 0.125, 0), Y, Z, X);
+    expect(
+      throughDovetails({ tails: shortSide, tailsEnd: 0, pins: front(0, 4), pinsEnd: 0, slope: 8 }),
+    ).toMatchObject({ ok: false });
+    expect(corner(front(5, 3))).toMatchObject({ ok: false });
   });
 });
 

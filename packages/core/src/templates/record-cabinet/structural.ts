@@ -7,7 +7,7 @@ import { BeamChecks } from '../../structural/checks.ts';
 import { clearWoodChecks } from '../../structural/clearWood.ts';
 import { mapNeeded, type Needed, need, type Quantity } from '../../structural/types.ts';
 import { formatLength } from '../../units/length.ts';
-import type { CabinetGeometry } from './geometry.ts';
+import { type CabinetGeometry, oneBoardThicknessOf } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
 
 // The structural model (spec, Structural model): the case bottom under records in each bay, the
@@ -159,7 +159,13 @@ export function checkFields(check: { subject: string }): FieldRef[] {
   }
   if (check.subject === APRON) {
     return [
-      ...params('apronHeight', 'board.source', 'board.thickness', 'board.surfaced'),
+      ...params(
+        'apronHeight',
+        'board.source',
+        'board.thickness',
+        'board.surfaced',
+        'allowances.flatten',
+      ),
       ...span,
       ...params('legStock.size'),
       ...inputs('species', 'recordLoad', 'topLoad', 'deflectionLimit'),
@@ -240,7 +246,7 @@ export function structuralReview(
   // Each front and back apron between the legs (spec, The Shaker-modern base), carrying half of
   // the records along every bay and everything on the top, spread along it.
   const L = g.caseWidth - 2 * p.legStock.size;
-  const ta = p.board.source === 'store' ? p.board.thickness : p.board.surfaced;
+  const ta = oneBoardThicknessOf(p);
   const recordLength = p.bays * g.bayWidth;
   const apronLoad: Needed<{ points: []; uniform: { w: number; label: string } }> =
     'value' in records && 'value' in topLoad

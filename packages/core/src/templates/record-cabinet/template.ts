@@ -29,8 +29,14 @@ export const TEMPLATE_ID = 'record-cabinet';
  * the groove (#562). The worked examples' panels are glued up, so their output is the same.
  * Version 20 flags the wood left above the top's door tracks, t − d_u, for an experienced builder,
  * and refuses tracks as deep as the top is thick (#574).
+ * Version 21 planes a part to the panel thickness when its board is thicker than that plus the
+ * flattening allowance: a glued-up panel after flattening, and a part of one board, such as an
+ * apron, a door's stiles and rails, or a one-board door panel, which kept the board's thickness
+ * before. The doors' tracks, grooves, tenons and tongues, and the aprons' mortises and tenons, are
+ * sized from the planed parts (#609). The worked examples' boards are within the allowance, so
+ * their output is the same.
  */
-export const TEMPLATE_VERSION = 20;
+export const TEMPLATE_VERSION = 21;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,

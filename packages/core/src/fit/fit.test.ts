@@ -222,6 +222,32 @@ describe('tongues', () => {
     expect(checks([frame, panel(0.0625)], placements)).toEqual(['tongue panel']);
   });
 
+  it('accepts a tongue rabbeted from one face only, flush with the groove’s wall', () => {
+    // The flat part's groove in its top face, y 2-3/4 to 3, 3/8 deep. A 1/2 panel rabbeted 1/4
+    // off its near face to a 1/4 tongue, its far face flush with the groove's wall at y = 3:
+    // through −y from y = 3-1/4, so the tongue is y 3 to 2-3/4.
+    const groove = {
+      withPart: 'panel',
+      face: 'far' as const,
+      u0: 0,
+      u1: 12,
+      v0: 2.75,
+      v1: 3,
+      depth: 0.375,
+    };
+    const flat = part('frame', 12, 6, 0.75, { dadoes: [groove] });
+    const oneSided = part('panel', 8, 6, 0.5, {
+      rabbets: [{ edge: 'reference' as const, face: 'near' as const, width: 0.375, depth: 0.25 }],
+    });
+    const at3 = (y: number) => [
+      place('frame', at(0, 0, 0), X, Y, Z),
+      place('panel', at(2, y, 0.375 + 1 / 32), X, Z, minus(Y)),
+    ];
+    expect(checks([flat, oneSided], at3(3.25))).toEqual([]);
+    // Set 1/16 toward −y, the tongue is y 2-15/16 to 2-11/16, past the groove's wall.
+    expect(checks([flat, oneSided], at3(3.1875))).toEqual(['dado frame', 'tongue panel']);
+  });
+
   it('accepts a tongue in a groove cut into a face, and reports one too thick for it', () => {
     // The 3/4 part lies flat, 6 wide along y, its top face (far, z = 3/4) grooved end to end,
     // y 2-3/4 to 3, 3/8 deep. The 1/2 panel stands in it, centered (y 2-5/8 to 3-1/8), its
@@ -415,6 +441,49 @@ describe('dovetails', () => {
       'dovetail front',
       'dovetail side',
       'dovetail side',
+    ]);
+  });
+});
+
+describe('dovetails over part of the width', () => {
+  // A drawer's back corner, where the back is cut short. A side 18 long, 5 wide, 1/2 thick along
+  // y, its width up z from z = 0, with tails at its first end over v 1 to 4, cut 3/4 in. A back 12
+  // long, 3 wide, 3/4 thick along x, its outside face at y = 0 and its width up z from z = 1, with
+  // pins across its whole width at its first end, cut 1/2 in. 2 tails at 1:8 between 3/8 half pins
+  // and a 1/4 pin, across the 3 of the span: each (3 − 0.75 − 0.25) / 2 = 1 wide at the end, so
+  // the walls are at v 1.375, 2.375, 2.625, 3.625 on the side and 0.375, 1.375, 1.625, 2.625 on
+  // the back: z 1.375 to 3.625 on both.
+  const layout = { tails: 2, slope: 8, halfPin: 0.375, pin: 0.25 };
+  const span = (v0: number, v1: number) => ({ v0, v1 });
+  const side = (s = span(1, 4)) =>
+    part('side', 18, 5, 0.5, {
+      dovetails: [{ board: 'tails', withPart: 'back', end: 0, baseline: 0.75, span: s, ...layout }],
+    });
+  const back = part('back', 12, 3, 0.75, {
+    dovetails: [
+      { board: 'pins', withPart: 'side', end: 0, baseline: 0.5, outside: 'far', ...layout },
+    ],
+  });
+  const placements = (backZ: number) => [
+    place('side', at(0, 0, 0), Y, Z, X),
+    place('back', at(0, 0.75, backZ), X, Z, minus(Y)),
+  ];
+
+  it('accepts a 3-wide pin board placed across the tails’ span', () => {
+    expect(checks([side(), back], placements(1))).toEqual([]);
+  });
+
+  it('reports the pin board placed at the side’s edge instead', () => {
+    expect(checks([side(), back], placements(0))).toEqual(['dovetail side', 'dovetail back']);
+  });
+
+  it('reports a span that runs past the part', () => {
+    const problems = fitProblems(
+      { parts: [side(span(3, 6)), back], placements: placements(3) },
+      [],
+    );
+    expect(problems.filter((p) => p.check === 'within').map((p) => p.message)).toEqual([
+      "The dovetail tails on end 0 span 3 to 6 across the part's 5 width.",
     ]);
   });
 });

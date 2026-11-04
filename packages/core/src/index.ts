@@ -10,6 +10,7 @@ export * from './lumber/stock.ts';
 export * from './lumber/strips.ts';
 export * from './model/cupHinge.ts';
 export type { SnapshotUpgrade, TemplateDefinition } from './model/definition.ts';
+export * from './model/drawerSlide.ts';
 export * from './model/form.ts';
 export * from './model/operations.ts';
 export * from './model/questions.ts';

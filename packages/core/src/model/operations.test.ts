@@ -231,6 +231,62 @@ describe('panel operations', () => {
     ]);
   });
 
+  it('planes a part thinner than its stock leaves it to thickness before ripping it', () => {
+    // 13/16" boards with 1/16 flattening, for 1/2" parts. Glued up, 3 boards of 5-1/2 to 16-1/4,
+    // flattened to 3/4 and planed 1/4; one board, planed 13/16 − 1/2 = 5/16 at its 5-1/2 width.
+    const thick = { ...cherry, thickness: 0.8125 };
+    const halfInch = (id: string, width: number): Part => {
+      const made = panelStock({
+        thickness: 0.5,
+        width,
+        length: 19.4375,
+        board: thick,
+        allowances: { ...allowances, flatten: 1 / 16 },
+      });
+      if (!made.ok) throw new Error(made.issue.message);
+      return { ...post, id, quantity: 2, stock: made.stock, ends: [square, square], tapers: [] };
+    };
+    const ops = cutAndDrillOperations([halfInch('side', 15), halfInch('rail', 3)], []);
+    for (const op of ops) expect(Operation.safeParse(op).error).toBeUndefined();
+    const of = (partId: string) => ops.filter((o) => 'partId' in o && o.partId === partId);
+    expect(of('side').map((o) => o.id)).toEqual([
+      'side/board-end-0',
+      'side/board-end-1',
+      'side/joint-edges',
+      'side/glue-up',
+      'side/flatten',
+      'side/plane',
+      'side/rip',
+      'side/end-0',
+      'side/end-1',
+    ]);
+    expect(of('side').find((o) => o.type === 'flatten')).toMatchObject({ thickness: 0.75 });
+    expect(of('side').find((o) => o.id === 'side/plane')).toEqual({
+      id: 'side/plane',
+      type: 'plane-to-thickness',
+      partId: 'side',
+      count: 2,
+      width: 16.25,
+      length: 21.4375,
+      thickness: 0.5,
+      planeOff: 0.25,
+    });
+    expect(of('rail').map((o) => o.id)).toEqual([
+      'rail/board-end-0',
+      'rail/board-end-1',
+      'rail/plane',
+      'rail/rip',
+      'rail/end-0',
+      'rail/end-1',
+    ]);
+    expect(of('rail').find((o) => o.id === 'rail/plane')).toMatchObject({
+      count: 2,
+      width: 5.5,
+      thickness: 0.5,
+      planeOff: 0.3125,
+    });
+  });
+
   it("leaves a panel's own end cuts out of the board cuts, and keeps every end cut of other parts", () => {
     const ops = cutAndDrillOperations([post, panel('side', 15)], []);
     for (const op of ops) expect(Operation.safeParse(op).error).toBeUndefined();

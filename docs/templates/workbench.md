@@ -51,6 +51,7 @@ Every parameter starts from a suggestion with its basis (owner's standing prefer
 | d_h | Dog hole diameter | fixed per hardware | 3/4: the common size for dogs and holdfasts ([Lost Art Press](https://blog.lostartpress.com/page/676/?cat=-1); #581) |
 | — | Dovetail slope | 1:6 to 1:8 | 1:8 in hardwood, by convention ([Wikipedia](https://en.wikipedia.org/wiki/Dovetail_joint), [Fine Woodworking](https://www.finewoodworking.com/2007/02/06/laying-out-dovetails)); the strength rationale is disputed (#578) |
 | — | Slide side clearance and lengths | from the maker | Entered by the owner from the slide's instructions (#579). The worked example uses 1/2 per side, illustrative |
+| — | Drawers | | Box parts and bottoms 1/2, planed from the board stock (owner); inset fronts, flush with the case front, 1/16 in from the opening all round, 3/4 asked for (owner), which keeps the board's 13/16 when that is within the flattening allowance (#609); boxes 1/4 clear of their opening above and below; the bottom's groove 1/4 wide, 1/4 deep, 1/4 up from the box's bottom edge, the bottom's top flush with its upper wall; dovetails 1:8 with core's suggested layout (`rule-of-thumb`, owner, November 4, 2026) |
 | — | Vise screws, hinges | from the maker | Entered by the owner (#581, #584). The hinges are concealed cup hinges, inset type (owner); a door thicker than the hinge allows is refused |
 | — | Board stock | as the record cabinet's | The record cabinet's board stock and allowances |
 
@@ -123,7 +124,12 @@ The owner's sizes, from their photo (`example`): overall 64-3/8 long and 20-1/8 
 | Drawer shelves | 44-3/8 + 2·3/16 | 44-3/4 long; the upper 16-5/8 deep, to the back edge; the middle and lower 16-1/8 − 3/8 − 1/16 = 15-11/16 deep. Tops at z = 31-5/8, 27-5/8, and 22-3/8 |
 | Divider | 3-1/4 + 2·3/16 | 3-5/8 high, 15-11/16 deep, centered at x = 30-15/16 |
 | Case back, with 1/8 at each edge (illustrative) | z 6-3/8 to 31-1/4, less 2·1/32; x 8-3/8 to 53-1/2, less 2·1/8 | 24-13/16 high, 44-7/8 wide |
+| Drawer fronts, 13/16 thick | 21-13/16 − 2·1/16 by 3-1/4 − 2·1/16; 44-3/8 − 1/8 by 4-1/2 − 1/8 | 21-11/16 by 3-1/8, and 44-1/4 by 4-3/8 |
 | Drawer boxes, 1/2 slide clearance each side (illustrative) | 21-13/16 − 1; 44-3/8 − 1 | 20-13/16 and 43-3/8 wide |
+| Box depth, typical slides 10 to 28 by 2 (illustrative) | the back's front face, 15-3/4, less the front's 13/16: 14-15/16, so the longest slide that fits | 14 deep, from y = 13/16 |
+| Box heights | 3-1/4 − 2·1/4; 4-1/2 − 2·1/4 | 2-3/4 and 4; the backs 1/2 less, 2-1/4 and 3-1/2 |
+| Dovetails | (width − 3/4 + 1/4) / 2" on center | 2 tails at each front corner and the lower back's, 1 at the upper backs' |
+| Drawer bottoms, 1/8 short at the front (illustrative) | between the side grooves' bottoms less 2·1/32; from the front groove's bottom to the back's outside face | 20-1/4 by 13-5/8, and 42-13/16 by 13-5/8 |
 | Door space | 21-5/8 − 6 | 15-5/8 high, 44-3/8 wide inside the case |
 
 Tenon lengths, dado and groove depths, dovetail layouts, drawer box depths, and door sizes follow from the joints and the open issues, and are added to this example as each lands. An edge-of-range example (the shortest and tallest bench, a 4" top) is added before the build.

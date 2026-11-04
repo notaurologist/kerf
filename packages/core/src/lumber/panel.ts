@@ -51,7 +51,10 @@ export type PanelAllowances = z.infer<typeof PanelAllowances>;
 
 /** A panel part's stock: its finished size and the boards it is glued from. */
 export const PanelStock = z.object({
-  /** Finished thickness, inches. One board ripped to width keeps the board's thickness. */
+  /**
+   * Finished thickness, inches. One board ripped to width keeps the board's thickness unless the
+   * part is thinner than the board less the flattening allowance; then it is planed to thickness.
+   */
   thickness: z.number(),
   /** Finished width, inches. */
   width: z.number(),
@@ -68,17 +71,43 @@ export const PanelStock = z.object({
    */
   minBoardWidth: z.number().optional(),
   allowances: PanelAllowances,
+  /**
+   * Thickness planed off to reach the finished thickness: off the board for one board, or after
+   * flattening for a glued-up panel. Left out when nothing is planed.
+   */
+  planeOff: z.number().positive().optional(),
 });
 export type PanelStock = z.infer<typeof PanelStock>;
 
 /** Board counts within this of a whole number are taken as that number, so float error adds none. */
 const WHOLE = 1e-9;
+/** Thicknesses within this of each other are taken as equal, so float error plans no planing. */
+const SAME_THICKNESS = 1e-9;
+
+/**
+ * The thickness a part of one board comes out at: the board's own when the part is within the
+ * flattening allowance of it, since one board is not flattened, or the part's when it is thinner,
+ * planed down to it.
+ */
+export function oneBoardThickness(
+  thickness: number,
+  board: { thickness: number },
+  allowances: { flatten: number },
+): number {
+  return thickness < board.thickness - allowances.flatten - SAME_THICKNESS
+    ? thickness
+    : board.thickness;
+}
 
 /**
  * The panel stock for a part of the given finished size. With n boards of width w, each glued
  * edge loses the jointing allowance a, and there are n − 1 glue joints with two edges each, so the
  * glued width is n·w − 2a(n − 1). The fewest boards whose glued width covers the finished width
  * plus the rip allowance is n = ⌈(width + rip − 2a) / (w − 2a)⌉.
+ *
+ * A glued-up panel is flattened to the board's thickness less the flattening allowance, then
+ * planed the rest of the way. One board is not flattened: it keeps its thickness when the part is
+ * within the flattening allowance of it, and is planed to the part's thickness when it is thinner.
  */
 export function panelStock(input: {
   thickness: number;
@@ -105,18 +134,19 @@ export function panelStock(input: {
     1,
     Math.ceil((width + allowances.rip - 2 * a) / (board.width - 2 * a) - WHOLE),
   );
-  // Only a glued-up panel is flattened; one board ripped to width keeps its thickness.
   const flattened = board.thickness - allowances.flatten;
-  if (boards > 1 && thickness > flattened) {
+  if (boards > 1 && thickness > flattened + SAME_THICKNESS) {
     return refuse(
       'panel-thicker-than-flattened',
       `A ${formatLength(thickness)} panel can't be glued up from ${board.nominal}: it is ${formatLength(board.thickness)} thick, and flattening the glued-up panel takes off ${formatLength(allowances.flatten)}, leaving ${formatLength(flattened)}.`,
     );
   }
+  const finished = boards === 1 ? oneBoardThickness(thickness, board, allowances) : thickness;
+  const planeOff = (boards === 1 ? board.thickness : flattened) - finished;
   return {
     ok: true,
     stock: {
-      thickness: boards === 1 ? board.thickness : thickness,
+      thickness: finished,
       width,
       board,
       boards,
@@ -126,6 +156,7 @@ export function panelStock(input: {
         ? { minBoardWidth: (width + allowances.rip + 2 * a * (boards - 1)) / boards }
         : {}),
       allowances,
+      ...(planeOff > SAME_THICKNESS ? { planeOff } : {}),
     },
   };
 }

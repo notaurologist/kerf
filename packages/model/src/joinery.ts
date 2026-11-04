@@ -1,12 +1,14 @@
-import type {
-  Dado,
-  EdgeGroove,
-  EdgeRabbet,
-  Mortise,
-  Part,
-  ScrewHole,
-  Tenon,
-  Vec3,
+import {
+  type Dado,
+  type Dovetails,
+  type EdgeGroove,
+  type EdgeRabbet,
+  type Mortise,
+  type Part,
+  type ScrewHole,
+  suggestDovetailLayout,
+  type Tenon,
+  type Vec3,
 } from '@kerf/core';
 import type { PlacedPart } from './boltedLap.ts';
 import { entering, housingPlane, sideEntered } from './housedEnd.ts';
@@ -127,6 +129,82 @@ export function throughTenon(
     return { ok: false, message: 'The lengthened mortise runs past the part.' };
   }
   return { ok: true, mortise, tenon: made.tenon };
+}
+
+export interface ThroughDovetails {
+  /** The board with the tails, trimmed flush with the pin board's outside face at this end. */
+  tails: PlacedPart;
+  tailsEnd: 0 | 1;
+  /** The board with the pins, trimmed flush with the tail board's outside face at this end. */
+  pins: PlacedPart;
+  pinsEnd: 0 | 1;
+  /** The slope, 1 in `slope`. */
+  slope: number;
+}
+
+/**
+ * Through dovetails at a corner where two boards' ends meet, their widths running the same way:
+ * each end reaches through the other board to its outside face. The joint lies across the width
+ * the boards share, as where a drawer's back is cut short, with the suggested layout for it.
+ */
+export function throughDovetails(
+  joint: ThroughDovetails,
+): { ok: true; tails: Dovetails; pins: Dovetails } | Refused {
+  const { tails, pins, tailsEnd, pinsEnd, slope } = joint;
+  const t = tails.placement;
+  const p = pins.placement;
+  if (!parallel(t.across, p.across)) {
+    return { ok: false, message: 'The boards’ widths do not run the same way.' };
+  }
+  // Each board's width, from its reference edge, where the other board is.
+  const shared = (of: PlacedPart, other: PlacedPart): [number, number] => {
+    const start = dot(sub(other.placement.origin, of.placement.origin), of.placement.across);
+    const end = start + other.part.stock.width * dot(other.placement.across, of.placement.across);
+    return [Math.max(0, Math.min(start, end)), Math.min(of.part.stock.width, Math.max(start, end))];
+  };
+  const tailSpan = shared(tails, pins);
+  const pinSpan = shared(pins, tails);
+  const width = tailSpan[1] - tailSpan[0];
+  if (width <= EPSILON || Math.abs(width - (pinSpan[1] - pinSpan[0])) > EPSILON) {
+    return { ok: false, message: 'The boards do not overlap across their widths.' };
+  }
+  const T = tails.part.stock.thickness;
+  const P = pins.part.stock.thickness;
+  const intoPins = entering(pins, tails, tailsEnd, P, tailSpan, [0, T]);
+  if (!intoPins.ok) return intoPins;
+  const intoTails = entering(tails, pins, pinsEnd, T, pinSpan, [0, P]);
+  if (!intoTails.ok) return intoTails;
+  const faces = ['near', 'far'];
+  if (!faces.includes(intoPins.entering.side) || !faces.includes(intoTails.entering.side)) {
+    return { ok: false, message: 'Dovetails go into a board’s face, not its edge.' };
+  }
+  const layout = suggestDovetailLayout(width, slope, P);
+  if (!layout) return { ok: false, message: 'No dovetail layout fits the corner.' };
+  const span = (range: [number, number], of: PlacedPart) =>
+    range[0] > EPSILON || range[1] < of.part.stock.width - EPSILON
+      ? { span: { v0: range[0], v1: range[1] } }
+      : {};
+  return {
+    ok: true,
+    tails: {
+      board: 'tails',
+      withPart: pins.part.id,
+      end: tailsEnd,
+      baseline: P,
+      ...layout,
+      ...span(tailSpan, tails),
+    },
+    pins: {
+      board: 'pins',
+      withPart: tails.part.id,
+      end: pinsEnd,
+      baseline: T,
+      // The tails come through the pin board to the face away from the one they enter.
+      outside: intoPins.entering.side === 'near' ? 'far' : 'near',
+      ...layout,
+      ...span(pinSpan, pins),
+    },
+  };
 }
 
 export interface TenonInGroove {
@@ -267,6 +345,8 @@ export function floatingPanel(joint: FloatingPanel):
   };
 }
 
+const RABBETED = ['reference', 'far', 'first-end', 'second-end'] as const;
+
 export interface PanelInFaces {
   /** The parts around the panel, each with the face its groove is cut into. */
   frame: readonly (PlacedPart & { face: Dado['face'] })[];
@@ -277,6 +357,16 @@ export interface PanelInFaces {
   middle: number;
   /** Short of each groove's bottom: at each end, along the grain, and at each edge, across it. */
   gaps: { ends: number; edges: number };
+  /**
+   * Where the panel runs to on a side with no groove, along `along` or `across`, as a drawer
+   * bottom runs on under a short back. That side gets no tongue.
+   */
+  open?: number;
+  /**
+   * The panel's face flush with its grooves' wall on that side, the tongue rabbeted from the other
+   * face only, as a drawer bottom's top is flush with its groove's. Centered when absent.
+   */
+  flush?: 'near' | 'far';
 }
 
 /**
@@ -297,8 +387,14 @@ export function panelInFaces(joint: PanelInFaces):
   | Refused {
   const { frame, groove, panel, middle, gaps } = joint;
   const T = panel.thickness;
-  const tongue = (T - groove.width) / 2;
-  if (tongue <= 0) return { ok: false, message: 'The panel is no thicker than the grooves.' };
+  const extra = T - groove.width;
+  if (extra <= 0) return { ok: false, message: 'The panel is no thicker than the grooves.' };
+  // How much each face's rabbet takes off, and where the panel's near face is along `through`.
+  const rabbet = {
+    near: joint.flush === 'near' ? 0 : joint.flush === 'far' ? extra : extra / 2,
+    far: joint.flush === 'far' ? 0 : joint.flush === 'near' ? extra : extra / 2,
+  };
+  const nearFace = middle - groove.width / 2 - rabbet.near;
   const dadoes: { partId: string; dado: Dado }[] = [];
   const ends: number[] = [];
   const edges: number[] = [];
@@ -331,29 +427,41 @@ export function panelInFaces(joint: PanelInFaces):
     else if (parallel(bottom.normal, panel.across)) edges.push(dot(bottom.point, panel.across));
     else return { ok: false, message: 'A grooved face does not meet the panel’s edge or end.' };
   }
+  // An open side is where the frame has only one groove across that way.
+  let free: (typeof RABBETED)[number] | undefined;
+  if (joint.open !== undefined) {
+    const at = joint.open;
+    const [list, low, high] =
+      ends.length === 1
+        ? ([ends, 'first-end', 'second-end'] as const)
+        : ([edges, 'reference', 'far'] as const);
+    free = list.length === 1 && at < (list[0] as number) ? low : high;
+    list.push(at);
+  }
   if (ends.length !== 2 || edges.length !== 2) {
     return { ok: false, message: 'The panel is not held at both ends and both edges.' };
   }
   const [s0, s1] = ends.sort((a, b) => a - b) as [number, number];
   const [e0, e1] = edges.sort((a, b) => a - b) as [number, number];
+  // No gap at the open side: the panel runs to it.
+  const gap = (edge: (typeof RABBETED)[number], size: number) => (edge === free ? 0 : size);
+  const start0 = s0 + gap('first-end', gaps.ends);
+  const side0 = e0 + gap('reference', gaps.edges);
   const origin = plus(
-    plus(plus({ x: 0, y: 0, z: 0 }, panel.along, s0 + gaps.ends), panel.across, e0 + gaps.edges),
+    plus(plus({ x: 0, y: 0, z: 0 }, panel.along, start0), panel.across, side0),
     panel.through,
-    middle - T / 2,
+    nearFace,
   );
   return {
     ok: true,
     dadoes,
     origin,
-    length: s1 - s0 - 2 * gaps.ends,
-    width: e1 - e0 - 2 * gaps.edges,
-    rabbets: (['reference', 'far', 'first-end', 'second-end'] as const).flatMap((edge) =>
-      (['near', 'far'] as const).map((face) => ({
-        edge,
-        face,
-        width: groove.depth,
-        depth: tongue,
-      })),
+    length: s1 - gap('second-end', gaps.ends) - start0,
+    width: e1 - gap('far', gaps.edges) - side0,
+    rabbets: RABBETED.filter((edge) => edge !== free).flatMap((edge) =>
+      (['near', 'far'] as const)
+        .filter((face) => rabbet[face] > 0)
+        .map((face) => ({ edge, face, width: groove.depth, depth: rabbet[face] })),
     ),
   };
 }

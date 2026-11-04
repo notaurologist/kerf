@@ -3,8 +3,8 @@ import type { StepOutline } from '../../steps/build.ts';
 import type { CabinetDesign } from './template.ts';
 
 // The order of the build steps (spec, Build steps): let the lumber settle before the boards are
-// cut, then after cutting them make the panels, cut them to size, cut the joinery, fit everything
-// dry, glue up the base, the cleats, the case, and the top, screw the case to the base, glue up the
+// cut, then after cutting them make the panels, plane what is thinner than they leave it, cut them
+// to size, cut the joinery, fit everything dry, glue up the base, the cleats, the case, and the top, screw the case to the base, glue up the
 // doors, ease the edges once the joints are closed, and finish.
 
 const STEPS: {
@@ -23,6 +23,7 @@ const STEPS: {
     beforeCutting: true,
   },
   { id: 'panels', title: 'Glue up the panels', types: ['joint-edges', 'glue-up', 'flatten'] },
+  { id: 'plane', title: 'Plane to thickness', types: ['plane-to-thickness'] },
   { id: 'size', title: 'Cut the panels to size', types: ['rip', 'crosscut'] },
   {
     id: 'dadoes',
