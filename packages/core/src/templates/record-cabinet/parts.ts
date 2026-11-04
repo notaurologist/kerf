@@ -310,6 +310,7 @@ export function cabinetParts(
     cutouts: [],
     mortises: [],
     tenons: [],
+    dovetails: [],
     screwHoles: [],
     grooves: [],
     rabbets: [],

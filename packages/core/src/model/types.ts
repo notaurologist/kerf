@@ -197,6 +197,45 @@ export const Tenon = z.object({
 export type Tenon = z.infer<typeof Tenon>;
 
 /**
+ * How a corner's through dovetails are laid out across the boards' shared width, read the same on
+ * both boards (`joinery/dovetails.ts`): `tails` tails between a half pin `halfPin` wide at each
+ * edge and a pin `pin` wide between each two tails, every pin measured at its narrow end, where
+ * the tails are widest. Each tail's sides slope 1 across in `slope` along (the 8 of 1:8).
+ */
+const dovetailLayout = {
+  tails: z.number().int().positive(),
+  slope: z.number().positive(),
+  halfPin: z.number().positive(),
+  pin: z.number().positive(),
+};
+
+/**
+ * A through-dovetailed corner at a square end, on one of its two boards. Tails are cut through
+ * the tail board's thickness, sloped on its faces and widest at its end. Pins are cut on the pin
+ * board's end, sloped across its thickness, narrowest at its `outside` face, which lies flush
+ * with the tail board's end. `baseline` is how far in from the end the cuts stop: the other
+ * board's thickness. `withPart` names the other board by ID or role.
+ */
+export const Dovetails = z.discriminatedUnion('board', [
+  z.object({
+    board: z.literal('tails'),
+    withPart: z.string(),
+    end,
+    baseline: z.number(),
+    ...dovetailLayout,
+  }),
+  z.object({
+    board: z.literal('pins'),
+    withPart: z.string(),
+    end,
+    baseline: z.number(),
+    outside: z.enum(['near', 'far']),
+    ...dovetailLayout,
+  }),
+]);
+export type Dovetails = z.infer<typeof Dovetails>;
+
+/**
  * A hole a wood screw passes through, square to the part's face at (u, v): round, or a slot
  * `slot` longer than the round hole, toward the second end (`along`) or the far edge (`across`),
  * so the part the screw holds can move (DOMAIN.md, Joints that let wood move).
@@ -309,6 +348,7 @@ export const Part = z.object({
   cutouts: z.array(Cutout).default([]),
   mortises: z.array(Mortise).default([]),
   tenons: z.array(Tenon).default([]),
+  dovetails: z.array(Dovetails).default([]),
   screwHoles: z.array(ScrewHole).default([]),
   grooves: z.array(EdgeGroove).default([]),
   rabbets: z.array(EdgeRabbet).default([]),

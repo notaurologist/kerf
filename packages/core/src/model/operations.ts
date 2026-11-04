@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { dovetailGeometry } from '../joinery/dovetails.ts';
 import type { PanelStock } from '../lumber/panel.ts';
 import { isPanel } from '../lumber/partStock.ts';
 import { boltHoleDiameter } from '../structural/boltHoles.ts';
@@ -185,6 +186,41 @@ export const Operation = z.discriminatedUnion('type', [
     cheekFront: z.number(),
     shoulderReference: z.number(),
     shoulderFar: z.number(),
+  }),
+  /**
+   * Through dovetails' tails on a square end (Part.dovetails): `tails` of them, each `tailWide` at
+   * the end, sloped 1:`slope` on the faces down to the baseline `baseline` in, between half pins
+   * `halfPin` wide at the edges and pins `pin` wide, cut through the board's `thickness`.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('dovetail-tails'),
+    dovetails: z.number().int().nonnegative(),
+    end,
+    tails: z.number().int().positive(),
+    slope: z.number(),
+    baseline: z.number(),
+    halfPin: z.number(),
+    pin: z.number(),
+    tailWide: z.number(),
+    thickness: z.number(),
+  }),
+  /**
+   * Through dovetails' pins on a square end (Part.dovetails), fitted to the tails: `pins` between
+   * the tails and a half pin at each edge, `pin` and `halfPin` wide at the outside face and sloped
+   * 1:`slope` across the board's `thickness`, cut down to the baseline `baseline` in.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('dovetail-pins'),
+    dovetails: z.number().int().nonnegative(),
+    end,
+    pins: z.number().int().nonnegative(),
+    slope: z.number(),
+    baseline: z.number(),
+    halfPin: z.number(),
+    pin: z.number(),
+    thickness: z.number(),
   }),
   /**
    * Clearance holes for wood screws through a part (Part.screwHoles), `round` of them round and
@@ -421,6 +457,30 @@ export function cutAndDrillOperations(
         shoulderFar: width - t.v0 - t.width,
       });
     });
+    part.dovetails.forEach((d, i) => {
+      const id = `${part.id}/dovetails-${i}`;
+      if (part.ends[d.end].setting !== 0) throw new Error(`${id} is on an angled end`);
+      const run = d.board === 'tails' ? d.baseline : thickness;
+      const geometry = dovetailGeometry(d, width, run);
+      if (!geometry) throw new Error(`${id}: its tails do not fit across the part`);
+      const at = {
+        id,
+        partId: part.id,
+        count: part.quantity,
+        dovetails: i,
+        end: d.end,
+        slope: d.slope,
+        baseline: d.baseline,
+        halfPin: d.halfPin,
+        pin: d.pin,
+        thickness,
+      };
+      ops.push(
+        d.board === 'tails'
+          ? { ...at, type: 'dovetail-tails', tails: d.tails, tailWide: geometry.tailWide }
+          : { ...at, type: 'dovetail-pins', pins: d.tails - 1 },
+      );
+    });
     part.grooves.forEach((g, i) => {
       const L = part.length;
       ops.push({
@@ -539,6 +599,7 @@ export function treatmentOperations(
         part.dadoes.length +
         part.mortises.length +
         part.tenons.length +
+        part.dovetails.length +
         part.grooves.length +
         part.rabbets.length +
         part.recesses.length +
@@ -782,6 +843,8 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   cutout: 'Cutout',
   mortise: 'Mortise',
   tenon: 'Tenon',
+  'dovetail-tails': 'Dovetail tails',
+  'dovetail-pins': 'Dovetail pins',
   'screw-holes': 'Screw holes',
   groove: 'Groove',
   rabbet: 'Rabbet',

@@ -44,6 +44,7 @@ const part = {
   cutouts: [],
   mortises: [],
   tenons: [],
+  dovetails: [],
   screwHoles: [],
   grooves: [],
   rabbets: [],

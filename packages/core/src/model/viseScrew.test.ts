@@ -41,6 +41,7 @@ const jaw = (boredHoles: Part['boredHoles']): Part => ({
   cutouts: [],
   mortises: [],
   tenons: [],
+  dovetails: [],
   screwHoles: [],
   grooves: [],
   rabbets: [],

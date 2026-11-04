@@ -123,6 +123,12 @@ export const SKILLS = [
       'Mark the shoulder around the part, cut the cheeks on the waste side to a steady thickness, and trim until it slides into its mortise with hand pressure.',
   },
   {
+    id: 'cut-dovetails',
+    name: 'Cutting dovetails',
+    description:
+      'Scribe the baseline at the other board’s thickness, saw each wall on the waste side square across the end, chop the waste halfway from each face, and mark the pins from the finished tails so the two fit as a pair.',
+  },
+  {
     id: 'fit-an-assembly',
     name: 'Fitting an assembly dry',
     description:

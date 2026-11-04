@@ -79,6 +79,8 @@ export const Method = z.object({
     'cutout',
     'mortise',
     'tenon',
+    'dovetail-tails',
+    'dovetail-pins',
     'screw-holes',
     'groove',
     'rabbet',
@@ -122,8 +124,9 @@ export type Method = z.infer<typeof Method>;
 
 // Values a method's text can name, by operation type: each is a field of the operation or follows
 // from its fields. `offset` is where an angled line's short point sits along the far edge,
-// measured square from the long point: width · tan(setting).
-type Kind = 'length' | 'angle' | 'count';
+// measured square from the long point: width · tan(setting). A `ratio` is a slope, 1 across in n
+// along, shown as 1:n; its angle from square is atan(1 / n).
+type Kind = 'length' | 'angle' | 'count' | 'ratio';
 type ValuesOf<T extends OperationType> = Record<
   string,
   { kind: Kind; of: (op: Extract<Operation, { type: T }>) => number }
@@ -259,6 +262,28 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     cheekBack: { kind: 'length', of: (op) => op.cheekBack },
     cheekFront: { kind: 'length', of: (op) => op.cheekFront },
   },
+  'dovetail-tails': {
+    count,
+    tails: { kind: 'count', of: (op) => op.tails },
+    slope: { kind: 'ratio', of: (op) => op.slope },
+    slopeRun: { kind: 'count', of: (op) => op.slope },
+    slopeAngle: { kind: 'angle', of: (op) => Math.atan(1 / op.slope) / RAD },
+    baseline: { kind: 'length', of: (op) => op.baseline },
+    halfPin: { kind: 'length', of: (op) => op.halfPin },
+    pin: { kind: 'length', of: (op) => op.pin },
+    tailWide: { kind: 'length', of: (op) => op.tailWide },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  'dovetail-pins': {
+    count,
+    pins: { kind: 'count', of: (op) => op.pins },
+    slope: { kind: 'ratio', of: (op) => op.slope },
+    slopeAngle: { kind: 'angle', of: (op) => Math.atan(1 / op.slope) / RAD },
+    baseline: { kind: 'length', of: (op) => op.baseline },
+    halfPin: { kind: 'length', of: (op) => op.halfPin },
+    pin: { kind: 'length', of: (op) => op.pin },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
   'bolt-holes': {
     count,
     boltDiameter: { kind: 'length', of: (op) => op.boltDiameter },
@@ -307,7 +332,9 @@ export function fillMethodText(text: string, op: Operation): string {
       ? formatLength(n)
       : value.kind === 'angle'
         ? formatAngle(n)
-        : `${n}`;
+        : value.kind === 'ratio'
+          ? `1:${n}`
+          : `${n}`;
   });
 }
 
@@ -1888,6 +1915,149 @@ export const METHODS = [
     flags: [categoryFlag('router')],
     easierThan: [],
     moreAccurateThan: ['tenon-hand-saw'],
+  },
+
+  // Dovetail tails, then pins fitted to them (DOMAIN.md, Dovetails)
+  {
+    id: 'dovetail-tails-router-jig',
+    operation: 'dovetail-tails',
+    name: 'With a router and a dovetail jig',
+    tools: [
+      { use: 'cutting the tails', anyOf: [{ tool: 'router' }] },
+      { use: 'guiding the router', anyOf: [{ tool: 'dovetail-jig' }] },
+      TAPE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'rout-along-a-guide', 'cut-dovetails'],
+    setup: [
+      "Fit the jig's dovetail bit, the one its manual gives for through tails, with sides at {slopeAngle} from square, a slope of {slope}, or the nearest the jig offers.",
+      "Set the bit to cut {baseline} deep, the thickness of the board the pins go in, as the jig's manual says.",
+      'Set the fingers to the layout on the cut detail: a half pin {halfPin} wide at each edge, then {tails} tails, each {tailWide} wide at the end, with a pin {pin} wide between each two.',
+      'Rout a scrap of the same thickness first, and check the layout and depth on it.',
+    ],
+    technique: [
+      'Clamp the board in the jig, end up against the fingers, with a scrap clamped behind it where the bit comes out.',
+      'Rout between the fingers, keeping the bit’s guide against each finger, from one edge to the other.',
+      'Let the bit stop before you lift the router off the jig.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'A jig whose fingers cannot move cuts its own spacing, not the plan’s. Use one whose fingers can be set to the layout, or ask an experienced builder before changing the layout.',
+      'Lifting the router while the bit turns gouges the fingers and the tails. Let it stop first.',
+      'Routing without a scrap behind the board splinters the face where the bit comes out. Clamp one there.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('router')],
+    easierThan: ['dovetail-tails-hand-saw'],
+    moreAccurateThan: ['dovetail-tails-hand-saw'],
+  },
+  {
+    id: 'dovetail-tails-hand-saw',
+    operation: 'dovetail-tails',
+    name: 'By hand, with a saw and a chisel',
+    tools: [
+      { use: 'sawing the tail walls', anyOf: [{ tool: 'hand-saw' }] },
+      { use: 'chopping out the waste', anyOf: [{ tool: 'chisel' }] },
+      { use: 'setting the slope', anyOf: [{ tool: 'sliding-bevel' }] },
+      { use: 'scribing the baseline', anyOf: [{ tool: 'combination-square' }] },
+      SQUARE,
+      TAPE,
+      CLAMPS,
+    ],
+    skills: [
+      'measure-and-mark',
+      'lay-out-an-angle',
+      'saw-by-hand',
+      'pare-to-a-line',
+      'cut-dovetails',
+    ],
+    setup: [
+      'Set the combination square to {baseline}, the thickness of the board the pins go in, and scribe the baseline that far from the end on both faces and both edges.',
+      'Set the sliding bevel to the slope, {slope}: on a straight-edged scrap, square a line across, measure {slopeRun} inches along the edge from it and one inch along the line, and set the bevel to the line between those marks.',
+      'On the end, mark a half pin {halfPin} wide in from each edge, then {tails} tails, each {tailWide} wide, with a pin {pin} wide between each two.',
+      'Square the marks across the end, then carry each down both faces to the baseline with the bevel, the tails widest at the end. Mark the waste between them with an X.',
+    ],
+    technique: [
+      'Clamp the board upright, and saw down each tail wall on the waste side of the line, square across the end, stopping at the baseline on both faces.',
+      'Saw off the half-pin waste at each edge, down the wall and then across at the baseline.',
+      'Chop out the waste between the tails with the chisel, its flat side on the baseline, halfway through from one face and then from the other.',
+      'Pare the walls and the baseline flat and square to the faces.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Sawing past the baseline leaves a kerf that shows on the finished corner. Stop at the line on both faces.',
+      'Chopping all the way through from one face breaks out the far face at the baseline. Chop halfway from each face.',
+      'Sawing out of square across the end makes the pins bind on one face. Watch the saw from the side, and keep it square to the face.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'dovetail-pins-router-jig',
+    operation: 'dovetail-pins',
+    name: 'With a router and a dovetail jig',
+    tools: [
+      { use: 'cutting the pins', anyOf: [{ tool: 'router' }] },
+      { use: 'guiding the router', anyOf: [{ tool: 'dovetail-jig' }] },
+      CLAMPS,
+    ],
+    skills: ['rout-along-a-guide', 'cut-dovetails'],
+    setup: [
+      "Fit the straight bit the jig's manual gives for pins, and set it to cut {baseline} deep, the thickness of the tail board.",
+      "Turn or set the fingers to the pin side, as the jig's manual says, keeping the layout the tails were cut to: {pins} pins between the tails and a half pin at each edge, {pin} and {halfPin} wide at the outside face.",
+      'Rout a scrap of the same thickness, and fit it to a tail board before cutting the parts. Move the fingers as the manual says until it fits.',
+    ],
+    technique: [
+      'Clamp the board in the jig, end up against the fingers, its outside face where the manual says, with a scrap behind it.',
+      'Rout out the sockets between the fingers, keeping the bit’s guide against each finger.',
+      'Let the bit stop before you lift the router off the jig.',
+      'Fit each corner dry with its tails, and pare where it binds.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Cutting the parts before the scrap fits leaves every corner loose or too tight. Fit the scrap first.',
+      'Clamping the board with its inside face out puts the narrow end of the pins on the wrong face, and the tails will not go in. Check which face the manual puts outward.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('router')],
+    easierThan: ['dovetail-pins-hand-saw'],
+    moreAccurateThan: ['dovetail-pins-hand-saw'],
+  },
+  {
+    id: 'dovetail-pins-hand-saw',
+    operation: 'dovetail-pins',
+    name: 'By hand, marked from the tails',
+    tools: [
+      { use: 'sawing the pin walls', anyOf: [{ tool: 'hand-saw' }] },
+      { use: 'chopping out the waste', anyOf: [{ tool: 'chisel' }] },
+      { use: 'scribing the baseline', anyOf: [{ tool: 'combination-square' }] },
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'pare-to-a-line', 'cut-dovetails'],
+    setup: [
+      'Set the combination square to {baseline}, the thickness of the tail board, and scribe the baseline that far from the end on both faces.',
+      'Clamp the pin board upright, its end level with a flat board beside it. Lay the finished tail board on the end, its baseline along the pin board’s inside face and its edges flush, and knife around each tail onto the end.',
+      'Square the marks down both faces to the baseline, and mark the waste, the sockets for the tails, with an X. The pins come out {pin} wide, and {halfPin} at the edges, at the outside face, wider at the inside.',
+    ],
+    technique: [
+      'Saw down each pin wall on the waste side of the knife line, following the slope across the end, stopping at the baseline on both faces.',
+      'Chop out the sockets with the chisel, its flat side on the baseline, halfway through from one face and then from the other.',
+      'Pare the walls to the knife lines, and the baseline flat.',
+      'Fit the corner part way with its tails, and pare where it binds, shown by shiny marks on the pins.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Sawing on the knife line, or the pin side of it, leaves the joint loose. Saw on the waste side and pare to the line.',
+      'Driving a tight corner all the way together splits the tail board. Fit it part way, take it apart, and pare.',
+      'Marking from a tail board other than the one this corner is made from leaves a corner that does not fit. Number each pair of boards and mark from its own tails.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
   },
 
   // Screw holes, round or slotted (DOMAIN.md, Joints that let wood move)
