@@ -36,6 +36,7 @@ const post: Part = {
   rabbets: [],
   recesses: [],
   boredHoles: [],
+  hingePlates: [],
 };
 const rail: Part = {
   ...post,

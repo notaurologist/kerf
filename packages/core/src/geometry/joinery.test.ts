@@ -43,6 +43,7 @@ const side = (over: Partial<Part> = {}): Part => ({
   rabbets: [],
   recesses: [],
   boredHoles: [],
+  hingePlates: [],
   ...over,
 });
 

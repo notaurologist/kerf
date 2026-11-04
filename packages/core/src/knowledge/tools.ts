@@ -402,6 +402,15 @@ export const TOOL_TYPES = [
     ],
   },
   {
+    id: 'hinge-jig',
+    name: 'Hinge-boring jig',
+    description:
+      "A guide that sits against a part's edge and holds a cup bit square, with a fence for the cup's distance from the edge and a stop for its depth. Kerf's methods use it in a drill to bore concealed hinges' cups.",
+    group: 'drilling-and-driving',
+    protection: [],
+    capabilities: [],
+  },
+  {
     id: 'socket-wrench',
     name: 'Socket wrench',
     description: 'A handle with sockets that fit over nuts and bolt heads, for tightening bolts.',

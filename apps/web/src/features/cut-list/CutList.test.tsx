@@ -50,6 +50,7 @@ const part = {
   rabbets: [],
   recesses: [],
   boredHoles: [],
+  hingePlates: [],
 };
 const parts = [
   part,

@@ -25,6 +25,7 @@ const base = {
   referenceEdge: 'bottom edge',
   holes: [],
   boredHoles: [],
+  hingePlates: [],
   boltAreas: [],
   tapers: [],
   dadoes: [],

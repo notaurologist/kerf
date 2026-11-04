@@ -55,6 +55,7 @@ const leg: Part = {
   rabbets: [],
   recesses: [],
   boredHoles: [],
+  hingePlates: [],
 };
 const pl: Placement = {
   partId: 'leg',
