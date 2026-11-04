@@ -221,6 +221,29 @@ describe('tongues', () => {
     // Rabbeted 1/16 on each face, the tongue is 3/8, wider than the 1/4 groove.
     expect(checks([frame, panel(0.0625)], placements)).toEqual(['tongue panel']);
   });
+
+  it('accepts a tongue in a groove cut into a face, and reports one too thick for it', () => {
+    // The 3/4 part lies flat, 6 wide along y, its top face (far, z = 3/4) grooved end to end,
+    // y 2-3/4 to 3, 3/8 deep. The 1/2 panel stands in it, centered (y 2-5/8 to 3-1/8), its
+    // bottom edge 1/32 above the groove's bottom at z = 3/8.
+    const faceGroove = {
+      withPart: 'panel',
+      face: 'far' as const,
+      u0: 0,
+      u1: 12,
+      v0: 2.75,
+      v1: 3,
+      depth: 0.375,
+    };
+    const flat = part('frame', 12, 6, 0.75, { dadoes: [faceGroove] });
+    const standing = [
+      place('frame', at(0, 0, 0), X, Y, Z),
+      place('panel', at(2, 3.125, 0.375 + 1 / 32), X, Z, minus(Y)),
+    ];
+    expect(checks([flat, panel(0.125)], standing)).toEqual([]);
+    // A 3/8 tongue, y 2-11/16 to 3-1/16, is wider than the groove: neither holds the other.
+    expect(checks([flat, panel(0.0625)], standing)).toEqual(['dado frame', 'tongue panel']);
+  });
 });
 
 describe('bolts', () => {

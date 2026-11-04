@@ -133,6 +133,11 @@ export const Operation = z.discriminatedUnion('type', [
    * `length` is its long way.
    */
   z.object({ ...onPart, type: z.literal('double-stopped-dado'), ...dadoFields }),
+  /**
+   * A channel in a face (Part.dadoes) from end to end of its part, with the grain, such as the one
+   * a floating panel's tongue sits in: a groove, though it is cut into a face rather than an edge.
+   */
+  z.object({ ...onPart, type: z.literal('face-groove'), ...dadoFields }),
   /** A corner notch (Part.notches), through the part's thickness. */
   z.object({
     ...onPart,
@@ -743,8 +748,9 @@ function dadoOperation(part: Part, d: Dado, i: number): Operation {
   const uEdges = uOpen.filter(Boolean).length;
   if (vEdges === 2 && uEdges === 0)
     return { ...base, type: 'dado', length: across.v, width: across.u };
+  // Open at both ends, it runs the part's length, with its grain: a groove, not a dado.
   if (uEdges === 2 && vEdges === 0)
-    return { ...base, type: 'dado', length: across.u, width: across.v };
+    return { ...base, type: 'face-groove', length: across.u, width: across.v };
   if (vEdges === 1 && uEdges === 0) {
     return { ...base, type: 'stopped-dado', length: across.v, width: across.u };
   }
@@ -1006,6 +1012,7 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   'stopped-dado': 'Stopped dado',
   'stopped-rabbet': 'Stopped rabbet',
   'double-stopped-dado': 'Dado stopped at both ends',
+  'face-groove': 'Groove in a face',
   notch: 'Notch',
   cutout: 'Cutout',
   mortise: 'Mortise',

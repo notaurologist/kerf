@@ -78,6 +78,7 @@ export const Method = z.object({
     'stopped-dado',
     'stopped-rabbet',
     'double-stopped-dado',
+    'face-groove',
     'notch',
     'cutout',
     'mortise',
@@ -224,6 +225,12 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     depth: { kind: 'length', of: (op) => op.depth },
   },
   'double-stopped-dado': {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
+  'face-groove': {
     count,
     width: { kind: 'length', of: (op) => op.width },
     length: { kind: 'length', of: (op) => op.length },
@@ -2460,6 +2467,53 @@ export const METHODS = [
     flags: [categoryFlag('table-saw')],
     easierThan: [],
     moreAccurateThan: ['groove-router'],
+  },
+
+  // Groove in a face, with the grain, end to end
+  {
+    id: 'face-groove-router',
+    operation: 'face-groove',
+    name: 'With a router and an edge guide',
+    tools: [{ use: 'cutting the groove', anyOf: [{ tool: 'router' }] }, TAPE, CLAMPS],
+    skills: ['measure-and-mark', 'rout-along-a-guide'],
+    setup: [
+      'Fit a straight bit no wider than the groove, {width}, and set it to cut {depth} deep, a little deeper each time.',
+      'Clamp the part flat to the bench, and set the edge guide against the nearer edge so the bit runs where the groove is marked.',
+    ],
+    technique: [
+      'Rout the groove from end to end, {length} long, with the guide held against the edge.',
+      'Lower the bit and repeat until the groove is {depth} deep; move the guide and repeat if the bit is narrower than the groove.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Letting the guide drift off the edge wanders the groove. Keep it pressed against the edge the whole length.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('router')],
+    easierThan: ['face-groove-table-saw'],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'face-groove-table-saw',
+    operation: 'face-groove',
+    name: 'With a table saw, a cut at a time',
+    tools: [{ use: 'cutting the groove', anyOf: [{ tool: 'table-saw' }] }, TAPE],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'Raise the blade {depth} above the table, and set the fence so the blade cuts where the groove is marked.',
+    ],
+    technique: [
+      'Run the part flat along the fence, the grooved face down, pushing it past the blade with a push stick.',
+      'Move the fence a blade’s width and repeat until the groove is {width} wide.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Letting the part lift or drift from the fence makes the groove shallow or wide in places. Keep it pressed down and against the fence the whole length.',
+    ],
+    safety: [TABLE_SAW_KICKBACK, RIP_BLADE, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('table-saw')],
+    easierThan: [],
+    moreAccurateThan: ['face-groove-router'],
   },
 
   // Rabbet (along an edge or end, into one face)
