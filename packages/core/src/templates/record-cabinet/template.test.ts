@@ -322,12 +322,12 @@ describe('sliding doors (spec, Sliding doors on the end bays)', () => {
     expect(door.partitionDepth - part(worked, 'rail').stock.thickness).toBe(13.6875);
   });
 
-  it('rabbets a one-board panel from its own thickness, to a tongue as thick as the groove', () => {
-    // A 42" case of 1" x 11-1/4" boards: bays (42 − 4 × 3/4 − 2 × 3/4) / 3 = 12-1/2, doors
-    // 12-1/2 + 3/4 + 1/2 = 13-3/4 wide, the panel span 13-3/4 − 2 × 2 + 2 × 3/8 = 10-1/2, and the
-    // panel 10.5 − 2 × (10.5 × 0.00248 × 4 / 2 + 1/32) = 10-1/3 wide, under the board's 11-1/8
-    // after jointing: one board, not flattened, so 1" thick against t = 3/4.
-    const board = { source: 'store' as const, thickness: 1, width: 11.25, lengths: [4, 6, 8] };
+  // A 42" case of 11-1/4" wide boards: bays (42 − 4 × 3/4 − 2 × 3/4) / 3 = 12-1/2, doors
+  // 12-1/2 + 3/4 + 1/2 = 13-3/4 wide, the panel span 13-3/4 − 2 × 2 + 2 × 3/8 = 10-1/2, and the
+  // panel 10.5 − 2 × (10.5 × 0.00248 × 4 / 2 + 1/32) = 10-1/3 wide, under the board's 11-1/8
+  // after jointing: one board.
+  const oneBoard = (thickness: number) => {
+    const board = { source: 'store' as const, thickness, width: 11.25, lengths: [4, 6, 8] };
     const result = recordCabinet.generate(
       { ...p, width: 42, board },
       EXAMPLES[0]?.structuralInputs ?? {},
@@ -336,15 +336,47 @@ describe('sliding doors (spec, Sliding doors on the end bays)', () => {
     const one = result.output;
     const panel = part(one, 'door-panel');
     expect(panel.stock.width).toBeCloseTo(10.5 - 2 * ((10.5 * 0.00248 * 4) / 2 + 1 / 32), 12);
-    expect(panel.stock.thickness).toBe(1);
-    // (1 − 1/4) / 2 = 3/8 on each face, not (3/4 − 1/4) / 2 = 1/4, which left a 1/2 tongue.
+    return { one, panel };
+  };
+
+  it('rabbets a one-board panel from its own thickness, to a tongue as thick as the groove', () => {
+    // 13/16" boards: the 3/4 panel is within the 1/16 flattening allowance of the board, so one
+    // board is not planed and stays 13/16 thick.
+    const { one, panel } = oneBoard(0.8125);
+    expect(panel.stock.thickness).toBe(0.8125);
+    expect(panel.stock).not.toHaveProperty('planeOff');
+    // (13/16 − 1/4) / 2 = 9/32 on each face, not (3/4 − 1/4) / 2 = 1/4, which left a 5/16 tongue.
     expect(new Set(panel.rabbets?.map((r) => `${r.width} ${r.depth}`))).toEqual(
-      new Set(['0.375 0.375']),
+      new Set(['0.375 0.28125']),
     );
-    expect(1 - 2 * 0.375).toBe(p.tenonThickness);
-    // The frame is the same 1" board, so the panel is flush with the door's front face, at
-    // 1/4 + 1/32, not 1/8 behind it.
-    expect(world(placed(one, 'door-stile-outer', 0), 0, 0, 1).y).toBe(0.28125);
+    expect(0.8125 - 2 * 0.28125).toBe(p.tenonThickness);
+    // The frame is the same 13/16" board, so the panel is flush with the door's front face, at
+    // 1/4 + 1/32, not 1/32 behind it.
+    expect(world(placed(one, 'door-stile-outer', 0), 0, 0, 0.8125).y).toBe(0.28125);
+    expect(world(placed(one, 'door-panel', 0), 0, 0, 0).y).toBe(0.28125);
+    expect(one.design.operations.some((op) => op.type === 'plane-to-thickness')).toBe(false);
+  });
+
+  it('planes one-board parts of a thicker board to the panel thickness, and fits the doors to them', () => {
+    // 1-1/4" boards: 3/4 is thinner than 1-1/4 − 1/16, so each one-board part is planed 1/2.
+    const { one, panel } = oneBoard(1.25);
+    for (const id of ['door-panel', 'door-stile-outer', 'door-rail', 'apron-long', 'cleat']) {
+      expect(part(one, id).stock, id).toMatchObject({ thickness: 0.75, planeOff: 0.5 });
+    }
+    // A glued-up panel is flattened to 1-1/4 − 1/16 = 1-3/16, then planed the other 7/16.
+    const side = one.design.operations.filter((op) => 'partId' in op && op.partId === 'side-left');
+    expect(side.find((op) => op.type === 'flatten')).toMatchObject({ thickness: 1.1875 });
+    expect(side.find((op) => op.type === 'plane-to-thickness')).toMatchObject({
+      thickness: 0.75,
+      planeOff: 0.4375,
+    });
+    // (3/4 − 1/4) / 2 = 1/4 on each face, leaving a 1/4 tongue; the frame is 3/4 too, so the
+    // panel is flush with the door's front face, and the track is 3/4 + 1/16 wide.
+    expect(new Set(panel.rabbets?.map((r) => `${r.width} ${r.depth}`))).toEqual(
+      new Set(['0.375 0.25']),
+    );
+    expect(one.design.geometry.door?.thickness).toBe(0.75);
+    expect(world(placed(one, 'door-stile-outer', 0), 0, 0, 0.75).y).toBe(0.28125);
     expect(world(placed(one, 'door-panel', 0), 0, 0, 0).y).toBe(0.28125);
   });
 
@@ -383,31 +415,39 @@ describe('refusals (spec, Validation)', () => {
   });
 
   it('refuses aprons that put the mortises outside the leg', () => {
-    const board = (thickness: number) => ({ ...WORKED_EXAMPLE.board, thickness });
-    // #561, draw 31: the mortise starts 1.0625 − 0.8125 − (1.1873 + 0.1875)/2 = −0.437 from the
-    // leg's inside face and ends at −0.250, entirely outside the leg.
+    // 1-1/16" boards for 1" panels: within the 1/16 flattening allowance, so the one-board aprons
+    // are not planed and stay 1-1/16 thick.
+    const thick = {
+      board: { ...WORKED_EXAMPLE.board, thickness: 1.0625 },
+      panelThickness: 1,
+    };
+    // After #561, draw 31: the mortise starts 1.0625 − 0.8125 − (1.0625 + 0.1875)/2 = −0.375 from
+    // the leg's inside face and ends at −0.1875, entirely outside the leg.
     const outside = {
+      ...thick,
       legStock: { size: 1.0625, lengths: [3] },
       footSize: 0.6875,
       apronSetback: 0.8125,
-      board: board(1.1873),
       tenonThickness: 0.1875,
     };
     expect(refused(outside)).toEqual(['mortise-off-leg']);
+    // Legs larger than 0.8125 + 0.625 = 1-7/16, or set back less than 1.0625 − 0.625 = 7/16.
     const result = recordCabinet.generate({ ...WORKED_EXAMPLE, ...outside }, {});
     expect(result.ok ? [] : result.issues[0]?.message).toBe(
-      `Aprons 1-3/16" thick, set back 13/16" on 1-1/16" legs, would put each mortise past the leg's inside face. To fix it, use legs larger than 1-1/2", or set the aprons back less than 3/8", or use thinner boards.`,
+      `Aprons 1-1/16" thick, set back 13/16" on 1-1/16" legs, would put each mortise past the leg's inside face. To fix it, use legs larger than 1-7/16", or set the aprons back less than 7/16", or use thinner boards.`,
     );
-    // #561, draw 25: 1.1875 − 0.5625 − (1.25 + 0.25)/2 = −0.125 to 0.125, half outside.
+    // After #561, draw 25: 1.1875 − 0.5625 − (1.0625 + 0.25)/2 = −0.03125 to 0.21875, partly
+    // outside.
     const half = {
+      ...thick,
       legStock: { size: 1.1875, lengths: [3] },
       footSize: 0.75,
       apronSetback: 0.5625,
-      board: board(1.25),
     };
     expect(refused(half)).toEqual(['mortise-off-leg']);
-    // A mortise whose wall is flush with the inside face is open there: 1.1875 − 0.4375 − 0.75 = 0.
-    expect(refused({ ...half, apronSetback: 0.4375 })).toEqual(['mortise-off-leg']);
+    // A mortise whose wall is flush with the inside face is open there:
+    // 1.1875 − 0.53125 − 0.65625 = 0.
+    expect(refused({ ...half, apronSetback: 0.53125 })).toEqual(['mortise-off-leg']);
   });
 
   it("refuses aprons that stand past the leg's inside face", () => {
@@ -415,18 +455,21 @@ describe('refusals (spec, Validation)', () => {
     // 13/16 aprons on 1-3/16 legs: 3/8 + 13/16 = 1-3/16 is flush with the inside face.
     expect(refused({ ...legs, apronSetback: 0.375 })).toEqual([]);
     expect(refused({ ...legs, apronSetback: 0.4375 })).toEqual(['apron-past-leg']);
-    // #561, draw 25 with the mortise back in the leg: 3/8 + 1-1/4 = 1-5/8, past the 1-3/16 leg.
+    // 1-1/16 aprons (1" panels from 1-1/16" boards, not planed), with the mortise in the leg:
+    // 3/8 + (1-1/16 + 1/4)/2 = 1-1/32 < 1-3/16, but 3/8 + 1-1/16 = 1-7/16 is past the leg. Legs
+    // at least 1-7/16, or set back at most 1-3/16 − 1-1/16 = 1/8.
     const result = recordCabinet.generate(
       {
         ...WORKED_EXAMPLE,
         ...legs,
         apronSetback: 0.375,
-        board: { ...WORKED_EXAMPLE.board, thickness: 1.25 },
+        board: { ...WORKED_EXAMPLE.board, thickness: 1.0625 },
+        panelThickness: 1,
       },
       {},
     );
     expect(result.ok ? [] : result.issues.map((i) => i.message)).toEqual([
-      `Aprons 1-1/4" thick, set back 3/8" on 1-3/16" legs, would stand past the leg's inside face, where the two aprons at each leg would run into each other. To fix it, use legs at least 1-5/8", or use thinner boards.`,
+      `Aprons 1-1/16" thick, set back 3/8" on 1-3/16" legs, would stand past the leg's inside face, where the two aprons at each leg would run into each other. To fix it, use legs at least 1-7/16", or set the aprons back at most 1/8", or use thinner boards.`,
     ]);
   });
 
