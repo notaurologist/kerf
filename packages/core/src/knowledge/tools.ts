@@ -497,6 +497,15 @@ export const TOOL_TYPES = [
     capabilities: [],
   },
   {
+    id: 'bench-plane',
+    name: 'Bench plane',
+    description:
+      'A hand plane held in both hands, long enough to bridge low spots, for flattening a face too wide for a planer.',
+    group: 'shaping',
+    protection: [],
+    capabilities: [],
+  },
+  {
     id: 'block-plane',
     name: 'Block plane',
     description: 'A small hand plane held in one hand, for trimming end grain and easing edges.',

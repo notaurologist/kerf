@@ -1,15 +1,16 @@
 import { z } from 'zod';
 import { dovetailGeometry } from '../joinery/dovetails.ts';
 import type { PanelStock } from '../lumber/panel.ts';
-import { isPanel } from '../lumber/partStock.ts';
+import { isPanel, isStripGlueUp } from '../lumber/partStock.ts';
+import { type StripGlueUp, stripBoardsFor } from '../lumber/strips.ts';
 import { boltHoleDiameter } from '../structural/boltHoles.ts';
 import type { BoredHole, Dado, HardwareItem, Part } from './types.ts';
 
 // Operations: what needs to happen to each part, before any choice of how (DOMAIN.md, Operations).
 // Methods (#104) say how, given tools; build steps (#105) order them. Generic: the cuts and bolt
 // holes come from data every template's parts and hardware already carry, so their numbers are
-// the cut list's own, and so does the work of making a panel from boards (DOMAIN.md, Edge-glued
-// panels). A template adds the work its parts do not describe, such as easing edges or site work. Types cover what templates use; add one when a template needs it.
+// the cut list's own, and so does the work of making a panel from boards or a glue-up from strips
+// (DOMAIN.md, Lumber basics). A template adds the work its parts do not describe, such as easing edges or site work. Types cover what templates use; add one when a template needs it.
 
 const end = z.union([z.literal(0), z.literal(1)]);
 const base = {
@@ -48,8 +49,8 @@ export const Operation = z.discriminatedUnion('type', [
     width: z.number(),
     thickness: z.number(),
     /**
-     * True when it cuts a panel's boards to their length before gluing, in the cutting steps. A
-     * panel's own end cuts come after glue-up and leave this out.
+     * True when it cuts a panel's or a strip glue-up's boards to their length before gluing, in the
+     * cutting steps. The glued-up part's own end cuts come after glue-up and leave this out.
      */
     panelBoards: z.literal(true).optional(),
   }),
@@ -69,6 +70,43 @@ export const Operation = z.discriminatedUnion('type', [
     /** Width across the boards once glued, which the clamps reach across. */
     width: z.number(),
     length: z.number(),
+  }),
+  /**
+   * Rip each of a strip glue-up's boards into strips, `perBoard` side by side, `stripWidth` wide
+   * and `thickness` thick (the board's), across `boards` boards: `count` strips in all.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('rip-strips'),
+    boards: z.number().int().positive(),
+    perBoard: z.number().int().positive(),
+    stripWidth: z.number(),
+    length: z.number(),
+    thickness: z.number(),
+  }),
+  /**
+   * Glue a strip glue-up's strips face to face and clamp them until the glue sets. `width` is the
+   * size across the strips once glued, which the clamps reach across, and `depth` each strip's
+   * ripped width, the depth of every glue line.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('glue-up-strips'),
+    strips: z.number().int().min(2),
+    width: z.number(),
+    depth: z.number(),
+    length: z.number(),
+  }),
+  /**
+   * Bring the two faces of a strip glue-up that show the strips' sawn edges flat and level across
+   * its glue lines, to `thickness` between them. `width` is each face's width, across the strips.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('flatten-strips'),
+    width: z.number(),
+    length: z.number(),
+    thickness: z.number(),
   }),
   /** Bring the faces of a glued-up panel flat and level across its joints, to `thickness`. */
   z.object({
@@ -113,7 +151,10 @@ export const Operation = z.discriminatedUnion('type', [
     depth: z.number(),
     thickness: z.number(),
   }),
-  /** A cut along the grain, taking a panel or board down to its finished width. */
+  /**
+   * A cut along the grain, taking a panel, board, or strip glue-up down to its finished width, or
+   * for a glue-up, the finished size across its strips.
+   */
   z.object({
     ...onPart,
     type: z.literal('rip'),
@@ -369,8 +410,10 @@ export type OperationType = Operation['type'];
  * square end is a crosscut and an angled one a miter; an end measured from the reference face
  * (a bevel) has no operation type yet and is refused rather than mislabeled. A panel part first
  * has its boards cut to length, their glued edges jointed, the boards glued up and flattened, and
- * the panel ripped to width; a panel of one board is only cut to length and ripped. A plan with
- * glued-up panels first lets its lumber settle indoors.
+ * the panel ripped to width; a panel of one board is only cut to length and ripped. A strip
+ * glue-up has its boards cut to length and ripped into strips, the strips glued face to face and
+ * flattened, and the glue-up ripped to its size across the strips if it is over. A plan with
+ * glued-up panels or strip glue-ups first lets its lumber settle indoors.
  */
 export function cutAndDrillOperations(
   parts: readonly Part[],
@@ -378,13 +421,16 @@ export function cutAndDrillOperations(
 ): Operation[] {
   const ops: Operation[] = [];
   // Glued-up wood should be near its service moisture content first (DOMAIN.md, Wood movement).
-  const glued = parts.filter((p) => isPanel(p.stock) && p.stock.boards > 1).map((p) => p.id);
+  const glued = parts
+    .filter((p) => (isPanel(p.stock) && p.stock.boards > 1) || isStripGlueUp(p.stock))
+    .map((p) => p.id);
   if (glued.length > 0) {
     ops.push({ id: 'lumber/acclimate', type: 'acclimate', count: 1, partIds: glued });
   }
   for (const part of parts) {
     const { width, thickness } = part.stock;
     if (isPanel(part.stock)) ops.push(...panelOperations(part, part.stock));
+    if (isStripGlueUp(part.stock)) ops.push(...stripOperations(part, part.stock));
     part.ends.forEach((cut, e) => {
       const at = { partId: part.id, count: part.quantity, end: e as 0 | 1, width, thickness };
       const id = `${part.id}/end-${e}`;
@@ -793,6 +839,73 @@ function panelOperations(part: Part, stock: PanelStock): Operation[] {
   return ops;
 }
 
+/** Sizes within this of each other are taken as equal, so float error adds no rip. */
+const SAME_SIZE = 1e-9;
+
+function stripOperations(part: Part, stock: StripGlueUp): Operation[] {
+  const { board, strips, stripWidth, stripLength: length, gluedAcross } = stock;
+  const onPart = { partId: part.id };
+  const boards = stripBoardsFor(stock, part.quantity);
+  const [stacked, across] =
+    stock.stackedAcross === 'width'
+      ? [stock.width, stock.thickness]
+      : [stock.thickness, stock.width];
+  const ops: Operation[] = ([0, 1] as const).map((e) => ({
+    id: `${part.id}/board-end-${e}`,
+    type: 'crosscut',
+    ...onPart,
+    count: boards,
+    end: e,
+    width: board.width,
+    thickness: board.thickness,
+    panelBoards: true,
+  }));
+  ops.push(
+    {
+      id: `${part.id}/rip-strips`,
+      type: 'rip-strips',
+      ...onPart,
+      count: part.quantity * strips,
+      boards,
+      perBoard: stock.stripsPerBoard,
+      stripWidth,
+      length,
+      thickness: board.thickness,
+    },
+    {
+      id: `${part.id}/glue-up`,
+      type: 'glue-up-strips',
+      ...onPart,
+      count: part.quantity,
+      strips,
+      width: gluedAcross,
+      depth: stripWidth,
+      length,
+    },
+    {
+      id: `${part.id}/flatten`,
+      type: 'flatten-strips',
+      ...onPart,
+      count: part.quantity,
+      width: gluedAcross,
+      length,
+      thickness: across,
+    },
+  );
+  if (gluedAcross > stacked + SAME_SIZE) {
+    ops.push({
+      id: `${part.id}/rip`,
+      type: 'rip',
+      ...onPart,
+      count: part.quantity,
+      width: stacked,
+      length,
+      thickness: across,
+    });
+  }
+  return ops;
+}
+
 /**
  * The operations done while breaking boards into pieces: cutting steps go board by board (#58)
  * and do these for each piece. Every other operation is ordered by the template's step outline.
@@ -803,8 +916,9 @@ type OnPart = Extract<Operation, { partId: string }>;
 
 /**
  * The operations cutting steps do on each piece as boards are broken down: its end cuts and
- * tapers, or for a panel's boards, the cuts to their length. A panel's own end cuts and tapers
- * come after glue-up, so the template's step outline places them with its other work.
+ * tapers, or for a panel's or strip glue-up's boards, the cuts to their length. The glued-up
+ * part's own end cuts and tapers come after glue-up, so the template's step outline places them
+ * with its other work.
  */
 export function boardCuts(operations: readonly Operation[]): OnPart[] {
   const panels = new Set(
@@ -834,6 +948,9 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   'joint-edges': 'Joint edges',
   'glue-up': 'Glue up',
   flatten: 'Flatten',
+  'rip-strips': 'Rip into strips',
+  'glue-up-strips': 'Glue up strips',
+  'flatten-strips': 'Flatten the glue-up',
   rip: 'Rip to width',
   dado: 'Dado',
   'stopped-dado': 'Stopped dado',

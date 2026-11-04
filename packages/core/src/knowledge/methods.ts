@@ -70,6 +70,9 @@ export const Method = z.object({
     'joint-edges',
     'glue-up',
     'flatten',
+    'rip-strips',
+    'glue-up-strips',
+    'flatten-strips',
     'rip',
     'dado',
     'stopped-dado',
@@ -174,6 +177,27 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     length: { kind: 'length', of: (op) => op.length },
   },
   flatten: {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  'rip-strips': {
+    count,
+    boards: { kind: 'count', of: (op) => op.boards },
+    perBoard: { kind: 'count', of: (op) => op.perBoard },
+    stripWidth: { kind: 'length', of: (op) => op.stripWidth },
+    length: { kind: 'length', of: (op) => op.length },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  'glue-up-strips': {
+    count,
+    strips: { kind: 'count', of: (op) => op.strips },
+    width: { kind: 'length', of: (op) => op.width },
+    depth: { kind: 'length', of: (op) => op.depth },
+    length: { kind: 'length', of: (op) => op.length },
+  },
+  'flatten-strips': {
     count,
     width: { kind: 'length', of: (op) => op.width },
     length: { kind: 'length', of: (op) => op.length },
@@ -489,6 +513,17 @@ const RIP_BLADE = {
     {
       source: 'osha-woodworking-etool',
       locator: 'Table Saws: kickbacks',
+      url: `${ETOOL}/table-saws`,
+    },
+  ],
+} satisfies z.input<typeof SafetyNote>;
+
+const NARROW_RIP = {
+  text: 'A strip leaves little room between the blade and the fence. Keep your hands out of the line of the cut, push the strip past the blade with a push stick, and where the fence side is too narrow for one, rip with a filler piece between the fence and the blade.',
+  sources: [
+    {
+      source: 'osha-woodworking-etool',
+      locator: 'Table Saws: point of operation and kickbacks, work practices',
       url: `${ETOOL}/table-saws`,
     },
   ],
@@ -1275,6 +1310,250 @@ export const METHODS = [
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
+  },
+
+  // Rip into strips (a strip glue-up's boards). OSHA Woodworking eTool, Table Saws: a push stick
+  // for small pieces and for pushing stock past the blade, hands out of the line of the cut, and
+  // a filler piece where there is little clearance on the fence side.
+  {
+    id: 'rip-strips-table-saw',
+    operation: 'rip-strips',
+    name: 'With a table saw',
+    tools: [{ use: 'ripping the strips', anyOf: [{ tool: 'table-saw' }] }, TAPE],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'Set the fence {stripWidth} from the blade, measured to the side of a tooth facing the fence.',
+      'Cut a push stick from scrap, narrow enough to fit between the blade and the fence.',
+    ],
+    technique: [
+      'Hold the straighter edge of the board against the fence and rip a strip off it at an even speed for the whole {length}, finishing the cut with the push stick.',
+      'Rip the next strip with the freshly sawn edge against the fence, and so on across the board, {perBoard} strips from each board.',
+      'Rip {count} strips this way, from {boards} boards.',
+    ],
+    mistakes: [
+      'Letting the board drift from the fence leaves a strip narrower than {stripWidth} along part of it, a low spot that flattening may not reach. Keep the board tight to the fence until the strip is past the blade.',
+      'Ripping the last narrow piece of a board with your fingers near the blade puts them in the line of the cut. Use the push stick, or leave that piece as waste.',
+    ],
+    safety: [
+      NARROW_RIP,
+      TABLE_SAW_KICKBACK,
+      RIP_BLADE,
+      GUARDS_STAY_ON,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
+    flags: [categoryFlag('table-saw')],
+    easierThan: ['rip-strips-track-saw'],
+    moreAccurateThan: ['rip-strips-band-saw', 'rip-strips-track-saw'],
+  },
+  {
+    id: 'rip-strips-band-saw',
+    operation: 'rip-strips',
+    name: 'With a band saw and a fence',
+    tools: [{ use: 'ripping the strips', anyOf: [{ tool: 'band-saw' }] }, TAPE],
+    skills: ['rip-along-a-fence'],
+    setup: [
+      'Set the fence {stripWidth} from the blade, and set the upper guide a little above the board, {thickness} thick.',
+      'Cut a push stick from scrap, narrow enough to fit between the blade and the fence.',
+    ],
+    technique: [
+      'Hold the board against the fence and feed it at an even speed for the whole {length}, finishing the cut with the push stick.',
+      'Rip the next strip with the freshly sawn edge against the fence, and so on across the board, {perBoard} strips from each board.',
+      'Rip {count} strips this way, from {boards} boards.',
+    ],
+    mistakes: [
+      'A band saw blade can lead to one side, so the board walks off the fence and the strip narrows. Make a test rip in scrap, and angle the fence to match the way the blade leads.',
+    ],
+    safety: [BAND_SAW_GUARD, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [],
+    easierThan: ['rip-strips-table-saw', 'rip-strips-track-saw'],
+    moreAccurateThan: ['rip-strips-track-saw'],
+  },
+  {
+    id: 'rip-strips-track-saw',
+    operation: 'rip-strips',
+    name: 'With a track saw',
+    tools: [{ use: 'ripping the strips', anyOf: [{ tool: 'track-saw' }] }, TAPE, CLAMPS],
+    skills: ['measure-and-mark', 'rip-along-a-fence'],
+    setup: ['Support the board flat on a sacrificial surface and clamp it.'],
+    technique: [
+      'Mark {stripWidth} in from the edge at both ends.',
+      'Lay the rail on the marks with the rail on the wide part of the board and the blade on the waste side of the strip, and cut the full {length}.',
+      'Mark and rip the next strip from the freshly sawn edge, and so on across the board, {perBoard} strips from each board.',
+      'Rip {count} strips this way, from {boards} boards.',
+    ],
+    mistakes: [
+      'Setting the rail on the strip side of the marks makes the strip narrow by the width of the blade. Keep the blade on the waste side.',
+      'Once the board gets narrow, the rail no longer sits flat on it and rocks during the cut. Leave the last narrow piece as waste.',
+    ],
+    safety: [
+      CIRCULAR_SAW_KICKBACK,
+      CLAMP_THE_WORK,
+      UNPLUG_TO_CHANGE,
+      EYE_PROTECTION,
+      HEARING_PROTECTION,
+    ],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Glue up strips (face to face). Wood Handbook ch. 10 (pp. 10-14 to 10-16): glue left open too
+  // long dries and does not wet the other surface, leaving a thick, weak glue line; pressure must
+  // be moderately high for the wood's density, higher for dense hardwoods, but too much starves
+  // the joint; uneven pressure from poorly mated surfaces makes thick and starved spots.
+  {
+    id: 'glue-up-strips-in-sections',
+    operation: 'glue-up-strips',
+    name: 'In sections, with clamps and cauls',
+    tools: [
+      {
+        use: 'clamping the strips',
+        anyOf: [{ tool: 'clamps', needs: [{ capability: 'maxOpening', atLeast: 'width' }] }],
+      },
+    ],
+    skills: ['glue-up-strips'],
+    setup: [
+      'Lay the {strips} strips out in order, turned so the faces that meet are flat and clean, and mark a line across them so they go back the same way.',
+      'Clamp them dry to check that every glue line closes along its length with light pressure, and open the clamps past {width}.',
+      'Cut straight scrap boards for cauls, as long as the glue-up is wide.',
+    ],
+    technique: [
+      'Glue a few strips at a time into sections: spread glue evenly on every face that meets another, bring them together, and clamp them.',
+      'Put clamps along the length close enough together that a small bead of glue squeezes out along every glue line, alternating them on the two faces that show the strips’ edges, and clamp cauls across to hold the strips level.',
+      'Once a section’s glue holds, scrape off the squeeze-out on its faces, then glue the sections together the same way.',
+      'Leave the last glue-up clamped for as long as the glue maker says.',
+      'Glue up {count} this way.',
+    ],
+    mistakes: [
+      'Spreading glue on every strip at once can take so long that the first faces dry before the clamps go on, and dried glue does not wet the other face. A section of a few strips goes together before that.',
+      'Clamping as hard as you can squeezes out the glue the joint needs. Tighten only until a small, even bead appears.',
+      'Strips that slip out of level leave a step on the edge faces deeper than flattening takes off. Keep the cauls tight and check each glue line with your fingers before the final tightening.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['glue-up-strips-at-once'],
+  },
+  {
+    id: 'glue-up-strips-at-once',
+    operation: 'glue-up-strips',
+    name: 'All at once, with clamps and cauls',
+    tools: [
+      {
+        use: 'clamping the strips',
+        anyOf: [{ tool: 'clamps', needs: [{ capability: 'maxOpening', atLeast: 'width' }] }],
+      },
+    ],
+    skills: ['glue-up-strips'],
+    setup: [
+      'Lay the {strips} strips out in order, turned so the faces that meet are flat and clean, and mark a line across them so they go back the same way.',
+      'Clamp them dry to check that every glue line closes along its length with light pressure, and open the clamps past {width}.',
+      'Cut straight scrap boards for cauls, as long as the glue-up is wide, and have a helper ready.',
+    ],
+    technique: [
+      'Spread glue evenly on every face that meets another, working quickly, and bring all {strips} strips together.',
+      'Put clamps along the length close enough together that a small bead of glue squeezes out along every glue line, alternating them on the two faces that show the strips’ edges, and clamp cauls across to hold the strips level.',
+      'Leave the glue-up clamped for as long as the glue maker says.',
+      'Glue up {count} this way.',
+    ],
+    mistakes: [
+      'Glue left open too long dries and does not wet the face it meets, leaving a weak glue line. Use a glue with a long open time, spread it quickly, or glue up in sections instead.',
+      'Clamping as hard as you can squeezes out the glue the joint needs. Tighten only until a small, even bead appears.',
+      'Strips that slip out of level leave a step on the edge faces deeper than flattening takes off. Keep the cauls tight and check each glue line with your fingers before the final tightening.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Flatten a strip glue-up (its two faces of sawn strip edges). Wood Handbook ch. 10 (p. 10-16):
+  // a glue-up surfaced before the water from the glue dries back gets sunken glue lines.
+  {
+    id: 'flatten-strips-thickness-planer',
+    operation: 'flatten-strips',
+    name: 'With a thickness planer',
+    tools: [
+      {
+        use: 'planing the faces',
+        anyOf: [
+          { tool: 'thickness-planer', needs: [{ capability: 'maxWidth', atLeast: 'width' }] },
+        ],
+      },
+      STRAIGHTEDGE,
+    ],
+    skills: ['flatten-a-glue-up'],
+    setup: [
+      'Let the glue-up rest for several days, so the wood along the glue lines dries back before you plane it.',
+      'Scrape off the dried glue on both faces that show the strips’ edges.',
+      'Set it on a flat surface. If it rocks, take the high corners down first: a planer copies a twist from the face beneath it.',
+    ],
+    technique: [
+      'Feed the glue-up with the grain on one edge face, taking light cuts, and turn it over each time so both faces come down evenly.',
+      'Stop when a straightedge laid across the {width} face touches everywhere, and plane both faces evenly down to {thickness} between them.',
+      'Flatten {count} this way.',
+    ],
+    mistakes: [
+      'Planing soon after glue-up leaves glue lines that sink below the surface as they dry. Wait several days.',
+      'Dried glue left on the faces dulls the knives. Scrape it off first.',
+    ],
+    safety: [PLANER_ROLLS, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('jointer-planer-lathe')],
+    easierThan: ['flatten-strips-router-sled', 'flatten-strips-hand-plane'],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'flatten-strips-router-sled',
+    operation: 'flatten-strips',
+    name: 'With a router on a sled',
+    tools: [{ use: 'cutting the faces flat', anyOf: [{ tool: 'router' }] }, STRAIGHTEDGE, CLAMPS],
+    skills: ['rout-along-a-guide', 'flatten-a-glue-up'],
+    setup: [
+      'Let the glue-up rest for several days, so the wood along the glue lines dries back before you rout it.',
+      'Scrape off the dried glue on both faces that show the strips’ edges.',
+      'Clamp two straight rails along both sides of the glue-up, their top edges level with each other and above the highest point of the face, and wedge the glue-up so it does not rock.',
+      'Make a sled that spans the rails with the router riding on it, and fit a wide straight bit set to reach the lowest spot.',
+    ],
+    technique: [
+      'Slide the sled along the rails and move the router across it in overlapping strokes, until the whole face is cut.',
+      'Turn the glue-up over, set it on the flattened face, and rout the other face the same way, lowering the bit until the glue-up is {thickness} between the two faces.',
+      'Check with a straightedge laid across the {width} face, along it, and corner to corner.',
+      'Flatten {count} this way.',
+    ],
+    mistakes: [
+      'Rails that are not level with each other cut a twist into the face. Check them with a straightedge laid across both before you start.',
+      'Taking the full depth at once makes the bit chatter and tear out. Lower it a little at a time.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED, CLAMP_THE_WORK, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('router')],
+    easierThan: ['flatten-strips-hand-plane'],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'flatten-strips-hand-plane',
+    operation: 'flatten-strips',
+    name: 'With a bench plane',
+    tools: [{ use: 'planing the faces', anyOf: [{ tool: 'bench-plane' }] }, STRAIGHTEDGE, CLAMPS],
+    skills: ['flatten-a-glue-up'],
+    setup: [
+      'Let the glue-up rest for several days, so the wood along the glue lines dries back before you plane it.',
+      'Scrape off the dried glue on both faces that show the strips’ edges, and clamp the glue-up so it does not rock.',
+    ],
+    technique: [
+      'Find the high spots with a straightedge laid across the {width} face, along it, and corner to corner, and mark them.',
+      'Plane the high spots down across the glue lines, then plane the whole face with the grain until the straightedge touches everywhere.',
+      'Turn the glue-up over and plane the other face the same way, until the glue-up is {thickness} between the two faces.',
+      'Flatten {count} this way.',
+    ],
+    mistakes: [
+      'Planing only along the length leaves the strips’ edges at different heights. Plane across the glue lines first.',
+      'A dull blade tears the grain where it changes direction from one strip to the next. Sharpen it, and take thin shavings.',
+    ],
+    safety: [],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: ['flatten-strips-router-sled'],
   },
 
   // Rip (a panel or board to its finished width)

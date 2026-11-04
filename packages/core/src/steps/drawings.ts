@@ -10,7 +10,7 @@ import {
   isometric,
   isometricView,
 } from '../geometry/index.ts';
-import { isPanel } from '../lumber/partStock.ts';
+import { isPanel, isStripGlueUp } from '../lumber/partStock.ts';
 import type { TemplateDefinition } from '../model/definition.ts';
 import { JOINING_OPERATION_TYPES } from '../model/operations.ts';
 import type { Part, Placement } from '../model/types.ts';
@@ -22,7 +22,8 @@ import { stepContents } from './build.ts';
 // Cutting steps show their board and site work the site layout, so they get none here. A step
 // that glues up panels draws each panel's boards side by side, pulled apart, with arrows to where
 // they meet: the seams there are a layout to follow, since where they fall depends on the boards
-// bought (owner's choice on #71). Made on read from stored outputs, like the other drawings.
+// bought (owner's choice on #71). A step that glues up strips draws them standing on edge, face
+// to face, pulled apart the same way. Made on read from stored outputs, like the other drawings.
 
 export interface StepDrawing {
   stepId: string;
@@ -46,7 +47,9 @@ export function stepDrawings<O>(
   for (const step of stepContents(template.steps(outputs), template.plan(outputs))) {
     if (step.board) continue;
     const glued = step.operations.flatMap((op) =>
-      op.type === 'glue-up' ? scene.parts.filter((p) => p.id === op.partId) : [],
+      op.type === 'glue-up' || op.type === 'glue-up-strips'
+        ? scene.parts.filter((p) => p.id === op.partId)
+        : [],
     );
     if (glued.length > 0) {
       drawings.push({ stepId: step.id, drawing: glueUpDrawing(glued, `Step: ${step.title}`) });
@@ -89,61 +92,87 @@ export function stepDrawings<O>(
   return drawings;
 }
 
-/** Space between boards pulled apart, and between panels, in board widths. */
+/** Space between boards or strips pulled apart, and between glue-ups, in board widths. */
 const GAP = 0.6;
 
+/** A board or strip of a glued-up part, drawn as the part with its size and square ends. */
+function piece(part: Part, length: number, stock: Part['stock']): Part {
+  return {
+    ...part,
+    length,
+    stock,
+    ends: [part.ends[0], part.ends[1]].map((e) => ({ ...e, setting: 0 })) as Part['ends'],
+    tapers: [],
+    holes: [],
+    boltAreas: [],
+    dadoes: [],
+    notches: [],
+    cutouts: [],
+  };
+}
+
 /**
- * Each panel's boards lying flat, side by side across its width, every board after the first
- * pulled away from the one before with an arrow back to where it meets it. A board is drawn as
- * the panel part with one board's width, one instance per board, so the drawing links to the
- * panel in the cut list.
+ * Each panel's boards lying flat, side by side across its width, and each strip glue-up's strips
+ * standing on edge, face to face across the glue-up, every board or strip after the first pulled
+ * away from the one before with an arrow back to where it meets it. A board or strip is drawn as
+ * the part with its own size, one instance each, so the drawing links to the part in the cut list.
  */
-function glueUpDrawing(panels: readonly Part[], title: string): Drawing {
+function glueUpDrawing(glued: readonly Part[], title: string): Drawing {
   const parts: Part[] = [];
   const placements: Placement[] = [];
   const explode: Explode[] = [];
+  const panels: string[] = [];
+  const stripped: string[] = [];
   let x = 0;
-  for (const part of panels) {
-    if (!isPanel(part.stock)) continue;
-    const { board, boards, boardLength } = part.stock;
-    parts.push({
-      ...part,
-      length: boardLength,
-      stock: { ...part.stock, width: board.width, thickness: board.thickness, boards: 1 },
-      ends: [part.ends[0], part.ends[1]].map((e) => ({ ...e, setting: 0 })) as Part['ends'],
-      tapers: [],
-      holes: [],
-      boltAreas: [],
-      dadoes: [],
-      notches: [],
-      cutouts: [],
-    });
-    for (let k = 0; k < boards; k++) {
+  const lay = (part: Part, pieces: number, length: number, step: number, onEdge: boolean) => {
+    for (let k = 0; k < pieces; k++) {
       placements.push({
         partId: part.id,
         instance: k,
-        origin: { x, y: k * board.width, z: 0 },
+        origin: { x, y: k * step, z: 0 },
         along: { x: 1, y: 0, z: 0 },
-        across: { x: 0, y: 1, z: 0 },
-        through: { x: 0, y: 0, z: 1 },
+        across: onEdge ? { x: 0, y: 0, z: 1 } : { x: 0, y: 1, z: 0 },
+        through: onEdge ? { x: 0, y: 1, z: 0 } : { x: 0, y: 0, z: 1 },
       });
       if (k > 0)
-        explode.push({
-          partId: part.id,
-          instance: k,
-          offset: { x: 0, y: k * GAP * board.width, z: 0 },
-        });
+        explode.push({ partId: part.id, instance: k, offset: { x: 0, y: k * GAP * step, z: 0 } });
     }
-    x += boardLength + GAP * board.width * boards;
+    x += length + GAP * step * pieces;
+  };
+  for (const part of glued) {
+    const { stock } = part;
+    const name = `${part.letter} ${part.name}`;
+    if (isPanel(stock)) {
+      const { board, boards, boardLength } = stock;
+      const one = { ...stock, width: board.width, thickness: board.thickness, boards: 1 };
+      parts.push(piece(part, boardLength, one));
+      lay(part, boards, boardLength, board.width, false);
+      panels.push(`${boards} boards for ${name}`);
+    } else if (isStripGlueUp(stock)) {
+      const { board, strips, stripLength, stripWidth } = stock;
+      parts.push(
+        piece(part, stripLength, { ...stock, width: stripWidth, thickness: board.thickness }),
+      );
+      lay(part, strips, stripLength, board.thickness, true);
+      stripped.push(`${strips} strips for ${name}`);
+    }
   }
-  const names = panels.map((p) =>
-    isPanel(p.stock) ? `${p.stock.boards} boards for ${p.letter} ${p.name}` : '',
-  );
+  const pieces = [panels.length > 0 && 'board', stripped.length > 0 && 'strip']
+    .filter(Boolean)
+    .join(' or ');
+  const description = [
+    ...(panels.length > 0 ? [`Glue up ${panels.join(', and ')}, edge to edge.`] : []),
+    ...(stripped.length > 0 ? [`Glue up ${stripped.join(', and ')}, face to face.`] : []),
+    `Each ${pieces} is drawn pulled away from the one before, with an arrow to where they meet.`,
+    ...(panels.length > 0
+      ? ['Where the seams fall is a layout to follow; lay out your own boards as you choose.']
+      : []),
+  ].join(' ');
   return actionView(
     { parts, placements },
     isometric(-1, -1),
     { added: new Set(parts.map((p) => p.id)), built: new Set(), explode },
-    `Glue up ${names.filter(Boolean).join(', and ')}, edge to edge. Each board is drawn pulled away from the one before, with an arrow to where they meet. Where the seams fall is a layout to follow; lay out your own boards as you choose.`,
+    description,
     title,
   );
 }

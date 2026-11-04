@@ -218,6 +218,11 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       </g>
     </>
   ),
+  'bench-plane': (
+    <>
+      <path d="M1 18 H23 V15.5 L21 14 H3 L1 15.5 Z M5 14 V12 A1.5 1.5 0 0 1 8 12 V14 M14 14 L16 8 H18.5 L18 14 M11 14 L13.5 10" />
+    </>
+  ),
   'block-plane': (
     <>
       <path d="M2 18 H22 V15 L19 12 H6 L3 15 Z M10 18 L15.5 9" />

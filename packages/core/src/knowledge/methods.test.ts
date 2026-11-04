@@ -159,6 +159,62 @@ describe('methods', () => {
     expect(() => fillMethodText('{depth}', miter)).toThrow('miter has no value {depth}');
   });
 
+  // Made-up strip glue-up operations, since no template on main glues strips yet. Lengths display
+  // to the sixteenth: 2.5625 is 2-9/16", 63.875 is 63-7/8", 18.75 is 18-3/4".
+  it("fills the strip glue-up methods with their operations' values", () => {
+    const on = { partId: 'top', count: 25 };
+    const ops: Operation[] = [
+      {
+        id: 'top/rip-strips',
+        type: 'rip-strips',
+        ...on,
+        boards: 13,
+        perBoard: 2,
+        stripWidth: 2.5625,
+        length: 63.875,
+        thickness: 0.75,
+      },
+      {
+        id: 'top/glue-up',
+        type: 'glue-up-strips',
+        ...on,
+        count: 1,
+        strips: 25,
+        width: 18.75,
+        depth: 2.5625,
+        length: 63.875,
+      },
+      {
+        id: 'top/flatten',
+        type: 'flatten-strips',
+        ...on,
+        count: 1,
+        width: 18.75,
+        length: 63.875,
+        thickness: 2.5,
+      },
+    ];
+    for (const op of ops) {
+      for (const m of methodsFor(op.type)) {
+        for (const text of texts(m)) expect(fillMethodText(text, op)).not.toMatch(/[{}]/);
+      }
+    }
+    const [rip, glue, flatten] = ops as [Operation, Operation, Operation];
+    expect(fillMethodText('Rip {count} strips this way, from {boards} boards.', rip)).toBe(
+      'Rip 25 strips this way, from 13 boards.',
+    );
+    expect(fillMethodText('{stripWidth}, {perBoard} from each', rip)).toBe('2-9/16", 2 from each');
+    expect(fillMethodText('{strips} strips, past {width}', glue)).toBe('25 strips, past 18-3/4"');
+    expect(fillMethodText('{thickness} between them', flatten)).toBe('2-1/2" between them');
+  });
+
+  it('puts the narrow-rip guidance on the table saw that rips strips, with its source', () => {
+    const table = methods.find((m) => m.id === 'rip-strips-table-saw');
+    const note = table?.safety.find((s) => s.text.includes('push stick'));
+    expect(note?.text).toMatch(/filler piece between the fence and the blade/);
+    expect(note?.sources[0]?.source).toBe('osha-woodworking-etool');
+  });
+
   it("fills every method's text for every operation the templates' worked examples produce", () => {
     for (const template of TEMPLATES) {
       for (const example of template.examples) {
