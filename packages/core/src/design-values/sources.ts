@@ -216,6 +216,29 @@ export const SOURCES = {
     url: 'https://woodsmith.com/article/metal-drawer-slides',
     note: 'Gives 1/2" of clearance on each side of the drawer for a typical side-mount slide, so the box is 1" narrower than its opening. It gives no lengths sold.',
   },
+  'fww-work-at-right-height-2017': {
+    title: 'Tricks for Working at the Right Height',
+    publisher: 'Fine Woodworking (Christian Becksvoort)',
+    edition: 'Issue 265, Tools & Shops 2018; web page November 1, 2017, read November 4, 2026',
+    url: 'https://www.finewoodworking.com/2017/11/01/work-at-the-right-height',
+    note: 'Gives a work surface at about the wrist as suiting most work, lower for planing, which takes more upper-body strength, and higher for sawing joinery and carving. Only the free part of the article was read.',
+  },
+  'popular-woodworking-best-bench-height-2019': {
+    title: 'The Best Height for a Workbench',
+    publisher:
+      'Popular Woodworking, Editors’ Blog (excerpt from Jim Tolpin, The New Traditional Woodworker)',
+    edition: 'Blog post, January 31, 2019, read November 4, 2026',
+    url: 'https://www.popularwoodworking.com/editors-blog/the-best-height-for-a-workbench/',
+    note: 'Gives wrist height as the compromise for most people, a planing surface at the wrist, and a joinery surface at or just below the elbow, as starting points for each person to adjust.',
+  },
+  'ansur-ii-explorer': {
+    title: 'ANSUR II Data Explorer',
+    publisher:
+      'ErgoAssessment, from the public data of the 2012 Anthropometric Survey of U.S. Army Personnel (Gordon et al., NATICK/TR-15/007, 2014)',
+    edition: 'Web page read November 4, 2026',
+    url: 'https://ergoassessment.cam/ansur-2-data-explorer/',
+    note: 'Medians, standing barefoot: stature 175.5 cm for 4,082 men and 162.6 cm for 1,986 women; wrist height, floor to the wrist with the arms hanging at the sides, 84.7 cm and 79.4 cm. The survey’s own report could not be read: its host refused automated readers.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

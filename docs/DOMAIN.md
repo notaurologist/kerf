@@ -60,6 +60,10 @@ Side-mount slides are bought hardware that size the drawer box (`model/drawerSli
 - **Refused:** an opening no wider than twice the clearance, an opening shallower than the shortest slide sold, and a longest length sold shorter than the shortest.
 - **Worked check.** An opening 21-13/16" wide and 22-1/2" deep, with 1/2" clearance and lengths 10" to 28" every 2": 21-13/16 − 1 = 20-13/16 wide, and 10 + ⌊(22.5 − 10) / 2⌋ × 2 = 22 deep, on 22" slides (`model/drawerSlide.test.ts`).
 
+## Work height
+
+A surface for hand work is commonly set at about the worker's wrist, standing with the arms at the sides: Fine Woodworking gives it as suiting most work, lower for planing, which takes more upper-body strength, and higher for sawing joinery and carving [30]; Popular Woodworking gives the wrist as the compromise for most people and the planing height, with joinery at or just below the elbow [31]. Both give it as a starting point to adjust. Kerf asks for the owner's height, which people know, and suggests wrist height from it as a rule of thumb: 0.485 of standing height, between the 2012 Army survey's medians of 84.7 / 175.5 = 0.483 for men and 79.4 / 162.6 = 0.488 for women [32], to the nearest 1/16 (`knowledge/workHeight.ts`, #582). The suggestion says how to measure the owner's own wrist for a closer fit. Worked check: 70" tall gives 33.95, so 33-15/16".
+
 ## Measuring and marking
 
 - Measure from a consistent reference end and face.
@@ -290,6 +294,9 @@ The site layout draws the frame's footprint at grade plus these zones, with each
 27. Gochnour, C., Laying Out Dovetails, Fine Woodworking, issue 190, March/April 2007, read November 2026: Anatomy of a strong joint (slope and why, half pins, pins, spacing, which board is which) and Keep the layout process simple (baselines): https://www.finewoodworking.com/2007/02/06/laying-out-dovetails
 28. Burton, K., Drawer Slides: The Inside Story, Woodcraft Magazine, April 8, 2014 (updated July 2, 2026), read November 4, 2026: Slide and drawer sizes (lengths sold, slide length against case depth, 1/2" per slide) and the tip to buy slides before building: https://www.woodcraft.com/blogs/cabinetry-furniture-making/drawer-slides-the-inside-story
 29. Raife, T., Metal Drawer Slides, Woodsmith, June 13, 2019, read November 4, 2026: 1/2" of clearance on each side of the drawer for a typical side-mount slide: https://woodsmith.com/article/metal-drawer-slides
+30. Becksvoort, C., Tricks for Working at the Right Height, Fine Woodworking, issue 265 (Tools & Shops 2018), November 1, 2017, read November 4, 2026 (the free part): a bench at about the wrist for most work, lower for planing, higher for joinery and carving: https://www.finewoodworking.com/2017/11/01/work-at-the-right-height
+31. Popular Woodworking Editors, The Best Height for a Workbench, January 31, 2019, an excerpt from Tolpin, J., The New Traditional Woodworker, read November 4, 2026: wrist height for most people and for planing, at or just below the elbow for joinery: https://www.popularwoodworking.com/editors-blog/the-best-height-for-a-workbench/
+32. ErgoAssessment, ANSUR II Data Explorer, read November 4, 2026: medians of stature and wrist height (arms at the sides, barefoot) for 4,082 men and 1,986 women, from the public data of Gordon, C. C., et al., 2012 Anthropometric Survey of U.S. Army Personnel: Methods and Summary Statistics, NATICK/TR-15/007, 2014. The report itself refused automated readers: https://ergoassessment.cam/ansur-2-data-explorer/
 
 Actual (dressed) lumber sizes come from NDS Supplement Table 1B (source 4), whose sizes conform to the American Softwood Lumber Standard, PS 20-20 (Supplement 3.1).
 
