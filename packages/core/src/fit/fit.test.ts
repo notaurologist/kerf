@@ -219,7 +219,8 @@ describe('tongues', () => {
   it('accepts a tongue in the groove, and reports one too thick for it', () => {
     expect(checks([frame, panel(0.125)], placements)).toEqual([]);
     // Rabbeted 1/16 on each face, the tongue is 3/8, wider than the 1/4 groove.
-    expect(checks([frame, panel(0.0625)], placements)).toEqual(['tongue panel']);
+    // It is also wider than the groove, so the panel's edge runs into the frame beside it.
+    expect(checks([frame, panel(0.0625)], placements)).toEqual(['tongue panel', 'overlap frame']);
   });
 
   it('accepts a tongue rabbeted from one face only, flush with the groove’s wall', () => {
@@ -308,6 +309,75 @@ describe('tongues', () => {
     // The left side's groove stopped 6 up, at z = 6-3/4: the tongue from there to the top's
     // groove at 8 lies in none.
     expect(checks([...box(6), back], placed)).toEqual(['tongue back']);
+  });
+});
+
+describe('parts that overlap', () => {
+  // Two 3/4 boards 10 long and 4 wide, lying flat, the second on the first at z = 3/4.
+  const flat = (id: string) => part(id, 10, 4, 0.75);
+  const at2 = (x: number, z: number) => [
+    place('a', at(0, 0, 0), X, Y, Z),
+    place('b', at(x, 0, z), X, Y, Z),
+  ];
+
+  it('accepts parts that only touch, and reports one sunk 1/8 into another', () => {
+    expect(checks([flat('a'), flat('b')], at2(0, 0.75))).toEqual([]);
+    expect(checks([flat('a'), flat('b')], at2(0, 0.625))).toEqual(['overlap a']);
+  });
+
+  it('allows 1/64 for a snug fit', () => {
+    expect(checks([flat('a'), flat('b')], at2(0, 0.75 - 1 / 64))).toEqual([]);
+  });
+
+  it('accepts a part where it reaches into another’s cut, though no joint names it', () => {
+    // A dado 1/4 deep across a's top face, x 2 to 2-3/4, named for some other part: b stands on
+    // end in it.
+    const dado = {
+      withPart: 'other',
+      face: 'far' as const,
+      u0: 2,
+      u1: 2.75,
+      v0: 0,
+      v1: 4,
+      depth: 0.25,
+    };
+    const standing = part('b', 6, 4, 0.75);
+    const placed = [
+      place('a', at(0, 0, 0), X, Y, Z),
+      // Along z from the dado's bottom, z = 1/2, its thickness x 2 to 2-3/4.
+      place('b', at(2.75, 0, 0.5), Z, Y, minus(X)),
+    ];
+    const problems = checks([part('a', 10, 4, 0.75, { dadoes: [dado] }), standing], placed);
+    expect(problems.filter((p) => p.startsWith('overlap'))).toEqual([]);
+  });
+});
+
+describe('holes that go through', () => {
+  // A 2 thick block, a 3/4 hole bored down through it at its middle, onto a board below.
+  const block = (holes: Part['boredHoles']) => part('block', 6, 6, 2, { boredHoles: holes });
+  const hole = {
+    use: 'for a dog',
+    diameter: 0.75,
+    entry: { u: 3, v: 3, n: 2 },
+    direction: { u: 0, v: 0, n: -1 },
+    depth: 2,
+    through: true,
+  };
+  const placed = (boardX: number) => [
+    place('block', at(0, 0, 0), X, Y, Z),
+    place('below', at(boardX, 0, -0.75), X, Y, Z),
+  ];
+
+  it('accepts a hole that comes out into the open, and reports one that runs into a part', () => {
+    expect(checks([block([hole]), part('below', 6, 6, 0.75)], placed(10))).toEqual([]);
+    expect(checks([block([hole]), part('below', 6, 6, 0.75)], placed(0))).toEqual(['hole block']);
+  });
+
+  it('accepts a hole that comes out into a hole bored in line with it', () => {
+    // The board below bored through at the same place, as the next jaw of a vise is.
+    const inLine = { ...hole, entry: { u: 3, v: 3, n: 0.75 }, depth: 0.75 };
+    const below = part('below', 6, 6, 0.75, { boredHoles: [inLine] });
+    expect(checks([block([hole]), below], placed(0))).toEqual([]);
   });
 });
 
