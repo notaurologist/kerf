@@ -170,6 +170,18 @@ From three audits of November 2, 2026, run alongside the second engineering revi
 
 **Accept when:** every High and Medium finding is fixed or closed with a recorded reason; structural changes have hand-checked worked examples and bump the template version; the printed plan and the phone screens are checked for both templates; and the decisions are recorded.
 
+## Joint model adoption
+
+The owner adopted the joint model on November 4, 2026 (decision 0020), after the workbench was built joint-first (#577). Templates now place their parts and declare the joints between them, and the joints give the lengths, end cuts, and features. One step per pull request, in order:
+
+1. Move the joints into core (#624).
+2. Rewrite the record cabinet with joints, with output unchanged (#625), and record a mitered end on a tenon, which bumps its version (#629).
+3. Rewrite the swing set with joints, with a version bump for last-bit differences (#626).
+4. Add the workbench to the app (#627).
+5. Remove the exploration (#628).
+
+**Accept when:** all three templates are declared as joints in core, pass their fit checks and sweeps, and their worked examples match their specs; the workbench is offered in the app; and the docs and the `kerf-template` skill describe the joint way.
+
 ## Explorations
 
 Outside the order above. Educational directions beyond the MVP, listed with how they stay apart from the deployed app in `EXPLORATIONS.md`. Agents do not pick these issues up unless the owner names one. Issues #543 to #548.
