@@ -195,6 +195,13 @@ export const SOURCES = {
     url: 'https://www.finewoodworking.com/2007/02/06/laying-out-dovetails',
     note: 'Gives 1:6 in softwood and 1:8 in hardwood because softwood fibers compress more easily, half pins 1/4" to 3/8" and interior pins 1/8" to 1/4" at their narrow ends, spacing 3/4" to 2" on center, and the baseline at the mating board’s thickness.',
   },
+  'popular-woodworking-round-holes-2010': {
+    title: 'I Have a Dog in this Fight',
+    publisher: 'Popular Woodworking, Shop Blog (Christopher Schwarz)',
+    edition: 'Blog post, April 26, 2010, read November 2026',
+    url: 'https://www.popularwoodworking.com/editors-blog/i-have-a-dog-in-this-fight/',
+    note: 'For the common round hole that bought hold-downs and stops fit. A Lost Art Press post making the same point could not be read: its site refused automated readers.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

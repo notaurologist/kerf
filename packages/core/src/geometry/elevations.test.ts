@@ -35,6 +35,7 @@ const board = (id: string, letter: string): Part => ({
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
 });
 const at = (x: number, y: number, z: number) => ({ x, y, z });
 /** Lying flat: along x, across y, through z (up). */

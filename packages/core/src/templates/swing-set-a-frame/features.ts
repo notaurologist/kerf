@@ -45,6 +45,7 @@ export interface PartFeatures {
   grooves: [];
   rabbets: [];
   recesses: [];
+  boredHoles: [];
 }
 
 /** Where a board's bolts go, at each end, in the board's own frame. */
@@ -248,6 +249,7 @@ export function features(
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
     },
     leg: {
       referenceEdge: 'inner edge, against the beam',
@@ -264,6 +266,7 @@ export function features(
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
     },
     crossbar: {
       referenceEdge: 'bottom edge',
@@ -280,6 +283,7 @@ export function features(
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
     },
     gusset: {
       referenceEdge: 'bottom edge',
@@ -296,6 +300,7 @@ export function features(
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
     },
   };
 }

@@ -165,6 +165,12 @@ export const SKILLS = [
       'Mark the hole center on both outer faces from the same reference, drill each side past halfway, and check that the holes meet.',
   },
   {
+    id: 'bore-to-a-depth',
+    name: 'Boring holes to a depth',
+    description:
+      'Set a stop or mark on the bit so every hole ends at the same depth, with its center on the mark and the bit square to the face.',
+  },
+  {
     id: 'ease-an-edge',
     name: 'Easing edges',
     description:

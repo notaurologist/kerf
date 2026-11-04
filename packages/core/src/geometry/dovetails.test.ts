@@ -24,6 +24,7 @@ const base = {
   selection: [],
   referenceEdge: 'bottom edge',
   holes: [],
+  boredHoles: [],
   boltAreas: [],
   tapers: [],
   dadoes: [],

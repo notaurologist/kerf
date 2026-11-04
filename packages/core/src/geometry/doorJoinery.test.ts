@@ -32,6 +32,7 @@ const base = {
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
   stock: stock('2x4'),
 };
 const stile: Part = {

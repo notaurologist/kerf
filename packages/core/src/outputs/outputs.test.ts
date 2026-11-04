@@ -50,6 +50,7 @@ describe('cutList', () => {
     grooves: [],
     rabbets: [],
     recesses: [],
+    boredHoles: [],
   };
 
   it('formats stock, length, ends, and marks', () => {
@@ -101,6 +102,7 @@ describe('planLumber, edge cases', () => {
     grooves: [],
     rabbets: [],
     recesses: [],
+    boredHoles: [],
   });
 
   it('reports a part longer than any board instead of dropping it', () => {
@@ -185,6 +187,7 @@ describe('panels', () => {
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
     };
   };
 
@@ -447,6 +450,7 @@ describe('parts cut straight from board stock', () => {
     grooves: [],
     rabbets: [],
     recesses: [],
+    boredHoles: [],
   };
 
   it('plans them on the stock’s own lengths', () => {
@@ -523,6 +527,7 @@ describe('strip glue-ups', () => {
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
     };
   };
   // lumber/strips.test.ts works both: the top is 25 strips 2-9/16" wide and 63-7/8" long, two to

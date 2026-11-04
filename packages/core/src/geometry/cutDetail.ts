@@ -1,5 +1,6 @@
 import { type DovetailSide, dovetailGeometry } from '../joinery/dovetails.ts';
-import { type Part, widthTapers } from '../model/types.ts';
+import { boredSide } from '../model/operations.ts';
+import { type BoredHole, type Part, widthTapers } from '../model/types.ts';
 import { endName } from '../outputs/cutList.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
@@ -11,10 +12,11 @@ import { boundsOf } from './primitives.ts';
 // A part's cut detail (#90; docs/design/diagrams.html, Cut details): its face in its own plane,
 // the long axis across the page, the first end on the left and the reference edge at the bottom.
 // Overall length above, edge lengths below, each end's saw setting and angle to the edge with a
-// square line and arc, the reference face mark, the grain arrow, holes, dadoes (solid on the face
-// shown, dashed on the other), notches and cutouts in the outline, a taper's waste drawn dashed,
-// and dovetails' waste hatched. A part more than 10 times longer than wide is drawn in pieces
-// around its ends and holes, with break lines between; dimensions still give the full lengths.
+// square line and arc, the reference face mark, the grain arrow, holes and bored holes, dadoes
+// (solid on the face shown, dashed on the other), notches and cutouts in the outline, a taper's
+// waste drawn dashed, and dovetails' waste hatched. A part more than 10 times longer than wide
+// is drawn in pieces around its ends and holes, with break lines between; dimensions still give
+// the full lengths.
 
 const RAD = Math.PI / 180;
 /** Gap left on the page where a stretch of a long part is broken out, in widths. */
@@ -40,6 +42,7 @@ function windows(part: Part, outline: readonly UV[]): Window[] {
     [min, min + reach],
     [max - reach, max],
     ...part.holes.map((h) => [h.entry.u - W, h.entry.u + W]),
+    ...part.boredHoles.map((h) => [h.entry.u - W, h.entry.u + W]),
     ...part.tapers.map((tp) => [min, Math.max(tp.start.u, tp.end.u) + W]),
   ]
     .map(([a, b]) => [Math.max(min, a as number), Math.min(max, b as number)] as const)
@@ -173,6 +176,72 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
           points: [
             page({ u: hole.entry.u + k * side.u, v: hole.entry.v + k * side.v }),
             page({ u: end.u + k * side.u, v: end.v + k * side.v }),
+          ],
+          part: ref,
+        });
+      }
+      prims.push({
+        kind: 'line',
+        role: 'center',
+        points: [page(hole.entry), page(end)],
+        part: ref,
+      });
+    }
+  }
+
+  // Bored holes: into a face, a circle with center lines, solid when it shows on the face shown
+  // (bored from it, or through) and dashed when stopped in the back face; into an edge or end,
+  // hidden lines along the bore as deep as it goes.
+  const T = part.stock.thickness;
+  for (const hole of part.boredHoles) {
+    const r = hole.diameter / 2;
+    const c = page(hole.entry);
+    if (boredSide(hole) === 'n') {
+      const shows = hole.through || hole.entry.n > T / 2;
+      prims.push({
+        kind: 'circle',
+        role: shows ? 'visible' : 'hidden',
+        center: c,
+        radius: r,
+        part: ref,
+      });
+      for (const [dx, dy] of [
+        [1, 0],
+        [0, 1],
+      ] as const) {
+        prims.push({
+          kind: 'line',
+          role: 'center',
+          points: [
+            { x: c.x - 1.4 * r * dx, y: c.y - 1.4 * r * dy },
+            { x: c.x + 1.4 * r * dx, y: c.y + 1.4 * r * dy },
+          ],
+          part: ref,
+        });
+      }
+    } else {
+      const d = { u: hole.direction.u, v: hole.direction.v };
+      const k = Math.hypot(d.u, d.v);
+      const side = { u: (-d.v / k) * r, v: (d.u / k) * r };
+      const end = { u: hole.entry.u + d.u * hole.depth, v: hole.entry.v + d.v * hole.depth };
+      for (const s of [1, -1]) {
+        prims.push({
+          kind: 'line',
+          role: 'hidden',
+          points: [
+            page({ u: hole.entry.u + s * side.u, v: hole.entry.v + s * side.v }),
+            page({ u: end.u + s * side.u, v: end.v + s * side.v }),
+          ],
+          part: ref,
+        });
+      }
+      if (!hole.through) {
+        prims.push({
+          kind: 'line',
+          role: 'hidden',
+          points: [
+            page({ u: end.u + side.u, v: end.v + side.v }),
+            page({ u: end.u - side.u, v: end.v - side.v }),
           ],
           part: ref,
         });
@@ -417,6 +486,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   const across = part.dadoes.filter((d) => d.u0 > 1e-9 || d.u1 < part.length - 1e-9);
   const positions = [
     ...holes.map((h) => ({ u: h.entry.u, from: -h.entry.v + 0.6 * h.diameter })),
+    ...part.boredHoles.map((h) => ({ u: h.entry.u, from: -h.entry.v + 0.6 * h.diameter })),
     ...across.flatMap((d) => [d.u0, d.u1].map((u) => ({ u, from: 0.1 * W }))),
   ];
   if (positions.length > 0) {
@@ -530,6 +600,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   const fromEnd = (end: 0 | 1, d: number) => (end === 0 ? d : part.length - d);
   const busy = [
     ...part.holes.map((h) => h.entry.u),
+    ...part.boredHoles.map((h) => h.entry.u),
     ...part.tapers.flatMap((t) => [t.start.u, t.end.u, 0]),
     ...part.dadoes.flatMap((d) => [d.u0, d.u1]),
     ...part.notches.map((n) => fromEnd(n.end, n.along)),
@@ -627,6 +698,7 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       return `Mortise ${formatLength(m.u0)} from the first end, in ${where}: ${formatLength(m.u1 - m.u0)} long, ${formatLength(m.a1 - m.a0)} wide, ${formatLength(m.depth)} deep, starting ${formatLength(m.a0)} from ${from}.`;
     }),
     ...screwNotes(part),
+    ...boredNotes(part),
     ...part.grooves.map((g) => {
       const edge = g.edge === 'reference' ? `the ${part.referenceEdge}` : 'the far edge';
       const through = g.u0 <= 1e-9 && g.u1 >= L - 1e-9;
@@ -679,12 +751,12 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   return {
     title,
     partId: part.id,
-    description: `Cut detail for ${part.letter}, ${part.name}: ${formatLength(part.length)} overall${angles.length > 0 ? `, ends cut at ${angles.join(' and ')}` : ', ends square'}${part.holes.length > 0 ? `, ${part.holes.length} holes` : ''}.`,
+    description: `Cut detail for ${part.letter}, ${part.name}: ${formatLength(part.length)} overall${angles.length > 0 ? `, ends cut at ${angles.join(' and ')}` : ', ends square'}${part.holes.length > 0 ? `, ${part.holes.length} holes` : ''}${part.boredHoles.length > 0 ? `, ${part.boredHoles.length} bored holes` : ''}.`,
     bounds: boundsOf(prims, 0.3 * W),
     primitives: prims,
     notes: [
       `The face shown is the reference face (the loop). Angles are measured from the ${part.referenceEdge}, at the bottom.`,
-      ...(holes.length > 0
+      ...(holes.length > 0 || part.boredHoles.length > 0
         ? [
             `Hole positions are measured from the long point of ${whichEnd(0)}, along the reference edge.`,
           ]
@@ -692,6 +764,51 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       ...joinery,
     ],
   };
+}
+
+/**
+ * What the bored holes are, in words: one line for each that share a use, size, depth, side, and
+ * place across that side, with each one's distance from the first end.
+ */
+function boredNotes(part: Part): string[] {
+  const T = part.stock.thickness;
+  const sideOf = (h: BoredHole) => {
+    const side = boredSide(h);
+    if (side === 'n') return h.entry.n > T / 2 ? 'the face shown' : 'the back face';
+    if (side === 'v')
+      return h.entry.v < part.stock.width / 2 ? `the ${part.referenceEdge}` : 'the far edge';
+    return h.entry.u < part.length / 2 ? 'the first end' : 'the second end';
+  };
+  const across = (h: BoredHole) => {
+    const side = boredSide(h);
+    const fromEdge = `${formatLength(h.entry.v)} from the ${part.referenceEdge}`;
+    const fromBack = `${formatLength(h.entry.n)} from the back face`;
+    return side === 'n' ? fromEdge : side === 'v' ? fromBack : `${fromEdge} and ${fromBack}`;
+  };
+  const groups = new Map<string, BoredHole[]>();
+  for (const h of part.boredHoles) {
+    const deep = h.through ? 'through' : `${formatLength(h.depth)} deep`;
+    const key = [h.use, formatLength(h.diameter), deep, sideOf(h), across(h)].join('\n');
+    groups.set(key, [...(groups.get(key) ?? []), h]);
+  }
+  return [...groups.entries()].map(([key, hs]) => {
+    const [use, diameter, deep, side, place] = key.split('\n') as [
+      string,
+      string,
+      string,
+      string,
+      string,
+    ];
+    const first = hs[0] as BoredHole;
+    const dashed = !first.through && side === 'the back face' ? ' (dashed)' : '';
+    const along =
+      boredSide(first) === 'u'
+        ? ''
+        : `, at ${hs.map((h) => formatLength(h.entry.u)).join(', ')} from the first end`;
+    const count = hs.length === 1 ? 'one' : `${hs.length}`;
+    const holes = hs.length === 1 ? 'hole' : 'holes';
+    return `Bore ${count} ${diameter} ${holes} ${use}, ${deep}, into ${side}${dashed}, ${place}${along}.`;
+  });
 }
 
 /** What the screw holes are, in words: how many are round, and how long and which way the slots run. */

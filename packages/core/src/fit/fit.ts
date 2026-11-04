@@ -1,5 +1,6 @@
 import { dovetailGeometry } from '../joinery/dovetails.ts';
-import type { Dovetails, Part, Placement, Vec3 } from '../model/types.ts';
+import { boredSide } from '../model/operations.ts';
+import type { BoredHole, Dovetails, Part, Placement, Vec3 } from '../model/types.ts';
 import type { HardwareLine } from '../outputs/hardwareList.ts';
 
 // Whether a plan's parts go together, from what each part records and where each piece is placed
@@ -77,10 +78,65 @@ function endFace(part: Part, end: 0 | 1, v: [number, number], n: [number, number
   return grid([end === 0 ? 0 : part.length], v, n);
 }
 
+const RAD = Math.PI / 180;
+
+/** Whether a point in a part's frame is in its wood, between its end cuts (Placement). */
+function inPart(part: Part, p: UVN): boolean {
+  const { width: W, thickness: T } = part.stock;
+  const [first, second] = part.ends.map((e) => Math.tan(e.setting * RAD)) as [number, number];
+  const u1 = part.endsParallel ? part.length - (W - p.v) * second : part.length - p.v * second;
+  return within(p.v, [0, W]) && within(p.n, [0, T]) && within(p.u, [p.v * first, u1]);
+}
+
+/**
+ * Where a bored hole goes wrong in its part, or nothing: it enters on the face, edge, or square end
+ * its direction faces, into the wood; its rim stays in the wood from the entry to its bottom; and it comes out
+ * on the far side when it is through, and stops short of it when it is not.
+ */
+function boredProblem(part: Part, h: BoredHole): string | null {
+  const d = h.direction;
+  const name = `A ${h.diameter} hole ${h.use} at u ${h.entry.u}, v ${h.entry.v}, n ${h.entry.n}`;
+  if (!same(Math.hypot(d.u, d.v, d.n), 1))
+    return `${name} has a direction that is not a unit vector.`;
+  const axis = boredSide(h);
+  const size = { u: part.length, v: part.stock.width, n: part.stock.thickness }[axis];
+  const inward = d[axis] > 0 ? 0 : size;
+  if (!same(h.entry[axis], inward)) return `${name} does not start on the side it is bored into.`;
+  const bottom = {
+    u: h.entry.u + d.u * h.depth,
+    v: h.entry.v + d.v * h.depth,
+    n: h.entry.n + d.n * h.depth,
+  };
+  // Two directions square to the bore, each the radius long, for points on its rim.
+  const helper = axis === 'u' ? { u: 0, v: 1, n: 0 } : { u: 1, v: 0, n: 0 };
+  const cross = (a: UVN, b: UVN) => ({
+    u: a.v * b.n - a.n * b.v,
+    v: a.n * b.u - a.u * b.n,
+    n: a.u * b.v - a.v * b.u,
+  });
+  const scale = (a: UVN, k: number) => {
+    const len = Math.hypot(a.u, a.v, a.n);
+    return { u: (a.u / len) * k, v: (a.v / len) * k, n: (a.n / len) * k };
+  };
+  const r = h.diameter / 2;
+  const s1 = scale(cross(d, helper), r);
+  const s2 = scale(cross(d, s1), r);
+  const rim = [h.entry, bottom].flatMap((c) =>
+    [s1, s2].flatMap((s) =>
+      [1, -1].map((k) => ({ u: c.u + k * s.u, v: c.v + k * s.v, n: c.n + k * s.n })),
+    ),
+  );
+  if (!rim.every((p) => inPart(part, p))) return `${name} runs past the part.`;
+  const out = same(bottom[axis], size - inward);
+  if (h.through && !out) return `${name} is through, but its ${h.depth} stops inside the part.`;
+  if (!h.through && out) return `${name} is stopped, but its ${h.depth} comes out the far side.`;
+  return null;
+}
+
 /**
  * Every cut a part records lies within the part: a dado, mortise, or groove inside its stock and
- * length, and a tenon inside its end. The two sides of a joint can agree with each other and both
- * be outside the wood.
+ * length, a tenon inside its end, and a bored hole in the wood, through or stopped as it says. The
+ * two sides of a joint can agree with each other and both be outside the wood.
  */
 function withinProblems(pieces: readonly Piece[]): FitProblem[] {
   const parts = [...new Map(pieces.map((p) => [p.part.id, p.part])).values()];
@@ -137,6 +193,10 @@ function withinProblems(pieces: readonly Piece[]): FitProblem[] {
         return dovetailGeometry(d, W, d.board === 'tails' ? d.baseline : T)
           ? []
           : [`${at} do not fit across the part's ${W} width.`];
+      }),
+      ...part.boredHoles.flatMap((h) => {
+        const problem = boredProblem(part, h);
+        return problem ? [problem] : [];
       }),
     ];
     return outside.map((message) => ({
