@@ -522,6 +522,7 @@ describe('strip glue-ups', () => {
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
     };
   };
   // lumber/strips.test.ts works both: the top is 25 strips 2-9/16" wide and 63-7/8" long, two to
