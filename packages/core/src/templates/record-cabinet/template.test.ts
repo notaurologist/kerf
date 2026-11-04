@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { solid } from '../../geometry/solid.ts';
 import { cross, dot, sub, unit } from '../../geometry/vec.ts';
-import { isPanel } from '../../lumber/panel.ts';
+import { isPanel } from '../../lumber/partStock.ts';
 import type { Part, Placement, Vec3 } from '../../model/types.ts';
 import { createSnapshot } from '../../snapshot/snapshot.ts';
 import { recordCabinet } from './definition.ts';

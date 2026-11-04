@@ -10,7 +10,7 @@ import {
   isometric,
   isometricView,
 } from '../geometry/index.ts';
-import { isPanel } from '../lumber/panel.ts';
+import { isPanel } from '../lumber/partStock.ts';
 import type { TemplateDefinition } from '../model/definition.ts';
 import { JOINING_OPERATION_TYPES } from '../model/operations.ts';
 import type { Part, Placement } from '../model/types.ts';

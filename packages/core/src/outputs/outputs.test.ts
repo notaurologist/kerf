@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { type BoardStock, PartStock, panelStock } from '../lumber/panel.ts';
+import { type BoardStock, panelStock } from '../lumber/panel.ts';
+import { PartStock } from '../lumber/partStock.ts';
 import { stock } from '../lumber/stock.ts';
+import { type StripGlueUp, stripGlueUp } from '../lumber/strips.ts';
 import type { HardwareItem, Part } from '../model/types.ts';
 import { cutList, endName, panelMade } from './cutList.ts';
 import { hardwareList } from './hardwareList.ts';
@@ -461,5 +463,110 @@ describe('parts cut straight from board stock', () => {
     // Named like dimension lumber, it still keeps its own lengths.
     const twoByFour = { ...legStock, nominal: '2x4' };
     expect(PartStock.parse(twoByFour)).toEqual(twoByFour);
+  });
+});
+
+describe('strip glue-ups', () => {
+  const cherry: BoardStock = {
+    nominal: '1x6 cherry',
+    thickness: 0.75,
+    width: 5.5,
+    buyableFeet: [4, 6, 8],
+  };
+  const allowances = { rip: 0.5, trimPerEnd: 1, flatten: 1 / 16 };
+  const glued = (
+    id: string,
+    size: { thickness: number; width: number; length: number },
+    stackedAcross: StripGlueUp['stackedAcross'],
+    quantity: number,
+    given = allowances,
+  ): Part => {
+    const made = stripGlueUp({
+      ...size,
+      stackedAcross,
+      board: cherry,
+      allowances: given,
+      kerf: 0.125,
+    });
+    if (!made.ok) throw new Error(made.issue.message);
+    return {
+      id,
+      letter: 'A',
+      name: id === 'top' ? 'Top' : 'Leg',
+      role: id,
+      stock: made.stock,
+      quantity,
+      length: size.length,
+      markLengths: [],
+      ends: [
+        { setting: 0, description: 'Square', measuredFrom: 'reference-edge' },
+        { setting: 0, description: 'Square', measuredFrom: 'reference-edge' },
+      ],
+      endsParallel: true,
+      notes: [],
+      selection: [],
+      referenceEdge: 'front edge',
+      holes: [],
+      boltAreas: [],
+      tapers: [],
+      dadoes: [],
+      notches: [],
+      cutouts: [],
+      mortises: [],
+      tenons: [],
+      screwHoles: [],
+      grooves: [],
+      rabbets: [],
+      recesses: [],
+    };
+  };
+  // lumber/strips.test.ts works both: the top is 25 strips 2-9/16" wide and 63-7/8" long, two to
+  // a board; each leg is 5 strips 3-1/16" wide and 36" long, one to a board.
+  const top = glued('top', { thickness: 2.5, width: 17.625, length: 61.875 }, 'width', 1);
+  const legs = glued('leg', { thickness: 3, width: 3, length: 34 }, 'thickness', 4);
+
+  it('lists a glue-up with its finished size and the strips it is glued from', () => {
+    const [row] = cutList([top]);
+    expect(row?.stock).toBe('Glue-up (2-1/2" x 17-5/8")');
+    expect(row?.strips).toEqual({
+      strips: 25,
+      stripWidth: '2-9/16"',
+      stripLength: '63-7/8"',
+      recipe:
+        '25 strips of 1x6 cherry (3/4" x 5-1/2"), each 2-9/16" wide and 63-7/8" long, 2 ripped from each board, glued face to face to 18-3/4" and ripped to 17-5/8", then flattened to 2-1/2"',
+    });
+    expect(row).not.toHaveProperty('panel');
+    // With no rip allowance, four strips glue up to 3" exactly, with nothing to rip off.
+    const exact = glued('leg', { thickness: 3, width: 3, length: 34 }, 'thickness', 1, {
+      ...allowances,
+      rip: 0,
+    });
+    expect(cutList([exact])[0]?.strips?.recipe).toBe(
+      '4 strips of 1x6 cherry (3/4" x 5-1/2"), each 3-1/16" wide and 36" long, 1 ripped from each board, glued face to face to 3", then flattened to 3"',
+    );
+  });
+
+  it('buys boards for the strips, which parts of one kind share', () => {
+    // Default plan: 1/2" trim at each factory end, 1/8" kerf. The top's 13 boards each hold one
+    // 63-7/8" strip length: 1 + 64 = 65", so a 6' board (72"); two would need 129", more than 8'.
+    // The legs' ⌈4 · 5 / 1⌉ = 20 strip lengths of 36" go two to a board: 1 + 2 · 36-1/8 =
+    // 73-1/4", so 10 boards of 8', since 6' is 72". No leg strip fits beside a top strip:
+    // 96 − 65 = 31" left.
+    const plan = planLumber([top, legs]);
+    expect(plan.issues).toEqual([]);
+    expect(plan.lines.map((l) => [l.nominal, l.feet, l.count])).toEqual([
+      ['1x6 cherry', 6, 13],
+      ['1x6 cherry', 8, 10],
+    ]);
+    expect(plan.boards[0]?.pieces).toEqual([
+      { partId: 'top', name: 'Top board for strips', length: 63.875 },
+    ]);
+    // Two tops: ⌈2 · 25 / 2⌉ = 25 boards, one fewer than two tops' 13 each.
+    const two = planLumber([{ ...top, quantity: 2 }]);
+    expect(two.lines.map((l) => l.count)).toEqual([25]);
+  });
+
+  it('reads a glue-up part back unchanged', () => {
+    expect(PartStock.parse(top.stock)).toEqual(top.stock);
   });
 });

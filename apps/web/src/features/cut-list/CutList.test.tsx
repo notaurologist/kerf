@@ -1,4 +1,11 @@
-import { cutList, type PlannedCutRow, panelStock, stock, withSettings } from '@kerf/core';
+import {
+  cutList,
+  type PlannedCutRow,
+  panelStock,
+  stock,
+  stripGlueUp,
+  withSettings,
+} from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { render, renderText, textOf } from '../../test/render.tsx';
 import { CutList } from './CutList.tsx';
@@ -61,6 +68,29 @@ describe('the cut list with a panel', () => {
   it('leaves other parts as they were', () => {
     expect(text).toContain('4x4 (3-1/2" x 3-1/2")');
     expect(text.match(/Glued up from/g)).toHaveLength(1);
+  });
+});
+
+describe('the cut list with a strip glue-up', () => {
+  // Core's lumber/strips.test.ts works the numbers.
+  const top = stripGlueUp({
+    thickness: 2.5,
+    width: 17.625,
+    length: 61.875,
+    stackedAcross: 'width',
+    board: { nominal: '1x6 cherry', thickness: 0.75, width: 5.5, buyableFeet: [6] },
+    allowances: { rip: 0.5, trimPerEnd: 1, flatten: 1 / 16 },
+    kerf: 0.125,
+  });
+  if (!top.ok) throw new Error(top.issue.message);
+  const glued = [{ ...part, id: 'top', name: 'Top', stock: top.stock, length: 61.875 }];
+  const text = renderText(<CutList rows={withSettings(cutList(glued), glued)} />);
+
+  it("shows a glue-up's finished size as its stock, and its strips in the notes", () => {
+    expect(text).toContain('Glue-up (2-1/2" x 17-5/8")');
+    expect(text).toContain(
+      'Glued up from 25 strips of 1x6 cherry (3/4" x 5-1/2"), each 2-9/16" wide and 63-7/8" long, 2 ripped from each board, glued face to face to 18-3/4" and ripped to 17-5/8", then flattened to 2-1/2".',
+    );
   });
 });
 
