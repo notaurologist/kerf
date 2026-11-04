@@ -244,6 +244,45 @@ describe('tongues', () => {
     // A 3/8 tongue, y 2-11/16 to 3-1/16, is wider than the groove: neither holds the other.
     expect(checks([flat, panel(0.0625)], standing)).toEqual(['dado frame', 'tongue panel']);
   });
+
+  it('accepts a panel whose tongues run on into the grooves of the parts across them', () => {
+    // A box of 3/4 boards 4 wide along y: a bottom (z 0 to 3/4) and a top (z 8 to 8-3/4), 10
+    // long, and sides between them, inner faces at x = 3/4 and 9-1/4. Each is grooved end to end
+    // in its inner face, y 2-7/8 to 3-1/8, 3/8 deep. The 1/2 panel is 7-15/16 tall from z =
+    // 13/32 and 9-1/8 wide from x = 7/16, rabbeted to a 1/4 tongue all round, so its left edge
+    // runs from z = 13/32, in the bottom's groove, past the side's end at 3/4, into the side's.
+    const groove = (u1: number, face: 'near' | 'far') => ({
+      withPart: 'back',
+      face,
+      u0: 0,
+      u1,
+      v0: 2.875,
+      v1: 3.125,
+      depth: 0.375,
+    });
+    const box = (sideGroove = 7.25) => [
+      part('bottom', 10, 4, 0.75, { dadoes: [groove(10, 'far')] }),
+      part('top', 10, 4, 0.75, { dadoes: [groove(10, 'near')] }),
+      part('left', 7.25, 4, 0.75, { dadoes: [groove(sideGroove, 'near')] }),
+      part('right', 7.25, 4, 0.75, { dadoes: [groove(7.25, 'near')] }),
+    ];
+    const back = part('back', 7.9375, 9.125, 0.5, {
+      rabbets: (['reference', 'far', 'first-end', 'second-end'] as const).flatMap((edge) =>
+        (['near', 'far'] as const).map((face) => ({ edge, face, width: 0.375, depth: 0.125 })),
+      ),
+    });
+    const placed = [
+      place('bottom', at(0, 0, 0), X, Y, Z),
+      place('top', at(0, 0, 8), X, Y, Z),
+      place('left', at(0.75, 0, 0.75), Z, Y, minus(X)),
+      place('right', at(9.25, 0, 8), minus(Z), Y, X),
+      place('back', at(0.4375, 2.75, 0.40625), Z, X, Y),
+    ];
+    expect(checks([...box(), back], placed)).toEqual([]);
+    // The left side's groove stopped 6 up, at z = 6-3/4: the tongue from there to the top's
+    // groove at 8 lies in none.
+    expect(checks([...box(6), back], placed)).toEqual(['tongue back']);
+  });
 });
 
 describe('bolts', () => {
