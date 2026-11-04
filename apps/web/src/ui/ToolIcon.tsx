@@ -203,6 +203,13 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <path d="M3 13 H6 M18 13 H21 M3 13 V15 M21 13 V15 M12 4 V2 M10 2 H14 M5 17.5 V21 M19 17.5 V21" />
     </>
   ),
+  'hinge-jig': (
+    <>
+      <rect x="3" y="15" width="18" height="5" rx="0.6" />
+      <rect x="7" y="8" width="10" height="7" rx="0.6" />
+      <path d="M3 15 V11 H7 M10 8 V3 M14 8 V3 M10 3 H14 M10 20 V17.5 H14 V20" />
+    </>
+  ),
   'dovetail-jig': (
     <>
       <rect x="2" y="13" width="20" height="7" rx="0.6" />

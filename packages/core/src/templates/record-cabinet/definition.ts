@@ -208,8 +208,6 @@ export const recordCabinet: TemplateDefinition<
     'partitions',
     'bay',
     'bays',
-    'door',
-    'doors',
     'jacket',
     'jackets',
     'turntable',

@@ -36,6 +36,7 @@ const base = {
   rabbets: [],
   recesses: [],
   boredHoles: [],
+  hingePlates: [],
 };
 const down = { u: 0, v: 0, n: -1 };
 const up = { u: 0, v: 0, n: 1 };

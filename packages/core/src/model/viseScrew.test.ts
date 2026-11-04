@@ -47,6 +47,7 @@ const jaw = (boredHoles: Part['boredHoles']): Part => ({
   rabbets: [],
   recesses: [],
   boredHoles,
+  hingePlates: [],
 });
 const placed = (part: Part) =>
   fitProblems({

@@ -922,6 +922,15 @@
           "hardwareIds": []
         },
         {
+          "category": "load-bearing",
+          "ask": "Ask an experienced builder whether 3/16\" of wood above the door tracks holds the top's front edge.",
+          "why": "Tracks 9/16\" deep in the underside of a 3/4\" top leave 3/16\" above them, and no source gives a limit.",
+          "partIds": [
+            "top"
+          ],
+          "hardwareIds": []
+        },
+        {
           "category": "wood-movement",
           "ask": "Ask an experienced builder whether the back rails, glued into dadoes with their grain across the sides’ grain, will let the sides move.",
           "why": "The sides move front to back with the seasons; a rail glued across them resists it at the back corners. The Wood Movement section estimates how much.",
@@ -4068,6 +4077,12 @@
                 "category": "load-bearing",
                 "ask": "Ask an experienced builder whether 3/8\" of wood between each partition's back-to-back dadoes holds the back rails.",
                 "why": "Dadoes 3/16\" deep on both faces of a 3/4\" partition leave 3/8\" between them, and no source gives a limit.",
+                "sources": []
+              },
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder whether 3/16\" of wood above the door tracks holds the top's front edge.",
+                "why": "Tracks 9/16\" deep in the underside of a 3/4\" top leave 3/16\" above them, and no source gives a limit.",
                 "sources": []
               },
               {
@@ -24788,6 +24803,12 @@
                 "sources": []
               },
               {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder whether 3/16\" of wood above the door tracks holds the top's front edge.",
+                "why": "Tracks 9/16\" deep in the underside of a 3/4\" top leave 3/16\" above them, and no source gives a limit.",
+                "sources": []
+              },
+              {
                 "category": "wood-movement",
                 "ask": "Ask an experienced builder whether the back rails, glued into dadoes with their grain across the sides’ grain, will let the sides move.",
                 "why": "The sides move front to back with the seasons; a rail glued across them resists it at the back corners. The Wood Movement section estimates how much.",
@@ -42947,6 +42968,15 @@
           "hardwareIds": []
         },
         {
+          "category": "load-bearing",
+          "ask": "Ask an experienced builder whether 3/16\" of wood above the door tracks holds the top's front edge.",
+          "why": "Tracks 9/16\" deep in the underside of a 3/4\" top leave 3/16\" above them, and no source gives a limit.",
+          "partIds": [
+            "top"
+          ],
+          "hardwareIds": []
+        },
+        {
           "category": "wood-movement",
           "ask": "Ask an experienced builder whether the back rails, glued into dadoes with their grain across the sides’ grain, will let the sides move.",
           "why": "The sides move front to back with the seasons; a rail glued across them resists it at the back corners. The Wood Movement section estimates how much.",
@@ -45232,6 +45262,12 @@
                 "category": "load-bearing",
                 "ask": "Ask an experienced builder whether 3/8\" of wood between each partition's back-to-back dadoes holds the back rails.",
                 "why": "Dadoes 3/16\" deep on both faces of a 3/4\" partition leave 3/8\" between them, and no source gives a limit.",
+                "sources": []
+              },
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder whether 3/16\" of wood above the door tracks holds the top's front edge.",
+                "why": "Tracks 9/16\" deep in the underside of a 3/4\" top leave 3/16\" above them, and no source gives a limit.",
                 "sources": []
               },
               {
@@ -65949,6 +65985,12 @@
                 "category": "load-bearing",
                 "ask": "Ask an experienced builder whether 3/8\" of wood between each partition's back-to-back dadoes holds the back rails.",
                 "why": "Dadoes 3/16\" deep on both faces of a 3/4\" partition leave 3/8\" between them, and no source gives a limit.",
+                "sources": []
+              },
+              {
+                "category": "load-bearing",
+                "ask": "Ask an experienced builder whether 3/16\" of wood above the door tracks holds the top's front edge.",
+                "why": "Tracks 9/16\" deep in the underside of a 3/4\" top leave 3/16\" above them, and no source gives a limit.",
                 "sources": []
               },
               {

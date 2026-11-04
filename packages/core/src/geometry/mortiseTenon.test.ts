@@ -37,6 +37,7 @@ const base = {
   rabbets: [],
   recesses: [],
   boredHoles: [],
+  hingePlates: [],
 };
 const tenon = { length: 1, n0: 0.5, thickness: 0.5, v0: 0.5, width: 2.5 };
 const apron: Part = {

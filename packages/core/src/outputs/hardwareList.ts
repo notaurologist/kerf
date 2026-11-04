@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CupHinge } from '../model/cupHinge.ts';
 import type { HardwareItem } from '../model/types.ts';
 import { MissingInput } from '../structural/types.ts';
 import { formatLength, toSixteenths } from '../units/length.ts';
@@ -34,6 +35,11 @@ export const HardwareLine = z.object({
       items: z.array(z.string()),
     })
     .optional(),
+  /**
+   * A concealed hinge line's sizes and its item's ID, so `fit/` can check its cups meet their
+   * plates. Absent on other lines.
+   */
+  hinge: CupHinge.extend({ item: z.string() }).optional(),
 });
 export type HardwareLine = z.infer<typeof HardwareLine>;
 
@@ -60,6 +66,7 @@ export function hardwareList(items: readonly HardwareItem[]): HardwareLine[] {
         ...(item.quantityNeeded ? { quantityNeeded: item.quantityNeeded } : {}),
         group: item.group,
         notes: item.notes,
+        ...(item.hinge ? { hinge: { ...item.hinge, item: item.id } } : {}),
       });
       continue;
     }

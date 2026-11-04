@@ -22,6 +22,7 @@ import v16 from './snapshots/v16.json' with { type: 'json' };
 import v17 from './snapshots/v17.json' with { type: 'json' };
 import v18 from './snapshots/v18.json' with { type: 'json' };
 import v19 from './snapshots/v19.json' with { type: 'json' };
+import v20 from './snapshots/v20.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -312,5 +313,34 @@ describe('record-cabinet template versions', () => {
   // 3/8 deep on each face, to a 1/4 tongue. Every worked example's door panel is glued up.
   it('version 19 sizes a one-board door panel’s tongue from its stock, which no example has (#562)', () => {
     expect(changes(v18, v19)).toEqual([]);
+  });
+
+  it('version 20 flags the wood left above the top’s door tracks (#574)', () => {
+    // Hand check in template.test.ts: 9/16 tracks in a 3/4 top leave 3/16 above them. Only the
+    // flags change; examples without doors have no tracks and no new flag.
+    expect(kinds(changes(v19, v20)).every((k) => k.startsWith('outputs.review.flags[]'))).toBe(
+      true,
+    );
+    const asks = (fixture: readonly unknown[]) =>
+      current(fixture).map((s) =>
+        (s as { outputs: { review: { flags: { ask: string }[] } } }).outputs.review.flags.map(
+          (f) => f.ask,
+        ),
+      );
+    const before = asks(v19);
+    const added = asks(v20).map((list, i) => list.filter((a) => !before[i]?.includes(a)));
+    const doors = current(v20).map(
+      (s) => (s as { params: { doors: string } }).params.doors === 'sliding',
+    );
+    expect(added).toEqual(
+      doors.map((d) =>
+        d
+          ? [
+              'Ask an experienced builder whether 3/16" of wood above the door tracks holds the top\'s front edge.',
+            ]
+          : [],
+      ),
+    );
+    expect(doors).toContain(true);
   });
 });

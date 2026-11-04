@@ -313,6 +313,29 @@ export const Operation = z.discriminatedUnion('type', [
   /** Round holes bored to a flat bottom `depth` in, stopped inside the part. */
   z.object({ ...onPart, type: z.literal('stopped-bore'), ...boreFields }),
   /**
+   * The cups of concealed hinge `hardwareId` (BoredHole.hinge), bored to a flat bottom like a
+   * stopped bore. `edgeToCenter` is the nearest any cup's center is to an edge along the part,
+   * where a fence or jig registers, and `cupFromEdge` the same to the cup's rim.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('hinge-cups'),
+    hardwareId: z.string(),
+    ...boreFields,
+    edgeToCenter: z.number(),
+    cupFromEdge: z.number(),
+  }),
+  /**
+   * The mounting plates of concealed hinge `hardwareId` screwed to a part (Part.hingePlates),
+   * `count` in all, each with `screws` screws.
+   */
+  z.object({
+    ...onPart,
+    type: z.literal('hinge-plates'),
+    hardwareId: z.string(),
+    screws: z.number().int().positive(),
+  }),
+  /**
    * Coat every cut in a piece of treated lumber (Part.treated) with preservative: its ends and any
    * taper, notch, or other cut into it, `cuts` of them on each piece (IRC 2021 R317.1.1).
    */
@@ -565,7 +588,7 @@ export function cutAndDrillOperations(
         depth: r.depth,
       });
     });
-    ops.push(...boreOperations(part));
+    ops.push(...boreOperations(part), ...plateOperations(part));
     const screws = part.screwHoles;
     if (screws.length > 0) {
       const slots = screws.filter((h) => h.slot > 0);
@@ -747,22 +770,49 @@ function dadoOperation(part: Part, d: Dado, i: number): Operation {
 function boreOperations(part: Part): Operation[] {
   const groups = new Map<string, number[]>();
   part.boredHoles.forEach((h, i) => {
-    const key = `${h.through} ${h.diameter} ${h.depth}`;
+    const key = `${h.hinge ?? ''} ${h.through} ${h.diameter} ${h.depth}`;
     groups.set(key, [...(groups.get(key) ?? []), i]);
   });
-  return [...groups.values()].map((holes) => {
+  return [...groups.values()].map((holes): Operation => {
     const first = part.boredHoles[holes[0] as number] as BoredHole;
-    return {
+    const bored = holes.map((i) => part.boredHoles[i] as BoredHole);
+    const fields = {
       id: `${part.id}/bore-${holes[0]}`,
-      type: first.through ? 'bore' : 'stopped-bore',
       partId: part.id,
       count: part.quantity * holes.length,
       holes,
       diameter: first.diameter,
       depth: first.depth,
-      fromEdge: Math.max(
-        ...holes.map((i) => fromNearestEdge(part, part.boredHoles[i] as BoredHole)),
-      ),
+      fromEdge: Math.max(...bored.map((h) => fromNearestEdge(part, h))),
+    };
+    if (first.hinge === undefined) {
+      return { ...fields, type: first.through ? 'bore' : 'stopped-bore' };
+    }
+    const edgeToCenter = Math.min(
+      ...bored.map((h) => Math.min(h.entry.v, part.stock.width - h.entry.v)),
+    );
+    return {
+      ...fields,
+      type: 'hinge-cups',
+      hardwareId: first.hinge,
+      edgeToCenter,
+      cupFromEdge: edgeToCenter - first.diameter / 2,
+    };
+  });
+}
+
+/** A part's hinge plates, one operation for each hinge item, in the order each first appears. */
+function plateOperations(part: Part): Operation[] {
+  const items = [...new Set(part.hingePlates.map((p) => p.hardwareId))];
+  return items.map((hardwareId) => {
+    const plates = part.hingePlates.filter((p) => p.hardwareId === hardwareId);
+    return {
+      id: `${part.id}/hinge-plates-${hardwareId}`,
+      type: 'hinge-plates',
+      partId: part.id,
+      count: part.quantity * plates.length,
+      hardwareId,
+      screws: Math.max(...plates.map((p) => p.screws.length)),
     };
   });
 }
@@ -968,6 +1018,8 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   'finger-recess': 'Finger recess',
   bore: 'Bore holes',
   'stopped-bore': 'Bore stopped holes',
+  'hinge-cups': 'Bore hinge cups',
+  'hinge-plates': 'Screw on hinge plates',
   'bolt-holes': 'Bolt holes',
   'treat-cuts': 'Treat cuts',
   'treat-holes': 'Treat bolt holes',
