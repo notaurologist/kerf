@@ -19,7 +19,7 @@ export interface Random {
 }
 
 /** Mulberry32: small, fast, and well spread for tests. The same seed gives the same draws. */
-export function seeded(seed: number): Random {
+function seeded(seed: number): Random {
   let a = seed >>> 0;
   const next = () => {
     a = (a + 0x6d2b79f5) >>> 0;

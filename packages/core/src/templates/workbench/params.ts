@@ -1,172 +1,151 @@
-import type { BoardStock, PanelAllowances } from '../../lumber/panel.ts';
-import type { CupHinge } from '../../model/cupHinge.ts';
-import type { DrawerSlide } from '../../model/drawerSlide.ts';
-import type { ViseScrew } from '../../model/viseScrew.ts';
+import { z } from 'zod';
+import { CupHinge } from '../../model/cupHinge.ts';
+import { DrawerSlide } from '../../model/drawerSlide.ts';
+import { ViseScrew } from '../../model/viseScrew.ts';
 
-// The workbench's parameters (docs/templates/workbench.md, Parameters), in inches. The schema,
-// form, and starting questions come with the template's definition.
+// The workbench's parameters (docs/templates/workbench.md, Parameters), in inches. Every number
+// has a range: the spec's where it gives one, and otherwise a few times the suggested value, so no
+// entry asks for any number of parts or a size the display cannot show.
 
-export interface WorkbenchParams {
+const SIXTEENTH = 0.0625;
+/** Boards from a 1x2 (1-1/2") to a 1x12 (11-1/4"), rounded out to 12, as the record cabinet's. */
+const BOARD_WIDTH = { min: 1.5, max: 12 } as const;
+/** 5/8" up to past 8/4 surfaced, as the record cabinet's. */
+const BOARD_THICKNESS = { min: 0.625, max: 2 } as const;
+const LENGTHS = z.array(z.number().int().min(1).max(16)).min(1).max(4);
+const length = (min: number, max: number) => z.number().min(min).max(max);
+
+export const WorkbenchParams = z.object({
   /** H: floor to the top surface. */
-  height: number;
+  height: length(28, 42),
   /** L, D, T: the top's length, depth, and thickness after flattening. */
-  topLength: number;
-  topDepth: number;
-  topThickness: number;
+  topLength: length(36, 96),
+  topDepth: length(14, 30),
+  topThickness: length(1.5, 4),
   /** o_e: the top past the legs at each end; i_f, i_b: past the front and back legs. */
-  overhangEnds: number;
-  overhangFront: number;
-  overhangBack: number;
+  overhangEnds: length(2, 12),
+  overhangFront: length(0, 3),
+  overhangBack: length(0, 3),
   /** s: leg size, square. */
-  legSize: number;
+  legSize: length(2.5, 4),
   /** h_f: foot height; the feet are s wide. f_o: feet past the legs, front and back. */
-  footHeight: number;
-  footPast: number;
-  /** h_r: low rail height. h_e: end rail height. t_r: both rails' thickness. */
-  lowRailHeight: number;
-  endRailHeight: number;
-  railThickness: number;
+  footHeight: length(2, 4),
+  footPast: length(0, 3),
+  /** h_r: low rail height. h_e: end rail height. t_r: both rails' thickness, at most s. */
+  lowRailHeight: length(2, 5),
+  endRailHeight: length(2, 5),
+  railThickness: length(1, 4),
   /** The rails' tenons: thickness, length into the leg, and shoulders above and below. */
-  railTenon: { thickness: number; length: number; shoulder: number };
+  railTenon: z.object({
+    thickness: length(SIXTEENTH, 2),
+    length: length(SIXTEENTH, 4),
+    shoulder: length(0, 1),
+  }),
   /** The legs' tenons, into the feet and through the top: thickness, shoulder, length into the foot. */
-  legTenon: { thickness: number; shoulder: number; footLength: number };
+  legTenon: z.object({
+    thickness: length(SIXTEENTH, 4),
+    shoulder: length(0, 1),
+    footLength: length(SIXTEENTH, 4),
+  }),
   /** t_c: the case's panels; j: dado depth; s_d: how far the shelves' dadoes stop from the front. */
-  caseThickness: number;
-  dadoDepth: number;
-  stopSetback: number;
+  caseThickness: length(0.625, 1),
+  dadoDepth: length(SIXTEENTH, 0.5),
+  stopSetback: length(SIXTEENTH, 30),
   /** h_db: the drawer band under the top; the upper drawers' opening, the lower's the rest. */
-  drawerBand: number;
-  upperOpening: number;
+  drawerBand: length(6, 14),
+  upperOpening: length(2, 12),
   /** The case back's grooves, set `inset` in from the case's back edge; the shelves stop short of it. */
-  back: { grooveWidth: number; grooveDepth: number; inset: number; shelfGap: number };
+  back: z.object({
+    grooveWidth: length(SIXTEENTH, 1),
+    grooveDepth: length(SIXTEENTH, 1),
+    inset: length(SIXTEENTH, 2),
+    shelfGap: length(0, 1),
+  }),
   /** The drawers' side-mount slides, from their maker (hard rule 3). */
-  slides: DrawerSlide;
+  slides: DrawerSlide,
   /**
    * The drawers: box parts and bottom thickness, the inset front's thickness and its gap all round,
    * the box's clearance above and below in its opening, the bottom's groove (width, depth, and how
    * far up from the box's bottom edge), and the dovetails' slope, 1 in `slope`.
    */
-  drawer: {
-    boxThickness: number;
-    bottomThickness: number;
-    frontThickness: number;
-    frontGap: number;
-    clearance: number;
-    groove: { width: number; depth: number; up: number };
-    slope: number;
-  };
+  drawer: z.object({
+    boxThickness: length(0.25, 1),
+    bottomThickness: length(0.25, 1),
+    frontThickness: length(0.5, BOARD_THICKNESS.max),
+    frontGap: length(0, 0.25),
+    clearance: length(0, 1),
+    groove: z.object({
+      width: length(SIXTEENTH, 0.5),
+      depth: length(SIXTEENTH, 0.5),
+      up: length(SIXTEENTH, 1),
+    }),
+    slope: z.number().int().min(6).max(8),
+  }),
   /**
    * The two inset doors: their gap all round and between them, the stiles' and rails' width, the
    * panel grooves' width and depth (the stub tenons' too), each hinge's cup from its door's end,
-   * and the hinge, from its maker (hard rule 3).
+   * and the hinge, from its maker (hard rule 3): missing until the owner enters it.
    */
-  door: {
-    gap: number;
-    frameWidth: number;
-    grooveWidth: number;
-    grooveDepth: number;
-    hingeFromEnd: number;
-    hinge: CupHinge;
-  };
+  door: z.object({
+    gap: length(0, 0.25),
+    frameWidth: length(1, 4),
+    grooveWidth: length(0.125, 0.5),
+    grooveDepth: length(0.25, 0.5),
+    hingeFromEnd: length(1, 12),
+    hinge: CupHinge.optional(),
+  }),
   /** c: both vises' chops. */
-  chopThickness: number;
+  chopThickness: length(1.5, 3),
   /**
-   * The vises and dog holes. The face vise's chop is as tall as `height`, its screw `screwBelow`
-   * the top's underside; the end vise's block is `blockHeight` under the top. Dog holes are
-   * `spacing` apart on center, `fromFront` in from the top's front edge, and stopped `stopShort`
-   * above the top's underside where something is under it. Each screw is from its maker.
+   * The vises and dog holes. The face vise's chop is `height` tall, its screw `screwBelow` the
+   * top's underside; the end vise's block is `blockHeight` under the top. Dog holes are `spacing`
+   * apart on center, `fromFront` in from the top's front edge, and stopped `stopShort` above the
+   * top's underside where something is under it. Each screw is from its maker, missing until the
+   * owner enters it.
    */
-  vise: {
-    face: { height: number; screwBelow: number; screw: ViseScrew };
-    end: { blockHeight: number; screw: ViseScrew };
-    dogs: { diameter: number; spacing: number; fromFront: number; stopShort: number };
-  };
-  board: BoardStock;
-  allowances: PanelAllowances;
-  kerf: number;
-}
-
-/** The worked example (docs/templates/workbench.md, Worked example). */
-export const EXAMPLE: WorkbenchParams = {
-  height: 34.125,
-  topLength: 61.875,
-  topDepth: 17.625,
-  topThickness: 2.5,
-  overhangEnds: 5,
-  overhangFront: 0,
-  overhangBack: 1,
-  legSize: 3,
-  footHeight: 3,
-  footPast: 1,
-  lowRailHeight: 3,
-  endRailHeight: 3,
-  railThickness: 1.5,
-  railTenon: { thickness: 0.5, length: 1.75, shoulder: 0.25 },
-  legTenon: { thickness: 1, shoulder: 0.25, footLength: 1.75 },
-  caseThickness: 0.75,
-  dadoDepth: 0.1875,
-  stopSetback: 0.5,
-  drawerBand: 10,
-  upperOpening: 3.25,
-  back: { grooveWidth: 0.25, grooveDepth: 0.375, inset: 0.375, shelfGap: 0.0625 },
-  slides: { sideClearance: 0.5, shortest: 10, longest: 28, step: 2 },
-  drawer: {
-    boxThickness: 0.5,
-    bottomThickness: 0.5,
-    frontThickness: 0.75,
-    frontGap: 0.0625,
-    clearance: 0.25,
-    groove: { width: 0.25, depth: 0.25, up: 0.25 },
-    slope: 8,
-  },
-  door: {
-    gap: 0.0625,
-    frameWidth: 2,
-    grooveWidth: 0.25,
-    grooveDepth: 0.375,
-    hingeFromEnd: 3,
-    // Illustrative, until the owner enters their hinge's figures: a 35 mm cup (Striegler, Fine
-    // Homebuilding 213), the rest made up for the example.
-    hinge: {
-      cupDiameter: 35 / 25.4,
-      cupDepth: 0.5,
-      cupFromEdge: 0.1875,
-      plateSetback: 0.625,
-      plateScrews: 2,
-      plateScrewSpacing: 1.25,
-      minThickness: 0.625,
-      maxThickness: 1,
-    },
-  },
-  chopThickness: 2.5,
-  // The screws' sizes are illustrative, until the owner enters theirs.
-  vise: {
-    face: {
-      height: 14,
-      screwBelow: 4,
-      screw: {
-        screwHole: 1.125,
-        maxOpening: 8,
-        guides: 1,
-        guideHole: 0.875,
-        guideFromScrew: 5,
-        mountingScrews: 4,
-      },
-    },
-    end: {
-      blockHeight: 3.5,
-      screw: {
-        screwHole: 1.125,
-        maxOpening: 8,
-        guides: 2,
-        guideHole: 0.875,
-        guideFromScrew: 4,
-        mountingScrews: 4,
-      },
-    },
-    dogs: { diameter: 0.75, spacing: 4, fromFront: 2, stopShort: 0.25 },
-  },
-  board: { nominal: '4/4 cherry', thickness: 0.8125, width: 5.5, buyableFeet: [6, 8, 10] },
-  allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },
-  kerf: 0.125,
-};
+  vise: z.object({
+    face: z.object({
+      height: length(4, 24),
+      screwBelow: length(1, 12),
+      screw: ViseScrew.optional(),
+    }),
+    end: z.object({ blockHeight: length(1, 8), screw: ViseScrew.optional() }),
+    dogs: z.object({
+      diameter: length(0.25, 1.5),
+      spacing: length(2, 12),
+      fromFront: length(1, 6),
+      stopShort: length(0, 1),
+    }),
+  }),
+  /** The boards everything is cut and glued from: a store's fixed widths, or a dealer's. */
+  board: z.discriminatedUnion('source', [
+    z.object({
+      source: z.literal('store'),
+      thickness: length(BOARD_THICKNESS.min, BOARD_THICKNESS.max),
+      width: length(BOARD_WIDTH.min, BOARD_WIDTH.max),
+      /** Lengths the store sells, in feet, entered in order. */
+      lengths: LENGTHS,
+    }),
+    z.object({
+      source: z.literal('dealer'),
+      /** The thickness class in quarter inches: 4 for 4/4. */
+      quarters: z.union([z.literal(4), z.literal(5), z.literal(6), z.literal(8)]),
+      /** Actual thickness as surfaced two sides. */
+      surfaced: length(BOARD_THICKNESS.min, BOARD_THICKNESS.max),
+      /** The board width the plan counts on; wider boards need fewer. */
+      planWidth: length(BOARD_WIDTH.min, BOARD_WIDTH.max),
+      /** Extra board feet for defects and offcuts, in percent. */
+      wastePercent: z.number().min(0).max(100),
+    }),
+  ]),
+  /** Extra wood for the panels and glue-ups (lumber/panel.ts), each up to four times its suggestion. */
+  allowances: z.object({
+    jointPerEdge: length(0, 0.25),
+    rip: length(0, 2),
+    trimPerEnd: length(0, 4),
+    flatten: length(0, 0.25),
+  }),
+  /** The saw blade's kerf, between strips ripped from one board. */
+  kerf: length(1 / 32, 0.25),
+});
+export type WorkbenchParams = z.infer<typeof WorkbenchParams>;

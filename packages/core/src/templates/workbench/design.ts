@@ -11,7 +11,7 @@ import {
   throughTenon,
 } from '../../joints/joinery.ts';
 import { type Member, type Plane, trim } from '../../joints/trim.ts';
-import { panelStock } from '../../lumber/panel.ts';
+import { type BoardStock, panelStock } from '../../lumber/panel.ts';
 import type { PartStock } from '../../lumber/partStock.ts';
 import { type StripGlueUp, stripGlueUp } from '../../lumber/strips.ts';
 import { cupHingeIssues, cupHingeItem, cupHingePair } from '../../model/cupHinge.ts';
@@ -28,10 +28,11 @@ import type {
   Notch,
   Part,
   Placement,
+  ScrewHole,
   Tenon,
   Vec3,
 } from '../../model/types.ts';
-import { viseHoles, viseScrewItem } from '../../model/viseScrew.ts';
+import { type ViseScrew, viseHoles, viseScrewItem } from '../../model/viseScrew.ts';
 import { formatLength } from '../../units/length.ts';
 import type { WorkbenchParams } from './params.ts';
 
@@ -64,6 +65,8 @@ interface Base {
     caseInside: number;
     upperOpenings: number;
     lowerOpening: number;
+    /** Each drawer's slide length, by the drawer's ID prefix. */
+    slides: Record<string, number>;
     /**
      * What each movement joint's room is sized across: the top between its front and back tenons,
      * and the case back, a drawer bottom, and a door panel between their grooves' bottoms (a drawer
@@ -112,6 +115,32 @@ export function base(p: WorkbenchParams, gaps: Gaps = ILLUSTRATIVE): Made {
 /** A floating panel's gap along its grain, at each end, as for any (DOMAIN.md). */
 const END_GAP = 1 / 32;
 
+/** Hardwood lengths, 4 to 16 ft in 1-ft steps (Wood Handbook, ch. 6, p. 6-3). */
+const DEALER_FEET = Array.from({ length: 13 }, (_, i) => i + 4);
+
+/** The boards everything is cut and glued from, as the record cabinet's. */
+export function boardStock(board: WorkbenchParams['board']): BoardStock {
+  return board.source === 'store'
+    ? {
+        nominal: `${formatLength(board.thickness)} x ${formatLength(board.width)}`,
+        thickness: board.thickness,
+        width: board.width,
+        buyableFeet: board.lengths,
+      }
+    : {
+        nominal: `${board.quarters}/4 hardwood`,
+        thickness: board.surfaced,
+        width: board.planWidth,
+        buyableFeet: DEALER_FEET,
+        byBoardFoot: { nominalThickness: board.quarters / 4, waste: board.wastePercent / 100 },
+      };
+}
+
+/** Wood screws that hold each drawer's front to its box, through the box front. */
+export const FRONT_SCREWS = 'front-screws';
+/** The wood screw up through each drawer bottom's slot into the box back. */
+export const BOTTOM_SCREWS = 'bottom-screws';
+
 function build(p: WorkbenchParams, gaps: Gaps): Base {
   // A floating panel stays in its grooves only while its gap is shallower than they are deep
   // (DOMAIN.md, Joints that let wood move).
@@ -125,6 +154,7 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
   shallow('case back', gaps.backEdge, p.back.grooveDepth);
   shallow('drawer bottoms', gaps.bottomFront, p.drawer.groove.depth);
   shallow('door panels', gaps.doorPanelEdge, p.door.grooveDepth);
+  const board = boardStock(p.board);
   const s = p.legSize;
   const underside = p.height - p.topThickness;
   const baseLength = p.topLength - 2 * p.overhangEnds;
@@ -143,7 +173,7 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
       width,
       length,
       stackedAcross,
-      board: p.board,
+      board,
       allowances: p.allowances,
       kerf: p.kerf,
     });
@@ -339,7 +369,7 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
         thickness,
         width,
         length,
-        board: p.board,
+        board,
         allowances: p.allowances,
       });
       if (!made.ok) throw new Refusal(made.issue.message);
@@ -519,6 +549,7 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
     bottom: 0,
     doorPanel: 0,
   };
+  const slides: Record<string, number> = {};
   const d = p.drawer;
   const b = d.boxThickness;
 
@@ -529,6 +560,7 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
     [z0, z1]: readonly [number, number],
   ): PlacedPart[] => {
     const id = (part: string) => `${prefix}-${part}`;
+    const label = prefix === 'upper-drawer' ? 'Upper' : 'Lower';
     const g = d.frontGap;
     // The inset front, flush with the case front, its show face at y = 0. A front within the
     // flattening allowance of its board keeps the board's thickness, so it is placed by its stock.
@@ -536,7 +568,7 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
     const frontStock = panel(z1 - z0 - 2 * g, d.frontThickness)(frontLength);
     const ft = frontStock.thickness;
     const front: PlacedPart = {
-      part: blank(id('front'), '', frontStock, frontLength),
+      part: blank(id('front'), `${label} drawer front`, frontStock, frontLength),
       placement: frame(
         id('front'),
         instance,
@@ -553,8 +585,11 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
       'slides',
     );
     if (sized.status === 'refused') throw new Refusal(sized.issues[0]?.message ?? 'No box fits.');
-    if (sized.status === 'input-needed') throw new Refusal('The slides’ figures are needed.');
+    // Without the slides' figures, entered from their maker, no box can be sized yet: the front
+    // is made, and the box waits for them.
+    if (sized.status === 'input-needed') return [front];
     const { width: w, depth } = sized.size;
+    slides[prefix] = sized.size.slideLength;
     const bx0 = x0 + (x1 - x0 - w) / 2;
     const by0 = legY[0] + ft;
     const bz0 = z0 + d.clearance;
@@ -640,6 +675,14 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
       }),
     );
     spans.bottom = Math.max(spans.bottom, bottom.width + gaps.bottomFront);
+    // Two screws through the box front into the drawer front, a quarter of its length in from each
+    // end, at its middle height.
+    const boxLength = boxFront.part.length;
+    features.add(boxFront, {
+      screwHoles: [boxLength / 4, (3 * boxLength) / 4].map(
+        (u): ScrewHole => ({ hardwareId: FRONT_SCREWS, u, v: h / 2, slot: 0, direction: 'along' }),
+      ),
+    });
     for (const { partId, dado } of bottom.dadoes) {
       const holder = [boxFront, left, right].find((q) => q.part.id === partId) as PlacedPart;
       features.add(holder, { dadoes: [dado] });
@@ -648,11 +691,22 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
       part: {
         ...blank(
           id('bottom'),
-          '',
+          `${label} drawer bottom`,
           panel(bottom.width, d.bottomThickness)(bottom.length),
           bottom.length,
         ),
         rabbets: bottom.rabbets,
+        // One screw up through the bottom into the middle of the back's lower edge, in a slot the
+        // way the bottom moves, so it can move as far as its gap at the front.
+        screwHoles: [
+          {
+            hardwareId: BOTTOM_SCREWS,
+            u: bottom.length / 2,
+            v: bottom.width - b / 2,
+            slot: gaps.bottomFront,
+            direction: 'across',
+          },
+        ],
       },
       placement: frame(id('bottom'), instance, bottom.origin, X, Y, Z),
     };
@@ -675,16 +729,17 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
   const dg = door.gap;
   const doorWidth = (doorOpening.x[1] - doorOpening.x[0] - 3 * dg) / 2;
   const doorHeight = doorOpening.z[1] - doorOpening.z[0] - 2 * dg;
-  const one = panel(door.frameWidth, p.board.thickness)(doorHeight);
+  const one = panel(door.frameWidth, board.thickness)(doorHeight);
   const dt = one.thickness;
   if (doorWidth <= 2 * door.frameWidth || doorHeight <= 2 * door.frameWidth) {
     throw new Refusal(
       `Each door is ${formatLength(doorWidth)} by ${formatLength(doorHeight)}, too small for stiles and rails ${formatLength(door.frameWidth)} wide around a panel.`,
     );
   }
-  if (doorHeight < 2 * door.hingeFromEnd + door.hinge.cupDiameter) {
+  const cups = door.hinge;
+  if (cups && doorHeight < 2 * door.hingeFromEnd + cups.cupDiameter) {
     throw new Refusal(
-      `Each door is ${formatLength(doorHeight)} tall, too short for two hinges ${formatLength(door.hingeFromEnd)} from its ends, whose cups are ${formatLength(door.hinge.cupDiameter)} across.`,
+      `Each door is ${formatLength(doorHeight)} tall, too short for two hinges ${formatLength(door.hingeFromEnd)} from its ends, whose cups are ${formatLength(cups.cupDiameter)} across.`,
     );
   }
   const center = {
@@ -708,7 +763,7 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
       { point: spot({ x: 0, y: 0, z: a }), normal: turn(Z) },
       { point: spot({ x: 0, y: 0, z: b }), normal: turn(Z) },
     ];
-    const stileStock = (length: number) => panel(door.frameWidth, p.board.thickness)(length);
+    const stileStock = (length: number) => panel(door.frameWidth, board.thickness)(length);
     const hinge = cut(
       'door-stile-hinge',
       k,
@@ -746,7 +801,7 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
     // The panel, grain up, between the frame's groove bottoms less its gaps.
     const across = doorWidth - 2 * door.frameWidth + 2 * door.grooveDepth - 2 * gaps.doorPanelEdge;
     spans.doorPanel = across + 2 * gaps.doorPanelEdge;
-    const panelPart = blank('door-panel', '', panel(across)(doorHeight), doorHeight);
+    const panelPart = blank('door-panel', 'Door panel', panel(across)(doorHeight), doorHeight);
     const floating = ok(
       floatingPanel({
         frame: [hinge, meeting, ...rails].map((q) => ({ ...q, edge: 'far' as const })),
@@ -788,15 +843,17 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
       placement: frame('door-panel', k, floating.origin, turn(Z), turn(X), turn(Y)),
     };
     // Two cup hinges on the hinge stile, 3 from each end, their plates on the case side beside it.
-    const issues = cupHingeIssues(door.hinge, 'door.hinge', dt, 'board.thickness');
-    if (issues.length > 0) throw new Refusal((issues[0] as { message: string }).message);
-    const hung = cupHingePair(door.hinge, 'hinge', hinge, sides[k] as PlacedPart, {
-      edge: 'reference',
-      back: 'far',
-      cups: [door.hingeFromEnd, doorHeight - door.hingeFromEnd],
-    });
-    features.add(hinge, { boredHoles: hung.cups });
-    features.add(sides[k] as PlacedPart, { hingePlates: hung.plates });
+    if (cups) {
+      const issues = cupHingeIssues(cups, 'door.hinge', dt, 'board.thickness');
+      if (issues.length > 0) throw new Refusal((issues[0] as { message: string }).message);
+      const hung = cupHingePair(cups, 'hinge', hinge, sides[k] as PlacedPart, {
+        edge: 'reference',
+        back: 'far',
+        cups: [door.hingeFromEnd, doorHeight - door.hingeFromEnd],
+      });
+      features.add(hinge, { boredHoles: hung.cups });
+      features.add(sides[k] as PlacedPart, { hingePlates: hung.plates });
+    }
     return [hinge, meeting, ...rails, doorPanel];
   });
 
@@ -817,43 +874,46 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
     },
     [plane(0, X), plane(legX[0] + s, X)],
   );
-  const screwZ = underside - v.face.screwBelow;
-  // The screw and guide bar run through the front-left leg, so they must pass below the end rail's
-  // and above the low rail's mortises in it.
-  const fs = v.face.screw;
-  if (screwZ + fs.screwHole / 2 > endRailZ) {
-    throw new Refusal(
-      `The face vise's screw, ${formatLength(v.face.screwBelow)} below the top's underside, would run into the end rail, which comes down ${formatLength(p.endRailHeight)} from it. Set the screw lower or the end rail shorter.`,
-    );
+  // Without the screw's figures, entered from its maker, nothing is bored for it yet.
+  const fs = entered(v.face.screw);
+  if (fs) {
+    const screwZ = underside - v.face.screwBelow;
+    // The screw and guide bar run through the front-left leg, so they must pass below the end rail's
+    // and above the low rail's mortises in it.
+    if (screwZ + fs.screwHole / 2 > endRailZ) {
+      throw new Refusal(
+        `The face vise's screw, ${formatLength(v.face.screwBelow)} below the top's underside, would run into the end rail, which comes down ${formatLength(p.endRailHeight)} from it. Set the screw lower or the end rail shorter.`,
+      );
+    }
+    const guideZ = screwZ - (fs.guides > 0 ? (fs.guideFromScrew ?? 0) : 0);
+    const guideHole = fs.guides > 0 ? (fs.guideHole ?? 0) : fs.screwHole;
+    if (guideZ - guideHole / 2 < p.footHeight + p.lowRailHeight) {
+      throw new Refusal(
+        `The face vise's guide bar, ${formatLength(fs.guideFromScrew ?? 0)} below its screw, would run into the low rail. Set the screw higher or the guide bar closer to it.`,
+      );
+    }
+    const legHoles = (() => {
+      // Bored from the leg's front face; the guide bar goes below the screw, down the leg, so the
+      // holes are laid out from the leg's top end and turned back.
+      const leg = frontLeft;
+      const L = leg.part.length;
+      const top = dot(leg.placement.origin, Z) + L;
+      const center = { u: top - screwZ, v: s / 2 };
+      return viseHoles(fs, { center, thickness: s, guidesAlong: 'u' }).map((h) => ({
+        ...h,
+        entry: { ...h.entry, u: L - h.entry.u },
+      }));
+    })();
+    features.add(frontLeft, { boredHoles: legHoles });
+    // The chop runs down from the top's surface, so its v is down: the guide bar comes out below.
+    features.add(faceChop, {
+      boredHoles: viseHoles(fs, {
+        center: { u: legX[0] + s / 2, v: p.height - screwZ },
+        thickness: p.chopThickness,
+        guidesAlong: 'v',
+      }),
+    });
   }
-  const guideZ = screwZ - (fs.guides > 0 ? (fs.guideFromScrew ?? 0) : 0);
-  const guideHole = fs.guides > 0 ? (fs.guideHole ?? 0) : fs.screwHole;
-  if (guideZ - guideHole / 2 < p.footHeight + p.lowRailHeight) {
-    throw new Refusal(
-      `The face vise's guide bar, ${formatLength(fs.guideFromScrew ?? 0)} below its screw, would run into the low rail. Set the screw higher or the guide bar closer to it.`,
-    );
-  }
-  const legHoles = (() => {
-    // Bored from the leg's front face; the guide bar goes below the screw, down the leg, so the
-    // holes are laid out from the leg's top end and turned back.
-    const leg = frontLeft;
-    const L = leg.part.length;
-    const top = dot(leg.placement.origin, Z) + L;
-    const center = { u: top - screwZ, v: s / 2 };
-    return viseHoles(v.face.screw, { center, thickness: s, guidesAlong: 'u' }).map((h) => ({
-      ...h,
-      entry: { ...h.entry, u: L - h.entry.u },
-    }));
-  })();
-  features.add(frontLeft, { boredHoles: legHoles });
-  // The chop runs down from the top's surface, so its v is down: the guide bar comes out below.
-  features.add(faceChop, {
-    boredHoles: viseHoles(v.face.screw, {
-      center: { u: legX[0] + s / 2, v: p.height - screwZ },
-      thickness: p.chopThickness,
-      guidesAlong: 'v',
-    }),
-  });
 
   // The end vise at the right end: a jaw block glued under the top's overhang, from the legs to the
   // top's end, grain along the bench like the top; the chop across the top's end, as tall as the
@@ -886,60 +946,62 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
     },
     [plane(0, Y), plane(p.topDepth, Y)],
   );
-  const endCenter = { u: p.topDepth / 2, v: v.end.blockHeight / 2 };
-  // The holes come out of the block's inside face beside the right legs, so each must clear them.
-  const es = v.end.screw;
-  const across = [
-    { at: endCenter.u, hole: es.screwHole },
-    ...(es.guides === 0
-      ? []
-      : [1, -1].slice(0, es.guides).map((k) => ({
-          at: endCenter.u + k * (es.guideFromScrew ?? 0),
-          hole: es.guideHole ?? 0,
-        }))),
-  ];
-  const legsAcross = legY.map((y) => [y, y + s] as const);
-  if (
-    across.some(({ at, hole }) =>
-      legsAcross.some(([y0, y1]) => at + hole / 2 > y0 && at - hole / 2 < y1),
-    )
-  ) {
-    throw new Refusal(
-      `The end vise's screw or guide bars would run into a right leg where they come out of the block. Set the guide bars closer to the screw, or the legs farther apart.`,
-    );
+  const es = entered(v.end.screw);
+  if (es) {
+    const endCenter = { u: p.topDepth / 2, v: v.end.blockHeight / 2 };
+    // The holes come out of the block's inside face beside the right legs, so each must clear them.
+    const across = [
+      { at: endCenter.u, hole: es.screwHole },
+      ...(es.guides === 0
+        ? []
+        : [1, -1].slice(0, es.guides).map((k) => ({
+            at: endCenter.u + k * (es.guideFromScrew ?? 0),
+            hole: es.guideHole ?? 0,
+          }))),
+    ];
+    const legsAcross = legY.map((y) => [y, y + s] as const);
+    if (
+      across.some(({ at, hole }) =>
+        legsAcross.some(([y0, y1]) => at + hole / 2 > y0 && at - hole / 2 < y1),
+      )
+    ) {
+      throw new Refusal(
+        `The end vise's screw or guide bars would run into a right leg where they come out of the block. Set the guide bars closer to the screw, or the legs farther apart.`,
+      );
+    }
+    // Between the legs, the right end rail comes out to the block's face when it is nearly as thick
+    // as the legs, and its height is where the holes come out.
+    const railOut = legX[1] + s / 2 + p.railThickness / 2;
+    const holeBand = [
+      blockBottom + v.end.blockHeight / 2 - es.screwHole / 2,
+      blockBottom + v.end.blockHeight / 2 + es.screwHole / 2,
+    ];
+    if (
+      railOut > legX[1] + s - 1 / 64 &&
+      (holeBand[1] as number) > endRailZ &&
+      (holeBand[0] as number) < underside
+    ) {
+      throw new Refusal(
+        `The end vise's screw would come out of the block into the right end rail, which is as thick as the legs. Make the end rails thinner than the legs.`,
+      );
+    }
+    const chopHoles = viseHoles(es, {
+      center: endCenter,
+      thickness: p.chopThickness,
+      guidesAlong: 'u',
+    });
+    features.add(endChop, { boredHoles: chopHoles });
+    // The same holes run on through the block, along its length from the top's end.
+    const blockLength = block.part.length;
+    features.add(block, {
+      boredHoles: chopHoles.map((h) => ({
+        ...h,
+        entry: { u: blockLength, v: h.entry.u, n: h.entry.v },
+        direction: { u: -1, v: 0, n: 0 },
+        depth: blockLength,
+      })),
+    });
   }
-  // Between the legs, the right end rail comes out to the block's face when it is nearly as thick
-  // as the legs, and its height is where the holes come out.
-  const railOut = legX[1] + s / 2 + p.railThickness / 2;
-  const holeBand = [
-    blockBottom + v.end.blockHeight / 2 - es.screwHole / 2,
-    blockBottom + v.end.blockHeight / 2 + es.screwHole / 2,
-  ];
-  if (
-    railOut > legX[1] + s - 1 / 64 &&
-    (holeBand[1] as number) > endRailZ &&
-    (holeBand[0] as number) < underside
-  ) {
-    throw new Refusal(
-      `The end vise's screw would come out of the block into the right end rail, which is as thick as the legs. Make the end rails thinner than the legs.`,
-    );
-  }
-  const chopHoles = viseHoles(v.end.screw, {
-    center: endCenter,
-    thickness: p.chopThickness,
-    guidesAlong: 'u',
-  });
-  features.add(endChop, { boredHoles: chopHoles });
-  // The same holes run on through the block, along its length from the top's end.
-  const blockLength = block.part.length;
-  features.add(block, {
-    boredHoles: chopHoles.map((h) => ({
-      ...h,
-      entry: { u: blockLength, v: h.entry.u, n: h.entry.v },
-      direction: { u: -1, v: 0, n: 0 },
-      depth: blockLength,
-    })),
-  });
 
   // Dog holes along the front, every `spacing` back from the end chop's, skipping any that would cut
   // into a leg's mortise. Through where nothing is under the top, stopped short of its underside
@@ -1003,15 +1065,30 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
     parts: features.parts(placed),
     placements: placed.map((q) => q.placement),
     hardware: [
-      cupHingeItem({ id: 'hinge', name: 'Concealed cup hinges', group: 'Hinges' }, door.hinge, 4),
-      viseScrewItem(
-        { id: 'face-vise', name: 'Face vise screw', group: 'Vise hardware' },
-        v.face.screw,
-      ),
-      viseScrewItem(
-        { id: 'end-vise', name: 'End vise screw', group: 'Vise hardware' },
-        v.end.screw,
-      ),
+      cups
+        ? cupHingeItem({ id: 'hinge', name: 'Concealed cup hinges', group: 'Hinges' }, cups, 4)
+        : toEnter(
+            { id: 'hinge', name: 'Concealed cup hinges, inset type', group: 'Hinges' },
+            4,
+            'the hinges’ figures',
+            'the cups and plates',
+          ),
+      fs
+        ? viseScrewItem({ id: 'face-vise', name: 'Face vise screw', group: 'Vise hardware' }, fs)
+        : toEnter(
+            { id: 'face-vise', name: 'Face vise screw', group: 'Vise hardware' },
+            1,
+            'the screw’s figures',
+            'its holes',
+          ),
+      es
+        ? viseScrewItem({ id: 'end-vise', name: 'End vise screw', group: 'Vise hardware' }, es)
+        : toEnter(
+            { id: 'end-vise', name: 'End vise screw', group: 'Vise hardware' },
+            1,
+            'the screw’s figures',
+            'its holes',
+          ),
     ],
     geometry: {
       underside,
@@ -1021,8 +1098,35 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
       caseInside: legX[1] - legX[0] - s - 2 * t,
       upperOpenings: (legX[1] - legX[0] - s - 3 * t) / 2,
       lowerOpening,
+      slides,
       spans,
     },
+  };
+}
+
+/** A vise screw with every figure its holes need, or undefined while one is missing. */
+function entered(screw: ViseScrew | undefined): ViseScrew | undefined {
+  if (!screw) return undefined;
+  if (screw.guides > 0 && (screw.guideHole === undefined || screw.guideFromScrew === undefined)) {
+    return undefined;
+  }
+  return screw;
+}
+
+/** Hardware whose figures are not entered yet, so the plan bores nothing for it (hard rule 3). */
+function toEnter(
+  item: { id: string; name: string; group: string },
+  quantity: number,
+  figures: string,
+  bored: string,
+): HardwareItem {
+  return {
+    ...item,
+    quantity,
+    structural: false,
+    notes: [
+      `Input needed: enter ${figures} from the maker’s instructions. Until then the plan does not lay out ${bored}.`,
+    ],
   };
 }
 
@@ -1081,6 +1185,20 @@ const NAMES: Record<string, string> = {
   'shelf-middle': 'Drawer shelf, middle',
   'shelf-lower': 'Drawer shelf, lower',
   divider: 'Drawer divider',
+  'upper-drawer-box-front': 'Upper drawer box front',
+  'upper-drawer-box-back': 'Upper drawer box back',
+  'upper-drawer-side-left': 'Upper drawer side, left',
+  'upper-drawer-side-right': 'Upper drawer side, right',
+  'lower-drawer-box-front': 'Lower drawer box front',
+  'lower-drawer-box-back': 'Lower drawer box back',
+  'lower-drawer-side-left': 'Lower drawer side, left',
+  'lower-drawer-side-right': 'Lower drawer side, right',
+  'door-stile-hinge': 'Door stile, hinge side',
+  'door-stile-meeting': 'Door stile, where the doors meet',
+  'door-rail': 'Door rail',
+  'face-chop': 'Face vise chop',
+  'vise-block': 'End vise block',
+  'end-chop': 'End vise chop',
 };
 
 /** Both legs are a leg, so the joints into the top and feet name them by it. */
@@ -1138,6 +1256,7 @@ type Found = {
   grooves: EdgeGroove[];
   boredHoles: BoredHole[];
   hingePlates: HingePlate[];
+  screwHoles: ScrewHole[];
 };
 const none = (): Found => ({
   mortises: [],
@@ -1149,6 +1268,7 @@ const none = (): Found => ({
   grooves: [],
   boredHoles: [],
   hingePlates: [],
+  screwHoles: [],
 });
 
 class Features {

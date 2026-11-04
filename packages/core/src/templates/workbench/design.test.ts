@@ -3,7 +3,7 @@ import { fitProblems } from '../../fit/fit.ts';
 import type { Part, Placement } from '../../model/types.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { base, ILLUSTRATIVE } from './design.ts';
-import { EXAMPLE } from './params.ts';
+import { WORKED_EXAMPLE as EXAMPLE } from './examples.ts';
 
 // The spec's worked example (docs/templates/workbench.md), worked by hand. x along the bench from
 // the top's left end, y back from its front edge, z up from the floor. Legs at x 5 to 8 and 53-7/8
@@ -38,6 +38,8 @@ describe('the base, from its joints', () => {
       caseInside: 44.375,
       upperOpenings: 21.8125,
       lowerOpening: 4.5,
+      // The longest slide sold that fits each box's 14-15/16 of depth (spec, Box depth).
+      slides: { 'upper-drawer': 14, 'lower-drawer': 14 },
       // Tenons 16-5/8 − 3 apart; the back 44-3/8 + 2 × 3/8; a drawer bottom from its front
       // groove's bottom at 1-1/16 to the back's face at 14-13/16; a door panel 22-3/32 − 4 + 3/4.
       spans: { tenons: 13.625, back: 45.125, bottom: 13.75, doorPanel: 18.84375 },

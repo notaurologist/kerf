@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { fitProblems } from '../../fit/fit.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { base, ILLUSTRATIVE } from './design.ts';
-import { EXAMPLE } from './params.ts';
-import { workbench } from './review.ts';
+import { WORKED_EXAMPLE as EXAMPLE } from './examples.ts';
+import { workbench } from './structural.ts';
 
 // The spec's structural example (docs/templates/workbench.md, Structural model), worked by hand:
 // flatsawn black cherry from 6% to 10%, C_T = 0.00248 per % (Wood Handbook, Table 13-5), so each
@@ -55,14 +55,14 @@ describe('the workbench review', () => {
     // Span 51-7/8 − 3 = 48.875; I = 17.625 × 2.5³ / 12 = 22.94922; immediate 300 × 48.875³ /
     // (48 × 1,490,000 × 22.94922) = 0.021340; long-term × 1.5 = 0.032009; limit 48.875 / 144 =
     // 0.339410; margin 0.339410 / 0.032009 = 10.6035.
-    const { deflection } = sized(cherry).review;
+    const { deflection } = sized(cherry).review.top;
     expect(deflection).toMatchObject({ status: 'computed' });
     if (deflection.status === 'computed') expect(deflection.margin).toBeCloseTo(10.6035, 3);
   });
 
   it('asks for what is missing, and sizes the gaps for the wood that moves most meanwhile', () => {
     const made = sized({});
-    expect(made.review.deflection).toMatchObject({ status: 'input-needed' });
+    expect(made.review.top.deflection).toMatchObject({ status: 'input-needed' });
     expect(made.review.movement.every((m) => m.status === 'input-needed')).toBe(true);
     const { gaps } = made.review;
     const fromCherry = sized(cherry).review.gaps;
