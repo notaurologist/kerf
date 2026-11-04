@@ -1,7 +1,7 @@
 import { createSnapshot, recordCabinet, visibleFields } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import type { Project } from '../../lib/types.ts';
-import { loadedDrawings, projectFrom } from '../../test/projects.ts';
+import { loadedDrawings, loadedStepDrawing, projectFrom } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
 import { ModeView } from '../modes/modes.tsx';
 import { startValues } from '../project-editor/start.ts';
@@ -71,6 +71,7 @@ describe('a panel in Building mode', () => {
         route={{ screen: 'build-step', id: project.id, step: 'panels' }}
         project={project}
         drawings={loadedDrawings(project)}
+        stepDrawing={loadedStepDrawing(project, 'panels')}
       />,
     );
     expect(html).toContain('Glue up 4 boards for A Top');

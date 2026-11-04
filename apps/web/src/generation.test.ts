@@ -336,6 +336,7 @@ describe('generation in the web app', () => {
         'createSnapshot',
         'projectDrawings',
         'stepDrawings',
+        'stepDrawing',
         'planSteps',
         'progressItems',
         'progressSummary',

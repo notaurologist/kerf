@@ -109,8 +109,13 @@ describe('stored projects of every shape', () => {
     const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
     const res = await authed(`/api/projects/${id}`);
     const drawings = await authed(`/api/projects/${id}/drawings`);
+    const step = await authed(`/api/projects/${id}/steps/frames/drawing`);
     expect(logged).toHaveBeenCalledWith(
       `project ${id}: the build steps could not be drawn`,
+      expect.any(Error),
+    );
+    expect(logged).toHaveBeenCalledWith(
+      `project ${id}: the drawing for step frames could not be drawn`,
       expect.any(Error),
     );
     expect(logged).toHaveBeenCalledWith(
@@ -126,14 +131,18 @@ describe('stored projects of every shape', () => {
     expect(project.steps).toBeNull();
     expect(drawings.status).toBe(200);
     expect(await drawings.json()).toEqual({ drawings: null });
+    expect(step.status).toBe(200);
+    expect(await step.json()).toEqual({ drawing: null });
     await close();
   });
 });
 
 // Vercel refuses a function response over 4.5 MB, and a project is read on every open and save.
-// The drawings, which are most of a plan's size, come in a request of their own.
+// The drawings, which are most of a plan's size, come in a request of their own, and each build
+// step's action drawing in another, opened one step at a time.
 const PROJECT_BUDGET = 1_000_000;
 const DRAWINGS_BUDGET = 4_000_000;
+const STEP_DRAWING_BUDGET = 1_000_000;
 
 const bytes = (text: string) => new TextEncoder().encode(text).length;
 
@@ -163,10 +172,21 @@ describe('response sizes', () => {
     const { id } = JSON.parse(text) as { id: string };
     const read = await authed(`/api/projects/${id}`);
     expect(read.status).toBe(200);
-    expect(bytes(await read.text())).toBeLessThan(PROJECT_BUDGET);
+    const readText = await read.text();
+    expect(bytes(readText)).toBeLessThan(PROJECT_BUDGET);
     const drawings = await authed(`/api/projects/${id}/drawings`);
     expect(drawings.status).toBe(200);
     expect(bytes(await drawings.text())).toBeLessThan(DRAWINGS_BUDGET);
+    const { steps } = JSON.parse(readText) as { steps: { steps: { id: string }[] } };
+    let drawn = 0;
+    for (const step of steps.steps) {
+      const res = await authed(`/api/projects/${id}/steps/${step.id}/drawing`);
+      expect(res.status).toBe(200);
+      const text = await res.text();
+      expect(bytes(text)).toBeLessThan(STEP_DRAWING_BUDGET);
+      if ((JSON.parse(text) as { drawing: unknown }).drawing !== null) drawn += 1;
+    }
+    expect(drawn).toBeGreaterThan(0);
     await close();
   });
 

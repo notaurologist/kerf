@@ -9,7 +9,12 @@ import {
   summarizeProgress,
 } from '@kerf/core';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import { type DrawingsState, useDrawings } from '../../lib/drawings.ts';
+import {
+  type DrawingsState,
+  type StepDrawingState,
+  useDrawings,
+  useStepDrawing,
+} from '../../lib/drawings.ts';
 import { fieldId } from '../../lib/fieldIds.ts';
 import { takeFlashText } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
@@ -79,9 +84,13 @@ export function ModeScreen(props: { route: ModeRoute }) {
   return <ModeWithDrawings route={props.route} project={loaded.value} />;
 }
 
-/** The mode, with the plan's drawings loaded where they are shown. */
+/** The mode, with the plan's drawings and the open step's action drawing loaded where shown. */
 function ModeWithDrawings(props: { route: ModeRoute; project: Project }) {
-  return <ModeView {...props} drawings={useDrawings(props.project)} />;
+  const { route, project } = props;
+  const steps = useReadProject(project).steps?.steps ?? [];
+  const at = route.screen === 'build-step' ? steps.findIndex((s) => s.id === route.step) : -1;
+  const stepDrawing = useStepDrawing(project, steps[at], steps[at + 1]);
+  return <ModeView {...props} drawings={useDrawings(project)} stepDrawing={stepDrawing} />;
 }
 
 export function ModeView(props: {
@@ -89,6 +98,8 @@ export function ModeView(props: {
   project: Project;
   /** The plan's drawings, which come in a request of their own. */
   drawings: DrawingsState;
+  /** The open build step's action drawing, in a request of its own again. None on other screens. */
+  stepDrawing?: StepDrawingState;
 }) {
   const { route, project } = props;
   const exitHref = href({ screen: 'project', id: project.id });
@@ -109,6 +120,7 @@ export function ModeView(props: {
       <Stack>
         <Waiting ticks={ticks} />
         {props.drawings.state === 'error' && <DrawingsWaiting state={props.drawings} />}
+        {props.stepDrawing?.state === 'error' && <DrawingsWaiting state={props.stepDrawing} />}
         {route.screen !== 'shop' && read.steps?.toolboxEmpty && <EmptyToolbox />}
         {children}
       </Stack>
@@ -315,6 +327,7 @@ export function ModeView(props: {
         at={at}
         plan={plan.plan}
         drawings={drawings}
+        action={props.stepDrawing?.state === 'ready' ? props.stepDrawing.value : null}
         ticks={ticks}
         links={links}
       />

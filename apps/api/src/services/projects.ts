@@ -20,6 +20,7 @@ import {
   readSnapshot,
   resetNotes,
   type SuggestedValue,
+  stepDrawing,
   suggestedAfter,
   suggestedFor,
   type TemplateDefinition,
@@ -161,6 +162,15 @@ export interface Preview {
  */
 export interface ProjectDrawings {
   drawings: geometry.Drawings | null;
+}
+
+/**
+ * One build step's action drawing (#118), drawn on read like the rest, in a request of its own
+ * (#635): together they are most of a large plan's drawings. Null for a step with none, or when
+ * the snapshot cannot be read or drawing it fails.
+ */
+export interface ProjectStepDrawing {
+  drawing: geometry.Drawing | null;
 }
 
 /** A plan's assembled and exploded views from one corner. */
@@ -451,6 +461,19 @@ export function createProjectService(deps: {
         ok: true,
         value: { drawings: drawn(row, 'the drawings', () => projectDrawings(template, outputs)) },
       };
+    },
+
+    /** One step's action drawing, drawn on read; none for a step that has none. */
+    async stepDrawing(id: string, stepId: string): Promise<Result<ProjectStepDrawing>> {
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      const stored = readStored(row);
+      if (!stored.ok) return { ok: true, value: { drawing: null } };
+      const { template, outputs } = stored;
+      const drawing = drawn(row, `the drawing for step ${stepId}`, () =>
+        stepDrawing(template, outputs, stepId),
+      );
+      return { ok: true, value: { drawing } };
     },
 
     async create(input: NewProject): Promise<Result<Project>> {

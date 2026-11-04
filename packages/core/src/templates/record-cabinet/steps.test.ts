@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Inventory } from '../../inventory/tools.ts';
 import { buildSteps } from '../../steps/build.ts';
-import { stepDrawings } from '../../steps/drawings.ts';
+import { stepDrawing, stepDrawings } from '../../steps/drawings.ts';
 import { recordCabinet } from './definition.ts';
 import { WORKED_EXAMPLE } from './examples.ts';
 
@@ -174,5 +174,12 @@ describe('assembling and finishing the record cabinet', () => {
     expect(described('doors')).toMatch(
       /^Adds K Outer stile, L Inner stile, M Door rail, N Door panel, to /,
     );
+  });
+
+  it('draws one step on its own as it draws in the whole set, after what earlier steps built', () => {
+    for (const { stepId, drawing } of stepDrawings(recordCabinet, outputs)) {
+      expect(stepDrawing(recordCabinet, outputs, stepId)).toEqual(drawing);
+    }
+    expect(stepDrawing(recordCabinet, outputs, 'finish')).toBeNull();
   });
 });

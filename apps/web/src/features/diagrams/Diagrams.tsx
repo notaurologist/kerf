@@ -1,7 +1,7 @@
 import { type CutListRow, geometry } from '@kerf/core';
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { type ApiResult, CONNECTION_MESSAGE, describeError, failureOf } from '../../lib/api.ts';
-import type { DrawingsState } from '../../lib/drawings.ts';
+import type { DrawingsState, StepDrawingState } from '../../lib/drawings.ts';
 import { useLatest } from '../../lib/latest.ts';
 import { cutDetailHeadingId, cutDetailId } from '../../lib/show.ts';
 import type { CornerViews } from '../../lib/views.ts';
@@ -196,7 +196,7 @@ export function Diagrams(props: {
 }
 
 /** Where the drawings go while they load, or why they did not, with a way to ask again. */
-export function DrawingsWaiting(props: { state: DrawingsState }) {
+export function DrawingsWaiting(props: { state: DrawingsState | StepDrawingState }) {
   const { state } = props;
   if (state.state === 'ready') return null;
   const retry = (problem: ReactNode, connection: boolean) => (
