@@ -1,6 +1,6 @@
 # Template: workbench
 
-Status: Draft (November 3, 2026), for the owner's review (#576). Every design question is decided, and the generic issues it waited on (#578 to #585) have landed. Not built. Joint-first: the build (#577) declares each joint below and derives the parts' lengths, end cuts, and features from them (`docs/explorations/joint-model.md`). It is the joint model's test, and it lives on `explore/joint-model` until the owner decides whether to adopt the model.
+Status: Draft (November 3, 2026), for the owner's review (#576). Every design question is decided, and the generic issues it waited on (#578 to #585) have landed. Built joint-first on `explore/joint-model` (#577, November 4, 2026): the design, structural review, movement, sweep, and edge-of-range examples. The definition, form, drawings, and build steps wait for the owner's adoption decision. Joint-first: the build (#577) declares each joint below and derives the parts' lengths, end cuts, and features from them (`docs/explorations/joint-model.md`). It is the joint model's test, and it lives on `explore/joint-model` until the owner decides whether to adopt the model.
 
 The design is the sketch the owner agreed on November 3, 2026, from photos of a hardwood bench (recorded on #576). Sizes and proportions taken from those photos are suggestions with the `example` basis. Brand names in the photos are left out (hard rule 11).
 
@@ -141,7 +141,7 @@ The owner's sizes, from their photo (`example`): overall 64-3/8 long and 20-1/8 
 | Dog holes | the chop's at x = 61-7/8 + 1-1/4; then every 4 back | top: 59-1/8, then 51-1/8 to 11-1/8, then 3-1/8 (55-1/8 and 7-1/8 left out at the front legs' mortises); 3-1/8 through, the rest 2-1/4 deep |
 | Hinge cups and plates (illustrative hinge: 35 mm cup 3/16 from the edge, plate 5/8 behind the door, two screws 1-1/4 apart) | cups 3 from each end of the hinge stile | cups at 3 and 11-3/4; plates at y = 1-7/16 on each case side |
 
-Tenon lengths, dado and groove depths, dovetail layouts, drawer box depths, and door sizes follow from the joints and the open issues, and are added to this example as each lands. An edge-of-range example (the shortest and tallest bench, a 4" top) is added before the build.
+Every joint's sizes are in the rows above, from the build (#577). The edge-of-range examples are under Validation and flags.
 
 ### The top's tenons and wood movement
 
@@ -156,7 +156,7 @@ Each leg's tenon passes up through the top and is trimmed flush with its surface
 
 ## Validation and flags
 
-Refused, at least: a base with no room for the case (L_b − 2·s too small for the drawer openings), a drawer band taller than the case, drawer openings narrower than twice the slide clearance, and dog holes deeper than the top is thick. Checked against the owner's slide: the two slides on the divider screw in from opposite faces at the same height, so if their holes line up, screws longer than t_c / 2 meet inside it; the plan refuses that or says to stagger the holes. Flags, at least: **wood movement** for the top held at its front and back legs (below); **router technique** and **table saw operations** for dadoes and dovetails cut by machine; **jointers, planers** for flattening the top; **load-bearing or tip-prone designs** for heavy work on the overhang past the legs.
+Refused, at least: a base with no room for the case (L_b − 2·s too small for the drawer openings), a drawer band taller than the case, drawer openings narrower than twice the slide clearance, and dog holes deeper than the top is thick. Also refused, found by the sweep (#577): a case back, drawer bottom, or door panel whose movement gap is as deep as its grooves, since it would come out of them; a door too short for two hinges at their distance from its ends; and a door too small for its stiles and rails around a panel. The edge-of-range examples: the tallest bench with a 4" top, H = 42, builds, with legs 40-3/4 long and doors 21-1/8 tall; the shortest, H = 28, is refused, since its doors would be 7-1/8 tall, less than 2 × 3 + a 35 mm cup. Checked against the owner's slide: the two slides on the divider screw in from opposite faces at the same height, so if their holes line up, screws longer than t_c / 2 meet inside it; the plan refuses that or says to stagger the holes. Flags, at least: **wood movement** for the top held at its front and back legs (below); **router technique** and **table saw operations** for dadoes and dovetails cut by machine; **jointers, planers** for flattening the top; **load-bearing or tip-prone designs** for heavy work on the overhang past the legs.
 
 ## Structural model
 
