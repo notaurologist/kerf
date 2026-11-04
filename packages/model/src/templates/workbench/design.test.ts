@@ -32,6 +32,10 @@ describe('the base, from its joints', () => {
       baseLength: 51.875,
       baseDepth: 16.625,
       legVisible: 28.625,
+      // Inside 45-7/8 − 2 × 3/4; upper openings (44-3/8 − 3/4) / 2; lower 10 − 3 × 3/4 − 3-1/4.
+      caseInside: 44.375,
+      upperOpenings: 21.8125,
+      lowerOpening: 4.5,
     });
   });
 
@@ -46,6 +50,17 @@ describe('the base, from its joints', () => {
       'leg-b': [32.875, 2],
       'end-rail': [14.125, 2],
       'low-rail': [49.375, 2],
+      // Case bottom between the legs, 45-7/8. Sides from the bottom's dado, 6-3/4 − 3/16, up
+      // to the top at 31-5/8: 25-1/16. Shelves 44-3/8 + 2 × 3/16. Divider 3-1/4 + 2 × 3/16. Back
+      // from 6-3/4 − 3/8 to 30-7/8 + 3/8, less 2 × 1/32: 24-13/16.
+      'case-bottom': [45.875, 1],
+      'case-side-left': [25.0625, 1],
+      'case-side-right': [25.0625, 1],
+      'shelf-upper': [44.75, 1],
+      'shelf-middle': [44.75, 1],
+      'shelf-lower': [44.75, 1],
+      divider: [3.625, 1],
+      'case-back': [24.8125, 1],
     });
   });
 
@@ -123,6 +138,78 @@ describe('the base, from its joints', () => {
     });
     expect(part('leg-a').stock).toMatchObject({ stackedAcross: 'thickness', strips: 5 });
     expect(part('end-rail').stock).toMatchObject({ strips: 3, stripWidth: 3.0625 });
+  });
+
+  it('houses the sides in the case bottom, and grooves it for the back', () => {
+    expect(part('case-bottom').dadoes).toEqual([
+      {
+        withPart: 'case-side-left',
+        face: 'far',
+        u0: 0,
+        u1: 0.75,
+        v0: 0,
+        v1: 16.625,
+        depth: 0.1875,
+      },
+      {
+        withPart: 'case-side-right',
+        face: 'far',
+        u0: 45.125,
+        u1: 45.875,
+        v0: 0,
+        v1: 16.625,
+        depth: 0.1875,
+      },
+      // The back's middle: 16-5/8 − 3/8 − 1/8 = 16-1/8, so its groove is y 16 to 16-1/4.
+      { withPart: 'case-back', face: 'far', u0: 0, u1: 45.875, v0: 16, v1: 16.25, depth: 0.375 },
+    ]);
+  });
+
+  it('houses the shelves in the sides, stopped 1/2 from the front, with the back’s groove', () => {
+    // The left side starts at z = 6-9/16. Shelves at z 30-7/8, 26-7/8, and 21-5/8; the upper
+    // runs to the back edge, the others stop 1/16 before the back's front face at 15-3/4.
+    const shelf = (withPart: string, u0: number, v1: number) => ({
+      withPart,
+      face: 'near',
+      u0,
+      u1: u0 + 0.75,
+      v0: 0.5,
+      v1,
+      depth: 0.1875,
+    });
+    expect(part('case-side-left').dadoes).toEqual([
+      shelf('shelf-upper', 24.3125, 16.625),
+      shelf('shelf-middle', 20.3125, 15.6875),
+      shelf('shelf-lower', 15.0625, 15.6875),
+      { withPart: 'case-back', face: 'near', u0: 0, u1: 25.0625, v0: 16, v1: 16.25, depth: 0.375 },
+    ]);
+    const notch = (end: 0 | 1) => ({ end, edge: 'reference', along: 0.1875, across: 0.5 });
+    expect(part('shelf-lower').notches).toEqual([notch(0), notch(1)]);
+    expect(part('shelf-upper').stock.width).toBe(16.625);
+    expect(part('shelf-lower').stock.width).toBe(15.6875);
+  });
+
+  it('houses the divider in the middle and upper shelves, centered in the case', () => {
+    // Centered at x = 30-15/16, so x 30-9/16 to 31-5/16: u 22 to 22-3/4 along shelves from
+    // x = 8-9/16.
+    const dado = (face: 'near' | 'far') => ({
+      withPart: 'divider',
+      face,
+      u0: 22,
+      u1: 22.75,
+      v0: 0.5,
+      v1: 15.6875,
+      depth: 0.1875,
+    });
+    expect(part('shelf-middle').dadoes).toEqual([dado('far')]);
+    expect(part('shelf-upper').dadoes[0]).toEqual(dado('near'));
+  });
+
+  it('floats the back in its grooves, 1/8 short at each edge and 1/32 at each end', () => {
+    // Across: from x = 8-3/4 − 3/8 to 53-1/8 + 3/8, 45-1/8, less 2 × 1/8: 44-7/8.
+    expect(part('case-back').stock.width).toBe(44.875);
+    expect(placement('case-back', 0).origin).toEqual({ x: 8.5, y: 15.75, z: 6.40625 });
+    expect(part('case-back').rabbets).toHaveLength(8);
   });
 
   it('passes the fit checks', () => {
