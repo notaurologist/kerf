@@ -101,7 +101,11 @@ describe('release', () => {
   it('migrates an empty database', async () => {
     const client = new PGlite();
     const { result, calls } = await releaseOn(client);
-    expect(result).toEqual({ status: 'released', history: { projects: 0, rows: 0 } });
+    expect(result).toEqual({
+      status: 'released',
+      history: { projects: 0, rows: 0 },
+      outlines: { projects: 0 },
+    });
     expect(calls).toEqual({ connected: true, migrated: true, closed: true });
     const tables = await client.query("select 1 from pg_tables where tablename = 'projects'");
     expect(tables.rows).toHaveLength(1);
@@ -171,14 +175,37 @@ describe('release', () => {
     await client.query('delete from project_history where project_id = $1', [id]);
 
     const first = await releaseOn(client);
-    expect(first.result).toEqual({
+    expect(first.result).toMatchObject({
       status: 'released',
       history: { projects: 1, rows: written.length },
     });
     const second = await releaseOn(client);
-    expect(second.result).toEqual({ status: 'released', history: { projects: 0, rows: 0 } });
+    expect(second.result).toMatchObject({ status: 'released', history: { projects: 0, rows: 0 } });
     const after = await client.query('select operation_id from project_history');
     expect(after.rows).toHaveLength(written.length);
+    await close();
+  });
+
+  it('rewrites every progress outline from its snapshot', async () => {
+    const { client, id, close } = await storedProject();
+    const [saved] = (
+      await client.query<{ outline: unknown }>('select progress_outline as outline from projects')
+    ).rows;
+    // As a database from before outlines, or one whose outline a read-time change made stale.
+    await client.query(
+      `update projects set progress_outline = '{"shopping": [], "pieces": [], "steps": []}',
+         progress_outline_revision = null`,
+    );
+
+    const { result } = await releaseOn(client);
+    expect(result).toMatchObject({ status: 'released', outlines: { projects: 1 } });
+    const { rows } = await client.query<{ outline: unknown; revision: number; at: number }>(
+      `select progress_outline as outline, revision, progress_outline_revision as at
+         from projects where id = $1`,
+      [id],
+    );
+    expect(rows[0]?.outline).toEqual(saved?.outline);
+    expect(rows[0]?.at).toBe(rows[0]?.revision);
     await close();
   });
 

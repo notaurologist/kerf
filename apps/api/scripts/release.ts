@@ -7,6 +7,7 @@ import { LOCAL_DATABASE_URL } from '../drizzle.config.ts';
 import { createDatabase, type Database } from '../src/db/client.ts';
 import { projects } from '../src/db/schema.ts';
 import { backfillHistory } from '../src/services/history.ts';
+import { refreshOutlines } from '../src/services/outlines.ts';
 
 // Runs while the previous deploy still serves, so it never rewrites stored data into a newer
 // shape; reads upgrade it (decision 0014).
@@ -22,7 +23,11 @@ export type ReleaseResult =
   | { status: 'skipped'; reason: string }
   | { status: 'invalid-url' }
   | { status: 'unreadable'; projects: { id: string; reason: string }[] }
-  | { status: 'released'; history: { projects: number; rows: number } };
+  | {
+      status: 'released';
+      history: { projects: number; rows: number };
+      outlines: { projects: number };
+    };
 
 function skipReason(env: Record<string, string | undefined>): string | undefined {
   if (env.VERCEL && env.VERCEL_ENV !== 'production') {
@@ -91,7 +96,9 @@ export async function release(options: {
       log(
         `release: history written for ${history.projects} projects (${history.rows} operations).`,
       );
-      return { status: 'released', history };
+      const outlines = await refreshOutlines({ db, templates });
+      log(`release: progress outlines written for ${outlines.projects} projects.`);
+      return { status: 'released', history, outlines };
     } finally {
       await db.execute(sql`select pg_advisory_unlock(${RELEASE_LOCK})`);
     }

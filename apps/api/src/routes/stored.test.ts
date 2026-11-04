@@ -1,7 +1,14 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { recordCabinet, TEMPLATES } from '@kerf/core';
+import {
+  progressItems,
+  progressSummary,
+  readSnapshot,
+  recordCabinet,
+  TEMPLATES,
+  type TemplateDefinition,
+} from '@kerf/core';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 import { swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
@@ -54,6 +61,85 @@ describe('stored projects of every shape', () => {
     const list = await authed('/api/projects');
     expect(list.status).toBe(200);
     expect(await list.json()).toMatchObject({ projects: [{ id }] });
+    await close();
+  });
+
+  // The list counts progress from the stored outline (#636); this pins it to the count made from
+  // the snapshot, as the list made it before, for a project saved before outlines and after.
+  it.each(fixtures)(
+    'lists $name with progress as counted from its snapshot',
+    async ({ snapshot }) => {
+      const { client, authed, close } = await createTestApp();
+      const { rows } = await client.query<{ id: string }>(
+        `insert into projects (name, status, template_id, template_version, snapshot)
+       values ('Stored', 'planned', $1, $2, $3) returning id`,
+        [snapshot.templateId, snapshot.templateVersion, JSON.stringify(snapshot)],
+      );
+      const id = rows[0]?.id;
+      const template = TEMPLATES.find((t) => t.id === snapshot.templateId) as TemplateDefinition;
+      const read = readSnapshot(TEMPLATES, snapshot);
+      if (!read.ok) throw new Error(read.message);
+      const outputs = template.storedOutputs.parse(read.snapshot.outputs);
+      // Every other item ticked, a minute apart, cut pieces last, so the step to resume at is found
+      // through a cutting step's board.
+      const last = (kind: string) => (kind === 'part' ? 1 : 0);
+      const ticked = progressItems(template, outputs)
+        .filter((_, i) => i % 2 === 0)
+        .sort((a, b) => last(a.kind) - last(b.kind))
+        .map((item, i) => ({
+          kind: item.kind,
+          key: item.key,
+          doneAt: new Date(Date.UTC(2026, 9, 1) + i * 60_000).toISOString(),
+        }));
+      for (const tick of ticked) {
+        await client.query(
+          'insert into project_progress (project_id, kind, key, done_at) values ($1, $2, $3, $4)',
+          [id, tick.kind, tick.key, tick.doneAt],
+        );
+      }
+      const expected = progressSummary(template, outputs, ticked);
+
+      const listed = async () =>
+        ((await (await authed('/api/projects')).json()) as { projects: { progress: unknown }[] })
+          .projects[0]?.progress;
+      expect(await listed()).toEqual(expected);
+      const stored = await client.query<{ revision: number; at: number | null }>(
+        'select revision, progress_outline_revision as at from projects where id = $1',
+        [id],
+      );
+      expect(stored.rows[0]?.at).toBe(stored.rows[0]?.revision);
+      expect(await listed()).toEqual(expected);
+      await close();
+    },
+  );
+
+  it('lists without reading a snapshot whose outline is current, and reads a stale one once', async () => {
+    const [swingSet] = TEMPLATES;
+    if (!swingSet) throw new Error('needs a template');
+    const plan = vi.fn(swingSet.plan);
+    const counting = { ...swingSet, plan };
+    const { client, authed, close } = await createTestApp({ templates: [counting] });
+    const created = await authed('/api/projects', {
+      method: 'POST',
+      body: {
+        name: 'Stored',
+        templateId: swingSet.id,
+        params: swingSetParams,
+        structuralInputs: swingSetInputs,
+      },
+    });
+    expect(created.status).toBe(201);
+    const list = async () => {
+      plan.mockClear();
+      const res = await authed('/api/projects');
+      expect(res.status).toBe(200);
+      return plan.mock.calls.length;
+    };
+    expect(await list()).toBe(0);
+    // As a save by the previous deploy leaves it: a new revision, and the outline from before.
+    await client.query('update projects set revision = revision + 1');
+    expect(await list()).toBe(1);
+    expect(await list()).toBe(0);
     await close();
   });
 
