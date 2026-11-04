@@ -8,6 +8,7 @@ import {
   drawerBox,
   type EdgeGroove,
   type EdgeRabbet,
+  formatLength,
   type HardwareItem,
   type HingePlate,
   type Mortise,
@@ -116,6 +117,18 @@ export function base(p: WorkbenchParams, gaps: Gaps = ILLUSTRATIVE): Made {
 const END_GAP = 1 / 32;
 
 function build(p: WorkbenchParams, gaps: Gaps): Base {
+  // A floating panel stays in its grooves only while its gap is shallower than they are deep
+  // (DOMAIN.md, Joints that let wood move).
+  const shallow = (what: string, gap: number, depth: number) => {
+    if (gap >= depth) {
+      throw new Refusal(
+        `The ${what} needs ${formatLength(gap)} at its edge for the wood's movement, as much as its ${formatLength(depth)} grooves are deep, so it would come out of them. Deepen the grooves or make it narrower.`,
+      );
+    }
+  };
+  shallow('case back', gaps.backEdge, p.back.grooveDepth);
+  shallow('drawer bottoms', gaps.bottomFront, p.drawer.groove.depth);
+  shallow('door panels', gaps.doorPanelEdge, p.door.grooveDepth);
   const s = p.legSize;
   const underside = p.height - p.topThickness;
   const baseLength = p.topLength - 2 * p.overhangEnds;
@@ -668,6 +681,16 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
   const doorHeight = doorOpening.z[1] - doorOpening.z[0] - 2 * dg;
   const one = panel(door.frameWidth, p.board.thickness)(doorHeight);
   const dt = one.thickness;
+  if (doorWidth <= 2 * door.frameWidth || doorHeight <= 2 * door.frameWidth) {
+    throw new Refusal(
+      `Each door is ${formatLength(doorWidth)} by ${formatLength(doorHeight)}, too small for stiles and rails ${formatLength(door.frameWidth)} wide around a panel.`,
+    );
+  }
+  if (doorHeight < 2 * door.hingeFromEnd + door.hinge.cupDiameter) {
+    throw new Refusal(
+      `Each door is ${formatLength(doorHeight)} tall, too short for two hinges ${formatLength(door.hingeFromEnd)} from its ends, whose cups are ${formatLength(door.hinge.cupDiameter)} across.`,
+    );
+  }
   const center = {
     x: (doorOpening.x[0] + doorOpening.x[1]) / 2,
     z: (doorOpening.z[0] + doorOpening.z[1]) / 2,
@@ -694,14 +717,14 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
       'door-stile-hinge',
       k,
       stileStock,
-      member(Z, X, Y, { x: x0, y: 0, z: 0 }),
+      member(Z, X, Y, { x: x0, y: legY[0], z: 0 }),
       ends(z0, z0 + doorHeight),
     );
     const meeting = cut(
       'door-stile-meeting',
       k,
       stileStock,
-      member(Z, minus(X), minus(Y), { x: x0 + doorWidth, y: dt, z: 0 }),
+      member(Z, minus(X), minus(Y), { x: x0 + doorWidth, y: legY[0] + dt, z: 0 }),
       ends(z0, z0 + doorHeight),
     );
     const railEnds = (): [Plane, Plane] => [
@@ -713,14 +736,14 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
         'door-rail',
         2 * k,
         stileStock,
-        member(X, Z, minus(Y), { x: 0, y: dt, z: z0 }),
+        member(X, Z, minus(Y), { x: 0, y: legY[0] + dt, z: z0 }),
         railEnds(),
       ),
       cut(
         'door-rail',
         2 * k + 1,
         stileStock,
-        member(X, minus(Z), Y, { x: 0, y: 0, z: z0 + doorHeight }),
+        member(X, minus(Z), Y, { x: 0, y: legY[0], z: z0 + doorHeight }),
         railEnds(),
       ),
     ];
