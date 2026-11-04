@@ -279,6 +279,17 @@ describe('panelInFaces', () => {
     );
   });
 
+  it('sets a panel flush with its grooves’ far wall, rabbeted from the near face only', () => {
+    // The groove runs y 2-7/8 to 3-1/8; flush there, the 1/2 panel's far face is at 3-1/8 and its
+    // near face at 2-5/8, rabbeted 1/4 off the near face to the 1/4 tongue.
+    const made = panelInFaces({ ...joint, flush: 'far' });
+    if (!made.ok) throw new Error(made.message);
+    expect(made.origin.y).toBe(2.625);
+    expect(made.rabbets).toHaveLength(4);
+    for (const r of made.rabbets)
+      expect(r).toMatchObject({ face: 'near', width: 0.375, depth: 0.25 });
+  });
+
   it('refuses a panel no thicker than its grooves, or held on three sides', () => {
     expect(panelInFaces({ ...joint, panel: { ...joint.panel, thickness: 0.25 } })).toMatchObject({
       ok: false,

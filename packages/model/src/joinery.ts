@@ -362,6 +362,11 @@ export interface PanelInFaces {
    * bottom runs on under a short back. That side gets no tongue.
    */
   open?: number;
+  /**
+   * The panel's face flush with its grooves' wall on that side, the tongue rabbeted from the other
+   * face only, as a drawer bottom's top is flush with its groove's. Centered when absent.
+   */
+  flush?: 'near' | 'far';
 }
 
 /**
@@ -382,8 +387,14 @@ export function panelInFaces(joint: PanelInFaces):
   | Refused {
   const { frame, groove, panel, middle, gaps } = joint;
   const T = panel.thickness;
-  const tongue = (T - groove.width) / 2;
-  if (tongue <= 0) return { ok: false, message: 'The panel is no thicker than the grooves.' };
+  const extra = T - groove.width;
+  if (extra <= 0) return { ok: false, message: 'The panel is no thicker than the grooves.' };
+  // How much each face's rabbet takes off, and where the panel's near face is along `through`.
+  const rabbet = {
+    near: joint.flush === 'near' ? 0 : joint.flush === 'far' ? extra : extra / 2,
+    far: joint.flush === 'far' ? 0 : joint.flush === 'near' ? extra : extra / 2,
+  };
+  const nearFace = middle - groove.width / 2 - rabbet.near;
   const dadoes: { partId: string; dado: Dado }[] = [];
   const ends: number[] = [];
   const edges: number[] = [];
@@ -439,7 +450,7 @@ export function panelInFaces(joint: PanelInFaces):
   const origin = plus(
     plus(plus({ x: 0, y: 0, z: 0 }, panel.along, start0), panel.across, side0),
     panel.through,
-    middle - T / 2,
+    nearFace,
   );
   return {
     ok: true,
@@ -448,12 +459,9 @@ export function panelInFaces(joint: PanelInFaces):
     length: s1 - gap('second-end', gaps.ends) - start0,
     width: e1 - gap('far', gaps.edges) - side0,
     rabbets: RABBETED.filter((edge) => edge !== free).flatMap((edge) =>
-      (['near', 'far'] as const).map((face) => ({
-        edge,
-        face,
-        width: groove.depth,
-        depth: tongue,
-      })),
+      (['near', 'far'] as const)
+        .filter((face) => rabbet[face] > 0)
+        .map((face) => ({ edge, face, width: groove.depth, depth: rabbet[face] })),
     ),
   };
 }
