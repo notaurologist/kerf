@@ -7,7 +7,7 @@ import { boltHoleDiameter } from '../structural/boltHoles.ts';
 // concave, so a part with any is refused.
 
 /** Where a hole is drilled from, in the part's own terms (Placement). */
-type Side = 'near-face' | 'far-face' | 'reference-edge' | 'far-edge';
+export type Side = 'near-face' | 'far-face' | 'reference-edge' | 'far-edge';
 
 export interface PlacedPart {
   part: Part;

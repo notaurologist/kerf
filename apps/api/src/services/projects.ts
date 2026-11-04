@@ -5,10 +5,12 @@ import {
   compareWithCurrent,
   confirmSuggested,
   cornerViews,
+  countProgress,
   createSnapshot,
   fillMissing,
   type geometry,
   type Issue,
+  ProgressOutline,
   type ProgressReset,
   type ProgressSummary,
   type ProjectSnapshot,
@@ -20,16 +22,18 @@ import {
   readSnapshot,
   resetNotes,
   type SuggestedValue,
+  stepDrawing,
   suggestedAfter,
   suggestedFor,
   type TemplateDefinition,
   type VersionReport,
 } from '@kerf/core';
-import { and, desc, eq, isNotNull, isNull, lt } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull, isNull, lt } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { Database } from '../db/client.ts';
 import { projects } from '../db/schema.ts';
 import { writeHistory } from './history.ts';
+import { outlineOf, outlineOfSnapshot } from './outlines.ts';
 import {
   dismissResets,
   itemsOf,
@@ -163,6 +167,15 @@ export interface ProjectDrawings {
   drawings: geometry.Drawings | null;
 }
 
+/**
+ * One build step's action drawing (#118), drawn on read like the rest, in a request of its own
+ * (#635): together they are most of a large plan's drawings. Null for a step with none, or when
+ * the snapshot cannot be read or drawing it fails.
+ */
+export interface ProjectStepDrawing {
+  drawing: geometry.Drawing | null;
+}
+
 /** A plan's assembled and exploded views from one corner. */
 type CornerViews = Pick<geometry.Drawings, 'isometric' | 'exploded'>;
 
@@ -181,6 +194,22 @@ export type Result<T> =
   | { ok: false; error: 'stale-project'; revision: number };
 
 type Row = typeof projects.$inferSelect;
+
+/** What the projects list and the trash read: no snapshot (#636). */
+const summaryColumns = {
+  id: projects.id,
+  name: projects.name,
+  status: projects.status,
+  templateId: projects.templateId,
+  templateVersion: projects.templateVersion,
+  revision: projects.revision,
+  progressOutline: projects.progressOutline,
+  progressOutlineRevision: projects.progressOutlineRevision,
+  deletedAt: projects.deletedAt,
+  createdAt: projects.createdAt,
+  updatedAt: projects.updatedAt,
+};
+type SummaryRow = { [K in keyof typeof summaryColumns]: Row[K] };
 
 type Stored =
   | {
@@ -246,12 +275,8 @@ export function createProjectService(deps: {
     }
   }
 
-  /** The row's summary, with its progress counted from its ticks. */
-  function summary(
-    row: Row,
-    ticks: readonly ProgressEntry[],
-    stored: Stored = readStored(row),
-  ): ProjectSummary {
+  /** The row's summary, with its progress as counted from its ticks. */
+  function summary(row: SummaryRow, progress: ProgressSummary | null): ProjectSummary {
     const template = findTemplate(row.templateId);
     return {
       id: row.id,
@@ -261,7 +286,7 @@ export function createProjectService(deps: {
       templateVersion: row.templateVersion,
       revision: row.revision,
       templateBehind: template !== undefined && row.templateVersion < template.version,
-      progress: progressOf(row, stored, ticks),
+      progress,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
     };
@@ -298,7 +323,7 @@ export function createProjectService(deps: {
       return {
         ok: true,
         value: {
-          ...summary(row, ticks, stored),
+          ...summary(row, null),
           snapshot: null,
           unreadable: { reason: stored.reason, message: stored.message },
           version: null,
@@ -313,7 +338,7 @@ export function createProjectService(deps: {
     return {
       ok: true,
       value: {
-        ...summary(row, ticks, stored),
+        ...summary(row, progressOf(row, stored, ticks)),
         ticks,
         resets,
         snapshot,
@@ -378,10 +403,63 @@ export function createProjectService(deps: {
     };
   }
 
-  const snapshotColumns = (s: ProjectSnapshot) => ({
-    templateVersion: s.templateVersion,
-    snapshot: s,
-  });
+  /** A snapshot's columns, with its progress outline made at the revision it is saved at. */
+  function snapshotColumns(template: TemplateDefinition, s: ProjectSnapshot, revision: number) {
+    let progressOutline: ProgressOutline | null = null;
+    try {
+      progressOutline = outlineOfSnapshot(template, s);
+    } catch (error) {
+      console.error("a saved plan's progress could not be counted", error);
+    }
+    return {
+      templateVersion: s.templateVersion,
+      snapshot: s,
+      progressOutline,
+      progressOutlineRevision: progressOutline ? revision : null,
+    };
+  }
+
+  /**
+   * Each row's progress outline: the stored one when it was made at the row's revision, otherwise
+   * read from the snapshot once and stored for the next read. Null when the snapshot cannot be
+   * read or counted.
+   */
+  async function outlines(
+    rows: readonly SummaryRow[],
+  ): Promise<Map<string, ProgressOutline | null>> {
+    const found = new Map<string, ProgressOutline | null>();
+    const stale: string[] = [];
+    for (const row of rows) {
+      const stored =
+        row.progressOutlineRevision === row.revision
+          ? ProgressOutline.safeParse(row.progressOutline)
+          : undefined;
+      if (stored?.success) found.set(row.id, stored.data);
+      else stale.push(row.id);
+    }
+    if (stale.length === 0) return found;
+    for (const row of await db.select().from(projects).where(inArray(projects.id, stale))) {
+      const outline = outlineOf(templates, row);
+      found.set(row.id, outline);
+      if (!outline) continue;
+      // Only at the revision read: a save since then raised it and wrote its own outline.
+      await db
+        .update(projects)
+        .set({ progressOutline: outline, progressOutlineRevision: row.revision })
+        .where(and(eq(projects.id, row.id), eq(projects.revision, row.revision)));
+    }
+    return found;
+  }
+
+  /** The rows' summaries, with progress counted from their outlines and ticks. */
+  async function summaries(rows: readonly SummaryRow[]): Promise<ProjectSummary[]> {
+    const outlined = await outlines(rows);
+    const ticks = await readAllProgress(db);
+    return rows.map((row) => {
+      const outline = outlined.get(row.id) ?? null;
+      return summary(row, outline ? countProgress(outline, ticks.get(row.id) ?? []) : null);
+    });
+  }
 
   /** A project that is not in the trash. Everything but the trash reads only these. */
   const live = (id: string) => and(eq(projects.id, id), isNull(projects.deletedAt));
@@ -412,14 +490,12 @@ export function createProjectService(deps: {
 
   return {
     async list(): Promise<ProjectSummary[]> {
-      await purge();
       const rows = await db
-        .select()
+        .select(summaryColumns)
         .from(projects)
         .where(isNull(projects.deletedAt))
         .orderBy(desc(projects.updatedAt));
-      const ticks = await readAllProgress(db);
-      return rows.map((row) => summary(row, ticks.get(row.id) ?? []));
+      return summaries(rows);
     },
 
     async get(id: string): Promise<Result<Project>> {
@@ -453,6 +529,19 @@ export function createProjectService(deps: {
       };
     },
 
+    /** One step's action drawing, drawn on read; none for a step that has none. */
+    async stepDrawing(id: string, stepId: string): Promise<Result<ProjectStepDrawing>> {
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      const stored = readStored(row);
+      if (!stored.ok) return { ok: true, value: { drawing: null } };
+      const { template, outputs } = stored;
+      const drawing = drawn(row, `the drawing for step ${stepId}`, () =>
+        stepDrawing(template, outputs, stepId),
+      );
+      return { ok: true, value: { drawing } };
+    },
+
     async create(input: NewProject): Promise<Result<Project>> {
       const generated = generateNew(input);
       if (!generated.ok) return generated;
@@ -464,7 +553,8 @@ export function createProjectService(deps: {
             name: input.name,
             status: input.status,
             templateId: input.templateId,
-            ...snapshotColumns(generated.snapshot),
+            ...snapshotColumns(generated.template, generated.snapshot, 1),
+            revision: 1,
             createdAt: at,
             updatedAt: at,
           })
@@ -515,7 +605,7 @@ export function createProjectService(deps: {
           .set({
             ...(changes.name !== undefined ? { name: changes.name } : {}),
             ...(changes.status !== undefined ? { status: changes.status } : {}),
-            ...(saved ? snapshotColumns(saved.snapshot) : {}),
+            ...(saved ? snapshotColumns(saved.template, saved.snapshot, row.revision + 1) : {}),
             ...(plan ? { revision: row.revision + 1 } : {}),
             updatedAt: at,
           })
@@ -606,7 +696,7 @@ export function createProjectService(deps: {
         const [updated] = await tx
           .update(projects)
           .set({
-            ...snapshotColumns(snapshot),
+            ...snapshotColumns(generated.template, snapshot, locked.revision + 1),
             revision: locked.revision + 1,
             updatedAt: at,
           })
@@ -737,15 +827,15 @@ export function createProjectService(deps: {
     async trash(): Promise<TrashedProject[]> {
       await purge();
       const rows = await db
-        .select()
+        .select(summaryColumns)
         .from(projects)
         .where(isNotNull(projects.deletedAt))
         .orderBy(desc(projects.deletedAt));
-      const ticks = await readAllProgress(db);
-      return rows.map((row) => {
+      const listed = await summaries(rows);
+      return rows.map((row, i) => {
         const deletedAt = row.deletedAt as Date;
         return {
-          ...summary(row, ticks.get(row.id) ?? []),
+          ...(listed[i] as ProjectSummary),
           deletedAt: deletedAt.toISOString(),
           purgeAt: new Date(deletedAt.getTime() + TRASH_DAYS * DAY).toISOString(),
         };
@@ -777,6 +867,7 @@ export function createProjectService(deps: {
      * few hours (#21).
      */
     async exportAll(): Promise<ProjectsExport> {
+      await purge();
       const rows = await db.select().from(projects).orderBy(desc(projects.updatedAt));
       const ticks = await readAllProgress(db);
       const resets = await readAllResets(db);

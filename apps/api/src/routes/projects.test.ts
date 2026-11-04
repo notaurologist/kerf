@@ -7,6 +7,7 @@ import {
   inventoryKey,
   projectDrawings,
   readSnapshot,
+  stepDrawings,
   swingSetAFrame,
   TEMPLATES,
   type TemplateDefinition,
@@ -137,6 +138,42 @@ describe('GET /api/projects/:id/drawings', () => {
     const { app, authed } = await createTestApp();
     const { body } = await create(authed);
     const res = await app.request(`/api/projects/${body.id}/drawings`);
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('GET /api/projects/:id/steps/:stepId/drawing (#635)', () => {
+  it("returns each assembly step's action drawing on its own, and none for other steps", async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const project = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
+    const outputs = swingSetAFrame.definition.storedOutputs.parse(project.snapshot.outputs);
+    const expected = stepDrawings(swingSetAFrame.definition, outputs);
+    expect(expected.map((s) => s.stepId)).toEqual(['frames', 'beam']);
+    for (const { stepId, drawing } of expected) {
+      const res = await authed(`/api/projects/${body.id}/steps/${stepId}/drawing`);
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ drawing: JSON.parse(JSON.stringify(drawing)) });
+    }
+    const { drawings } = (await (await authed(`/api/projects/${body.id}/drawings`)).json()) as Json;
+    expect(drawings).not.toHaveProperty('steps');
+    const cutting = project.steps.steps.find((s: Json) => s.board);
+    for (const stepId of [cutting.id, 'no-such-step']) {
+      const res = await authed(`/api/projects/${body.id}/steps/${stepId}/drawing`);
+      expect(await res.json()).toEqual({ drawing: null });
+    }
+  });
+
+  it('answers 404 for a missing project', async () => {
+    const { authed } = await createTestApp();
+    const missing = '00000000-0000-4000-8000-000000000000';
+    expect((await authed(`/api/projects/${missing}/steps/frames/drawing`)).status).toBe(404);
+  });
+
+  it('requires a session', async () => {
+    const { app, authed } = await createTestApp();
+    const { body } = await create(authed);
+    const res = await app.request(`/api/projects/${body.id}/steps/frames/drawing`);
     expect(res.status).toBe(401);
   });
 });
@@ -692,6 +729,16 @@ describe('GET /api/export (#21)', () => {
 
     const exported = (await (await authed('/api/export')).json()) as Json;
     expect(exported.projects).toEqual([]);
+    expect(exported.deletedProjects).toEqual([]);
+  });
+
+  it('leaves out a project 30 days past its deletion', async () => {
+    const { authed, clock } = await createTestApp();
+    const gone = await create(authed, { ...newProject, name: 'Gone' });
+    await authed(`/api/projects/${gone.body.id}`, { method: 'DELETE', body: {} });
+    clock.now = new Date(clock.now.getTime() + 30 * 24 * 60 * 60 * 1000 + 1);
+
+    const exported = (await (await authed('/api/export')).json()) as Json;
     expect(exported.deletedProjects).toEqual([]);
   });
 

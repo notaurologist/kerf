@@ -30,10 +30,37 @@ export interface StepDrawing {
   drawing: Drawing;
 }
 
-export function stepDrawings<O>(
-  template: Pick<TemplateDefinition<unknown, unknown, O>, 'steps' | 'plan' | 'assembly'>,
+type StepsTemplate<O> = Pick<
+  TemplateDefinition<unknown, unknown, O>,
+  'steps' | 'plan' | 'assembly'
+>;
+
+/** Every assembly step's action drawing, in step order. */
+export function stepDrawings<O>(template: StepsTemplate<O>, outputs: O): StepDrawing[] {
+  return actionSteps(template, outputs).map((s) => ({ stepId: s.stepId, drawing: s.draw() }));
+}
+
+/**
+ * One step's action drawing, or null for a step that has none. Only that step is drawn: what
+ * earlier steps built is worked out from their operations alone.
+ */
+export function stepDrawing<O>(
+  template: StepsTemplate<O>,
   outputs: O,
-): StepDrawing[] {
+  stepId: string,
+): Drawing | null {
+  return (
+    actionSteps(template, outputs)
+      .find((s) => s.stepId === stepId)
+      ?.draw() ?? null
+  );
+}
+
+/** Each assembly step with a drawing, and how to draw it, without drawing any. */
+function actionSteps<O>(
+  template: StepsTemplate<O>,
+  outputs: O,
+): { stepId: string; draw: () => Drawing }[] {
   const views = template.assembly(outputs);
   if (!views) return [];
   const { scene, view, explode } = views;
@@ -43,7 +70,7 @@ export function stepDrawings<O>(
       .flatMap((p) => (p ? [`${p.letter} ${p.name}`] : []))
       .join(', ');
   const built = new Set<string>();
-  const drawings: StepDrawing[] = [];
+  const drawings: { stepId: string; draw: () => Drawing }[] = [];
   for (const step of stepContents(template.steps(outputs), template.plan(outputs))) {
     if (step.board) continue;
     const glued = step.operations.flatMap((op) =>
@@ -52,7 +79,7 @@ export function stepDrawings<O>(
         : [],
     );
     if (glued.length > 0) {
-      drawings.push({ stepId: step.id, drawing: glueUpDrawing(glued, `Step: ${step.title}`) });
+      drawings.push({ stepId: step.id, draw: () => glueUpDrawing(glued, `Step: ${step.title}`) });
       continue;
     }
     const joins = step.operations.some(
@@ -79,13 +106,14 @@ export function stepDrawings<O>(
       '. A part drawn away from where it goes has an arrow back to it.';
     drawings.push({
       stepId: step.id,
-      drawing: actionView(
-        scene,
-        view,
-        { added, built: before, explode },
-        description,
-        `Step: ${step.title}`,
-      ),
+      draw: () =>
+        actionView(
+          scene,
+          view,
+          { added, built: before, explode },
+          description,
+          `Step: ${step.title}`,
+        ),
     });
     if (!dry) for (const id of added) built.add(id);
   }
@@ -191,15 +219,13 @@ function glueUpDrawing(glued: readonly Part[], title: string): Drawing {
 }
 
 /**
- * Every drawing a project shows: the template's own, drawn from stored outputs, then the two that
- * every template's data supports, the board cards' from the board plan (#59) and the assembly
- * steps' action drawings (#118). The outputs must already parse with the template's schema.
+ * A project's drawings: the template's own, drawn from stored outputs, then the board cards' from
+ * the board plan (#59), which every template's data supports. The assembly steps' action drawings
+ * come one at a time from `stepDrawing`, since together they are most of a large plan's drawings.
+ * The outputs must already parse with the template's schema.
  */
 export function projectDrawings<O>(
-  template: Pick<
-    TemplateDefinition<unknown, unknown, O>,
-    'drawings' | 'steps' | 'plan' | 'assembly'
-  >,
+  template: Pick<TemplateDefinition<unknown, unknown, O>, 'drawings' | 'plan'>,
   outputs: O,
 ): Drawings {
   const plan = template.plan(outputs);
@@ -215,7 +241,6 @@ export function projectDrawings<O>(
   return {
     ...template.drawings(outputs),
     boards: boardDrawings(plan.lumber, plan.cutList, settings),
-    steps: stepDrawings(template, outputs),
   };
 }
 

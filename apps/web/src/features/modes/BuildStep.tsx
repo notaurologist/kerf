@@ -74,11 +74,14 @@ function Position(props: {
  * The drawing a step sits beside: a cutting step's board, an assembly step's action drawing, or
  * the site layout for site work. Other steps have none.
  */
-function drawingFor(step: BuildStep, drawings: geometry.Drawings | null) {
+function drawingFor(
+  step: BuildStep,
+  drawings: geometry.Drawings | null,
+  action: geometry.Drawing | null,
+) {
+  if (action) return action;
   if (!drawings) return undefined;
   if (step.board) return drawings.boards?.[step.board.number - 1];
-  const action = drawings.steps?.find((s) => s.stepId === step.id)?.drawing;
-  if (action) return action;
   const onSite = step.operations.some((o) => o.partIds.length === 0);
   return onSite ? (drawings.siteLayout ?? undefined) : undefined;
 }
@@ -110,6 +113,8 @@ export function StepScreen(props: {
   at: number;
   plan: Plan;
   drawings: geometry.Drawings | null;
+  /** The step's action drawing, which comes in a request of its own; null while it has none. */
+  action: geometry.Drawing | null;
   ticks: Ticks;
   links: StepLinks;
 }) {
@@ -126,7 +131,7 @@ export function StepScreen(props: {
   const tick = { kind: 'step' as const, key: step.id };
   const done = ticks.isDone(tick);
   const nextHref = next ? links.step(next.id) : links.steps;
-  const drawing = drawingFor(step, props.drawings);
+  const drawing = drawingFor(step, props.drawings, props.action);
   return (
     <>
       <Position number={at + 1} total={steps.length} step={step} links={links} />

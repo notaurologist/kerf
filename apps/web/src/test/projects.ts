@@ -6,10 +6,11 @@ import {
   progressSummary,
   projectDrawings,
   readSnapshot,
+  stepDrawing,
   TEMPLATES,
 } from '@kerf/core';
 import fixtures from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v1.json';
-import type { DrawingsState } from '../lib/drawings.ts';
+import type { DrawingsState, StepDrawingState } from '../lib/drawings.ts';
 import type { Ticks } from '../lib/ticks.ts';
 import type { Project } from '../lib/types.ts';
 
@@ -87,6 +88,18 @@ export function loadedDrawings(
   drawings = drawingsFor(project.snapshot),
 ): DrawingsState {
   return { state: 'ready', value: drawings };
+}
+
+/** One step's action drawing once Building mode has loaded it, as `useStepDrawing` gives it. */
+export function loadedStepDrawing(project: Project, stepId: string): StepDrawingState {
+  const snapshot = project.snapshot;
+  const template = snapshot && findTemplate(snapshot.templateId);
+  const outputs = template?.storedOutputs.parse(snapshot?.outputs);
+  const drawing = template ? stepDrawing(template, outputs, stepId) : null;
+  return {
+    state: 'ready',
+    value: geometry.Drawing.nullable().parse(JSON.parse(JSON.stringify(drawing))),
+  };
 }
 
 /** Build steps as the API sends them: chosen by core from an inventory, through JSON. */

@@ -1,7 +1,14 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { recordCabinet, TEMPLATES } from '@kerf/core';
+import {
+  progressItems,
+  progressSummary,
+  readSnapshot,
+  recordCabinet,
+  TEMPLATES,
+  type TemplateDefinition,
+} from '@kerf/core';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 import { swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
@@ -57,6 +64,85 @@ describe('stored projects of every shape', () => {
     await close();
   });
 
+  // The list counts progress from the stored outline (#636); this pins it to the count made from
+  // the snapshot, as the list made it before, for a project saved before outlines and after.
+  it.each(fixtures)(
+    'lists $name with progress as counted from its snapshot',
+    async ({ snapshot }) => {
+      const { client, authed, close } = await createTestApp();
+      const { rows } = await client.query<{ id: string }>(
+        `insert into projects (name, status, template_id, template_version, snapshot)
+       values ('Stored', 'planned', $1, $2, $3) returning id`,
+        [snapshot.templateId, snapshot.templateVersion, JSON.stringify(snapshot)],
+      );
+      const id = rows[0]?.id;
+      const template = TEMPLATES.find((t) => t.id === snapshot.templateId) as TemplateDefinition;
+      const read = readSnapshot(TEMPLATES, snapshot);
+      if (!read.ok) throw new Error(read.message);
+      const outputs = template.storedOutputs.parse(read.snapshot.outputs);
+      // Every other item ticked, a minute apart, cut pieces last, so the step to resume at is found
+      // through a cutting step's board.
+      const last = (kind: string) => (kind === 'part' ? 1 : 0);
+      const ticked = progressItems(template, outputs)
+        .filter((_, i) => i % 2 === 0)
+        .sort((a, b) => last(a.kind) - last(b.kind))
+        .map((item, i) => ({
+          kind: item.kind,
+          key: item.key,
+          doneAt: new Date(Date.UTC(2026, 9, 1) + i * 60_000).toISOString(),
+        }));
+      for (const tick of ticked) {
+        await client.query(
+          'insert into project_progress (project_id, kind, key, done_at) values ($1, $2, $3, $4)',
+          [id, tick.kind, tick.key, tick.doneAt],
+        );
+      }
+      const expected = progressSummary(template, outputs, ticked);
+
+      const listed = async () =>
+        ((await (await authed('/api/projects')).json()) as { projects: { progress: unknown }[] })
+          .projects[0]?.progress;
+      expect(await listed()).toEqual(expected);
+      const stored = await client.query<{ revision: number; at: number | null }>(
+        'select revision, progress_outline_revision as at from projects where id = $1',
+        [id],
+      );
+      expect(stored.rows[0]?.at).toBe(stored.rows[0]?.revision);
+      expect(await listed()).toEqual(expected);
+      await close();
+    },
+  );
+
+  it('lists without reading a snapshot whose outline is current, and reads a stale one once', async () => {
+    const [swingSet] = TEMPLATES;
+    if (!swingSet) throw new Error('needs a template');
+    const plan = vi.fn(swingSet.plan);
+    const counting = { ...swingSet, plan };
+    const { client, authed, close } = await createTestApp({ templates: [counting] });
+    const created = await authed('/api/projects', {
+      method: 'POST',
+      body: {
+        name: 'Stored',
+        templateId: swingSet.id,
+        params: swingSetParams,
+        structuralInputs: swingSetInputs,
+      },
+    });
+    expect(created.status).toBe(201);
+    const list = async () => {
+      plan.mockClear();
+      const res = await authed('/api/projects');
+      expect(res.status).toBe(200);
+      return plan.mock.calls.length;
+    };
+    expect(await list()).toBe(0);
+    // As a save by the previous deploy leaves it: a new revision, and the outline from before.
+    await client.query('update projects set revision = revision + 1');
+    expect(await list()).toBe(1);
+    expect(await list()).toBe(0);
+    await close();
+  });
+
   it('lists the other projects when one cannot be counted', async () => {
     const [swingSet] = TEMPLATES;
     if (!swingSet) throw new Error('needs a template');
@@ -109,8 +195,13 @@ describe('stored projects of every shape', () => {
     const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
     const res = await authed(`/api/projects/${id}`);
     const drawings = await authed(`/api/projects/${id}/drawings`);
+    const step = await authed(`/api/projects/${id}/steps/frames/drawing`);
     expect(logged).toHaveBeenCalledWith(
       `project ${id}: the build steps could not be drawn`,
+      expect.any(Error),
+    );
+    expect(logged).toHaveBeenCalledWith(
+      `project ${id}: the drawing for step frames could not be drawn`,
       expect.any(Error),
     );
     expect(logged).toHaveBeenCalledWith(
@@ -126,14 +217,18 @@ describe('stored projects of every shape', () => {
     expect(project.steps).toBeNull();
     expect(drawings.status).toBe(200);
     expect(await drawings.json()).toEqual({ drawings: null });
+    expect(step.status).toBe(200);
+    expect(await step.json()).toEqual({ drawing: null });
     await close();
   });
 });
 
 // Vercel refuses a function response over 4.5 MB, and a project is read on every open and save.
-// The drawings, which are most of a plan's size, come in a request of their own.
+// The drawings, which are most of a plan's size, come in a request of their own, and each build
+// step's action drawing in another, opened one step at a time.
 const PROJECT_BUDGET = 1_000_000;
 const DRAWINGS_BUDGET = 4_000_000;
+const STEP_DRAWING_BUDGET = 1_000_000;
 
 const bytes = (text: string) => new TextEncoder().encode(text).length;
 
@@ -163,10 +258,21 @@ describe('response sizes', () => {
     const { id } = JSON.parse(text) as { id: string };
     const read = await authed(`/api/projects/${id}`);
     expect(read.status).toBe(200);
-    expect(bytes(await read.text())).toBeLessThan(PROJECT_BUDGET);
+    const readText = await read.text();
+    expect(bytes(readText)).toBeLessThan(PROJECT_BUDGET);
     const drawings = await authed(`/api/projects/${id}/drawings`);
     expect(drawings.status).toBe(200);
     expect(bytes(await drawings.text())).toBeLessThan(DRAWINGS_BUDGET);
+    const { steps } = JSON.parse(readText) as { steps: { steps: { id: string }[] } };
+    let drawn = 0;
+    for (const step of steps.steps) {
+      const res = await authed(`/api/projects/${id}/steps/${step.id}/drawing`);
+      expect(res.status).toBe(200);
+      const text = await res.text();
+      expect(bytes(text)).toBeLessThan(STEP_DRAWING_BUDGET);
+      if ((JSON.parse(text) as { drawing: unknown }).drawing !== null) drawn += 1;
+    }
+    expect(drawn).toBeGreaterThan(0);
     await close();
   });
 

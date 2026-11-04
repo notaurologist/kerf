@@ -394,6 +394,22 @@ The drawings (#90) are drawn from the stored outputs; no number in them is new.
 
 Hand check, worked example: the beam's top front corner at its left end, (0, −1.75, 101.5), projects to page (1.75/√2, −(−1.75 + 2·101.5)/√6) = (1.237, −82.160), with page y down.
 
+## Joints (decision 0020)
+
+The template says where each part runs and how its bolts lie. The joints in core's `joints/` give the rest (`templates/swing-set-a-frame/joints.ts`, template version 38, #626):
+- **Trims:** each part is cut to a plane at each end, which gives its end cuts, length, marked edges, and placement.
+  - The beam's plies are square at x = 0 and L.
+  - The legs are cut level with the top of the beam, and level at the foot cut.
+  - The crossbars and gussets run front to back on each frame's outside face, cut parallel to the legs' outer faces, the distance past them that Bolt layout gives.
+- **Bolted laps:** each bolt is given by its line and the parts it passes through, in order. Its holes are where the line runs inside each part, and its grip is the sum of them.
+  - Leg to beam: the bolt runs level at the beam's mid-depth on the frame's centerline, from back to front, drilled from each leg's outer edge and each ply's back face.
+  - Crossbar and gusset: the bolts run across the frame on the leg's centerline, through the board and then the leg.
+  - Vertical hanger bolts run down through the beam's centerline.
+
+The ply bolts and the horizontal hanger bolts are drilled where the plies or bracket put them, so they are not placed. The leg's flush cut is the template's.
+
+The lengths in Derived geometry and the leg-to-beam grip are read by validation, the structural model, and the hardware lines, and the joints must agree with them to within 1e-9". The joints compute their trigonometry another way from the template's formulas, so some numbers differ in their last bits, at most 2.8 × 10⁻¹⁴" in the worked examples. Everything a plan shows is the same, string for string, but the stored numbers differ, so the template version moved to 38.
+
 ## Starting questions
 
 A new project can start from a few plain questions (#163). Kerf asks only what it cannot know, fills in the rest from the worked example and stated rules of thumb, and opens the form filled in, with the preview. Each suggested value says where it came from. Nothing is saved until Create. `questions.ts` implements this section.
