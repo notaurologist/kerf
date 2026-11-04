@@ -77,7 +77,7 @@ export function base(p: WorkbenchParams, topMovement?: number, backGap = BACK_ED
 
 /**
  * The back's gap at each edge, across its grain, until the movement estimate gives one; and at
- * each end, along it, the record cabinet's door panels' 1/32 (DOMAIN.md, Joints that let wood move).
+ * each end, along it, 1/32, as for any floating panel (DOMAIN.md, Joints that let wood move).
  */
 const BACK_EDGE_GAP = 0.125;
 const BACK_END_GAP = 1 / 32;

@@ -43,6 +43,8 @@ Every parameter starts from a suggestion with its basis (owner's standing prefer
 | — | Rail tenons | | t_r / 3 thick, rounded down to 1/16; 1/4 shoulders above and below; s/2 + 1/4 long. The record cabinet's rules of thumb for its aprons' tenons (`rule-of-thumb`) |
 | — | Leg tenons | | s / 3 thick, rounded down to 1/16, with 1/4 shoulders, centered. Into the foot h_f/2 + 1/4 deep, the cabinet's rule applied to the foot; through the top. The long side runs along the foot below and along the bench above, so neither mortise crosses the grain of the part it is in (`rule-of-thumb`) |
 | h_db | Drawer band height, under the top | 6 to 14 | 10 (`example`, owner's photo) |
+| h_u | Upper drawer opening; the lower opening is the rest of the band, h_db − 3·t_c − h_u | 2 to h_db − 3·t_c − 2 | 3-1/4 (`example`, owner's photo) |
+| — | The case back's grooves | | 1/4 wide and 3/8 deep, as the record cabinet's door grooves, set 3/8 in from the case's back edge; the back t_c thick with a 1/4 tongue, grain up, 1/32 short at each end and short at each edge by its movement; the middle and lower shelves stop 1/16 in front of it (`rule-of-thumb`, owner, November 4, 2026) |
 | t_c | Case panel thickness | 5/8 to 1 | 3/4, as the record cabinet's |
 | j | Dado depth | 1/16 to t_c / 2 | 3/16 = t_c / 4, the record cabinet's rule of thumb (#317) |
 | s_d | Stopped-dado setback | 1/16 to the case depth | 1/2, as the record cabinet's: how far the drawer shelves' and divider's dadoes stop short of the case's front edge, so none shows from the front. A design choice, not a strength rule |
@@ -84,8 +86,9 @@ Joint-first: each part is declared by where it stands and how it joins its neigh
 - End rails: D_b − 2·s between the legs, with tenons added by the joints.
 - Low rails: L_b − 2·s between the legs, from z = h_f to h_f + h_r.
 - Case: between the legs, L_b − 2·s wide and D_b deep, from z = h_f + h_r to z_u.
-- Drawer band: the top h_db of the case. Inside it, three drawer shelves t_c thick (under the top, between the rows, and above the doors) leave h_db − 3·t_c for the two rows of openings, split upper : lower = 3.25 : 4.5 in the example (`example`, owner's photo). The upper row's two openings are split by a divider t_c thick.
-- Drawer shelves: the inside width of the case + 2·j long, from the case's front edge to the case back, which floats in grooves in the case sides behind them.
+- Drawer band: the top h_db of the case. Inside it, three drawer shelves t_c thick (under the top, between the rows, and above the doors) leave h_db − 3·t_c for the two rows of openings: h_u for the upper and the rest for the lower, 3-1/4 and 4-1/2 in the example (`example`, owner's photo). The upper row's two openings are split by a divider t_c thick.
+- Drawer shelves: the inside width of the case + 2·j long, from the case's front edge. The upper runs to the back edge and holds the back's top in a groove in its underside; the middle and lower stop 1/16 in front of the back.
+- Case back: floats in grooves in the case bottom, the upper shelf, and both sides, each cut into the part's face from end to end, centered on the back.
 - Divider: the upper opening's height + 2·j long (vertical), as deep as the shelves, centered in the case.
 - Drawer boxes: each opening's width less the slides' side clearance on each side (#579).
 - Drawer bottoms: grain side to side, so the bottom moves front to back, where nothing holds it but the slotted screw. Side to side it is the box's inside width plus the depth of the side grooves, less a fit clearance, since wood barely moves along its grain. Front to back it runs from the bottom of the front's groove to past the back, with the gap at the front groove and the screw's slot each sized from the movement estimate (`movement/`, `DOMAIN.md`, Joints that let wood move). Its edges are rabbeted to a tongue that floats in the grooves, as the record cabinet's door panels. The back is cut short at the top of the grooves, so the bottom slides in under it after the box is glued up.
@@ -114,8 +117,12 @@ The owner's sizes, from their photo (`example`): overall 64-3/8 long and 20-1/8 
 | Drawer band | z = 21-5/8 to 31-5/8; 10 − 3·3/4 = 7-3/4 of openings | upper 3-1/4, lower 4-1/2 |
 | Upper drawer openings | (44-3/8 − 3/4) / 2 | 21-13/16 each |
 | Lower drawer opening | | 44-3/8 |
-| Drawer shelf | 44-3/8 + 2·3/16 | 44-3/4 long; the case's 16-5/8 depth less the case back and the wood behind its grooves |
-| Divider | 3-1/4 + 2·3/16 | 3-5/8 high, as deep as the shelves |
+| Case bottom, between the legs | 51-7/8 − 2·3 | 45-7/8 long, 16-5/8 deep, z = 6 to 6-3/4 |
+| Case sides | from the case bottom's dado, 6-3/4 − 3/16, to the top's underside, 31-5/8 | 25-1/16 |
+| The back's middle and grooves | 16-5/8 − 3/8 − 1/4 / 2 | y = 16-1/8; grooves y 16 to 16-1/4 |
+| Drawer shelves | 44-3/8 + 2·3/16 | 44-3/4 long; the upper 16-5/8 deep, to the back edge; the middle and lower 16-1/8 − 3/8 − 1/16 = 15-11/16 deep. Tops at z = 31-5/8, 27-5/8, and 22-3/8 |
+| Divider | 3-1/4 + 2·3/16 | 3-5/8 high, 15-11/16 deep, centered at x = 30-15/16 |
+| Case back, with 1/8 at each edge (illustrative) | z 6-3/8 to 31-1/4, less 2·1/32; x 8-3/8 to 53-1/2, less 2·1/8 | 24-13/16 high, 44-7/8 wide |
 | Drawer boxes, 1/2 slide clearance each side (illustrative) | 21-13/16 − 1; 44-3/8 − 1 | 20-13/16 and 43-3/8 wide |
 | Door space | 21-5/8 − 6 | 15-5/8 high, 44-3/8 wide inside the case |
 
