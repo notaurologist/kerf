@@ -181,6 +181,13 @@ export const SOURCES = {
     url: 'https://preservedwood.org/how-to/field-treatment/',
     note: 'For how to apply a field treatment: brushed on, worked into holes, as the label says.',
   },
+  'popular-woodworking-round-holes-2010': {
+    title: 'I Have a Dog in this Fight',
+    publisher: 'Popular Woodworking, Shop Blog (Christopher Schwarz)',
+    edition: 'Blog post, April 26, 2010, read November 2026',
+    url: 'https://www.popularwoodworking.com/editors-blog/i-have-a-dog-in-this-fight/',
+    note: 'For the common round hole that bought hold-downs and stops fit. A Lost Art Press post making the same point could not be read: its site refused automated readers.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;

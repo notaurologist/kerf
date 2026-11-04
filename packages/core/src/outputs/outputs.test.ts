@@ -47,6 +47,7 @@ describe('cutList', () => {
     grooves: [],
     rabbets: [],
     recesses: [],
+    boredHoles: [],
   };
 
   it('formats stock, length, ends, and marks', () => {
@@ -97,6 +98,7 @@ describe('planLumber, edge cases', () => {
     grooves: [],
     rabbets: [],
     recesses: [],
+    boredHoles: [],
   });
 
   it('reports a part longer than any board instead of dropping it', () => {
@@ -180,6 +182,7 @@ describe('panels', () => {
       grooves: [],
       rabbets: [],
       recesses: [],
+      boredHoles: [],
     };
   };
 
@@ -441,6 +444,7 @@ describe('parts cut straight from board stock', () => {
     grooves: [],
     rabbets: [],
     recesses: [],
+    boredHoles: [],
   };
 
   it('plans them on the stock’s own lengths', () => {

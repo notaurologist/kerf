@@ -149,6 +149,13 @@ const DRAWINGS: Readonly<Record<string, ReactNode>> = {
       <path d="M12 2 V7 L15 8.5 L9 11.5 L15 14.5 L9 17.5 L12 19 V22" />
     </>
   ),
+  'forstner-bits': (
+    <>
+      <path d="M12 2 V12" />
+      <rect x="7.5" y="12" width="9" height="6" rx="0.6" />
+      <path d="M8 18 V20.5 M16 18 V20.5 M12 18 V21" />
+    </>
+  ),
   'socket-wrench': (
     <>
       <g transform="rotate(-45 12 12)">

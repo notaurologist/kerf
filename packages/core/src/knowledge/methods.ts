@@ -83,6 +83,8 @@ export const Method = z.object({
     'groove',
     'rabbet',
     'finger-recess',
+    'bore',
+    'stopped-bore',
     'bolt-holes',
     'treat-cuts',
     'treat-holes',
@@ -128,6 +130,15 @@ type ValuesOf<T extends OperationType> = Record<
 >;
 const RAD = Math.PI / 180;
 const count = { kind: 'count', of: (op: { count: number }) => op.count } as const;
+
+function boreValues() {
+  return {
+    count,
+    diameter: { kind: 'length', of: (op: { diameter: number }) => op.diameter },
+    depth: { kind: 'length', of: (op: { depth: number }) => op.depth },
+    fromEdge: { kind: 'length', of: (op: { fromEdge: number }) => op.fromEdge },
+  } as const;
+}
 
 export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
   crosscut: {
@@ -231,6 +242,8 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     height: { kind: 'length', of: (op) => op.height },
     depth: { kind: 'length', of: (op) => op.depth },
   },
+  bore: boreValues(),
+  'stopped-bore': boreValues(),
   'screw-holes': {
     count,
     round: { kind: 'count', of: (op) => op.round },
@@ -2072,6 +2085,201 @@ export const METHODS = [
     ],
     mistakes: ['Paring toward an edge splits it out. Work from the edges toward the middle.'],
     safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Bored holes, through and stopped
+  {
+    id: 'bore-drill-press',
+    operation: 'bore',
+    name: 'With a drill press',
+    tools: [
+      {
+        use: 'boring the holes',
+        anyOf: [
+          {
+            tool: 'drill-press',
+            needs: [
+              { capability: 'throat', atLeast: 'fromEdge' },
+              { capability: 'quillTravel', atLeast: 'depth' },
+            ],
+          },
+        ],
+      },
+      {
+        use: 'cutting the hole',
+        anyOf: [
+          { tool: 'forstner-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] },
+          { tool: 'spade-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] },
+        ],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'bore-to-a-depth'],
+    setup: [
+      'Mark each hole center from the cut detail on the side you bore from.',
+      'Chuck a {diameter} bit and run it at a slow speed for a bit that size.',
+      'Lay a scrap board under the part, so the bit comes out into it without tearing the far side.',
+    ],
+    technique: [
+      'Line the bit up on a mark, clamp the part to the table, and bore through the {depth} of wood, lifting the bit now and then to clear the chips.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Holding the part by hand lets the bit catch and spin it. Clamp it to the table for every hole.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: ['bore-drill-one-side', 'bore-drill-both-sides'],
+    moreAccurateThan: ['bore-drill-one-side', 'bore-drill-both-sides'],
+  },
+  {
+    id: 'bore-drill-one-side',
+    operation: 'bore',
+    name: 'With a drill, from one side',
+    tools: [
+      { use: 'drilling', anyOf: [{ tool: 'drill-driver' }] },
+      {
+        use: 'boring the hole',
+        anyOf: [
+          { tool: 'auger-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] },
+          { tool: 'spade-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] },
+        ],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'drill-straight'],
+    setup: [
+      'Mark each hole center from the cut detail on the side you bore from.',
+      'Chuck a {diameter} bit, and clamp a scrap board tight under the part where the bit comes out.',
+    ],
+    technique: [
+      'Stand a square on the part beside the bit, and bore through the {depth} of wood, checking square from two directions as the bit starts.',
+      'Back the bit out every inch or so to clear the chips.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Letting the drill tilt puts the hole off square, so what stands in it leans. Check square from two directions as the bit starts, and again halfway.',
+      'Pushing the bit out through the far face with nothing behind it tears out the wood around the hole. Clamp a scrap board tight behind it.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: ['bore-drill-both-sides'],
+    moreAccurateThan: ['bore-drill-both-sides'],
+  },
+  {
+    id: 'bore-drill-both-sides',
+    operation: 'bore',
+    name: 'With a drill, from both sides',
+    tools: [
+      { use: 'drilling', anyOf: [{ tool: 'drill-driver' }] },
+      {
+        use: 'boring the hole',
+        anyOf: [
+          { tool: 'auger-bits', needs: [{ capability: 'reach', atLeast: 'depth', passes: 2 }] },
+          { tool: 'spade-bits', needs: [{ capability: 'reach', atLeast: 'depth', passes: 2 }] },
+        ],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'drill-straight', 'drill-from-both-sides'],
+    setup: [
+      'Mark each hole center from the cut detail on both sides, measured from the same end and edge.',
+      'Chuck a {diameter} bit.',
+    ],
+    technique: [
+      'Stand a square on the part beside the bit, and bore past halfway through the {depth} of wood.',
+      'Turn the part over and bore from the other mark until the holes meet.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Marking the two sides from different references makes the holes miss in the middle. Measure both marks from the same end and the same edge.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'stopped-bore-drill-press',
+    operation: 'stopped-bore',
+    name: 'With a drill press and its depth stop',
+    tools: [
+      {
+        use: 'boring the holes',
+        anyOf: [
+          {
+            tool: 'drill-press',
+            needs: [
+              { capability: 'throat', atLeast: 'fromEdge' },
+              { capability: 'quillTravel', atLeast: 'depth' },
+            ],
+          },
+        ],
+      },
+      {
+        use: 'cutting a flat-bottomed hole',
+        anyOf: [{ tool: 'forstner-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] }],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'bore-to-a-depth'],
+    setup: [
+      'Mark each hole center from the cut detail on the side you bore from.',
+      'Chuck a {diameter} bit, and set the depth stop so the rim stops {depth} into a scrap the same thickness. Check the depth in the scrap before boring the part.',
+    ],
+    technique: [
+      'Line the bit up on a mark, clamp the part to the table, and bore down to the stop.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Setting the stop from the bit’s center point rather than its rim leaves the hole too shallow. Measure the depth in the scrap at the rim’s cut.',
+      'Holding the part by hand lets the bit catch and spin it. Clamp it to the table for every hole.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
+    flags: [],
+    easierThan: ['stopped-bore-drill'],
+    moreAccurateThan: ['stopped-bore-drill'],
+  },
+  {
+    id: 'stopped-bore-drill',
+    operation: 'stopped-bore',
+    name: 'With a drill and a mark on the bit',
+    tools: [
+      { use: 'drilling', anyOf: [{ tool: 'drill-driver' }] },
+      {
+        use: 'cutting a flat-bottomed hole',
+        anyOf: [{ tool: 'forstner-bits', needs: [{ capability: 'reach', atLeast: 'depth' }] }],
+      },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'drill-straight', 'bore-to-a-depth'],
+    setup: [
+      'Mark each hole center from the cut detail on the side you bore from, and clamp the part down.',
+      'Chuck a {diameter} bit, and wrap tape around it {depth} up from the rim.',
+    ],
+    technique: [
+      'Set the bit’s center point on the mark, stand a square beside the bit, and start slowly so the rim cuts a full circle before you push.',
+      'Bore until the tape reaches the face, then measure the depth and bore a little more if it is short.',
+      'Bore {count} holes this way.',
+    ],
+    mistakes: [
+      'Starting fast lets the bit skate off the mark. Start slowly, with the center point pressed into the mark.',
+      'Boring past the tape can break through a thin part. Stop at the tape and measure before going deeper.',
+    ],
+    safety: [CLAMP_THE_WORK, UNPLUG_TO_CHANGE, EYE_PROTECTION],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
