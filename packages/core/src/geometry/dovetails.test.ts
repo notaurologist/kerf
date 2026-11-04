@@ -193,3 +193,54 @@ describe('dovetail methods', () => {
     );
   });
 });
+
+describe('dovetails over part of the width', () => {
+  // A drawer side 18 long, 5 wide, 1/2 thick, with 2 tails at its first end over v 1 to 4, where a
+  // short back 3 wide meets it, cut 3/4 in. At 1:8 between 3/8 half pins and a 1/4 pin, each tail
+  // is (3 − 0.75 − 0.25) / 2 = 1 wide at the end, so its walls are at v 1.375, 2.375, 2.625, and
+  // 3.625 there, and 0.09375 nearer each tail's middle at the baseline.
+  const tails = {
+    board: 'tails',
+    withPart: 'back',
+    end: 0,
+    baseline: 0.75,
+    span: { v0: 1, v1: 4 },
+    tails: 2,
+    slope: 8,
+    halfPin: 0.375,
+    pin: 0.25,
+  } as const;
+  const shortSide: Part = {
+    ...side,
+    stock: { ...side.stock, width: 5 },
+    quantity: 1,
+    dovetails: [tails],
+  };
+
+  it('hatch the waste within the span, and leave the side whole beyond it', () => {
+    const waste = polygons(shortSide).map((p) => p.points.map((q) => [q.x, -q.y]));
+    expect(waste).toHaveLength(3);
+    expect(waste[0]).toEqual([
+      [0, 1],
+      [0.75, 1],
+      [0.75, 1.46875],
+      [0, 1.375],
+    ]);
+    expect(waste[2]).toEqual([
+      [0, 3.625],
+      [0.75, 3.53125],
+      [0.75, 4],
+      [0, 4],
+    ]);
+    expect(cutDetail(shortSide).notes).toContain(
+      'Dovetail tails at the first end, on the left, from 1" to 4" from the bottom edge: 2 tails, each 1" wide at the end, sloped 1:8 on the faces and cut 3/4" in to the baseline, between half pins 3/8" and pins 1/4" wide at their narrow ends. The waste is hatched.',
+    );
+  });
+
+  it('size the tails from the span, and are refused when the span runs past the part', () => {
+    const op = cutAndDrillOperations([shortSide], []).find((o) => o.type === 'dovetail-tails');
+    expect(op).toMatchObject({ type: 'dovetail-tails', tails: 2, tailWide: 1 });
+    const past: Part = { ...shortSide, dovetails: [{ ...tails, span: { v0: 3, v1: 6 } }] };
+    expect(() => cutAndDrillOperations([past], [])).toThrow('its span runs past the part');
+  });
+});

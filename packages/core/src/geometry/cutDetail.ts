@@ -1,4 +1,4 @@
-import { type DovetailSide, dovetailGeometry } from '../joinery/dovetails.ts';
+import { cornerGeometry, type DovetailSide, dovetailSpan } from '../joinery/dovetails.ts';
 import { boredSide } from '../model/operations.ts';
 import { type BoredHole, type Part, widthTapers } from '../model/types.ts';
 import { endName } from '../outputs/cutList.ts';
@@ -312,12 +312,13 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
   // the two set apart by the slope across the thickness.
   for (const d of part.dovetails) {
     const T = part.stock.thickness;
-    const g = dovetailGeometry(d, W, d.board === 'tails' ? d.baseline : T);
+    const g = cornerGeometry(d, W, d.board === 'tails' ? d.baseline : T);
     if (!g) continue;
+    const { v0, v1 } = dovetailSpan(d, W);
     const uEnd = d.end === 0 ? 0 : part.length;
     const uBase = d.end === 0 ? d.baseline : part.length - d.baseline;
     if (d.board === 'tails') {
-      const walls = [{ outside: 0, inside: 0 }, ...g.sides, { outside: W, inside: W }];
+      const walls = [{ outside: v0, inside: v0 }, ...g.sides, { outside: v1, inside: v1 }];
       for (let i = 0; i + 1 < walls.length; i += 2) {
         const [a, b] = [walls[i] as DovetailSide, walls[i + 1] as DovetailSide];
         prims.push({
@@ -760,13 +761,16 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
       ),
     ...part.dovetails.map((d) => {
       const slope = `1:${d.slope}`;
-      const g = dovetailGeometry(d, W, d.board === 'tails' ? d.baseline : part.stock.thickness);
+      const g = cornerGeometry(d, W, d.board === 'tails' ? d.baseline : part.stock.thickness);
+      const span = d.span
+        ? `, from ${formatLength(d.span.v0)} to ${formatLength(d.span.v1)} from the ${part.referenceEdge}`
+        : '';
       if (d.board === 'tails') {
         const wide = g ? `, each ${formatLength(g.tailWide)} wide at the end` : '';
-        return `Dovetail tails at ${whichEnd(d.end)}: ${d.tails} tails${wide}, sloped ${slope} on the faces and cut ${formatLength(d.baseline)} in to the baseline, between half pins ${formatLength(d.halfPin)} and pins ${formatLength(d.pin)} wide at their narrow ends. The waste is hatched.`;
+        return `Dovetail tails at ${whichEnd(d.end)}${span}: ${d.tails} tails${wide}, sloped ${slope} on the faces and cut ${formatLength(d.baseline)} in to the baseline, between half pins ${formatLength(d.halfPin)} and pins ${formatLength(d.pin)} wide at their narrow ends. The waste is hatched.`;
       }
       const outside = d.outside === 'far' ? 'the face shown' : 'the back face';
-      return `Dovetail pins at ${whichEnd(d.end)}: ${d.tails - 1} pins and a half pin at each edge, ${formatLength(d.pin)} and ${formatLength(d.halfPin)} wide at ${outside}, sloped ${slope} across the thickness and cut ${formatLength(d.baseline)} in to the baseline. The tails' sockets are hatched on the face shown and dashed on the back.`;
+      return `Dovetail pins at ${whichEnd(d.end)}${span}: ${d.tails - 1} pins and a half pin at each edge, ${formatLength(d.pin)} and ${formatLength(d.halfPin)} wide at ${outside}, sloped ${slope} across the thickness and cut ${formatLength(d.baseline)} in to the baseline. The tails' sockets are hatched on the face shown and dashed on the back.`;
     }),
     ...part.tenons.map(
       (t) =>

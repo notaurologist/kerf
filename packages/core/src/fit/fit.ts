@@ -1,4 +1,4 @@
-import { dovetailGeometry } from '../joinery/dovetails.ts';
+import { cornerGeometry, dovetailSpan } from '../joinery/dovetails.ts';
 import { plateScrewOffsets } from '../model/cupHinge.ts';
 import { boredSide } from '../model/operations.ts';
 import type { BoredHole, Dovetails, Mortise, Part, Placement, Vec3 } from '../model/types.ts';
@@ -199,7 +199,10 @@ function withinProblems(pieces: readonly Piece[]): FitProblem[] {
         if (part.ends[d.end].setting !== 0) return [`${at} are on an angled end.`];
         if (!(d.baseline > 0 && within(d.baseline, [0, L])))
           return [`${at} run ${d.baseline} in, past the part.`];
-        return dovetailGeometry(d, W, d.board === 'tails' ? d.baseline : T)
+        const { v0, v1 } = dovetailSpan(d, W);
+        if (!(within(v0, [0, W]) && within(v1, [0, W]) && v0 < v1))
+          return [`${at} span ${v0} to ${v1} across the part's ${W} width.`];
+        return cornerGeometry(d, W, d.board === 'tails' ? d.baseline : T)
           ? []
           : [`${at} do not fit across the part's ${W} width.`];
       }),
@@ -516,7 +519,7 @@ function tongueProblems(pieces: readonly Piece[]): FitProblem[] {
 function dovetailWalls(p: Piece, d: Dovetails) {
   const { length: L } = p.part;
   const { width: W, thickness: T } = p.part.stock;
-  const g = dovetailGeometry(d, W, d.board === 'tails' ? d.baseline : T);
+  const g = cornerGeometry(d, W, d.board === 'tails' ? d.baseline : T);
   if (!g || p.part.ends[d.end].setting !== 0) return undefined;
   const uEnd = d.end === 0 ? 0 : L;
   const uBase = d.end === 0 ? d.baseline : L - d.baseline;

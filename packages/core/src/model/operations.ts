@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { dovetailGeometry } from '../joinery/dovetails.ts';
+import { cornerGeometry, dovetailSpan } from '../joinery/dovetails.ts';
 import type { PanelStock } from '../lumber/panel.ts';
 import { isPanel, isStripGlueUp } from '../lumber/partStock.ts';
 import { type StripGlueUp, stripBoardsFor } from '../lumber/strips.ts';
@@ -535,7 +535,10 @@ export function cutAndDrillOperations(
       const id = `${part.id}/dovetails-${i}`;
       if (part.ends[d.end].setting !== 0) throw new Error(`${id} is on an angled end`);
       const run = d.board === 'tails' ? d.baseline : thickness;
-      const geometry = dovetailGeometry(d, width, run);
+      const span = dovetailSpan(d, width);
+      if (!(span.v0 >= -1e-9 && span.v0 < span.v1 && span.v1 <= width + 1e-9))
+        throw new Error(`${id}: its span runs past the part`);
+      const geometry = cornerGeometry(d, width, run);
       if (!geometry) throw new Error(`${id}: its tails do not fit across the part`);
       const at = {
         id,
