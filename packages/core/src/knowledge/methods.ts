@@ -70,6 +70,7 @@ export const Method = z.object({
     'joint-edges',
     'glue-up',
     'flatten',
+    'plane-to-thickness',
     'rip-strips',
     'glue-up-strips',
     'flatten-strips',
@@ -184,6 +185,13 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     width: { kind: 'length', of: (op) => op.width },
     length: { kind: 'length', of: (op) => op.length },
     thickness: { kind: 'length', of: (op) => op.thickness },
+  },
+  'plane-to-thickness': {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+    thickness: { kind: 'length', of: (op) => op.thickness },
+    planeOff: { kind: 'length', of: (op) => op.planeOff },
   },
   'rip-strips': {
     count,
@@ -1322,6 +1330,72 @@ export const METHODS = [
       'Holding the sander on a joint digs a hollow beside it. Keep the sander moving over a wide area.',
     ],
     safety: [WOOD_DUST, CLAMP_THE_WORK, EYE_PROTECTION],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Plane to thickness (a board, or a glued-up panel after flattening). OSHA Woodworking eTool,
+  // Planers: hands can be pinched between the stock and the in-running rolls, and stock can kick
+  // back.
+  {
+    id: 'plane-to-thickness-planer',
+    operation: 'plane-to-thickness',
+    name: 'With a thickness planer',
+    tools: [
+      {
+        use: 'planing the faces',
+        anyOf: [
+          { tool: 'thickness-planer', needs: [{ capability: 'maxWidth', atLeast: 'width' }] },
+        ],
+      },
+    ],
+    skills: ['plane-to-thickness'],
+    setup: [
+      'Mark the face that will show, and measure the thickness at both ends and the middle to find the thickest spot.',
+      'Set the planer to take a light cut off the thickest spot.',
+    ],
+    technique: [
+      'Feed each piece with the grain, taking light cuts and turning it over each time, so about half of the {planeOff} comes off each face.',
+      'Lower the cutterhead a little each time both faces have been through, and measure as you get close so you stop at {thickness}.',
+      'Plane {count} this way.',
+    ],
+    mistakes: [
+      'Planing one face only leaves the other face rough and can let the board cup. Turn it over each time.',
+      'Feeding against the grain tears out the surface. If it tears out, turn the piece end for end.',
+      'Planing pieces of the same thickness one at a time leaves them slightly different. Feed them all at each setting before you lower the cutterhead.',
+    ],
+    safety: [PLANER_ROLLS, UNPLUG_TO_CHANGE, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('jointer-planer-lathe')],
+    easierThan: ['plane-to-thickness-hand-plane'],
+    moreAccurateThan: ['plane-to-thickness-hand-plane'],
+  },
+  {
+    id: 'plane-to-thickness-hand-plane',
+    operation: 'plane-to-thickness',
+    name: 'With a bench plane',
+    tools: [
+      { use: 'planing the faces', anyOf: [{ tool: 'bench-plane' }] },
+      { use: 'marking the thickness', anyOf: [{ tool: 'combination-square' }] },
+      STRAIGHTEDGE,
+      CLAMPS,
+    ],
+    skills: ['plane-to-thickness'],
+    setup: [
+      'Plane the face that will show flat first, checking it with a straightedge across, along, and corner to corner.',
+      'Set the square’s blade to stand out {thickness} from its head. With the head against that face, hold a pencil at the end of the blade and draw a line along both edges and both ends.',
+      'Clamp the piece to the bench with the other face up.',
+    ],
+    technique: [
+      'Plane the other face down toward the line, across or at an angle to the grain first to take off wood quickly, then with the grain.',
+      'Stop when the face reaches the line all around and the straightedge touches everywhere: {planeOff} comes off in all.',
+      'Plane {count} this way.',
+    ],
+    mistakes: [
+      'Planing past the line in one spot leaves the piece thin there. Watch the line at the edges and take thinner shavings as you get close.',
+      'A dull blade tears the grain. Sharpen it, and take thin shavings.',
+    ],
+    safety: [],
     flags: [],
     easierThan: [],
     moreAccurateThan: [],
