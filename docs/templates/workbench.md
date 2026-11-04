@@ -38,6 +38,10 @@ Every parameter starts from a suggestion with its basis (owner's standing prefer
 | h_f | Foot height | 2 to 4 | 3 (`example`) |
 | f_o | Foot past the legs, front and back | 0 to 3 | 1 (`example`) |
 | h_r | Low rail height | 2 to 5 | 3 (`example`) |
+| h_e | End rail height | 2 to 5 | 3, as the low rails (`rule-of-thumb`) |
+| t_r | Rail thickness, end and low rails | 1 to s | 1-1/2 = s / 2 (`rule-of-thumb`), glued up from the board stock like the legs |
+| — | Rail tenons | | t_r / 3 thick, rounded down to 1/16; 1/4 shoulders above and below; s/2 + 1/4 long. The record cabinet's rules of thumb for its aprons' tenons (`rule-of-thumb`) |
+| — | Leg tenons | | s / 3 thick, rounded down to 1/16, with 1/4 shoulders, centered. Into the foot h_f/2 + 1/4 deep, the cabinet's rule applied to the foot; through the top. The long side runs along the foot below and along the bench above, so neither mortise crosses the grain of the part it is in (`rule-of-thumb`) |
 | h_db | Drawer band height, under the top | 6 to 14 | 10 (`example`, owner's photo) |
 | t_c | Case panel thickness | 5/8 to 1 | 3/4, as the record cabinet's |
 | j | Dado depth | 1/16 to t_c / 2 | 3/16 = t_c / 4, the record cabinet's rule of thumb (#317) |
@@ -76,7 +80,7 @@ Joint-first: each part is declared by where it stands and how it joins its neigh
 - Underside of the top: z_u = H − T.
 - Base, outside of the legs: L_b = L − 2·o_e along the bench, D_b = D − i_f − i_b front to back. The front legs' front faces are at y = i_f.
 - Each leg stands on its foot (top at z = h_f) and reaches the top's underside: visible length z_u − h_f, with tenons added by the joints.
-- Feet: D_b + 2·f_o long.
+- Feet: D_b + 2·f_o long, s wide and h_f tall.
 - End rails: D_b − 2·s between the legs, with tenons added by the joints.
 - Low rails: L_b − 2·s between the legs, from z = h_f to h_f + h_r.
 - Case: between the legs, L_b − 2·s wide and D_b deep, from z = h_f + h_r to z_u.
@@ -99,6 +103,12 @@ The owner's sizes, from their photo (`example`): overall 64-3/8 long and 20-1/8 
 | Foot | 16-5/8 + 2·1 | 18-5/8, 1 past the top's front edge and flush with its back |
 | End rail, between the legs | 16-5/8 − 2·3 | 10-5/8 |
 | Low rail, between the legs | 51-7/8 − 2·3 | 45-7/8, from z = 3 to 6 |
+| Leg, with its tenons | 28-5/8 + 1-3/4 into the foot + 2-1/2 through the top | 32-7/8 |
+| End rail, with its tenons | 10-5/8 + 2·1-3/4 | 14-1/8, from z = 28-5/8 to 31-5/8, centered on the legs |
+| Low rail, with its tenons | 45-7/8 + 2·1-3/4 | 49-3/8, centered on the legs |
+| Rail tenons | 1-1/2 / 3; 3 − 2·1/4 | 1/2 thick, 2-1/2 wide, 1-3/4 long |
+| Leg tenons | 3 / 3; 3 − 2·1/4 | 1 thick, 2-1/2 wide |
+| The top's mortises | centered on each leg, long along the bench | x 5-1/4 to 7-3/4 and 54-1/8 to 56-5/8; y 1 to 2 and 14-5/8 to 15-5/8; the back two longer toward the back by the top's movement |
 | Case | 45-7/8 wide, 16-5/8 deep; 31-5/8 − 6 | 25-5/8 high, from z = 6 |
 | Inside the case | 45-7/8 − 2·3/4 | 44-3/8 wide |
 | Drawer band | z = 21-5/8 to 31-5/8; 10 − 3·3/4 = 7-3/4 of openings | upper 3-1/4, lower 4-1/2 |

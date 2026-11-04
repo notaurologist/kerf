@@ -1,4 +1,5 @@
 export * as designValues from './design-values/index.ts';
+export * from './fit/index.ts';
 export * as geometry from './geometry/index.ts';
 export * from './inventory/tools.ts';
 export * from './joinery/dovetails.ts';
