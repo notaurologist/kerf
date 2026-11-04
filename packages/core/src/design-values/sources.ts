@@ -202,6 +202,20 @@ export const SOURCES = {
     url: 'https://www.popularwoodworking.com/editors-blog/i-have-a-dog-in-this-fight/',
     note: 'For the common round hole that bought hold-downs and stops fit. A Lost Art Press post making the same point could not be read: its site refused automated readers.',
   },
+  'woodcraft-drawer-slides-2014': {
+    title: 'Drawer Slides: The Inside Story',
+    publisher: 'Woodcraft Magazine (Ken Burton)',
+    edition: 'Published April 8, 2014, updated July 2, 2026; web page read November 4, 2026',
+    url: 'https://www.woodcraft.com/blogs/cabinetry-furniture-making/drawer-slides-the-inside-story',
+    note: 'Gives the lengths most slides are sold in (even lengths from 10" to 28", with 15" and 21" as well), slides other than undermount about 1" shorter than the case is deep, and 1/2" of space per side-mount slide, with the advice to check the slides’ own figures and to buy them before building.',
+  },
+  'woodsmith-metal-drawer-slides-2019': {
+    title: 'Metal Drawer Slides',
+    publisher: 'Woodsmith (Ted Raife)',
+    edition: 'Web article, June 13, 2019; read November 4, 2026',
+    url: 'https://woodsmith.com/article/metal-drawer-slides',
+    note: 'Gives 1/2" of clearance on each side of the drawer for a typical side-mount slide, so the box is 1" narrower than its opening. It gives no lengths sold.',
+  },
 } as const satisfies Record<string, Source>;
 
 export type SourceId = keyof typeof SOURCES;
