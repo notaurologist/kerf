@@ -2,7 +2,7 @@ import type { Inventory } from '../inventory/tools.ts';
 import type { TemplateDefinition } from '../model/definition.ts';
 import type { Plan } from '../outputs/plan.ts';
 import { type BuildSteps, planSteps, type StepOutline } from '../steps/build.ts';
-import { projectDrawings } from '../steps/drawings.ts';
+import { projectDrawings, stepDrawings } from '../steps/drawings.ts';
 
 /**
  * A small shop's tools, for build steps that use tools. Illustrative values: they pin which method
@@ -51,7 +51,7 @@ export function shownOnRead<O>(
     drawings.siteLayout,
     ...(drawings.elevations ?? []),
     ...(drawings.boards ?? []),
-    ...(drawings.steps ?? []).map((s) => s.drawing),
+    ...stepDrawings(template, outputs).map((s) => s.drawing),
   ];
   return {
     plan: template.plan(outputs),

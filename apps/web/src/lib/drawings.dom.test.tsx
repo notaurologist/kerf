@@ -1,11 +1,13 @@
 // @vitest-environment happy-dom
+import { createSnapshot, TEMPLATES } from '@kerf/core';
 import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ModeScreen } from '../features/modes/modes.tsx';
 import { ProjectScreen } from '../features/project/ProjectScreen.tsx';
 import { mount, settle } from '../test/dom.tsx';
-import { drawingsFor, projectFrom, storedSnapshots } from '../test/projects.ts';
+import { drawingsFor, loadedStepDrawing, projectFrom, storedSnapshots } from '../test/projects.ts';
 import { projectStore } from './projectStore.ts';
+import type { Project } from './types.ts';
 
 // The plan's drawings come in a request of their own (#422), loaded where they are shown and
 // kept, like the project, for the modes and for a dropped connection.
@@ -86,5 +88,51 @@ describe('the plan’s drawings', () => {
     await arrive();
     expect(plan.container.textContent).not.toContain('could not be loaded');
     expect(plan.container.textContent).toContain('Cut details');
+  });
+});
+
+describe('a build step’s action drawing', () => {
+  // Generated now, since a plan stored before placements has no action drawings.
+  const [template] = TEMPLATES;
+  const example = template?.examples[0];
+  const made =
+    template && example && createSnapshot(template, example.params, example.structuralInputs);
+  if (!made?.ok) throw new Error('worked example does not generate');
+  const project = projectFrom(JSON.parse(JSON.stringify(made.output)) as Project['snapshot'], {
+    id: '6f1c2a3e-0000-4000-8000-000000000635',
+  });
+  const drawings = drawingsFor(project.snapshot);
+  afterEach(() => projectStore.forget(project.id));
+
+  it('comes when its step opens, the next step’s behind it, and is not asked for twice', async () => {
+    const frames = loadedStepDrawing(project, 'frames');
+    if (frames.state !== 'ready' || !frames.value) throw new Error('frames has no drawing');
+    const asked = server((path) => {
+      if (path.endsWith('/drawings')) return json({ drawings });
+      const step = path.match(/\/steps\/([^/]+)\/drawing$/)?.[1];
+      if (step) return json({ drawing: step === 'frames' ? frames.value : null });
+      return json(project);
+    });
+    const stepAsks = () => asked.filter((p) => p.includes('/steps/'));
+
+    // A cutting step is drawn as its board, so it asks for no step drawing.
+    mount(<ModeScreen route={{ screen: 'build-step', id: project.id, step: 'board-1' }} />);
+    await arrive();
+    expect(stepAsks()).toEqual([]);
+
+    mount(<ModeScreen route={{ screen: 'build-step', id: project.id, step: 'site' }} />);
+    await arrive();
+    expect(stepAsks()).toEqual([
+      `/api/projects/${project.id}/steps/site/drawing`,
+      `/api/projects/${project.id}/steps/frames/drawing`,
+    ]);
+
+    const build = mount(
+      <ModeScreen route={{ screen: 'build-step', id: project.id, step: 'frames' }} />,
+    );
+    await arrive();
+    expect(build.container.innerHTML).toContain(frames.value.description);
+    // Frames was loaded ahead, so only the step after it is asked for.
+    expect(stepAsks().slice(2)).toEqual([`/api/projects/${project.id}/steps/hanger-holes/drawing`]);
   });
 });

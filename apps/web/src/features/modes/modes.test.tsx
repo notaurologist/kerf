@@ -2,7 +2,7 @@ import { checklistProgressKey, createSnapshot, flagProgressKey, TEMPLATES } from
 import { describe, expect, it } from 'vitest';
 import { Screen } from '../../App.tsx';
 import type { Project } from '../../lib/types.ts';
-import { loadedDrawings, projectFrom } from '../../test/projects.ts';
+import { loadedDrawings, loadedStepDrawing, projectFrom } from '../../test/projects.ts';
 import { render, renderText } from '../../test/render.tsx';
 import { ProjectView } from '../project/ProjectScreen.tsx';
 import { ProjectList } from '../projects/ProjectsScreen.tsx';
@@ -203,7 +203,18 @@ describe('Building mode', () => {
   it('sets an assembly step beside its action drawing, what it adds emphasized (#118)', () => {
     const p = project();
     const route = { screen: 'build-step' as const, id: p.id, step: 'beam' };
-    const html = render(<ModeView route={route} project={p} drawings={loadedDrawings(p)} />);
+    const view = (stepDrawing?: ReturnType<typeof loadedStepDrawing>) =>
+      render(
+        <ModeView
+          route={route}
+          project={p}
+          drawings={loadedDrawings(p)}
+          stepDrawing={stepDrawing}
+        />,
+      );
+    // The action drawing comes in a request of its own (#635); until then the step has none.
+    expect(view({ state: 'loading' })).not.toContain('k-steplayout__drawing');
+    const html = view(loadedStepDrawing(p, 'beam'));
     // Right after the title on a phone, before the flags and methods (#134).
     expect(html).toContain('Adds A Beam, to B Back leg');
     expect(html).not.toContain('k-steplayout__lead');

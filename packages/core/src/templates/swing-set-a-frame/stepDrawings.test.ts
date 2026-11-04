@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { boardDrawings } from '../../geometry/boards.ts';
 import { project } from '../../geometry/projection.ts';
-import { projectDrawings, stepDrawings } from '../../steps/drawings.ts';
+import { projectDrawings, stepDrawing, stepDrawings } from '../../steps/drawings.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
 
@@ -97,11 +97,24 @@ describe('action drawings for the worked example', () => {
   it('draws nothing for a plan made before placements', () => {
     const old = { ...generated.output, design: { ...generated.output.design, placements: [] } };
     expect(stepDrawings(swingSetAFrame, old)).toEqual([]);
+    expect(stepDrawing(swingSetAFrame, old, 'frames')).toBeNull();
+  });
+
+  it('draws one step the same as when drawing them all, and nothing for a step without one', () => {
+    const outline = swingSetAFrame.steps(generated.output);
+    expect(drawings.map((d) => d.stepId)).toEqual(['frames', 'beam']);
+    for (const step of outline) {
+      expect(stepDrawing(swingSetAFrame, generated.output, step.id)).toEqual(
+        byStep(step.id) ?? null,
+      );
+    }
+    expect(outline.length).toBeGreaterThan(drawings.length);
+    expect(stepDrawing(swingSetAFrame, generated.output, 'no-such-step')).toBeNull();
   });
 });
 
 describe('projectDrawings', () => {
-  it("adds the board cards and action drawings to the template's own", () => {
+  it("adds the board cards to the template's own, and leaves the action drawings to each step", () => {
     const all = projectDrawings(swingSetAFrame, generated.output);
     const plan = swingSetAFrame.plan(generated.output);
     expect(all).toEqual({
@@ -122,9 +135,7 @@ describe('projectDrawings', () => {
           }),
         ),
       ),
-      steps: stepDrawings(swingSetAFrame, generated.output),
     });
     expect(all.boards).toHaveLength(plan.lumber.boards.length);
-    expect(all.steps).not.toHaveLength(0);
   });
 });
