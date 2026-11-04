@@ -1,6 +1,6 @@
 import type { EdgeGroove, EdgeRabbet, Mortise, Part, ScrewHole, Tenon, Vec3 } from '@kerf/core';
 import type { PlacedPart } from './boltedLap.ts';
-import { entering, housingPlane } from './housedEnd.ts';
+import { entering, housingPlane, sideEntered } from './housedEnd.ts';
 
 // More joints (docs/explorations/joint-model.md, step 5): a tenon in a
 // mortise, a stub tenon in a groove, a panel floating in its frame's grooves, and screws through
@@ -60,6 +60,62 @@ export function mortiseAndTenon(
     mortise: { withPart: joint.withPart ?? tenoned.part.id, side, u0, u1, a0, a1, depth },
     tenon: { end, length: depth, ...tenon },
   };
+}
+
+export interface ThroughTenon {
+  mortised: PlacedPart;
+  /** Trimmed flush with the mortised part's far side at this end, so its length includes the tenon. */
+  tenoned: PlacedPart;
+  end: 0 | 1;
+  tenon: TenonSize;
+  /** The mortise made longer on one side, the way the mortised part moves there, by `by`. */
+  lengthen?: { toward: Vec3; by: number };
+  withPart?: string;
+}
+
+/**
+ * A tenon through the mortised part, flush with its far side: a mortise as deep as the part, on
+ * the side the tenon enters. Where the mortised part moves across its grain at the joint, the
+ * mortise is lengthened on that side, so the tenon is held at one side and the wood moves past it.
+ */
+export function throughTenon(
+  joint: ThroughTenon,
+): { ok: true; mortise: Mortise; tenon: Tenon } | Refused {
+  const { mortised, tenoned, end, lengthen } = joint;
+  const pl = tenoned.placement;
+  const toward = end === 1 ? pl.along : plus({ x: 0, y: 0, z: 0 }, pl.along, -1);
+  const side = sideEntered(mortised, toward);
+  if (!side) {
+    return { ok: false, message: 'The tenoned part does not meet the other square to a side.' };
+  }
+  const onFace = side === 'near' || side === 'far';
+  const { thickness, width } = mortised.part.stock;
+  const made = mortiseAndTenon({ ...joint, depth: onFace ? thickness : width });
+  if (!made.ok || !lengthen) return made;
+
+  const m = mortised.placement;
+  const aAxis = onFace ? m.across : m.through;
+  const aSize = onFace ? width : thickness;
+  const mortise = { ...made.mortise };
+  if (!(lengthen.by > 0)) return { ok: false, message: 'A mortise is lengthened by more than 0.' };
+  if (parallel(lengthen.toward, m.along)) {
+    if (dot(lengthen.toward, m.along) > 0) mortise.u1 += lengthen.by;
+    else mortise.u0 -= lengthen.by;
+  } else if (parallel(lengthen.toward, aAxis)) {
+    if (dot(lengthen.toward, aAxis) > 0) mortise.a1 += lengthen.by;
+    else mortise.a0 -= lengthen.by;
+  } else {
+    return { ok: false, message: 'The mortise is lengthened at an angle to the part.' };
+  }
+  if (
+    mortise.u0 < -EPSILON ||
+    mortise.a0 < -EPSILON ||
+    mortise.u1 > mortised.part.length + EPSILON ||
+    mortise.a1 > aSize + EPSILON
+  ) {
+    return { ok: false, message: 'The lengthened mortise runs past the part.' };
+  }
+  return { ok: true, mortise, tenon: made.tenon };
 }
 
 export interface TenonInGroove {
