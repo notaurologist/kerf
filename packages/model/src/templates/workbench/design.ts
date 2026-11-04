@@ -8,6 +8,7 @@ import {
   drawerBox,
   type EdgeGroove,
   type EdgeRabbet,
+  formatLength,
   type HardwareItem,
   type HingePlate,
   type Mortise,
@@ -67,6 +68,12 @@ interface Base {
     caseInside: number;
     upperOpenings: number;
     lowerOpening: number;
+    /**
+     * What each movement joint's room is sized across: the top between its front and back tenons,
+     * and the case back, a drawer bottom, and a door panel between their grooves' bottoms (a drawer
+     * bottom from its front groove to its free back edge).
+     */
+    spans: { tenons: number; back: number; bottom: number; doorPanel: number };
   };
 }
 
@@ -83,28 +90,45 @@ function ok<R extends { ok: true } | { ok: false; message: string }>(
 }
 
 /**
- * The base. `topMovement` is how far the top moves across its depth between the front and back
- * legs, from the movement estimate; the back legs' mortises are lengthened by it toward the back.
- * Without it they are not, and the plan says the movement is input needed.
+ * The room each wood-movement joint leaves (DOMAIN.md, Joints that let wood move): the back legs'
+ * mortises in the top, left long toward the back; and the gap across the grain at each edge of the
+ * case back and each door panel, and at the front of each drawer bottom. The review sizes them from
+ * the movement estimate (`review.ts`); `ILLUSTRATIVE` is for building without one.
  */
-export function base(p: WorkbenchParams, topMovement?: number, backGap = MOVEMENT_GAP): Made {
+export interface Gaps {
+  topRoom?: number;
+  backEdge: number;
+  bottomFront: number;
+  doorPanelEdge: number;
+}
+export const ILLUSTRATIVE: Gaps = { backEdge: 0.125, bottomFront: 0.125, doorPanelEdge: 0.125 };
+
+/** The bench, with its movement joints sized by `gaps`. */
+export function base(p: WorkbenchParams, gaps: Gaps = ILLUSTRATIVE): Made {
   try {
-    return { ok: true, base: build(p, topMovement, backGap) };
+    return { ok: true, base: build(p, gaps) };
   } catch (e) {
     if (e instanceof Refusal) return { ok: false, message: e.message };
     throw e;
   }
 }
 
-/**
- * A floating panel's gap across its grain, at the case back's edges and the drawer bottoms' fronts,
- * until the movement estimate gives one; and along it, 1/32, as for any floating panel (DOMAIN.md,
- * Joints that let wood move).
- */
-const MOVEMENT_GAP = 0.125;
+/** A floating panel's gap along its grain, at each end, as for any (DOMAIN.md). */
 const END_GAP = 1 / 32;
 
-function build(p: WorkbenchParams, topMovement: number | undefined, backGap: number): Base {
+function build(p: WorkbenchParams, gaps: Gaps): Base {
+  // A floating panel stays in its grooves only while its gap is shallower than they are deep
+  // (DOMAIN.md, Joints that let wood move).
+  const shallow = (what: string, gap: number, depth: number) => {
+    if (gap >= depth) {
+      throw new Refusal(
+        `The ${what} needs ${formatLength(gap)} at its edge for the wood's movement, as much as its ${formatLength(depth)} grooves are deep, so it would come out of them. Deepen the grooves or make it narrower.`,
+      );
+    }
+  };
+  shallow('case back', gaps.backEdge, p.back.grooveDepth);
+  shallow('drawer bottoms', gaps.bottomFront, p.drawer.groove.depth);
+  shallow('door panels', gaps.doorPanelEdge, p.door.grooveDepth);
   const s = p.legSize;
   const underside = p.height - p.topThickness;
   const baseLength = p.topLength - 2 * p.overhangEnds;
@@ -211,7 +235,9 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
         end: 1,
         tenon: legTenon(leg, X),
         withPart: 'leg',
-        ...(back && topMovement !== undefined ? { lengthen: { toward: Y, by: topMovement } } : {}),
+        ...(back && gaps.topRoom !== undefined
+          ? { lengthen: { toward: Y, by: gaps.topRoom } }
+          : {}),
       }),
     );
     const foot = feet[legFrames[k]?.foot ?? 0] as PlacedPart;
@@ -463,7 +489,7 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
       groove: { width: p.back.grooveWidth, depth: p.back.grooveDepth },
       panel: { id: 'case-back', thickness: t, along: Z, across: X, through: Y },
       middle: backMiddle,
-      gaps: { ends: END_GAP, edges: backGap },
+      gaps: { ends: END_GAP, edges: gaps.backEdge },
     }),
   );
   for (const { partId, dado } of back.dadoes) {
@@ -491,6 +517,12 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
     lower: [at(lower, 'far', Z), at(middle, 'near', Z)] as const,
   };
   const backFront = backMiddle - t / 2;
+  const spans = {
+    tenons: baseDepth - s,
+    back: back.width + 2 * gaps.backEdge,
+    bottom: 0,
+    doorPanel: 0,
+  };
   const d = p.drawer;
   const b = d.boxThickness;
 
@@ -606,11 +638,12 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
         groove: { width: d.groove.width, depth: d.groove.depth },
         panel: { id: id('bottom'), thickness: d.bottomThickness, along: X, across: Y, through: Z },
         middle: bz0 + d.groove.up + d.groove.width / 2,
-        gaps: { ends: END_GAP, edges: MOVEMENT_GAP },
+        gaps: { ends: END_GAP, edges: gaps.bottomFront },
         open: by0 + depth,
         flush: 'far',
       }),
     );
+    spans.bottom = Math.max(spans.bottom, bottom.width + gaps.bottomFront);
     for (const { partId, dado } of bottom.dadoes) {
       const holder = [boxFront, left, right].find((q) => q.part.id === partId) as PlacedPart;
       features.add(holder, { dadoes: [dado] });
@@ -648,6 +681,16 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
   const doorHeight = doorOpening.z[1] - doorOpening.z[0] - 2 * dg;
   const one = panel(door.frameWidth, p.board.thickness)(doorHeight);
   const dt = one.thickness;
+  if (doorWidth <= 2 * door.frameWidth || doorHeight <= 2 * door.frameWidth) {
+    throw new Refusal(
+      `Each door is ${formatLength(doorWidth)} by ${formatLength(doorHeight)}, too small for stiles and rails ${formatLength(door.frameWidth)} wide around a panel.`,
+    );
+  }
+  if (doorHeight < 2 * door.hingeFromEnd + door.hinge.cupDiameter) {
+    throw new Refusal(
+      `Each door is ${formatLength(doorHeight)} tall, too short for two hinges ${formatLength(door.hingeFromEnd)} from its ends, whose cups are ${formatLength(door.hinge.cupDiameter)} across.`,
+    );
+  }
   const center = {
     x: (doorOpening.x[0] + doorOpening.x[1]) / 2,
     z: (doorOpening.z[0] + doorOpening.z[1]) / 2,
@@ -674,14 +717,14 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
       'door-stile-hinge',
       k,
       stileStock,
-      member(Z, X, Y, { x: x0, y: 0, z: 0 }),
+      member(Z, X, Y, { x: x0, y: legY[0], z: 0 }),
       ends(z0, z0 + doorHeight),
     );
     const meeting = cut(
       'door-stile-meeting',
       k,
       stileStock,
-      member(Z, minus(X), minus(Y), { x: x0 + doorWidth, y: dt, z: 0 }),
+      member(Z, minus(X), minus(Y), { x: x0 + doorWidth, y: legY[0] + dt, z: 0 }),
       ends(z0, z0 + doorHeight),
     );
     const railEnds = (): [Plane, Plane] => [
@@ -693,26 +736,27 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
         'door-rail',
         2 * k,
         stileStock,
-        member(X, Z, minus(Y), { x: 0, y: dt, z: z0 }),
+        member(X, Z, minus(Y), { x: 0, y: legY[0] + dt, z: z0 }),
         railEnds(),
       ),
       cut(
         'door-rail',
         2 * k + 1,
         stileStock,
-        member(X, minus(Z), Y, { x: 0, y: 0, z: z0 + doorHeight }),
+        member(X, minus(Z), Y, { x: 0, y: legY[0], z: z0 + doorHeight }),
         railEnds(),
       ),
     ];
     // The panel, grain up, between the frame's groove bottoms less its gaps.
-    const across = doorWidth - 2 * door.frameWidth + 2 * door.grooveDepth - 2 * MOVEMENT_GAP;
+    const across = doorWidth - 2 * door.frameWidth + 2 * door.grooveDepth - 2 * gaps.doorPanelEdge;
+    spans.doorPanel = across + 2 * gaps.doorPanelEdge;
     const panelPart = blank('door-panel', '', panel(across)(doorHeight), doorHeight);
     const floating = ok(
       floatingPanel({
         frame: [hinge, meeting, ...rails].map((q) => ({ ...q, edge: 'far' as const })),
         groove: { width: door.grooveWidth, depth: door.grooveDepth },
         panel: { part: panelPart, along: turn(Z), across: turn(X), through: turn(Y) },
-        gaps: { ends: END_GAP, edges: MOVEMENT_GAP },
+        gaps: { ends: END_GAP, edges: gaps.doorPanelEdge },
       }),
     );
     // The joint gives each frame part's groove, in the frame's order.
@@ -929,6 +973,7 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
       caseInside: legX[1] - legX[0] - s - 2 * t,
       upperOpenings: (legX[1] - legX[0] - s - 3 * t) / 2,
       lowerOpening,
+      spans,
     },
   };
 }
