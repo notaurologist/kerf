@@ -155,6 +155,29 @@ describe('mortises and tenons', () => {
     expect(checks([post(off), rail()], offRail)).toEqual(['within post']);
   });
 
+  it('accepts a mortise left 1/8 long on any one side for movement, when it records the room', () => {
+    const room = (at: 'u0' | 'u1' | 'a0' | 'a1') => ({ at, length: 0.125 });
+    const left = [
+      { ...mortise, u0: 4.375, room: room('u0') },
+      { ...mortise, u1: 6.625, room: room('u1') },
+      { ...mortise, a0: 0.5, room: room('a0') },
+      { ...mortise, a1: 1, room: room('a1') },
+    ];
+    for (const m of left) expect(checks([post(m), rail()], placements)).toEqual([]);
+  });
+
+  it('reports room on the side the tenon is held at, and room as long as the mortise', () => {
+    // Left long below a0, but the room says above a1: the held part, 0.5 to 0.875, is not the tenon.
+    const wrongSide = { ...mortise, a0: 0.5, room: { at: 'a1' as const, length: 0.125 } };
+    expect(checks([post(wrongSide), rail()], placements)).toEqual(['mortise post', 'tenon rail']);
+    const all = { ...mortise, room: { at: 'u0' as const, length: 2 } };
+    expect(checks([post(all), rail()], placements)).toEqual([
+      'within post',
+      'mortise post',
+      'tenon rail',
+    ]);
+  });
+
   it('accepts a stub tenon in a groove along the other part, and reports one past it', () => {
     // A 2-wide stile along z, its far edge at x = 2 grooved 3/8 deep, 1/4 wide from 1/4. A rail
     // along x from 1.625 into it, its stub tenon 3/8 long, full width, 1/4 thick from 1/4.
@@ -197,6 +220,68 @@ describe('tongues', () => {
     expect(checks([frame, panel(0.125)], placements)).toEqual([]);
     // Rabbeted 1/16 on each face, the tongue is 3/8, wider than the 1/4 groove.
     expect(checks([frame, panel(0.0625)], placements)).toEqual(['tongue panel']);
+  });
+
+  it('accepts a tongue in a groove cut into a face, and reports one too thick for it', () => {
+    // The 3/4 part lies flat, 6 wide along y, its top face (far, z = 3/4) grooved end to end,
+    // y 2-3/4 to 3, 3/8 deep. The 1/2 panel stands in it, centered (y 2-5/8 to 3-1/8), its
+    // bottom edge 1/32 above the groove's bottom at z = 3/8.
+    const faceGroove = {
+      withPart: 'panel',
+      face: 'far' as const,
+      u0: 0,
+      u1: 12,
+      v0: 2.75,
+      v1: 3,
+      depth: 0.375,
+    };
+    const flat = part('frame', 12, 6, 0.75, { dadoes: [faceGroove] });
+    const standing = [
+      place('frame', at(0, 0, 0), X, Y, Z),
+      place('panel', at(2, 3.125, 0.375 + 1 / 32), X, Z, minus(Y)),
+    ];
+    expect(checks([flat, panel(0.125)], standing)).toEqual([]);
+    // A 3/8 tongue, y 2-11/16 to 3-1/16, is wider than the groove: neither holds the other.
+    expect(checks([flat, panel(0.0625)], standing)).toEqual(['dado frame', 'tongue panel']);
+  });
+
+  it('accepts a panel whose tongues run on into the grooves of the parts across them', () => {
+    // A box of 3/4 boards 4 wide along y: a bottom (z 0 to 3/4) and a top (z 8 to 8-3/4), 10
+    // long, and sides between them, inner faces at x = 3/4 and 9-1/4. Each is grooved end to end
+    // in its inner face, y 2-7/8 to 3-1/8, 3/8 deep. The 1/2 panel is 7-15/16 tall from z =
+    // 13/32 and 9-1/8 wide from x = 7/16, rabbeted to a 1/4 tongue all round, so its left edge
+    // runs from z = 13/32, in the bottom's groove, past the side's end at 3/4, into the side's.
+    const groove = (u1: number, face: 'near' | 'far') => ({
+      withPart: 'back',
+      face,
+      u0: 0,
+      u1,
+      v0: 2.875,
+      v1: 3.125,
+      depth: 0.375,
+    });
+    const box = (sideGroove = 7.25) => [
+      part('bottom', 10, 4, 0.75, { dadoes: [groove(10, 'far')] }),
+      part('top', 10, 4, 0.75, { dadoes: [groove(10, 'near')] }),
+      part('left', 7.25, 4, 0.75, { dadoes: [groove(sideGroove, 'near')] }),
+      part('right', 7.25, 4, 0.75, { dadoes: [groove(7.25, 'near')] }),
+    ];
+    const back = part('back', 7.9375, 9.125, 0.5, {
+      rabbets: (['reference', 'far', 'first-end', 'second-end'] as const).flatMap((edge) =>
+        (['near', 'far'] as const).map((face) => ({ edge, face, width: 0.375, depth: 0.125 })),
+      ),
+    });
+    const placed = [
+      place('bottom', at(0, 0, 0), X, Y, Z),
+      place('top', at(0, 0, 8), X, Y, Z),
+      place('left', at(0.75, 0, 0.75), Z, Y, minus(X)),
+      place('right', at(9.25, 0, 8), minus(Z), Y, X),
+      place('back', at(0.4375, 2.75, 0.40625), Z, X, Y),
+    ];
+    expect(checks([...box(), back], placed)).toEqual([]);
+    // The left side's groove stopped 6 up, at z = 6-3/4: the tongue from there to the top's
+    // groove at 8 lies in none.
+    expect(checks([...box(6), back], placed)).toEqual(['tongue back']);
   });
 });
 

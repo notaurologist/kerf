@@ -1,4 +1,4 @@
-import type { BoardStock, StripAllowances } from '@kerf/core';
+import type { BoardStock, PanelAllowances } from '@kerf/core';
 
 // The workbench's parameters (docs/templates/workbench.md, Parameters), in inches. The schema,
 // form, and starting questions come with the template's definition.
@@ -27,8 +27,17 @@ export interface WorkbenchParams {
   railTenon: { thickness: number; length: number; shoulder: number };
   /** The legs' tenons, into the feet and through the top: thickness, shoulder, length into the foot. */
   legTenon: { thickness: number; shoulder: number; footLength: number };
+  /** t_c: the case's panels; j: dado depth; s_d: how far the shelves' dadoes stop from the front. */
+  caseThickness: number;
+  dadoDepth: number;
+  stopSetback: number;
+  /** h_db: the drawer band under the top; the upper drawers' opening, the lower's the rest. */
+  drawerBand: number;
+  upperOpening: number;
+  /** The case back's grooves, set `inset` in from the case's back edge; the shelves stop short of it. */
+  back: { grooveWidth: number; grooveDepth: number; inset: number; shelfGap: number };
   board: BoardStock;
-  allowances: StripAllowances;
+  allowances: PanelAllowances;
   kerf: number;
 }
 
@@ -49,7 +58,13 @@ export const EXAMPLE: WorkbenchParams = {
   railThickness: 1.5,
   railTenon: { thickness: 0.5, length: 1.75, shoulder: 0.25 },
   legTenon: { thickness: 1, shoulder: 0.25, footLength: 1.75 },
+  caseThickness: 0.75,
+  dadoDepth: 0.1875,
+  stopSetback: 0.5,
+  drawerBand: 10,
+  upperOpening: 3.25,
+  back: { grooveWidth: 0.25, grooveDepth: 0.375, inset: 0.375, shelfGap: 0.0625 },
   board: { nominal: '4/4 cherry', thickness: 0.8125, width: 5.5, buyableFeet: [6, 8, 10] },
-  allowances: { rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },
+  allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },
   kerf: 0.125,
 };

@@ -1,7 +1,7 @@
 import { dovetailGeometry } from '../joinery/dovetails.ts';
 import { plateScrewOffsets } from '../model/cupHinge.ts';
 import { boredSide } from '../model/operations.ts';
-import type { BoredHole, Dovetails, Part, Placement, Vec3 } from '../model/types.ts';
+import type { BoredHole, Dovetails, Mortise, Part, Placement, Vec3 } from '../model/types.ts';
 import type { HardwareLine } from '../outputs/hardwareList.ts';
 
 // Whether a plan's parts go together, from what each part records and where each piece is placed
@@ -168,6 +168,14 @@ function withinProblems(pieces: readonly Piece[]): FitProblem[] {
               `A mortise for ${m.withPart} in the ${m.side} runs past the part, from ${m.a0} to ${m.a1} across a side ${across} wide.`,
             ];
       }),
+      ...part.mortises.flatMap((m) => {
+        const h = held(m);
+        return h.u0 < h.u1 && h.a0 < h.a1
+          ? []
+          : [
+              `A mortise for ${m.withPart} leaves ${m.room?.length} of room, as long as the mortise or longer.`,
+            ];
+      }),
       ...part.grooves.flatMap((g) =>
         within(g.u0, [0, L]) &&
         within(g.u1, [0, L]) &&
@@ -209,7 +217,97 @@ function withinProblems(pieces: readonly Piece[]): FitProblem[] {
   });
 }
 
-/** Dadoes: each holds the end of a piece of the part it names, or that piece's edge, as a track. */
+/** Each tongue a part has: an edge or end rabbeted on both faces, as the corners of its face. */
+function tongues(part: Part) {
+  const { length: L } = part;
+  const { width: W, thickness: T } = part.stock;
+  const edges = ['reference', 'far', 'first-end', 'second-end'] as const;
+  return edges.flatMap((edge) => {
+    const near = part.rabbets.find((r) => r.edge === edge && r.face === 'near');
+    const far = part.rabbets.find((r) => r.edge === edge && r.face === 'far');
+    if (!near || !far) return [];
+    const n: [number, number] = [near.depth, T - far.depth];
+    // A point along the tongue's edge, `s` from its start, at `at` through the part.
+    const alongU = edge === 'reference' || edge === 'far';
+    const fixed = edge === 'reference' || edge === 'first-end' ? 0 : alongU ? W : L;
+    const point = (s: number, at: number): UVN =>
+      alongU ? { u: s, v: fixed, n: at } : { u: fixed, v: s, n: at };
+    const run = alongU ? L : W;
+    const face = [0, run].flatMap((s) => n.map((at) => point(s, at)));
+    return [{ edge, thickness: n[1] - n[0], n, run, point, face, alongU }];
+  });
+}
+
+type Tongue = ReturnType<typeof tongues>[number];
+type Box = { u: [number, number]; v: [number, number]; n: [number, number] };
+
+/** The space a groove along an edge, or a groove or dado in a face, leaves in its part. */
+function grooveBoxes(h: Piece): Box[] {
+  const { width: W, thickness: T } = h.part.stock;
+  return [
+    ...h.part.grooves.map((g) => {
+      const mouth = g.edge === 'far' ? W : 0;
+      const bottom = g.edge === 'far' ? W - g.depth : g.depth;
+      return {
+        u: [g.u0, g.u1],
+        v: [Math.min(mouth, bottom), Math.max(mouth, bottom)],
+        n: [g.n0, g.n0 + g.width],
+      } as Box;
+    }),
+    ...h.part.dadoes.map(
+      (d) =>
+        ({
+          u: [d.u0, d.u1],
+          v: [d.v0, d.v1],
+          n: d.face === 'near' ? [0, d.depth] : [T - d.depth, T],
+        }) as Box,
+    ),
+  ];
+}
+
+const inBox = (c: UVN, b: Box) => within(c.u, b.u) && within(c.v, b.v) && within(c.n, b.n);
+
+/** Where a box's corners fall along a tongue's edge, clipped to it: the stretch it might hold. */
+function stretch(p: Piece, t: Tongue, h: Piece, b: Box): [number, number] | undefined {
+  const corners = between(h, p, grid(b.u, b.v, b.n)).map((c) => (t.alongU ? c.u : c.v));
+  const a = Math.max(0, Math.min(...corners));
+  const z = Math.min(t.run, Math.max(...corners));
+  return a <= z + EPSILON ? [a, z] : undefined;
+}
+
+/** Points along a stretch of the tongue's edge, at both its faces: the ends and the middle. */
+const samples = (t: Tongue, [a, z]: [number, number]) =>
+  [a, (a + z) / 2, z].flatMap((s) => t.n.map((at) => t.point(s, at)));
+
+/** Whether a box holds the stretch of the tongue that lies across it. */
+function boxHolds(p: Piece, t: Tongue, h: Piece, b: Box): boolean {
+  const span = stretch(p, t, h, b);
+  return span !== undefined && between(p, h, samples(t, span)).every((c) => inBox(c, b));
+}
+
+/**
+ * Whether the tongue's whole edge lies in grooves of other parts, though not always one: a
+ * panel's corners run into the groove of the part across them. Each stretch between the grooves'
+ * ends is checked at its ends and middle, so a gap between two grooves is found.
+ */
+function tongueHeld(p: Piece, t: Tongue, pieces: readonly Piece[]): boolean {
+  const holders = pieces
+    .filter((h) => h !== p)
+    .flatMap((h) => grooveBoxes(h).map((b) => ({ h, b })));
+  const cuts = [0, t.run, ...holders.flatMap(({ h, b }) => stretch(p, t, h, b) ?? [])].sort(
+    (x, y) => x - y,
+  );
+  const points = cuts.flatMap((s, i) => {
+    const next = cuts[i + 1];
+    return next === undefined ? samples(t, [s, s]) : samples(t, [s, next]);
+  });
+  return points.every((c) => holders.some(({ h, b }) => inBox(between(p, h, [c])[0] as UVN, b)));
+}
+
+/**
+ * Dadoes: each holds the end of a piece of the part it names, that piece's edge, as a track, or
+ * its tongue, as a groove in a face holds a floating panel's.
+ */
 function dadoProblems(pieces: readonly Piece[]): FitProblem[] {
   return pieces.flatMap((h) =>
     h.part.dadoes.flatMap((d) => {
@@ -245,7 +343,11 @@ function dadoProblems(pieces: readonly Piece[]): FitProblem[] {
           ),
         ),
       );
-      if (holdsEnd || holdsEdge) return [];
+      const box: Box = { u: [d.u0, d.u1], v: [d.v0, d.v1], n: inside };
+      const holdsTongue = candidates.some((p) =>
+        tongues(p.part).some((t) => boxHolds(p, t, h, box)),
+      );
+      if (holdsEnd || holdsEdge || holdsTongue) return [];
       return [
         {
           check: 'dado' as const,
@@ -299,9 +401,22 @@ function tipIn(
   );
 }
 
+/** The part of a mortise its tenon fills: the whole pocket less any room left for movement. */
+function held(m: Mortise): { u0: number; u1: number; a0: number; a1: number } {
+  const rect = { u0: m.u0, u1: m.u1, a0: m.a0, a1: m.a1 };
+  if (!m.room) return rect;
+  const { at, length } = m.room;
+  if (at === 'u0') rect.u0 += length;
+  if (at === 'u1') rect.u1 -= length;
+  if (at === 'a0') rect.a0 += length;
+  if (at === 'a1') rect.a1 -= length;
+  return rect;
+}
+
 /**
  * Mortises and tenons: each mortise holds a tenon of the part it names (by ID or role), the same
- * size, reaching its bottom; each tenon sits in a mortise that way or in a groove, as a stub tenon.
+ * size as the mortise less any room it leaves for movement, reaching its bottom; each tenon sits
+ * in a mortise that way or in a groove, as a stub tenon.
  */
 function tenonProblems(pieces: readonly Piece[]): FitProblem[] {
   const named = (p: Piece, name: string) => p.part.id === name || p.part.role === name;
@@ -311,7 +426,7 @@ function tenonProblems(pieces: readonly Piece[]): FitProblem[] {
         (m) =>
           named(p, m.withPart) &&
           same(t.length, m.depth) &&
-          tipIn(p, t, h, m.side, m, m.depth, 'exactly'),
+          tipIn(p, t, h, m.side, held(m), m.depth, 'exactly'),
       ),
     );
   const inGroove = (p: Piece, t: Part['tenons'][number]) =>
@@ -338,7 +453,7 @@ function tenonProblems(pieces: readonly Piece[]): FitProblem[] {
         (p) =>
           named(p, m.withPart) &&
           p.part.tenons.some(
-            (t) => same(t.length, m.depth) && tipIn(p, t, h, m.side, m, m.depth, 'exactly'),
+            (t) => same(t.length, m.depth) && tipIn(p, t, h, m.side, held(m), m.depth, 'exactly'),
           ),
       )
         ? []
@@ -374,37 +489,10 @@ function tenonProblems(pieces: readonly Piece[]): FitProblem[] {
  * piece, no thicker than the groove is wide, between its mouth and its bottom.
  */
 function tongueProblems(pieces: readonly Piece[]): FitProblem[] {
-  return pieces.flatMap((p) => {
-    const { length: L } = p.part;
-    const { width: W, thickness: T } = p.part.stock;
-    const edges = ['reference', 'far', 'first-end', 'second-end'] as const;
-    return edges.flatMap((edge) => {
-      const near = p.part.rabbets.find((r) => r.edge === edge && r.face === 'near');
-      const far = p.part.rabbets.find((r) => r.edge === edge && r.face === 'far');
-      if (!near || !far) return [];
-      const n: [number, number] = [near.depth, T - far.depth];
-      const face =
-        edge === 'reference'
-          ? grid([0, L], [0], n)
-          : edge === 'far'
-            ? grid([0, L], [W], n)
-            : grid([edge === 'first-end' ? 0 : L], [0, W], n);
-      const held = pieces.some(
-        (h) =>
-          h !== p &&
-          h.part.grooves.some((g) => {
-            const HW = h.part.stock.width;
-            const mouth = g.edge === 'far' ? HW : 0;
-            const bottom = g.edge === 'far' ? HW - g.depth : g.depth;
-            const span: [number, number] = [Math.min(mouth, bottom), Math.max(mouth, bottom)];
-            return between(p, h, face).every(
-              (c) =>
-                within(c.u, [g.u0, g.u1]) &&
-                within(c.n, [g.n0, g.n0 + g.width]) &&
-                within(c.v, span),
-            );
-          }),
-      );
+  return pieces.flatMap((p) =>
+    tongues(p.part).flatMap((t) => {
+      const { edge, thickness } = t;
+      const held = tongueHeld(p, t, pieces);
       return held
         ? []
         : [
@@ -412,11 +500,11 @@ function tongueProblems(pieces: readonly Piece[]): FitProblem[] {
               check: 'tongue' as const,
               partId: p.part.id,
               instance: p.placement.instance,
-              message: `The tongue on its ${edge} edge, ${n[1] - n[0]} thick, lies in no groove it fits.`,
+              message: `The tongue on its ${edge} edge, ${thickness} thick, lies in no groove it fits.`,
             },
           ];
-    });
-  });
+    }),
+  );
 }
 
 /**

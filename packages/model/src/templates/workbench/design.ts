@@ -1,8 +1,12 @@
 import {
+  type Dado,
+  type EdgeRabbet,
   type Mortise,
+  type Notch,
   type Part,
   type PartStock,
   type Placement,
+  panelStock,
   type StripGlueUp,
   stripGlueUp,
   type Tenon,
@@ -10,13 +14,15 @@ import {
 } from '@kerf/core';
 import type { PlacedPart } from '../../boltedLap.ts';
 import { compare } from '../../compare.ts';
-import { housingPlane, sideEntered } from '../../housedEnd.ts';
-import { mortiseAndTenon, type TenonSize, throughTenon } from '../../joinery.ts';
+import { housedEnd, housingPlane, sideEntered } from '../../housedEnd.ts';
+import { mortiseAndTenon, panelInFaces, type TenonSize, throughTenon } from '../../joinery.ts';
 import { type Member, type Plane, trim } from '../../trim.ts';
 import type { WorkbenchParams } from './params.ts';
 
-// The workbench's base, joint-first (docs/templates/workbench.md, Parts and their joints): the top,
-// the four legs on two feet, the end rails under the top, and the low rails. The template says
+// The workbench, joint-first (docs/templates/workbench.md, Parts and their joints): the top, the
+// four legs on two feet, the end rails under the top, and the low rails; then the case between the
+// legs, its sides housed in its bottom, three drawer shelves in the sides, the divider in the
+// shelves, and the back floating in grooves. The template says
 // where each part stands and how big each joint is; the joints give every length, end cut,
 // placement, mortise, and tenon.
 
@@ -32,7 +38,15 @@ interface Base {
   parts: Part[];
   placements: Placement[];
   /** z_u, the top's underside; L_b and D_b, the base outside the legs; the legs' visible length. */
-  geometry: { underside: number; baseLength: number; baseDepth: number; legVisible: number };
+  geometry: {
+    underside: number;
+    baseLength: number;
+    baseDepth: number;
+    legVisible: number;
+    caseInside: number;
+    upperOpenings: number;
+    lowerOpening: number;
+  };
 }
 
 type Made = { ok: true; base: Base } | { ok: false; message: string };
@@ -52,16 +66,23 @@ function ok<R extends { ok: true } | { ok: false; message: string }>(
  * legs, from the movement estimate; the back legs' mortises are lengthened by it toward the back.
  * Without it they are not, and the plan says the movement is input needed.
  */
-export function base(p: WorkbenchParams, topMovement?: number): Made {
+export function base(p: WorkbenchParams, topMovement?: number, backGap = BACK_EDGE_GAP): Made {
   try {
-    return { ok: true, base: build(p, topMovement) };
+    return { ok: true, base: build(p, topMovement, backGap) };
   } catch (e) {
     if (e instanceof Refusal) return { ok: false, message: e.message };
     throw e;
   }
 }
 
-function build(p: WorkbenchParams, topMovement: number | undefined): Base {
+/**
+ * The back's gap at each edge, across its grain, until the movement estimate gives one; and at
+ * each end, along it, 1/32, as for any floating panel (DOMAIN.md, Joints that let wood move).
+ */
+const BACK_EDGE_GAP = 0.125;
+const BACK_END_GAP = 1 / 32;
+
+function build(p: WorkbenchParams, topMovement: number | undefined, backGap: number): Base {
   const s = p.legSize;
   const underside = p.height - p.topThickness;
   const baseLength = p.topLength - 2 * p.overhangEnds;
@@ -264,7 +285,187 @@ function build(p: WorkbenchParams, topMovement: number | undefined): Base {
     ),
   );
 
-  const placed = [top, ...feet, ...legs, ...endRails, ...lowRails];
+  // The case, between the legs, on the low rails and under the top.
+  const t = p.caseThickness;
+  const j = p.dadoDepth;
+  const panel = (width: number) => (length: number) => {
+    const made = panelStock({
+      thickness: t,
+      width,
+      length,
+      board: p.board,
+      allowances: p.allowances,
+    });
+    if (!made.ok) throw new Refusal(made.issue.message);
+    return made.stock;
+  };
+  const between = (left: PlacedPart, right: PlacedPart, depth = 0): [Plane, Plane] => [
+    housingPlane(left, sideOf(left, minus(X)), depth),
+    housingPlane(right, sideOf(right, X), depth),
+  ];
+  const caseBottom = cut(
+    'case-bottom',
+    0,
+    panel(baseDepth),
+    {
+      along: X,
+      across: Y,
+      through: Z,
+      referenceEdge: { x: 0, y: legY[0], z: p.footHeight + p.lowRailHeight },
+      width: baseDepth,
+    },
+    between(frontLeft, frontRight),
+  );
+  const underTop = housingPlane(top, 'near', 0);
+  const inBottom = housingPlane(caseBottom, 'far', j);
+  // Sides stand with their inside faces near, so the left runs up and the right down.
+  const sides = [
+    cut(
+      'case-side-left',
+      0,
+      panel(baseDepth),
+      {
+        along: Z,
+        across: Y,
+        through: minus(X),
+        referenceEdge: { x: legX[0] + s + t, y: legY[0], z: 0 },
+        width: baseDepth,
+      },
+      [inBottom, underTop],
+    ),
+    cut(
+      'case-side-right',
+      0,
+      panel(baseDepth),
+      {
+        along: minus(Z),
+        across: Y,
+        through: X,
+        referenceEdge: { x: legX[1] - t, y: legY[0], z: 0 },
+        width: baseDepth,
+      },
+      [underTop, inBottom],
+    ),
+  ] as const;
+  for (const [k, side] of sides.entries()) {
+    const housed = ok(
+      housedEnd({ housing: caseBottom, housed: side, end: k === 0 ? 0 : 1, depth: j }),
+    );
+    features.add(caseBottom, { dadoes: [housed.dado] });
+  }
+
+  // Drawer shelves: under the top, between the rows, and above the doors, each housed at both
+  // ends in stopped dadoes in the sides. The upper runs to the back edge to hold the back's groove;
+  // the others stop short of the back.
+  const backMiddle = legY[0] + baseDepth - p.back.inset - p.back.grooveWidth / 2;
+  const shortDepth = backMiddle - t / 2 - p.back.shelfGap - legY[0];
+  const lowerOpening = p.drawerBand - 3 * t - p.upperOpening;
+  const shelfTops = [
+    underside,
+    underside - t - p.upperOpening,
+    underside - 2 * t - p.upperOpening - lowerOpening,
+  ];
+  const shelfIds = ['shelf-upper', 'shelf-middle', 'shelf-lower'];
+  const shelves = shelfTops.map((zTop, k) => {
+    const depth = k === 0 ? baseDepth : shortDepth;
+    const shelf = cut(
+      shelfIds[k] as string,
+      0,
+      panel(depth),
+      {
+        along: X,
+        across: Y,
+        through: Z,
+        referenceEdge: { x: 0, y: legY[0], z: zTop - t },
+        width: depth,
+      },
+      [housingPlane(sides[0], 'near', j), housingPlane(sides[1], 'near', j)],
+    );
+    for (const [end, side] of sides.entries()) {
+      const housed = ok(
+        housedEnd({
+          housing: side,
+          housed: shelf,
+          end: end as 0 | 1,
+          depth: j,
+          stop: p.stopSetback,
+        }),
+      );
+      features.add(side, { dadoes: [housed.dado] });
+      if (housed.notch) features.add(shelf, { notches: [housed.notch] });
+    }
+    return shelf;
+  });
+  const [upper, middle] = shelves as [PlacedPart, PlacedPart, PlacedPart];
+
+  // The divider stands between the upper drawers, centered, housed in the shelves above and below.
+  const caseMiddle = (legX[0] + s + legX[1]) / 2;
+  const divider = cut(
+    'divider',
+    0,
+    panel(shortDepth),
+    {
+      along: Z,
+      across: Y,
+      through: minus(X),
+      referenceEdge: { x: caseMiddle + t / 2, y: legY[0], z: 0 },
+      width: shortDepth,
+    },
+    [housingPlane(middle, 'far', j), housingPlane(upper, 'near', j)],
+  );
+  for (const [end, shelf] of [middle, upper].entries()) {
+    const housed = ok(
+      housedEnd({
+        housing: shelf,
+        housed: divider,
+        end: end as 0 | 1,
+        depth: j,
+        stop: p.stopSetback,
+      }),
+    );
+    features.add(shelf, { dadoes: [housed.dado] });
+    if (housed.notch) features.add(divider, { notches: [housed.notch] });
+  }
+
+  // The back floats in grooves in the case bottom, the upper shelf, and both sides, grain up.
+  const back = ok(
+    panelInFaces({
+      frame: [
+        { ...caseBottom, face: 'far' },
+        { ...upper, face: 'near' },
+        { ...sides[0], face: 'near' },
+        { ...sides[1], face: 'near' },
+      ],
+      groove: { width: p.back.grooveWidth, depth: p.back.grooveDepth },
+      panel: { id: 'case-back', thickness: t, along: Z, across: X, through: Y },
+      middle: backMiddle,
+      gaps: { ends: BACK_END_GAP, edges: backGap },
+    }),
+  );
+  for (const { partId, dado } of back.dadoes) {
+    const holder = [caseBottom, upper, ...sides].find((q) => q.part.id === partId) as PlacedPart;
+    features.add(holder, { dadoes: [dado] });
+  }
+  const caseBack: PlacedPart = {
+    part: {
+      ...blank('case-back', 'Case back', panel(back.width)(back.length), back.length),
+      rabbets: back.rabbets,
+    },
+    placement: frame('case-back', 0, back.origin, Z, X, Y),
+  };
+
+  const placed = [
+    top,
+    ...feet,
+    ...legs,
+    ...endRails,
+    ...lowRails,
+    caseBottom,
+    ...sides,
+    ...shelves,
+    divider,
+    caseBack,
+  ];
   return {
     parts: features.parts(placed),
     placements: placed.map((q) => q.placement),
@@ -273,8 +474,18 @@ function build(p: WorkbenchParams, topMovement: number | undefined): Base {
       baseLength,
       baseDepth,
       legVisible: underside - p.footHeight,
+      caseInside: legX[1] - legX[0] - s - 2 * t,
+      upperOpenings: (legX[1] - legX[0] - s - 3 * t) / 2,
+      lowerOpening,
     },
   };
+}
+
+/** The side of a part that another, running `toward`, meets square. */
+function sideOf(part: PlacedPart, toward: Vec3) {
+  const side = sideEntered(part, toward);
+  if (!side) throw new Refusal(`The case does not meet the ${part.part.id} square.`);
+  return side;
 }
 
 /** A part with no features yet, square at both ends. */
@@ -317,6 +528,13 @@ const NAMES: Record<string, string> = {
   'leg-b': 'Leg, front right and back left',
   'end-rail': 'End rail',
   'low-rail': 'Low rail',
+  'case-bottom': 'Case bottom',
+  'case-side-left': 'Case side, left',
+  'case-side-right': 'Case side, right',
+  'shelf-upper': 'Drawer shelf, upper',
+  'shelf-middle': 'Drawer shelf, middle',
+  'shelf-lower': 'Drawer shelf, lower',
+  divider: 'Drawer divider',
 };
 
 /** Both legs are a leg, so the joints into the top and feet name them by it. */
@@ -364,17 +582,27 @@ function cut(
  * out with the same features, since they share one cut-list line; one that differs is a template
  * error, not a refusal.
  */
-class Features {
-  private readonly found = new Map<string, Map<number, { mortises: Mortise[]; tenons: Tenon[] }>>();
+type Found = {
+  mortises: Mortise[];
+  tenons: Tenon[];
+  dadoes: Dado[];
+  notches: Notch[];
+  rabbets: EdgeRabbet[];
+};
+const none = (): Found => ({ mortises: [], tenons: [], dadoes: [], notches: [], rabbets: [] });
 
-  add(piece: PlacedPart, more: { mortises?: Mortise[]; tenons?: Tenon[] }) {
+class Features {
+  private readonly found = new Map<string, Map<number, Found>>();
+
+  add(piece: PlacedPart, more: Partial<Found>) {
     const { partId, instance } = piece.placement;
-    const byInstance = this.found.get(partId) ?? new Map();
+    const byInstance = this.found.get(partId) ?? new Map<number, Found>();
     this.found.set(partId, byInstance);
-    const held = byInstance.get(instance) ?? { mortises: [], tenons: [] };
+    const held = byInstance.get(instance) ?? none();
     byInstance.set(instance, held);
-    held.mortises.push(...(more.mortises ?? []));
-    held.tenons.push(...(more.tenons ?? []));
+    for (const key of Object.keys(held) as (keyof Found)[]) {
+      (held[key] as unknown[]).push(...((more[key] as unknown[] | undefined) ?? []));
+    }
   }
 
   /** One part per ID, with its features, quantity, and stock. */
@@ -384,15 +612,21 @@ class Features {
       const all = placed.filter((q) => q.placement.partId === id);
       const first = all[0] as PlacedPart;
       const byInstance = this.found.get(id);
-      const held = byInstance?.get(0) ?? { mortises: [], tenons: [] };
+      const held = byInstance?.get(0) ?? none();
       for (const q of all) {
-        const other = byInstance?.get(q.placement.instance) ?? { mortises: [], tenons: [] };
+        const other = byInstance?.get(q.placement.instance) ?? none();
         const differ = compare(held, other);
         if (differ.length > 0) {
           throw new Error(`${id} ${q.placement.instance} differs from ${id} 0: ${differ[0]?.path}`);
         }
       }
-      return { ...first.part, quantity: all.length, ...held };
+      const kept = Object.fromEntries(
+        (Object.keys(held) as (keyof Found)[]).map((key) => [
+          key,
+          [...first.part[key], ...held[key]],
+        ]),
+      );
+      return { ...first.part, quantity: all.length, ...kept };
     });
   }
 }
