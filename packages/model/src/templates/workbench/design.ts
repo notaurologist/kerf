@@ -1,5 +1,7 @@
 import {
   type Dado,
+  type Dovetails,
+  drawerBox,
   type EdgeRabbet,
   type Mortise,
   type Notch,
@@ -15,7 +17,13 @@ import {
 import type { PlacedPart } from '../../boltedLap.ts';
 import { compare } from '../../compare.ts';
 import { housedEnd, housingPlane, sideEntered } from '../../housedEnd.ts';
-import { mortiseAndTenon, panelInFaces, type TenonSize, throughTenon } from '../../joinery.ts';
+import {
+  mortiseAndTenon,
+  panelInFaces,
+  type TenonSize,
+  throughDovetails,
+  throughTenon,
+} from '../../joinery.ts';
 import { type Member, type Plane, trim } from '../../trim.ts';
 import type { WorkbenchParams } from './params.ts';
 
@@ -66,7 +74,7 @@ function ok<R extends { ok: true } | { ok: false; message: string }>(
  * legs, from the movement estimate; the back legs' mortises are lengthened by it toward the back.
  * Without it they are not, and the plan says the movement is input needed.
  */
-export function base(p: WorkbenchParams, topMovement?: number, backGap = BACK_EDGE_GAP): Made {
+export function base(p: WorkbenchParams, topMovement?: number, backGap = MOVEMENT_GAP): Made {
   try {
     return { ok: true, base: build(p, topMovement, backGap) };
   } catch (e) {
@@ -76,11 +84,12 @@ export function base(p: WorkbenchParams, topMovement?: number, backGap = BACK_ED
 }
 
 /**
- * The back's gap at each edge, across its grain, until the movement estimate gives one; and at
- * each end, along it, 1/32, as for any floating panel (DOMAIN.md, Joints that let wood move).
+ * A floating panel's gap across its grain, at the case back's edges and the drawer bottoms' fronts,
+ * until the movement estimate gives one; and along it, 1/32, as for any floating panel (DOMAIN.md,
+ * Joints that let wood move).
  */
-const BACK_EDGE_GAP = 0.125;
-const BACK_END_GAP = 1 / 32;
+const MOVEMENT_GAP = 0.125;
+const END_GAP = 1 / 32;
 
 function build(p: WorkbenchParams, topMovement: number | undefined, backGap: number): Base {
   const s = p.legSize;
@@ -288,17 +297,19 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
   // The case, between the legs, on the low rails and under the top.
   const t = p.caseThickness;
   const j = p.dadoDepth;
-  const panel = (width: number) => (length: number) => {
-    const made = panelStock({
-      thickness: t,
-      width,
-      length,
-      board: p.board,
-      allowances: p.allowances,
-    });
-    if (!made.ok) throw new Refusal(made.issue.message);
-    return made.stock;
-  };
+  const panel =
+    (width: number, thickness = t) =>
+    (length: number) => {
+      const made = panelStock({
+        thickness,
+        width,
+        length,
+        board: p.board,
+        allowances: p.allowances,
+      });
+      if (!made.ok) throw new Refusal(made.issue.message);
+      return made.stock;
+    };
   const between = (left: PlacedPart, right: PlacedPart, depth = 0): [Plane, Plane] => [
     housingPlane(left, sideOf(left, minus(X)), depth),
     housingPlane(right, sideOf(right, X), depth),
@@ -439,7 +450,7 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
       groove: { width: p.back.grooveWidth, depth: p.back.grooveDepth },
       panel: { id: 'case-back', thickness: t, along: Z, across: X, through: Y },
       middle: backMiddle,
-      gaps: { ends: BACK_END_GAP, edges: backGap },
+      gaps: { ends: END_GAP, edges: backGap },
     }),
   );
   for (const { partId, dado } of back.dadoes) {
@@ -454,6 +465,165 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
     placement: frame('case-back', 0, back.origin, Z, X, Y),
   };
 
+  // The drawers, each in the opening between the faces of the parts around it.
+  const at = (q: PlacedPart, side: 'near' | 'far', axis: Vec3) =>
+    dot(housingPlane(q, side, 0).point, axis);
+  const lower = shelves[2] as PlacedPart;
+  const openings = {
+    left: at(sides[0], 'near', X),
+    right: at(sides[1], 'near', X),
+    dividerLeft: at(divider, 'far', X),
+    dividerRight: at(divider, 'near', X),
+    upper: [at(middle, 'far', Z), at(upper, 'near', Z)] as const,
+    lower: [at(lower, 'far', Z), at(middle, 'near', Z)] as const,
+  };
+  const backFront = backMiddle - t / 2;
+  const d = p.drawer;
+  const b = d.boxThickness;
+
+  const drawer = (
+    prefix: string,
+    instance: number,
+    [x0, x1]: readonly [number, number],
+    [z0, z1]: readonly [number, number],
+  ): PlacedPart[] => {
+    const id = (part: string) => `${prefix}-${part}`;
+    const g = d.frontGap;
+    // The inset front, flush with the case front, its show face at y = 0.
+    const frontLength = x1 - x0 - 2 * g;
+    const front: PlacedPart = {
+      part: blank(
+        id('front'),
+        '',
+        panel(z1 - z0 - 2 * g, d.frontThickness)(frontLength),
+        frontLength,
+      ),
+      placement: frame(
+        id('front'),
+        instance,
+        { x: x0 + g, y: legY[0] + d.frontThickness, z: z0 + g },
+        X,
+        Z,
+        minus(Y),
+      ),
+    };
+    // The box, behind the front, as wide and deep as the slides allow.
+    const sized = drawerBox(
+      { width: x1 - x0, depth: backFront - legY[0] - d.frontThickness },
+      p.slides,
+      'slides',
+    );
+    if (sized.status === 'refused') throw new Refusal(sized.issues[0]?.message ?? 'No box fits.');
+    if (sized.status === 'input-needed') throw new Refusal('The slides’ figures are needed.');
+    const { width: w, depth } = sized.size;
+    const bx0 = x0 + (x1 - x0 - w) / 2;
+    const by0 = legY[0] + d.frontThickness;
+    const bz0 = z0 + d.clearance;
+    const h = z1 - z0 - 2 * d.clearance;
+    const acrossBox: [Plane, Plane] = [plane(bx0, X), plane(bx0 + w, X)];
+    const alongBox: [Plane, Plane] = [plane(by0, Y), plane(by0 + depth, Y)];
+    // The back stands on the bottom's groove, so the bottom slides in under it.
+    const backUp = d.groove.up + d.groove.width;
+    const boxFront = cut(
+      id('box-front'),
+      instance,
+      panel(h, b),
+      {
+        along: X,
+        across: Z,
+        through: minus(Y),
+        referenceEdge: { x: 0, y: by0 + b, z: bz0 },
+        width: h,
+      },
+      acrossBox,
+    );
+    const boxBack = cut(
+      id('box-back'),
+      instance,
+      panel(h - backUp, b),
+      {
+        along: X,
+        across: Z,
+        through: minus(Y),
+        referenceEdge: { x: 0, y: by0 + depth, z: bz0 + backUp },
+        width: h - backUp,
+      },
+      acrossBox,
+    );
+    const left = cut(
+      id('side-left'),
+      instance,
+      panel(h, b),
+      { along: Y, across: Z, through: X, referenceEdge: { x: bx0, y: 0, z: bz0 }, width: h },
+      alongBox,
+    );
+    const right = cut(
+      id('side-right'),
+      instance,
+      panel(h, b),
+      {
+        along: minus(Y),
+        across: Z,
+        through: minus(X),
+        referenceEdge: { x: bx0 + w, y: 0, z: bz0 },
+        width: h,
+      },
+      [alongBox[1], alongBox[0]],
+    );
+    // Tails on the sides, pins on the box front and back. The left side's first end is at the
+    // front, the right side's at the back; the front and back run from left to right.
+    const corners = [
+      { tails: left, tailsEnd: 0, pins: boxFront, pinsEnd: 0 },
+      { tails: left, tailsEnd: 1, pins: boxBack, pinsEnd: 0 },
+      { tails: right, tailsEnd: 1, pins: boxFront, pinsEnd: 1 },
+      { tails: right, tailsEnd: 0, pins: boxBack, pinsEnd: 1 },
+    ] as const;
+    for (const c of corners) {
+      const made = ok(throughDovetails({ ...c, slope: d.slope }));
+      features.add(c.tails, { dovetails: [made.tails] });
+      features.add(c.pins, { dovetails: [made.pins] });
+    }
+    // The bottom, grain side to side, in grooves in the box front and sides, its top flush with
+    // their upper walls, running on under the short back to its outside face.
+    const bottom = ok(
+      panelInFaces({
+        frame: [
+          { ...boxFront, face: 'near' },
+          { ...left, face: 'far' },
+          { ...right, face: 'far' },
+        ],
+        groove: { width: d.groove.width, depth: d.groove.depth },
+        panel: { id: id('bottom'), thickness: d.bottomThickness, along: X, across: Y, through: Z },
+        middle: bz0 + d.groove.up + d.groove.width / 2,
+        gaps: { ends: END_GAP, edges: MOVEMENT_GAP },
+        open: by0 + depth,
+        flush: 'far',
+      }),
+    );
+    for (const { partId, dado } of bottom.dadoes) {
+      const holder = [boxFront, left, right].find((q) => q.part.id === partId) as PlacedPart;
+      features.add(holder, { dadoes: [dado] });
+    }
+    const bottomPart: PlacedPart = {
+      part: {
+        ...blank(
+          id('bottom'),
+          '',
+          panel(bottom.width, d.bottomThickness)(bottom.length),
+          bottom.length,
+        ),
+        rabbets: bottom.rabbets,
+      },
+      placement: frame(id('bottom'), instance, bottom.origin, X, Y, Z),
+    };
+    return [front, boxFront, boxBack, left, right, bottomPart];
+  };
+  const drawers = [
+    ...drawer('upper-drawer', 0, [openings.left, openings.dividerLeft], openings.upper),
+    ...drawer('upper-drawer', 1, [openings.dividerRight, openings.right], openings.upper),
+    ...drawer('lower-drawer', 0, [openings.left, openings.right], openings.lower),
+  ];
+
   const placed = [
     top,
     ...feet,
@@ -465,6 +635,7 @@ function build(p: WorkbenchParams, topMovement: number | undefined, backGap: num
     ...shelves,
     divider,
     caseBack,
+    ...drawers,
   ];
   return {
     parts: features.parts(placed),
@@ -588,8 +759,16 @@ type Found = {
   dadoes: Dado[];
   notches: Notch[];
   rabbets: EdgeRabbet[];
+  dovetails: Dovetails[];
 };
-const none = (): Found => ({ mortises: [], tenons: [], dadoes: [], notches: [], rabbets: [] });
+const none = (): Found => ({
+  mortises: [],
+  tenons: [],
+  dadoes: [],
+  notches: [],
+  rabbets: [],
+  dovetails: [],
+});
 
 class Features {
   private readonly found = new Map<string, Map<number, Found>>();

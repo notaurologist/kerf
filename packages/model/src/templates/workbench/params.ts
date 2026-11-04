@@ -1,4 +1,4 @@
-import type { BoardStock, PanelAllowances } from '@kerf/core';
+import type { BoardStock, DrawerSlide, PanelAllowances } from '@kerf/core';
 
 // The workbench's parameters (docs/templates/workbench.md, Parameters), in inches. The schema,
 // form, and starting questions come with the template's definition.
@@ -36,6 +36,22 @@ export interface WorkbenchParams {
   upperOpening: number;
   /** The case back's grooves, set `inset` in from the case's back edge; the shelves stop short of it. */
   back: { grooveWidth: number; grooveDepth: number; inset: number; shelfGap: number };
+  /** The drawers' side-mount slides, from their maker (hard rule 3). */
+  slides: DrawerSlide;
+  /**
+   * The drawers: box parts and bottom thickness, the inset front's thickness and its gap all round,
+   * the box's clearance above and below in its opening, the bottom's groove (width, depth, and how
+   * far up from the box's bottom edge), and the dovetails' slope, 1 in `slope`.
+   */
+  drawer: {
+    boxThickness: number;
+    bottomThickness: number;
+    frontThickness: number;
+    frontGap: number;
+    clearance: number;
+    groove: { width: number; depth: number; up: number };
+    slope: number;
+  };
   board: BoardStock;
   allowances: PanelAllowances;
   kerf: number;
@@ -64,6 +80,16 @@ export const EXAMPLE: WorkbenchParams = {
   drawerBand: 10,
   upperOpening: 3.25,
   back: { grooveWidth: 0.25, grooveDepth: 0.375, inset: 0.375, shelfGap: 0.0625 },
+  slides: { sideClearance: 0.5, shortest: 10, longest: 28, step: 2 },
+  drawer: {
+    boxThickness: 0.5,
+    bottomThickness: 0.5,
+    frontThickness: 0.75,
+    frontGap: 0.0625,
+    clearance: 0.25,
+    groove: { width: 0.25, depth: 0.25, up: 0.25 },
+    slope: 8,
+  },
   board: { nominal: '4/4 cherry', thickness: 0.8125, width: 5.5, buyableFeet: [6, 8, 10] },
   allowances: { jointPerEdge: 0.0625, rip: 0.5, trimPerEnd: 1, flatten: 0.0625 },
   kerf: 0.125,
