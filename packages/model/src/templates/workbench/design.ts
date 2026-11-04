@@ -822,6 +822,21 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
     [plane(0, X), plane(legX[0] + s, X)],
   );
   const screwZ = underside - v.face.screwBelow;
+  // The screw and guide bar run through the front-left leg, so they must pass below the end rail's
+  // and above the low rail's mortises in it.
+  const fs = v.face.screw;
+  if (screwZ + fs.screwHole / 2 > endRailZ) {
+    throw new Refusal(
+      `The face vise's screw, ${formatLength(v.face.screwBelow)} below the top's underside, would run into the end rail, which comes down ${formatLength(p.endRailHeight)} from it. Set the screw lower or the end rail shorter.`,
+    );
+  }
+  const guideZ = screwZ - (fs.guides > 0 ? (fs.guideFromScrew ?? 0) : 0);
+  const guideHole = fs.guides > 0 ? (fs.guideHole ?? 0) : fs.screwHole;
+  if (guideZ - guideHole / 2 < p.footHeight + p.lowRailHeight) {
+    throw new Refusal(
+      `The face vise's guide bar, ${formatLength(fs.guideFromScrew ?? 0)} below its screw, would run into the low rail. Set the screw higher or the guide bar closer to it.`,
+    );
+  }
   const legHoles = (() => {
     // Bored from the leg's front face; the guide bar goes below the screw, down the leg, so the
     // holes are laid out from the leg's top end and turned back.
@@ -876,6 +891,43 @@ function build(p: WorkbenchParams, gaps: Gaps): Base {
     [plane(0, Y), plane(p.topDepth, Y)],
   );
   const endCenter = { u: p.topDepth / 2, v: v.end.blockHeight / 2 };
+  // The holes come out of the block's inside face beside the right legs, so each must clear them.
+  const es = v.end.screw;
+  const across = [
+    { at: endCenter.u, hole: es.screwHole },
+    ...(es.guides === 0
+      ? []
+      : [1, -1].slice(0, es.guides).map((k) => ({
+          at: endCenter.u + k * (es.guideFromScrew ?? 0),
+          hole: es.guideHole ?? 0,
+        }))),
+  ];
+  const legsAcross = legY.map((y) => [y, y + s] as const);
+  if (
+    across.some(({ at, hole }) =>
+      legsAcross.some(([y0, y1]) => at + hole / 2 > y0 && at - hole / 2 < y1),
+    )
+  ) {
+    throw new Refusal(
+      `The end vise's screw or guide bars would run into a right leg where they come out of the block. Set the guide bars closer to the screw, or the legs farther apart.`,
+    );
+  }
+  // Between the legs, the right end rail comes out to the block's face when it is nearly as thick
+  // as the legs, and its height is where the holes come out.
+  const railOut = legX[1] + s / 2 + p.railThickness / 2;
+  const holeBand = [
+    blockBottom + v.end.blockHeight / 2 - es.screwHole / 2,
+    blockBottom + v.end.blockHeight / 2 + es.screwHole / 2,
+  ];
+  if (
+    railOut > legX[1] + s - 1 / 64 &&
+    (holeBand[1] as number) > endRailZ &&
+    (holeBand[0] as number) < underside
+  ) {
+    throw new Refusal(
+      `The end vise's screw would come out of the block into the right end rail, which is as thick as the legs. Make the end rails thinner than the legs.`,
+    );
+  }
   const chopHoles = viseHoles(v.end.screw, {
     center: endCenter,
     thickness: p.chopThickness,

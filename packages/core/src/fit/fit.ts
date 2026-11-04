@@ -3,6 +3,7 @@ import { plateScrewOffsets } from '../model/cupHinge.ts';
 import { boredSide } from '../model/operations.ts';
 import type { BoredHole, Dovetails, Mortise, Part, Placement, Vec3 } from '../model/types.ts';
 import type { HardwareLine } from '../outputs/hardwareList.ts';
+import { bounds, type Hull, hulls, inside, overlapDepth } from './overlap.ts';
 
 // Whether a plan's parts go together, from what each part records and where each piece is placed
 // (#570). Every joint is written on its parts twice, once on each side, and these check that the
@@ -12,7 +13,17 @@ import type { HardwareLine } from '../outputs/hardwareList.ts';
 // template's output.
 
 export interface FitProblem {
-  check: 'within' | 'dado' | 'mortise' | 'tenon' | 'tongue' | 'dovetail' | 'bolt' | 'hinge';
+  check:
+    | 'within'
+    | 'dado'
+    | 'mortise'
+    | 'tenon'
+    | 'tongue'
+    | 'dovetail'
+    | 'bolt'
+    | 'hinge'
+    | 'overlap'
+    | 'hole';
   partId: string;
   instance: number;
   message: string;
@@ -827,5 +838,174 @@ export function fitProblems(
     ...dovetailProblems(pieces),
     ...boltProblems(pieces, hardware),
     ...hingeProblems(pieces, hardware),
+    ...overlapProblems(pieces),
+    ...holeExitProblems(pieces),
   ];
+}
+
+/** More than this, two parts overlap: past a snug fit's tolerance, far below a cut's error. */
+const OVERLAP = 1 / 64;
+
+/** The space a mortise leaves in its part, in the part's frame. */
+function mortiseBox(h: Piece, m: Mortise): Box {
+  const { width: W, thickness: T } = h.part.stock;
+  const u: [number, number] = [m.u0, m.u1];
+  const a: [number, number] = [m.a0, m.a1];
+  if (m.side === 'near') return { u, v: a, n: [0, m.depth] };
+  if (m.side === 'far') return { u, v: a, n: [T - m.depth, T] };
+  if (m.side === 'reference-edge') return { u, v: [0, m.depth], n: a };
+  return { u, v: [W - m.depth, W], n: a };
+}
+
+/**
+ * The pairs a joint puts one inside the other, by index. A part may reach into another where it
+ * is named by one of that part's joints (a mortise, dado, or dovetails) or where it reaches into
+ * one of that part's cuts (a mortise, dado, or groove), as a tenon, a housed end, a tongue, or a
+ * door's edge in its track does; and two parts may meet inside a third's mortises, as tenons
+ * mitered where they meet in a leg do. Their fit is the joint checks'; the overlap check leaves
+ * the pair out whole.
+ */
+function joinedPairs(pieces: readonly Piece[], solids: readonly Hull[][]): Set<string> {
+  const named = (p: Piece, name: string) => p.part.id === name || p.part.role === name;
+  const pairs = new Set<string>();
+  const join = (i: number, j: number) => pairs.add(i < j ? `${i}|${j}` : `${j}|${i}`);
+  const reaches = (j: number, h: Piece, boxes: readonly Box[]) =>
+    (solids[j] ?? []).some((hull) =>
+      hull.points.some((w) => {
+        const c = toLocal(h.placement, w);
+        return boxes.some((b) => within(c.u, b.u) && within(c.v, b.v) && within(c.n, b.n));
+      }),
+    );
+  pieces.forEach((h, i) => {
+    const names = [...h.part.mortises, ...h.part.dadoes, ...h.part.dovetails].map(
+      (f) => f.withPart,
+    );
+    const mortises = h.part.mortises.map((m) => mortiseBox(h, m));
+    const cuts = [...grooveBoxes(h), ...mortises];
+    const inMortises: number[] = [];
+    pieces.forEach((p, j) => {
+      if (i === j) return;
+      if (names.some((name) => named(p, name)) || reaches(j, h, cuts)) join(i, j);
+      // A tongue or a stub tenon in a groove: its part's solid is full thickness past the shoulders.
+      const boxes = grooveBoxes(h);
+      if (tongues(p.part).some((t) => boxes.some((b) => boxHolds(p, t, h, b)))) join(i, j);
+      const stub = p.part.tenons.some((t) =>
+        h.part.grooves.some((g) =>
+          tipIn(
+            p,
+            t,
+            h,
+            g.edge === 'far' ? 'far-edge' : 'reference-edge',
+            { u0: g.u0, u1: g.u1, a0: g.n0, a1: g.n0 + g.width },
+            g.depth,
+            'within',
+          ),
+        ),
+      );
+      if (stub) join(i, j);
+      if (reaches(j, h, mortises)) inMortises.push(j);
+    });
+    for (const [k, a] of inMortises.entries()) {
+      for (const b of inMortises.slice(k + 1)) join(a, b);
+    }
+  });
+  return pairs;
+}
+
+/** Parts that occupy the same space, beyond a snug fit, where no joint puts one inside the other. */
+function overlapProblems(pieces: readonly Piece[]): FitProblem[] {
+  const solids = pieces.map((p) => hulls(p.part, p.placement));
+  const joined = joinedPairs(pieces, solids);
+  const boxes = solids.map(bounds);
+  const apart = (i: number, j: number) => {
+    const a = boxes[i] as ReturnType<typeof bounds>;
+    const b = boxes[j] as ReturnType<typeof bounds>;
+    return (['x', 'y', 'z'] as const).some(
+      (k) => a.hi[k] - b.lo[k] <= OVERLAP || b.hi[k] - a.lo[k] <= OVERLAP,
+    );
+  };
+  const problems: FitProblem[] = [];
+  for (let i = 0; i < pieces.length; i++) {
+    for (let j = i + 1; j < pieces.length; j++) {
+      if (joined.has(`${i}|${j}`) || apart(i, j)) continue;
+      const depth = Math.max(
+        ...(solids[i] ?? []).flatMap((a) => (solids[j] ?? []).map((b) => overlapDepth(a, b))),
+      );
+      if (depth > OVERLAP) {
+        const a = pieces[i] as Piece;
+        const b = pieces[j] as Piece;
+        problems.push({
+          check: 'overlap',
+          partId: a.part.id,
+          instance: a.placement.instance,
+          message: `It overlaps ${b.part.id} ${b.placement.instance} by ${depth}, where no joint puts one inside the other.`,
+        });
+      }
+    }
+  }
+  return problems;
+}
+
+/**
+ * Bored holes that go through come out into the open, or into a bored hole in the next part that
+ * lines up with them, as a vise screw's holes through both jaws do. Checked just past the exit, at
+ * the hole's center and around its rim.
+ */
+function holeExitProblems(pieces: readonly Piece[]): FitProblem[] {
+  const solids = pieces.map((p) => hulls(p.part, p.placement));
+  const inHole = (q: Piece, w: Vec3) => {
+    const c = toLocal(q.placement, w);
+    return q.part.boredHoles.some((h) => {
+      const d = h.direction;
+      const rel = { u: c.u - h.entry.u, v: c.v - h.entry.v, n: c.n - h.entry.n };
+      const along = rel.u * d.u + rel.v * d.v + rel.n * d.n;
+      const off = Math.hypot(rel.u - along * d.u, rel.v - along * d.v, rel.n - along * d.n);
+      return along >= -EPSILON && along <= h.depth + EPSILON && off <= h.diameter / 2 + EPSILON;
+    });
+  };
+  const problems: FitProblem[] = [];
+  pieces.forEach((p, i) => {
+    for (const hole of p.part.boredHoles) {
+      if (!hole.through) continue;
+      const d = hole.direction;
+      // Two directions square to the hole, for points around its rim.
+      const side = Math.abs(d.n) < 0.9 ? { u: 0, v: 0, n: 1 } : { u: 1, v: 0, n: 0 };
+      const a = {
+        u: d.v * side.n - d.n * side.v,
+        v: d.n * side.u - d.u * side.n,
+        n: d.u * side.v - d.v * side.u,
+      };
+      const b = { u: d.v * a.n - d.n * a.v, v: d.n * a.u - d.u * a.n, n: d.u * a.v - d.v * a.u };
+      const r = (hole.diameter / 2) * 0.9;
+      const past = hole.depth + OVERLAP;
+      const points = [
+        [0, 0],
+        [r, 0],
+        [-r, 0],
+        [0, r],
+        [0, -r],
+      ].map(([x, y]) =>
+        toWorld(p.placement, {
+          u: hole.entry.u + d.u * past + a.u * (x as number) + b.u * (y as number),
+          v: hole.entry.v + d.v * past + a.v * (x as number) + b.v * (y as number),
+          n: hole.entry.n + d.n * past + a.n * (x as number) + b.n * (y as number),
+        }),
+      );
+      pieces.forEach((q, j) => {
+        if (i === j) return;
+        const blocked = points.some(
+          (w) => (solids[j] ?? []).some((h) => inside(w, h, 0)) && !inHole(q, w),
+        );
+        if (blocked) {
+          problems.push({
+            check: 'hole',
+            partId: p.part.id,
+            instance: p.placement.instance,
+            message: `The ${hole.diameter} hole ${hole.use} at u ${hole.entry.u}, v ${hole.entry.v} goes through into ${q.part.id} ${q.placement.instance}.`,
+          });
+        }
+      });
+    }
+  });
+  return problems;
 }

@@ -413,6 +413,35 @@ describe('the base, from its joints', () => {
     });
   });
 
+  it('refuses a face vise screw that would run into the end rail', () => {
+    // End rails 5 tall come down to 31-5/8 − 5 = 26-5/8; the screw at 27-5/8 reaches 28-3/16.
+    expect(base({ ...EXAMPLE, endRailHeight: 5 })).toMatchObject({
+      ok: false,
+      message: expect.stringContaining("face vise's screw"),
+    });
+  });
+
+  it('refuses end vise guide bars that would run into the right legs', () => {
+    // Guides 6 either side of the screw at 8-13/16: the front one's 7/8 hole spans y 2-3/8 to
+    // 3-1/4, into the front leg's 0 to 3.
+    const wide = {
+      ...EXAMPLE.vise,
+      end: { ...EXAMPLE.vise.end, screw: { ...EXAMPLE.vise.end.screw, guideFromScrew: 6 } },
+    };
+    expect(base({ ...EXAMPLE, vise: wide })).toMatchObject({
+      ok: false,
+      message: expect.stringContaining('into a right leg'),
+    });
+  });
+
+  it('refuses an end rail as thick as the legs, where the end vise screw comes out', () => {
+    // 3 thick, centered on the 3 legs, its outer face is the block's face at 56-7/8.
+    expect(base({ ...EXAMPLE, railThickness: 3 })).toMatchObject({
+      ok: false,
+      message: expect.stringContaining('right end rail'),
+    });
+  });
+
   it('passes the fit checks', () => {
     expect(fitProblems(example, hardwareList(example.hardware))).toEqual([]);
   });
