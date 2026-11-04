@@ -201,7 +201,7 @@ function suggest(a: Answers): Suggestion[] {
   const boardThickness = dealer ? DEALER.surfaced : STORE.thickness;
   const { value, basis, note } = wristWorkHeight(a.stature);
   const c = WORKED_EXAMPLE.chopThickness;
-  const fit = (path: 'topLength' | 'topDepth', example: number, space: number) =>
+  const withinSpace = (path: 'topLength' | 'topDepth', example: number, space: number) =>
     space - c >= example
       ? param(path, example, EXAMPLE)
       : within(
@@ -212,8 +212,8 @@ function suggest(a: Answers): Suggestion[] {
         );
   return [
     within('height', value, basis, note),
-    fit('topLength', WORKED_EXAMPLE.topLength, a.space.length),
-    fit('topDepth', WORKED_EXAMPLE.topDepth, a.space.depth),
+    withinSpace('topLength', WORKED_EXAMPLE.topLength, a.space.length),
+    withinSpace('topDepth', WORKED_EXAMPLE.topDepth, a.space.depth),
     ...sizes(boardThickness),
     param('board.source', a.lumber.source, ANSWER),
     param('board.thickness', STORE.thickness, ONE_BY_SIX, MEASURE),

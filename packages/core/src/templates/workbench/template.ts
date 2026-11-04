@@ -20,7 +20,7 @@ import { type WorkbenchReview, type WorkbenchStructuralInputs, workbench } from 
 export const TEMPLATE_ID = 'workbench';
 export const TEMPLATE_VERSION = 1;
 
-export const WorkbenchGeometry = z.object({
+const WorkbenchGeometry = z.object({
   underside: z.number(),
   baseLength: z.number(),
   baseDepth: z.number(),

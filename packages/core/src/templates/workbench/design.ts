@@ -119,7 +119,7 @@ const END_GAP = 1 / 32;
 const DEALER_FEET = Array.from({ length: 13 }, (_, i) => i + 4);
 
 /** The boards everything is cut and glued from, as the record cabinet's. */
-export function boardStock(board: WorkbenchParams['board']): BoardStock {
+function boardStock(board: WorkbenchParams['board']): BoardStock {
   return board.source === 'store'
     ? {
         nominal: `${formatLength(board.thickness)} x ${formatLength(board.width)}`,
