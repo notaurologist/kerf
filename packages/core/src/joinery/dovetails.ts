@@ -91,6 +91,27 @@ export function dovetailGeometry(
   return { tailWide, tailNarrow, offset, sides };
 }
 
+/** Where a corner lies across a board `width` wide: its span, or the whole width. */
+export function dovetailSpan(d: Pick<Dovetails, 'span'>, width: number) {
+  return d.span ?? { v0: 0, v1: width };
+}
+
+/**
+ * A corner's tails laid across its span on a board `width` wide, over a run `run`, with each side
+ * measured from the board's reference edge. Undefined as `dovetailGeometry` is.
+ */
+export function cornerGeometry(
+  d: Dovetails,
+  width: number,
+  run: number,
+): DovetailGeometry | undefined {
+  const { v0, v1 } = dovetailSpan(d, width);
+  const g = dovetailGeometry(d, v1 - v0, run);
+  if (!g) return undefined;
+  const sides = g.sides.map((s) => ({ outside: v0 + s.outside, inside: v0 + s.inside }));
+  return { ...g, sides };
+}
+
 /**
  * A layout for a corner `width` wide at slope 1:`slope` (DOVETAIL_LAYOUT_BASIS): 3/8" half pins,
  * 1/4" pins, and the fewest tails that keeps them 2" or less apart on center. Tails c apart on

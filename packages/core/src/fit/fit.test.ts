@@ -418,3 +418,46 @@ describe('dovetails', () => {
     ]);
   });
 });
+
+describe('dovetails over part of the width', () => {
+  // A drawer's back corner, where the back is cut short. A side 18 long, 5 wide, 1/2 thick along
+  // y, its width up z from z = 0, with tails at its first end over v 1 to 4, cut 3/4 in. A back 12
+  // long, 3 wide, 3/4 thick along x, its outside face at y = 0 and its width up z from z = 1, with
+  // pins across its whole width at its first end, cut 1/2 in. 2 tails at 1:8 between 3/8 half pins
+  // and a 1/4 pin, across the 3 of the span: each (3 − 0.75 − 0.25) / 2 = 1 wide at the end, so
+  // the walls are at v 1.375, 2.375, 2.625, 3.625 on the side and 0.375, 1.375, 1.625, 2.625 on
+  // the back: z 1.375 to 3.625 on both.
+  const layout = { tails: 2, slope: 8, halfPin: 0.375, pin: 0.25 };
+  const span = (v0: number, v1: number) => ({ v0, v1 });
+  const side = (s = span(1, 4)) =>
+    part('side', 18, 5, 0.5, {
+      dovetails: [{ board: 'tails', withPart: 'back', end: 0, baseline: 0.75, span: s, ...layout }],
+    });
+  const back = part('back', 12, 3, 0.75, {
+    dovetails: [
+      { board: 'pins', withPart: 'side', end: 0, baseline: 0.5, outside: 'far', ...layout },
+    ],
+  });
+  const placements = (backZ: number) => [
+    place('side', at(0, 0, 0), Y, Z, X),
+    place('back', at(0, 0.75, backZ), X, Z, minus(Y)),
+  ];
+
+  it('accepts a 3-wide pin board placed across the tails’ span', () => {
+    expect(checks([side(), back], placements(1))).toEqual([]);
+  });
+
+  it('reports the pin board placed at the side’s edge instead', () => {
+    expect(checks([side(), back], placements(0))).toEqual(['dovetail side', 'dovetail back']);
+  });
+
+  it('reports a span that runs past the part', () => {
+    const problems = fitProblems(
+      { parts: [side(span(3, 6)), back], placements: placements(3) },
+      [],
+    );
+    expect(problems.filter((p) => p.check === 'within').map((p) => p.message)).toEqual([
+      "The dovetail tails on end 0 span 3 to 6 across the part's 5 width.",
+    ]);
+  });
+});

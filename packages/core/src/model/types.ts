@@ -216,6 +216,12 @@ const dovetailLayout = {
   slope: z.number().positive(),
   halfPin: z.number().positive(),
   pin: z.number().positive(),
+  /**
+   * Where the joint lies across the board, from `v0` to `v1` from its reference edge, when it covers
+   * only part of the width, as where a drawer's back is cut short above its bottom. The layout is
+   * laid across the span; without one it covers the whole width.
+   */
+  span: z.object({ v0: z.number(), v1: z.number() }).optional(),
 };
 
 /**
