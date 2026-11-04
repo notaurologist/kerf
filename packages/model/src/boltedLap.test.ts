@@ -34,6 +34,9 @@ const board = (id: string, over: Partial<Part> = {}): Part => ({
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
+  hingePlates: [],
+  dovetails: [],
   ...over,
 });
 const placed = (part: Part, placement: Omit<Placement, 'partId' | 'instance'>): PlacedPart => ({

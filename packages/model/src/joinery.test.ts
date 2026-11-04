@@ -40,6 +40,9 @@ const part = (
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
+  hingePlates: [],
+  dovetails: [],
   ...over,
 });
 const at = (x: number, y: number, z: number): Vec3 => ({ x, y, z });

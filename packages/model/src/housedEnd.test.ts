@@ -35,6 +35,9 @@ const panel = (id: string, length: number, over: Partial<Part> = {}): Part => ({
   grooves: [],
   rabbets: [],
   recesses: [],
+  boredHoles: [],
+  hingePlates: [],
+  dovetails: [],
   ...over,
 });
 const placement = (partId: string, p: Omit<Placement, 'partId' | 'instance'>): Placement => ({
