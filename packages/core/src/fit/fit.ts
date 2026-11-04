@@ -228,8 +228,9 @@ function tongues(part: Part) {
   return edges.flatMap((edge) => {
     const near = part.rabbets.find((r) => r.edge === edge && r.face === 'near');
     const far = part.rabbets.find((r) => r.edge === edge && r.face === 'far');
-    if (!near || !far) return [];
-    const n: [number, number] = [near.depth, T - far.depth];
+    // Rabbeted from one face only, the tongue runs from that rabbet to the other face.
+    if (!near && !far) return [];
+    const n: [number, number] = [near?.depth ?? 0, T - (far?.depth ?? 0)];
     // A point along the tongue's edge, `s` from its start, at `at` through the part.
     const alongU = edge === 'reference' || edge === 'far';
     const fixed = edge === 'reference' || edge === 'first-end' ? 0 : alongU ? W : L;
