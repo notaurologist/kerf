@@ -267,6 +267,8 @@ export function floatingPanel(joint: FloatingPanel):
   };
 }
 
+const RABBETED = ['reference', 'far', 'first-end', 'second-end'] as const;
+
 export interface PanelInFaces {
   /** The parts around the panel, each with the face its groove is cut into. */
   frame: readonly (PlacedPart & { face: Dado['face'] })[];
@@ -277,6 +279,11 @@ export interface PanelInFaces {
   middle: number;
   /** Short of each groove's bottom: at each end, along the grain, and at each edge, across it. */
   gaps: { ends: number; edges: number };
+  /**
+   * Where the panel runs to on a side with no groove, along `along` or `across`, as a drawer
+   * bottom runs on under a short back. That side gets no tongue.
+   */
+  open?: number;
 }
 
 /**
@@ -331,13 +338,28 @@ export function panelInFaces(joint: PanelInFaces):
     else if (parallel(bottom.normal, panel.across)) edges.push(dot(bottom.point, panel.across));
     else return { ok: false, message: 'A grooved face does not meet the panel’s edge or end.' };
   }
+  // An open side is where the frame has only one groove across that way.
+  let free: (typeof RABBETED)[number] | undefined;
+  if (joint.open !== undefined) {
+    const at = joint.open;
+    const [list, low, high] =
+      ends.length === 1
+        ? ([ends, 'first-end', 'second-end'] as const)
+        : ([edges, 'reference', 'far'] as const);
+    free = list.length === 1 && at < (list[0] as number) ? low : high;
+    list.push(at);
+  }
   if (ends.length !== 2 || edges.length !== 2) {
     return { ok: false, message: 'The panel is not held at both ends and both edges.' };
   }
   const [s0, s1] = ends.sort((a, b) => a - b) as [number, number];
   const [e0, e1] = edges.sort((a, b) => a - b) as [number, number];
+  // No gap at the open side: the panel runs to it.
+  const gap = (edge: (typeof RABBETED)[number], size: number) => (edge === free ? 0 : size);
+  const start0 = s0 + gap('first-end', gaps.ends);
+  const side0 = e0 + gap('reference', gaps.edges);
   const origin = plus(
-    plus(plus({ x: 0, y: 0, z: 0 }, panel.along, s0 + gaps.ends), panel.across, e0 + gaps.edges),
+    plus(plus({ x: 0, y: 0, z: 0 }, panel.along, start0), panel.across, side0),
     panel.through,
     middle - T / 2,
   );
@@ -345,9 +367,9 @@ export function panelInFaces(joint: PanelInFaces):
     ok: true,
     dadoes,
     origin,
-    length: s1 - s0 - 2 * gaps.ends,
-    width: e1 - e0 - 2 * gaps.edges,
-    rabbets: (['reference', 'far', 'first-end', 'second-end'] as const).flatMap((edge) =>
+    length: s1 - gap('second-end', gaps.ends) - start0,
+    width: e1 - gap('far', gaps.edges) - side0,
+    rabbets: RABBETED.filter((edge) => edge !== free).flatMap((edge) =>
       (['near', 'far'] as const).map((face) => ({
         edge,
         face,

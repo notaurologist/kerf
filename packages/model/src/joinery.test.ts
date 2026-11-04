@@ -261,6 +261,23 @@ describe('panelInFaces', () => {
     for (const r of made.rabbets) expect(r).toMatchObject({ width: 0.375, depth: 0.125 });
   });
 
+  it('runs a panel open on one side to where it is told, with no gap or tongue there', () => {
+    // No top: the panel runs up from the bottom's groove to z = 9, past where the top was. From
+    // 3/8 + 1/32 up to 9: 8-19/32 long. Rabbeted on its two edges and its bottom end only.
+    const made = panelInFaces({
+      ...joint,
+      frame: [frame[0], frame[2], frame[3]] as typeof frame,
+      open: 9,
+    });
+    if (!made.ok) throw new Error(made.message);
+    expect(made.length).toBe(8.59375);
+    expect(made.width).toBe(9.125);
+    expect(made.origin).toEqual({ x: 0.4375, y: 2.75, z: 0.40625 });
+    expect(new Set(made.rabbets.map((r) => r.edge))).toEqual(
+      new Set(['reference', 'far', 'first-end']),
+    );
+  });
+
   it('refuses a panel no thicker than its grooves, or held on three sides', () => {
     expect(panelInFaces({ ...joint, panel: { ...joint.panel, thickness: 0.25 } })).toMatchObject({
       ok: false,
