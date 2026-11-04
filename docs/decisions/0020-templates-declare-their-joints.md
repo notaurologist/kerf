@@ -1,6 +1,6 @@
 # 0020: Templates declare their parts' joints, and the joints give the geometry
 
-Status: Proposed (November 4, 2026, #543). Amends 0008.
+Status: Accepted (owner, November 4, 2026, #543). Amends 0008.
 
 ## Context
 A template used to work out by hand each part's length, end cuts, and every feature cut into it, from where the other parts stand. When those formulas went wrong, the part still looked right on its own: a mortise past a leg's face, a dado edge a hair below zero, a door frame wider than a board (#561 to #563). Fit checks (#570) and parameter sweeps (#571) now catch some of that after the fact.
