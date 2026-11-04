@@ -10,7 +10,7 @@ The design is the sketch the owner agreed on November 3, 2026, from photos of a 
 - **Two vises.** A face vise at the front left: a wooden jaw (chop) on a bought screw, clamping against the top's front edge. An end vise at the right end: a chop across the top's end on a bought screw, clamping between dogs in the chop and dogs in the top.
 - **A base of four legs on two feet.** The feet run front to back at each end. Each end frame is two legs tenoned into a foot below and an end rail under the top. Long rails at the bottom, front and back, tenon into the legs and carry the case.
 - **A case between the legs**, of panels in dadoes like the record cabinet's, with a back:
-  - **Drawers** under the top: two side by side over one full width, on bought side-mount slides. Each drawer is a box with through dovetails at all four corners and a separate front screwed on.
+  - **Drawers** under the top: two side by side over one full width, on bought side-mount slides. Three solid drawer shelves cross the case, under the top, between the rows, and above the doors, and a full-depth divider between the upper drawers is housed in the two above and below it (#583). Each drawer is a box with through dovetails at all four corners and a separate front screwed on.
   - **Two hinged doors** below the drawers, frame and panel like the record cabinet's doors, closing the space to the low rails.
 - **Glued mortise and tenon** throughout the base. The base does not come apart.
 
@@ -40,6 +40,7 @@ Every parameter starts from a suggestion with its basis (owner's standing prefer
 | h_db | Drawer band height, under the top | 6 to 14 | 10 (`example`, owner's photo) |
 | t_c | Case panel thickness | 5/8 to 1 | 3/4, as the record cabinet's |
 | j | Dado depth | 1/16 to t_c / 2 | 3/16 = t_c / 4, the record cabinet's rule of thumb (#317) |
+| s_d | Stopped-dado setback | 1/16 to the case depth | 1/2, as the record cabinet's: how far the drawer shelves' and divider's dadoes stop short of the case's front edge, so none shows from the front. A design choice, not a strength rule |
 | d_h | Dog hole diameter | fixed per hardware | 3/4: the common size for dogs and holdfasts ([Lost Art Press](https://blog.lostartpress.com/page/676/?cat=-1); #581) |
 | — | Dovetail slope | 1:6 to 1:8 | 1:8 in hardwood, by convention ([Wikipedia](https://en.wikipedia.org/wiki/Dovetail_joint), [Fine Woodworking](https://www.finewoodworking.com/2007/02/06/laying-out-dovetails)); the strength rationale is disputed (#578) |
 | — | Slide side clearance and lengths | from the maker | Entered by the owner from the slide's instructions (#579). The worked example uses 1/2 per side, illustrative |
@@ -57,11 +58,11 @@ Joint-first: each part is declared by where it stands and how it joins its neigh
 | Leg | 4 | Tenoned into its foot below and its end rail above |
 | End rail | 2 | Between the two legs of an end, under the top; tenoned into both |
 | Low rail, front and back | 2 | Between the legs along the bench at h_f; tenoned into both. Carries the case |
-| Case side | 2 | Housed in the case bottom's dadoes; the drawer frames housed in it (#583) |
+| Case side | 2 | Housed in the case bottom's dadoes. Houses the three drawer shelves in stopped dadoes on its inside face (#583) |
 | Case bottom | 1 | On the low rails; houses the sides |
 | Case back | 1 | Floating panel in grooves, or in rabbets (open question 6) |
-| Drawer divider | 1 | Between the two upper drawers, housed in the drawer frames (#583) |
-| Drawer frames | 2 | Above and below the upper drawers (#583) |
+| Drawer shelf: upper, middle, lower | 3 | A solid panel t_c thick, grain left to right. Both ends housed in stopped dadoes in the case sides, front corners notched. The upper (under the top) houses the divider's top end in a stopped dado across its underside, the middle (between the rows) its bottom end in one across its top face; the lower is above the doors (#583) |
+| Drawer divider | 1 | Between the two upper drawers, the full depth of the case, grain vertical. Both ends housed in the upper and middle drawer shelves, front corners notched. The upper drawers' inner slides screw to its faces (#583) |
 | Drawer box sides, front, back | 3 sets | Through dovetails at each corner (#578); bottom in a groove (#585) |
 | Drawer front | 3 | Screwed to its box, with a pull |
 | Door stiles and rails | 2 doors | Stub tenons in grooves, panel floating, as the record cabinet's doors; hung on hinges (#584) |
@@ -77,7 +78,9 @@ Joint-first: each part is declared by where it stands and how it joins its neigh
 - End rails: D_b − 2·s between the legs, with tenons added by the joints.
 - Low rails: L_b − 2·s between the legs, from z = h_f to h_f + h_r.
 - Case: between the legs, L_b − 2·s wide and D_b deep, from z = h_f + h_r to z_u.
-- Drawer band: the top h_db of the case. Inside it, three frames t_c thick (under the top, between the rows, and above the doors) leave h_db − 3·t_c for the two rows of openings, split upper : lower = 3.25 : 4.5 in the example (`example`, owner's photo). The upper row's two openings are split by a divider t_c thick.
+- Drawer band: the top h_db of the case. Inside it, three drawer shelves t_c thick (under the top, between the rows, and above the doors) leave h_db − 3·t_c for the two rows of openings, split upper : lower = 3.25 : 4.5 in the example (`example`, owner's photo). The upper row's two openings are split by a divider t_c thick.
+- Drawer shelves: the inside width of the case + 2·j long, from the case's front edge to the back (open question 6).
+- Divider: the upper opening's height + 2·j long (vertical), as deep as the shelves, centered in the case.
 - Drawer boxes: each opening's width less the slides' side clearance on each side (#579).
 - Doors: the case's height below the drawer band.
 
@@ -98,6 +101,8 @@ The owner's sizes, from their photo (`example`): overall 64-3/8 long and 20-1/8 
 | Drawer band | z = 21-5/8 to 31-5/8; 10 − 3·3/4 = 7-3/4 of openings | upper 3-1/4, lower 4-1/2 |
 | Upper drawer openings | (44-3/8 − 3/4) / 2 | 21-13/16 each |
 | Lower drawer opening | | 44-3/8 |
+| Drawer shelf | 44-3/8 + 2·3/16 | 44-3/4 long, 15-5/8 deep less the back (open question 6) |
+| Divider | 3-1/4 + 2·3/16 | 3-5/8 high, as deep as the shelves |
 | Drawer boxes, 1/2 slide clearance each side (illustrative) | 21-13/16 − 1; 44-3/8 − 1 | 20-13/16 and 43-3/8 wide |
 | Door space | 21-5/8 − 6 | 15-5/8 high, 44-3/8 wide inside the case |
 
@@ -106,13 +111,13 @@ Tenon lengths, dado and groove depths, dovetail layouts, drawer box depths, and 
 ## Hardware, operations, build steps, drawings
 
 - **Hardware:** two vise screws (#581), three pairs of drawer slides (#579), hinges (#584), screws for the drawer fronts, pulls or finger recesses, and whatever holds the top down (open question 5).
-- **Operations:** the record cabinet's panel work and dadoes; mortises and tenons as the cabinet's base; dovetails (#578); bored dog holes (#581); flattening the top (#580); hinge mortises or bored hinge cups (#584).
+- **Operations:** the record cabinet's panel work, dadoes, stopped dadoes, and notched corners; mortises and tenons as the cabinet's base; dovetails (#578); bored dog holes (#581); flattening the top (#580); hinge mortises or bored hinge cups (#584).
 - **Build steps:** glue up and flatten the top, build the end frames, join them with the low rails, build and fit the case, the drawers, and the doors, then mount the vises and bore the dog holes.
 - **Drawings:** the record cabinet's elevations and exploded view; cut details of the dovetails, mortises, and tenons.
 
 ## Validation and flags
 
-Refused, at least: a base with no room for the case (L_b − 2·s too small for the drawer openings), a drawer band taller than the case, drawer openings narrower than twice the slide clearance, and dog holes deeper than the top is thick. Flags, at least: **router technique** and **table saw operations** for dadoes and dovetails cut by machine; **jointers, planers** for flattening the top; **load-bearing or tip-prone designs** for heavy work on the overhang past the legs.
+Refused, at least: a base with no room for the case (L_b − 2·s too small for the drawer openings), a drawer band taller than the case, drawer openings narrower than twice the slide clearance, and dog holes deeper than the top is thick. Checked against the owner's slide: the two slides on the divider screw in from opposite faces at the same height, so if their holes line up, screws longer than t_c / 2 meet inside it; the plan refuses that or says to stagger the holes. Flags, at least: **router technique** and **table saw operations** for dadoes and dovetails cut by machine; **jointers, planers** for flattening the top; **load-bearing or tip-prone designs** for heavy work on the overhang past the legs.
 
 ## Structural model
 
@@ -133,8 +138,9 @@ Open (question 7). A bench is not a span carrying people, as the swing set is. C
 5. **How the top is held down.** Bolts or screws through the end rails, dowels, or the legs tenoned into the top.
 6. **The case back.** A panel floating in grooves, or in rabbets and screwed.
 7. **What the structural review checks** (above).
-8. **Drawer and door details** wait on #579, #583, #584, and #585.
+8. **Drawer and door details** wait on #579, #584, and #585.
 
 ## Decided
 
 - The design and the choices on #576: drawers two over one, through dovetails behind a separate front, hinged doors, glued mortise and tenon, a height suggested from the owner's (owner, November 3, 2026).
+- **Solid drawer shelves, not web frames** (#583; owner, November 4, 2026). With side-mount slides the slides carry the drawers, so a web frame's runners would carry nothing; the shelves still tie the case sides, which are housed only in the case bottom, keep them parallel for the slides, and give the divider something to join. The divider runs the full depth so each slide screws to one flat surface; in a web frame its ends would sit in both the front rail and a center runner, which the joint model's housed end does not do. Every panel's cross grain runs front to back, as in the record cabinet, so they move together. The shelves also keep shavings out of the drawers below, at about 2-1/2 times the wood of web frames. Sources: Bill Hylton, *The Drawer Book* (Popular Woodworking Books, 2009), ch. 2, "Supporting a Drawer", pp. 26–37 ([chapter PDF](https://www.popularwoodworking.com/app/uploads/2010/10/Drawer_Book-Runners_Guides_Kickers.pdf)): drawer dividers keep the case sides straight and parallel (p. 28), runners and web frames and their allowance for movement (pp. 30–33), solid panels as drawer pockets (p. 28), the stopped dado with a notched corner (p. 29); Gerald Curry, ["How to engineer a chest of drawers"](https://www.finewoodworking.com/2014/06/04/how-to-engineer-a-chest-of-drawers), *Fine Woodworking* #241, 2014: a solid case's depth changes through the year while runners do not; Ken Burton, ["Drawer Slides: The Inside Story"](https://www.woodcraft.com/blogs/cabinetry-furniture-making/drawer-slides-the-inside-story), Woodcraft, 2014: side-mount slides go between the drawer's and the case's sides.
