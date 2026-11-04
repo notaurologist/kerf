@@ -1,6 +1,6 @@
 import { fitProblems, hardwareList, type Part, type Placement } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { base } from './design.ts';
+import { base, ILLUSTRATIVE } from './design.ts';
 import { EXAMPLE } from './params.ts';
 
 // The spec's worked example (docs/templates/workbench.md), worked by hand. x along the bench from
@@ -8,8 +8,8 @@ import { EXAMPLE } from './params.ts';
 // to 56-7/8, y 0 to 3 and 13-5/8 to 16-5/8. Feet 1-3/4 deep in each foot's mortise; rail tenons
 // 1/2 thick, 1/4 shoulders, 1-3/4 long; leg tenons 1 thick, 1/4 shoulders.
 
-function made(movement?: number) {
-  const result = base(EXAMPLE, movement);
+function made(topRoom?: number) {
+  const result = base(EXAMPLE, topRoom === undefined ? ILLUSTRATIVE : { ...ILLUSTRATIVE, topRoom });
   if (!result.ok) throw new Error(result.message);
   return result.base;
 }
@@ -36,6 +36,9 @@ describe('the base, from its joints', () => {
       caseInside: 44.375,
       upperOpenings: 21.8125,
       lowerOpening: 4.5,
+      // Tenons 16-5/8 − 3 apart; the back 44-3/8 + 2 × 3/8; a drawer bottom from its front
+      // groove's bottom at 1-1/16 to the back's face at 14-13/16; a door panel 22-3/32 − 4 + 3/4.
+      spans: { tenons: 13.625, back: 45.125, bottom: 13.75, doorPanel: 18.84375 },
     });
   });
 
