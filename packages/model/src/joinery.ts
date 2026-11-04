@@ -96,14 +96,16 @@ export function throughTenon(
   const m = mortised.placement;
   const aAxis = onFace ? m.across : m.through;
   const aSize = onFace ? width : thickness;
-  const mortise = { ...made.mortise };
+  const mortise: Mortise = { ...made.mortise };
   if (!(lengthen.by > 0)) return { ok: false, message: 'A mortise is lengthened by more than 0.' };
+  const room = (at: 'u0' | 'u1' | 'a0' | 'a1') => {
+    mortise[at] += at.endsWith('1') ? lengthen.by : -lengthen.by;
+    mortise.room = { at, length: lengthen.by };
+  };
   if (parallel(lengthen.toward, m.along)) {
-    if (dot(lengthen.toward, m.along) > 0) mortise.u1 += lengthen.by;
-    else mortise.u0 -= lengthen.by;
+    room(dot(lengthen.toward, m.along) > 0 ? 'u1' : 'u0');
   } else if (parallel(lengthen.toward, aAxis)) {
-    if (dot(lengthen.toward, aAxis) > 0) mortise.a1 += lengthen.by;
-    else mortise.a0 -= lengthen.by;
+    room(dot(lengthen.toward, aAxis) > 0 ? 'a1' : 'a0');
   } else {
     return { ok: false, message: 'The mortise is lengthened at an angle to the part.' };
   }

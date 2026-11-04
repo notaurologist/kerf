@@ -129,7 +129,9 @@ describe('the base, from its joints', () => {
     expect(fitProblems(example)).toEqual([]);
   });
 
-  it.todo('passes the fit checks with the back mortises left long for the top’s movement');
+  it('passes the fit checks with the back mortises left long for the top’s movement', () => {
+    expect(fitProblems(made(0.125))).toEqual([]);
+  });
 
   it('refuses a top whose strips are wider than the board', () => {
     // A 6-1/2 top stands its strips on edge, ripped 6-9/16 wide from a 5-1/2 board.

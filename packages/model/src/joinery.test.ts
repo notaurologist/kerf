@@ -150,7 +150,7 @@ describe('throughTenon', () => {
     });
     expect(made).toEqual({
       ok: true,
-      mortise: { ...mortise, a1: 3.5 },
+      mortise: { ...mortise, a1: 3.5, room: { at: 'a1', length: 0.25 } },
       tenon: { end: 1, length: 2.5, ...tenon },
     });
   });
@@ -163,7 +163,10 @@ describe('throughTenon', () => {
       tenon,
       lengthen: { toward: minus(X), by: 0.5 },
     });
-    expect(made).toMatchObject({ ok: true, mortise: { ...mortise, u0: 2.5 } });
+    expect(made).toMatchObject({
+      ok: true,
+      mortise: { ...mortise, u0: 2.5, room: { at: 'u0', length: 0.5 } },
+    });
   });
 
   it('refuses a leg that stops inside the top', () => {
