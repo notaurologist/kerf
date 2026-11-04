@@ -732,6 +732,16 @@ describe('GET /api/export (#21)', () => {
     expect(exported.deletedProjects).toEqual([]);
   });
 
+  it('leaves out a project 30 days past its deletion', async () => {
+    const { authed, clock } = await createTestApp();
+    const gone = await create(authed, { ...newProject, name: 'Gone' });
+    await authed(`/api/projects/${gone.body.id}`, { method: 'DELETE', body: {} });
+    clock.now = new Date(clock.now.getTime() + 30 * 24 * 60 * 60 * 1000 + 1);
+
+    const exported = (await (await authed('/api/export')).json()) as Json;
+    expect(exported.deletedProjects).toEqual([]);
+  });
+
   it('streams a backup larger than the 4.5 MB Vercel allows an unstreamed response', async () => {
     const { authed, client } = await createTestApp();
     const { body } = await create(authed);

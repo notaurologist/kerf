@@ -311,38 +311,88 @@ interface CountedStep {
   board?: { id: string; pieces: readonly { partId: string; instance: number }[] };
 }
 
+/**
+ * What a plan's progress is counted against (#636): the keys of its shopping lines and parts'
+ * pieces, and its steps in order, each cutting step with its board's ID and its pieces' keys. Small
+ * enough to store beside the snapshot, so the projects list counts progress without reading it.
+ */
+export const ProgressOutline = z.object({
+  shopping: z.array(z.string()),
+  pieces: z.array(z.string()),
+  steps: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      board: z.object({ id: z.string(), pieces: z.array(z.string()) }).optional(),
+    }),
+  ),
+});
+export type ProgressOutline = z.infer<typeof ProgressOutline>;
+
+/** The outline of a plan and its steps, with each key as the ticks name it. */
+function outlineProgress(
+  plan: Pick<Plan, 'lumber' | 'hardware' | 'cutList'>,
+  steps: readonly CountedStep[],
+): ProgressOutline {
+  return {
+    shopping: shoppingLines(plan).map((l) => l.key),
+    pieces: plan.cutList.flatMap((row) =>
+      Array.from({ length: row.quantity }, (_, i) => partProgressKey(row.partId, i)),
+    ),
+    steps: steps.map(({ id, title, board }) => ({
+      id,
+      title,
+      ...(board
+        ? {
+            board: {
+              id: board.id,
+              pieces: board.pieces.map((p) => partProgressKey(p.partId, p.instance)),
+            },
+          }
+        : {}),
+    })),
+  };
+}
+
 /** Counts the ticked shopping lines, pieces, and steps, and finds the first step not done. */
 export function summarizeProgress(
   plan: Pick<Plan, 'lumber' | 'hardware' | 'cutList'>,
   steps: readonly CountedStep[],
   ticked: readonly CountedTick[],
 ): ProgressSummary {
+  return countProgress(outlineProgress(plan, steps), ticked);
+}
+
+/** Counts the ticks against a plan's outline (`summarizeProgress`). */
+export function countProgress(
+  outline: ProgressOutline,
+  ticked: readonly CountedTick[],
+): ProgressSummary {
   const done = new Set(ticked.map(progressId));
-  const lines = shoppingLines(plan);
   const isDone = (kind: ProgressKind, key: string) => done.has(progressId({ kind, key }));
+  const { steps } = outline;
   const next = steps.findIndex((s) => !isDone('step', s.id));
   const numbered = (i: number): SummaryStep | null => {
     const step = steps[i];
     return step ? { id: step.id, number: i + 1, title: step.title } : null;
   };
   const nextStep = numbered(next);
-  const pieces = plan.cutList.flatMap((row) =>
-    Array.from({ length: row.quantity }, (_, i) => partProgressKey(row.partId, i)),
-  );
   return {
     shopping: {
-      done: lines.filter((l) => isDone('shopping-line', l.key)).length,
-      total: lines.length,
+      done: outline.shopping.filter((key) => isDone('shopping-line', key)).length,
+      total: outline.shopping.length,
     },
     pieces: {
-      done: pieces.filter((key) => isDone('part', key)).length,
-      total: pieces.length,
+      done: outline.pieces.filter((key) => isDone('part', key)).length,
+      total: outline.pieces.length,
     },
     steps: { done: steps.filter((s) => isDone('step', s.id)).length, total: steps.length },
     nextStep,
     resumeStep: resumeAt(steps, ticked, numbered, nextStep),
   };
 }
+
+type OutlineStep = ProgressOutline['steps'][number];
 
 /**
  * The step to resume at (`ProgressSummary.resumeStep`). The latest tick wins. Ticks saved in the
@@ -351,7 +401,7 @@ export function summarizeProgress(
  * it was the last.
  */
 function resumeAt(
-  steps: readonly CountedStep[],
+  steps: readonly OutlineStep[],
   ticked: readonly CountedTick[],
   numbered: (i: number) => SummaryStep | null,
   nextStep: SummaryStep | null,
@@ -372,14 +422,10 @@ function resumeAt(
 }
 
 /** The index of the step a Building tick was made on, or -1 for any other tick. */
-function stepOfTick(steps: readonly CountedStep[], kind: ProgressKind, key: string): number {
+function stepOfTick(steps: readonly OutlineStep[], kind: ProgressKind, key: string): number {
   if (kind === 'step') return steps.findIndex((s) => s.id === key);
   if (kind === 'board') return steps.findIndex((s) => s.board?.id === key);
-  if (kind === 'part') {
-    return steps.findIndex((s) =>
-      s.board?.pieces.some((p) => partProgressKey(p.partId, p.instance) === key),
-    );
-  }
+  if (kind === 'part') return steps.findIndex((s) => s.board?.pieces.includes(key));
   return -1;
 }
 
@@ -446,12 +492,20 @@ export function nextUp(progress: ProgressSummary, toDo: number): NextUp {
   return steps.total > 0 ? { kind: 'done' } : null;
 }
 
+/** The progress outline for a template's stored outputs. Draws nothing. */
+export function progressOutline<O>(
+  template: Pick<TemplateDefinition<unknown, unknown, O>, 'steps' | 'plan'>,
+  outputs: O,
+): ProgressOutline {
+  const plan = template.plan(outputs);
+  return outlineProgress(plan, stepContents(template.steps(outputs), plan));
+}
+
 /** The progress summary for a template's stored outputs. Draws nothing, so it is cheap to list. */
 export function progressSummary<O>(
   template: Pick<TemplateDefinition<unknown, unknown, O>, 'steps' | 'plan'>,
   outputs: O,
   ticked: readonly CountedTick[],
 ): ProgressSummary {
-  const plan = template.plan(outputs);
-  return summarizeProgress(plan, stepContents(template.steps(outputs), plan), ticked);
+  return countProgress(progressOutline(template, outputs), ticked);
 }
