@@ -48,10 +48,11 @@ describe('settled', () => {
     expect(settled({ ok: true, value: newer }, project)).toEqual({ state: 'ready', value: newer });
   });
 
-  it('keeps the kept value when the request fails', () => {
+  it('keeps the kept value when the request fails, saying why', () => {
     expect(settled({ ok: false, error: offline }, project)).toEqual({
       state: 'ready',
       value: project,
+      refreshFailed: offline,
     });
   });
 
