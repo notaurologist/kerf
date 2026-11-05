@@ -194,6 +194,19 @@ The owner approved separate exploded views of a build's sub-assemblies on Novemb
 
 **Accept when:** the workbench's five groups and the record cabinet's door each draw fully apart with no part passing in front of one it is behind; the whole assembly's exploded view is unchanged; each group is shown on the diagrams page and linked from its build step, with motion and reduced motion; and no template version changes.
 
+## Hardening 3
+
+From the five-lens engineering review of November 5, 2026, after the exact cut planner reached the shopping list. The review found every layer sound and its gaps between verified pieces: two pull requests merged one after the other, a release beside the deploy still serving, an open tab beside a new API, and the cost of a plan after a change to generic code. Main failed CI that day for the first of these (fixed in #695). Issues #696 to #708.
+
+- An owner decision on stopping merges into main when CI fails or ran against an older main (#696).
+- The cost of a plan: no regeneration on read (#697), and a gate on generation's work and time (#698).
+- State that drifts across releases and devices: progress outlines keyed by the code that made them (#699), regenerate checking every input the owner approved (#700), a reload offered to an older tab (#701), the release refusing a pooled URL (#702), and accepted ticks shown as done after leaving a mode (#703).
+- Printed drawings that do not depend on the screen (#704).
+- Gates: fixture hashes add-only against the base branch (#705), outputs pinned beyond the worked examples (#706), and verdict words and brands scanned in all knowledge and on every screen (#707).
+- Low findings and nits, collected (#708).
+
+**Accept when:** every High and Medium finding is fixed or closed with a recorded reason; each fix the review marked as enforceable has its test or check; and the decisions are recorded.
+
 ## Explorations
 
 Outside the order above. Educational directions beyond the MVP, listed with how they stay apart from the deployed app in `EXPLORATIONS.md`. Agents do not pick these issues up unless the owner names one. Issues #543 to #548.
