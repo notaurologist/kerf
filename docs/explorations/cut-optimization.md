@@ -39,10 +39,29 @@ With 200 draws per template and seed 544, the schemas and templates accept about
 3. An exact method that proves the fewest feet or reports its gap (#664).
 4. Write-up and adoption proposal (#665).
 
+## Lower bounds
+
+Every buyable length is a whole number of feet, so a plan's total is a multiple of the lengths' greatest common divisor (2 ft for 8, 10, 12, 14, 16), and each bound rounds up to the next multiple.
+
+- **Material** (`materialBound`): the least total of lengths whose room after trim covers every piece and its kerf, ignoring how pieces divide among boards. A small dynamic program over total feet.
+- **Linear relaxation** (`relaxation`): the cutting-stock linear program by column generation (Gilmore and Gomory, 1961 and 1963). Minimize the feet of the boards cut, Σ feet(p)·x(p), subject to Σ counts(p, i)·x(p) ≥ demand(i) for each piece length i. It starts from one single-length pattern per piece length and solves the dual, max Σ demand(i)·price(i) subject to Σ counts(p, i)·price(i) ≤ feet(p), whose slack basis is a feasible start, so the simplex (`simplex.ts`, Bland's rule) needs no first phase. For each buyable length a bounded knapsack finds the pattern worth most at the current prices. A pattern worth more than its feet enters; when none does, the prices are optimal. The knapsack (`knapsack.ts`) keeps the (weight, value) pairs no other beats on both, so piece lengths in fractions of an inch stay exact (hard rule 4).
+
+Tests check both bounds on hand-worked examples and, on every benchmark instance from the examples and 30 draws per template, that neither bound exceeds the baseline's feet, that the relaxation's boards cover every piece at its stated cost, that no pattern is worth more than its feet at the final prices, and that the prices value the pieces at the relaxation's optimum (strong duality).
+
 ## Report
 
-`pnpm --filter @kerf/cutting report [draws per template]` writes `packages/cutting/report.md`: totals per method, then every instance. Times are from one run on the machine that wrote it.
+`pnpm --filter @kerf/cutting report [draws per template]` writes `packages/cutting/report.md`: totals per method with each method's feet over the best bound, the open instances (a method over the best bound), then every instance. Times are from one run on the machine that wrote it.
 
 ## Results so far
 
-A throwaway search before this package existed, stopped at 5 seconds per stock, found the grouping already optimal on the swing set examples and 2 to 4 ft over the best plan found on the record cabinet and workbench examples (#544). The lower bounds in step 2 will say how close it is in general.
+A throwaway search before this package existed, stopped at 5 seconds per stock, found the grouping already optimal on the swing set examples and 2 to 4 ft over the best plan found on the record cabinet and workbench examples (#544).
+
+With the bounds, on 260 instances (200 draws per template, seed 544):
+
+| | Feet |
+|---|---|
+| Best lower bound, total | 17,760 |
+| First-fit decreasing, total | 18,137 |
+| Over the bound | 377 (2.1%) |
+
+The baseline meets the bound on 186 instances and is over it on 74. Being over does not prove the baseline loses: the relaxation can be below the best integer plan. The exact method in step 3 settles each open instance. The material bound is never above the relaxation on these instances.
