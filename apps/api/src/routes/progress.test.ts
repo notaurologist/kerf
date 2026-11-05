@@ -1,5 +1,5 @@
-import { findTemplate, flagProgressKey, PROGRESS_KINDS } from '@kerf/core';
-import { describe, expect, it } from 'vitest';
+import { findTemplate, flagProgressKey, PROGRESS_KINDS, progressOutlineKey } from '@kerf/core';
+import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 import { freshBasis, swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
 import { PROGRESS_KINDS as STORED_KINDS } from '../db/schema.ts';
@@ -194,6 +194,65 @@ describe('project progress', () => {
     });
     expect(((await regenerated.json()) as Json).progressReset).toEqual([]);
     expect(keys(await progress())).toEqual(['step frames']);
+  });
+
+  it('keeps the stored outline current through a rename, under the key it was made with', async () => {
+    const { client, authed, save } = await setup();
+    const template = findTemplate('swing-set-a-frame');
+    if (!template) throw new Error('no swing-set template');
+    const stored = async () =>
+      (
+        await client.query<{ revision: number; outline: number; version: string }>(
+          `select revision, progress_outline_revision as outline,
+                  progress_outline_version as version from projects`,
+        )
+      ).rows[0];
+    expect((await save({ name: 'Swing set' })).status).toBe(200);
+    expect(await stored()).toEqual({
+      revision: 2,
+      outline: 2,
+      version: progressOutlineKey(template),
+    });
+    // An outline made by other code, as the previous deploy leaves one, is still read again.
+    await client.query("update projects set progress_outline_version = 'other'");
+    expect((await save({ name: 'Backyard swing set' })).status).toBe(200);
+    expect(await stored()).toEqual({ revision: 3, outline: 3, version: 'other' });
+    expect((await authed('/api/projects')).status).toBe(200);
+    expect(await stored()).toEqual({
+      revision: 3,
+      outline: 3,
+      version: progressOutlineKey(template),
+    });
+  });
+
+  it('saves a tick on a plan whose progress cannot be counted, and moves no status', async () => {
+    const before = await setup();
+    const template = findTemplate('swing-set-a-frame');
+    if (!template) throw new Error('no swing-set template');
+    const throwing = {
+      ...template,
+      plan: () => {
+        throw new Error('a plan this code cannot count');
+      },
+    };
+    const { authed } = await createTestApp({ database: before, templates: [throwing] });
+    const project = (await (await authed(`/api/projects/${before.id}`)).json()) as Json;
+    expect(project.progress).toBeNull();
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await authed(`/api/projects/${before.id}/progress`, {
+      method: 'PATCH',
+      body: { revision: project.revision, changes: [done('shopping-line', 'lumber/2x6/10')] },
+    });
+    expect(logged).toHaveBeenCalledWith(
+      `project ${before.id}: progress could not be counted`,
+      expect.any(Error),
+    );
+    logged.mockRestore();
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      ticks: [expect.objectContaining({ kind: 'shopping-line', key: 'lumber/2x6/10' })],
+      status: 'planned',
+    });
   });
 
   it('keeps a project’s progress in the trash, and deletes it with the project for good', async () => {
