@@ -13,7 +13,14 @@ import { nextShape, swingSetInputs, swingSetParams } from '../test/fixtures.ts';
 import { release } from './release.ts';
 
 const migrationsFolder = join(dirname(fileURLToPath(import.meta.url)), '..', 'drizzle');
-const production = { VERCEL: '1', VERCEL_ENV: 'production', DATABASE_URL: 'postgres://db' };
+const pooled = 'postgres://kerf@ep-quiet-field-123456-pooler.us-east-1.aws.neon.tech/kerf';
+const direct = 'postgres://kerf@ep-quiet-field-123456.us-east-1.aws.neon.tech/kerf';
+const production = {
+  VERCEL: '1',
+  VERCEL_ENV: 'production',
+  DATABASE_URL: pooled,
+  DATABASE_URL_UNPOOLED: direct,
+};
 const now = () => new Date('2026-11-01T12:00:00Z');
 
 async function releaseOn(
@@ -23,11 +30,13 @@ async function releaseOn(
 ) {
   const db = drizzle(client, { schema });
   const calls = { connected: false, migrated: false, closed: false };
+  const urls: string[] = [];
   const logs: string[] = [];
   const result = await release({
     env,
-    connect: () => {
+    connect: (url) => {
       calls.connected = true;
+      urls.push(url);
       return {
         db,
         migrate: async () => {
@@ -43,7 +52,7 @@ async function releaseOn(
     now,
     log: (m) => logs.push(m),
   });
-  return { result, calls, logs };
+  return { result, calls, urls, logs };
 }
 
 async function contents(client: PGlite) {
@@ -89,13 +98,73 @@ describe('release', () => {
     }
   });
 
-  it('refuses a database URL that is not postgres://', async () => {
+  async function refused(env: Record<string, string | undefined>) {
+    const logs: string[] = [];
     const connect = () => {
       throw new Error('must not connect');
     };
-    const env = { ...production, DATABASE_URL: 'mysql://db' };
-    const result = await release({ env, connect, templates: TEMPLATES, now, log: () => {} });
+    const result = await release({
+      env,
+      connect,
+      templates: TEMPLATES,
+      now,
+      log: (m) => logs.push(m),
+    });
+    return { result, logs };
+  }
+
+  it('refuses a database URL that is not postgres://', async () => {
+    const { result, logs } = await refused({ ...production, DATABASE_URL_UNPOOLED: 'mysql://db' });
     expect(result).toEqual({ status: 'invalid-url' });
+    expect(logs).toEqual(['release: DATABASE_URL_UNPOOLED must be a postgres:// URL.']);
+  });
+
+  it('refuses production with only the pooled DATABASE_URL, without connecting', async () => {
+    const { DATABASE_URL_UNPOOLED: _, ...pooledOnly } = production;
+    const { result, logs } = await refused(pooledOnly);
+    expect(result).toEqual({ status: 'needs-direct-url' });
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toContain('DATABASE_URL_UNPOOLED');
+    expect(logs[0]).not.toContain('neon.tech');
+  });
+
+  it('refuses production without DATABASE_URL_UNPOOLED, even with a direct DATABASE_URL', async () => {
+    const { result } = await refused({
+      VERCEL: '1',
+      VERCEL_ENV: 'production',
+      DATABASE_URL: direct,
+    });
+    expect(result).toEqual({ status: 'needs-direct-url' });
+  });
+
+  it('refuses a pooled host in DATABASE_URL_UNPOOLED, without connecting', async () => {
+    const { result, logs } = await refused({ ...production, DATABASE_URL_UNPOOLED: pooled });
+    expect(result).toEqual({ status: 'needs-direct-url' });
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toContain('DATABASE_URL_UNPOOLED');
+    expect(logs[0]).not.toContain('neon.tech');
+  });
+
+  it('refuses a pooled host outside production too, naming the variable', async () => {
+    const { result, logs } = await refused({ DATABASE_URL: pooled });
+    expect(result).toEqual({ status: 'needs-direct-url' });
+    expect(logs[0]).toContain('DATABASE_URL points at a pooled host');
+  });
+
+  it('connects through DATABASE_URL_UNPOOLED in production', async () => {
+    const client = new PGlite();
+    const { result, urls } = await releaseOn(client);
+    expect(result.status).toBe('released');
+    expect(urls).toEqual([direct]);
+    await client.close();
+  });
+
+  it('falls back to DATABASE_URL outside production', async () => {
+    const client = new PGlite();
+    const { result, urls } = await releaseOn(client, TEMPLATES, { DATABASE_URL: direct });
+    expect(result.status).toBe('released');
+    expect(urls).toEqual([direct]);
+    await client.close();
   });
 
   it('migrates an empty database', async () => {
