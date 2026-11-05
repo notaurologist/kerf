@@ -141,6 +141,13 @@
       "when": 1793894234391,
       "tag": "0019_progress_outline_version",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793906487992,
+      "tag": "0020_statement_timeout",
+      "breakpoints": true
     }
   ]
 }

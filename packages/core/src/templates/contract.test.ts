@@ -478,6 +478,32 @@ describe('every template stays readable (decision 0014)', () => {
   );
 
   it.each(storedFixtures)(
+    '%s keeps the suggestions of a plan stored at v%s through every upgrade and the read',
+    (_, __, t, fixture) => {
+      // Confirming a suggestion writes the list as read into the snapshot as stored, unupgraded,
+      // which holds only while upgrading and reading leave the list as it was.
+      const suggestions = storedSuggestions();
+      expect(suggestions.length).toBeGreaterThan(0);
+      for (const stored of fixture as Record<string, unknown>[]) {
+        const holds = 'suggested' in stored;
+        const start = holds ? { ...stored, suggested: suggestions } : stored;
+        let before = start;
+        for (let n = before.snapshotVersion as number; n < t.snapshotVersion; n++) {
+          const upgrade = t.snapshotUpgrades[n];
+          if (!upgrade) throw new Error(`No upgrade from shape ${n}`);
+          const after = upgrade(before);
+          if ('suggested' in before) expect(after.suggested).toEqual(before.suggested);
+          else expect(after.suggested ?? []).toEqual([]);
+          before = { ...after, snapshotVersion: n + 1 };
+        }
+        const read = readSnapshot([t], start);
+        if (!read.ok) throw new Error(read.message);
+        expect(asJson(read.snapshot.suggested)).toEqual(holds ? suggestions : []);
+      }
+    },
+  );
+
+  it.each(storedFixtures)(
     '%s has every parameter once what a plan stored at v%s lacks is filled',
     (_, __, t, fixture) => {
       for (const stored of fixture) {
@@ -551,6 +577,16 @@ function fromQuestions(t: Template) {
     const outputs = t.storedOutputs.parse(asJson(made.output.outputs));
     return [{ suggestions, snapshot: made.output, plan: t.plan(outputs) }];
   });
+}
+
+let suggestionsMade: SuggestedValue[] | undefined;
+
+/** Suggestions as projects started from questions store them, some confirmed, some not. */
+function storedSuggestions(): SuggestedValue[] {
+  suggestionsMade ??= TEMPLATES.flatMap((t) => fromQuestions(t).slice(0, 1))
+    .flatMap((made) => made.snapshot.suggested)
+    .map((s, i) => asJson({ ...s, confirmed: i % 2 === 0 }) as SuggestedValue);
+  return suggestionsMade;
 }
 
 /** Every quantity in the computed checks and estimates, with the result it belongs to. */

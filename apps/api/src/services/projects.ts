@@ -301,15 +301,20 @@ export function createProjectService(deps: {
     return { ok: true, template, snapshot, outputs: snapshot.outputs };
   }
 
+  /** What `count` returns, or null if it throws, which is logged. */
+  function counted<T>(row: Pick<Row, 'id'>, what: string, count: () => T): T | null {
+    try {
+      return count();
+    } catch (error) {
+      console.error(`project ${row.id}: ${what} could not be counted`, error);
+      return null;
+    }
+  }
+
   /** Progress counted from the ticks, or null when the stored plan cannot be counted. */
   function progressOf(row: Row, stored: Stored, ticks: readonly ProgressEntry[]) {
     if (!stored.ok) return null;
-    try {
-      return progressSummary(stored.template, stored.outputs, ticks);
-    } catch (error) {
-      console.error(`project ${row.id}: progress could not be counted`, error);
-      return null;
-    }
+    return counted(row, 'progress', () => progressSummary(stored.template, stored.outputs, ticks));
   }
 
   /** The row's summary, with its progress as counted from its ticks. */
@@ -354,8 +359,14 @@ export function createProjectService(deps: {
 
   async function view(row: Row): Promise<Result<Project>> {
     const stored = readStored(row);
-    const ticks = await readProgress(db, row.id);
-    const resets = notesOf(row, stored, await readResets(db, row.id));
+    // Independent reads, sent together rather than one round trip after another.
+    const [ticks, storedResets, inventory, { revision: _, ...settings }] = await Promise.all([
+      readProgress(db, row.id),
+      readResets(db, row.id),
+      getInventory(db),
+      getSettings(db),
+    ]);
+    const resets = notesOf(row, stored, storedResets);
     if (!stored.ok) {
       return {
         ok: true,
@@ -371,8 +382,6 @@ export function createProjectService(deps: {
       };
     }
     const { snapshot, template, outputs } = stored;
-    const inventory = await getInventory(db);
-    const { revision: _, ...settings } = await getSettings(db);
     return {
       ok: true,
       value: {
@@ -708,6 +717,12 @@ export function createProjectService(deps: {
             ...(changes.name !== undefined ? { name: changes.name } : {}),
             ...(changes.status !== undefined ? { status: changes.status } : {}),
             ...(saved ? snapshotColumns(saved.template, saved.snapshot, row.revision + 1) : {}),
+            // A rename keeps the snapshot, so an outline current at this revision stays current at
+            // the next. It keeps the key it was made under, so one made by other code is still
+            // read again.
+            ...(plan && !saved && row.progressOutlineRevision === row.revision
+              ? { progressOutlineRevision: row.revision + 1 }
+              : {}),
             ...(plan ? { revision: row.revision + 1 } : {}),
             updatedAt: at,
           })
@@ -853,8 +868,16 @@ export function createProjectService(deps: {
         if (!template) return { ok: false, error: 'missing-template' };
         const stored = read(row);
         if (!stored.ok) return { ok: false, error: 'unreadable-snapshot' };
-        const known = new Set(itemsOf(template, stored.snapshot).map(progressId));
-        const unknown = changes.changes.filter((c) => c.done && !known.has(progressId(c)));
+        // A plan this code cannot count is read with no progress, so a tick on it is saved without
+        // the item check and moves no status, rather than failing the write.
+        const known = counted(
+          row,
+          'the progress items',
+          () => new Set(itemsOf(template, stored.snapshot).map(progressId)),
+        );
+        const unknown = known
+          ? changes.changes.filter((c) => c.done && !known.has(progressId(c)))
+          : [];
         if (unknown.length > 0) {
           return {
             ok: false,
@@ -863,17 +886,16 @@ export function createProjectService(deps: {
           };
         }
         const outputs = stored.snapshot.outputs;
-        const before = progressSummary(template, outputs, await readProgress(tx, id));
+        const summarize = (ticks: readonly ProgressEntry[]) =>
+          counted(row, 'progress', () => progressSummary(template, outputs, ticks));
+        const before = summarize(await readProgress(tx, id));
         const at = now();
         await writeProgress(tx, id, changes.changes, at);
         const ticks = await readProgress(tx, id);
+        const after = summarize(ticks);
         const current = ProjectStatus.parse(row.status);
-        const status = statusAfterTicks(
-          current,
-          changes.changes,
-          before,
-          progressSummary(template, outputs, ticks),
-        );
+        const status =
+          before && after ? statusAfterTicks(current, changes.changes, before, after) : current;
         if (status !== current) {
           await tx.update(projects).set({ status, updatedAt: at }).where(eq(projects.id, id));
         }
