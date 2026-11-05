@@ -25,7 +25,9 @@ const id = process.argv[2] ?? '';
 const template = findTemplate(id);
 const plan = SWEEPS[id];
 if (!template || !plan) {
-  console.error(`No template has the ID "${id}", or it has no sweep in SWEEPS (templates/index.ts).`);
+  console.error(
+    `No template has the ID "${id}", or it has no sweep in SWEEPS (templates/index.ts).`,
+  );
   process.exit(1);
 }
 
