@@ -9,7 +9,8 @@
   "scripts": {
     "typecheck": "tsc -p .",
     "write-templates": "node scripts/writeTemplates.ts",
-    "write-dxf": "node scripts/writeDxf.ts"
+    "write-dxf": "node scripts/writeDxf.ts",
+    "write-line-art": "node scripts/writeLineArt.ts"
   },
   "dependencies": {
     "@kerf/core": "workspace:*"
