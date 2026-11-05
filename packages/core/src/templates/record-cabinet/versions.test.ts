@@ -25,6 +25,7 @@ import v19 from './snapshots/v19.json' with { type: 'json' };
 import v20 from './snapshots/v20.json' with { type: 'json' };
 import v21 from './snapshots/v21.json' with { type: 'json' };
 import v22 from './snapshots/v22.json' with { type: 'json' };
+import v23 from './snapshots/v23.json' with { type: 'json' };
 
 // What each template version changed in the worked examples (decision 0008). Each version's
 // fixture and the one before it are read through the upgrades to the current shape, so their
@@ -411,5 +412,22 @@ describe('record-cabinet template versions', () => {
       const mortises = (d: Design) => d.parts.find((p) => p.id === 'leg')?.mortises ?? [];
       expect(mortises(after)).toEqual([...mortises(was)].reverse());
     }
+  });
+
+  it('version 23 plans the fewest feet of each stock, and says whether it is proven (#686)', () => {
+    const list = changes(v22, v23);
+    expect(kinds(list).every((k) => k.startsWith('outputs.lumber.'))).toBe(true);
+    const feet = (fixture: readonly unknown[]) =>
+      current(fixture).map((s) =>
+        (s as { outputs: { lumber: { boards: { feet: number }[] } } }).outputs.lumber.boards.reduce(
+          (sum, b) => sum + b.feet,
+          0,
+        ),
+      );
+    // Hand-checked in lists.test.ts: the cherry goes from 100 ft to 94 ft.
+    const before = feet(v22);
+    const after = feet(v23);
+    expect((before[0] ?? 0) - (after[0] ?? 0)).toBe(6);
+    for (const [i, f] of after.entries()) expect(f).toBeLessThanOrEqual(before[i] ?? 0);
   });
 });

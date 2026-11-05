@@ -138,6 +138,7 @@ describe('planLumber, edge cases', () => {
     ]);
     expect(long.lines[0]?.notes).toEqual([
       `Test piece: listed as 8' to leave room for trimming the ends. A 6' board works if it measures at least 73-1/8".`,
+      'No plan buys fewer feet of 2x4 with these allowances.',
     ]);
   });
 

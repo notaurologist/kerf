@@ -81,6 +81,8 @@ Template version 36 (#526) takes the beam's shear beside each swing hanger too, 
 
 Template version 37 (#536) measures the leg's bolts at the gusset joint against the beam's weight (Bolt layout, below). The beam's weight loads the leg at α to its grain, mostly along it, and before this the leg was measured only across its grain. Two rows are added: the leg's end distance above the top gusset bolt, against the rows for a bolt bearing away from the end (Table 12.5.1A, 2D and 4D), and the spacing of the gusset bolts along the leg's grain (Table 12.5.1B, 3D and 4D). In the worked example both are over every row, 7.374 (14.7D) and 3.858 (7.7D), so no flag changes. No part, cut, or bolt moves.
 
+Template version 40 (#686, decision 0021) plans each stock's boards to buy the fewest feet the search finds, and each lumber line says whether that is proven; the list notes that offcuts run short. The worked examples' boards are the same, since first-fit decreasing already bought the fewest feet for them. No part, cut, or check changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates

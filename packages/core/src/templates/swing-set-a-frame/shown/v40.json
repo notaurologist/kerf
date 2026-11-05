@@ -245,7 +245,8 @@
             "feet": 12,
             "count": 1,
             "notes": [
-              "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
+              "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\".",
+              "No plan buys fewer feet of 4x6 with these allowances."
             ],
             "alternatives": [
               {
@@ -280,7 +281,9 @@
             "nominal": "4x4",
             "feet": 12,
             "count": 4,
-            "notes": [],
+            "notes": [
+              "No plan buys fewer feet of 4x4 with these allowances."
+            ],
             "alternatives": [
               {
                 "kind": "lengths",
@@ -297,7 +300,9 @@
             "nominal": "2x6",
             "feet": 10,
             "count": 1,
-            "notes": [],
+            "notes": [
+              "No plan buys fewer feet of 2x6 with these allowances."
+            ],
             "alternatives": [
               {
                 "kind": "lengths",
@@ -323,7 +328,9 @@
             "nominal": "2x8",
             "feet": 8,
             "count": 1,
-            "notes": [],
+            "notes": [
+              "No plan buys fewer feet of 2x8 with these allowances."
+            ],
             "alternatives": [
               {
                 "kind": "lengths",
@@ -338,7 +345,8 @@
           }
         ],
         "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."
+          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end.",
+          "Boards are planned to buy the fewest feet, so their offcuts run short. A miscut piece is less likely to have spare board left to recut it from."
         ],
         "issues": [],
         "selection": [
@@ -13030,7 +13038,8 @@
             "feet": 12,
             "count": 1,
             "notes": [
-              "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\"."
+              "Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8\".",
+              "No plan buys fewer feet of 4x6 with these allowances."
             ],
             "alternatives": [
               {
@@ -13059,7 +13068,9 @@
             "nominal": "4x4",
             "feet": 12,
             "count": 4,
-            "notes": [],
+            "notes": [
+              "No plan buys fewer feet of 4x4 with these allowances."
+            ],
             "alternatives": [
               {
                 "kind": "lengths",
@@ -13076,7 +13087,9 @@
             "nominal": "2x6",
             "feet": 10,
             "count": 1,
-            "notes": [],
+            "notes": [
+              "No plan buys fewer feet of 2x6 with these allowances."
+            ],
             "alternatives": [
               {
                 "kind": "lengths",
@@ -13102,7 +13115,9 @@
             "nominal": "2x8",
             "feet": 8,
             "count": 1,
-            "notes": [],
+            "notes": [
+              "No plan buys fewer feet of 2x8 with these allowances."
+            ],
             "alternatives": [
               {
                 "kind": "lengths",
@@ -13117,7 +13132,8 @@
           }
         ],
         "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."
+          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end.",
+          "Boards are planned to buy the fewest feet, so their offcuts run short. A miscut piece is less likely to have spare board left to recut it from."
         ],
         "issues": [],
         "selection": [
@@ -24014,7 +24030,9 @@
             "nominal": "2x6",
             "feet": 16,
             "count": 2,
-            "notes": [],
+            "notes": [
+              "No plan buys fewer feet of 2x6 with these allowances."
+            ],
             "alternatives": [
               {
                 "kind": "lengths",
@@ -24035,7 +24053,9 @@
             "nominal": "4x4",
             "feet": 10,
             "count": 4,
-            "notes": [],
+            "notes": [
+              "No plan buys fewer feet of 4x4 with these allowances."
+            ],
             "alternatives": [
               {
                 "kind": "lengths",
@@ -24052,7 +24072,9 @@
             "nominal": "2x8",
             "feet": 8,
             "count": 1,
-            "notes": [],
+            "notes": [
+              "No plan buys fewer feet of 2x8 with these allowances."
+            ],
             "alternatives": [
               {
                 "kind": "lengths",
@@ -24067,7 +24089,8 @@
           }
         ],
         "notes": [
-          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end."
+          "Allows 1/8\" for each saw cut and trims 1/2\" off each factory end.",
+          "Boards are planned to buy the fewest feet, so their offcuts run short. A miscut piece is less likely to have spare board left to recut it from."
         ],
         "issues": [],
         "selection": [

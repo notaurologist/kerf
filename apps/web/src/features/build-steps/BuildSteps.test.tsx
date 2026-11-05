@@ -98,8 +98,10 @@ describe('glossary terms in the plan (#178)', () => {
       'nds',
       'end distance',
     ]);
-    // The hardware's notes sit beside the lumber, before the guidance on choosing boards (#361).
+    // The lumber notes come first (the offcuts are short, #686), then the hardware's notes beside
+    // the lumber, before the guidance on choosing boards (#361).
     expect(marked('shopping-list')).toEqual([
+      'offcuts',
       'through-bolt',
       'grip',
       'pressure-treated',

@@ -18,7 +18,12 @@ import { type WorkbenchReview, type WorkbenchStructuralInputs, workbench } from 
 // order, placements, operations, hardware, and the structural review. Pure.
 
 export const TEMPLATE_ID = 'workbench';
-export const TEMPLATE_VERSION = 1;
+/**
+ * Version 2 plans each stock's boards to buy the fewest feet the search finds (decision 0021,
+ * #686), and each lumber line says whether that is proven. The worked example's board stock goes
+ * from 386 ft in 39 boards to 376 ft in 38.
+ */
+export const TEMPLATE_VERSION = 2;
 
 const WorkbenchGeometry = z.object({
   underside: z.number(),

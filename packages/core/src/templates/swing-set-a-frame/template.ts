@@ -130,8 +130,11 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * Version 39 takes the legs', crossbars', and gussets' lengths from their joints alone, and stores
  * those in the geometry too (#642). The stored lengths differ in their last bits; everything a plan
  * shows is the same.
+ * Version 40 plans each stock's boards to buy the fewest feet the search finds (decision 0021,
+ * #686), and each lumber line says whether that is proven. The worked examples' boards are the
+ * same; their lines and the list gain notes.
  */
-export const TEMPLATE_VERSION = 39;
+export const TEMPLATE_VERSION = 40;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

@@ -42,6 +42,7 @@ import v35 from './snapshots/v35.json' with { type: 'json' };
 import v36 from './snapshots/v36.json' with { type: 'json' };
 import v37 from './snapshots/v37.json' with { type: 'json' };
 import v38 from './snapshots/v38.json' with { type: 'json' };
+import v39 from './snapshots/v39.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -58,6 +59,17 @@ const isVersion18 = (c: { path: string; before?: unknown; after?: unknown }) =>
   (/^structuralReview\.checklist\[\d+\]\.confirm$/.test(c.path) &&
     String(c.before).replace(' entered, ', ', ') === c.after);
 
+/**
+ * Version 40's changes (#686): each lumber line's note on whether its plan is proven to buy the
+ * fewest feet, and the list's note on short offcuts, each new. The worked examples' boards are the
+ * same. Set aside in every comparison with the current version, like version 18's.
+ */
+const isVersion40 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  c.before === undefined &&
+  ((/^lumber\.lines\[\d+\]\.notes\[\d+\]$/.test(c.path) &&
+    String(c.after).startsWith('No plan buys fewer feet of ')) ||
+    (/^lumber\.notes\[\d+\]$/.test(c.path) &&
+      String(c.after).startsWith('Boards are planned to buy the fewest feet')));
 /**
  * Version 20's change (#455): each leg's flush-cut note, in its part and its cut-list row, calls the
  * cut a taper and gives one measurement for the mark on the top cut. Set aside like version 18's.
@@ -313,7 +325,8 @@ function regenerated(
         (keepVersion35 || !isVersion35(c)) &&
         (keepVersion36 || later !== undefined || !isVersion36(c)) &&
         (keepVersion37 || !isVersion37(c)) &&
-        !isVersion38(c),
+        !isVersion38(c) &&
+        !isVersion40(c),
     ),
   };
   return keepVersion18
@@ -838,7 +851,8 @@ describe('swing-set template versions', () => {
           !isVersion35(c) &&
           !isVersion36(c) &&
           !isVersion37(c) &&
-          !isVersion38(c),
+          !isVersion38(c) &&
+          !isVersion40(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1341,7 +1355,7 @@ describe('swing-set template versions', () => {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(37);
       const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
-      expect(changes.filter((c) => !isVersion38(c))).toEqual([]);
+      expect(changes.filter((c) => !isVersion38(c) && !isVersion40(c))).toEqual([]);
       expect(changes.length).toBeGreaterThan(0);
     }
   });
@@ -1354,8 +1368,23 @@ describe('swing-set template versions', () => {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(38);
       const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
-      expect(changes.filter((c) => !isVersion38(c) || !lengths.test(c.path))).toEqual([]);
+      expect(
+        changes.filter((c) => !isVersion40(c) && (!isVersion38(c) || !lengths.test(c.path))),
+      ).toEqual([]);
       expect(changes.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('version 40 plans the fewest feet and says it is proven, with the same boards (#686)', () => {
+    const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+    for (const stored of v39) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(39);
+      const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
+      expect(changes.filter((c) => !isVersion40(c))).toEqual([]);
+      // A note on each line, and one on the list.
+      const lines = (snapshot.outputs as { lumber: { lines: unknown[] } }).lumber.lines;
+      expect(changes).toHaveLength(lines.length + 1);
     }
   });
 });

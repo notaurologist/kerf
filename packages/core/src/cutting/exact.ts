@@ -29,12 +29,14 @@ import { COST, OutOfWork, Work } from './work.ts';
 // generation.
 
 /**
- * The work a search may spend on one stock (`work.ts`), chosen by the owner from the cut
+ * The work one plan may spend across all its stocks (`work.ts`), chosen by the owner from the cut
  * optimization exploration's benchmark: enough for every template's worked example to find and
- * prove its fewest feet, at about 0.8 s on the benchmark's slowest stock (decision 0021; the
+ * prove its fewest feet, at about 0.8 s on the benchmark's slowest plan. Shared by the plan's
+ * stocks rather than given to each, it buys the same feet on every benchmark plan and keeps a
+ * plan with several hard stocks from taking several times as long (decision 0021; the
  * exploration's write-up, Work limit).
  */
-const WORK_LIMIT = 40_000_000;
+export const WORK_LIMIT = 40_000_000;
 
 export interface Solved {
   plan: CutPlan;

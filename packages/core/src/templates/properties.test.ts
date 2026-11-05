@@ -133,10 +133,16 @@ function mutate(next: () => number, schema: z.ZodType, value: unknown, rate: num
 /** About a quarter of these get past validation and generate a whole plan. */
 const RUNS = 1000;
 /**
- * Generating a worked example takes a few milliseconds. Before the board width had a range, a
- * typo could take seconds or never finish (#421).
+ * Before the board width had a range, a typo could take seconds or never finish (#421). The
+ * shopping list's search may spend its work limit on a plan, about 0.8 s on the slowest benchmark
+ * plan and more on a busy machine (decision 0021), so the budget allows for that and no more.
  */
-const BUDGET_MS = 500;
+const BUDGET_MS = 2000;
+/**
+ * The test's own time: a few hundred plans, each of which may spend the search's work limit, take
+ * about a minute for the workbench.
+ */
+const TEST_TIMEOUT_MS = 180_000;
 
 /** Every number in a schema, by its path, with the limits the schema sets. */
 function numbers(schema: z.ZodType, path = ''): { path: string; min: number; max: number }[] {
@@ -175,33 +181,37 @@ describe.each(TEMPLATES.map((t) => [t.id, t] as const))('%s', (_, t) => {
     expect(unbounded.map((n) => n.path)).toEqual([]);
   });
 
-  it('generates or returns issues for random parameters, in time, without throwing', () => {
-    let generated = 0;
-    /** One example of each distinct failure, by its message. */
-    const failures = new Map<string, string>();
-    for (let run = 0; run < RUNS; run++) {
-      const next = random(run + 1);
-      const example = t.examples[run % t.examples.length];
-      if (!example) throw new Error(`${t.id} has no worked example`);
-      const rate = run < RUNS / 3 ? 0.1 : run < (2 * RUNS) / 3 ? 0.3 : 1;
-      const params = t.params.safeParse(mutate(next, t.params, example.params, rate));
-      const inputs = t.structuralInputs.safeParse(
-        mutate(next, t.structuralInputs, example.structuralInputs, rate),
-      );
-      if (!params.success || !inputs.success) continue;
-      const tried = `run ${run}: ${JSON.stringify(params.data)} ${JSON.stringify(inputs.data)}`;
-      const started = Date.now();
-      try {
-        if (t.generate(params.data, inputs.data).ok) generated++;
-      } catch (error) {
-        const message = String(error).replace(/-?\d[\d.e+-]*/g, 'N');
-        if (!failures.has(message)) failures.set(message, tried);
+  it(
+    'generates or returns issues for random parameters, in time, without throwing',
+    () => {
+      let generated = 0;
+      /** One example of each distinct failure, by its message. */
+      const failures = new Map<string, string>();
+      for (let run = 0; run < RUNS; run++) {
+        const next = random(run + 1);
+        const example = t.examples[run % t.examples.length];
+        if (!example) throw new Error(`${t.id} has no worked example`);
+        const rate = run < RUNS / 3 ? 0.1 : run < (2 * RUNS) / 3 ? 0.3 : 1;
+        const params = t.params.safeParse(mutate(next, t.params, example.params, rate));
+        const inputs = t.structuralInputs.safeParse(
+          mutate(next, t.structuralInputs, example.structuralInputs, rate),
+        );
+        if (!params.success || !inputs.success) continue;
+        const tried = `run ${run}: ${JSON.stringify(params.data)} ${JSON.stringify(inputs.data)}`;
+        const started = Date.now();
+        try {
+          if (t.generate(params.data, inputs.data).ok) generated++;
+        } catch (error) {
+          const message = String(error).replace(/-?\d[\d.e+-]*/g, 'N');
+          if (!failures.has(message)) failures.set(message, tried);
+        }
+        const took = Date.now() - started;
+        if (took > BUDGET_MS) failures.set(`took ${Math.round(took)} ms`, tried);
       }
-      const took = Date.now() - started;
-      if (took > BUDGET_MS) failures.set(`took ${Math.round(took)} ms`, tried);
-    }
-    expect([...failures].map(([message, tried]) => `${message}\n  ${tried}`)).toEqual([]);
-    // Enough runs get past validation for the test to say something about generation itself.
-    expect(generated).toBeGreaterThan(RUNS / 10);
-  });
+      expect([...failures].map(([message, tried]) => `${message}\n  ${tried}`)).toEqual([]);
+      // Enough runs get past validation for the test to say something about generation itself.
+      expect(generated).toBeGreaterThan(RUNS / 10);
+    },
+    TEST_TIMEOUT_MS,
+  );
 });
