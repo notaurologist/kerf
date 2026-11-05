@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { Drawing, Point2, Primitive } from '../geometry/primitives.ts';
+import type { Isometric } from '../geometry/projection.ts';
 import { CORNERS, fromCorner } from '../geometry/projection.ts';
 import { solid } from '../geometry/solid.ts';
 import { add, scale, type Vec3 } from '../geometry/vec.ts';
-import { type Explode, isometricView, type Scene } from '../geometry/views.ts';
+import {
+  type Explode,
+  isometricView,
+  type Scene,
+  subAssemblyScene,
+  subAssemblyViews,
+} from '../geometry/views.ts';
 import { createSnapshot } from '../snapshot/snapshot.ts';
 import { cornerViews } from '../steps/drawings.ts';
 import { TEMPLATES } from './index.ts';
@@ -127,72 +134,108 @@ const cases = TEMPLATES.flatMap((t) =>
   }),
 );
 
+/**
+ * Where a stage's move shows a part over another that a drawing made afresh would not: none, when
+ * each stage is drawn in an order that holds while it moves.
+ */
+function misordered(
+  scene: Scene,
+  view: Isometric,
+  explode: readonly Explode[],
+  isometric: Drawing,
+  exploded: Drawing,
+): string[] {
+  const stages = exploded.stages ?? [];
+  const order = [...new Set(explode.map((e) => e.stage ?? 0))].sort((a, b) => a - b);
+  expect(stages).toHaveLength(order.length);
+  const b = isometric.bounds;
+  const x0 = Math.min(b.x, exploded.bounds.x);
+  const y0 = Math.min(b.y, exploded.bounds.y);
+  const w = Math.max(b.x + b.width, exploded.bounds.x + exploded.bounds.width) - x0;
+  const h = Math.max(b.y + b.height, exploded.bounds.y + exploded.bounds.height) - y0;
+  // A miss narrower than this is where two faces meet, not a part in the wrong order.
+  const near = 0.004 * Math.max(w, h);
+  const wrong: string[] = [];
+  stages.forEach((stage, k) => {
+    const n = order[k] as number;
+    const before: Drawing['primitives'] =
+      k === 0 ? isometric.primitives : (stages[k - 1]?.primitives ?? []);
+    const after = stage.primitives ?? exploded.primitives;
+    const start = moved(scene, explode, (e) => ((e.stage ?? 0) < n ? 1 : 0));
+    const pairs = joined(start);
+    for (let step = 0; step <= STEPS; step++) {
+      const t = step / STEPS;
+      const truth = facesOf(
+        isometricView(
+          moved(scene, explode, (e) => ((e.stage ?? 0) < n ? 1 : (e.stage ?? 0) === n ? t : 0)),
+          view,
+          '',
+        ).primitives,
+        new Map(),
+      );
+      const leaving = t < stage.from;
+      const shown = facesOf(
+        leaving ? before : after,
+        new Map(
+          stage.moves.map((m) => {
+            const f = leaving ? t : t - 1;
+            return [keyOf(m), { x: m.by.x * f, y: m.by.y * f }];
+          }),
+        ),
+      );
+      const moving = new Set(stage.moves.map(keyOf));
+      for (let i = 0; i <= GRID; i++) {
+        for (let j = 0; j <= GRID; j++) {
+          const p = { x: x0 + (w * i) / GRID, y: y0 + (h * j) / GRID };
+          const around = [
+            p,
+            { x: p.x + near, y: p.y },
+            { x: p.x - near, y: p.y },
+            { x: p.x, y: p.y + near },
+            { x: p.x, y: p.y - near },
+          ];
+          const misses = around.map((q) => [topAt(shown, q), topAt(truth, q)] as const);
+          if (!misses.every(([a, z]) => a !== z)) continue;
+          const [a, z] = misses[0] as readonly [string | null, string | null];
+          const pair = `${a} ${z}`;
+          if (leaving && a && z && (moving.has(a) || moving.has(z)) && pairs.has(pair)) continue;
+          wrong.push(`stage ${n} at ${t.toFixed(1)}: ${a ?? 'nothing'} over ${z ?? 'nothing'}`);
+        }
+      }
+    }
+  });
+  return [...new Set(wrong)];
+}
+
+const groupCases = TEMPLATES.flatMap((t) =>
+  t.examples.flatMap((e) => {
+    const made = createSnapshot(t, e.params, e.structuralInputs);
+    if (!made.ok) throw new Error(JSON.stringify(made.issues));
+    const assembly = t.assembly(t.storedOutputs.parse(asJson(made.output.outputs)));
+    if (!assembly) return [];
+    return assembly.subAssemblies.map((group) => {
+      const { isometric, exploded } = subAssemblyViews(assembly.scene, assembly.view, group);
+      const scene = subAssemblyScene(assembly.scene, group);
+      return [t.id, e.name, group.id, scene, assembly.view, group, isometric, exploded] as const;
+    });
+  }),
+);
+
 describe('the move between the assembled and exploded views', () => {
   it.each(cases)(
     '%s, %s, from the %s: draws each part in front of what it is in front of',
     (...c) => {
       const [, , , { scene, view, explode }, isometric, exploded] = c;
-      const stages = exploded.stages ?? [];
-      const order = [...new Set(explode.map((e) => e.stage ?? 0))].sort((a, b) => a - b);
-      expect(stages).toHaveLength(order.length);
-      const b = isometric.bounds;
-      const x0 = Math.min(b.x, exploded.bounds.x);
-      const y0 = Math.min(b.y, exploded.bounds.y);
-      const w = Math.max(b.x + b.width, exploded.bounds.x + exploded.bounds.width) - x0;
-      const h = Math.max(b.y + b.height, exploded.bounds.y + exploded.bounds.height) - y0;
-      // A miss narrower than this is where two faces meet, not a part in the wrong order.
-      const near = 0.004 * Math.max(w, h);
-      const wrong: string[] = [];
-      stages.forEach((stage, k) => {
-        const n = order[k] as number;
-        const before: Drawing['primitives'] =
-          k === 0 ? isometric.primitives : (stages[k - 1]?.primitives ?? []);
-        const after = stage.primitives ?? exploded.primitives;
-        const start = moved(scene, explode, (e) => ((e.stage ?? 0) < n ? 1 : 0));
-        const pairs = joined(start);
-        for (let step = 0; step <= STEPS; step++) {
-          const t = step / STEPS;
-          const truth = facesOf(
-            isometricView(
-              moved(scene, explode, (e) => ((e.stage ?? 0) < n ? 1 : (e.stage ?? 0) === n ? t : 0)),
-              view,
-              '',
-            ).primitives,
-            new Map(),
-          );
-          const leaving = t < stage.from;
-          const shown = facesOf(
-            leaving ? before : after,
-            new Map(
-              stage.moves.map((m) => {
-                const f = leaving ? t : t - 1;
-                return [keyOf(m), { x: m.by.x * f, y: m.by.y * f }];
-              }),
-            ),
-          );
-          const moving = new Set(stage.moves.map(keyOf));
-          for (let i = 0; i <= GRID; i++) {
-            for (let j = 0; j <= GRID; j++) {
-              const p = { x: x0 + (w * i) / GRID, y: y0 + (h * j) / GRID };
-              const around = [
-                p,
-                { x: p.x + near, y: p.y },
-                { x: p.x - near, y: p.y },
-                { x: p.x, y: p.y + near },
-                { x: p.x, y: p.y - near },
-              ];
-              const misses = around.map((q) => [topAt(shown, q), topAt(truth, q)] as const);
-              if (!misses.every(([a, z]) => a !== z)) continue;
-              const [a, z] = misses[0] as readonly [string | null, string | null];
-              const pair = `${a} ${z}`;
-              if (leaving && a && z && (moving.has(a) || moving.has(z)) && pairs.has(pair))
-                continue;
-              wrong.push(`stage ${n} at ${t.toFixed(1)}: ${a ?? 'nothing'} over ${z ?? 'nothing'}`);
-            }
-          }
-        }
-      });
-      expect([...new Set(wrong)]).toEqual([]);
+      expect(misordered(scene, view, explode, isometric, exploded)).toEqual([]);
+    },
+  );
+
+  it.each(groupCases)(
+    '%s, %s, the %s taken apart: draws each part in front of what it is in front of',
+    (...c) => {
+      const [, , , scene, view, group, isometric, exploded] = c;
+      expect(group.explode.length).toBeGreaterThan(0);
+      expect(misordered(scene, view, group.explode, isometric, exploded)).toEqual([]);
     },
   );
 });

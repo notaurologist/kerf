@@ -90,6 +90,7 @@ const template = {
     },
     view: isometric(-1, -1),
     explode: [],
+    subAssemblies: [],
   }),
 } as Pick<TemplateDefinition<unknown, unknown, null>, 'steps' | 'plan' | 'assembly'>;
 
