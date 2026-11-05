@@ -91,6 +91,7 @@ export function Diagrams(props: {
         page="landscape"
         frame={frame}
         motion={frame && motion.assembled}
+        letters="wide"
         drawing={drawings.isometric}
         label={`Isometric view. ${drawings.isometric.description} ${parts}`}
       />
@@ -106,6 +107,7 @@ export function Diagrams(props: {
         page="landscape"
         frame={frame}
         motion={frame && motion.exploded}
+        letters="wide"
         drawing={
           drawings.isometric
             ? drawingInMove(drawings.isometric, drawings.exploded, motion.at)
@@ -121,8 +123,8 @@ export function Diagrams(props: {
   return (
     <Stack gap="l">
       <Text tone="muted" screenOnly>
-        Tap a part to select it in every drawing, then open it in the cut list. A part's name in the
-        cut list opens it here.
+        Tap a part, or choose it from the list of parts, to select it in every drawing, then open it
+        in the cut list. A part's name in the cut list opens it here.
       </Text>
       {chosen && (
         <StatusLine>
@@ -147,6 +149,7 @@ export function Diagrams(props: {
         />
       )}
       {corner.status}
+      {assembly && <PartPicker rows={rows} selected={props.selected} onSelect={props.onSelect} />}
       {(drawings.elevations ?? []).length > 0 && (
         <>
           <h3>Elevations and sections</h3>
@@ -216,6 +219,35 @@ export function DrawingsWaiting(props: { state: DrawingsState | StepDrawingState
   }
   const failure = failureOf(state.error);
   return retry(`The drawings could not be loaded. ${failure.message}`, failure.connection);
+}
+
+/**
+ * Every part by letter and name, to select one without finding it in a drawing: on a phone the
+ * assembly views leave their letters out, and the drawings take no keyboard.
+ */
+function PartPicker(props: {
+  rows: readonly CutListRow[];
+  selected: string | null;
+  onSelect: (partId: string) => void;
+}) {
+  const { selected, onSelect } = props;
+  return (
+    <div data-screen-only>
+      <CompactSelect
+        label="Part"
+        value={selected ?? ''}
+        options={[
+          { value: '', label: 'Choose a part' },
+          ...props.rows.map((r) => ({ value: r.partId, label: `${r.letter} · ${r.name}` })),
+        ]}
+        // Selecting the part already selected clears it, as tapping it again does.
+        onChange={(id) => {
+          if (id) onSelect(id);
+          else if (selected) onSelect(selected);
+        }}
+      />
+    </div>
+  );
 }
 
 const CORNER_LABELS: Record<geometry.Corner, string> = {

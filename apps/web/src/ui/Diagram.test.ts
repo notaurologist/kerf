@@ -1,6 +1,7 @@
 import { createSnapshot, findTemplate, geometry, type TemplateDefinition } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { drawingsFor } from '../test/projects.ts';
+import { sharedFrame } from './assemblyMotion.ts';
 import { drawingLayout, placeText } from './Diagram.tsx';
 
 // Labels on the cut details, as a phone shows them: a cut detail is drawn no narrower than 560 px
@@ -187,5 +188,46 @@ describe('letters and dimensions on the record cabinet’s elevations', () => {
       figures.slice(i + 1).flatMap((b) => (crosses(a.box, b.box) ? [`${a.text} / ${b.text}`] : [])),
     );
     expect(clashes).toEqual([]);
+  });
+});
+
+// The workbench's assembled view in the frame it shares with its exploded view, as the Diagrams
+// section draws it, with letters drawn only from the narrow breakpoint (480 px) up.
+
+describe('part letters on an assembly view lettered only when wide', () => {
+  const bench = findTemplate('workbench') as TemplateDefinition;
+  const example = bench.examples[0];
+  const made = createSnapshot(bench, example?.params, example?.structuralInputs);
+  if (!made.ok) throw new Error('worked example should generate');
+  const drawings = drawingsFor(JSON.parse(JSON.stringify(made.output)));
+  const assembled = drawings?.isometric;
+  const exploded = drawings?.exploded;
+  if (!assembled || !exploded) throw new Error('the workbench has an assembled and exploded view');
+  const frame = sharedFrame(assembled.bounds, exploded.bounds);
+  const width = (viewBox: string) => Number(viewBox.split(' ')[2]);
+
+  it('draws no letters on a phone, and leaves 8 px each side of the frame for its outline', () => {
+    const phone = drawingLayout(assembled, 343, { frame, letters: 'wide' });
+    expect(phone.placed).toEqual([]);
+    // 8 px at the drawing's scale: frame width over 343 px, each side.
+    const u = frame.width / 343;
+    expect(width(phone.viewBox)).toBeCloseTo(frame.width + 2 * 8 * u, 9);
+  });
+
+  it('draws the drawing wider on a phone than with a column of letters', () => {
+    const column = drawingLayout(assembled, 343, { frame });
+    const bare = drawingLayout(assembled, 343, { frame, letters: 'wide' });
+    expect(column.placed.length).toBeGreaterThan(0);
+    // The same SVG width holds less of the model, so each part is drawn larger.
+    expect(width(bare.viewBox)).toBeLessThan(width(column.viewBox));
+  });
+
+  it('draws every letter from the narrow breakpoint up', () => {
+    const wide = drawingLayout(assembled, 720, { frame, letters: 'wide' });
+    const letters = assembled.primitives.filter((p) => p.kind === 'letter');
+    expect(wide.placed).toHaveLength(letters.length);
+    expect(drawingLayout(assembled, 480, { frame, letters: 'wide' }).placed).toHaveLength(
+      letters.length,
+    );
   });
 });

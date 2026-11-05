@@ -103,6 +103,58 @@ describe('the Diagrams section’s assembly view', () => {
   });
 });
 
+describe('the list of parts under the assembly view', () => {
+  function picker(chosen: string | null) {
+    const onSelect = vi.fn();
+    const { container } = mount(
+      <Diagrams
+        drawings={worked}
+        rows={rows}
+        describedBy="cut-list"
+        selected={chosen}
+        onSelect={onSelect}
+        partHref={(id) => `#/projects/abc/cut-list?part=${id}`}
+      />,
+    );
+    const select = container.querySelector<HTMLSelectElement>(
+      '[data-screen-only] select',
+    ) as HTMLSelectElement;
+    const choose = (value: string) =>
+      act(() => {
+        select.value = value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    return { select, onSelect, choose };
+  }
+
+  it('lists every part by letter and name, after a prompt, showing the selected part', () => {
+    const { select } = picker(selected);
+    expect([...select.options].map((o) => o.textContent)).toEqual([
+      'Choose a part',
+      ...rows.map((r) => `${r.letter} · ${r.name}`),
+    ]);
+    expect(select.value).toBe(selected);
+  });
+
+  it('selects the part chosen', () => {
+    const { onSelect, choose } = picker(null);
+    const last = rows[rows.length - 1]?.partId as string;
+    choose(last);
+    expect(onSelect).toHaveBeenCalledWith(last);
+  });
+
+  it('clears the selection when the prompt is chosen, as tapping the part again does', () => {
+    const { onSelect, choose } = picker(selected);
+    choose('');
+    expect(onSelect).toHaveBeenCalledWith(selected);
+  });
+
+  it('is left out with no assembly view', () => {
+    const { container } = mount(section({ ...worked, isometric: null, exploded: null }));
+    expect(container.querySelector('[data-screen-only] select')).toBeNull();
+  });
+});
+
 describe('the move between the assembled and exploded views', () => {
   afterEach(() => {
     vi.useRealTimers();
