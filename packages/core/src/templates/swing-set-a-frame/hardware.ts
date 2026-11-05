@@ -2,7 +2,7 @@ import type { HardwareItem, Issue } from '../../model/types.ts';
 import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import { boltLength } from '../../structural/boltLength.ts';
 import { formatLength, formatLimit } from '../../units/length.ts';
-import type { Dimensions, FrameGeometry } from './geometry.ts';
+import type { Dimensions, FrameShape } from './geometry.ts';
 import type { SwingSetParams } from './params.ts';
 
 // Hardware (docs/templates/swing-set-a-frame.md, Hardware). Sizes and counts are inputs; this
@@ -133,7 +133,7 @@ export const HARDWARE_NOTES = [
   'Bolts, washers, and nuts in pressure-treated lumber: hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, or mechanically galvanized steel to ASTM B695 Class 55 or heavier (IRC 2021 R317.3.1).',
 ] as const;
 
-export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): HardwareItem[] {
+export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameShape): HardwareItem[] {
   const h = p.hardware;
   const items: HardwareItem[] = [
     bolts('leg-beam-bolts', 'Leg-to-beam bolts', FRAMES, h.legBoltDiameter, g.boltGrip),

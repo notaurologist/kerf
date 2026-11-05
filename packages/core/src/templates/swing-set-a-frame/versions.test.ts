@@ -41,6 +41,7 @@ import v34 from './snapshots/v34.json' with { type: 'json' };
 import v35 from './snapshots/v35.json' with { type: 'json' };
 import v36 from './snapshots/v36.json' with { type: 'json' };
 import v37 from './snapshots/v37.json' with { type: 'json' };
+import v38 from './snapshots/v38.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -255,7 +256,8 @@ const isVersion37 = (c: { path: string; before?: unknown; after?: unknown }) =>
 /**
  * Version 38's change (#626): the parts are cut, placed, and drilled by their joints, whose
  * trigonometry is computed another way, so some numbers differ in their last bits and nothing more.
- * Set aside like version 18's.
+ * Version 39's (#642) is the same kind: the geometry stores the joints' lengths. Set aside like
+ * version 18's.
  */
 const isVersion38 = (c: { before?: unknown; after?: unknown }) =>
   typeof c.before === 'number' &&
@@ -1340,6 +1342,19 @@ describe('swing-set template versions', () => {
       expect(snapshot.templateVersion).toBe(37);
       const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
       expect(changes.filter((c) => !isVersion38(c))).toEqual([]);
+      expect(changes.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("version 39 stores the joints' lengths in the geometry, and changes only their last bits (#642)", () => {
+    const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+    const lengths =
+      /^design\.geometry\.((back|front)\.(edgeLength|overallLength)|crossbar\.(topEdge|bottomEdge)|gusset\.(topWidth|bottomWidth))$/;
+    for (const stored of v38) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(38);
+      const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
+      expect(changes.filter((c) => !isVersion38(c) || !lengths.test(c.path))).toEqual([]);
       expect(changes.length).toBeGreaterThan(0);
     }
   });

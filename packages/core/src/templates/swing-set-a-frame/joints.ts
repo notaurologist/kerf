@@ -3,7 +3,12 @@ import { compare } from '../../joints/compare.ts';
 import { type Member, type Plane, type Trimmed, trim } from '../../joints/trim.ts';
 import type { HardwareItem, Hole, Part, Placement, Vec3 } from '../../model/types.ts';
 import { boltLength } from '../../structural/boltLength.ts';
-import type { Dimensions, FrameGeometry } from './geometry.ts';
+import {
+  type Dimensions,
+  type FrameGeometry,
+  type FrameShape,
+  storedGeometry,
+} from './geometry.ts';
 import { HANGER_BOLTS } from './hardware.ts';
 import type { SwingGeometry } from './layout.ts';
 import type { SwingSetParams } from './params.ts';
@@ -32,12 +37,20 @@ interface Trim {
 
 const level = (z: number): Plane => ({ point: { x: 0, y: 0, z }, normal: Z });
 
+/**
+ * A part as the template stands it, before its joints give its length. Each marked length is an
+ * edge of the cut part: a leg's reference edge, or a board's top (far) or bottom (reference) edge.
+ */
+export type UncutPart = Omit<Part, 'length' | 'markLengths'> & {
+  marks: { label: string; edge: 'reference' | 'far' }[];
+};
+
 export function joined(
   params: SwingSetParams,
   dims: Dimensions,
-  g: FrameGeometry,
+  g: FrameShape,
   swings: SwingGeometry,
-  made: { parts: Part[]; hardware: HardwareItem[] },
+  made: { parts: UncutPart[]; hardware: HardwareItem[] },
 ): { geometry: FrameGeometry; parts: Part[]; placements: Placement[]; hardware: HardwareItem[] } {
   const a = g.splay * RAD;
   const sin = Math.sin(a);
@@ -145,26 +158,20 @@ export function joined(
     through: t.member.through,
   }));
 
-  const trimmed = made.parts.map((part): Part => {
+  const cuts = new Map<string, Extract<Trimmed, { ok: true }>>();
+  const trimmed = made.parts.map(({ marks, ...part }): Part => {
     const [first, ...others] = trims.filter((t) => t.partId === part.id).map((t) => t.cut);
-    if (!first) return part;
+    if (!first) throw new Error(`${part.id} has no joints to cut it to length.`);
     for (const other of others) {
       if (Math.abs(other.length - first.length) > 1e-9) {
         throw new Error(`The pieces of ${part.id} are trimmed to different lengths.`);
       }
     }
-    // The geometry's lengths are read by checks and the structural model, so they must agree.
-    if (Math.abs(first.length - part.length) > 1e-9) {
-      throw new Error(`${part.id}: the joints give ${first.length}, the geometry ${part.length}.`);
-    }
-    const edges = MARKS[part.role]?.map((edge) => first.edges[edge]) ?? [];
-    if (edges.length !== part.markLengths.length) {
-      throw new Error(`${part.id} marks ${part.markLengths.length} lengths, not ${edges.length}.`);
-    }
+    cuts.set(part.id, first);
     return {
       ...part,
       length: first.length,
-      markLengths: part.markLengths.map((mark, i) => ({ ...mark, value: edges[i] as number })),
+      markLengths: marks.map((mark) => ({ label: mark.label, value: first.edges[mark.edge] })),
       ends: [
         { ...part.ends[0], ...first.ends[0] },
         { ...part.ends[1], ...first.ends[1] },
@@ -272,8 +279,13 @@ export function joined(
       `The leg-to-beam bolts' grip: the joints give ${legBeamGrip}, the geometry ${g.boltGrip}.`,
     );
   }
+  const cutOf = (id: string) => {
+    const found = cuts.get(id);
+    if (!found) throw new Error(`No ${id} cut.`);
+    return found;
+  };
   return {
-    geometry: { ...g, boltGrip: legBeamGrip },
+    geometry: storedGeometry({ ...g, boltGrip: legBeamGrip }, cutOf),
     parts,
     placements,
     hardware: made.hardware.map((item) => withGrip(item, grips.get(item.id))),
@@ -298,14 +310,6 @@ function withGrip(item: HardwareItem, grip: number | undefined): HardwareItem {
     },
   };
 }
-
-/** Which edge each of a part's marked lengths is, by role: a leg's either edge; a board's top, then bottom. */
-const MARKS: Record<string, readonly ('reference' | 'far')[]> = {
-  beam: [],
-  leg: ['reference'],
-  crossbar: ['far', 'reference'],
-  gusset: ['far', 'reference'],
-};
 
 function cut(t: Trim): Extract<Trimmed, { ok: true }> {
   const made = trim(t.member, t.planes);

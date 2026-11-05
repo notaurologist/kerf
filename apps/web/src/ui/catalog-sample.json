@@ -1,7 +1,7 @@
 {
   "first": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 38,
+    "templateVersion": 39,
     "snapshotVersion": 20,
     "params": {
       "beamLength": 120,
@@ -123,8 +123,8 @@
           "front": {
             "groundZ": -3.313282482734948,
             "footZ": -27.313282482734948,
-            "edgeLength": 137.08023201778732,
-            "overallLength": 138.35412783771903,
+            "edgeLength": 137.0802320177873,
+            "overallLength": 138.354127837719,
             "belowGrade": 25.54026653942189,
             "outerAtGrade": 41.67995322140436
           },
@@ -135,8 +135,8 @@
             "pastLeg": 1.6376888981671538
           },
           "gusset": {
-            "topWidth": 14.224622203665692,
-            "bottomWidth": 19.502190600525626,
+            "topWidth": 14.224622203665689,
+            "bottomWidth": 19.502190600525623,
             "height": 7.25,
             "pastLeg": 1.6376888981671538
           },
@@ -216,7 +216,6 @@
               "width": 5.5
             },
             "quantity": 1,
-            "length": 120,
             "ends": [
               {
                 "setting": 0,
@@ -332,7 +331,8 @@
                 "length": 5.5
               }
             ],
-            "letter": "A"
+            "letter": "A",
+            "length": 120
           },
           {
             "id": "leg-back",
@@ -351,13 +351,6 @@
               "width": 3.5
             },
             "quantity": 2,
-            "length": 131.50987666871168,
-            "markLengths": [
-              {
-                "label": "Each edge, top cut to foot cut",
-                "value": 130.23598084877997
-              }
-            ],
             "ends": [
               {
                 "setting": 20,
@@ -472,7 +465,14 @@
                 "angleToEdge": 20
               }
             ],
-            "letter": "B"
+            "letter": "B",
+            "length": 131.50987666871168,
+            "markLengths": [
+              {
+                "label": "Each edge, top cut to foot cut",
+                "value": 130.23598084877997
+              }
+            ]
           },
           {
             "id": "leg-front",
@@ -491,13 +491,6 @@
               "width": 3.5
             },
             "quantity": 2,
-            "length": 138.354127837719,
-            "markLengths": [
-              {
-                "label": "Each edge, top cut to foot cut",
-                "value": 137.0802320177873
-              }
-            ],
             "ends": [
               {
                 "setting": 20,
@@ -612,7 +605,14 @@
                 "angleToEdge": 20
               }
             ],
-            "letter": "C"
+            "letter": "C",
+            "length": 138.354127837719,
+            "markLengths": [
+              {
+                "label": "Each edge, top cut to foot cut",
+                "value": 137.0802320177873
+              }
+            ]
           },
           {
             "id": "crossbar",
@@ -629,17 +629,6 @@
               "width": 5.5
             },
             "quantity": 2,
-            "length": 58.99296101840858,
-            "markLengths": [
-              {
-                "label": "Top edge",
-                "value": 54.989288441480355
-              },
-              {
-                "label": "Bottom edge",
-                "value": 58.99296101840858
-              }
-            ],
             "ends": [
               {
                 "setting": 20,
@@ -724,7 +713,18 @@
                 "length": 1.5
               }
             ],
-            "letter": "D"
+            "letter": "D",
+            "length": 58.99296101840858,
+            "markLengths": [
+              {
+                "label": "Top edge",
+                "value": 54.989288441480355
+              },
+              {
+                "label": "Bottom edge",
+                "value": 58.99296101840858
+              }
+            ]
           },
           {
             "id": "gusset",
@@ -741,17 +741,6 @@
               "width": 7.25
             },
             "quantity": 2,
-            "length": 19.502190600525623,
-            "markLengths": [
-              {
-                "label": "Top edge (against the beam)",
-                "value": 14.224622203665689
-              },
-              {
-                "label": "Bottom edge",
-                "value": 19.502190600525623
-              }
-            ],
             "ends": [
               {
                 "setting": 20,
@@ -836,7 +825,18 @@
                 "length": 1.5
               }
             ],
-            "letter": "E"
+            "letter": "E",
+            "length": 19.502190600525623,
+            "markLengths": [
+              {
+                "label": "Top edge (against the beam)",
+                "value": 14.224622203665689
+              },
+              {
+                "label": "Bottom edge",
+                "value": 19.502190600525623
+              }
+            ]
           }
         ],
         "placements": [
@@ -4702,7 +4702,7 @@
   },
   "last": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 38,
+    "templateVersion": 39,
     "snapshotVersion": 20,
     "params": {
       "beamLength": 120,
@@ -4847,13 +4847,13 @@
           },
           "footprintDepth": 79.99999999999999,
           "crossbar": {
-            "topEdge": 54.29623586093474,
+            "topEdge": 54.296235860934736,
             "bottomEdge": 58.281148015327375,
             "pastLeg": 1.638707582804229
           },
           "gusset": {
-            "topWidth": 13.722584834391542,
-            "bottomWidth": 18.97542358336365,
+            "topWidth": 13.722584834391544,
+            "bottomWidth": 18.975423583363654,
             "height": 7.25,
             "pastLeg": 1.638707582804229
           },
@@ -4933,7 +4933,6 @@
               "width": 5.5
             },
             "quantity": 2,
-            "length": 120,
             "ends": [
               {
                 "setting": 0,
@@ -5012,7 +5011,8 @@
                 ]
               }
             ],
-            "letter": "A"
+            "letter": "A",
+            "length": 120
           },
           {
             "id": "leg-back",
@@ -5031,13 +5031,6 @@
               "width": 3.5
             },
             "quantity": 2,
-            "length": 109.2228867919342,
-            "markLengths": [
-              {
-                "label": "Each edge, top cut to foot cut",
-                "value": 107.95496019735472
-              }
-            ],
             "ends": [
               {
                 "setting": 19.913665975879688,
@@ -5151,7 +5144,14 @@
                 "angleToEdge": 19.913665975879688
               }
             ],
-            "letter": "B"
+            "letter": "B",
+            "length": 109.2228867919342,
+            "markLengths": [
+              {
+                "label": "Each edge, top cut to foot cut",
+                "value": 107.95496019735472
+              }
+            ]
           },
           {
             "id": "leg-front",
@@ -5170,13 +5170,6 @@
               "width": 3.5
             },
             "quantity": 2,
-            "length": 109.2228867919342,
-            "markLengths": [
-              {
-                "label": "Each edge, top cut to foot cut",
-                "value": 107.95496019735472
-              }
-            ],
             "ends": [
               {
                 "setting": 19.913665975879688,
@@ -5290,7 +5283,14 @@
                 "angleToEdge": 19.913665975879688
               }
             ],
-            "letter": "C"
+            "letter": "C",
+            "length": 109.2228867919342,
+            "markLengths": [
+              {
+                "label": "Each edge, top cut to foot cut",
+                "value": 107.95496019735472
+              }
+            ]
           },
           {
             "id": "crossbar",
@@ -5307,17 +5307,6 @@
               "width": 5.5
             },
             "quantity": 2,
-            "length": 58.281148015327375,
-            "markLengths": [
-              {
-                "label": "Top edge",
-                "value": 54.296235860934736
-              },
-              {
-                "label": "Bottom edge",
-                "value": 58.281148015327375
-              }
-            ],
             "ends": [
               {
                 "setting": 19.913665975879688,
@@ -5402,7 +5391,18 @@
                 "length": 1.5
               }
             ],
-            "letter": "D"
+            "letter": "D",
+            "length": 58.281148015327375,
+            "markLengths": [
+              {
+                "label": "Top edge",
+                "value": 54.296235860934736
+              },
+              {
+                "label": "Bottom edge",
+                "value": 58.281148015327375
+              }
+            ]
           },
           {
             "id": "gusset",
@@ -5419,17 +5419,6 @@
               "width": 7.25
             },
             "quantity": 2,
-            "length": 18.975423583363654,
-            "markLengths": [
-              {
-                "label": "Top edge (against the beam)",
-                "value": 13.722584834391544
-              },
-              {
-                "label": "Bottom edge",
-                "value": 18.975423583363654
-              }
-            ],
             "ends": [
               {
                 "setting": 19.913665975879688,
@@ -5514,7 +5503,18 @@
                 "length": 1.5
               }
             ],
-            "letter": "E"
+            "letter": "E",
+            "length": 18.975423583363654,
+            "markLengths": [
+              {
+                "label": "Top edge (against the beam)",
+                "value": 13.722584834391544
+              },
+              {
+                "label": "Bottom edge",
+                "value": 18.975423583363654
+              }
+            ]
           }
         ],
         "placements": [
@@ -9937,7 +9937,7 @@
   },
   "unentered": {
     "templateId": "swing-set-a-frame",
-    "templateVersion": 38,
+    "templateVersion": 39,
     "snapshotVersion": 20,
     "params": {
       "beamLength": 120,
@@ -10045,8 +10045,8 @@
           "front": {
             "groundZ": -3.313282482734948,
             "footZ": -27.313282482734948,
-            "edgeLength": 137.08023201778732,
-            "overallLength": 138.35412783771903,
+            "edgeLength": 137.0802320177873,
+            "overallLength": 138.354127837719,
             "belowGrade": 25.54026653942189,
             "outerAtGrade": 41.67995322140436
           },
@@ -10057,8 +10057,8 @@
             "pastLeg": 1.6376888981671538
           },
           "gusset": {
-            "topWidth": 14.224622203665692,
-            "bottomWidth": 19.502190600525626,
+            "topWidth": 14.224622203665689,
+            "bottomWidth": 19.502190600525623,
             "height": 7.25,
             "pastLeg": 1.6376888981671538
           },
@@ -10138,7 +10138,6 @@
               "width": 5.5
             },
             "quantity": 1,
-            "length": 120,
             "ends": [
               {
                 "setting": 0,
@@ -10254,7 +10253,8 @@
                 "length": 5.5
               }
             ],
-            "letter": "A"
+            "letter": "A",
+            "length": 120
           },
           {
             "id": "leg-back",
@@ -10273,13 +10273,6 @@
               "width": 3.5
             },
             "quantity": 2,
-            "length": 131.50987666871168,
-            "markLengths": [
-              {
-                "label": "Each edge, top cut to foot cut",
-                "value": 130.23598084877997
-              }
-            ],
             "ends": [
               {
                 "setting": 20,
@@ -10394,7 +10387,14 @@
                 "angleToEdge": 20
               }
             ],
-            "letter": "B"
+            "letter": "B",
+            "length": 131.50987666871168,
+            "markLengths": [
+              {
+                "label": "Each edge, top cut to foot cut",
+                "value": 130.23598084877997
+              }
+            ]
           },
           {
             "id": "leg-front",
@@ -10413,13 +10413,6 @@
               "width": 3.5
             },
             "quantity": 2,
-            "length": 138.354127837719,
-            "markLengths": [
-              {
-                "label": "Each edge, top cut to foot cut",
-                "value": 137.0802320177873
-              }
-            ],
             "ends": [
               {
                 "setting": 20,
@@ -10534,7 +10527,14 @@
                 "angleToEdge": 20
               }
             ],
-            "letter": "C"
+            "letter": "C",
+            "length": 138.354127837719,
+            "markLengths": [
+              {
+                "label": "Each edge, top cut to foot cut",
+                "value": 137.0802320177873
+              }
+            ]
           },
           {
             "id": "crossbar",
@@ -10551,17 +10551,6 @@
               "width": 5.5
             },
             "quantity": 2,
-            "length": 58.99296101840858,
-            "markLengths": [
-              {
-                "label": "Top edge",
-                "value": 54.989288441480355
-              },
-              {
-                "label": "Bottom edge",
-                "value": 58.99296101840858
-              }
-            ],
             "ends": [
               {
                 "setting": 20,
@@ -10646,7 +10635,18 @@
                 "length": 1.5
               }
             ],
-            "letter": "D"
+            "letter": "D",
+            "length": 58.99296101840858,
+            "markLengths": [
+              {
+                "label": "Top edge",
+                "value": 54.989288441480355
+              },
+              {
+                "label": "Bottom edge",
+                "value": 58.99296101840858
+              }
+            ]
           },
           {
             "id": "gusset",
@@ -10663,17 +10663,6 @@
               "width": 7.25
             },
             "quantity": 2,
-            "length": 19.502190600525623,
-            "markLengths": [
-              {
-                "label": "Top edge (against the beam)",
-                "value": 14.224622203665689
-              },
-              {
-                "label": "Bottom edge",
-                "value": 19.502190600525623
-              }
-            ],
             "ends": [
               {
                 "setting": 20,
@@ -10758,7 +10747,18 @@
                 "length": 1.5
               }
             ],
-            "letter": "E"
+            "letter": "E",
+            "length": 19.502190600525623,
+            "markLengths": [
+              {
+                "label": "Top edge (against the beam)",
+                "value": 14.224622203665689
+              },
+              {
+                "label": "Bottom edge",
+                "value": 19.502190600525623
+              }
+            ]
           }
         ],
         "placements": [

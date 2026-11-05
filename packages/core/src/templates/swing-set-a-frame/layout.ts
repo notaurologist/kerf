@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { FrameGeometry } from './geometry.ts';
+import type { FrameShape } from './geometry.ts';
 import type { SwingSetParams } from './params.ts';
 
 // Swings and site layout (docs/templates/swing-set-a-frame.md, Swings and Site layout).
@@ -58,7 +58,7 @@ export function swingGeometry(p: SwingSetParams): SwingGeometry {
   };
 }
 
-export function siteLayout(p: SwingSetParams, g: FrameGeometry, s: SwingGeometry): SiteLayout {
+export function siteLayout(p: SwingSetParams, g: FrameShape, s: SwingGeometry): SiteLayout {
   const footprint: PlanRect = {
     label: 'Frame footprint at grade',
     xMin: 0,
