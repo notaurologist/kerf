@@ -341,12 +341,7 @@ describe('deleting from the Edit screen', () => {
 describe('a project made with an older template version', () => {
   it('says, as information rather than a problem, that saving regenerates it', () => {
     const snapshot = storedSnapshots[0] ?? null;
-    const version = {
-      status: 'behind',
-      storedVersion: 1,
-      currentVersion: 2,
-      regenerated: { ok: true, outputs: snapshot?.outputs, changes: [], truncated: false },
-    } as Project['version'];
+    const version: Project['version'] = { status: 'behind', storedVersion: 1, currentVersion: 2 };
     const project = projectFrom(snapshot, { version, templateBehind: true });
     const editor = (
       <ProjectEditor

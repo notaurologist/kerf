@@ -1,9 +1,10 @@
-import { type Change, formatLength, type VersionReport } from '@kerf/core';
+import { type Change, formatLength, type VersionStatus } from '@kerf/core';
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { indexChanges } from '../../lib/changes.tsx';
 import { planOf } from '../../lib/plan.ts';
 import type { Project } from '../../lib/types.ts';
+import { useVersionReport } from '../../lib/versionReport.ts';
 import {
   Button,
   Card,
@@ -21,9 +22,11 @@ import { PlanOutputs } from '../project-editor/Preview.tsx';
 
 // Tells the owner when a project's template has a newer version, or its boards were planned with
 // another carry length than theirs now (#690), what regenerating would change, and regenerates
-// only when asked (decision 0008). The stored plan is never replaced otherwise.
+// only when asked (decision 0008). The stored plan is never replaced otherwise. What regenerating
+// would change comes in a request of its own when the notice shows, since working it out
+// generates the whole plan.
 
-type Regenerable = Extract<VersionReport, { status: 'behind' | 'carry-length' }>;
+type Regenerable = Extract<VersionStatus, { status: 'behind' | 'carry-length' }>;
 
 const carryText = (inches: number | null) =>
   inches === null ? 'no carry length' : `a carry length of ${formatLength(inches, 'feet-inches')}`;
@@ -69,7 +72,8 @@ export function VersionNotice(props: {
   onNewer?: (project: Project) => void;
 }) {
   const { project } = props;
-  const report = project.version;
+  const status = project.version;
+  const loaded = useVersionReport(project);
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,14 +81,14 @@ export function VersionNotice(props: {
   const [refusedAt, setRefusedAt] = useState<number | null>(null);
   const stale = refusedAt === project.revision;
   const trigger = useReturnFocus(confirming);
-  if (!report || report.status === 'current') return null;
+  if (!status || status.status === 'current') return null;
 
-  if (report.status === 'ahead') {
+  if (status.status === 'ahead') {
     return (
       <InfoNotice>
         <Text>
-          This plan was made with template version {report.storedVersion}, newer than the version
-          this app has ({report.currentVersion}). It is shown as stored and cannot be regenerated
+          This plan was made with template version {status.storedVersion}, newer than the version
+          this app has ({status.currentVersion}). It is shown as stored and cannot be regenerated
           here.
         </Text>
       </InfoNotice>
@@ -121,38 +125,58 @@ export function VersionNotice(props: {
     else setError(describeError(result.error));
   };
 
-  const { regenerated } = report;
-  const words = wordsFor(report);
+  const words = wordsFor(status);
+  const report = loaded.state === 'ready' ? loaded.value : null;
+  const regenerated =
+    report?.status === 'behind' || report?.status === 'carry-length' ? report.regenerated : null;
   return (
     <Card as="section">
       <Stack gap="xs">
         <Text>{words.what}</Text>
-        {regenerated.ok ? (
-          regenerated.changes.length === 0 ? (
-            <Text>Regenerating would change no values.</Text>
-          ) : (
-            <Disclosure
-              summary={`Regenerating would change ${regenerated.changes.length}${regenerated.truncated ? ' or more' : ''} values`}
-            >
-              <RegeneratedPlan
-                templateId={project.templateId}
-                outputs={regenerated.outputs}
-                changes={regenerated.changes}
-                truncated={regenerated.truncated}
-                values={words.values}
-              />
-            </Disclosure>
-          )
-        ) : (
-          <>
-            <Text>{words.cannot}</Text>
-            <List items={regenerated.issues.map((i) => i.message)} />
-            <Text>
-              Edit the project to change them; saving regenerates with the current version.
-            </Text>
-          </>
+        {loaded.state === 'loading' && (
+          <Text tone="muted">Working out what regenerating would change…</Text>
         )}
-        {regenerated.ok &&
+        {loaded.state === 'error' && (
+          <Stack gap="xs">
+            <Notice>
+              What regenerating would change could not be loaded. {describeError(loaded.error)}
+            </Notice>
+            {loaded.retry && (
+              <Cluster>
+                <Button variant="secondary" onClick={loaded.retry}>
+                  Try again
+                </Button>
+              </Cluster>
+            )}
+          </Stack>
+        )}
+        {regenerated &&
+          (regenerated.ok ? (
+            regenerated.changes.length === 0 ? (
+              <Text>Regenerating would change no values.</Text>
+            ) : (
+              <Disclosure
+                summary={`Regenerating would change ${regenerated.changes.length}${regenerated.truncated ? ' or more' : ''} values`}
+              >
+                <RegeneratedPlan
+                  templateId={project.templateId}
+                  outputs={regenerated.outputs}
+                  changes={regenerated.changes}
+                  truncated={regenerated.truncated}
+                  values={words.values}
+                />
+              </Disclosure>
+            )
+          ) : (
+            <>
+              <Text>{words.cannot}</Text>
+              <List items={regenerated.issues.map((i) => i.message)} />
+              <Text>
+                Edit the project to change them; saving regenerates with the current version.
+              </Text>
+            </>
+          ))}
+        {regenerated?.ok &&
           (stale ? (
             <Stack gap="xs">
               <Notice>

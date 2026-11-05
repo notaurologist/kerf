@@ -76,8 +76,20 @@ describe('the web client against the API', () => {
     const read = await send(v2.api.projects[':id'].$get({ param: { id } }));
     if (!read.ok) throw new Error(JSON.stringify(read.error));
     expect(read.value.version?.status).toBe('behind');
+    // What regenerating would change comes on its own; the notice says why before it arrives.
     const notice = renderText(<VersionNotice project={read.value} onRegenerated={() => {}} />);
-    expect(notice).toContain('121" was 120"');
+    expect(notice).toContain('The template has a newer version.');
+    const report = await send(v2.api.projects[':id'].version.$get({ param: { id } }));
+    if (!report.ok) throw new Error(JSON.stringify(report.error));
+    expect(report.value.version).toMatchObject({
+      status: 'behind',
+      regenerated: {
+        ok: true,
+        changes: expect.arrayContaining([
+          expect.objectContaining({ path: 'cutList[0].length', after: '121"' }),
+        ]),
+      },
+    });
 
     // Regenerate sends the revision the notice was computed at.
     const regenerated = await send(

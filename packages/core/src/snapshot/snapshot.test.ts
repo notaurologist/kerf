@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import type { TemplateDefinition } from '../model/definition.ts';
 import { swingSetAFrame } from '../templates/swing-set-a-frame/definition.ts';
@@ -14,6 +14,7 @@ import {
   createSnapshot,
   type ProjectSnapshot,
   readSnapshot,
+  versionStatus,
 } from './snapshot.ts';
 
 // The swing-set worked example (docs/templates/swing-set-a-frame.md).
@@ -278,6 +279,40 @@ describe('compareWithCurrent', () => {
       storedVersion: CURRENT + 2,
       currentVersion: CURRENT,
     });
+  });
+});
+
+describe('versionStatus', () => {
+  const made = snapshot(swingSetAFrame, params, inputs);
+
+  it('says how a plan stands without generating one', () => {
+    const generate = vi.fn(nextVersion.generate);
+    const watched: TemplateDefinition = { ...nextVersion, generate };
+    expect(versionStatus(watched, made)).toEqual({
+      status: 'behind',
+      storedVersion: CURRENT,
+      currentVersion: CURRENT + 1,
+    });
+    const template = { ...(swingSetAFrame as TemplateDefinition), generate };
+    expect(versionStatus(template, made, { carryLength: 120 })).toEqual({
+      status: 'carry-length',
+      version: CURRENT,
+      storedCarryLength: null,
+      carryLength: 120,
+    });
+    expect(versionStatus(template, made)).toEqual({ status: 'current', version: CURRENT });
+    expect(generate).not.toHaveBeenCalled();
+  });
+
+  it('is what the full report says, less what regenerating would change', () => {
+    for (const settings of [{ carryLength: null }, { carryLength: 120 }]) {
+      for (const template of [swingSetAFrame as TemplateDefinition, nextVersion]) {
+        const { regenerated: _, ...status } = compareWithCurrent(template, made, settings) as {
+          regenerated?: unknown;
+        };
+        expect(versionStatus(template, made, settings)).toEqual(status);
+      }
+    }
   });
 });
 

@@ -30,6 +30,8 @@ import {
   suggestedFor,
   type TemplateDefinition,
   type VersionReport,
+  type VersionStatus,
+  versionStatus,
 } from '@kerf/core';
 import { and, desc, eq, inArray, isNotNull, isNull, lt } from 'drizzle-orm';
 import type { z } from 'zod';
@@ -128,8 +130,12 @@ export interface Project extends ProjectSummary {
    */
   snapshot: ProjectSnapshot | null;
   unreadable?: { reason: string; message: string };
-  /** Null when the snapshot cannot be read, or comparing it with the template fails. */
-  version: VersionReport | null;
+  /**
+   * Whether the plan was made with the template's current version and the owner's carry length
+   * now. What regenerating would change comes on its own (`ProjectVersion`), since working it out
+   * generates the whole plan. Null when the snapshot cannot be read, or comparing it fails.
+   */
+  version: VersionStatus | null;
   /**
    * The build steps (#105, #52), with methods chosen from the current tool inventory on each read,
    * and the key of that inventory so a client can tell when they are stale. In the project
@@ -153,6 +159,16 @@ export interface Project extends ProjectSummary {
 
 /** A reset as the owner reads it, and when it was made, which dismissing it names. */
 export type ProjectReset = ResetNote & { resetAt: string };
+
+/**
+ * What regenerating the plan would change, with the outputs it would store, in a request of its
+ * own: working it out generates the whole plan, which takes most of a second for a large one, so
+ * it runs only when the version notice asks. Null when the snapshot cannot be read, or comparing
+ * it fails.
+ */
+export interface ProjectVersion {
+  version: VersionReport | null;
+}
 
 /** A snapshot generated from proposed changes and not saved, with what it changes. */
 export interface Preview {
@@ -362,8 +378,8 @@ export function createProjectService(deps: {
         ticks,
         resets,
         snapshot,
-        version: drawn(row, 'the version report', () =>
-          compareWithCurrent(template, snapshot, settings),
+        version: drawn(row, 'the version status', () =>
+          versionStatus(template, snapshot, settings),
         ),
         steps: drawn(row, 'the build steps', () => planSteps(template, outputs, inventory)),
       },
@@ -558,6 +574,24 @@ export function createProjectService(deps: {
           drawings: drawn(row, 'the drawings', () => projectDrawings(template, outputs)),
           subAssemblies:
             drawn(row, 'the sub-assemblies', () => subAssemblies(template, outputs)) ?? [],
+        },
+      };
+    },
+
+    /** What regenerating the plan would change; none for a plan that cannot be read. */
+    async version(id: string): Promise<Result<ProjectVersion>> {
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      const stored = readStored(row);
+      if (!stored.ok) return { ok: true, value: { version: null } };
+      const { template, snapshot } = stored;
+      const { revision: _, ...settings } = await getSettings(db);
+      return {
+        ok: true,
+        value: {
+          version: drawn(row, 'the version report', () =>
+            compareWithCurrent(template, snapshot, settings),
+          ),
         },
       };
     },

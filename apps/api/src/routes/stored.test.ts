@@ -54,6 +54,10 @@ describe('stored projects of every shape', () => {
     expect(project.steps).not.toBeNull();
     expect(project.progress).not.toBeNull();
 
+    const version = await authed(`/api/projects/${id}/version`);
+    expect(version.status).toBe(200);
+    expect(await version.json()).not.toEqual({ version: null });
+
     const drawings = await authed(`/api/projects/${id}/drawings`);
     expect(drawings.status).toBe(200);
     const drawn = (await drawings.json()) as {
@@ -234,8 +238,10 @@ describe('stored projects of every shape', () => {
 
 // Vercel refuses a function response over 4.5 MB, and a project is read on every open and save.
 // The drawings, which are most of a plan's size, come in a request of their own, and each build
-// step's action drawing in another, opened one step at a time.
+// step's action drawing in another, opened one step at a time. What regenerating an out-of-date
+// plan would change comes in another, with the plan it would store.
 const PROJECT_BUDGET = 1_000_000;
+const VERSION_BUDGET = 1_000_000;
 const DRAWINGS_BUDGET = 4_000_000;
 const STEP_DRAWING_BUDGET = 1_000_000;
 const SUB_ASSEMBLY_BUDGET = 1_000_000;
@@ -291,6 +297,44 @@ describe('response sizes', () => {
     }
     expect(drawn).toBeGreaterThan(0);
     await close();
+  });
+
+  // An out-of-date plan's project response carries only its version status; the plan
+  // regenerating would store comes with the version report.
+  it('keeps a workbench plan behind its template version under budget', async () => {
+    const template = TEMPLATES.find((t) => t.id === 'workbench');
+    const example = template?.examples[0];
+    if (!template || !example) throw new Error('no workbench worked example');
+    const before = await createTestApp();
+    const created = await before.authed('/api/projects', {
+      method: 'POST',
+      body: {
+        name: example.name,
+        templateId: template.id,
+        params: example.params,
+        structuralInputs: example.structuralInputs,
+      },
+    });
+    expect(created.status).toBe(201);
+    const { id } = (await created.json()) as { id: string };
+    const next = { ...template, version: template.version + 1 };
+    const after = await createTestApp({
+      database: before,
+      templates: TEMPLATES.map((t) => (t.id === template.id ? next : t)),
+    });
+    const read = await after.authed(`/api/projects/${id}`);
+    expect(read.status).toBe(200);
+    const readText = await read.text();
+    expect(JSON.parse(readText)).toMatchObject({ version: { status: 'behind' } });
+    expect(bytes(readText)).toBeLessThan(PROJECT_BUDGET);
+    const version = await after.authed(`/api/projects/${id}/version`);
+    expect(version.status).toBe(200);
+    const versionText = await version.text();
+    expect(JSON.parse(versionText)).toMatchObject({
+      version: { status: 'behind', regenerated: { ok: true } },
+    });
+    expect(bytes(versionText)).toBeLessThan(VERSION_BUDGET);
+    await before.close();
   });
 
   // Narrower boards make more board drawings. The most boards found within the ranges: the
