@@ -182,6 +182,18 @@ The owner adopted the joint model on November 4, 2026 (decision 0020), after the
 
 **Accept when:** all three templates are declared as joints in core, pass their fit checks and sweeps, and their worked examples match their specs; the workbench is offered in the app; and the docs and the `kerf-template` skill describe the joint way.
 
+## Sub-assembly views
+
+The owner approved separate exploded views of a build's sub-assemblies on November 4, 2026 (#647). The whole assembly's exploded view moves an end frame, a drawer, or a door as one block, since one drawing has one paint order; each group's own view takes it fully apart. They show on the diagrams page and are linked from the build step that assembles each group. They are not printed. Alike groups are drawn once with a count. The swing set gets none. One step per pull request, in order:
+
+1. Declare groups in a template, draw each one taken apart, and add the workbench's end frames, drawers, and door (#650).
+2. Serve each group's drawings in a request of its own (#651).
+3. Show them on the diagrams page (#652).
+4. Link to each group's view from its build step (#653).
+5. Add the record cabinet's door (#654).
+
+**Accept when:** the workbench's five groups and the record cabinet's door each draw fully apart with no part passing in front of one it is behind; the whole assembly's exploded view is unchanged; each group is shown on the diagrams page and linked from its build step, with motion and reduced motion; and no template version changes.
+
 ## Explorations
 
 Outside the order above. Educational directions beyond the MVP, listed with how they stay apart from the deployed app in `EXPLORATIONS.md`. Agents do not pick these issues up unless the owner names one. Issues #543 to #548.

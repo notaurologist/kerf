@@ -2,7 +2,7 @@ import type { TemplateDefinition } from '../../model/definition.ts';
 import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { planLumber } from '../../outputs/shoppingList.ts';
-import { benchExplode, benchScene, drawings, VIEW } from './drawings.ts';
+import { benchExplode, benchScene, benchSubAssemblies, drawings, VIEW } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { WORKBENCH_FORM } from './form.ts';
 import { WorkbenchOutputs } from './outputs.ts';
@@ -61,6 +61,7 @@ export const workbench: TemplateDefinition<
     scene: benchScene(outputs),
     view: VIEW,
     explode: benchExplode(outputs),
+    subAssemblies: benchSubAssemblies(outputs),
   }),
   generate(params, structuralInputs) {
     const made = generate(params, structuralInputs);

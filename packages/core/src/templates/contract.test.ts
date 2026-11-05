@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fitProblems } from '../fit/index.ts';
-import { solid } from '../geometry/solid.ts';
+import { solid, solidBox } from '../geometry/solid.ts';
 import { preservativeFor } from '../lumber/treatment.ts';
 import { buildFromForm, confirmedPaths, formValues, readPath } from '../model/form.ts';
 import { treatmentOperations } from '../model/operations.ts';
@@ -147,6 +147,61 @@ const storedFixtures = TEMPLATES.flatMap((t) =>
   Object.entries(fixturesOf(t)).map(([version, fixture]) => [t.id, version, t, fixture] as const),
 );
 
+/**
+ * What is wrong with a template's sub-assemblies for one plan (model/definition.ts, `assembly`):
+ * each member a placed instance, each member's part one the group's build step joins, and each
+ * group fully apart at the end of its explode, with no two members' boxes overlapping.
+ */
+function subAssemblyProblems(t: (typeof TEMPLATES)[number], outputs: unknown): string[] {
+  const assembly = t.assembly(outputs);
+  if (!assembly) return [];
+  const { scene, subAssemblies } = assembly;
+  const plan = t.plan(outputs);
+  const steps = t.steps(outputs);
+  const problems: string[] = [];
+  const ids = subAssemblies.map((g) => g.id);
+  if (new Set(ids).size !== ids.length) problems.push(`group IDs repeat: ${ids.join(', ')}`);
+  for (const g of subAssemblies) {
+    const key = (m: { partId: string; instance: number }) => `${m.partId}/${m.instance}`;
+    const members = new Set(g.members.map(key));
+    if (g.alike < 1) problems.push(`${g.id}: ${g.alike} alike`);
+    if (g.members.length < 2) problems.push(`${g.id}: fewer than two members`);
+    const joined = new Set(
+      steps
+        .find((s) => s.id === g.stepId)
+        ?.operationIds.flatMap((id) => {
+          const op = plan.operations.find((o) => o.id === id);
+          return !op ? [] : 'partIds' in op ? op.partIds : 'partId' in op ? [op.partId] : [];
+        }) ?? [],
+    );
+    const placed = g.members.flatMap((m) => {
+      const pl = scene.placements.find((q) => q.partId === m.partId && q.instance === m.instance);
+      const part = scene.parts.find((p) => p.id === m.partId);
+      if (!pl || !part) {
+        problems.push(`${g.id}: ${key(m)} is not placed`);
+        return [];
+      }
+      if (g.stepId !== undefined && !joined.has(m.partId)) {
+        problems.push(`${g.id}: step ${g.stepId} does not join ${m.partId}`);
+      }
+      const offset = g.explode.find((e) => key(e) === key(m))?.offset;
+      return [{ key: key(m), box: solidBox(solid(part, pl, offset)) }];
+    });
+    for (const e of g.explode) {
+      if (!members.has(key(e))) problems.push(`${g.id}: moves ${key(e)}, not a member`);
+    }
+    for (const [i, a] of placed.entries()) {
+      for (const b of placed.slice(i + 1)) {
+        const overlap = (['x', 'y', 'z'] as const).every(
+          (k) => Math.min(a.box[k][1], b.box[k][1]) - Math.max(a.box[k][0], b.box[k][0]) > 1e-6,
+        );
+        if (overlap) problems.push(`${g.id}: ${a.key} and ${b.key} still overlap when apart`);
+      }
+    }
+  }
+  return problems;
+}
+
 describe('every template', () => {
   it.each(examples)('%s, %s: generates what its outputs schema requires', (_, __, t, e) => {
     const outputs = asJson(generated(t, e));
@@ -169,6 +224,10 @@ describe('every template', () => {
     expect(assembly).not.toBeNull();
     if (!assembly) return;
     expect(fitProblems(assembly.scene, t.plan(outputs).hardware)).toEqual([]);
+  });
+
+  it.each(examples)('%s, %s: declares sub-assemblies that come fully apart', (_, __, t, e) => {
+    expect(subAssemblyProblems(t, t.storedOutputs.parse(generated(t, e)))).toEqual([]);
   });
 
   it.each(examples)('%s, %s: parses as the editor builds it from its form', (_, __, t, e) => {
@@ -398,6 +457,7 @@ describe('every template stays readable (decision 0014)', () => {
         for (const item of plan.checklist) ChecklistItem.parse(item);
         LumberPlan.parse(plan.lumber);
         expect(t.drawings(outputs).cutDetails).toHaveLength(plan.cutList.length);
+        expect(subAssemblyProblems(t, outputs)).toEqual([]);
       }
     },
   );

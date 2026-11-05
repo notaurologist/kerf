@@ -35,8 +35,10 @@ export {
   isometricView,
   type Scene,
   type SectionPlane,
+  type SubAssembly,
   sectionCuts,
   sectionView,
+  subAssemblyViews,
 } from './views.ts';
 
 import { z } from 'zod';

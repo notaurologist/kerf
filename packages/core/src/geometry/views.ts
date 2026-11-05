@@ -408,6 +408,59 @@ export function explodedView(
   return { title, description, bounds: boundsOf(all, 2), primitives: all, notes: [], stages };
 }
 
+/**
+ * A group of part instances built as a unit, such as a drawer or a door, drawn on its own
+ * assembled and taken fully apart. Declared by the template as data, as the whole assembly's
+ * explode is.
+ */
+export interface SubAssembly {
+  id: string;
+  title: string;
+  /** How many of the group the plan has. Alike groups are drawn once, from these members. */
+  alike: number;
+  /** The build step that puts the group together. */
+  stepId?: string;
+  members: { partId: string; instance: number }[];
+  /**
+   * How the group comes apart, as for the whole assembly's exploded view: each part in the
+   * direction its joint lets it leave, a stage at a time in the reverse of the build order.
+   */
+  explode: Explode[];
+  /** What the exploded view shows, for assistive technology. */
+  description: string;
+}
+
+/**
+ * The scene cut down to a group's members. The ground and phantom lines belong to the whole
+ * assembly in place, so a group's scene leaves them out.
+ */
+export function subAssemblyScene(scene: Scene, group: SubAssembly): Scene {
+  const member = (pl: Placement) =>
+    group.members.some((m) => m.partId === pl.partId && m.instance === pl.instance);
+  return {
+    parts: scene.parts,
+    placements: scene.placements.filter(member),
+    ...(scene.endAxis ? { endAxis: scene.endAxis } : {}),
+  };
+}
+
+/**
+ * One group's assembled and exploded views, drawn from its scene by the same code as the whole
+ * assembly's, titled with how many alike the plan has.
+ */
+export function subAssemblyViews(
+  scene: Scene,
+  view: Isometric,
+  group: SubAssembly,
+): { isometric: Drawing; exploded: Drawing } {
+  const own = subAssemblyScene(scene, group);
+  const name = group.alike > 1 ? `${group.title} (${group.alike} alike)` : group.title;
+  return {
+    isometric: isometricView(own, view, `${name}, assembled.`, `${name}, assembled`),
+    exploded: explodedView(own, view, group.explode, group.description, `${name}, exploded`),
+  };
+}
+
 const stageOf = (e: Explode) => e.stage ?? 0;
 
 /**

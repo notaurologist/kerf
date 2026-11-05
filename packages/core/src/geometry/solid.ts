@@ -292,3 +292,13 @@ function acrossPrism(
 }
 
 export const solidCentroid = (s: Solid): Vec3 => centroid(s.faces.flatMap((f) => f.points));
+
+/** The smallest box around a solid, aligned with the template's axes: each axis's least and most. */
+export type Box = Record<keyof Vec3, readonly [number, number]>;
+
+export function solidBox(s: Solid): Box {
+  const points = s.faces.flatMap((f) => f.points);
+  const range = (k: keyof Vec3) =>
+    [Math.min(...points.map((p) => p[k])), Math.max(...points.map((p) => p[k]))] as const;
+  return { x: range('x'), y: range('y'), z: range('z') };
+}

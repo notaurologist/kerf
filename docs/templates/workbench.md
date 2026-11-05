@@ -154,6 +154,14 @@ Each leg's tenon passes up through the top and is trimmed flush with its surface
 - **Operations:** the record cabinet's panel work, dadoes, stopped dadoes, and notched corners; mortises and tenons as the cabinet's base; four through mortises in the top for the legs, trimmed flush after glue-up; dovetails (#578); bored dog holes (#581); flattening the top (#580); bored hinge cups (#584).
 - **Build steps:** glue up and flatten the top, build the end frames, join them with the low rails, build and fit the case, the drawers, and the doors, then mount the vises and bore the dog holes.
 - **Drawings:** the record cabinet's elevations and exploded view; cut details of the dovetails, mortises, and tenons.
+- **Sub-assemblies** (#650), each drawn on its own assembled and taken fully apart, from the front left. Each part leaves in the direction its joint lets it, and clears what it leaves by a gap of a quarter of the group's depth, or of a door's width. An instance moves in one stage only. In the worked example:
+
+| Group | Members | Build step | Stages |
+|---|---|---|---|
+| Left end frame, right end frame | the front and back legs (the vise leg on the left), the foot, the end rail | Glue up the end frames | 0: the foot down off the legs' tenons, 3 − 1-1/4 + 18-5/8 / 4 = 6-13/32. 1: the front leg forward and the back leg back off the end rail's tenons, 1-3/4 + 18-5/8 / 4 = 6-13/32 each. The legs have joints in two directions, so they stay for the first stage and the foot leaves |
+| Upper drawer (2 alike), lower drawer | the front, box front, box back, both sides, the bottom | Fit the drawer bottoms and fronts, the first step that joins all six | 0: the front forward off its screws, by the gap, 14-13/16 / 4 = 3-45/64. 1: the sides out to each side off the box front's and back's pins and the bottom's edges, 1/2 + 3-45/64 each; the tails are on the sides, which leave the pins across their own faces. 2: the bottom out the back, under the short box back, by its depth front to back and the gap. The sides come off before the bottom, which went in last: while it was in their grooves the drawing could not show it passing under the back |
+| Door (2 alike, mirrored) | both stiles, both rails, the panel | Glue up the doors | 0: the stiles out to each side off the rails' tenons, 3/8 + 22-3/32 / 4 each. 1: the rails down and up off the panel's tongue, 11/32 + 22-3/32 / 4 each. The panel stays |
+
 
 ## Validation and flags
 

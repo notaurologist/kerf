@@ -275,6 +275,7 @@ export const recordCabinet: TemplateDefinition<
     scene: cabinetScene(outputs),
     view: VIEW,
     explode: cabinetExplode(outputs),
+    subAssemblies: [],
   }),
   generate(params, structuralInputs) {
     const design = generate(

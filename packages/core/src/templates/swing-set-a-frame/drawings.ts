@@ -8,6 +8,7 @@ import {
   type PlanArea,
   planView,
   type Scene,
+  type SubAssembly,
 } from '../../geometry/index.ts';
 import type { Placement } from '../../model/types.ts';
 import { drawnPart, type StoredSwingSetOutputs } from './outputs.ts';
@@ -46,7 +47,7 @@ export function explodeOffsets(placements: readonly Placement[]): Explode[] {
  */
 export function assembly(
   outputs: StoredSwingSetOutputs,
-): { scene: Scene; view: typeof VIEW; explode: Explode[] } | null {
+): { scene: Scene; view: typeof VIEW; explode: Explode[]; subAssemblies: SubAssembly[] } | null {
   const { design } = outputs;
   const p = design.params;
   const k = p.groundSlope / 12;
@@ -71,7 +72,9 @@ export function assembly(
       ]),
     ],
   };
-  return { scene, view: VIEW, explode: explodeOffsets(placements) };
+  // No group views: the whole exploded view already pulls the crossbars and gussets off the
+  // legs, and the legs join each other only through them and the beam.
+  return { scene, view: VIEW, explode: explodeOffsets(placements), subAssemblies: [] };
 }
 
 export function drawings(outputs: StoredSwingSetOutputs): Drawings {

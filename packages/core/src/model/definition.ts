@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import type { Drawings, Explode, Isometric, Scene } from '../geometry/index.ts';
+import type { Drawings, Explode, Isometric, Scene, SubAssembly } from '../geometry/index.ts';
 import type { Plan } from '../outputs/plan.ts';
 import type { StepOutline } from '../steps/build.ts';
 import type { CheckResult } from '../structural/types.ts';
@@ -86,10 +86,16 @@ export interface TemplateDefinition<
   /**
    * What the 3D views are drawn from, as data: the scene, the viewpoint, and how parts are pulled
    * apart. The viewpoint is from the front left, above; generic code turns it to the other
-   * corners (#364) and draws each assembly step's action drawing from it (#118). Null for a plan
-   * made before placements, which has no 3D views.
+   * corners (#364) and draws each assembly step's action drawing from it (#118). The groups built
+   * as units, each drawn on its own taken apart; a group may read only what every stored shape
+   * has. Null for a plan made before placements, which has no 3D views.
    */
-  assembly(outputs: StoredOutputs): { scene: Scene; view: Isometric; explode: Explode[] } | null;
+  assembly(outputs: StoredOutputs): {
+    scene: Scene;
+    view: Isometric;
+    explode: Explode[];
+    subAssemblies: SubAssembly[];
+  } | null;
   /**
    * The order of the build steps (#105), as groups of the plan's operation IDs. Like drawings, made
    * from stored outputs on read; generic code chooses each operation's method from the inventory.
