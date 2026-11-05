@@ -8,7 +8,30 @@ import type { Database } from './db/client.ts';
 
 // Every route except login and the health check needs a session (decision 0007). The routes
 // come from the app itself, so a new route is covered without editing this test.
-const PUBLIC = ['GET /api/health', 'POST /api/login'];
+const PUBLIC = ['GET /api/health', 'HEAD /api/health', 'POST /api/login'];
+
+const METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'];
+
+/**
+ * A request for each route the app registers, with parameters and wildcards filled in. An `ALL`
+ * entry, from `.all()` or middleware, stands for every method, and Hono answers HEAD with a GET
+ * route.
+ */
+function requests(app: { routes: { method: string; path: string }[] }) {
+  const seen = new Set<string>();
+  return app.routes.flatMap((r) => {
+    const path = r.path.replace(/:[^/]+/g, 'x').replace(/\*/g, 'x');
+    const methods =
+      r.method === 'ALL' ? METHODS : r.method === 'GET' ? ['GET', 'HEAD'] : [r.method];
+    return methods.flatMap((method) => {
+      if (seen.has(`${method} ${path}`)) return [];
+      seen.add(`${method} ${path}`);
+      return [{ method, path }];
+    });
+  });
+}
+
+const hasBody = (method: string) => method !== 'GET' && method !== 'HEAD';
 
 describe('api', () => {
   it('answers the health check without a session, with no data', async () => {
@@ -16,20 +39,21 @@ describe('api', () => {
     const res = await app.request('/api/health');
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
+    const head = await app.request('/api/health', { method: 'HEAD' });
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe('');
   });
 
   it('rejects every other route without a session', async () => {
     const { app } = await createTestApp();
-    const routes = app.routes
-      .filter((r) => r.method !== 'ALL')
-      .map((r) => ({ method: r.method, path: r.path.replace(/:[^/]+/g, 'x') }));
+    const routes = requests(app);
     const protectedRoutes = routes.filter((r) => !PUBLIC.includes(`${r.method} ${r.path}`));
     expect(protectedRoutes.length).toBeGreaterThan(0);
     for (const { method, path } of protectedRoutes) {
       const res = await app.request(path, {
         method,
         headers: { 'content-type': 'application/json' },
-        ...(method === 'GET' ? {} : { body: '{}' }),
+        ...(hasBody(method) ? { body: '{}' } : {}),
       });
       expect({ method, path, status: res.status }).toEqual({ method, path, status: 401 });
     }
@@ -51,12 +75,11 @@ describe('errors', () => {
   it('answers every failing request on every route with JSON', async () => {
     const { app, sessionCookie } = await createTestApp();
     const cookie = await sessionCookie();
-    const routes = app.routes
-      .filter((r) => r.method !== 'ALL')
-      .map((r) => ({ method: r.method, path: r.path.replace(/:[^/]+/g, 'x') }));
+    // A HEAD response has no body to check.
+    const routes = requests(app).filter((r) => r.method !== 'HEAD');
     let failures = 0;
     for (const { method, path } of [...routes, { method: 'GET', path: '/api/nope' }]) {
-      for (const body of method === 'GET' ? [undefined] : ['{}', 'not json', '[]']) {
+      for (const body of hasBody(method) ? ['{}', 'not json', '[]'] : [undefined]) {
         const res = await app.request(path, {
           method,
           headers: { cookie, 'content-type': 'application/json' },
@@ -151,15 +174,13 @@ describe('caching', () => {
   it('forbids storing any response, with or without a session', async () => {
     const { app, sessionCookie } = await createTestApp();
     const cookie = await sessionCookie();
-    const routes = app.routes
-      .filter((r) => r.method !== 'ALL')
-      .map((r) => ({ method: r.method, path: r.path.replace(/:[^/]+/g, 'x') }));
+    const routes = requests(app);
     for (const { method, path } of [...routes, { method: 'GET', path: '/api/nope' }]) {
       for (const headers of [{ cookie }, {}]) {
         const res = await app.request(path, {
           method,
           headers: { ...headers, 'content-type': 'application/json' },
-          ...(method === 'GET' ? {} : { body: '{}' }),
+          ...(hasBody(method) ? { body: '{}' } : {}),
         });
         expect({ method, path, cache: res.headers.get('cache-control') }).toEqual({
           method,
@@ -175,16 +196,14 @@ describe('build header', () => {
   it('names the build on every response, with or without a session, including errors', async () => {
     const { app, sessionCookie } = await createTestApp({ build: 'fa1eade' });
     const cookie = await sessionCookie();
-    const routes = app.routes
-      .filter((r) => r.method !== 'ALL')
-      .map((r) => ({ method: r.method, path: r.path.replace(/:[^/]+/g, 'x') }));
+    const routes = requests(app);
     const statuses = new Set<number>();
     for (const { method, path } of [...routes, { method: 'GET', path: '/api/nope' }]) {
       for (const headers of [{ cookie }, {}]) {
         const res = await app.request(path, {
           method,
           headers: { ...headers, 'content-type': 'application/json' },
-          ...(method === 'GET' ? {} : { body: '{}' }),
+          ...(hasBody(method) ? { body: '{}' } : {}),
         });
         statuses.add(res.status);
         expect({ method, path, build: res.headers.get(BUILD_HEADER) }).toEqual({

@@ -62,6 +62,15 @@ describe('reads during a test', () => {
     expect(reads()).toContain('apps/api/package.json');
   });
 
+  it('include files imported as JSON or ?raw, which Vite reads outside the test', async () => {
+    await import('../tsconfig.json', { with: { type: 'json' } });
+    // A variable, as TypeScript has no type for `?raw` outside Vite's client types.
+    const raw = './fixtures.ts?raw';
+    await import(raw);
+    expect(reads()).toContain('apps/api/tsconfig.json');
+    expect(reads()).toContain('apps/api/test/fixtures.ts');
+  });
+
   it('include a doc CI skips, which fails the test file', () => {
     const doc = 'docs/PRODUCT.md';
     readFileSync(join(root, doc), 'utf8');

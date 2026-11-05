@@ -1,7 +1,9 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { inspect } from 'node:util';
 import { PGlite } from '@electric-sql/pglite';
 import { TEMPLATES } from '@kerf/core';
+import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
 import { describe, expect, it } from 'vitest';
@@ -51,6 +53,9 @@ async function releaseOn(
     templates,
     now,
     log: (m) => logs.push(m),
+    logError: (e) => {
+      throw new Error(`release logged an error: ${String(e)}`);
+    },
   });
   return { result, calls, urls, logs };
 }
@@ -92,6 +97,7 @@ describe('release', () => {
         templates: TEMPLATES,
         now,
         log: (m) => logs.push(m),
+        logError: () => {},
       });
       expect(result.status).toBe('skipped');
       expect(logs).toHaveLength(1);
@@ -109,6 +115,7 @@ describe('release', () => {
       templates: TEMPLATES,
       now,
       log: (m) => logs.push(m),
+      logError: () => {},
     });
     return { result, logs };
   }
@@ -251,6 +258,33 @@ describe('release', () => {
     expect(second.result).toMatchObject({ status: 'released', history: { projects: 0, rows: 0 } });
     const after = await client.query('select operation_id from project_history');
     expect(after.rows).toHaveLength(written.length);
+    await close();
+  });
+
+  it("logs a failed step without its query's parameters, and releases the lock", async () => {
+    const { client, close } = await storedProject();
+    const db = drizzle(client, { schema });
+    const errors: unknown[] = [];
+    const result = await release({
+      env: production,
+      connect: () => ({
+        db,
+        migrate: async () => {
+          await db.execute(sql`select ${'secret-parameter'}::text, 1 / 0`);
+        },
+        close: async () => {},
+      }),
+      templates: TEMPLATES,
+      now,
+      log: () => {},
+      logError: (e) => errors.push(e),
+    });
+    expect(result).toEqual({ status: 'failed' });
+    expect(errors).toHaveLength(1);
+    expect(inspect(errors[0], { depth: null })).toContain('select $1::text, 1 / 0');
+    expect(inspect(errors[0], { depth: null })).not.toContain('secret-parameter');
+    const locks = await client.query("select 1 from pg_locks where locktype = 'advisory'");
+    expect(locks.rows).toEqual([]);
     await close();
   });
 

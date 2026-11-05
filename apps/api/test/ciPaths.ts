@@ -61,7 +61,9 @@ export function repositoryPath(path: unknown): string | undefined {
   return from.split(sep).join('/');
 }
 
-const READS = Symbol.for('kerf.test.reads');
+/** The global symbol holding the current test file's reads; ciPaths.plugin.ts records to it too. */
+export const READS_KEY = 'kerf.test.reads';
+const READS = Symbol.for(READS_KEY);
 
 /** Files read by the current test file, relative to the repository root. */
 export function reads(): Set<string> {

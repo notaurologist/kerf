@@ -10,6 +10,7 @@ try {
 }
 const app = createApi(config);
 
-serve({ fetch: app.fetch, port: config.port }, (info) => {
+// Only this machine reaches the development API, not others on the same network.
+serve({ fetch: app.fetch, hostname: 'localhost', port: config.port }, (info) => {
   console.log(`api listening on http://localhost:${info.port}`);
 });

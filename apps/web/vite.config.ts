@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
+import { recordDataImports } from '../api/test/ciPaths.plugin.ts';
 
 // Every screen uses the text font, so the built page fetches it with the CSS rather than after
 // the first render finds it. Its file name carries a hash, known only once the bundle is written.
@@ -22,7 +23,8 @@ function preloadTextFont(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), preloadTextFont()],
+  // The last fails a test file that imports a path CI skips as JSON or ?raw (0010); tests only.
+  plugins: [react(), preloadTextFont(), recordDataImports()],
   // The commit Vercel builds from, which the API also sends, so an open page can tell it is older
   // (lib/build.ts). Empty in development and tests.
   define: { __KERF_BUILD__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA ?? '') },

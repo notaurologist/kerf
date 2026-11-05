@@ -4,9 +4,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { TEMPLATES } from '@kerf/core';
+import { is } from 'drizzle-orm';
+import { getTableConfig, PgTable } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
 import { describe, expect, it } from 'vitest';
+import * as schema from '../src/db/schema.ts';
 
 // Migrations run while the previous deploy still serves (decision 0014). A statement that could
 // break it needs a comment saying why it does not.
@@ -32,13 +35,40 @@ const RISKY: { name: string; pattern: RegExp }[] = [
   { name: 'unique index', pattern: /\bCREATE\s+UNIQUE\s+INDEX\b/i },
 ];
 
+const isComment = (line: string) => line.trim().startsWith('--');
+
+/**
+ * Each statement in a migration, and whether a comment is on the line just before it. A statement
+ * ends at a line ending in a semicolon, so two in one chunk need a comment each.
+ */
+function statements(migration: string): { text: string; commented: boolean }[] {
+  const found: { text: string; commented: boolean }[] = [];
+  let lines: string[] = [];
+  let commented = false;
+  let afterComment = false;
+  for (const line of migration.replaceAll('--> statement-breakpoint', '\n').split('\n')) {
+    if (lines.length === 0) {
+      if (line.trim() === '' || isComment(line)) {
+        afterComment = isComment(line);
+        continue;
+      }
+      commented = afterComment;
+    } else if (isComment(line)) continue;
+    lines.push(line);
+    if (line.trim().endsWith(';')) {
+      found.push({ text: lines.join('\n').trim(), commented });
+      lines = [];
+      afterComment = false;
+    }
+  }
+  if (lines.length > 0) found.push({ text: lines.join('\n').trim(), commented });
+  return found;
+}
+
 function uncommentedRiskyStatements(migration: string): string[] {
-  return migration.split('--> statement-breakpoint').flatMap((chunk) => {
-    const lines = chunk.split('\n');
-    const commented = lines.some((l) => l.trim().startsWith('--'));
-    const statement = lines.filter((l) => !l.trim().startsWith('--')).join('\n');
-    const risks = RISKY.filter((r) => r.pattern.test(statement)).map((r) => r.name);
-    return risks.length > 0 && !commented ? [`${risks.join(', ')}: ${statement.trim()}`] : [];
+  return statements(migration).flatMap(({ text, commented }) => {
+    const risks = RISKY.filter((r) => r.pattern.test(text)).map((r) => r.name);
+    return risks.length > 0 && !commented ? [`${risks.join(', ')}: ${text}`] : [];
   });
 }
 
@@ -79,6 +109,17 @@ describe('uncommentedRiskyStatements', () => {
   it('wants the comment with the statement it explains, not elsewhere in the file', () => {
     const migration = '-- A note.\nCREATE TABLE "t" ();--> statement-breakpoint\nDROP TABLE "u";';
     expect(uncommentedRiskyStatements(migration)).toHaveLength(1);
+  });
+
+  it('wants the comment directly before the statement', () => {
+    for (const chunk of [
+      'DROP TABLE "u";\n-- A note after it.',
+      '-- A note.\n\nDROP TABLE "u";',
+      '-- A note.\nCREATE TABLE "t" ();\nDROP TABLE "u";',
+    ]) {
+      expect(uncommentedRiskyStatements(chunk)).toHaveLength(1);
+    }
+    expect(uncommentedRiskyStatements('\n-- A note.\nDROP TABLE "u";')).toEqual([]);
   });
 });
 
@@ -143,6 +184,44 @@ describe('the last migration', () => {
       expect(rows[0]?.count).toBe(snapshots.length);
     } finally {
       rmSync(previous, { recursive: true, force: true });
+      await client.close();
+    }
+  });
+});
+
+describe('the migrated database', () => {
+  // CI checks that drizzle's snapshot matches schema.ts; this checks the SQL that actually runs.
+  it('has the tables and columns schema.ts declares, with their types, nullability and defaults', async () => {
+    const client = new PGlite();
+    try {
+      await migrate(drizzle(client), { migrationsFolder });
+      const declared = Object.values(schema)
+        .filter((value) => is(value, PgTable))
+        .flatMap((table) => {
+          const { name, columns } = getTableConfig(table);
+          return columns.map((column) => ({
+            table: name,
+            column: column.name,
+            type: column.getSQLType(),
+            notNull: column.notNull,
+            hasDefault: column.hasDefault || column.generatedIdentity !== undefined,
+          }));
+        });
+      const { rows } = await client.query<(typeof declared)[number]>(`
+        select c.table_name as table, c.column_name as column,
+          format_type(a.atttypid, a.atttypmod) as type,
+          c.is_nullable = 'NO' as "notNull",
+          (c.column_default is not null or c.is_identity = 'YES') as "hasDefault"
+        from information_schema.columns c
+        join pg_attribute a
+          on a.attrelid = format('%I.%I', c.table_schema, c.table_name)::regclass
+          and a.attname = c.column_name
+        where c.table_schema = 'public'`);
+      const order = (a: { table: string; column: string }, b: { table: string; column: string }) =>
+        `${a.table}.${a.column}`.localeCompare(`${b.table}.${b.column}`);
+      expect(declared.length).toBeGreaterThan(0);
+      expect(rows.toSorted(order)).toEqual(declared.toSorted(order));
+    } finally {
       await client.close();
     }
   });

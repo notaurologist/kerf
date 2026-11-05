@@ -6,6 +6,7 @@ import { migrate as migratePostgres } from 'drizzle-orm/postgres-js/migrator';
 import { LOCAL_DATABASE_URL } from '../drizzle.config.ts';
 import { createDatabase, type Database } from '../src/db/client.ts';
 import { projects } from '../src/db/schema.ts';
+import { loggable } from '../src/logError.ts';
 import { backfillHistory } from '../src/services/history.ts';
 
 // Runs while the previous deploy still serves, so it never rewrites stored data into a newer
@@ -23,7 +24,8 @@ export type ReleaseResult =
   | { status: 'invalid-url' }
   | { status: 'needs-direct-url' }
   | { status: 'unreadable'; projects: { id: string; reason: string }[] }
-  | { status: 'released'; history: { projects: number; rows: number } };
+  | { status: 'released'; history: { projects: number; rows: number } }
+  | { status: 'failed' };
 
 function skipReason(env: Record<string, string | undefined>): string | undefined {
   if (env.VERCEL && env.VERCEL_ENV !== 'production') {
@@ -104,8 +106,10 @@ export async function release(options: {
   templates: readonly TemplateDefinition[];
   now: () => Date;
   log: (message: string) => void;
+  /** Gets a thrown error as `loggable` leaves it, without a failed query's parameters. */
+  logError: (error: unknown) => void;
 }): Promise<ReleaseResult> {
-  const { env, connect, templates, now, log } = options;
+  const { env, connect, templates, now, log, logError } = options;
   const skip = skipReason(env);
   if (skip) {
     log(`release: skipped for ${skip}.`);
@@ -140,6 +144,9 @@ export async function release(options: {
     } finally {
       await db.execute(sql`select pg_advisory_unlock(${RELEASE_LOCK})`);
     }
+  } catch (error) {
+    logError(loggable(error));
+    return { status: 'failed' };
   } finally {
     await close();
   }
@@ -158,6 +165,7 @@ if (import.meta.main) {
     templates: TEMPLATES,
     now: () => new Date(),
     log: console.log,
+    logError: console.error,
   });
   if (result.status !== 'released' && result.status !== 'skipped') process.exitCode = 1;
 }
