@@ -1,6 +1,6 @@
 import type { Flag, Issue } from '../../model/types.ts';
 import { formatLength } from '../../units/length.ts';
-import type { Dimensions, FrameGeometry } from './geometry.ts';
+import type { Dimensions, FrameShape } from './geometry.ts';
 import { CLEARANCES, type SwingGeometry } from './layout.ts';
 
 // Validation and flags (docs/templates/swing-set-a-frame.md, Validation and Flags).
@@ -11,7 +11,7 @@ const THIN_FLUSH_CUT = 1;
 const len = (inches: number) => formatLength(inches);
 
 /** Combinations of parameters the frame can't be built from. */
-export function validate(dims: Dimensions, g: FrameGeometry): Issue[] {
+export function validate(dims: Dimensions, g: FrameShape): Issue[] {
   const issues: Issue[] = [];
 
   if (g.flushCut.woodLeftAtTop <= 0) {
@@ -127,7 +127,7 @@ export const LEG_IDS = ['leg-back', 'leg-front'];
  * Expert-check flags for a frame that validates, each with the parts and hardware it concerns.
  * Ply bolts are named only where `validateHardware` requires them, and ground anchors only on pads.
  */
-export function flags(dims: Dimensions, g: FrameGeometry): Flag[] {
+export function flags(dims: Dimensions, g: FrameShape): Flag[] {
   const result: Flag[] = [
     {
       category: 'load-bearing',

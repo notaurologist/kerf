@@ -408,7 +408,11 @@ The template says where each part runs and how its bolts lie. The joints in core
 
 The ply bolts and the horizontal hanger bolts are drilled where the plies or bracket put them, so they are not placed. The leg's flush cut is the template's.
 
-The lengths in Derived geometry and the leg-to-beam grip are read by validation, the structural model, and the hardware lines, and the joints must agree with them to within 1e-9". The joints compute their trigonometry another way from the template's formulas, so some numbers differ in their last bits, at most 2.8 × 10⁻¹⁴" in the worked examples. Everything a plan shows is the same, string for string, but the stored numbers differ, so the template version moved to 38.
+The legs', crossbars', and gussets' lengths come from the trims alone: each part's length, and its marked edges (a leg's inner edge, a board's top and bottom edges). The formulas for them in Derived geometry are how to check the trims by hand; the template does not compute them separately. A plan stores the trimmed lengths in its geometry as `edgeLength` and `overallLength` for each leg, `topEdge` and `bottomEdge` for the crossbar, and `topWidth` and `bottomWidth` for the gusset. Validation, the structural model, and the hardware lines do not read them. The bolt layout needs only how far each board runs past the leg.
+
+The leg-to-beam grip is still computed both ways: the hardware line's note reads the template's formula, and the joints must agree with it to within 1e-9".
+
+The joints compute their trigonometry another way from the template's formulas, so some numbers differ in their last bits, at most 2.8 × 10⁻¹⁴" in the worked examples. Everything a plan shows is the same, string for string, but the stored numbers differ: the template version moved to 38 when the joints first cut the parts (#626), and to 39 when the stored lengths came from them (#642).
 
 ## Starting questions
 

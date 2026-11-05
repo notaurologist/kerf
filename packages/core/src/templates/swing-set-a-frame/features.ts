@@ -11,7 +11,7 @@ import {
 } from '../../structural/boltDistances.ts';
 import { formatAngle } from '../../units/angle.ts';
 import { formatLength } from '../../units/length.ts';
-import type { Dimensions, FrameGeometry } from './geometry.ts';
+import type { Dimensions, FrameShape } from './geometry.ts';
 import type { SwingSetParams } from './params.ts';
 import { LEG_IDS } from './validate.ts';
 
@@ -48,10 +48,9 @@ export interface BoardBolts {
   vs: number[];
   /** Along the board, from an end cut to the bolt line: past the leg, then half the leg. */
   toBoltLine: number;
-  /** The board's width, thickness, overall length, and the height of its bottom edge. */
+  /** The board's width, thickness, and the height of its bottom edge. */
   width: number;
   thickness: number;
-  length: number;
   bottomZ: number;
   pastLeg: number;
 }
@@ -60,7 +59,7 @@ export interface BoardBolts {
 export function boardBolts(
   p: SwingSetParams,
   dims: Dimensions,
-  g: FrameGeometry,
+  g: FrameShape,
 ): Record<'crossbar' | 'gusset', BoardBolts> {
   const cos = Math.cos(g.splay * RAD);
   const layout = (
@@ -68,7 +67,6 @@ export function boardBolts(
     bolts: { diameter: number; perJoint: number },
     width: number,
     thickness: number,
-    length: number,
     bottomZ: number,
     pastLeg: number,
   ): BoardBolts => ({
@@ -78,7 +76,6 @@ export function boardBolts(
     toBoltLine: pastLeg + dims.w / (2 * cos),
     width,
     thickness,
-    length,
     bottomZ,
     pastLeg,
   });
@@ -88,7 +85,6 @@ export function boardBolts(
       p.hardware.crossbarBolts,
       dims.cw,
       dims.ct,
-      g.crossbar.bottomEdge,
       dims.zc - dims.cw,
       g.crossbar.pastLeg ?? 0,
     ),
@@ -97,7 +93,6 @@ export function boardBolts(
       p.hardware.gussetBolts,
       dims.gh,
       dims.gt,
-      g.gusset.bottomWidth,
       dims.H - dims.gh,
       g.gusset.pastLeg ?? 0,
     ),
@@ -107,7 +102,7 @@ export function boardBolts(
 export function features(
   p: SwingSetParams,
   dims: Dimensions,
-  g: FrameGeometry,
+  g: FrameShape,
 ): Record<'beam' | 'leg' | 'crossbar' | 'gusset', PartFeatures> {
   const a = g.splay * RAD;
   const sin = Math.sin(a);
@@ -243,7 +238,7 @@ export interface JoinedParts {
  * the leg's grain (the board meets it at 90° − α); at the beam, across its grain. The gusset also
  * carries the beam's weight down across its grain, so its bolts bear toward its top edge.
  */
-export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): JoinedParts[] {
+export function boltJoints(p: SwingSetParams, dims: Dimensions, g: FrameShape): JoinedParts[] {
   const a = g.splay * RAD;
   const bolts = boardBolts(p, dims, g);
   const angle = formatAngle(g.splay);

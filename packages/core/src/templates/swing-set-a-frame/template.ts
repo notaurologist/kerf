@@ -34,6 +34,7 @@ import {
   type Dimensions,
   dimensions,
   FrameGeometry,
+  type FrameShape,
   frameGeometry,
   legsReachGround,
   splayForFootprint,
@@ -45,7 +46,7 @@ import {
   PRESERVATIVE_GROUP,
   validateHardware,
 } from './hardware.ts';
-import { joined } from './joints.ts';
+import { joined, type UncutPart } from './joints.ts';
 import { SiteLayout, SwingGeometry, siteLayout, swingGeometry } from './layout.ts';
 import { SwingSetParams } from './params.ts';
 import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.ts';
@@ -126,8 +127,11 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * part's end cuts, length, marked edges, and placement, and bolted laps give every bolt hole and
  * each bolt's grip (#626). Their trigonometry is computed another way, so some numbers differ in
  * their last bits; everything a plan shows is the same.
+ * Version 39 takes the legs', crossbars', and gussets' lengths from their joints alone, and stores
+ * those in the geometry too (#642). The stored lengths differ in their last bits; everything a plan
+ * shows is the same.
  */
-export const TEMPLATE_VERSION = 38;
+export const TEMPLATE_VERSION = 39;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
@@ -180,8 +184,8 @@ function legName(side: 'back' | 'front', groundSlope: number): string {
   return `${name} (${uphill ? 'uphill' : 'downhill'})`;
 }
 
-/** The parts in cut-list order, which sets their letters (#66). */
-function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part, 'letter'>[] {
+/** The parts in cut-list order, which sets their letters (#66); the joints cut each to length. */
+function parts(p: SwingSetParams, dims: Dimensions, g: FrameShape): Omit<UncutPart, 'letter'>[] {
   const angle = formatAngle(g.splay);
   const f = features(p, dims, g);
   // Every end cut on the swing set is a miter: drawn on the face, from the reference edge.
@@ -203,7 +207,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
     `Bolt holes, ${b.vs.length} at each end: on a line parallel to the end cut, ${formatLength(b.toBoltLine)} from it, ${b.vs.map((v) => formatLength(v)).join(' and ')} up from the bottom edge. Clamp it in place and drill through it and the leg together.`;
   const square = { setting: 0, description: 'Square', measuredFrom: 'reference-edge' as const };
   const flushCut = f.leg.tapers[0];
-  const leg = (side: 'back' | 'front'): Omit<Part, 'letter'> => {
+  const leg = (side: 'back' | 'front'): Omit<UncutPart, 'letter'> => {
     const l = g[side];
     return {
       id: `leg-${side}`,
@@ -213,8 +217,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       treated: true,
       stock: stock(p.legStock),
       quantity: 2,
-      length: l.overallLength,
-      markLengths: [{ label: 'Each edge, top cut to foot cut', value: l.edgeLength }],
+      marks: [{ label: 'Each edge, top cut to foot cut', edge: 'reference' }],
       ends: [levelCut('Top'), levelCut('Foot')],
       endsParallel: true,
       notes: [
@@ -234,8 +237,7 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       treated: true,
       stock: stock(p.beamStock),
       quantity: p.beamPlies,
-      length: dims.L,
-      markLengths: [],
+      marks: [],
       ends: [square, square],
       endsParallel: true,
       notes: [
@@ -258,10 +260,9 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       treated: true,
       stock: stock(p.crossbarStock),
       quantity: 2,
-      length: g.crossbar.bottomEdge,
-      markLengths: [
-        { label: 'Top edge', value: g.crossbar.topEdge },
-        { label: 'Bottom edge', value: g.crossbar.bottomEdge },
+      marks: [
+        { label: 'Top edge', edge: 'far' },
+        { label: 'Bottom edge', edge: 'reference' },
       ],
       ends: [boardEnd(bolts.crossbar.pastLeg), boardEnd(bolts.crossbar.pastLeg)],
       endsParallel: false,
@@ -276,10 +277,9 @@ function parts(p: SwingSetParams, dims: Dimensions, g: FrameGeometry): Omit<Part
       treated: true,
       stock: stock(p.gussetStock),
       quantity: 2,
-      length: g.gusset.bottomWidth,
-      markLengths: [
-        { label: 'Top edge (against the beam)', value: g.gusset.topWidth },
-        { label: 'Bottom edge', value: g.gusset.bottomWidth },
+      marks: [
+        { label: 'Top edge (against the beam)', edge: 'far' },
+        { label: 'Bottom edge', edge: 'reference' },
       ],
       ends: [boardEnd(bolts.gusset.pastLeg), boardEnd(bolts.gusset.pastLeg)],
       endsParallel: false,
