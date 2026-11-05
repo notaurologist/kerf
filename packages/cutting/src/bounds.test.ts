@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { firstFitDecreasing } from './baseline.ts';
-import { materialBound, relaxation } from './bounds.ts';
+import { materialBound, OutOfTime, relaxation } from './bounds.ts';
 import { measure } from './check.ts';
 import type { Instance } from './instance.ts';
 import { benchmarkInstances } from './sources.ts';
@@ -49,6 +49,36 @@ describe('bounds on hand-worked examples', () => {
     expect(lp.prices[1]).toBeCloseTo(4, 9);
     expect(materialBound(instance)).toBe(32);
     expect(measure(firstFitDecreasing(instance)).feet).toBe(36);
+  });
+
+  it('reaches the same optimum from seed patterns, cut down to the pieces it has', () => {
+    const instance: Instance = {
+      nominal: 'x',
+      lengths: [8, 10],
+      pieces: pieces(40, 100, 40),
+      kerf: 0.125,
+      trimPerEnd: 0.5,
+    };
+    // A seed of two 40" pieces on an 8' board, and one with a length this instance lacks.
+    const seed = [
+      { feet: 8, pieces: new Map([[40, 2]]) },
+      { feet: 10, pieces: new Map([[55, 1]]) },
+    ];
+    const seeded = relaxation(instance, { seed });
+    expect(seeded.value).toBeCloseTo(relaxation(instance).value, 9);
+    expect(seeded.value).toBeCloseTo(10 + 2 * 4, 9);
+    expect(seeded.patterns).toContainEqual({ feet: 8, counts: [0, 2] });
+  });
+
+  it('stops at its deadline', () => {
+    const instance: Instance = {
+      nominal: 'x',
+      lengths: [8],
+      pieces: pieces(40),
+      kerf: 0,
+      trimPerEnd: 0,
+    };
+    expect(() => relaxation(instance, { deadline: 0 })).toThrow(OutOfTime);
   });
 
   it('leaves out pieces no length holds', () => {

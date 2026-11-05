@@ -1,6 +1,6 @@
 # Cut optimization
 
-Status: in progress (November 2026). Issue #544, steps #662 to #665. Code in `packages/cutting` on `explore/cut-optimization`; nothing in `apps/` imports it.
+Status: in progress (November 2026). Steps 1 to 3 done. Issue #544, steps #662 to #665. Code in `packages/cutting` on `explore/cut-optimization`; nothing in `apps/` imports it.
 
 ## Question
 
@@ -44,9 +44,17 @@ With 200 draws per template and seed 544, the schemas and templates accept about
 Every buyable length is a whole number of feet, so a plan's total is a multiple of the lengths' greatest common divisor (2 ft for 8, 10, 12, 14, 16), and each bound rounds up to the next multiple.
 
 - **Material** (`materialBound`): the least total of lengths whose room after trim covers every piece and its kerf, ignoring how pieces divide among boards. A small dynamic program over total feet.
-- **Linear relaxation** (`relaxation`): the cutting-stock linear program by column generation (Gilmore and Gomory, 1961 and 1963). Minimize the feet of the boards cut, Σ feet(p)·x(p), subject to Σ counts(p, i)·x(p) ≥ demand(i) for each piece length i. It starts from one single-length pattern per piece length and solves the dual, max Σ demand(i)·price(i) subject to Σ counts(p, i)·price(i) ≤ feet(p), whose slack basis is a feasible start, so the simplex (`simplex.ts`, Bland's rule) needs no first phase. For each buyable length a bounded knapsack finds the pattern worth most at the current prices. A pattern worth more than its feet enters; when none does, the prices are optimal. The knapsack (`knapsack.ts`) keeps the (weight, value) pairs no other beats on both, so piece lengths in fractions of an inch stay exact (hard rule 4).
+- **Linear relaxation** (`relaxation`): the cutting-stock linear program by column generation (Gilmore and Gomory, 1961 and 1963). Minimize the feet of the boards cut, Σ feet(p)·x(p), subject to Σ counts(p, i)·x(p) ≥ demand(i) for each piece length i. It starts from one single-length pattern per piece length and solves the dual, max Σ demand(i)·price(i) subject to Σ counts(p, i)·price(i) ≤ feet(p), whose slack basis is a feasible start, so the simplex (`simplex.ts`, Bland's rule) needs no first phase. For each buyable length a bounded knapsack finds the pattern worth most at the current prices. A pattern worth more than its feet enters; when none does, the prices are optimal. The knapsack (`knapsack.ts`) is a branch-and-bound over counts, most value per inch first, cut by the fractional bound (Horowitz and Sahni, 1974; Martello and Toth, 1990). It works on the weights as given, so piece lengths in fractions of an inch stay exact (hard rule 4). A dynamic program over (weight, value) pairs came first and was exact too, but with many short pieces it kept tens of thousands of pairs: about 470 ms a call on one workbench instance, against 8 ms for the branch-and-bound, which took that instance's root relaxation from 27 s to 0.4 s. A test checks the knapsack against trying every count on 300 random cases.
 
 Tests check both bounds on hand-worked examples and, on every benchmark instance from the examples and 30 draws per template, that neither bound exceeds the baseline's feet, that the relaxation's boards cover every piece at its stated cost, that no pattern is worth more than its feet at the final prices, and that the prices value the pieces at the relaxation's optimum (strong duality).
+
+## Exact method
+
+`solveExact` is branch-and-bound over boards. A node holds the pieces still to place, counted by length. It branches on the longest length left: some board must hold one of those pieces, so it tries every board that does, cut from the shortest buyable length that holds it, with no remaining piece that would still fit on it. Skipping boards with room for another piece loses no plan, since that piece could move there from its own board at no cost. A node is pruned when its feet so far plus a lower bound on what is left cannot beat the best plan by at least one step: the material bound first, as it is cheap, then the relaxation of what is left. Every residual relaxation starts from the root's patterns, which took one workbench node from about 400 ms to a few rounds. Nodes with the same pieces left, reached again at no fewer feet, are skipped. The search starts from the baseline's plan and stops when a plan meets the root's bound or the time limit runs out.
+
+Branch-and-price was the alternative: branching inside column generation (Vance, Barnhart, Johnson and Nemhauser, 1994). It needs branching rules the knapsack can respect. With at most a few hundred pieces in a few dozen lengths, branching on boards is simpler, and the residual relaxations prune just as hard.
+
+The search proves the fewest feet. Among plans with the same feet it keeps the one with fewest boards it has found, but does not search for fewer boards at the same feet.
 
 ## Report
 
@@ -64,4 +72,18 @@ With the bounds, on 260 instances (200 draws per template, seed 544):
 | First-fit decreasing, total | 18,137 |
 | Over the bound | 377 (2.1%) |
 
-The baseline meets the bound on 186 instances and is over it on 74. Being over does not prove the baseline loses: the relaxation can be below the best integer plan. The exact method in step 3 settles each open instance. The material bound is never above the relaxation on these instances.
+The baseline meets the bound on 186 instances and is over it on 74. The material bound is never above the relaxation on these instances.
+
+With the exact method, 5 seconds per instance:
+
+| Template | Instances | Baseline (ft) | Exact (ft) | Best bound (ft) | Baseline beaten | Stopped |
+|---|---|---|---|---|---|---|
+| Swing set | 154 | 3,912 | 3,892 | 3,892 | 5 | 0 |
+| Record cabinet | 84 | 3,683 | 3,560 | 3,560 | 47 | 0 |
+| Workbench | 22 | 10,542 | 10,330 | 10,308 | 20 | 7 |
+| All | 260 | 18,137 | 17,782 | 17,760 | 72 | 7 |
+
+- The search proves 253 of 260 instances. On every one of them the best plan meets the relaxation's bound rounded up to a whole step, so on these instances the relaxation was never loose. The 7 it stopped on are large workbench instances (173 to 249 pieces), together within 22 ft of their bounds.
+- Today's grouping buys 355 ft more than the exact method, 2.0%: 0.5% on the swing set, 3.5% on the record cabinet, and 2.1% on the workbench.
+- The exact plans use 47 more boards in all (1,926 against 1,879): the same number on the swing set, 32 more on the record cabinet, and 15 more on the workbench. They buy shorter boards and fill them better.
+- The baseline takes under 10 ms for all 260 instances. The exact method takes about 54 s in all: 35 s on the 7 instances it stopped on, and most of the rest on root relaxations of the other large workbench instances. 186 instances need no search, since the baseline already meets the bound.

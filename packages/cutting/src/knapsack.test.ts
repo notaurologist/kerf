@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { knapsack } from './knapsack.ts';
+import { type KnapsackItem, knapsack } from './knapsack.ts';
+import { seeded } from './random.ts';
+
+/** Every count of every item, for checking the search on small cases. */
+function bruteForce(items: readonly KnapsackItem[], capacity: number): number {
+  let best = 0;
+  const visit = (i: number, weight: number, value: number) => {
+    if (weight > capacity + 1e-9) return;
+    if (i === items.length) {
+      best = Math.max(best, value);
+      return;
+    }
+    const item = items[i] as KnapsackItem;
+    for (let n = 0; n <= item.limit; n++)
+      visit(i + 1, weight + n * item.weight, value + n * item.value);
+  };
+  visit(0, 0, 0);
+  return best;
+}
 
 describe('knapsack', () => {
   // Capacity 10. Weights 5, 4, 6, 3 worth 10, 40, 30, 50, one of each. By hand: 4 + 3 = 7 is worth
@@ -21,5 +39,25 @@ describe('knapsack', () => {
     expect(packed.counts).toEqual([2]);
     expect(packed.weight).toBe(80.25);
     expect(knapsack([{ weight: 40.125, value: 4, limit: 1 }], 95).counts).toEqual([1]);
+  });
+
+  it('finds the best value on random cases, as trying every count does', () => {
+    const r = seeded(663);
+    for (let trial = 0; trial < 300; trial++) {
+      const items = Array.from({ length: r.int(1, 6) }, () => ({
+        weight: r.between(5, 70),
+        value: r.between(0, 6),
+        limit: r.int(0, 4),
+      }));
+      const capacity = r.between(20, 120);
+      const packed = knapsack(items, capacity);
+      expect(packed.value).toBeCloseTo(bruteForce(items, capacity), 9);
+      const weight = packed.counts.reduce((s, n, i) => s + n * (items[i]?.weight ?? 0), 0);
+      expect(weight).toBeLessThanOrEqual(capacity + 1e-9);
+      expect(packed.weight).toBeCloseTo(weight, 9);
+      for (const [i, n] of packed.counts.entries()) {
+        expect(n).toBeLessThanOrEqual(items[i]?.limit ?? 0);
+      }
+    }
   });
 });
