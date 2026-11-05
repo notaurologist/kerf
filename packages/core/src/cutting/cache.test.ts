@@ -82,4 +82,12 @@ describe('cached', () => {
     solve(b, { workLimit: 1e6 });
     expect(searches()).toBe(4);
   });
+
+  it('searches again after it is cleared', () => {
+    const { solve, searches } = counted();
+    const first = solve(INSTANCE, { workLimit: 1e6 });
+    solve.clear();
+    expect(solve(INSTANCE, { workLimit: 1e6 })).toEqual(first);
+    expect(searches()).toBe(2);
+  });
 });
