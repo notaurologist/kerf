@@ -140,9 +140,9 @@ const RUNS = 1000;
 const BUDGET_MS = 2000;
 /**
  * The test's own time: a few hundred plans, each of which may spend the search's work limit, take
- * about a minute for the workbench.
+ * about a minute for the workbench on a development machine and about four times that on CI.
  */
-const TEST_TIMEOUT_MS = 180_000;
+const TEST_TIMEOUT_MS = 600_000;
 
 /** Every number in a schema, by its path, with the limits the schema sets. */
 function numbers(schema: z.ZodType, path = ''): { path: string; min: number; max: number }[] {
