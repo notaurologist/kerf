@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { scrollBelowBars } from '../ui/index.ts';
 
 // Focus when moving between the plan's sections (#156). Each section is its own screen, so after
 // a move focus goes to the new section's heading, as a new page would start at its top. A link
@@ -48,10 +49,11 @@ export function usePlanMoves(section: string, focusId: string) {
       window.scrollTo(0, 0);
       target.focus({ preventScroll: true });
     } else {
-      // A heading further in leads what follows it; anything else, such as a row, is centered
-      // so what is around it shows too.
+      // A heading further in leads what follows it, so it goes just below the bars at the top;
+      // anything else, such as a row, is centered so what is around it shows too.
       target.focus({ preventScroll: true });
-      target.scrollIntoView({ block: /^H[1-6]$/.test(target.tagName) ? 'start' : 'center' });
+      if (/^H[1-6]$/.test(target.tagName)) scrollBelowBars(target);
+      else target.scrollIntoView({ block: 'center' });
     }
   }, [section, focusId]);
 }
