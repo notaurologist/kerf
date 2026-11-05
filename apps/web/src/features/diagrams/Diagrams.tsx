@@ -1,6 +1,6 @@
 import { type CutListRow, geometry } from '@kerf/core';
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { type ApiResult, CONNECTION_MESSAGE, describeError, failureOf } from '../../lib/api.ts';
+import { type ApiResult, describeError, failureOf, SLOW_MESSAGE } from '../../lib/api.ts';
 import type { DrawingsState, StepDrawingState } from '../../lib/drawings.ts';
 import { useLatest } from '../../lib/latest.ts';
 import { cutDetailHeadingId, cutDetailId } from '../../lib/show.ts';
@@ -402,9 +402,7 @@ export function DrawingsWaiting(props: { state: DrawingsState | StepDrawingState
     </Stack>
   );
   if (state.state === 'loading') {
-    return (
-      <Skeleton label="Loading drawings…" stuck={retry(CONNECTION_MESSAGE, true)} shape="page" />
-    );
+    return <Skeleton label="Loading drawings…" stuck={retry(SLOW_MESSAGE, true)} shape="page" />;
   }
   const failure = failureOf(state.error);
   return retry(`The drawings could not be loaded. ${failure.message}`, failure.connection);

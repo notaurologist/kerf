@@ -54,10 +54,19 @@ describe('a drawing wider than its box', () => {
     expect(wrap.dataset.hidden).toBe('start');
   });
 
-  it('marks nothing when the drawing fits', () => {
+  it('can be reached by keyboard, as a region named for the drawing', () => {
+    const { wrap } = box();
+    expect(wrap.tabIndex).toBe(0);
+    expect(wrap.getAttribute('role')).toBe('region');
+    expect(wrap.getAttribute('aria-label')).toBe('Sample, scrolls sideways');
+  });
+
+  it('marks nothing when the drawing fits, and is not a stop for the keyboard', () => {
     sizes.scroll = 343;
     const { wrap } = box();
     expect(wrap.dataset.hidden).toBeUndefined();
+    expect(wrap.hasAttribute('tabindex')).toBe(false);
+    expect(wrap.hasAttribute('role')).toBe(false);
     sizes.scroll = 560;
   });
 });

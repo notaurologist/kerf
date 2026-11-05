@@ -4,6 +4,7 @@
 export { drawingInMove, sharedFrame, useAssemblyMotion } from './assemblyMotion.ts';
 export { Button, ButtonLink, EqualButtons, IconButton, IconButtonLink } from './Button.tsx';
 export { InlineConfirm, useReturnFocus } from './Confirm.tsx';
+export { Contained } from './Contained.tsx';
 export { SectionPager, WithContents } from './Contents.tsx';
 export { DefinitionFigure, Definitions } from './Definitions.tsx';
 export { Diagram } from './Diagram.tsx';
