@@ -7,7 +7,7 @@ import {
   Skeleton,
   type SkeletonShape,
 } from '../ui/index.ts';
-import { type ApiError, CONNECTION_MESSAGE, failureOf } from './api.ts';
+import { type ApiError, failureOf, SLOW_MESSAGE } from './api.ts';
 import { href } from './route.ts';
 import type { LoadState } from './useLoad.ts';
 
@@ -46,7 +46,7 @@ export function Loaded<T>(props: {
         shape={props.shape}
         stuck={
           <ProblemScreen title={props.title} icon="connection" onRetry={retry} back={back}>
-            {CONNECTION_MESSAGE}
+            {SLOW_MESSAGE}
           </ProblemScreen>
         }
       />

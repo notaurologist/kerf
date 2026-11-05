@@ -4,6 +4,7 @@ import {
   groupHardware,
   type HardwareLine,
   type LumberPlan,
+  lumberLineKey,
   type Replacement,
   readingsBesideHardware,
   readingsBesideLumber,
@@ -107,7 +108,7 @@ export function ShoppingList(props: {
             keepTable
             narrow
             rows={lumber.lines}
-            rowKey={(l) => `${l.nominal}/${l.feet}`}
+            rowKey={lumberLineKey}
             // What to buy instead (#450) changes with the margins, which the review marks.
             rowChanged={(l) =>
               ['count', 'nominal', 'feet', 'boardFeet', 'notes'].some((key) =>

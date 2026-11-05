@@ -21,7 +21,7 @@ describe('Skeleton', () => {
       <Skeleton
         label="Loading project…"
         shape="plan"
-        stuck={<p>Kerf could not reach the server.</p>}
+        stuck={<p>Kerf is still waiting for the server.</p>}
       />,
     );
     const skeleton = () => container.querySelector('.k-skeleton');
@@ -35,6 +35,6 @@ describe('Skeleton', () => {
     );
     after(STUCK_MS - LONG_WAIT_MS);
     expect(skeleton()).toBeNull();
-    expect(container.textContent).toBe('Kerf could not reach the server.');
+    expect(container.textContent).toBe('Kerf is still waiting for the server.');
   });
 });
