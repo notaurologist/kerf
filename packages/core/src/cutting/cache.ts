@@ -14,10 +14,13 @@ type Solve = (instance: CutInstance, options: { workLimit: number }) => Solved;
 
 const copy = (solved: Solved): Solved => structuredClone(solved);
 
-/** A cache of at most `size` instances in front of `solve`, least recently used dropped first. */
-export function cached(solve: Solve, size: number): Solve {
+/**
+ * A cache of at most `size` instances in front of `solve`, least recently used dropped first.
+ * `clear` empties it, so a measurement can pay for every search, as a new server instance does.
+ */
+export function cached(solve: Solve, size: number): Solve & { clear: () => void } {
   const entries = new Map<string, { workLimit: number; solved: Solved }[]>();
-  return (instance, { workLimit }) => {
+  const lookup: Solve = (instance, { workLimit }) => {
     const key = JSON.stringify([
       instance.lengths,
       instance.pieces,
@@ -41,10 +44,11 @@ export function cached(solve: Solve, size: number): Solve {
     }
     return solved;
   };
+  return Object.assign(lookup, { clear: () => entries.clear() });
 }
 
 /**
  * `solveExact`, cached across calls. A plan with a few dozen stocks fits many times over, and a
  * cached plan holds only piece indexes, so the cache stays small.
  */
-export const solveCached: Solve = cached(solveExact, 200);
+export const solveCached = cached(solveExact, 200);
