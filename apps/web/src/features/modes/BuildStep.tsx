@@ -48,6 +48,8 @@ export interface StepLinks {
   steps: string;
   step: (stepId: string) => string;
   piece: (stepId: string, partId: string) => string;
+  /** A sub-assembly's view on the diagrams page (#653). */
+  subAssembly: (groupId: string) => string;
 }
 
 /** Where you are, with a way back: the step list from a step, the step from a cut card (#136). */
@@ -115,6 +117,8 @@ export function StepScreen(props: {
   drawings: geometry.Drawings | null;
   /** The step's action drawing, which comes in a request of its own; null while it has none. */
   action: geometry.Drawing | null;
+  /** The plan's sub-assemblies; a step that puts one together links to its view (#653). */
+  groups: readonly geometry.SubAssemblySummary[];
   ticks: Ticks;
   links: StepLinks;
 }) {
@@ -142,6 +146,7 @@ export function StepScreen(props: {
         drawing={drawing && <Diagram drawing={drawing} label={drawing.description} />}
       >
         <StepBody step={step} rows={plan.cutList} cutEnds={plan.cutEnds} withoutBoard />
+        <GroupLinks groups={props.groups.filter((g) => g.stepId === step.id)} links={links} />
       </StepLayout>
       {/* Undoing is a full-size control (#133), on its own line apart from Back and Next. */}
       {done && (
@@ -176,6 +181,23 @@ export function StepScreen(props: {
         )}
       </Cluster>
     </>
+  );
+}
+
+/**
+ * Links to the views of what a step puts together, each taken fully apart on the diagrams page
+ * (#653). The step's own drawing stays as it is: it shows the parts among what is already built.
+ */
+function GroupLinks(props: { groups: readonly geometry.SubAssemblySummary[]; links: StepLinks }) {
+  if (props.groups.length === 0) return null;
+  return (
+    <PlainList>
+      {props.groups.map((g) => (
+        <li key={g.id}>
+          <a href={props.links.subAssembly(g.id)}>See the {g.title.toLowerCase()} taken apart</a>
+        </li>
+      ))}
+    </PlainList>
   );
 }
 

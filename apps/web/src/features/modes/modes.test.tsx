@@ -224,6 +224,49 @@ describe('Building mode', () => {
     expect(new Set(emphasized)).toEqual(new Set(['beam']));
   });
 
+  it('links each step that puts a sub-assembly together to its view on the diagrams page (#653)', () => {
+    const bench = TEMPLATES.find((t) => t.id === 'workbench');
+    const benchExample = bench?.examples[0];
+    if (!bench || !benchExample) throw new Error('no workbench');
+    const benchMade = createSnapshot(bench, benchExample.params, benchExample.structuralInputs);
+    if (!benchMade.ok) throw new Error('worked example does not generate');
+    n++;
+    const p = projectFrom(JSON.parse(JSON.stringify(benchMade.output)), {
+      id: `6f1c2a3e-0000-4000-8000-${String(n).padStart(12, '0')}`,
+      templateId: bench.id,
+    });
+    const linksOn = (step: string) => {
+      const html = render(
+        <ModeView
+          route={{ screen: 'build-step', id: p.id, step }}
+          project={p}
+          drawings={loadedDrawings(p)}
+        />,
+      );
+      return [...html.matchAll(/<a href="([^"]+)">(See the [^<]+)<\/a>/g)].map((m) => [
+        m[1]?.replaceAll('&amp;', '&'),
+        m[2],
+      ]);
+    };
+    const diagrams = (group: string) => `#/projects/${p.id}/diagrams?group=${group}`;
+    expect(linksOn('end-frames')).toEqual([
+      [diagrams('left-end-frame'), 'See the left end frame taken apart'],
+      [diagrams('right-end-frame'), 'See the right end frame taken apart'],
+    ]);
+    expect(linksOn('drawer-screws')).toEqual([
+      [diagrams('upper-drawer'), 'See the upper drawer taken apart'],
+      [diagrams('lower-drawer'), 'See the lower drawer taken apart'],
+    ]);
+    expect(linksOn('doors')).toEqual([[diagrams('door'), 'See the door taken apart']]);
+    // Other steps that join parts, which a group could have named; cutting steps join none.
+    const others = (p.steps?.steps ?? [])
+      .filter((s) => !s.board)
+      .map((s) => s.id)
+      .filter((id) => !['end-frames', 'drawer-screws', 'doors'].includes(id));
+    expect(others.length).toBeGreaterThan(0);
+    for (const step of others) expect(linksOn(step)).toEqual([]);
+  });
+
   it('sets site work beside the site layout, and a step with neither on its own', () => {
     const p = project();
     const site = render(

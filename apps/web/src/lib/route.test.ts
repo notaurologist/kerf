@@ -90,6 +90,12 @@ describe('parseRoute', () => {
       `#/projects/${ID}/diagrams?part=leg%2Ffront`,
       { screen: 'project', id: ID, section: 'diagrams', part: 'leg/front' },
     ],
+    [
+      `#/projects/${ID}/diagrams?part=foot&group=left-end-frame`,
+      { screen: 'project', id: ID, section: 'diagrams', part: 'foot', group: 'left-end-frame' },
+    ],
+    // Only the diagrams open a sub-assembly (#653).
+    [`#/projects/${ID}/cut-list?group=door`, { screen: 'project', id: ID, section: 'cut-list' }],
     // The summary is the project's own address, and has no part to select.
     [`#/projects/${ID}/summary`, { screen: 'not-found' }],
     [`#/projects/${ID}?part=beam`, { screen: 'project', id: ID }],
@@ -155,6 +161,10 @@ describe('parseRoute', () => {
       expect(parseRoute(href(route))).toEqual(route);
       const withPart: Route = { ...route, part: 'leg-back' };
       expect(parseRoute(href(withPart))).toEqual(withPart);
+      if (id === 'diagrams') {
+        const withGroup: Route = { ...withPart, group: 'upper-drawer' };
+        expect(parseRoute(href(withGroup))).toEqual(withGroup);
+      }
       const edit: Route = { screen: 'edit-project', id: ID, from: id };
       expect(parseRoute(href(edit))).toEqual(edit);
     }

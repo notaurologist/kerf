@@ -104,6 +104,9 @@ describe('screenKey', () => {
     expect(screenKey({ screen: 'project', id: 'a', section: 'cut-list', part: 'p' })).toBe(
       screenKey({ screen: 'project', id: 'a' }),
     );
+    expect(screenKey({ screen: 'project', id: 'a', section: 'diagrams', group: 'door' })).toBe(
+      screenKey({ screen: 'project', id: 'a' }),
+    );
     expect(screenKey({ screen: 'edit-project', id: 'a', from: 'cut-list' })).toBe(
       screenKey({ screen: 'edit-project', id: 'a' }),
     );

@@ -107,6 +107,7 @@ export function ModeView(props: {
   const read = useReadProject(project);
   const { plan } = read;
   const drawings = props.drawings.state === 'ready' ? props.drawings.value.drawings : null;
+  const groups = props.drawings.state === 'ready' ? props.drawings.value.subAssemblies : [];
   const steps = read.steps?.steps ?? [];
   const ticks = useTicks(project.id, project.ticks, project.revision);
   // "Saved." from Edit, opened here for a value read at the store (#390).
@@ -300,6 +301,8 @@ export function ModeView(props: {
     step: stepHref,
     piece: (stepId: string, part: string) =>
       href({ screen: 'build-part', id: project.id, step: stepId, part }),
+    subAssembly: (group: string) =>
+      href({ screen: 'project', id: project.id, section: 'diagrams', group }),
   };
   const stepNotes = <ResetNotes project={project} only={(n) => n.stepIds.includes(step.id)} />;
   if (route.screen === 'build-part') {
@@ -328,6 +331,7 @@ export function ModeView(props: {
         plan={plan.plan}
         drawings={drawings}
         action={props.stepDrawing?.state === 'ready' ? props.stepDrawing.value : null}
+        groups={groups}
         ticks={ticks}
         links={links}
       />

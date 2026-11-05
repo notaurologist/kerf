@@ -27,8 +27,9 @@ export type Route =
   | { screen: 'pick-template' }
   // The plan, one section per screen (#156). No section is the one the project opens on (#356).
   // `part` is the part selected in the drawings and the cut list, kept in the address so a reload
-  // keeps it.
-  | { screen: 'project'; id: string; section?: PlanSectionId; part?: string }
+  // keeps it. `group` is the sub-assembly open in the diagrams (#653), so a build step can link
+  // to it.
+  | { screen: 'project'; id: string; section?: PlanSectionId; part?: string; group?: string }
   // `from` is the section Edit was opened from, or Shopping or Building mode, which Save, Cancel,
   // and the back link return to.
   // `field` is the id of a field to start on, such as an input a check needs.
@@ -109,7 +110,12 @@ export function parseRoute(hash: string): Route {
   }
   if (isPlanSection(third)) {
     return parts.length === 3
-      ? project(second, third, search.get('part'))
+      ? project(
+          second,
+          third,
+          search.get('part'),
+          third === 'diagrams' ? search.get('group') : null,
+        )
       : { screen: 'not-found' };
   }
   if (third === 'shop' && parts.length === 3) return { screen: 'shop', id: second };
@@ -132,12 +138,18 @@ function startOf(search: URLSearchParams): ProjectStart | undefined {
   return search.has('empty') ? { kind: 'empty' } : undefined;
 }
 
-function project(id: string, section: PlanSectionId | undefined, part: string | null): Route {
+function project(
+  id: string,
+  section: PlanSectionId | undefined,
+  part: string | null,
+  group: string | null = null,
+): Route {
   return {
     screen: 'project',
     id,
     ...(section ? { section } : {}),
     ...(part ? { part } : {}),
+    ...(group ? { group } : {}),
   };
 }
 
@@ -162,8 +174,11 @@ export function href(route: Exclude<Route, { screen: 'not-found' }>): string {
     }
     case 'project': {
       const section = route.section ? `/${encodeURIComponent(route.section)}` : '';
-      const part = route.part ? `?part=${encodeURIComponent(route.part)}` : '';
-      return `#/projects/${encodeURIComponent(route.id)}${section}${part}`;
+      const query = new URLSearchParams({
+        ...(route.part ? { part: route.part } : {}),
+        ...(route.group ? { group: route.group } : {}),
+      }).toString();
+      return `#/projects/${encodeURIComponent(route.id)}${section}${query ? `?${query}` : ''}`;
     }
     case 'edit-project': {
       const query = new URLSearchParams({

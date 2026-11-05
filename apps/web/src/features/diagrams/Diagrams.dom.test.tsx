@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import {
+  type CutListRow,
   cornerViews,
   createSnapshot,
   findTemplate,
@@ -8,7 +9,7 @@ import {
   subAssemblyDrawings,
   type TemplateDefinition,
 } from '@kerf/core';
-import { act } from 'react';
+import { act, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readPlan } from '../../lib/plan.ts';
 import { byText, click, mount } from '../../test/dom.tsx';
@@ -502,6 +503,35 @@ describe('the corner the views are seen from (#364)', () => {
   });
 });
 
+/** The diagrams with the open group kept as the address keeps it. */
+function Grouped(props: {
+  drawings: geometry.Drawings;
+  rows: readonly CutListRow[];
+  load: (id: string) => Promise<unknown>;
+  plan: string;
+  groups: readonly geometry.SubAssemblySummary[];
+  arrive: string | null;
+}) {
+  const [open, setOpen] = useState(props.arrive);
+  return (
+    <Diagrams
+      drawings={props.drawings}
+      rows={props.rows}
+      describedBy="cut-list"
+      selected={null}
+      onSelect={() => {}}
+      partHref={(id) => `#/projects/abc/cut-list?part=${id}`}
+      subAssemblies={{
+        key: props.plan,
+        list: props.groups,
+        load: props.load as never,
+        open,
+        onOpen: setOpen,
+      }}
+    />
+  );
+}
+
 describe('the sub-assemblies (#652)', () => {
   const bench = findTemplate('workbench') as TemplateDefinition;
   const benchMade = createSnapshot(
@@ -523,19 +553,20 @@ describe('the sub-assemblies (#652)', () => {
       JSON.stringify(subAssemblyDrawings(bench, outputs, id)),
     ) as geometry.SubAssemblyDrawings;
 
+  const benchRows = benchPlan.plan.cutList;
   const withGroups = (
     load: (id: string) => Promise<unknown>,
-    key = 'abc/1',
+    plan = 'abc/1',
     groups: readonly geometry.SubAssemblySummary[] = list,
+    arrive: string | null = null,
   ) => (
-    <Diagrams
+    <Grouped
       drawings={benchDrawings}
-      rows={benchPlan.plan.cutList}
-      describedBy="cut-list"
-      selected={null}
-      onSelect={() => {}}
-      partHref={(id) => `#/projects/abc/cut-list?part=${id}`}
-      subAssemblies={{ key, list: groups, load: load as never }}
+      rows={benchRows}
+      load={load}
+      plan={plan}
+      groups={groups}
+      arrive={arrive}
     />
   );
   const groupSection = (container: HTMLElement) => {
@@ -635,23 +666,82 @@ describe('the sub-assemblies (#652)', () => {
     vi.restoreAllMocks();
   });
 
-  it('says so when a group cannot be fetched, and closes on a changed plan', async () => {
-    const load = async () => ({
-      ok: false,
-      error: { kind: 'failed', status: 500, message: 'Server error.' },
-    });
-    const { container, rerender } = mount(withGroups(load));
+  it('says so when a group cannot be fetched, and asks again when it is opened again', async () => {
+    let fails = true;
+    const asked: string[] = [];
+    const load = async (id: string) => {
+      asked.push(id);
+      return fails
+        ? { ok: false, error: { kind: 'failed', status: 500, message: 'Server error.' } }
+        : { ok: true, value: drawn(id) };
+    };
+    const { container } = mount(withGroups(load));
     await open(container, 'Lower drawer');
     const status = [...groupSection(container).querySelectorAll('[role="status"]')];
     expect(status.map((s) => s.textContent)).toEqual([
       expect.stringContaining('That sub-assembly could not be drawn.'),
     ]);
-    const ok = async (id: string) => ({ ok: true, value: drawn(id) });
-    rerender(withGroups(ok, 'abc/1'));
+    fails = false;
+    await open(container, 'Lower drawer');
+    await open(container, 'Lower drawer');
+    expect(shownLabel(container)).toHaveLength(1);
+    expect(asked).toEqual(['lower-drawer', 'lower-drawer']);
+  });
+
+  it('draws the open group afresh for a changed plan, and shows none the plan no longer has', async () => {
+    const asked: string[] = [];
+    const load = async (id: string) => {
+      asked.push(id);
+      return { ok: true, value: drawn(id) };
+    };
+    const { container, rerender } = mount(withGroups(load, 'abc/1'));
     await open(container, 'Door (2 alike)');
     expect(shownLabel(container)).toHaveLength(1);
-    rerender(withGroups(ok, 'abc/2'));
+    await act(async () => {
+      rerender(withGroups(load, 'abc/2'));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(shownLabel(container)).toHaveLength(1);
+    expect(asked).toEqual(['door', 'door']);
+    rerender(
+      withGroups(
+        load,
+        'abc/3',
+        list.filter((g) => g.id !== 'door'),
+      ),
+    );
     expect(shownLabel(container)).toEqual([]);
     expect(groupSection(container).querySelector('h4')).toBeNull();
+  });
+
+  it('opens the group in the address on arrival, and moves focus to it once drawn (#653)', async () => {
+    const focused: string[] = [];
+    const { container } = mount(
+      withGroups(
+        async (id) => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+          return { ok: true, value: drawn(id) };
+        },
+        'abc/1',
+        list,
+        'upper-drawer',
+      ),
+    );
+    container.addEventListener('focusin', (e) => focused.push((e.target as HTMLElement).id));
+    expect(groupSection(container).querySelector('[role="status"]')?.textContent).toBe(
+      'Drawing the upper drawer…',
+    );
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+    expect(
+      byText(groupSection(container), 'button', 'Upper drawer (2 alike)').getAttribute(
+        'aria-pressed',
+      ),
+    ).toBe('true');
+    expect(shownLabel(container)).toEqual([expect.stringMatching(/^Isometric view\. /)]);
+    expect(focused).toEqual(['sub-assembly-heading']);
+    await open(container, 'Lower drawer');
+    expect(focused).toEqual(['sub-assembly-heading']);
   });
 });
