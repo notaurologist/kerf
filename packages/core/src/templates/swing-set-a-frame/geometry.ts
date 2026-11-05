@@ -99,7 +99,7 @@ export const FrameGeometry = z.object({
     woodLeftAtTop: z.number(),
     woodLeftAtBolt: z.number(),
   }),
-  /** Through both legs and the beam, at mid-depth of the beam. */
+  /** The leg-to-beam bolts' grip, through both legs and the beam, from the joints. */
   boltGrip: z.number(),
   back: LegGeometry,
   front: LegGeometry,
@@ -130,8 +130,11 @@ export type FrameGeometry = z.infer<typeof FrameGeometry>;
 
 type LegShape = Omit<LegGeometry, 'edgeLength' | 'overallLength'>;
 
-/** The geometry derived before the joints: everything a plan stores but the lengths they give. */
-export type FrameShape = Omit<FrameGeometry, 'back' | 'front' | 'crossbar' | 'gusset'> & {
+/** The geometry derived before the joints: everything a plan stores but what they give. */
+export type FrameShape = Omit<
+  FrameGeometry,
+  'boltGrip' | 'back' | 'front' | 'crossbar' | 'gusset'
+> & {
   back: LegShape;
   front: LegShape;
   crossbar: Omit<FrameGeometry['crossbar'], 'topEdge' | 'bottomEdge'>;
@@ -145,10 +148,15 @@ interface Cut {
 }
 
 /**
- * The geometry a plan stores, with the lengths the joints give, by part ID. A leg is marked along
- * its reference edge, and a board's top edge is its far edge.
+ * The geometry a plan stores, with what the joints give: the lengths, by part ID, and the
+ * leg-to-beam bolts' grip. A leg is marked along its reference edge, and a board's top edge is its
+ * far edge.
  */
-export function storedGeometry(g: FrameShape, cutOf: (id: string) => Cut): FrameGeometry {
+export function storedGeometry(
+  g: FrameShape,
+  cutOf: (id: string) => Cut,
+  boltGrip: number,
+): FrameGeometry {
   const leg = (shape: LegShape, cut: Cut): LegGeometry => ({
     ...shape,
     edgeLength: cut.edges.reference,
@@ -159,6 +167,7 @@ export function storedGeometry(g: FrameShape, cutOf: (id: string) => Cut): Frame
   // Parsed so it has the stored shape exactly.
   return FrameGeometry.parse({
     ...g,
+    boltGrip,
     back: leg(g.back, cutOf('leg-back')),
     front: leg(g.front, cutOf('leg-front')),
     crossbar: {
@@ -217,7 +226,6 @@ export function frameGeometry(dims: Dimensions, splay: number): FrameShape {
   const a = splay * RAD;
   const sin = Math.sin(a);
   const cos = Math.cos(a);
-  const tan = Math.tan(a);
   const back = leg(dims, splay, dims.k);
   const front = leg(dims, splay, -dims.k);
   const depthAtTop = dims.bd * sin;
@@ -229,7 +237,6 @@ export function frameGeometry(dims: Dimensions, splay: number): FrameShape {
       woodLeftAtTop: dims.w - depthAtTop,
       woodLeftAtBolt: dims.w - (dims.bd / 2) * sin,
     },
-    boltGrip: dims.bw + 2 * (dims.w / cos - (dims.bd / 2) * tan),
     back,
     front,
     footprintDepth: back.outerAtGrade + front.outerAtGrade,

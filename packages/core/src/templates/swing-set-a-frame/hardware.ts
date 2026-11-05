@@ -2,11 +2,12 @@ import type { HardwareItem, Issue } from '../../model/types.ts';
 import { boltHoleDiameter } from '../../structural/boltHoles.ts';
 import { boltLength } from '../../structural/boltLength.ts';
 import { formatLength, formatLimit } from '../../units/length.ts';
-import type { Dimensions, FrameShape } from './geometry.ts';
+import type { Dimensions } from './geometry.ts';
 import type { SwingSetParams } from './params.ts';
 
 // Hardware (docs/templates/swing-set-a-frame.md, Hardware). Sizes and counts are inputs; this
-// computes quantities, grips, and the bolt lengths to buy.
+// computes quantities and the bolt lengths to buy. The grips of the bolts the joints place are
+// theirs (joints.ts).
 
 /** Where each item is found in a store (#59), in the order the checklist shows them. */
 const GROUPS = {
@@ -100,11 +101,15 @@ const HANGERS_COUNT = 4;
  * part of the grip and only the hanger says how thick it is, so the line gives the wood's grip and
  * says to add it, with no length to buy.
  */
-function hangerBolts(p: SwingSetParams, dims: Dimensions): HardwareItem | undefined {
+function hangerBolts(
+  p: SwingSetParams,
+  dims: Dimensions,
+  gripOf: (id: string) => number,
+): HardwareItem | undefined {
   const m = p.hardware.hangerMounting;
   if (m === undefined || m.kind === 'other') return undefined;
   const vertical = m.kind === 'vertical-bolt';
-  const grip = vertical ? dims.bd : dims.bw;
+  const grip = vertical ? gripOf(HANGER_BOLTS) : dims.bw;
   const what = vertical
     ? "the beam's depth, plus the hanger's plate under it"
     : "the beam's breadth, plus the two sides of the hanger's bracket";
@@ -133,23 +138,42 @@ export const HARDWARE_NOTES = [
   'Bolts, washers, and nuts in pressure-treated lumber: hot-dip galvanized steel (zinc coating to ASTM A153), stainless steel, silicon bronze, or copper, or mechanically galvanized steel to ASTM B695 Class 55 or heavier (IRC 2021 R317.3.1).',
 ] as const;
 
-export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameShape): HardwareItem[] {
+/**
+ * The hardware lines, after the joints: `grips` gives the grip of each bolt they place, by hardware
+ * ID. The ply bolts and horizontal hanger bolts are not placed, so their grip is the beam's breadth.
+ */
+export function hardware(
+  p: SwingSetParams,
+  dims: Dimensions,
+  grips: ReadonlyMap<string, number>,
+): HardwareItem[] {
   const h = p.hardware;
+  const gripOf = (id: string) => {
+    const grip = grips.get(id);
+    if (grip === undefined) throw new Error(`The joints place no ${id}.`);
+    return grip;
+  };
   const items: HardwareItem[] = [
-    bolts('leg-beam-bolts', 'Leg-to-beam bolts', FRAMES, h.legBoltDiameter, g.boltGrip),
+    bolts(
+      'leg-beam-bolts',
+      'Leg-to-beam bolts',
+      FRAMES,
+      h.legBoltDiameter,
+      gripOf('leg-beam-bolts'),
+    ),
     bolts(
       'crossbar-bolts',
       'Crossbar bolts',
       JOINTS * h.crossbarBolts.perJoint,
       h.crossbarBolts.diameter,
-      dims.ct + dims.t,
+      gripOf('crossbar-bolts'),
     ),
     bolts(
       'gusset-bolts',
       'Gusset bolts',
       JOINTS * h.gussetBolts.perJoint,
       h.gussetBolts.diameter,
-      dims.gt + dims.t,
+      gripOf('gusset-bolts'),
     ),
   ];
   if (p.beamPlies > 1 && h.plyBolts) {
@@ -157,7 +181,7 @@ export function hardware(p: SwingSetParams, dims: Dimensions, g: FrameShape): Ha
       bolts('ply-bolts', 'Beam ply bolts', h.plyBolts.count, h.plyBolts.diameter, dims.bw),
     );
   }
-  const forHangers = hangerBolts(p, dims);
+  const forHangers = hangerBolts(p, dims, gripOf);
   if (forHangers) items.push(forHangers);
   items.push(
     {
