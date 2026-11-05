@@ -68,6 +68,13 @@ const shared: Record<string, readonly string[]> = {
   'packages/core/src/templates/record-cabinet/template.ts': ['swing'],
 };
 
+// Files outside every template folder that use a template's word in another sense, by file. Each
+// needs a reason.
+const named: Record<string, readonly string[]> = {
+  // Published sources' own titles and URLs: "The Best Height for a Workbench".
+  'packages/core/src/design-values/sources.ts': ['workbench'],
+};
+
 const foreign = TEMPLATES.flatMap((t) =>
   files(join(templatesDir, t.id), { skipTemplates: false }).map((f) => ({
     file: relative(root, f),
@@ -119,7 +126,9 @@ describe('generic code', () => {
   });
 
   it.each(sources)('%s names no template and none of its parts', (file) => {
-    expect(termsIn(readFileSync(join(root, file), 'utf8'), forbidden), file).toEqual([]);
+    const allowed = named[file] ?? [];
+    const words = forbidden.filter((w) => !allowed.includes(w));
+    expect(termsIn(readFileSync(join(root, file), 'utf8'), words), file).toEqual([]);
   });
 });
 

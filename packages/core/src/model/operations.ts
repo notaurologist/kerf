@@ -141,6 +141,11 @@ export const Operation = z.discriminatedUnion('type', [
    */
   z.object({ ...onPart, type: z.literal('stopped-rabbet'), ...dadoFields }),
   /**
+   * A dado at a part's end, open there and at both edges: a rabbet across the end, such as the one
+   * a case side stands in at the end of a case bottom. `length` runs between the edges.
+   */
+  z.object({ ...onPart, type: z.literal('end-rabbet'), ...dadoFields }),
+  /**
    * A dado that reaches no edge, stopped short at both ends, such as a track for a sliding panel.
    * `length` is its long way.
    */
@@ -772,8 +777,8 @@ const AT_EDGE = 1e-9;
 
 /**
  * A dado's operation, from the edges it reaches: two opposite edges make it a through dado, one a
- * stopped dado that runs in from that edge, an end and an edge a stopped rabbet, and none a dado
- * stopped at both ends. Any other dado has no operation type yet and is refused rather than
+ * stopped dado that runs in from that edge, an end and an edge a stopped rabbet, an end and both
+ * edges a rabbet across the end, and none a dado stopped at both ends. Any other dado has no operation type yet and is refused rather than
  * mislabeled.
  */
 function dadoOperation(part: Part, d: Dado, i: number): Operation {
@@ -805,6 +810,9 @@ function dadoOperation(part: Part, d: Dado, i: number): Operation {
   }
   if (uEdges === 1 && vEdges === 1) {
     return { ...base, type: 'stopped-rabbet', length: across.v, width: across.u };
+  }
+  if (uEdges === 1 && vEdges === 2) {
+    return { ...base, type: 'end-rabbet', length: across.v, width: across.u };
   }
   if (uEdges === 0 && vEdges === 0) {
     const [length, width] = across.u >= across.v ? [across.u, across.v] : [across.v, across.u];
@@ -1070,6 +1078,7 @@ export const OPERATION_TYPE_LABELS: Record<OperationType, string> = {
   dado: 'Dado',
   'stopped-dado': 'Stopped dado',
   'stopped-rabbet': 'Stopped rabbet',
+  'end-rabbet': 'Rabbet across the end',
   'double-stopped-dado': 'Dado stopped at both ends',
   'face-groove': 'Groove in a face',
   notch: 'Notch',

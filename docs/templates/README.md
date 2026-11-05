@@ -2,7 +2,7 @@
 
 A template is a project type: a swing set today, a bookshelf or workbench later. It lives in `packages/core/src/templates/<template-id>/` as TypeScript (decision 0008) and gives generic code everything specific to that project type. This guide is the order to work in and the rules at each step. The code it points to is the source of truth for the contract; read it alongside.
 
-Two templates follow it: the swing set (`templates/swing-set-a-frame/`, spec `swing-set-a-frame.md`), a frame of dimension lumber, and the record cabinet (`templates/record-cabinet/`, spec `record-cabinet.md`), a case of edge-glued panels with dadoes. Where the swing set does something only a swing set needs, the guide says so.
+Three templates follow it: the swing set (`templates/swing-set-a-frame/`, spec `swing-set-a-frame.md`), a frame of dimension lumber; the record cabinet (`templates/record-cabinet/`, spec `record-cabinet.md`), a case of edge-glued panels with dadoes; and the workbench (`templates/workbench/`, spec `workbench.md`), strip glue-ups, mortise and tenon, dovetailed drawers, and bought hardware whose figures the owner enters. Where the swing set does something only a swing set needs, the guide says so.
 
 ## 1. Agree the scope
 
