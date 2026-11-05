@@ -296,6 +296,14 @@ export function ProjectEditor(props: {
             </Text>
           </InfoNotice>
         )}
+        {project?.version?.status === 'carry-length' && (
+          <InfoNotice>
+            <Text>
+              Saving changed parameters or structural inputs also plans this project's boards for
+              your carry length now.
+            </Text>
+          </InfoNotice>
+        )}
         {/* The changed numbers beside the header's Save, while the preview is below the form. */}
         <WithAside head={actions} lead={showsPlan && <WhatChanges state={preview} />}>
           <EditorFields

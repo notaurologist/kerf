@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 import type { Drawings, Explode, Isometric, Scene, SubAssembly } from '../geometry/index.ts';
 import type { Plan } from '../outputs/plan.ts';
+import type { OwnerSettings } from '../outputs/shoppingList.ts';
 import type { StepOutline } from '../steps/build.ts';
 import type { CheckResult } from '../structural/types.ts';
 import type { FieldRef, TemplateForm } from './form.ts';
@@ -101,8 +102,15 @@ export interface TemplateDefinition<
    * from stored outputs on read; generic code chooses each operation's method from the inventory.
    */
   steps(outputs: StoredOutputs): StepOutline[];
-  /** Pure: the same parameters and inputs always give the same outputs. */
-  generate(params: Params, structuralInputs: Inputs): GenerateResult<Outputs>;
+  /**
+   * Pure: the same parameters, inputs, and owner settings always give the same outputs. Without
+   * settings, the plan is made as if none were entered.
+   */
+  generate(
+    params: Params,
+    structuralInputs: Inputs,
+    settings?: OwnerSettings,
+  ): GenerateResult<Outputs>;
   /**
    * The shape of this template's stored snapshot. Bumped, with an upgrade and a new fixture,
    * whenever the shape changes (decision 0014). Independent of `version`: a new template version

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { SnapshotUpgrade, TemplateDefinition } from '../model/definition.ts';
 import { fillMissing, SuggestedValue } from '../model/suggested.ts';
 import type { GenerateResult, Issue } from '../model/types.ts';
+import { NO_OWNER_SETTINGS, type OwnerSettings } from '../outputs/shoppingList.ts';
 import { leaveOutDefaults } from './defaults.ts';
 import { type Diff, diff } from './diff.ts';
 
@@ -53,9 +54,10 @@ function generateOrIssue(
   template: TemplateDefinition,
   params: unknown,
   structuralInputs: unknown,
+  settings: OwnerSettings,
 ): GenerateResult<unknown> {
   try {
-    return template.generate(params, structuralInputs);
+    return template.generate(params, structuralInputs, settings);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     return {
@@ -72,15 +74,17 @@ function generateOrIssue(
 }
 
 /**
- * Generates a snapshot with the template's current version, as stored: its outputs leave out each
- * field still at its schema default, which reading fills back in. `suggested` is computed by the
- * caller (`suggestedFor`, `carrySuggested`); generating never depends on it.
+ * Generates a snapshot with the template's current version and the owner's settings, as stored:
+ * its outputs leave out each field still at its schema default, which reading fills back in.
+ * `suggested` is computed by the caller (`suggestedFor`, `carrySuggested`); generating never
+ * depends on it.
  */
 export function createSnapshot(
   template: TemplateDefinition,
   params: unknown,
   structuralInputs: unknown,
   suggested: readonly SuggestedValue[] = [],
+  settings: OwnerSettings = NO_OWNER_SETTINGS,
 ): GenerateResult<ProjectSnapshot> {
   const p = template.params.safeParse(params);
   const i = template.structuralInputs.safeParse(structuralInputs);
@@ -90,7 +94,7 @@ export function createSnapshot(
       issues: [...(p.success ? [] : zodIssues(p.error)), ...(i.success ? [] : zodIssues(i.error))],
     };
   }
-  const generated = generateOrIssue(template, p.data, i.data);
+  const generated = generateOrIssue(template, p.data, i.data, settings);
   if (!generated.ok) return generated;
   return {
     ok: true,
@@ -199,6 +203,12 @@ export function readSnapshot(
   };
 }
 
+/**
+ * What regenerating would change, in the paths of the plan every display shares, with the outputs
+ * it would store; or why it cannot.
+ */
+type Regenerated = ({ ok: true; outputs: unknown } & Diff) | { ok: false; issues: Issue[] };
+
 export type VersionReport =
   | { status: 'current'; version: number }
   | { status: 'ahead'; storedVersion: number; currentVersion: number }
@@ -206,27 +216,43 @@ export type VersionReport =
       status: 'behind';
       storedVersion: number;
       currentVersion: number;
+      regenerated: Regenerated;
+    }
+  | {
       /**
-       * What regenerating with the current version would change, in the paths of the plan every
-       * display shares, with the outputs it would store; or why it cannot.
+       * The plan's template version is current, but its boards were planned with another carry
+       * length than the owner's now (#690). Like a newer version, the plan is never replaced
+       * unasked.
        */
-      regenerated: ({ ok: true; outputs: unknown } & Diff) | { ok: false; issues: Issue[] };
+      status: 'carry-length';
+      version: number;
+      /** The carry length the plan was made with, in inches; null for none. */
+      storedCarryLength: number | null;
+      /** The owner's carry length now, in inches; null for none. */
+      carryLength: number | null;
+      regenerated: Regenerated;
     };
+
+/** The carry length a stored plan's boards were planned with, or null for none. */
+function plannedCarryLength(
+  template: TemplateDefinition,
+  snapshot: ProjectSnapshot,
+): number | null {
+  return template.plan(template.storedOutputs.parse(snapshot.outputs)).lumber.carryLength ?? null;
+}
 
 /**
  * Compares a snapshot, already read (and so in the current shape), with what the template's
- * current version produces from the same parameters and inputs, with what an older plan lacks
- * filled as regenerating would. The limit matches
- * `compareSnapshots`: a plan several versions behind can differ in more than a hundred places.
+ * current version produces from the same parameters and inputs under the owner's settings, with
+ * what an older plan lacks filled as regenerating would. The limit matches `compareSnapshots`: a
+ * plan several versions behind can differ in more than a hundred places.
  */
 export function compareWithCurrent(
   template: TemplateDefinition,
   snapshot: ProjectSnapshot,
+  settings: OwnerSettings = NO_OWNER_SETTINGS,
   limit = 1000,
 ): VersionReport {
-  if (snapshot.templateVersion === template.version) {
-    return { status: 'current', version: template.version };
-  }
   if (snapshot.templateVersion > template.version) {
     return {
       status: 'ahead',
@@ -234,19 +260,35 @@ export function compareWithCurrent(
       currentVersion: template.version,
     };
   }
-  const filled = fillMissing(template, snapshot);
-  const current = createSnapshot(template, filled.params, filled.structuralInputs);
-  return {
-    status: 'behind',
-    storedVersion: snapshot.templateVersion,
-    currentVersion: template.version,
-    regenerated: current.ok
+  const regenerated = (): Regenerated => {
+    const filled = fillMissing(template, snapshot);
+    const current = createSnapshot(template, filled.params, filled.structuralInputs, [], settings);
+    return current.ok
       ? {
           ok: true,
           outputs: current.output.outputs,
           ...compareSnapshots(template, snapshot, current.output, limit),
         }
-      : { ok: false, issues: current.issues },
+      : { ok: false, issues: current.issues };
+  };
+  if (snapshot.templateVersion < template.version) {
+    return {
+      status: 'behind',
+      storedVersion: snapshot.templateVersion,
+      currentVersion: template.version,
+      regenerated: regenerated(),
+    };
+  }
+  const storedCarryLength = plannedCarryLength(template, snapshot);
+  if (storedCarryLength === settings.carryLength) {
+    return { status: 'current', version: template.version };
+  }
+  return {
+    status: 'carry-length',
+    version: template.version,
+    storedCarryLength,
+    carryLength: settings.carryLength,
+    regenerated: regenerated(),
   };
 }
 

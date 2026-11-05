@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Part } from '../../model/types.ts';
 import { cutList } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
-import { planLumber } from '../../outputs/shoppingList.ts';
+import { DEFAULT_BOARD_OPTIONS, planLumber } from '../../outputs/shoppingList.ts';
 import type { CheckResult } from '../../structural/types.ts';
 import { swingSetAFrame } from './definition.ts';
 import { EXAMPLES } from './examples.ts';
@@ -205,6 +205,24 @@ describe('planLumber, built-up beam', () => {
       [16, ['beam', 'crossbar']],
     ]);
     expect(twoBySix[0]?.offcut).toBeCloseTo(192 - 179.743, 3);
+  });
+
+  // With a carry length of 12', no 16's: each 120" ply needs 121.125, over a 10' (120), so a 12'
+  // each, leaving 22.875, too little for a crossbar (58.618). The two crossbars need
+  // 1 + 2 x 58.618 = 118.236, which fits one 10'. 2 x 12 + 10 = 34 ft, 2 ft more than 32.
+  it("says what a plan with no board over 12' costs", () => {
+    const carried = planLumber(
+      parts({
+        ...example,
+        beamStock: '2x6',
+        beamPlies: 2,
+        hardware: { ...example.hardware, plyBolts: { diameter: 0.5, count: 6 } },
+      }),
+      { ...DEFAULT_BOARD_OPTIONS, carryLength: 144 },
+    );
+    const line = carried.lines.find((l) => l.nominal === '2x6');
+    expect([line?.feet, line?.count]).toEqual([16, 2]);
+    expect(line?.notes).toContain(`No boards over 12' 0" buys 2 ft more: 2 × 12' and 1 × 10'.`);
   });
 });
 

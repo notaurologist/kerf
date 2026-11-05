@@ -172,8 +172,12 @@ const SHAPE = swingSetAFrame.snapshotVersion;
 const nextVersion: TemplateDefinition = {
   ...(swingSetAFrame as TemplateDefinition),
   version: CURRENT + 1,
-  generate(p, i) {
-    const result = swingSetAFrame.generate(p as SwingSetParams, i as SwingSetStructuralInputs);
+  generate(p, i, settings) {
+    const result = swingSetAFrame.generate(
+      p as SwingSetParams,
+      i as SwingSetStructuralInputs,
+      settings,
+    );
     if (!result.ok) return result;
     const [first, ...rest] = result.output.cutList;
     return {
@@ -235,6 +239,36 @@ describe('compareWithCurrent', () => {
     };
     const report = compareWithCurrent(stricter, made);
     expect(report).toMatchObject({ status: 'behind', regenerated: { ok: false } });
+  });
+
+  it('reports a plan made with another carry length, and what regenerating with it changes', () => {
+    const template = swingSetAFrame as TemplateDefinition;
+    const report = compareWithCurrent(template, made, { carryLength: 120 });
+    if (report.status !== 'carry-length' || !report.regenerated.ok) {
+      throw new Error('expected carry-length');
+    }
+    expect(report).toMatchObject({ version: CURRENT, storedCarryLength: null, carryLength: 120 });
+    expect(report.regenerated.changes).toContainEqual(
+      expect.objectContaining({ path: 'lumber.carryLength', after: 120 }),
+    );
+
+    const carried = createSnapshot(template, params, inputs, [], { carryLength: 120 });
+    if (!carried.ok) throw new Error('expected a plan');
+    expect(compareWithCurrent(template, carried.output, { carryLength: 120 })).toEqual({
+      status: 'current',
+      version: CURRENT,
+    });
+    expect(compareWithCurrent(template, carried.output)).toMatchObject({
+      status: 'carry-length',
+      storedCarryLength: 120,
+      carryLength: null,
+    });
+  });
+
+  it('regenerates a plan behind the template version with the carry length entered now', () => {
+    const report = compareWithCurrent(nextVersion, made, { carryLength: 120 });
+    if (report.status !== 'behind' || !report.regenerated.ok) throw new Error('expected behind');
+    expect(report.regenerated.outputs).toMatchObject({ lumber: { carryLength: 120 } });
   });
 
   it('reports a snapshot from a newer version than the code as ahead', () => {

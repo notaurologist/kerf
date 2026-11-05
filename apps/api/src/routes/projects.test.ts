@@ -770,8 +770,9 @@ describe('GET /api/export (#21)', () => {
         ])
       ).rows[0]?.snapshot;
     expect(exported.kind).toBe('kerf-export');
-    expect(exported.formatVersion).toBe(3);
+    expect(exported.formatVersion).toBe(4);
     expect(exported.exportedAt).toBe('2026-10-28T12:00:00.000Z');
+    expect(exported.settings).toEqual({ carryLength: null });
     expect(exported.projects.map((p: Json) => p.id)).toEqual([body.id]);
     expect(exported.projects[0].snapshot).toEqual(await stored(body.id));
     expect(exported.projects[0].ticks).toEqual([]);
@@ -840,7 +841,7 @@ describe('GET /api/export (#21)', () => {
     expect(new TextEncoder().encode(text).length).toBeGreaterThan(LIMIT);
     expect(pieces).toBeGreaterThan(copies);
     const exported = JSON.parse(text) as Json;
-    expect(exported).toMatchObject({ kind: 'kerf-export', formatVersion: 3 });
+    expect(exported).toMatchObject({ kind: 'kerf-export', formatVersion: 4 });
     expect(exported.projects).toHaveLength(copies + 1);
     const { rows } = await client.query<{ snapshot: unknown }>(
       'select snapshot from projects where id = $1',

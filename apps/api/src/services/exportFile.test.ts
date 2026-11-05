@@ -24,6 +24,7 @@ function exported(
     kind: 'kerf-export',
     formatVersion: EXPORT_FORMAT_VERSION,
     exportedAt: '2026-11-02T12:00:00.000Z',
+    settings: { carryLength: 96 },
     projects,
     deletedProjects,
     tools: { tools: [] },

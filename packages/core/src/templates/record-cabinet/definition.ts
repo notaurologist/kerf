@@ -1,7 +1,7 @@
 import type { SnapshotUpgrade, TemplateDefinition } from '../../model/definition.ts';
 import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
-import { planLumber } from '../../outputs/shoppingList.ts';
+import { boardOptionsFor, planLumber } from '../../outputs/shoppingList.ts';
 import { noSuggestions } from '../../snapshot/snapshot.ts';
 import { cabinetExplode, cabinetScene, cabinetSubAssemblies, drawings, VIEW } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
@@ -277,7 +277,7 @@ export const recordCabinet: TemplateDefinition<
     explode: cabinetExplode(outputs),
     subAssemblies: cabinetSubAssemblies(outputs),
   }),
-  generate(params, structuralInputs) {
+  generate(params, structuralInputs, settings) {
     const design = generate(
       params,
       allowancesFor(params, cabinetGeometry(params), structuralInputs),
@@ -289,7 +289,7 @@ export const recordCabinet: TemplateDefinition<
       output: {
         design: design.output,
         cutList: cutList(design.output.parts),
-        lumber: planLumber(design.output.parts),
+        lumber: planLumber(design.output.parts, boardOptionsFor(settings)),
         hardware: hardwareList(design.output.hardware),
         review,
       },

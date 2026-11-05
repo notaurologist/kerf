@@ -1,7 +1,7 @@
 import type { TemplateDefinition } from '../../model/definition.ts';
 import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
-import { planLumber } from '../../outputs/shoppingList.ts';
+import { boardOptionsFor, planLumber } from '../../outputs/shoppingList.ts';
 import { benchExplode, benchScene, benchSubAssemblies, drawings, VIEW } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { WORKBENCH_FORM } from './form.ts';
@@ -63,7 +63,7 @@ export const workbench: TemplateDefinition<
     explode: benchExplode(outputs),
     subAssemblies: benchSubAssemblies(outputs),
   }),
-  generate(params, structuralInputs) {
+  generate(params, structuralInputs, settings) {
     const made = generate(params, structuralInputs);
     if (!made.ok) return made;
     const { design, review } = made.output;
@@ -72,7 +72,7 @@ export const workbench: TemplateDefinition<
       output: {
         design,
         cutList: cutList(design.parts),
-        lumber: planLumber(design.parts),
+        lumber: planLumber(design.parts, boardOptionsFor(settings)),
         hardware: hardwareList(design.hardware),
         review,
       },

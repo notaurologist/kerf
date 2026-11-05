@@ -9,6 +9,7 @@ import type { Database } from './db/client.ts';
 import { loggable } from './logError.ts';
 import { authRoutes } from './routes/auth.ts';
 import { projectRoutes } from './routes/projects.ts';
+import { settingsRoutes } from './routes/settings.ts';
 import { templateRoutes } from './routes/templates.ts';
 import { toolRoutes } from './routes/tools.ts';
 import { createProjectService } from './services/projects.ts';
@@ -55,6 +56,7 @@ export function createApp(deps: AppDeps) {
       .route('/', authRoutes({ db: deps.db, passwordHash: deps.passwordHash, now }))
       .route('/', templateRoutes(templates))
       .route('/', toolRoutes({ db: deps.db, now }))
+      .route('/', settingsRoutes({ db: deps.db, now }))
       .route('/', projectRoutes(projects))
       .notFound((c) => c.json({ error: 'not-found' as const }, 404))
       .onError((error, c) => {

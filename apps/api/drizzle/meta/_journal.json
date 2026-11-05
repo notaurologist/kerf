@@ -127,6 +127,13 @@
       "when": 1793830371034,
       "tag": "0017_progress_outline",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793890443015,
+      "tag": "0018_owner_settings",
+      "breakpoints": true
     }
   ]
 }
