@@ -135,9 +135,10 @@ const RUNS = 1000;
 /**
  * Before the board width had a range, a typo could take seconds or never finish (#421). The
  * shopping list's search may spend its work limit on a plan, about 0.8 s on the slowest benchmark
- * plan and more on a busy machine (decision 0021), so the budget allows for that and no more.
+ * plan on a development machine and up to about 3 s on GitHub's runners (decision 0021), so the
+ * budget allows for that.
  */
-const BUDGET_MS = 2000;
+const BUDGET_MS = 6000;
 /**
  * The test's own time: a few hundred plans, each of which may spend the search's work limit, take
  * about a minute for the workbench on a development machine and about four times that on CI.
