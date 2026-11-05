@@ -25,6 +25,8 @@ const PX = {
   dot: 2.5,
   /** Below this container width, part letters stack in one column (the phone layout). */
   narrow: 480,
+  /** Room at the sides of a shared frame drawn with no letters, for the outline's stroke. */
+  edge: 8,
 };
 
 /** The tallest a drawing is shown, in CSS pixels: most of the window, so it fits on screen. */
@@ -88,7 +90,7 @@ const pts = (points: readonly Point2[]) => points.map((p) => `${p.x},${p.y}`).jo
 export function drawingLayout(
   drawing: Drawing,
   width: number,
-  options: { minWidth?: number; frame?: Drawing['bounds'] } = {},
+  options: { minWidth?: number; frame?: Drawing['bounds']; letters?: 'always' | 'wide' } = {},
 ) {
   const b = options.frame ?? drawing.bounds;
   const narrow = width < PX.narrow;
@@ -105,11 +107,19 @@ export function drawingLayout(
     (p): p is Extract<Primitive, { kind: 'letter' }> => p.kind === 'letter',
   );
   // On a phone, part letters stack in one column (diagrams.html), on the first side core's
-  // letters may take, between any dimensions above and below the drawing.
+  // letters may take, between any dimensions above and below the drawing. A drawing with many
+  // parts, such as an assembly, leaves them out there instead: a tall column's leaders cross the
+  // whole drawing, and a tapped part is named beside it.
+  const lettered = !(narrow && options.letters === 'wide');
   const room = geometry.letterRoom(drawing.primitives);
   const x = room.sides[0] === 'right' ? b.x + b.width + PX.letter * u : b.x - PX.letter * u;
-  const placed = narrow ? geometry.letterColumn(letters, x, PX.letter * 1.4 * u, room) : letters;
+  const placed = !lettered
+    ? []
+    : narrow
+      ? geometry.letterColumn(letters, x, PX.letter * 1.4 * u, room)
+      : letters;
   const pad = PX.letter * u;
+  const side = lettered ? 2 * pad : PX.edge * u;
   // Core bounds text by its anchor point; the text's size is known only here, so the view grows
   // to hold each label's estimated extent, and each part letter's square.
   const placedText = placeText(drawing.primitives, u);
@@ -123,9 +133,9 @@ export function drawingLayout(
     })),
   ];
   // A shared frame leaves the same room on every side, two letters wide at the sides for a
-  // column of letters, so drawings that share it share a view unless their own labels need more.
+  // column of letters (or just the outline's stroke with none), so drawings that share it share a view unless their own labels need more.
   const [x0, x1, y0, y1] = options.frame
-    ? [b.x - 2 * pad, b.x + b.width + 2 * pad, b.y - pad, b.y + b.height + pad]
+    ? [b.x - side, b.x + b.width + side, b.y - pad, b.y + b.height + pad]
     : [b.x, b.x + b.width, b.y, b.y + b.height];
   const minX = Math.min(x0, ...boxes.map((r) => r.x0));
   const maxX = Math.max(x1, ...boxes.map((r) => r.x1));
@@ -160,6 +170,11 @@ export function DiagramDrawing(props: {
   frame?: Drawing['bounds'];
   /** Where a move between an assembled and an exploded view has got to (`useAssemblyMotion`). */
   motion?: Motion;
+  /**
+   * Whether part letters are drawn on a phone: `always` (the default) in one column, `wide` only
+   * from the narrow breakpoint up, for a drawing with too many parts for a column.
+   */
+  letters?: 'always' | 'wide';
 }) {
   const { drawing } = props;
   const { ref, width } = useWidth(props.assumedWidth ?? ASSUMED_WIDTH);
