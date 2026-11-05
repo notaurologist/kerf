@@ -4,6 +4,8 @@
 // simplex method", Mathematics of Operations Research 2(2), 1977). Small and slow by design: the
 // instances here have tens of rows and columns.
 
+import { COST, type Work } from './work.ts';
+
 const EPS = 1e-9;
 
 export interface LpResult {
@@ -22,6 +24,7 @@ export function maximize(
   c: readonly number[],
   a: readonly (readonly number[])[],
   b: readonly number[],
+  work?: Work,
 ): LpResult {
   const m = a.length;
   const n = c.length;
@@ -63,6 +66,7 @@ export function maximize(
       }
     }
     if (leave < 0) throw new Error('The linear program is unbounded.');
+    work?.spend(Math.ceil(((m + 1) * width) / COST.cellsPerUnit));
     const pivotRow = rows[leave] as number[];
     const pivot = pivotRow[enter] ?? 1;
     for (let j = 0; j < width; j++) pivotRow[j] = (pivotRow[j] ?? 0) / pivot;

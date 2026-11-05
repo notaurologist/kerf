@@ -50,7 +50,7 @@ Tests check both bounds on hand-worked examples and, on every benchmark instance
 
 ## Exact method
 
-`solveExact` is branch-and-bound over boards. A node holds the pieces still to place, counted by length. It branches on the longest length left: some board must hold one of those pieces, so it tries every board that does, cut from the shortest buyable length that holds it, with no remaining piece that would still fit on it. Skipping boards with room for another piece loses no plan, since that piece could move there from its own board at no cost. A node is pruned when its feet so far plus a lower bound on what is left cannot beat the best plan by at least one step: the material bound first, as it is cheap, then the relaxation of what is left. Every residual relaxation starts from the root's patterns, which took one workbench node from about 400 ms to a few rounds. Nodes with the same pieces left, reached again at no fewer feet, are skipped. The search starts from the baseline's plan and stops when a plan meets the root's bound or the time limit runs out.
+`solveExact` is branch-and-bound over boards. A node holds the pieces still to place, counted by length. It branches on the longest length left: some board must hold one of those pieces, so it tries every board that does, cut from the shortest buyable length that holds it, with no remaining piece that would still fit on it. Skipping boards with room for another piece loses no plan, since that piece could move there from its own board at no cost. A node is pruned when its feet so far plus a lower bound on what is left cannot beat the best plan by at least one step: the material bound first, as it is cheap, then the relaxation of what is left. Every residual relaxation starts from the root's patterns, which took one workbench node from about 400 ms to a few rounds. Nodes with the same pieces left, reached again at no fewer feet, are skipped. The search starts from the baseline's plan and stops when a plan meets the root's bound or its work limit runs out (Work limit, below).
 
 Branch-and-price was the alternative: branching inside column generation (Vance, Barnhart, Johnson and Nemhauser, 1994). It needs branching rules the knapsack can respect. With at most a few hundred pieces in a few dozen lengths, branching on boards is simpler, and the residual relaxations prune just as hard.
 
@@ -58,7 +58,7 @@ The search proves the fewest feet. Among plans with the same feet it keeps the o
 
 ## Report
 
-`pnpm --filter @kerf/cutting report [draws per template]` writes `packages/cutting/report.md`: totals per method with each method's feet over the best bound, the open instances (a method over the best bound), then every instance. Times are from one run on the machine that wrote it.
+`pnpm --filter @kerf/cutting report [draws per template]` writes `packages/cutting/report.md`: totals per method with each method's feet over the best bound, the saving and time at each work limit, the open instances (a method over the best bound), then every instance. Times are from one run on the machine that wrote it.
 
 ## Results
 
@@ -74,7 +74,7 @@ With the bounds, on 260 instances (200 draws per template, seed 544):
 
 The baseline meets the bound on 186 instances and is over it on 74. The material bound is never above the relaxation on these instances.
 
-With the exact method, 5 seconds per instance:
+With the exact method, 5 seconds per instance (before the work limit replaced the time limit):
 
 | Template | Instances | Baseline (ft) | Exact (ft) | Best bound (ft) | Baseline beaten | Stopped |
 |---|---|---|---|---|---|---|
@@ -107,12 +107,46 @@ The gain is in board stock, where a project's many panel and strip boards leave 
 - **Node budgets.** With no time limit, a budget of 50 nodes per instance saves 227 of the 355 ft, 200 nodes saves 329 ft, and 1,000 saves 349 ft. Swing set and record cabinet instances finish in under 30 ms at any of these budgets. Workbench instances take up to 31 s, because the per-node cost varies so much.
 - **Proofs.** 186 of 260 instances need no search: the baseline already meets the bound. Of the 67 searched and proven, the median needs 14 nodes, and the largest, the record cabinet's worked example, needs 10,919 (0.2 s).
 
+## Work limit (#684)
+
+Decision 0021 adopts the exact method stopped at a work limit, so the same parameters give the same plan on any machine and under any load. `work.ts` counts the work and `solveExact` stops when it passes `workLimit`, keeping the best plan found. Nothing in the search reads the clock: a test runs a stopped workbench search three times, once with the clock jumping at random, and gets the same plan each time.
+
+**What to count.** Counting each kind of work separately over the 260 instances, no single count tracked the time. Search nodes did not: one workbench instance spent 5.9 s on 4 nodes. Knapsack steps came closest alone. Three operations take nearly all the time, so the limit charges each in units of about the same time, from a least-squares fit of time to the three counts:
+
+| Operation | Units |
+|---|---|
+| A step of the knapsack's branch-and-bound | 1 |
+| A step of the enumeration of boards a node branches on | 20 |
+| A simplex pivot | 1 per 25 tableau cells |
+| A search node | 1 |
+
+The fit predicts each of the 20 slowest instances' time to within 18%, and a unit took 20 to 40 ns on the machine that wrote the report. The weights only set how far a search gets before it stops; any weights give the same plan everywhere.
+
+The fit also showed the board enumeration costing far more per step than it should: it sorted its boards with a comparator that recomputed each board's material on every comparison. Computing it once per board halved the time of the slowest workbench instances, with the same plans.
+
+**Saving and time by limit**, from `report.md` (feet saved against first-fit decreasing; the slowest stock's time on one machine):
+
+| Work limit | Workbench saved (ft) | All saved (ft) | Proven | Saved where proven | Slowest workbench stock | Slowest record cabinet stock |
+|---|---|---|---|---|---|---|
+| 3M | 0 | 141 | 237 of 260 | 137 | 52 ms | 104 ms |
+| 10M | 74 | 217 | 239 | 149 | 185 ms | 134 ms |
+| 20M | 112 | 255 | 241 | 175 | 389 ms | 135 ms |
+| 30M | 162 | 305 | 244 | 201 | 586 ms | 132 ms |
+| 100M | 198 | 341 | 249 | 259 | 1,845 ms | 130 ms |
+
+The most any run of the exact method has saved on the workbench is 218 ft, with a limit of about 13 s on the slowest stock. The swing set saves its 20 ft and the record cabinet its 123 ft at 10M and above, so the limit only matters for the workbench. "Saved where proven" is the fallback in 0021, which uses the exact plan only where the search finishes. On the workbench it saves 58 ft at 30M, against 162 ft for keeping the best plan found, because most workbench stocks are not proven within a second.
+
+**Chosen limit: 30M units.** The slowest workbench stock takes about 0.6 s on this machine, and the limit keeps 162 of the 218 ft on the workbench (74%), so the fallback does not apply. Below it the saving falls quickly: 20M keeps half, 10M a third. Two things the owner should weigh:
+
+- The workbench's worked example needs 35.9M units (about 0.57 s) to find and prove its 376 ft. At 30M it stops at today's 386 ft. A limit of 40M reaches it, with the slowest stock near 0.8 s, and saves 176 ft on the workbench.
+- The times are from a development machine. The API runs on Vercel's functions, which may be slower, so a plan that takes 0.6 s here could take longer there. #685 and #686 can measure it there before release.
+
 ## What adopting it would take
 
 Adopting means `planLumber` in core plans each stock with the exact method, keeping first-fit decreasing as its starting plan and fallback.
 
-1. **The same plan on every machine.** A time limit gives different plans on different machines and loads, which would break stored snapshot fixtures (0014) and make a regeneration change a plan for no reason. The limit has to count work instead: nodes plus relaxation rounds (or knapsack calls), with the best plan found at the limit kept. A node budget alone does not bound the time, since one workbench node can cost a second.
-2. **Time in the request.** Plans are generated in the API on each save and on each preview of proposed changes (`services/projects.ts`). Swing set and record cabinet stocks finish in milliseconds. The workbench's largest stocks would need the work limit set so a plan takes well under a second, which means accepting the best plan found rather than a proof on those. Measuring that limit is the first task of adoption.
+1. **The same plan on every machine.** Done in #684 (Work limit, above). A time limit gives different plans on different machines and loads, which would break stored snapshot fixtures (0014) and make a regeneration change a plan for no reason. The limit has to count work instead: nodes plus relaxation rounds (or knapsack calls), with the best plan found at the limit kept. A node budget alone does not bound the time, since one workbench node can cost a second.
+2. **Time in the request.** Plans are generated in the API on each save and on each preview of proposed changes (`services/projects.ts`). Swing set and record cabinet stocks finish in milliseconds. The workbench's largest stocks would need the work limit set so a plan takes well under a second, which means accepting the best plan found rather than a proof on those. Measuring that limit is the first task of adoption; #684 set it at 30M units.
 3. **A template version bump for each template** (0008), new snapshot fixtures, and new catalog samples, since the boards change for the same parameters.
 4. **Cutting order and board IDs (#57, #58).** Boards come out in the search's order. They need sorting into a stable cutting order: longest pieces first, as today. Board IDs are by line and position, so saved progress on a board survives only where its line's boards are unchanged. Progress resets (#444) already handle the rest.
 5. **Store alternatives (#450).** `lengthAlternatives` refits a line's pieces onto shorter lengths with first-fit decreasing. It can keep doing so. Whether it should use the exact method too is a smaller follow-up.

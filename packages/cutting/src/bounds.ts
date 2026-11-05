@@ -1,6 +1,7 @@
 import { fitsNoLength, type Instance } from './instance.ts';
 import { knapsack } from './knapsack.ts';
 import { maximize } from './simplex.ts';
+import type { Work } from './work.ts';
 
 // Lower bounds on the feet any plan must buy. Pieces no length holds are left out, as every plan
 // leaves them out. Every buyable length here is a whole number of feet, so a plan's feet are a
@@ -98,13 +99,6 @@ export interface SeedPattern {
   pieces: ReadonlyMap<number, number>;
 }
 
-/** Thrown when the relaxation runs past its deadline. */
-export class OutOfTime extends Error {
-  constructor() {
-    super('Out of time.');
-  }
-}
-
 /** The most of one type a board of `feet` holds, and at most its demand. */
 function most(instance: Instance, type: PieceType, feet: number): number {
   const room = feet * 12 - 2 * instance.trimPerEnd;
@@ -122,16 +116,20 @@ function most(instance: Instance, type: PieceType, feet: number): number {
  * worth more than its feet enters, and when none does the prices are optimal.
  *
  * Seed patterns, such as those a larger instance priced, start it closer to the optimum; each is
- * cut down to the pieces this instance has. Past `deadline` (a `performance.now()` time) it
- * throws `OutOfTime`.
+ * cut down to the pieces this instance has. Its knapsacks and pivots spend `work`, which throws
+ * `OutOfWork` past its limit.
  */
 export function relaxation(
   instance: Instance,
   {
     maxRounds = 500,
     seed = [],
-    deadline = Number.POSITIVE_INFINITY,
-  }: { maxRounds?: number; seed?: readonly SeedPattern[]; deadline?: number } = {},
+    work,
+  }: {
+    maxRounds?: number;
+    seed?: readonly SeedPattern[];
+    work?: Work;
+  } = {},
 ): Relaxation {
   const by = step(instance);
   const types = pieceTypes(instance);
@@ -147,11 +145,11 @@ export function relaxation(
   const initial = patterns.length;
   for (let round = 0; ; round++) {
     if (round > maxRounds) throw new Error('Column generation did not settle.');
-    if (performance.now() > deadline) throw new OutOfTime();
     const lp = maximize(
       types.map((t) => t.demand),
       patterns.map((p) => p.counts),
       patterns.map((p) => p.feet),
+      work,
     );
     const prices = lp.y;
     let added = 0;
@@ -163,6 +161,7 @@ export function relaxation(
           limit: type.demand,
         })),
         feet * 12 - 2 * instance.trimPerEnd,
+        work,
       );
       if (packed.value > feet + EPS) {
         patterns.push({ feet, counts: packed.counts });
