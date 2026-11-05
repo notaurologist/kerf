@@ -9,7 +9,14 @@ describe('loadConfig', () => {
       databaseUrl: 'postgres://u@h/d',
       passwordHash: HASH,
       port: 3000,
+      build: undefined,
     });
+  });
+
+  it('reads the commit Vercel built from, and treats an empty one as none', () => {
+    const env = { DATABASE_URL: 'postgres://u@h/d', PASSWORD_HASH: HASH };
+    expect(loadConfig({ ...env, VERCEL_GIT_COMMIT_SHA: 'fa1eade' }).build).toBe('fa1eade');
+    expect(loadConfig({ ...env, VERCEL_GIT_COMMIT_SHA: '' }).build).toBeUndefined();
   });
 
   it('rejects a password hash that would accept any password, or one cut short', () => {

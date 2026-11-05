@@ -23,6 +23,9 @@ function preloadTextFont(): Plugin {
 
 export default defineConfig({
   plugins: [react(), preloadTextFont()],
+  // The commit Vercel builds from, which the API also sends, so an open page can tell it is older
+  // (lib/build.ts). Empty in development and tests.
+  define: { __KERF_BUILD__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA ?? '') },
   server: {
     // Same origin in production (0006). In development the API runs separately, so proxy to it.
     // The API serves its routes under /api itself, so paths pass through unchanged.

@@ -14,12 +14,19 @@ const Env = z.object({
     .transform(Number)
     .pipe(z.number().int().min(1).max(65535))
     .default(3000),
+  // Set by Vercel at build and run time; empty for a deploy not made from a commit.
+  VERCEL_GIT_COMMIT_SHA: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
 });
 
 export interface Config {
   databaseUrl: string;
   passwordHash: string;
   port: number;
+  /** The commit the deployment was built from; undefined in development. */
+  build: string | undefined;
 }
 
 // Validates the environment at startup and fails fast, listing every problem by variable name.
@@ -34,5 +41,6 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     databaseUrl: parsed.data.DATABASE_URL,
     passwordHash: parsed.data.PASSWORD_HASH,
     port: parsed.data.PORT,
+    build: parsed.data.VERCEL_GIT_COMMIT_SHA,
   };
 }
