@@ -73,10 +73,10 @@ describe('Shopping mode', () => {
     );
     // The beam's line: its note, then what else holds the beam (lists.test.ts hand-checks these).
     expect(text).toContain(
-      `incised: No. Change Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8". Not in stock? Buy one of these instead: 1 × 4x6, 10' 0", if it measures at least 121-1/8". 1 × 4x6, 14' 0". Beam in 4x8, which changes the plan: margin 1.3x under these assumptions (bending, top beam, 4x8). Change it in Edit The board`,
+      `incised: No. Change Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8". No plan buys fewer feet of 4x6 with these allowances. Not in stock? Buy one of these instead: 1 × 4x6, 10' 0", if it measures at least 121-1/8". 1 × 4x6, 14' 0". Beam in 4x8, which changes the plan: margin 1.3x under these assumptions (bending, top beam, 4x8). Change it in Edit The board`,
     );
     expect(text).toContain(
-      `1 × 2x6, 10' 0" Not in stock? Buy one of these instead: 2 × 2x6, 8' 0". 1 × 2x6, 12' 0". The board`,
+      `1 × 2x6, 10' 0" No plan buys fewer feet of 2x6 with these allowances. Not in stock? Buy one of these instead: 2 × 2x6, 8' 0". 1 × 2x6, 12' 0". The board`,
     );
     expect(html.match(/<summary><span>Not in stock\?<\/span>/g)).toHaveLength(4);
     expect(html).toContain(`href="#/projects/${p.id}/edit?from=shop&amp;field=`);
@@ -115,7 +115,7 @@ describe('board cards (#59)', () => {
   it('open under each lumber line', () => {
     expect(text.match(/The boards?, and what to look for/g)).toHaveLength(4);
     expect(text).toContain(
-      `4 × 4x4, 12' 0" Leg species and grade: Southern Pine No.2. Change Whether the leg lumber is incised: No. Change Not in stock? Buy one of these instead: 4 × 4x4, 14' 0". The boards, and what to look for`,
+      `4 × 4x4, 12' 0" Leg species and grade: Southern Pine No.2. Change Whether the leg lumber is incised: No. Change No plan buys fewer feet of 4x4 with these allowances. Not in stock? Buy one of these instead: 4 × 4x4, 14' 0". The boards, and what to look for`,
     );
   });
 

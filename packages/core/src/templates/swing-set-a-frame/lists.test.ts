@@ -150,10 +150,16 @@ describe('planLumber, worked example', () => {
   it("notes on the beam's line when a board one size down works if the store boards run long", () => {
     expect(plan.lines[0]?.notes).toEqual([
       `Beam: listed as 12' to leave room for trimming the ends. A 10' board works if it measures at least 121-1/8".`,
+      'No plan buys fewer feet of 4x6 with these allowances.',
     ]);
-    expect(plan.lines.slice(1).flatMap((l) => l.notes)).toEqual([]);
+    expect(plan.lines.slice(1).map((l) => l.notes)).toEqual(
+      plan.lines
+        .slice(1)
+        .map((l) => [`No plan buys fewer feet of ${l.nominal} with these allowances.`]),
+    );
     expect(plan.notes).toEqual([
       'Allows 1/8" for each saw cut and trims 1/2" off each factory end.',
+      'Boards are planned to buy the fewest feet, so their offcuts run short. A miscut piece is less likely to have spare board left to recut it from.',
     ]);
   });
 

@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { solveExact, WORK_LIMIT } from '../cutting/exact.ts';
+import { firstFitDecreasing } from '../cutting/firstFit.ts';
+import type { CutInstance } from '../cutting/instance.ts';
 import type { BoardStock } from '../lumber/panel.ts';
 import { isBoardStock, isPanel, isStripGlueUp } from '../lumber/partStock.ts';
 import { stripBoardsFor } from '../lumber/strips.ts';
@@ -6,11 +9,11 @@ import { Issue, type Part } from '../model/types.ts';
 import { formatMargin } from '../structural/types.ts';
 import { formatBoardLength, formatLength, formatLimit } from '../units/length.ts';
 
-// Groups parts into boards to buy (PRODUCT.md, MVP feature 4; DOMAIN.md, Buyable lengths).
-// This is simple grouping, not optimization: first-fit decreasing into the longest board, then
-// each board is shortened to the smallest buyable length that still holds its pieces. A panel's
-// boards are pieces of its board stock, each the panel's board length. A strip glue-up's boards
-// are too, each its strips' length, and enough of them for the strips ripped side by side.
+// Groups parts into boards to buy (PRODUCT.md, MVP feature 4; DOMAIN.md, Buyable lengths). Each
+// stock's pieces go onto the boards that buy the fewest feet the exact method finds within its
+// work limit, with fewer boards as the tie-break (decision 0021). A panel's boards are pieces of
+// its board stock, each the panel's board length. A strip glue-up's boards are too, each its
+// strips' length, and enough of them for the strips ripped side by side.
 
 export interface BoardOptions {
   /** Width of the saw blade's cut, charged once per piece. */
@@ -197,6 +200,66 @@ function fitBoards(
   return { fitted, unfit };
 }
 
+/** How far a stock's plan was searched: to a proof, to the work limit, or not at all. */
+type Searched = 'proven' | 'stopped' | 'not-searched';
+
+/**
+ * One stock's boards by the exact method (decision 0021), or by first-fit decreasing when its
+ * lengths are not whole feet, which the method's bounds need. Boards come in cutting order: each
+ * board's pieces longest first, then boards by their pieces, longest first, as first-fit
+ * decreasing opens them.
+ */
+function planStock(
+  pieces: readonly PlannedPiece[],
+  feet: readonly number[],
+  options: BoardOptions,
+  workLimit: number,
+): { fitted: FittedBoard[]; unfit: PlannedPiece[]; searched: Searched; work: number } {
+  const instance: CutInstance = {
+    lengths: [...feet].sort((a, b) => a - b),
+    pieces: pieces.map((piece) => piece.length),
+    kerf: options.kerf,
+    trimPerEnd: options.trimPerEnd,
+  };
+  const whole = instance.lengths.every(Number.isInteger);
+  const solved = whole ? solveExact(instance, { workLimit }) : undefined;
+  const plan = solved?.plan ?? firstFitDecreasing(instance);
+  const length = (i: number) => instance.pieces[i] ?? 0;
+  const longestFirst = (a: number, b: number) => length(b) - length(a) || a - b;
+  const boards = plan.boards
+    .map((board) => ({ feet: board.feet, order: [...board.pieces].sort(longestFirst) }))
+    .sort((a, b) => {
+      for (let i = 0; i < Math.min(a.order.length, b.order.length); i++) {
+        const diff = length(b.order[i] ?? 0) - length(a.order[i] ?? 0);
+        if (diff !== 0) return diff;
+      }
+      return b.order.length - a.order.length;
+    });
+  const fitted = boards.map((board) => {
+    const boardPieces = board.order.flatMap((i) => pieces[i] ?? []);
+    const need = used(boardPieces, options);
+    return { feet: board.feet, pieces: boardPieces, need, offcut: board.feet * 12 - need };
+  });
+  return {
+    fitted,
+    unfit: [...plan.unfit].sort(longestFirst).flatMap((i) => pieces[i] ?? []),
+    searched: !solved ? 'not-searched' : solved.proven ? 'proven' : 'stopped',
+    work: solved?.work ?? 0,
+  };
+}
+
+/** What a stock's lines say about how its plan was found. */
+function searchedNote(nominal: string, searched: Searched): string {
+  switch (searched) {
+    case 'proven':
+      return `No plan buys fewer feet of ${nominal} with these allowances.`;
+    case 'stopped':
+      return `The fewest feet of ${nominal} the search found before its limit. A plan with fewer may exist.`;
+    case 'not-searched':
+      return `Grouped longest piece first, without searching for fewer feet, since ${nominal}'s lengths are not all whole feet.`;
+  }
+}
+
 /** The longest buyable length under `feet`, if any. */
 function shorterThan(lengths: readonly number[], feet: number): number | undefined {
   return [...lengths]
@@ -341,8 +404,16 @@ export function planLumber(
 
   const boards: PlannedBoard[] = [];
   const lineNotes = new Map<string, string[]>();
+  // One work limit for the whole plan, each stock searching with what the ones before it left.
+  let workLeft = WORK_LIMIT;
   for (const [nominal, group] of byStock) {
-    const { fitted, unfit } = fitBoards(group.pieces, group.feet, options);
+    const { fitted, unfit, searched, work } = planStock(
+      group.pieces,
+      group.feet,
+      options,
+      Math.max(0, workLeft),
+    );
+    workLeft -= work;
     for (const piece of unfit) {
       issues.push({
         code: 'part-longer-than-any-board',
@@ -367,6 +438,15 @@ export function planLumber(
         ]);
       }
     }
+    for (const feet of new Set(fitted.map((board) => board.feet))) {
+      const key = lumberLineKey({ nominal, feet });
+      lineNotes.set(key, [...(lineNotes.get(key) ?? []), searchedNote(nominal, searched)]);
+    }
+  }
+  if (boards.length > 0) {
+    notes.push(
+      'Boards are planned to buy the fewest feet, so their offcuts run short. A miscut piece is less likely to have spare board left to recut it from.',
+    );
   }
 
   // Board feet (American Softwood Lumber Standard, PS 20-10, 2.2): nominal thickness in inches ×

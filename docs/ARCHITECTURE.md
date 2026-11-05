@@ -82,9 +82,9 @@ The template definitions still carry the generation code into the web bundle, si
 │           │                   # operations, forms, starting questions, part letters
 │           ├── templates/      # The registry (index.ts) and one folder per template:
 │           │                   # swing-set-a-frame/, record-cabinet/, and workbench/
-│           ├── outputs/        # Cut list, shopping list (board grouping with kerf and trim)
+│           ├── outputs/        # Cut list, shopping list (boards for the fewest feet, with kerf and trim)
 │           ├── cutting/        # The fewest feet of boards for one stock's pieces: branch-and-bound
-│           │                   # with a deterministic work limit (0021); not used by the shopping list yet
+│           │                   # with a deterministic work limit, shared by a plan's stocks (0021)
 │           ├── structural/     # Generic beam and hardware checks and adjustment factors
 │           ├── movement/       # Wood movement across the grain, with its working (Wood Handbook Eq. 13-3)
 │           ├── steps/          # Build steps: operations to methods, using the tool inventory
@@ -365,7 +365,7 @@ A manual check; nothing runs it for you. `ui/views.test.ts` checks that `print.c
 | `units/` | Fraction rounding at every 1/32 boundary, feet-inches display, angle convention conversions |
 | `templates/` | Hand-checked worked examples; fit tests (`DOMAIN.md`, Verification); validation of contradictory parameters; a version-bump test listing changed outputs; every template's examples parse with its strict `outputs` and read back unchanged, and no text a template gives the reader has verdict words or brands (`contract.test.ts`); every template's snapshot fixtures, found by glob, cover each version and shape, read through the upgrades, regenerate exactly at the current version, and give plans that fill in what generic code reads (`contract.test.ts`, 0014) |
 | `structural/` | Hand-checked worked examples for each check, including the symmetric hand-check cases and an asymmetric case; missing inputs produce "input needed" |
-| `outputs/` | Board grouping including kerf and trim; nothing silently dropped when a part is longer than any buyable length |
+| `outputs/` | Boards for the fewest feet including kerf and trim, in cutting order; nothing silently dropped when a part is longer than any buyable length |
 | `knowledge/`, `design-values/` | Every entry parses; every reference resolves; every design value has a source |
 | `apps/api` | Every route rejects requests without a session; login rate limiting; snapshot round trip through Postgres (PGlite, 0010); the catalog sample matches what core generates (`scripts/catalog-sample.test.ts`) |
 | `apps/web` | Forms, rendering of snapshots (rendered to a string), and effects, focus, dialogs, and address changes (in happy-dom, `*.dom.test.tsx`, 0017), and that displayed values use core's formatters; each component's states and accessible names; every recorded contrast ratio against the color tokens; no styles outside `ui/`; no template's ID or own words (`TemplateDefinition.ownWords`) in generic code, including the API's scripts (`generic.test.ts`); only the registry imports a template's folder (`templateFolders.test.ts`); no generation in the web app (`generation.test.ts`) |

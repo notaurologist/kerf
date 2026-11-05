@@ -64,7 +64,7 @@ A hardwood workbench with a face vise and an end vise, its legs tenoned through 
 1. **Tool inventory.** A list of tool types I own (for example, circular saw, drill/driver, rafter square), picked from a library of generic tool types, with the capabilities that matter for choosing a method (for example, how far a saw bevels). A tool the library lacks is a reason to add it to the library; Kerf keeps no tools it cannot use (#363).
 2. **Project from template.** Choose a template, set parameters, see validation for out-of-range or contradictory values. Each project records the template version it was generated with, and shows a notice if the current template would produce different numbers.
 3. **Cut list.** Every part: name, stock (nominal and actual size), length, end cuts (miter and bevel angles), quantity. Fractions to 1/16 inch. Angles are shown as miter-saw settings (0° = square) with a small diagram of the reference face, plus the angle to the board's edge (90° minus the setting) for laying out with a protractor or sliding bevel.
-4. **Shopping list.** Lumber grouped into buyable board lengths (simple grouping, not optimization), with allowance for saw kerf on each cut and for trimming factory ends. Hardware with quantities, consumables (finish, fasteners).
+4. **Shopping list.** Lumber planned onto buyable board lengths to buy the fewest feet of each stock a bounded search finds, with allowance for saw kerf on each cut and for trimming factory ends. Each line says whether no plan buys fewer feet (decision 0021). Hardware with quantities, consumables (finish, fasteners).
 5. **Diagrams.** Isometric assembled view, exploded view, per-part cut details with angles, site layout with clearances. Generated from template geometry. Printable.
 6. **Build steps.** Ordered steps, each listing its operations; for each operation, the method chosen from my inventory, skills involved, expert-check flags, and optional generic tool suggestions. Method content is written for the tools I own, plus one alternative per operation to support tool suggestions.
 7. **Structural review.** Two parts, generated from the template and its parameters:
@@ -92,7 +92,6 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 - Brand- or product-specific recommendations.
 - AI-generated dimensions or diagrams.
 - Accounts, sharing, other users.
-- Cut optimization (fitting parts into boards to minimize waste).
 - Native apps, and a web app manifest or service worker for installing Kerf. Adding Kerf to the phone's Home Screen works without either (0005).
 - Offline use (see After the MVP).
 
@@ -102,7 +101,6 @@ Persisted data includes the tool inventory, projects (past, current, and planned
 - Template families: generalize templates so one covers a kind of furniture through its options, such as a case for bookshelves and boxes, or a leg-and-apron frame for benches and workbenches (#100).
 - References to past projects: when a step uses a method or skill I've used before, the step points back to it ("you cut these angles on the swing set legs"). Built on the project history recorded in the MVP.
 - Skill progression (the Fitbod-like part: what I've done, what to try next).
-- Cut optimization for board yield.
 - Read-only offline mode for build steps, using a service worker without installing the app, if shop connectivity turns out to be unreliable. To keep this possible without restructuring, the API returns a project as one complete snapshot (parameters, template version, and generated outputs) rather than requiring many small requests to render it.
 - An AI explanation layer: answering questions about a step or technique, grounded in the knowledge base and clearly labeled, never the source of dimensions.
 - Project journal with photos and notes.

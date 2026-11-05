@@ -280,7 +280,15 @@ describe('compareSnapshots', () => {
       },
       { path: 'lumber.boards[0].pieces[0].length', before: 120, after: 132 },
       { path: 'lumber.boards[0].offcut', before: 22.875, after: 10.875 },
-      { path: 'lumber.lines[0].notes[0]', before: expect.stringContaining("Beam: listed as 12'") },
+      {
+        path: 'lumber.lines[0].notes[0]',
+        before: expect.stringContaining("Beam: listed as 12'"),
+        after: 'No plan buys fewer feet of 4x6 with these allowances.',
+      },
+      {
+        path: 'lumber.lines[0].notes[1]',
+        before: 'No plan buys fewer feet of 4x6 with these allowances.',
+      },
     ]);
     expect(changes.some((c) => alternatives.test(c.path))).toBe(true);
     // A longer span between the same loads raises the bending moment, so the margin drops.

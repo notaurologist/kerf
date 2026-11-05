@@ -79,23 +79,26 @@ function stock(source: string): CutInstance {
   return found.instance;
 }
 
-describe('first-fit decreasing on the examples', () => {
+describe('the shopping list on the examples', () => {
   it.each(EXAMPLES.map((e) => [e.source, e.parts] as const))(
-    'matches the shopping list board for board: %s',
+    'plans each stock in cutting order, buying no more than first-fit decreasing: %s',
     (_, parts) => {
-      const planned = stocksOf(parts).flatMap(({ nominal, instance }) =>
-        firstFitDecreasing(instance).boards.map((board) => ({
-          nominal,
-          feet: board.feet,
-          pieces: board.pieces.map((i) => instance.pieces[i]),
-        })),
-      );
-      const shopping = planLumber(parts).boards.map((board) => ({
-        nominal: board.nominal,
-        feet: board.feet,
-        pieces: board.pieces.map((p) => p.length),
-      }));
-      expect(planned).toEqual(shopping);
+      const plan = planLumber(parts);
+      for (const { nominal, instance } of stocksOf(parts)) {
+        const boards = plan.boards.filter((b) => b.nominal === nominal);
+        const lengths = boards.map((b) => b.pieces.map((p) => p.length));
+        const sorted = (xs: readonly number[]) => [...xs].sort((a, b) => b - a);
+        // Every piece once, on boards it fits.
+        expect(sorted(lengths.flat())).toEqual(sorted(instance.pieces));
+        for (const board of boards) expect(board.offcut).toBeGreaterThanOrEqual(0);
+        const feet = boards.reduce((sum, b) => sum + b.feet, 0);
+        expect(feet).toBeLessThanOrEqual(measure(firstFitDecreasing(instance)).feet);
+        expect(feet).toBeGreaterThanOrEqual(materialBound(instance));
+        // Each board's pieces longest first, and boards by their longest piece.
+        for (const pieces of lengths) expect(pieces).toEqual(sorted(pieces));
+        const firsts = lengths.map((pieces) => pieces[0] ?? 0);
+        expect(firsts).toEqual(sorted(firsts));
+      }
     },
   );
 });

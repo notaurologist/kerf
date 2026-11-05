@@ -40,8 +40,11 @@ export const TEMPLATE_ID = 'record-cabinet';
  * outside cheek, as data the drawings, cut details, and build steps show, and turns the back
  * apron and the left side apron end for end so every apron's far face is outside (#629). Tenons
  * that would still run into each other, or are too short to miter, are refused.
+ * Version 23 plans each stock's boards to buy the fewest feet the search finds (decision 0021,
+ * #686), and each lumber line says whether that is proven. The worked example's cherry goes from
+ * 100 ft in 13 boards to 94 ft in 14.
  */
-export const TEMPLATE_VERSION = 22;
+export const TEMPLATE_VERSION = 23;
 
 export const CabinetDesign = z.object({
   params: RecordCabinetParams,
