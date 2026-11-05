@@ -22,8 +22,32 @@ export const shownFolder = (id: string) => join(templateFolder(id), 'shown');
  */
 export const hashesFile = join(here, 'snapshot-fixture-hashes.json');
 
-export const readHashes = (): Record<string, Record<string, string>> =>
-  JSON.parse(readFileSync(hashesFile, 'utf8'));
+type Hashes = Record<string, Record<string, string>>;
+
+export const readHashes = (): Hashes => JSON.parse(readFileSync(hashesFile, 'utf8'));
+
+/**
+ * How `current` breaks the rule that fixture hashes are only added, compared with the base
+ * branch's: every `v<n>.json` entry the base has must be kept unchanged. A `shown/` entry is
+ * replaced on purpose, but only by write-snapshot-fixture, which adds a new version's fixture
+ * at the same time. One line per problem; empty when there are none.
+ */
+export function changesFromBase(base: Hashes, current: Hashes): string[] {
+  const problems: string[] = [];
+  for (const [id, entries] of Object.entries(base)) {
+    const now = current[id] ?? {};
+    const addsVersion = Object.keys(now).some((f) => !f.startsWith('shown/') && !(f in entries));
+    for (const [file, hash] of Object.entries(entries)) {
+      if (now[file] === hash) continue;
+      if (file.startsWith('shown/')) {
+        if (!addsVersion) problems.push(`${id} ${file} changed without a new version's fixture`);
+      } else {
+        problems.push(`${id} ${file} ${file in now ? 'changed' : 'was removed'}`);
+      }
+    }
+  }
+  return problems;
+}
 
 /** sha256 of the file's JSON as `JSON.stringify` writes it, so formatting does not count. */
 export const hashOf = (file: string) =>
