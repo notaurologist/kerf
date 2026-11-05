@@ -1,3 +1,4 @@
+import { along, center, clear, extent, placedMembers } from '../../geometry/apart.ts';
 import { cutDetail } from '../../geometry/cutDetail.ts';
 import {
   type DimensionChain,
@@ -9,6 +10,7 @@ import {
   isometricView,
   orthographic,
   type Scene,
+  type SubAssembly,
   sectionView,
 } from '../../geometry/index.ts';
 import type { Vec3 } from '../../model/types.ts';
@@ -84,6 +86,53 @@ export function cabinetExplode(outputs: StoredRecordCabinetOutputs): Explode[] {
           : offsets[pl.partId];
     return offset ? [{ partId: pl.partId, instance: pl.instance, offset }] : [];
   });
+}
+
+/**
+ * The groups built as units, each drawn on its own taken fully apart (spec, Drawings): with
+ * sliding doors, a door (two alike, mirrored), the left one, in the front track. Its stiles come
+ * off first, out to each side along the rails' stub tenons and the panel's tongue, then its rails
+ * down and up off the panel's tongue; the panel stays. Each clears what it leaves by a quarter of
+ * the door's width. The door's parts are found by where they stand, in the front track, so a plan
+ * from any version with doors declares the same door, and a plan without doors declares none.
+ */
+export function cabinetSubAssemblies(outputs: StoredRecordCabinetOutputs): SubAssembly[] {
+  const { parts, placements } = outputs.design;
+  const doorParts = placedMembers(parts, placements).filter((m) => m.pl.partId.startsWith('door-'));
+  const panels = doorParts.filter((m) => m.pl.partId === 'door-panel');
+  const panel = panels.sort((a, b) => center(a.box, 'y') - center(b.box, 'y'))[0];
+  if (!panel) return [];
+  const inTrack = doorParts.filter(
+    (m) => m.box.y[0] < panel.box.y[1] && m.box.y[1] > panel.box.y[0],
+  );
+  const stiles = inTrack.filter((m) => m.pl.partId.startsWith('door-stile-'));
+  const rails = inTrack
+    .filter((m) => m.pl.partId === 'door-rail')
+    .sort((a, b) => a.box.z[0] - b.box.z[0]);
+  const [low, high] = rails;
+  if (!low || !high || stiles.length !== 2 || rails.length !== 2) return [];
+  const gap = extent(inTrack, 'x') / 4;
+  const held = [low.box, high.box, panel.box];
+  const ref = (m: (typeof inTrack)[number]) => ({ partId: m.pl.partId, instance: m.pl.instance });
+  return [
+    {
+      id: 'door',
+      title: 'Door',
+      alike: panels.length,
+      stepId: 'doors',
+      members: inTrack.map(ref),
+      explode: [
+        ...stiles.map((st): Explode => {
+          const sign = center(st.box, 'x') < center(panel.box, 'x') ? -1 : 1;
+          return { ...ref(st), stage: 0, offset: along('x', clear(st.box, held, 'x', sign, gap)) };
+        }),
+        { ...ref(low), stage: 1, offset: along('z', clear(low.box, [panel.box], 'z', -1, gap)) },
+        { ...ref(high), stage: 1, offset: along('z', clear(high.box, [panel.box], 'z', 1, gap)) },
+      ],
+      description:
+        'The left door taken apart: the stiles out to each side, off the rails’ stub tenons and the panel’s tongue, then the rails down and up, off the panel’s tongue. The right door is its mirror image.',
+    },
+  ];
 }
 
 export const VIEW = isometric(-1, -1);

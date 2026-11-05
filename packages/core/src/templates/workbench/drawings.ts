@@ -1,3 +1,4 @@
+import { along, center, clear, extent, type Member, placedMembers } from '../../geometry/apart.ts';
 import { cutDetail } from '../../geometry/cutDetail.ts';
 import {
   type DimensionChain,
@@ -12,8 +13,7 @@ import {
   type SubAssembly,
   sectionView,
 } from '../../geometry/index.ts';
-import { type Box, solid, solidBox } from '../../geometry/solid.ts';
-import type { Placement, Vec3 } from '../../model/types.ts';
+import type { Vec3 } from '../../model/types.ts';
 import type { WorkbenchOutputs } from './outputs.ts';
 
 // The workbench's drawings (spec, Hardware, operations, build steps, drawings): each part's cut
@@ -66,25 +66,6 @@ export function benchExplode(outputs: WorkbenchOutputs): Explode[] {
   });
 }
 
-type Member = { pl: Placement; box: Box };
-
-/**
- * How far `a` moves along `axis`, toward `sign`, to clear every box in `from` by `gap`: past the
- * far side of each.
- */
-function clear(a: Box, from: readonly Box[], axis: keyof Vec3, sign: 1 | -1, gap: number): number {
-  const past = from.map((b) => (sign > 0 ? b[axis][1] - a[axis][0] : a[axis][1] - b[axis][0]));
-  return sign * (Math.max(0, ...past) + gap);
-}
-
-const along = (axis: keyof Vec3, by: number): Vec3 => ({ x: 0, y: 0, z: 0, [axis]: by });
-
-/** How far the group runs along an axis, from the least of its boxes to the most. */
-const extent = (members: readonly Member[], axis: keyof Vec3) =>
-  Math.max(...members.map((m) => m.box[axis][1])) - Math.min(...members.map((m) => m.box[axis][0]));
-
-const center = (box: Box, axis: keyof Vec3) => (box[axis][0] + box[axis][1]) / 2;
-
 /**
  * The groups built as units, each drawn on its own taken fully apart (spec, Drawings): the two
  * end frames, an upper drawer (two alike), the lower drawer, and a door (two alike, mirrored).
@@ -99,10 +80,7 @@ const center = (box: Box, axis: keyof Vec3) => (box[axis][0] + box[axis][1]) / 2
 export function benchSubAssemblies(outputs: WorkbenchOutputs): SubAssembly[] {
   const { params: p, geometry: g, parts, placements } = outputs.design;
   const middleX = p.overhangEnds + g.baseLength / 2;
-  const placed = placements.flatMap((pl): Member[] => {
-    const part = parts.find((q) => q.id === pl.partId);
-    return part ? [{ pl, box: solidBox(solid(part, pl)) }] : [];
-  });
+  const placed = placedMembers(parts, placements);
   const ref = (m: Member) => ({ partId: m.pl.partId, instance: m.pl.instance });
   const move = (m: Member, stage: number, offset: Vec3): Explode => ({ ...ref(m), stage, offset });
   const left = (m: Member) => center(m.box, 'x') < middleX;
