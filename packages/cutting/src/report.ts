@@ -1,16 +1,29 @@
 import { firstFitDecreasing } from './baseline.ts';
 import { materialBound, relaxation } from './bounds.ts';
 import { measure, planProblems } from './check.ts';
+import { solveExact } from './exact.ts';
 import type { CutPlan, Instance } from './instance.ts';
 import type { Sourced } from './sources.ts';
 
 /** A way to plan an instance's boards. */
 export interface Method {
   name: string;
-  plan(instance: Instance): CutPlan;
+  /** A plan, and whether the method proved no plan buys fewer feet, if it says. */
+  plan(instance: Instance): CutPlan & { proven?: boolean };
 }
 
 export const BASELINE: Method = { name: 'first-fit decreasing', plan: firstFitDecreasing };
+
+/** The exact method, stopped after `timeLimitMs` on each instance. */
+export function exact(timeLimitMs: number): Method {
+  return {
+    name: 'branch-and-bound',
+    plan(instance) {
+      const solved = solveExact(instance, { timeLimitMs });
+      return { ...solved.plan, proven: solved.proven };
+    },
+  };
+}
 
 /** A lower bound on the feet any plan for an instance buys. */
 export interface Bound {
@@ -28,7 +41,7 @@ export interface Row {
   pieces: number;
   /** Each bound, in feet; the best is the highest. */
   bounds: { name: string; feet: number }[];
-  results: { method: string; feet: number; boards: number; ms: number }[];
+  results: { method: string; feet: number; boards: number; ms: number; proven?: boolean }[];
 }
 
 /** Runs each method on each instance, refusing any plan the checker finds a problem with. */
@@ -49,7 +62,12 @@ export function runMethods(
       if (problems.length > 0) {
         throw new Error(`${method.name} on ${source}: ${problems.join(' ')}`);
       }
-      return { method: method.name, ...measure(plan), ms };
+      return {
+        method: method.name,
+        ...measure(plan),
+        ms,
+        ...(plan.proven === undefined ? {} : { proven: plan.proven }),
+      };
     }),
   }));
 }
@@ -74,7 +92,10 @@ export function formatReport(rows: readonly Row[], methods: readonly Method[]): 
   const boundNames = rows[0]?.bounds.map((b) => b.name) ?? [];
   const cells = (row: Row) => [
     ...row.bounds.map((b) => `${b.feet}`),
-    ...row.results.map((r) => `${r.feet} / ${r.boards}`),
+    ...row.results.map(
+      (r) =>
+        `${r.feet} / ${r.boards}${r.proven === undefined ? '' : r.proven ? ' (proven)' : ' (stopped)'}`,
+    ),
   ];
   const header = [
     '| Instance | Pieces | ',
@@ -97,10 +118,12 @@ export function formatReport(rows: readonly Row[], methods: readonly Method[]): 
         ]
       : []),
     '',
-    `| Method | Feet | Boards | Time (ms) |${bounded ? ' Over best bound (ft) | Instances open |' : ''}`,
-    `|---|---|---|---|${bounded ? '---|---|' : ''}`,
+    `| Method | Feet | Boards | Time (ms) | Proven |${bounded ? ' Over best bound (ft) | Instances open |' : ''}`,
+    `|---|---|---|---|---|${bounded ? '---|---|' : ''}`,
     ...methods.map((m) => {
-      const base = `| ${m.name} | ${total(m.name, 'feet')} | ${total(m.name, 'boards')} | ${total(m.name, 'ms').toFixed(1)} |`;
+      const proven = rows.filter((row) => result(row, m.name)?.proven).length;
+      const says = rows.some((row) => result(row, m.name)?.proven !== undefined);
+      const base = `| ${m.name} | ${total(m.name, 'feet')} | ${total(m.name, 'boards')} | ${total(m.name, 'ms').toFixed(1)} | ${says ? `${proven} of ${rows.length}` : ''} |`;
       if (!bounded) return base;
       const count = rows.filter((row) => over(row, m.name) > 0).length;
       return `${base} ${total(m.name, 'feet') - boundTotal} | ${count} |`;

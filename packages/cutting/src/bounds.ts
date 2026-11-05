@@ -9,7 +9,7 @@ import { maximize } from './simplex.ts';
 const EPS = 1e-9;
 
 /** One piece length and how many pieces have it. */
-interface PieceType {
+export interface PieceType {
   length: number;
   demand: number;
   /** The pieces' indexes in the instance. */
@@ -27,7 +27,7 @@ function gcd(a: number, b: number): number {
 }
 
 /** The step every plan's total feet moves in: the greatest common divisor of the lengths. */
-function step(instance: Instance): number {
+export function step(instance: Instance): number {
   if (!instance.lengths.every(Number.isInteger)) {
     throw new Error('Buyable lengths must be whole feet.');
   }
@@ -40,7 +40,7 @@ function roundUp(value: number, by: number): number {
 }
 
 /** The pieces that fit some length, grouped by length, longest first. */
-function pieceTypes(instance: Instance): PieceType[] {
+export function pieceTypes(instance: Instance): PieceType[] {
   const byLength = new Map<number, number[]>();
   instance.pieces.forEach((piece, i) => {
     if (fitsNoLength(instance, i)) return;
@@ -91,6 +91,20 @@ export interface Relaxation {
   generated: number;
 }
 
+/** A pattern by piece length, so it can start the relaxation of an instance with other types. */
+export interface SeedPattern {
+  feet: number;
+  /** Pieces by length. */
+  pieces: ReadonlyMap<number, number>;
+}
+
+/** Thrown when the relaxation runs past its deadline. */
+export class OutOfTime extends Error {
+  constructor() {
+    super('Out of time.');
+  }
+}
+
 /** The most of one type a board of `feet` holds, and at most its demand. */
 function most(instance: Instance, type: PieceType, feet: number): number {
   const room = feet * 12 - 2 * instance.trimPerEnd;
@@ -106,8 +120,19 @@ function most(instance: Instance, type: PieceType, feet: number): number {
  * dual, max Σ demand(i)·price(i) subject to Σ counts(p, i)·price(i) ≤ feet(p), whose slack start
  * is feasible. For each length a knapsack finds the pattern worth most at those prices; a pattern
  * worth more than its feet enters, and when none does the prices are optimal.
+ *
+ * Seed patterns, such as those a larger instance priced, start it closer to the optimum; each is
+ * cut down to the pieces this instance has. Past `deadline` (a `performance.now()` time) it
+ * throws `OutOfTime`.
  */
-export function relaxation(instance: Instance, maxRounds = 500): Relaxation {
+export function relaxation(
+  instance: Instance,
+  {
+    maxRounds = 500,
+    seed = [],
+    deadline = Number.POSITIVE_INFINITY,
+  }: { maxRounds?: number; seed?: readonly SeedPattern[]; deadline?: number } = {},
+): Relaxation {
   const by = step(instance);
   const types = pieceTypes(instance);
   const longest = instance.lengths.at(-1) ?? 0;
@@ -115,9 +140,14 @@ export function relaxation(instance: Instance, maxRounds = 500): Relaxation {
     feet: longest,
     counts: types.map((_, j) => (j === i ? most(instance, type, longest) : 0)),
   }));
+  for (const s of seed) {
+    const counts = types.map((type) => Math.min(type.demand, s.pieces.get(type.length) ?? 0));
+    if (counts.some((n) => n > 0)) patterns.push({ feet: s.feet, counts });
+  }
   const initial = patterns.length;
   for (let round = 0; ; round++) {
     if (round > maxRounds) throw new Error('Column generation did not settle.');
+    if (performance.now() > deadline) throw new OutOfTime();
     const lp = maximize(
       types.map((t) => t.demand),
       patterns.map((p) => p.counts),
