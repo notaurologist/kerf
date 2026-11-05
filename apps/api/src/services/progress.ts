@@ -217,7 +217,9 @@ export async function readAllResets(
   const byProject = new Map<string, { record: unknown; resetAt: string }[]>();
   for (const row of rows) {
     const reset = { record: row.record, resetAt: row.resetAt.toISOString() };
-    byProject.set(row.projectId, [...(byProject.get(row.projectId) ?? []), reset]);
+    const resets = byProject.get(row.projectId);
+    if (resets) resets.push(reset);
+    else byProject.set(row.projectId, [reset]);
   }
   return byProject;
 }

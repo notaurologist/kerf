@@ -12,13 +12,7 @@ import { ProjectsScreen } from './features/projects/ProjectsScreen.tsx';
 import { TemplatePicker } from './features/projects/TemplatePicker.tsx';
 import { TrashScreen } from './features/projects/TrashScreen.tsx';
 import { WorkshopScreen } from './features/workshop/WorkshopScreen.tsx';
-import {
-  api,
-  CONNECTION_MESSAGE,
-  describeError,
-  send,
-  setLoginRequiredHandler,
-} from './lib/api.ts';
+import { api, describeError, SLOW_MESSAGE, send, setLoginRequiredHandler } from './lib/api.ts';
 import { changeScreen } from './lib/moves.ts';
 import { NewBuildNotice } from './lib/NewBuild.tsx';
 import {
@@ -115,7 +109,7 @@ export function Screen(props: {
                   icon="connection"
                   back={{ href: href({ screen: 'projects' }), label: 'Projects' }}
                 >
-                  {CONNECTION_MESSAGE}
+                  {SLOW_MESSAGE}
                 </ProblemScreen>
               }
             />
@@ -175,10 +169,21 @@ export function frameFor(route: Route): { place: PlaceId; top: boolean; back?: B
   }
 }
 
+/**
+ * Which project, tool, or template a screen shows. A screen for another one starts over, so it
+ * never shows the one before under the new one's address while its own loads.
+ */
+function subjectOf(route: Route): string | undefined {
+  if ('id' in route) return `project/${route.id}`;
+  if (route.screen === 'tools' && route.tool) return `tool/${route.tool}`;
+  if (route.screen === 'new-project') return `template/${route.templateId}`;
+  return undefined;
+}
+
 /** A screen with its scope for marking the first use of each glossary term. */
 function ScreenWithTerms(props: Parameters<typeof Screen>[0]) {
   return (
-    <TermScope entryHref={entryHref}>
+    <TermScope key={subjectOf(props.route)} entryHref={entryHref}>
       <Screen {...props} />
     </TermScope>
   );
@@ -234,7 +239,7 @@ export function App() {
         <Skeleton
           label="Loading…"
           shape="list"
-          stuck={<Unreachable message={CONNECTION_MESSAGE} onRetry={check} />}
+          stuck={<Unreachable message={SLOW_MESSAGE} onRetry={check} />}
         />
       </Page>
     );

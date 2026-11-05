@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Contained } from './Contained.tsx';
 import { Measured } from './numbers.tsx';
 import { TermScope } from './Term.tsx';
 import { Text } from './text.tsx';
@@ -49,7 +50,7 @@ export function PlanSection(props: {
               <Measured text={props.intro} terms />
             </Text>
           )}
-          {props.children}
+          <Contained what="section">{props.children}</Contained>
         </div>
       </TermScope>
     </section>

@@ -1947,6 +1947,13 @@
     );
   }
 
+  /* A mask hides everything outside the box, the focus ring too, so the ring goes inside and the
+     fade goes while the drawing has focus. */
+  .k-diagram-scroll:focus-visible {
+    mask-image: none;
+    outline-offset: calc(-1 * var(--focus-width));
+  }
+
   .k-diagram svg * {
     vector-effect: non-scaling-stroke;
   }
