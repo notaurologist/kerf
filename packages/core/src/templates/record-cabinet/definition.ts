@@ -3,7 +3,7 @@ import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
 import { planLumber } from '../../outputs/shoppingList.ts';
 import { noSuggestions } from '../../snapshot/snapshot.ts';
-import { cabinetExplode, cabinetScene, drawings, VIEW } from './drawings.ts';
+import { cabinetExplode, cabinetScene, cabinetSubAssemblies, drawings, VIEW } from './drawings.ts';
 import { EXAMPLES } from './examples.ts';
 import { RECORD_CABINET_FORM } from './form.ts';
 import { cabinetGeometry } from './geometry.ts';
@@ -275,7 +275,7 @@ export const recordCabinet: TemplateDefinition<
     scene: cabinetScene(outputs),
     view: VIEW,
     explode: cabinetExplode(outputs),
-    subAssemblies: [],
+    subAssemblies: cabinetSubAssemblies(outputs),
   }),
   generate(params, structuralInputs) {
     const design = generate(
