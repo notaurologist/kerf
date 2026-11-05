@@ -1,6 +1,6 @@
 # Cut optimization
 
-Status: in progress (November 2026). Steps 1 to 3 done. Issue #544, steps #662 to #665. Code in `packages/cutting` on `explore/cut-optimization`; nothing in `apps/` imports it.
+Status: done, adoption proposed (November 4, 2026). Issue #544, steps #662 to #665. Code in `packages/cutting` on `explore/cut-optimization`; nothing in `apps/` imports it.
 
 ## Question
 
@@ -60,7 +60,7 @@ The search proves the fewest feet. Among plans with the same feet it keeps the o
 
 `pnpm --filter @kerf/cutting report [draws per template]` writes `packages/cutting/report.md`: totals per method with each method's feet over the best bound, the open instances (a method over the best bound), then every instance. Times are from one run on the machine that wrote it.
 
-## Results so far
+## Results
 
 A throwaway search before this package existed, stopped at 5 seconds per stock, found the grouping already optimal on the swing set examples and 2 to 4 ft over the best plan found on the record cabinet and workbench examples (#544).
 
@@ -87,3 +87,49 @@ With the exact method, 5 seconds per instance:
 - Today's grouping buys 355 ft more than the exact method, 2.0%: 0.5% on the swing set, 3.5% on the record cabinet, and 2.1% on the workbench.
 - The exact plans use 47 more boards in all (1,926 against 1,879): the same number on the swing set, 32 more on the record cabinet, and 15 more on the workbench. They buy shorter boards and fill them better.
 - The baseline takes under 10 ms for all 260 instances. The exact method takes about 54 s in all: 35 s on the 7 instances it stopped on, and most of the rest on root relaxations of the other large workbench instances. 186 instances need no search, since the baseline already meets the bound.
+
+On the worked examples, the plans the owner is most likely to build:
+
+| Example | Stock | Today | Exact |
+|---|---|---|---|
+| Swing set, both examples | all | as exact | proven optimal already |
+| Record cabinet | 13/16" x 5-1/2" cherry | 100 ft, 13 boards | 94 ft, 14 boards |
+| Record cabinet, two bays, walnut | 1-1/16" x 5-1/2" | 44 ft, 6 boards | 42 ft, 7 boards |
+| Workbench | 13/16" x 5-1/2" | 386 ft, 39 boards | 376 ft, 38 boards |
+| Workbench, tallest | 13/16" x 5-1/2" | 476 ft, 48 boards | 470 ft, 50 boards (stopped) |
+
+The gain is in board stock, where a project's many panel and strip boards leave room to pair pieces better. Dimension lumber for the swing set has few pieces per stock, and first-fit decreasing is almost always optimal there (5 of 154 instances beaten, 20 ft in all).
+
+## Where the time went
+
+- **The knapsack.** The first version (a dynamic program over (weight, value) pairs) was the whole cost on workbench instances. Replacing it with branch-and-bound cut one root relaxation from 27 s to 0.4 s.
+- **Residual relaxations.** Each search node solves the relaxation of what is left, warm-started from the root's patterns. On most instances a node takes milliseconds. On the hardest workbench instances a node can take about a second, so one instance took 31 s to search 33 nodes.
+- **Node budgets.** With no time limit, a budget of 50 nodes per instance saves 227 of the 355 ft, 200 nodes saves 329 ft, and 1,000 saves 349 ft. Swing set and record cabinet instances finish in under 30 ms at any of these budgets. Workbench instances take up to 31 s, because the per-node cost varies so much.
+- **Proofs.** 186 of 260 instances need no search: the baseline already meets the bound. Of the 67 searched and proven, the median needs 14 nodes, and the largest, the record cabinet's worked example, needs 10,919 (0.2 s).
+
+## What adopting it would take
+
+Adopting means `planLumber` in core plans each stock with the exact method, keeping first-fit decreasing as its starting plan and fallback.
+
+1. **The same plan on every machine.** A time limit gives different plans on different machines and loads, which would break stored snapshot fixtures (0014) and make a regeneration change a plan for no reason. The limit has to count work instead: nodes plus relaxation rounds (or knapsack calls), with the best plan found at the limit kept. A node budget alone does not bound the time, since one workbench node can cost a second.
+2. **Time in the request.** Plans are generated in the API on each save and on each preview of proposed changes (`services/projects.ts`). Swing set and record cabinet stocks finish in milliseconds. The workbench's largest stocks would need the work limit set so a plan takes well under a second, which means accepting the best plan found rather than a proof on those. Measuring that limit is the first task of adoption.
+3. **A template version bump for each template** (0008), new snapshot fixtures, and new catalog samples, since the boards change for the same parameters.
+4. **Cutting order and board IDs (#57, #58).** Boards come out in the search's order. They need sorting into a stable cutting order: longest pieces first, as today. Board IDs are by line and position, so saved progress on a board survives only where its line's boards are unchanged. Progress resets (#444) already handle the rest.
+5. **Store alternatives (#450).** `lengthAlternatives` refits a line's pieces onto shorter lengths with first-fit decreasing. It can keep doing so. Whether it should use the exact method too is a smaller follow-up.
+6. **More boards, shorter.** The exact plans buy 47 more boards over 260 instances, and leave shorter offcuts. A miscut piece is less likely to have a spare piece of board left to recut from. A note on the shopping list could say so. The objective could also add a small allowance per board, which the owner would set.
+7. **Copy and docs.** `PRODUCT.md` lists cut optimization as a non-goal of the MVP and calls the shopping list "simple grouping, not optimization". Both would change, as would DOMAIN.md's Buyable lengths, and the shopping list's notes would say the plan buys the fewest feet the search found, proven or not.
+
+### Proposal
+
+Adopt it, for every stock, with a deterministic work limit and first-fit decreasing as the fallback. The saving is small overall (2%) but concentrated where lumber is dearest: 6% of the cherry on the record cabinet's worked example and 2.6% of the workbench's. The swing set's plans barely change. The work-limit measurement (item 2) comes first, and its result could change this proposal: if the limit that keeps workbench plans under a second loses most of the saving there, adopting it only for stocks where the search finishes is the fallback.
+
+The alternative is to leave the shopping list as it is and offer the exact plan as a "uses N ft less" alternative under each line. That keeps today's plans stable, but shows two plans where one would do.
+
+The owner decides in #677.
+
+## Still open
+
+- Branch-and-price, to see whether proofs on the largest workbench instances come within reach.
+- Sheet goods: 2D guillotine cutting, if a plywood template arrives.
+- Whether fewer boards at equal feet should be proven rather than only preferred.
+
