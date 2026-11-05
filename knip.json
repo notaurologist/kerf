@@ -3,6 +3,9 @@
   "workspaces": {
     "apps/api": {
       "entry": ["src/vercel.ts", "scripts/*.ts"]
+    },
+    "packages/frame": {
+      "entry": ["scripts/*.ts"]
     }
   }
 }

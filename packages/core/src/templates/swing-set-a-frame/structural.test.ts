@@ -4,15 +4,18 @@ import { createSnapshot } from '../../snapshot/snapshot.ts';
 import type { CheckResult, ComputedCheck } from '../../structural/types.ts';
 import { VERDICT_WORDS } from '../../testing.ts';
 import { swingSetAFrame } from './definition.ts';
+import { WORKED_EXAMPLE } from './examples.ts';
 import type { SwingSetParams } from './params.ts';
 import { suggest } from './questions.ts';
 import {
   beamSupports,
+  beamWeightPerInch,
   legLengths,
   pendulumFactor,
   type SwingSetStructuralInputs,
   type SwingSetStructuralReview,
   structuralReview,
+  upliftFeet,
 } from './structural.ts';
 import { generate, type SwingSetOutput } from './template.ts';
 
@@ -788,5 +791,27 @@ describe('legs as columns', () => {
     if (!generated.ok) throw new Error('did not generate');
     const kinds = swingSetAFrame.plan(generated.output).checks.map((c) => c.kind);
     expect(kinds).toEqual(['beam-bending', 'beam-shear', 'beam-deflection', 'hardware', 'column']);
+  });
+});
+
+describe('beamWeightPerInch and upliftFeet', () => {
+  // Spec, Structural model, examples 1 and 4: the 4x6 at 30% weighs 0.433798 lb/in; on pads with
+  // riders 200 and 80 lb at θ = 60°, the left frame carries W_f = 164.615 and D = 26.0279, and
+  // its back foot lifts most at φ = 47.14°, 2·101.555 − 13.409 = 189.70 lb at factor 2.
+  const made = generate({ ...WORKED_EXAMPLE, burialDepth: 0 });
+  if (!made.ok) throw new Error('The worked example does not generate.');
+  const w = beamWeightPerInch(made.output, 'southern-pine-no2', 30);
+
+  it("gives the beam's weight per inch", () => {
+    expect(w).toBeCloseTo(0.433798, 6);
+  });
+
+  it("gives each frame's share, each foot's angle, and its uplift", () => {
+    const { frames, D, feet } = upliftFeet(made.output, [200, 80], 60, w ?? 0);
+    expect(frames[0]?.W).toBeCloseTo(164.615, 3);
+    expect(D).toBeCloseTo(26.0279, 4);
+    const back = feet.find((f) => f.frame === 'left' && f.foot === 'back');
+    expect(back?.phi).toBeCloseTo(47.14, 2);
+    expect(2 * (back?.S ?? 0) - (back?.held ?? 0)).toBeCloseTo(189.7, 2);
   });
 });

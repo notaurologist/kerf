@@ -203,3 +203,55 @@ describe('Example 5.3 of McGuire, Gallagher and Ziemian, 2nd edition (p. 103)', 
     );
   });
 });
+
+describe('rigid offsets (Section 13.5.2, Eqs. 13.38 and 13.40, pp. 400–401)', () => {
+  it('gives [T]·Γᵀ·k′·Γ·[T]ᵀ with [T] written as Eq. 13.38 prints it', () => {
+    // A member from offset point i to offset point j, its joints 1 and 2 off its ends. The book's
+    // e_i runs from joint 1 to i, and its e_j from j to joint 2 (Example 13.8, p. 401).
+    const joint1 = { id: '1', x: 0, y: 0 };
+    const joint2 = { id: '2', x: 120, y: 90 };
+    const start = { x: 5, y: -8 };
+    const end = { x: -12, y: 6 };
+    const el = element(
+      {
+        id: 'm',
+        start: '1',
+        end: '2',
+        section: { e: E, area: A, inertia: I },
+        offsets: { start, end },
+      },
+      joint1,
+      joint2,
+    );
+    // The member runs from (5, −8) to (108, 96).
+    expect(el.geometry.length).toBeCloseTo(Math.hypot(103, 104), 12);
+    const [exi, eyi] = [start.x, start.y];
+    const [exj, eyj] = [-end.x, -end.y];
+    const T = [
+      [1, 0, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0, 0],
+      [-eyi, exi, 1, 0, 0, 0],
+      [0, 0, 0, 1, 0, 0],
+      [0, 0, 0, 0, 1, 0],
+      [0, 0, 0, eyj, -exj, 1],
+    ];
+    const plain = el.local.congruent(el.gamma);
+    for (let r = 0; r < 6; r++)
+      for (let c = 0; c < 6; c++) {
+        let sum = 0;
+        for (let a = 0; a < 6; a++)
+          for (let b = 0; b < 6; b++)
+            sum += (T[r]?.[a] as number) * plain.get(a, b) * (T[c]?.[b] as number);
+        expect(el.global.get(r, c)).toBeCloseTo(sum, 6);
+      }
+  });
+
+  it('is the plain element with no offsets', () => {
+    const plain = element(
+      { id: 'm', start: 'a', end: 'b', section: { e: E, area: A, inertia: I } },
+      { id: 'a', x: 0, y: 0 },
+      { id: 'b', x: 60, y: 80 },
+    );
+    expect(plain.global.rows()).toEqual(plain.local.congruent(plain.gamma).rows());
+  });
+});

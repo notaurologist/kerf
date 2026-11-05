@@ -161,22 +161,24 @@ export function analyze(frame: Frame): Analysis {
   });
 
   // Each member's end forces from its own end displacements, f' = k'·Γ·d (Eqs. 5.11 and 5.12,
-  // p. 98). A released end's
+  // p. 98), or f' = k'·Γ·[T]ᵀ·d with rigid offsets (Eq. 13.41, p. 401). A released end's
   // rotation is condensed out of k', so the loose rotation's placeholder zero never enters.
   const atJoints = new Array<number>(n).fill(0);
   const memberForces: Record<string, { start: EndForces; end: EndForces }> = {};
   for (const { element: el, dofs: ds } of elements) {
     const ends = ds.map((dof) => d[dof] as number);
-    const local = el.local.times(el.gamma.times(ends));
+    const local = el.local.times(el.gamma.times(el.offset.times(ends)));
     const [a1, s1, m1, a2, s2, m2] = local as [number, number, number, number, number, number];
     memberForces[el.member.id] = {
       start: { axial: a1, shear: s1, moment: m1 },
       end: { axial: a2, shear: s2, moment: m2 },
     };
-    // Γᵀ·f', the same forces in global axes, which the joints apply to the member.
+    // Γᵀ·f', the same forces in global axes at the member's ends, then [T]·Γᵀ·f' (Eq. 13.37,
+    // p. 399), carried along the rigid links to the joints, which apply them to the member.
     const c = el.geometry.cos;
     const s = el.geometry.sin;
-    const global = [c * a1 - s * s1, s * a1 + c * s1, m1, c * a2 - s * s2, s * a2 + c * s2, m2];
+    const atEnds = [c * a1 - s * s1, s * a1 + c * s1, m1, c * a2 - s * s2, s * a2 + c * s2, m2];
+    const global = ds.map((_, a) => atEnds.reduce((sum, f, b) => sum + el.offset.get(b, a) * f, 0));
     ds.forEach((dof, a) => {
       atJoints[dof] = (atJoints[dof] as number) + (global[a] as number);
     });

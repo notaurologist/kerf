@@ -320,3 +320,77 @@ describe('mechanisms and input errors', () => {
     ).toThrow('joint z');
   });
 });
+
+describe('a cantilever reached through a rigid link (Section 13.5.2)', () => {
+  // The cantilever above, L = 100 in from a fixed joint a, with its tip joined by a rigid link to a
+  // joint b 20 in below it, at (100, −20). The member's end is at b + (0, 20).
+  const linked = (load: { fx?: number; fy?: number }): Frame => ({
+    joints: [
+      { id: 'a', x: 0, y: 0 },
+      { id: 'b', x: 100, y: -20 },
+    ],
+    members: [
+      { id: 'm', start: 'a', end: 'b', section: SECTION, offsets: { end: { x: 0, y: 20 } } },
+    ],
+    supports: { a: { kind: 'fixed' } },
+    loads: [{ joint: 'b', ...load }],
+  });
+
+  it('carries a load along the link without a moment', () => {
+    // 300 lb down at b acts on the tip unchanged: tip deflection 1.0 in, rotation 0.015 rad
+    // clockwise. The link turns with the tip, so b swings 20 × 0.015 = 0.3 in toward −x.
+    const { displacements, reactions, memberForces } = solved(linked({ fy: -300 }));
+    close(displacements.b?.y, -1.0);
+    close(displacements.b?.rotation, -0.015);
+    close(displacements.b?.x, -0.3);
+    close(reactions.a?.moment, 30_000);
+    close(memberForces.m?.end.moment, 0);
+  });
+
+  it('turns a load across the link into a moment at the tip', () => {
+    // 1,000 lb along +x at b, 20 in below the tip: at the tip, 1,000 lb along the member and a
+    // moment 20 × 1,000 = 20,000 in-lb counterclockwise. Stretch HL/EA = 0.01 in; the moment turns
+    // the tip ML/EI = 20,000 × 100 / 10⁸ = 0.02 rad and lifts it ML²/2EI = 1.0 in. b moves
+    // 0.01 + 20 × 0.02 = 0.41 in along x. The support holds 20,000 in-lb clockwise.
+    const { displacements, reactions, memberForces } = solved(linked({ fx: 1_000 }));
+    close(displacements.b?.rotation, 0.02);
+    close(displacements.b?.y, 1.0);
+    close(displacements.b?.x, 0.41);
+    close(reactions.a?.fx, -1_000);
+    close(reactions.a?.fy, 0);
+    close(reactions.a?.moment, -20_000);
+    close(memberForces.m?.end.moment, 20_000);
+    close(memberForces.m?.start.moment, -20_000);
+  });
+
+  it('releases a pinned end at the link, not at the joint', () => {
+    // A member pinned at its offset end carries no moment there. Joint b is held, the member's end
+    // is 20 in above it, and the member is pinned there: a propped cantilever, 1,600 lb at
+    // midspan, gives 500 lb at the prop and 30,000 in-lb at the wall, as above. The prop's
+    // reaction acts at the pin, so about b it adds no moment, and b's support holds none.
+    const { reactions, memberForces } = solved({
+      joints: [
+        { id: 'a', x: 0, y: 0 },
+        { id: 'c', x: 50, y: 0 },
+        { id: 'b', x: 100, y: -20 },
+      ],
+      members: [
+        { id: 'ac', start: 'a', end: 'c', section: SECTION },
+        {
+          id: 'cb',
+          start: 'c',
+          end: 'b',
+          section: SECTION,
+          offsets: { end: { x: 0, y: 20 } },
+          releases: { end: true },
+        },
+      ],
+      supports: { a: { kind: 'fixed' }, b: { kind: 'fixed' } },
+      loads: [{ joint: 'c', fy: -1_600 }],
+    });
+    close(reactions.b?.fy, 500);
+    close(reactions.b?.moment, 0);
+    close(reactions.a?.moment, 30_000);
+    close(memberForces.cb?.end.moment, 0);
+  });
+});

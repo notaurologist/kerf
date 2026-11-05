@@ -8,7 +8,7 @@
 // p. 72).
 
 import { Matrix } from './matrix.ts';
-import type { Joint, Member } from './model.ts';
+import type { Joint, Member, Offset } from './model.ts';
 
 /** Local degrees of freedom, in order: u₁, v₁, θ₁ at the start, then u₂, v₂, θ₂ at the end. */
 export const START_ROTATION = 2;
@@ -22,8 +22,10 @@ interface Geometry {
 }
 
 function geometry(member: Member, start: Joint, end: Joint): Geometry {
-  const dx = end.x - start.x;
-  const dy = end.y - start.y;
+  const s = member.offsets?.start ?? { x: 0, y: 0 };
+  const t = member.offsets?.end ?? { x: 0, y: 0 };
+  const dx = end.x + t.x - (start.x + s.x);
+  const dy = end.y + t.y - (start.y + s.y);
   const length = Math.hypot(dx, dy);
   if (!(length > 0)) throw new Error(`Member ${member.id} has no length.`);
   return { length, cos: dx / length, sin: dy / length };
@@ -98,13 +100,40 @@ function transformation({ cos: c, sin: s }: Geometry): Matrix {
   ]);
 }
 
+/**
+ * The rigid links from the joints to the member's ends, as the matrix that takes the joints'
+ * global displacements to those of the member's ends: for an end at the joint plus (e_x, e_y),
+ * u = u_joint − e_y·θ, v = v_joint + e_x·θ, and θ = θ_joint. This is [T]ᵀ of Eq. 13.39, with [T] the
+ * force transformation of Eq. 13.38 (Section 13.5.2, p. 400), worked out link by link in Example
+ * 13.8 (pp. 400–401). The book measures e_i from joint 1 to the member's start and e_j from the
+ * member's end to joint 2; here both are measured from the joint, so the end's row has the
+ * opposite signs to the book's e_j. With no offsets it is the identity.
+ */
+function offsetTransformation(start?: Offset, end?: Offset): Matrix {
+  const a = start ?? { x: 0, y: 0 };
+  const b = end ?? { x: 0, y: 0 };
+  return Matrix.from([
+    [1, 0, -a.y, 0, 0, 0],
+    [0, 1, a.x, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0, -b.y],
+    [0, 0, 0, 0, 1, b.x],
+    [0, 0, 0, 0, 0, 1],
+  ]);
+}
+
 export interface Element {
   member: Member;
   geometry: Geometry;
   /** k' with the member's releases condensed out. */
   local: Matrix;
   gamma: Matrix;
-  /** Γᵀ·k'·Γ, the element's stiffness in global axes (Eq. 5.16, p. 98). */
+  /** [T]ᵀ, from the joints' displacements to the member's ends' (identity with no offsets). */
+  offset: Matrix;
+  /**
+   * The element's stiffness in global axes at its joints: Γᵀ·k'·Γ (Eq. 5.16, p. 98), or with rigid
+   * offsets [T]·Γᵀ·k'·Γ·[T]ᵀ (Eq. 13.40, p. 401).
+   */
   global: Matrix;
 }
 
@@ -123,6 +152,12 @@ export function element(member: Member, start: Joint, end: Joint): Element {
   if (member.releases?.start) released.push(START_ROTATION);
   if (member.releases?.end) released.push(END_ROTATION);
   const local = condense(localStiffness(e, area, inertia, g.length), released);
+  for (const o of [member.offsets?.start, member.offsets?.end]) {
+    if (o && !(Number.isFinite(o.x) && Number.isFinite(o.y)))
+      throw new Error(`Member ${member.id} needs finite offsets.`);
+  }
   const gamma = transformation(g);
-  return { member, geometry: g, local, gamma, global: local.congruent(gamma) };
+  const offset = offsetTransformation(member.offsets?.start, member.offsets?.end);
+  const global = local.congruent(gamma).congruent(offset);
+  return { member, geometry: g, local, gamma, offset, global };
 }

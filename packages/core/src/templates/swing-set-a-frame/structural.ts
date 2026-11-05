@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { DENSITY_SOURCES, woodDensity } from '../../design-values/density.ts';
-import { referenceRow, SPECIES_GRADE_IDS, speciesGrade } from '../../design-values/sawnLumber.ts';
+import {
+  referenceRow,
+  SPECIES_GRADE_IDS,
+  type SpeciesGradeId,
+  speciesGrade,
+} from '../../design-values/sawnLumber.ts';
 import type { Citation } from '../../design-values/sources.ts';
 import { STOCK_SIZE_SOURCES, stock } from '../../lumber/stock.ts';
 import type { FieldRef } from '../../model/form.ts';
@@ -335,6 +340,24 @@ function hangerHoleAssumptions(output: SwingSetOutput): string[] {
   ];
 }
 
+/**
+ * The beam's weight per inch of length, w = ρ·A / 1728, from its density at the moisture content
+ * (spec, Structural model, Beam weight). Null when the beam's size has no design values, so no G.
+ */
+export function beamWeightPerInch(
+  output: SwingSetOutput,
+  speciesGrade: SpeciesGradeId,
+  moistureContent: number,
+): number | null {
+  const p = output.params;
+  const row = referenceRow(speciesGrade, p.beamStock);
+  if (!row) return null;
+  const beam = stock(p.beamStock);
+  const density = woodDensity(row.values.G, moistureContent);
+  const area = p.beamPlies * beam.thickness * beam.width;
+  return (density * area) / 1728;
+}
+
 /** Structural review for a generated swing set and the owner's structural inputs. */
 export function structuralReview(output: SwingSetOutput, input: unknown): ReviewResult {
   const parsed = SwingSetStructuralInputs.safeParse(input);
@@ -502,9 +525,7 @@ export function structuralReview(output: SwingSetOutput, input: unknown): Review
   });
 
   const anchors =
-    p.burialDepth === 0
-      ? anchorCheck(output, inputs, supports.x, beamWeight, dynamicFactor)
-      : undefined;
+    p.burialDepth === 0 ? anchorCheck(output, inputs, beamWeight, dynamicFactor) : undefined;
   const legs = legColumn(output, inputs, swing, beamWeight, dynamicFactor);
 
   return {
@@ -549,6 +570,8 @@ function minimize(f: (x: number) => number, lo: number, hi: number): { x: number
 
 interface FootLift {
   label: string;
+  frame: 'left' | 'right';
+  foot: 'back' | 'front';
   /** The weight-sharing and overturning coefficients: R = (V + D)·c_v − F·c_h. */
   cv: number;
   ch: number;
@@ -560,32 +583,78 @@ interface FootLift {
 }
 
 /**
- * Uplift at a foot on pads, by statics (spec, Structural model, Uplift at the feet). The chain
- * tension at φ on the way down from θ is W·(3·cos φ − 2·cos θ), from the same energy and
- * centripetal results as the swing load. Its fore-and-aft part pushes each A-frame over the foot
- * it pivots on; moments about that foot give the pull at the other one, which bears nothing and
- * so has no friction.
+ * Each frame's share of the swings and the beam's weight, and each foot's uplift, by statics
+ * (spec, Structural model, Uplift at the feet). The feet are where each leg's centerline meets
+ * the ground, which is where a foot on a pad is cut. The chain tension at φ on the way down from θ
+ * is W·(3·cos φ − 2·cos θ), from the same energy and centripetal results as the swing load. Its
+ * fore-and-aft part pushes each A-frame over the foot it pivots on; moments about that foot give
+ * the pull at the other one, which bears nothing and so has no friction.
  */
-function anchorCheck(
+export function upliftFeet(
   output: SwingSetOutput,
-  inputs: SwingSetStructuralInputs,
-  supportsX: [number, number],
-  beamWeight: Needed<{ w: number; working: Quantity[] } | null>,
-  dynamicFactor: LoadFactor,
-): CheckResult {
+  riderWeights: readonly [number, number],
+  maxSwingAngle: number,
+  /** The beam's weight per inch, or 0 when it is not known. */
+  w: number,
+) {
   const p = output.params;
   const g = output.geometry;
   const dims = dimensions(p);
   const a = g.splay * RAD;
   const qy = dims.bw / 2 + dims.w / (2 * Math.cos(a));
   const H = dims.H;
-  const zb = g.back.footZ;
-  const zf = g.front.footZ;
+  const zb = g.back.groundZ;
+  const zf = g.front.groundZ;
   const yb = qy + (H - zb) * Math.tan(a);
   const yf = -(qy + (H - zf) * Math.tan(a));
   const base = yb - yf;
-  const [x0, x1] = supportsX;
+  const [x0, x1] = beamSupports(output).x;
   const hangersX = output.swings.hangersX;
+  const theta = maxSwingAngle * RAD;
+  const cosT = Math.cos(theta);
+  // Each frame's share of the riders, by the beam's simple span between its supports.
+  const left = hangersX.reduce(
+    (sum, x, i) => sum + ((riderWeights[i < 2 ? 0 : 1] / 2) * (x1 - x)) / (x1 - x0),
+    0,
+  );
+  const frames = [
+    { name: 'left' as const, W: left },
+    { name: 'right' as const, W: riderWeights[0] + riderWeights[1] - left },
+  ];
+  const D = (w * p.beamLength) / 2;
+  const lifting = [
+    { foot: 'back' as const, cv: -yf / base, ch: (H - zf) / base },
+    { foot: 'front' as const, cv: yb / base, ch: (H - zb) / base },
+  ];
+  const feet: FootLift[] = frames.flatMap((frame) =>
+    lifting.map(({ foot, cv, ch }) => {
+      const m = minimize(
+        (phi) => (3 * Math.cos(phi) - 2 * cosT) * (cv * Math.cos(phi) - ch * Math.sin(phi)),
+        0,
+        theta,
+      );
+      return {
+        label: `${frame.name === 'left' ? 'Left' : 'Right'} frame, ${foot} foot`,
+        frame: frame.name,
+        foot,
+        cv,
+        ch,
+        S: -frame.W * m.value,
+        phi: m.x / RAD,
+        held: D * cv,
+      };
+    }),
+  );
+  return { frames, D, feet, yb, zb, yf, zf };
+}
+
+function anchorCheck(
+  output: SwingSetOutput,
+  inputs: SwingSetStructuralInputs,
+  beamWeight: Needed<{ w: number; working: Quantity[] } | null>,
+  dynamicFactor: LoadFactor,
+): CheckResult {
+  const p = output.params;
 
   const swing = need(inputs, STRUCTURAL_INPUT_LABELS, 'riderWeights', 'maxSwingAngle');
   const perFoot: Needed<number> =
@@ -604,39 +673,12 @@ function anchorCheck(
     perFoot,
     (v, n) => {
       const { riderWeights, maxSwingAngle } = v.s;
-      const theta = maxSwingAngle * RAD;
-      const cosT = Math.cos(theta);
-      // Each frame's share of the riders, by the beam's simple span between its supports.
-      const left = hangersX.reduce(
-        (sum, x, i) => sum + ((riderWeights[i < 2 ? 0 : 1] / 2) * (x1 - x)) / (x1 - x0),
-        0,
-      );
-      const frames = [
-        { name: 'left', W: left },
-        { name: 'right', W: riderWeights[0] + riderWeights[1] - left },
-      ];
-      const w = v.weight?.w ?? 0;
-      const D = (w * p.beamLength) / 2;
-      const lifting = [
-        { foot: 'back', cv: -yf / base, ch: (H - zf) / base },
-        { foot: 'front', cv: yb / base, ch: (H - zb) / base },
-      ];
-      const feet: FootLift[] = frames.flatMap((frame) =>
-        lifting.map(({ foot, cv, ch }) => {
-          const m = minimize(
-            (phi) => (3 * Math.cos(phi) - 2 * cosT) * (cv * Math.cos(phi) - ch * Math.sin(phi)),
-            0,
-            theta,
-          );
-          return {
-            label: `${frame.name === 'left' ? 'Left' : 'Right'} frame, ${foot} foot`,
-            cv,
-            ch,
-            S: -frame.W * m.value,
-            phi: m.x / RAD,
-            held: D * cv,
-          };
-        }),
+      const cosT = Math.cos(maxSwingAngle * RAD);
+      const { frames, D, feet, yb, zb, yf, zf } = upliftFeet(
+        output,
+        riderWeights,
+        maxSwingAngle,
+        v.weight?.w ?? 0,
       );
       // The foot that sets the margin at the entered factor, or that reaches margin 1.0 first.
       const governing = feet.reduce((worst, f) => {

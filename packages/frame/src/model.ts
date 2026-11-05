@@ -43,6 +43,18 @@ export interface Member {
    * across it. A joint where every member is released has no defined rotation of its own.
    */
   releases?: { start?: boolean; end?: boolean };
+  /**
+   * Rigid links from a joint to the member's end, in global axes, inches: the member's end sits at
+   * the joint plus this offset, and turns and moves with the joint as a rigid body. The member's
+   * length and direction are those between its offset ends, and a release acts at the offset end.
+   */
+  offsets?: { start?: Offset; end?: Offset };
+}
+
+/** A rigid link from a joint to a member's end, inches, in global axes. */
+export interface Offset {
+  x: number;
+  y: number;
 }
 
 /** A load applied at a joint, in global axes. */
