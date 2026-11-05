@@ -80,8 +80,8 @@ The template definitions still carry the generation code into the web bundle, si
 │           ├── joinery/        # Joint layouts any template can use: through dovetails (#578)
 │           ├── model/          # The generic template contract: TemplateDefinition, output types,
 │           │                   # operations, forms, starting questions, part letters
-│           ├── templates/      # The registry (index.ts) and one folder per template;
-│           │                   # swing-set-a-frame/ and record-cabinet/
+│           ├── templates/      # The registry (index.ts) and one folder per template:
+│           │                   # swing-set-a-frame/, record-cabinet/, and workbench/
 │           ├── outputs/        # Cut list, shopping list (board grouping with kerf and trim)
 │           ├── structural/     # Generic beam and hardware checks and adjustment factors
 │           ├── movement/       # Wood movement across the grain, with its working (Wood Handbook Eq. 13-3)
@@ -180,6 +180,14 @@ The shared output types describe what a template generates now, so every field g
 - `throughDovetails` gives a corner's tails and pins across the width the boards share.
 
 Each refuses a joint whose parts don't meet as it needs, with a message. `compare` checks two values agree within 1e-9, for templates that build each instance of a part from its own joints and check they come out the same. Generic code: no template words (principle 6).
+
+Every template is written this way. Its `generate` places each part uncut: its frame, its stock, and which way it runs. It then declares the joints, each with the template's sizes (a dado's depth, a tenon's length, a bolt's line). The joints give each part its length, end cuts, origin, and every feature a joint cuts: holes, dadoes, notches, mortises, tenons, grooves, rabbets, dovetails, and screw holes. Where a part's stock depends on its length, as a glued-up panel's does, it is sized after the joints give the length. A placed bolt's grip is the sum of its holes. The swing set and the record cabinet do this in `joints.ts`, the workbench in `design.ts`. The template still gives:
+- where each part stands, and the closing formulas behind that, such as the swing set's splay
+- each joint's size
+- features with no partner part, such as the swing set's flush cut, the cabinet's tapers, tracks, and finger recesses, and the workbench's dog holes
+- hardware, the structural model, flags, build steps, and all wording
+
+The spec's formulas for lengths, end cuts, and grips are how to check the joints by hand; no template computes them separately. Every instance of a part shares one cut-list line and one list of features. The swing set and the record cabinet list a feature once when another instance already has it (`compare`). The workbench gathers each instance's features from its own joints and throws if one differs from the first: that is a template error, not a refusal. A joint a template needs that core lacks is added to `joints/` first, with hand-checked tests and a mutation test (decision 0020).
 
 `templates/sweep.ts` sweeps a template's parameters in tests (#571): from a fixed seed it draws parameter sets across the schema's ranges, half of them on a 1/16" step as an owner would type them, and checks that each draw the schemas accept makes a plan or is refused with issues, never throws, and that each plan reads back from a stored snapshot, passes the fit checks, and, for every tenth plan, can be shown and drawn (`shownOnRead`). Each template's `sweep.test.ts` gives its sampler and asserts how many draws make plans, so the sweep keeps meaning something. Both run in about two seconds.
 
