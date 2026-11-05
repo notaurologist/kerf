@@ -84,6 +84,7 @@ describe('projects and the carry length', () => {
       carryLength: 120,
     });
     const report = (await (await authed(`/api/projects/${made.id}/version`)).json()) as Json;
+    expect(report.basis).toEqual({ templateVersion: made.templateVersion, settingsRevision: 2 });
     expect(report.version).toMatchObject({
       status: 'carry-length',
       storedCarryLength: null,
@@ -96,7 +97,7 @@ describe('projects and the carry length', () => {
 
     const regenerated = await authed(`/api/projects/${made.id}/regenerate`, {
       method: 'POST',
-      body: { revision: made.revision },
+      body: { revision: made.revision, ...report.basis },
     });
     expect(regenerated.status).toBe(200);
     const after = (await regenerated.json()) as Json;
@@ -107,5 +108,36 @@ describe('projects and the carry length', () => {
       await authed('/api/projects', { method: 'POST', body: newProject })
     ).json()) as Json;
     expect(fresh.snapshot.outputs.lumber.carryLength).toBe(120);
+  });
+
+  it('refuses a regeneration when the carry length changed after the notice was worked out', async () => {
+    const { authed } = await createTestApp();
+    const made = (await (
+      await authed('/api/projects', { method: 'POST', body: newProject })
+    ).json()) as Json;
+    await authed('/api/settings', { method: 'PUT', body: { carryLength: 120, revision: 1 } });
+    const shown = (await (await authed(`/api/projects/${made.id}/version`)).json()) as Json;
+    expect(shown.version).toMatchObject({ status: 'carry-length', carryLength: 120 });
+
+    // Saved from the phone while the laptop shows the notice for a 10' carry length.
+    await authed('/api/settings', { method: 'PUT', body: { carryLength: 96, revision: 2 } });
+    const regenerate = await authed(`/api/projects/${made.id}/regenerate`, {
+      method: 'POST',
+      body: { revision: made.revision, ...shown.basis },
+    });
+    expect(regenerate.status).toBe(409);
+    expect(await regenerate.json()).toEqual({ error: 'stale-project', revision: made.revision });
+    const kept = (await (await authed(`/api/projects/${made.id}`)).json()) as Json;
+    expect(kept.revision).toBe(made.revision);
+    expect(kept.snapshot.outputs.lumber).not.toHaveProperty('carryLength');
+
+    const again = (await (await authed(`/api/projects/${made.id}/version`)).json()) as Json;
+    expect(again.basis.settingsRevision).toBe(3);
+    const regenerated = await authed(`/api/projects/${made.id}/regenerate`, {
+      method: 'POST',
+      body: { revision: made.revision, ...again.basis },
+    });
+    expect(regenerated.status).toBe(200);
+    expect(((await regenerated.json()) as Json).snapshot.outputs.lumber.carryLength).toBe(96);
   });
 });
