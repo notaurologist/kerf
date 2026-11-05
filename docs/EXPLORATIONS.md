@@ -18,7 +18,7 @@ Kerf's MVP is in place. These are larger directions the owner chose to keep for 
 | Joint-based parametric model (first; adopted, decision 0020) | #543 | Constraint solving, parametric modelling, designing a small language |
 | Cut optimization (done; adopted, decision 0021) | #544 | Cutting stock, integer programming, column generation |
 | Frame analysis | #545 | The direct stiffness method, the basis of frame analysis software |
-| Fabrication outputs | #546 | Full-size printed templates, DXF and G-code, 3D rendering |
+| Fabrication outputs (done; adoption after the printed check) | #546 | Full-size printed templates, DXF and G-code, 3D rendering |
 | AI as author, code as verifier | #547 | Building gates and evals around generated code |
 
 ### Joint-based parametric model
@@ -38,6 +38,8 @@ Analyse the whole frame for member forces, reactions, and sway. `PRODUCT.md` pri
 ### Fabrication outputs
 
 Full-size printable templates for angled cuts and gussets, DXF or G-code for a CNC router, and a real 3D view or hidden-line removal for the isometrics.
+
+Done, November 5, 2026. Its code is `packages/fabrication` on `explore/fabrication`, not merged, with no new dependency: full-size templates tiled across letter pages with a check square and registration marks, end templates for long parts, hole centers and joinery marks, a DXF per part, and hidden-line removal for the isometric and exploded views. The owner chose DXF without G-code unless a CNC router arrives, hidden-line removal before any WebGL view, and letter paper only (#546). `docs/explorations/fabrication.md` on that branch is the record and proposes adopting the full-size templates once the owner prints the gusset and it measures true.
 
 ### AI as author, code as verifier
 
