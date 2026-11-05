@@ -61,3 +61,62 @@ describe('a drawing wider than its box', () => {
     sizes.scroll = 560;
   });
 });
+
+// Printed from a phone, an assembly's view kept the phone's layout: no part letters, and labels
+// sized for 375 px stretched to the page (#704). On paper it is laid out for the page.
+
+const letter = (name: string, x: number): geometry.Primitive => ({
+  kind: 'letter',
+  at: { x, y: 0 },
+  target: { x, y: 0 },
+  letter: name,
+  part: { partId: name, instance: 0, letter: name },
+});
+
+const assembly: geometry.Drawing = {
+  ...drawing,
+  primitives: [...drawing.primitives, letter('A', 20), letter('B', 80)],
+};
+
+describe('an assembly view printed from a phone-width window', () => {
+  const print = (event: 'beforeprint' | 'afterprint') =>
+    act(() => {
+      window.dispatchEvent(new Event(event));
+    });
+
+  it('is laid out for the landscape page while printing, and for the phone after', () => {
+    const { container } = mount(
+      <Diagram
+        drawing={assembly}
+        label="Isometric"
+        assumedWidth={375}
+        page="landscape"
+        letters="wide"
+      />,
+    );
+    const letters = () =>
+      [...container.querySelectorAll('.k-letter__text')].map((t) => t.textContent);
+    const width = () =>
+      container.querySelector<HTMLElement>('.k-diagram')?.style.getPropertyValue('--diagram-width');
+    expect(letters()).toEqual([]);
+    expect(width()).toBe('375px');
+
+    print('beforeprint');
+    expect(letters()).toEqual(['A', 'B']);
+    expect(width()).toBe('960px');
+
+    print('afterprint');
+    expect(letters()).toEqual([]);
+    expect(width()).toBe('375px');
+  });
+
+  it('lays out a portrait drawing for the portrait page', () => {
+    const { container } = mount(<Diagram drawing={drawing} label="Detail" assumedWidth={375} />);
+    const width = () =>
+      container.querySelector<HTMLElement>('.k-diagram')?.style.getPropertyValue('--diagram-width');
+    print('beforeprint');
+    expect(width()).toBe('720px');
+    print('afterprint');
+    expect(width()).toBe('375px');
+  });
+});
