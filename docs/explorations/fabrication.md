@@ -27,7 +27,21 @@ In the three templates' worked examples, the parts with a shaped outline are:
 | Record cabinet | Legs | 7-1/2" long | Square ends, two tapers |
 | Workbench | Drawer shelves, divider | panels | Square ends, two notches |
 
-The gusset prints whole on 3 pages. The crossbar would take 8 and the legs far more, so they get a template at each angled end (#667). The cabinet's and workbench's square-ended parts are laid out with a square; a template helps only with a notch or taper.
+The gusset prints whole on 3 pages. The crossbar would take 8 and the legs far more, so they get a template at each angled end. The cabinet's and workbench's parts have square ends, so their templates show only a notch, a taper, or a tenon's shoulders.
+
+## Whole parts and end templates
+
+A part with two plain square ends gets no template. Otherwise it prints whole when it fits on 6 pages and its end templates would cover at least half its length anyway; the gusset and the cabinet's short legs print whole. Every other part gets one template per shaped end.
+
+An end template shows the end as far in as its shape reaches (from the long point to the short point of an angled cut, to the start of a taper, or the depth of a notch, cutout, or tenon shoulder), then 3" more or the part's width if less, and stops at a zigzag break. It marks:
+
+- the cut line, from core's outline, left open at the break;
+- the long point with a dot and a dashed line square across the part from it, measured from the blank, so a long point that a taper later removes is still on the sheet; the taper's waste is dashed;
+- in the notes, the end's description, saw setting, and angle to the edge from the cut list; which edge the long point is on and how far along the other edge the cut meets it; the reference edge; and the part's full length.
+
+The distance from the square line to the short point is the difference between two of the blank's corners from core's `blankOutline`, rounded by `formatLength`. The package does no trigonometry of its own.
+
+Written from each template's first worked example, the swing set needs 9 pages (gusset 3, crossbar ends 2, leg ends 4), the record cabinet 21, and the workbench 26. The cabinet's sides and the workbench's drawer shelves are 13" to 17" wide, so each notched end takes 2 pages for a 3/16" by 1/2" notch that is quicker to lay out with a square. Leaving out notches that small is a question for the write-up.
 
 ## Printing
 

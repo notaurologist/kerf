@@ -50,10 +50,24 @@ function line(x1: number, y1: number, x2: number, y2: number, attrs: string): st
   return `<line x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}" ${attrs}/>`;
 }
 
+const pointList = (points: readonly { x: number; y: number }[]) =>
+  points.map((p) => `${n(p.x)},${n(p.y)}`).join(' ');
+
 function shape(s: Shape): string {
-  if (s.kind === 'text') return text(s.at.x, s.at.y, s.size, s.text);
-  const points = s.points.map((p) => `${n(p.x)},${n(p.y)}`).join(' ');
-  return `<polygon class="cut" points="${points}" fill="none" stroke="#000" stroke-width="${n(CUT_LINE)}" stroke-linejoin="miter"/>`;
+  switch (s.kind) {
+    case 'text':
+      return text(s.at.x, s.at.y, s.size, s.text);
+    case 'outline':
+      return `<${s.closed ? 'polygon' : 'polyline'} class="cut" points="${pointList(s.points)}" fill="none" stroke="#000" stroke-width="${n(CUT_LINE)}" stroke-linejoin="miter"/>`;
+    case 'break':
+      return `<polyline class="break" points="${pointList(s.points)}" fill="none" ${FINE}/>`;
+    case 'waste':
+      return `<polyline class="waste" points="${pointList(s.points)}" fill="none" ${FINE} stroke-dasharray="0.05 0.05"/>`;
+    case 'square':
+      return `<polyline class="square" points="${pointList(s.points)}" fill="none" ${FINE} stroke-dasharray="0.1 0.05"/>`;
+    case 'dot':
+      return `<circle class="long-point" cx="${n(s.at.x)}" cy="${n(s.at.y)}" r="${n(s.radius)}" fill="#000"/>`;
+  }
 }
 
 function mark(x: number, y: number): string {

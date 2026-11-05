@@ -11,7 +11,15 @@ interface Point {
 }
 
 export type Shape =
-  | { kind: 'outline'; points: Point[] }
+  /** The line to cut to: closed around a whole part, open where a template breaks off. */
+  | { kind: 'outline'; points: Point[]; closed: boolean }
+  /** A zigzag where a template stops short of the rest of the part. */
+  | { kind: 'break'; points: Point[] }
+  /** Wood a taper removes, between its line and the blank's corner, dashed. */
+  | { kind: 'waste'; points: Point[] }
+  /** A layout line square across the part from an end's long point, dashed. */
+  | { kind: 'square'; points: [Point, Point] }
+  | { kind: 'dot'; at: Point; radius: number }
   | { kind: 'text'; at: Point; text: string; size: number };
 
 export interface Sheet {
@@ -27,10 +35,51 @@ export const PAD = 0.25;
 const NOTE_SIZE = 0.16;
 export const NOTE_LINE = 0.24;
 /**
- * A wide estimate of a character's width as a fraction of the text's height, for leaving room
- * for a note longer than the part. SVG cannot measure text before it is drawn.
+ * A wide estimate of a character's width as a fraction of the text's height, for wrapping notes.
+ * SVG cannot measure text before it is drawn.
  */
 const CHAR_WIDTH = 0.6;
+/** Notes under a drawing narrower than this wrap at this width instead, so they stay readable. */
+const NOTE_MIN_WIDTH = 7;
+
+/** Words wrapped into lines of at most `chars` characters; a longer word has a line to itself. */
+function wrap(text: string, chars: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of text.split(' ')) {
+    if (line && line.length + 1 + word.length > chars) {
+      lines.push(line);
+      line = word;
+    } else line = line ? `${line} ${word}` : word;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+/**
+ * Notes under a drawing `drawingWidth` wide whose top is at `top`, wrapped to the drawing's width
+ * or `NOTE_MIN_WIDTH`, whichever is wider. Returns the text and the block's width and height.
+ */
+export function noteBlock(
+  notes: readonly string[],
+  drawingWidth: number,
+  top: number,
+): { shapes: Shape[]; width: number; height: number } {
+  const width = Math.max(drawingWidth, NOTE_MIN_WIDTH);
+  const chars = Math.floor(width / (CHAR_WIDTH * NOTE_SIZE));
+  const lines = notes.flatMap((note) => wrap(note, chars));
+  const used = Math.max(...lines.map((l) => l.length)) * CHAR_WIDTH * NOTE_SIZE;
+  return {
+    shapes: lines.map((text, i) => ({
+      kind: 'text',
+      at: { x: PAD, y: top + i * NOTE_LINE + NOTE_SIZE },
+      text,
+      size: NOTE_SIZE,
+    })),
+    width: Math.min(width, used),
+    height: lines.length * NOTE_LINE,
+  };
+}
 
 /** The whole part, full size. */
 export function partSheet(part: Part): Sheet {
@@ -50,28 +99,23 @@ export function partSheet(part: Part): Sheet {
     `Right end: ${row.ends[1]}`,
     `Bottom: the reference edge (${part.referenceEdge}), ${formatLength(edges.reference)}. Top: the far edge, ${formatLength(edges.far)}.`,
   ];
-  const notesWidth = Math.max(...notes.map((n) => n.length)) * CHAR_WIDTH * NOTE_SIZE;
-  const width = Math.max(outlineWidth, notesWidth) + 2 * PAD;
   const notesTop = PAD + outlineHeight + PAD;
-  const height = notesTop + notes.length * NOTE_LINE;
+  const block = noteBlock(notes, outlineWidth, notesTop);
 
   const shapes: Shape[] = [
     {
       kind: 'outline',
+      closed: true,
       points: outline.map((p) => ({ x: PAD + (p.u - minU), y: PAD + (maxV - p.v) })),
     },
-    ...notes.map(
-      (text, i): Shape => ({
-        kind: 'text',
-        at: { x: PAD, y: notesTop + (i + 1) * NOTE_LINE - (NOTE_LINE - NOTE_SIZE) },
-        text,
-        size: NOTE_SIZE,
-      }),
-    ),
+    ...block.shapes,
   ];
   return {
     title: `${row.letter} · ${row.name} · ${row.stock} · make ${row.quantity}`,
-    size: { width, height },
+    size: {
+      width: Math.max(outlineWidth, block.width) + 2 * PAD,
+      height: notesTop + block.height,
+    },
     shapes,
   };
 }
