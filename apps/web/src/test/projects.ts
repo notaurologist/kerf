@@ -7,6 +7,7 @@ import {
   projectDrawings,
   readSnapshot,
   stepDrawing,
+  subAssemblies,
   TEMPLATES,
 } from '@kerf/core';
 import fixtures from '../../../../packages/core/src/templates/swing-set-a-frame/snapshots/v1.json';
@@ -82,12 +83,23 @@ export function drawingsFor(snapshot: Project['snapshot']): geometry.Drawings | 
   );
 }
 
+/** The plan's sub-assemblies as the drawings response lists them. */
+function subAssembliesFor(snapshot: Project['snapshot']): geometry.SubAssemblySummary[] {
+  const template = snapshot && findTemplate(snapshot.templateId);
+  if (!snapshot || !template) return [];
+  const outputs = template.storedOutputs.safeParse(snapshot.outputs);
+  return outputs.success ? subAssemblies(template, outputs.data) : [];
+}
+
 /** A project's drawings once a screen has loaded them, as `useDrawings` gives them. */
 export function loadedDrawings(
   project: Project,
   drawings = drawingsFor(project.snapshot),
 ): DrawingsState {
-  return { state: 'ready', value: drawings };
+  return {
+    state: 'ready',
+    value: { drawings, subAssemblies: drawings ? subAssembliesFor(project.snapshot) : [] },
+  };
 }
 
 /** One step's action drawing once Building mode has loaded it, as `useStepDrawing` gives it. */

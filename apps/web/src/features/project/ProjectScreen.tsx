@@ -1,7 +1,7 @@
 import { fieldsIn, findTemplate, inputsNeeded, planTerms, type structural } from '@kerf/core';
 import { useCallback, useMemo, useState } from 'react';
 import { useArrowKeys } from '../../lib/arrowKeys.ts';
-import { type DrawingsState, useDrawings } from '../../lib/drawings.ts';
+import { type DrawingsState, loadSubAssemblyDrawings, useDrawings } from '../../lib/drawings.ts';
 import { fieldId, inputFieldId } from '../../lib/fieldIds.ts';
 import { takeFlashText } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
@@ -101,7 +101,8 @@ export function ProjectView(props: {
   const { project } = props;
   const template = findTemplate(project.templateId);
   const { plan, steps } = useReadProject(project);
-  const drawings = props.drawings.state === 'ready' ? props.drawings.value : null;
+  const drawings = props.drawings.state === 'ready' ? props.drawings.value.drawings : null;
+  const groups = props.drawings.state === 'ready' ? props.drawings.value.subAssemblies : [];
   // Until they arrive, or if they do not, the drawings section holds their place.
   const hasDrawings = props.drawings.state !== 'ready' || drawings !== null;
   const readings = useMemo(
@@ -341,6 +342,11 @@ export function ProjectView(props: {
                   corners={{
                     key: `${project.id}/${project.revision}`,
                     load: (corner) => loadCornerViews(project.id, corner),
+                  }}
+                  subAssemblies={{
+                    key: `${project.id}/${project.revision}`,
+                    list: groups,
+                    load: (groupId) => loadSubAssemblyDrawings(project.id, groupId),
                   }}
                 />
               )}

@@ -163,13 +163,10 @@ export interface Preview {
 /**
  * The plan's drawings (#90, #91), drawn by core from the stored snapshot on each read, in a
  * request of their own: a large plan's are megabytes. Not stored: a view of the numbers the snapshot
- * holds. Null when the snapshot cannot be read or drawing it fails.
+ * holds. `drawings` is null when the snapshot cannot be read or drawing it fails. The plan's
+ * sub-assemblies (#647) are listed only: each one's drawings come on their own.
  */
-export interface ProjectDrawings {
-  drawings: geometry.Drawings | null;
-  /** The plan's sub-assemblies (#647), listed only: each one's drawings come on their own. */
-  subAssemblies: geometry.SubAssemblySummary[];
-}
+export type ProjectDrawings = geometry.PlanDrawings;
 
 /**
  * One build step's action drawing (#118), drawn on read like the rest, in a request of its own

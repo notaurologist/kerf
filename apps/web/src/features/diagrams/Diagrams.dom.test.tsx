@@ -4,6 +4,8 @@ import {
   createSnapshot,
   findTemplate,
   type geometry,
+  subAssemblies,
+  subAssemblyDrawings,
   type TemplateDefinition,
 } from '@kerf/core';
 import { act } from 'react';
@@ -497,5 +499,159 @@ describe('the corner the views are seen from (#364)', () => {
     rerender(withCorners(load, 'abc/2'));
     expect(menu(container).value).toBe('front-left');
     expect(onScreen(container).label).not.toMatch(/Seen from/);
+  });
+});
+
+describe('the sub-assemblies (#652)', () => {
+  const bench = findTemplate('workbench') as TemplateDefinition;
+  const benchMade = createSnapshot(
+    bench,
+    bench.examples[0]?.params,
+    bench.examples[0]?.structuralInputs,
+  );
+  if (!benchMade.ok) throw new Error('worked example should generate');
+  const benchProject = projectFrom(JSON.parse(JSON.stringify(benchMade.output)), {
+    templateId: bench.id,
+  });
+  const benchPlan = readPlan(benchProject);
+  const benchDrawings = drawingsFor(benchProject.snapshot);
+  if (!benchPlan.ok || !benchDrawings) throw new Error('the worked example has drawings');
+  const outputs = bench.storedOutputs.parse(JSON.parse(JSON.stringify(benchMade.output.outputs)));
+  const list = subAssemblies(bench, outputs);
+  const drawn = (id: string) =>
+    JSON.parse(
+      JSON.stringify(subAssemblyDrawings(bench, outputs, id)),
+    ) as geometry.SubAssemblyDrawings;
+
+  const withGroups = (
+    load: (id: string) => Promise<unknown>,
+    key = 'abc/1',
+    groups: readonly geometry.SubAssemblySummary[] = list,
+  ) => (
+    <Diagrams
+      drawings={benchDrawings}
+      rows={benchPlan.plan.cutList}
+      describedBy="cut-list"
+      selected={null}
+      onSelect={() => {}}
+      partHref={(id) => `#/projects/abc/cut-list?part=${id}`}
+      subAssemblies={{ key, list: groups, load: load as never }}
+    />
+  );
+  const groupSection = (container: HTMLElement) => {
+    const found = container.querySelector<HTMLElement>('section[aria-labelledby="sub-assemblies"]');
+    if (!found) throw new Error('no sub-assemblies');
+    return found;
+  };
+  const open = (container: HTMLElement, name: string) =>
+    act(async () => {
+      byText(groupSection(container), 'button', name).click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  /** The open group's view on screen, by its label. */
+  const shownLabel = (container: HTMLElement) =>
+    [...groupSection(container).querySelectorAll<HTMLElement>('.k-views__view')]
+      .filter((v) => !v.hidden)
+      .map((v) => v.querySelector('svg[role="img"]')?.getAttribute('aria-label') ?? '');
+
+  it('lists each group under the assembly views, titled with its count when alike, off paper', () => {
+    const { container } = mount(withGroups(async () => ({ ok: true, value: null })));
+    const section = groupSection(container);
+    expect(section.hasAttribute('data-screen-only')).toBe(true);
+    expect(section.querySelector('h3')?.textContent).toBe('Sub-assemblies');
+    expect([...section.querySelectorAll('button')].map((b) => b.textContent)).toEqual([
+      'Left end frame',
+      'Right end frame',
+      'Upper drawer (2 alike)',
+      'Lower drawer',
+      'Door (2 alike)',
+    ]);
+    const views = container.querySelector('.k-views');
+    expect(
+      views && section.compareDocumentPosition(views) & Node.DOCUMENT_POSITION_PRECEDING,
+    ).toBeTruthy();
+  });
+
+  it('is left out when the plan has none', () => {
+    const { container } = mount(withGroups(async () => ({ ok: true, value: null }), 'abc/1', []));
+    expect(container.querySelector('section[aria-labelledby="sub-assemblies"]')).toBeNull();
+  });
+
+  it('opens each group, fetched once, and moves it between assembled and exploded', async () => {
+    const asked: string[] = [];
+    const { container } = mount(
+      withGroups(async (id) => {
+        asked.push(id);
+        return { ok: true, value: drawn(id) };
+      }),
+    );
+    for (const group of list) {
+      const name = group.alike > 1 ? `${group.title} (${group.alike} alike)` : group.title;
+      await open(container, name);
+      const section = groupSection(container);
+      expect(byText(section, 'button', name).getAttribute('aria-pressed')).toBe('true');
+      expect(section.querySelector('h4')?.textContent).toBe(name);
+      expect(shownLabel(container)).toEqual([
+        expect.stringMatching(/^Isometric view\. .*assembled/),
+      ]);
+      await click(byText(section, 'button', 'Explode'));
+      expect(shownLabel(container)).toEqual([expect.stringMatching(/^Exploded view\. /)]);
+      await click(byText(section, 'button', 'Assemble'));
+      expect(shownLabel(container)).toEqual([expect.stringMatching(/^Isometric view\. /)]);
+    }
+    expect(asked).toEqual(list.map((g) => g.id));
+    await open(container, 'Left end frame');
+    expect(asked).toHaveLength(list.length);
+    await open(container, 'Left end frame');
+    expect(shownLabel(container)).toEqual([]);
+    expect(
+      byText(groupSection(container), 'button', 'Left end frame').getAttribute('aria-pressed'),
+    ).toBe('false');
+  });
+
+  it('names only the group’s own part letters', async () => {
+    const { container } = mount(withGroups(async (id) => ({ ok: true, value: drawn(id) })));
+    await open(container, 'Door (2 alike)');
+    const [label] = shownLabel(container);
+    const door = drawn('door');
+    const ids = new Set(
+      door.isometric.primitives.flatMap((p) => ('part' in p && p.part ? [p.part.partId] : [])),
+    );
+    const letters = benchPlan.plan.cutList.filter((r) => ids.has(r.partId)).map((r) => r.letter);
+    expect(letters.length).toBeGreaterThan(1);
+    expect(label).toContain(`Parts ${letters[0]} to ${letters[letters.length - 1]}`);
+  });
+
+  it('swaps at once under reduced motion', async () => {
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) => ({ matches: query.includes('reduce') }) as MediaQueryList,
+    );
+    const { container } = mount(withGroups(async (id) => ({ ok: true, value: drawn(id) })));
+    await open(container, 'Lower drawer');
+    act(() => {
+      byText(groupSection(container), 'button', 'Explode').click();
+    });
+    expect(shownLabel(container)).toEqual([expect.stringMatching(/^Exploded view\. /)]);
+    vi.restoreAllMocks();
+  });
+
+  it('says so when a group cannot be fetched, and closes on a changed plan', async () => {
+    const load = async () => ({
+      ok: false,
+      error: { kind: 'failed', status: 500, message: 'Server error.' },
+    });
+    const { container, rerender } = mount(withGroups(load));
+    await open(container, 'Lower drawer');
+    const status = [...groupSection(container).querySelectorAll('[role="status"]')];
+    expect(status.map((s) => s.textContent)).toEqual([
+      expect.stringContaining('That sub-assembly could not be drawn.'),
+    ]);
+    const ok = async (id: string) => ({ ok: true, value: drawn(id) });
+    rerender(withGroups(ok, 'abc/1'));
+    await open(container, 'Door (2 alike)');
+    expect(shownLabel(container)).toHaveLength(1);
+    rerender(withGroups(ok, 'abc/2'));
+    expect(shownLabel(container)).toEqual([]);
+    expect(groupSection(container).querySelector('h4')).toBeNull();
   });
 });

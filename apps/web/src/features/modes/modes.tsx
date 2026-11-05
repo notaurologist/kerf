@@ -106,7 +106,7 @@ export function ModeView(props: {
   const mode = route.screen === 'shop' ? 'Shopping' : 'Building';
   const read = useReadProject(project);
   const { plan } = read;
-  const drawings = props.drawings.state === 'ready' ? props.drawings.value : null;
+  const drawings = props.drawings.state === 'ready' ? props.drawings.value.drawings : null;
   const steps = read.steps?.steps ?? [];
   const ticks = useTicks(project.id, project.ticks, project.revision);
   // "Saved." from Edit, opened here for a value read at the store (#390).

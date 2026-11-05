@@ -10,16 +10,23 @@ import { type Kept, type LoadState, useLoad } from './useLoad.ts';
 // action drawing comes in a request of its own again, when Building mode opens that step, since
 // together they are most of a large plan's drawings (#635).
 
-const Response = geometry.Drawings.nullable();
+// Each sub-assembly's views come in a request of their own too (#651), when one is opened; the
+// drawings response only lists them.
+
+type PlanDrawings = geometry.PlanDrawings;
+
+/** What a plan with no drawings has. */
+const NONE: PlanDrawings = { drawings: null, subAssemblies: [] };
 
 /**
  * The plan's drawings (#91), drawn by the API from the stored snapshot and parsed with core's
- * schema (hard rule 8). Null when the API has none, as for a plan whose snapshot cannot be read.
+ * schema (hard rule 8). `drawings` is null when the API has none, as for a plan whose snapshot
+ * cannot be read.
  */
-async function loadDrawings(id: string): Promise<ApiResult<geometry.Drawings | null>> {
+async function loadDrawings(id: string): Promise<ApiResult<PlanDrawings>> {
   const result = await send(api.api.projects[':id'].drawings.$get({ param: { id } }));
   if (!result.ok) return result;
-  const parsed = Response.safeParse(result.value.drawings);
+  const parsed = geometry.PlanDrawings.safeParse(result.value);
   return parsed.success
     ? { ok: true, value: parsed.data }
     : {
@@ -33,14 +40,14 @@ async function loadDrawings(id: string): Promise<ApiResult<geometry.Drawings | n
 }
 
 /** The drawings a screen has so far, and how to ask for them again. */
-export type DrawingsState = LoadState<geometry.Drawings | null> & { retry?: () => void };
+export type DrawingsState = LoadState<PlanDrawings> & { retry?: () => void };
 
 /** The plan they were drawn from: the same project at the same revision. */
 const keyOf = (project: Pick<Project, 'id' | 'revision'>) => `${project.id}/${project.revision}`;
 
-let last: { key: string; drawings: geometry.Drawings | null } | undefined;
+let last: { key: string; drawings: PlanDrawings } | undefined;
 
-const kept = (key: string): Kept<geometry.Drawings | null> => ({
+const kept = (key: string): Kept<PlanDrawings> => ({
   get: () => (last?.key === key ? last.drawings : undefined),
   set: (drawings) => {
     last = { key, drawings };
@@ -56,11 +63,33 @@ export function useDrawings(project: Project): DrawingsState {
   const readable = project.snapshot !== null;
   const { loaded, reload } = useLoad(
     () =>
-      readable ? loadDrawings(project.id) : Promise.resolve({ ok: true, value: null } as const),
+      readable ? loadDrawings(project.id) : Promise.resolve({ ok: true, value: NONE } as const),
     `${key}/${readable}`,
     kept(key),
   );
   return useMemo(() => ({ ...loaded, retry: reload }), [loaded, reload]);
+}
+
+/** One sub-assembly's assembled and exploded views, drawn by the API and parsed with core's schema. */
+export async function loadSubAssemblyDrawings(
+  id: string,
+  groupId: string,
+): Promise<ApiResult<geometry.SubAssemblyDrawings | null>> {
+  const result = await send(
+    api.api.projects[':id'].subassemblies[':groupId'].drawing.$get({ param: { id, groupId } }),
+  );
+  if (!result.ok) return result;
+  const parsed = geometry.SubAssemblyDrawings.nullable().safeParse(result.value.drawings);
+  return parsed.success
+    ? { ok: true, value: parsed.data }
+    : {
+        ok: false,
+        error: {
+          kind: 'failed',
+          status: 200,
+          message: 'The drawings the server sent could not be read.',
+        },
+      };
 }
 
 const StepResponse = geometry.Drawing.nullable();
