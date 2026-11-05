@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { afterAll } from 'vitest';
-import { pullRequestFilter, reads, repositoryPath, runsCi } from './ciPaths.ts';
+import { CHECKED_PATHS, reads, repositoryPath, runsCi } from './ciPaths.ts';
 
 // Every package's Vitest config runs this before each test file. It records the files and folders
 // the test file reads or checks for, and fails it when CI skips changes to one of them
@@ -45,13 +45,12 @@ if (!marked[WRAPPED]) {
 reads().clear();
 
 afterAll(() => {
-  const filter = pullRequestFilter();
-  const skipped = [...reads()].filter((path) => !runsCi(path, filter)).sort();
+  const skipped = [...reads()].filter((path) => !runsCi(path, CHECKED_PATHS)).sort();
   reads().clear();
   if (skipped.length > 0) {
     throw new Error(
-      `This test file reads ${skipped.join(', ')}, which CI skips. Add each to the paths filters ` +
-        'in .github/workflows/ci.yml after the exclusions, or move what the test needs out of docs.',
+      `This test file reads ${skipped.join(', ')}, which CI skips. Add each to CHECKED_PATHS in ` +
+        'apps/api/test/ciPaths.ts after the exclusions, or move what the test needs out of docs.',
     );
   }
 });

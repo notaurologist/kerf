@@ -1,41 +1,25 @@
-import { readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// CI skips changes that touch only Markdown or docs/ (0010). A test that reads a skipped file can
-// pass on a pull request that never ran CI and then fail on the next one, so ciPaths.setup.ts
-// records every file a test reads and fails the test file when CI would skip a change to it.
+// CI runs its checks only for changes outside Markdown and docs/ (0010). A test that reads a file
+// CI skips can pass on a pull request whose checks never ran and then fail on the next one, so
+// ciPaths.setup.ts records every file a test reads and fails the test file when CI would skip a
+// change to it. The workflow always starts its job, so a required check reports on every pull
+// request, and asks scripts/ci-changes.ts whether the change needs the checks.
 
 export const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-export const workflow = join(root, '.github', 'workflows', 'ci.yml');
 
-/** The `paths` filter of each event in the CI workflow, in order. */
-export function ciFilters(yaml: string): Record<string, string[]> {
-  const filters: Record<string, string[]> = {};
-  let event: string | undefined;
-  let inPaths = false;
-  for (const line of yaml.split('\n')) {
-    const key = line.match(/^ {2}([a-z_]+):\s*$/);
-    if (key) {
-      event = key[1];
-      inPaths = false;
-      continue;
-    }
-    if (/^ {4}paths(-ignore)?:/.test(line)) {
-      if (line.includes('paths-ignore'))
-        throw new Error('Use paths with ! exclusions, not paths-ignore');
-      inPaths = true;
-      continue;
-    }
-    const item = line.match(/^ {6}- "([^"]+)"\s*$/);
-    if (inPaths && item && event) {
-      filters[event] = [...(filters[event] ?? []), item[1] ?? ''];
-      continue;
-    }
-    inPaths = false;
-  }
-  return filters;
-}
+/**
+ * The paths whose changes run CI's checks, as GitHub Actions path patterns; the last match decides.
+ * A doc a test reads is listed again after the exclusions: `styles.test.ts` checks the stylesheets
+ * against the breakpoints table in `docs/design/system.md`.
+ */
+export const CHECKED_PATHS: readonly string[] = [
+  '**',
+  '!**.md',
+  '!docs/**',
+  'docs/design/system.md',
+];
 
 /** A GitHub Actions path pattern as a regular expression: `*` stops at a slash, `**` does not. */
 function patternToRegExp(pattern: string): RegExp {
@@ -62,11 +46,9 @@ export function runsCi(path: string, filter: readonly string[]): boolean {
   return runs;
 }
 
-/** The pull request filter, which the push filter must equal. */
-export function pullRequestFilter(): string[] {
-  const filter = ciFilters(readFileSync(workflow, 'utf8')).pull_request;
-  if (!filter?.length) throw new Error(`No paths filter for pull_request in ${workflow}`);
-  return filter;
+/** Whether a change to these paths needs CI's checks. With no paths known, it does. */
+export function needsChecks(paths: readonly string[], filter = CHECKED_PATHS): boolean {
+  return paths.length === 0 || paths.some((path) => runsCi(path, filter));
 }
 
 /** A file read inside the repository, relative to its root, or undefined for anything else. */
