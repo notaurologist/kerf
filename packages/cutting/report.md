@@ -6,8 +6,8 @@ The best lower bound totals 17760 ft. An instance is open when a method buys mor
 
 | Method | Feet | Boards | Time (ms) | Proven | Over best bound (ft) | Instances open |
 |---|---|---|---|---|---|---|
-| first-fit decreasing | 18137 | 1879 | 9.1 |  | 377 | 74 |
-| branch-and-bound | 17800 | 1928 | 75166.8 | 249 of 260 | 40 | 11 |
+| first-fit decreasing | 18137 | 1879 | 8.1 |  | 377 | 74 |
+| branch-and-bound | 17782 | 1926 | 53704.0 | 253 of 260 | 22 | 7 |
 
 ## Open instances (74)
 
@@ -74,17 +74,17 @@ The best lower bound totals 17760 ft. An instance is open when a method buys mor
 | workbench / sweep 85, 13/16" x 5-1/2" | 164 | 424 | 426 | 436 / 44 | 426 / 45 (proven) |
 | workbench / sweep 94, 13/16" x 5-1/2" | 203 | 620 | 624 | 630 / 63 | 624 / 67 (proven) |
 | workbench / sweep 95, 13/16" x 5-1/2" | 174 | 326 | 326 | 336 / 34 | 328 / 34 (stopped) |
-| workbench / sweep 117, 13/16" x 5-1/2" | 188 | 350 | 352 | 358 / 36 | 358 / 36 (stopped) |
+| workbench / sweep 117, 13/16" x 5-1/2" | 188 | 350 | 352 | 358 / 36 | 352 / 36 (proven) |
 | workbench / sweep 118, 13/16" x 5-1/2" | 188 | 406 | 406 | 416 / 42 | 408 / 42 (stopped) |
 | workbench / sweep 129, 13/16" x 5-1/2" | 183 | 302 | 302 | 306 / 31 | 306 / 31 (stopped) |
-| workbench / sweep 137, 13/16" x 5-1/2" | 182 | 558 | 558 | 568 / 57 | 560 / 57 (stopped) |
-| workbench / sweep 138, 13/16" x 5-1/2" | 188 | 494 | 494 | 506 / 51 | 496 / 53 (stopped) |
+| workbench / sweep 137, 13/16" x 5-1/2" | 182 | 558 | 558 | 568 / 57 | 558 / 57 (proven) |
+| workbench / sweep 138, 13/16" x 5-1/2" | 188 | 494 | 494 | 506 / 51 | 494 / 52 (proven) |
 | workbench / sweep 142, 13/16" x 5-1/2" | 170 | 380 | 380 | 390 / 39 | 380 / 39 (proven) |
 | workbench / sweep 149, 13/16" x 5-1/2" | 226 | 742 | 750 | 766 / 77 | 750 / 83 (proven) |
 | workbench / sweep 157, 13/16" x 5-1/2" | 248 | 786 | 790 | 806 / 81 | 790 / 79 (proven) |
 | workbench / sweep 158, 13/16" x 5-1/2" | 173 | 396 | 396 | 408 / 41 | 398 / 40 (stopped) |
 | workbench / sweep 166, 13/16" x 5-1/2" | 184 | 484 | 484 | 496 / 50 | 484 / 51 (proven) |
-| workbench / sweep 168, 13/16" x 5-1/2" | 172 | 298 | 298 | 306 / 31 | 306 / 31 (stopped) |
+| workbench / sweep 168, 13/16" x 5-1/2" | 172 | 298 | 298 | 306 / 31 | 298 / 30 (proven) |
 | workbench / sweep 170, 13/16" x 5-1/2" | 176 | 284 | 284 | 288 / 29 | 288 / 29 (stopped) |
 | workbench / sweep 197, 13/16" x 5-1/2" | 183 | 386 | 386 | 396 / 40 | 386 / 41 (proven) |
 
@@ -339,16 +339,16 @@ The best lower bound totals 17760 ft. An instance is open when a method buys mor
 | workbench / sweep 85, 13/16" x 5-1/2" | 164 | 424 | 426 | 436 / 44 | 426 / 45 (proven) |
 | workbench / sweep 94, 13/16" x 5-1/2" | 203 | 620 | 624 | 630 / 63 | 624 / 67 (proven) |
 | workbench / sweep 95, 13/16" x 5-1/2" | 174 | 326 | 326 | 336 / 34 | 328 / 34 (stopped) |
-| workbench / sweep 117, 13/16" x 5-1/2" | 188 | 350 | 352 | 358 / 36 | 358 / 36 (stopped) |
+| workbench / sweep 117, 13/16" x 5-1/2" | 188 | 350 | 352 | 358 / 36 | 352 / 36 (proven) |
 | workbench / sweep 118, 13/16" x 5-1/2" | 188 | 406 | 406 | 416 / 42 | 408 / 42 (stopped) |
 | workbench / sweep 129, 13/16" x 5-1/2" | 183 | 302 | 302 | 306 / 31 | 306 / 31 (stopped) |
-| workbench / sweep 137, 13/16" x 5-1/2" | 182 | 558 | 558 | 568 / 57 | 560 / 57 (stopped) |
-| workbench / sweep 138, 13/16" x 5-1/2" | 188 | 494 | 494 | 506 / 51 | 496 / 53 (stopped) |
+| workbench / sweep 137, 13/16" x 5-1/2" | 182 | 558 | 558 | 568 / 57 | 558 / 57 (proven) |
+| workbench / sweep 138, 13/16" x 5-1/2" | 188 | 494 | 494 | 506 / 51 | 494 / 52 (proven) |
 | workbench / sweep 142, 13/16" x 5-1/2" | 170 | 380 | 380 | 390 / 39 | 380 / 39 (proven) |
 | workbench / sweep 149, 13/16" x 5-1/2" | 226 | 742 | 750 | 766 / 77 | 750 / 83 (proven) |
 | workbench / sweep 157, 13/16" x 5-1/2" | 248 | 786 | 790 | 806 / 81 | 790 / 79 (proven) |
 | workbench / sweep 158, 13/16" x 5-1/2" | 173 | 396 | 396 | 408 / 41 | 398 / 40 (stopped) |
 | workbench / sweep 166, 13/16" x 5-1/2" | 184 | 484 | 484 | 496 / 50 | 484 / 51 (proven) |
-| workbench / sweep 168, 13/16" x 5-1/2" | 172 | 298 | 298 | 306 / 31 | 306 / 31 (stopped) |
+| workbench / sweep 168, 13/16" x 5-1/2" | 172 | 298 | 298 | 306 / 31 | 298 / 30 (proven) |
 | workbench / sweep 170, 13/16" x 5-1/2" | 176 | 284 | 284 | 288 / 29 | 288 / 29 (stopped) |
 | workbench / sweep 197, 13/16" x 5-1/2" | 183 | 386 | 386 | 396 / 40 | 386 / 41 (proven) |

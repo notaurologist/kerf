@@ -123,12 +123,20 @@ function toPlan(
 
 export function solveExact(instance: Instance, { timeLimitMs = 2000 } = {}): Solved {
   const deadline = performance.now() + timeLimitMs;
+  const baseline = firstFitDecreasing(instance);
   const by = step(instance);
   const types = pieceTypes(instance);
-  const baseline = firstFitDecreasing(instance);
   const root = types.map((t) => t.demand);
-  const rootLp = relaxation(instance);
-  const bound = Math.max(materialBound(instance), rootLp.bound);
+  const material = materialBound(instance);
+  let rootLp: ReturnType<typeof relaxation>;
+  try {
+    rootLp = relaxation(instance, { deadline });
+  } catch (error) {
+    if (!(error instanceof OutOfTime)) throw error;
+    const { feet } = measure(baseline);
+    return { plan: baseline, feet, bound: material, proven: feet <= material, nodes: 0 };
+  }
+  const bound = Math.max(material, rootLp.bound);
   // The root's patterns start every residual relaxation, which then needs few rounds.
   const seed: SeedPattern[] = rootLp.patterns.map((p) => ({
     feet: p.feet,

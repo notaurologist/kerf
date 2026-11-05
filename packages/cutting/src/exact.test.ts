@@ -48,6 +48,22 @@ describe('solveExact', () => {
   // though the material bound is 16 ft and the relaxation, which cannot put two on a board
   // either, is 24 ft. Pieces of 70" and 30" on 8' and 10' with 1/8" kerf and 1/2" trim show the
   // search proving an answer above every bound: see the benchmark test below.
+  it('returns the baseline, unproven, when the time runs out before the root bound', () => {
+    const instance: Instance = {
+      nominal: 'x',
+      lengths: [8, 10],
+      pieces: pieces(60, 60, 36, 36),
+      kerf: 0,
+      trimPerEnd: 0,
+    };
+    expect(solveExact(instance, { timeLimitMs: -1 })).toMatchObject({
+      feet: 18,
+      bound: 16,
+      proven: false,
+      nodes: 0,
+    });
+  });
+
   it('keeps a piece no length holds out of the plan', () => {
     const instance: Instance = {
       nominal: 'x',
