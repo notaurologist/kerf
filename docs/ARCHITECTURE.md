@@ -83,6 +83,8 @@ The template definitions still carry the generation code into the web bundle, si
 │           ├── templates/      # The registry (index.ts) and one folder per template:
 │           │                   # swing-set-a-frame/, record-cabinet/, and workbench/
 │           ├── outputs/        # Cut list, shopping list (board grouping with kerf and trim)
+│           ├── cutting/        # The fewest feet of boards for one stock's pieces: branch-and-bound
+│           │                   # with a deterministic work limit (0021); not used by the shopping list yet
 │           ├── structural/     # Generic beam and hardware checks and adjustment factors
 │           ├── movement/       # Wood movement across the grain, with its working (Wood Handbook Eq. 13-3)
 │           ├── steps/          # Build steps: operations to methods, using the tool inventory
