@@ -1,22 +1,14 @@
 name: CI
 
-# Changes that touch only Markdown or docs/ skip CI, and Biome does not check them. A doc a test
-# reads is listed again after the exclusions so that CI runs when it changes. A test fails when a
-# test reads a path these filters skip (apps/api/test/ciPaths.ts). The two lists must match.
+# Main requires this job to pass on a branch that includes the latest main (0010). It always
+# starts, so the required check reports on every pull request, and its checks run only when the
+# change touches more than Markdown and docs/ (CHECKED_PATHS in apps/api/test/ciPaths.ts, decided
+# by apps/api/scripts/ci-changes.ts). A doc a test reads is listed there, and a test fails when a
+# test reads a path CI skips.
 on:
   push:
     branches: [main]
-    paths:
-      - "**"
-      - "!**.md"
-      - "!docs/**"
-      - "docs/design/system.md"
   pull_request:
-    paths:
-      - "**"
-      - "!**.md"
-      - "!docs/**"
-      - "docs/design/system.md"
 
 permissions:
   contents: read
@@ -41,10 +33,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      # pnpm test compares fixtures with the hash file in the same commit; this compares the hash
-      # file with the base's, so an old fixture rewritten with its hash fails too (0014).
-      - name: Fixture hashes keep the base's entries
+      # A pull request's base is its merge commit's first parent; a push's is where main pointed.
+      - name: Changes
+        id: changes
         env:
           BEFORE: ${{ github.event.before }}
         run: |
@@ -53,13 +44,29 @@ jobs:
             git fetch --no-tags --depth=1 origin "$BEFORE"
             base=$BEFORE
           fi
-          pnpm --filter @kerf/api check-fixture-hashes "$base"
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm knip
-      - run: pnpm test
-      - run: pnpm --filter @kerf/web build
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          node apps/api/scripts/ci-changes.ts "$base"
+      - if: steps.changes.outputs.run == 'true'
+        run: pnpm install --frozen-lockfile
+      # pnpm test compares fixtures with the hash file in the same commit; this compares the hash
+      # file with the base's, so an old fixture rewritten with its hash fails too (0014).
+      - name: Fixture hashes keep the base's entries
+        if: steps.changes.outputs.run == 'true'
+        env:
+          BASE: ${{ steps.changes.outputs.base }}
+        run: pnpm --filter @kerf/api check-fixture-hashes "$BASE"
+      - if: steps.changes.outputs.run == 'true'
+        run: pnpm lint
+      - if: steps.changes.outputs.run == 'true'
+        run: pnpm typecheck
+      - if: steps.changes.outputs.run == 'true'
+        run: pnpm knip
+      - if: steps.changes.outputs.run == 'true'
+        run: pnpm test
+      - if: steps.changes.outputs.run == 'true'
+        run: pnpm --filter @kerf/web build
       - name: Migrations match the schema
+        if: steps.changes.outputs.run == 'true'
         run: |
           pnpm --filter @kerf/api exec drizzle-kit generate
           if [ -n "$(git status --porcelain apps/api/drizzle)" ]; then

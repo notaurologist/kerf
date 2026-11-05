@@ -7,7 +7,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { createTestApp } from '../../test/app.ts';
-import { swingSetInputs } from '../../test/fixtures.ts';
+import { freshBasis, swingSetInputs } from '../../test/fixtures.ts';
 
 // Suggested values (#417): the server records which values are Kerf's suggestions from the
 // starting answers, keeps each unconfirmed until it is ticked in the structural review or changed,
@@ -197,7 +197,7 @@ describe('saving a project with suggestions', () => {
     const { created, authed, read } = await setup();
     const res = await authed(`/api/projects/${created.id}/regenerate`, {
       method: 'POST',
-      body: { revision: created.revision },
+      body: { revision: created.revision, ...freshBasis },
     });
     expect(res.status).toBe(200);
     expect(paths((await read()).snapshot.suggested)).toEqual(all);
@@ -248,7 +248,7 @@ describe('a plan stored before a parameter or input existed (#429)', () => {
     const { authed, created, path, read } = await stored();
     const res = await authed(`${path}/regenerate`, {
       method: 'POST',
-      body: { revision: created.revision },
+      body: { revision: created.revision, ...freshBasis },
     });
     expect(res.status).toBe(200);
     const { snapshot } = await read();

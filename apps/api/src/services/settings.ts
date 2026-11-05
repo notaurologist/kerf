@@ -14,6 +14,18 @@ export async function getSettings(db: Database): Promise<RevisedOwnerSettings> {
   return { ...OwnerSettings.parse(settings), revision };
 }
 
+/**
+ * The settings' revision, locked against a save until the transaction ends, so a plan generated
+ * with that revision's settings is stored before they can change.
+ */
+export async function lockSettingsRevision(tx: Database): Promise<number> {
+  const [row] = await tx
+    .select({ revision: ownerSettings.revision })
+    .from(ownerSettings)
+    .for('share');
+  return row?.revision ?? 1;
+}
+
 export type ReplaceSettingsResult =
   | { ok: true; value: RevisedOwnerSettings }
   | { ok: false; error: 'stale-settings'; revision: number };

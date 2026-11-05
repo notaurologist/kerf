@@ -11,27 +11,33 @@ import { type Kept, type LoadState, useLoad } from './useLoad.ts';
 
 const route = api.api.projects[':id'].version;
 
-/** A plan's version status, with what regenerating would change when it can be regenerated. */
-export type VersionReport = NonNullable<InferResponseType<typeof route.$get, 200>['version']>;
+/**
+ * The report, with the template version and settings revision it was worked out with, which a
+ * regeneration names so that a change to either since is refused (#700).
+ */
+export type LoadedReport = InferResponseType<typeof route.$get, 200>;
 
-async function loadReport(id: string): Promise<ApiResult<VersionReport | null>> {
-  const result = await send(route.$get({ param: { id } }));
-  return result.ok ? { ok: true, value: result.value.version } : result;
+/** A plan's version status, with what regenerating would change when it can be regenerated. */
+export type VersionReport = NonNullable<LoadedReport['version']>;
+
+async function loadReport(id: string): Promise<ApiResult<LoadedReport>> {
+  return send(route.$get({ param: { id } }));
 }
 
-/** The report a screen has so far, and how to ask for it again. Null when the API has none. */
-export type VersionReportState = LoadState<VersionReport | null> & { retry?: () => void };
+/** The report a screen has so far, and how to ask for it again. Null when none is asked for. */
+export type VersionReportState = LoadState<LoadedReport | null> & { retry?: () => void };
 
 /**
  * The plan it was worked out for: the same project at the same revision, with the same status,
- * which a change to the owner's carry length changes.
+ * which a change to the owner's carry length changes. `attempt` counts regenerations refused
+ * because the report was out of date, so each one asks again.
  */
-const keyOf = (project: Pick<Project, 'id' | 'revision' | 'version'>) =>
-  `${project.id}/${project.revision}/${JSON.stringify(project.version)}`;
+const keyOf = (project: Pick<Project, 'id' | 'revision' | 'version'>, attempt: number) =>
+  `${project.id}/${project.revision}/${JSON.stringify(project.version)}/${attempt}`;
 
-let last: { key: string; report: VersionReport | null } | undefined;
+let last: { key: string; report: LoadedReport | null } | undefined;
 
-const kept = (key: string, asks: boolean): Kept<VersionReport | null> => ({
+const kept = (key: string, asks: boolean): Kept<LoadedReport | null> => ({
   get: () => (!asks ? null : last?.key === key ? last.report : undefined),
   set: (report) => {
     if (asks) last = { key, report };
@@ -44,16 +50,17 @@ const regenerable = (project: Pick<Project, 'version'>) =>
 
 /**
  * What regenerating the project's plan would change, loaded when the notice shows and again when
- * the plan or its status changes. A plan that cannot be regenerated has none, so none is asked for.
+ * the plan, its status, or `attempt` changes. A plan that cannot be regenerated has none, so none
+ * is asked for.
  */
-export function useVersionReport(project: Project): VersionReportState {
-  const key = keyOf(project);
+export function useVersionReport(project: Project, attempt = 0): VersionReportState {
+  const key = keyOf(project, attempt);
   const asks = regenerable(project);
   const keep = kept(key, asks);
-  // A report does not change within one revision and status, so one loaded is not asked for
-  // again: asking regenerates the whole plan on the server.
-  const { loaded, reload } = useLoad<VersionReport | null>(
-    (): Promise<ApiResult<VersionReport | null>> => {
+  // A report does not change within one revision and status unless a regeneration was refused
+  // for it, so one loaded is not asked for again: asking regenerates the whole plan on the server.
+  const { loaded, reload } = useLoad<LoadedReport | null>(
+    (): Promise<ApiResult<LoadedReport | null>> => {
       const known = keep.get();
       return known !== undefined
         ? Promise.resolve({ ok: true, value: known })

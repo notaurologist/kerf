@@ -66,6 +66,14 @@ export const SuggestedChanges = z.object({
 });
 export type SuggestedChanges = z.infer<typeof SuggestedChanges>;
 
-/** A regeneration names the revision whose version notice the owner was shown (#425). */
-export const ProjectRegenerate = z.object({ revision: Revision });
+/**
+ * A regeneration names what the version notice the owner was shown was worked out from: the
+ * project's revision (#425), the template version, and the settings revision (#700). Each is an
+ * input to the plan it stores, so a change to any of them since is refused (0018).
+ */
+export const ProjectRegenerate = z.object({
+  revision: Revision,
+  templateVersion: z.number().int().positive(),
+  settingsRevision: Revision,
+});
 export type ProjectRegenerate = z.infer<typeof ProjectRegenerate>;
