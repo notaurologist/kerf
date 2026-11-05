@@ -40,7 +40,7 @@ function roundUp(value: number, by: number): number {
 }
 
 /** The pieces that fit some length, grouped by length, longest first. */
-export function pieceTypes(instance: Instance): PieceType[] {
+function pieceTypes(instance: Instance): PieceType[] {
   const byLength = new Map<number, number[]>();
   instance.pieces.forEach((piece, i) => {
     if (fitsNoLength(instance, i)) return;
