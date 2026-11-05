@@ -7,7 +7,12 @@ import { SessionReturns } from './session.ts';
 export type LoadState<T> =
   | { state: 'loading' }
   | { state: 'error'; error: ApiError }
-  | { state: 'ready'; value: T };
+  | {
+      state: 'ready';
+      value: T;
+      /** Why the latest request failed, when the value on screen is the kept one from before it. */
+      refreshFailed?: ApiError;
+    };
 
 /** Where a screen keeps the last value it loaded, so it can show it again at once. */
 export interface Kept<T> {
@@ -20,7 +25,7 @@ export function settled<T>(result: ApiResult<T>, kept: T | undefined): LoadState
   if (result.ok) return { state: 'ready', value: result.value };
   return kept === undefined
     ? { state: 'error', error: result.error }
-    : { state: 'ready', value: kept };
+    : { state: 'ready', value: kept, refreshFailed: result.error };
 }
 
 const shown = <T>(kept: Kept<T> | undefined): LoadState<T> => {
@@ -32,7 +37,8 @@ const shown = <T>(kept: Kept<T> | undefined): LoadState<T> => {
  * Loads something from the API when the screen opens and whenever `key` changes. `set` replaces
  * the value with a newer one the API returned, such as the response to a save. With `kept`, the
  * last value shows at once and stays when a later request fails. A screen with nothing to show
- * yet loads again when the session comes back, so a load refused for want of one needs no retry.
+ * yet, or showing the kept value after a request failed, loads again when the session comes back,
+ * so a load refused for want of one needs no retry.
  */
 export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string, kept?: Kept<T>) {
   const [loaded, setLoaded] = useState<LoadState<T>>(() => shown(kept));
@@ -40,6 +46,8 @@ export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string, kept?
   // While the screen waits for its first value, a move holds the old screen for it (lib/moves.ts).
   const onScreen = useRef(loaded.state);
   onScreen.current = loaded.state;
+  const refreshFailed = useRef(false);
+  refreshFailed.current = loaded.state === 'ready' && loaded.refreshFailed !== undefined;
   useLayoutEffect(() => (loaded.state === 'loading' ? startLoading() : undefined), [loaded.state]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: reloads when the key changes, not when the caller passes a new closure.
   const reload = useCallback(async () => {
@@ -63,8 +71,12 @@ export function useLoad<T>(load: () => Promise<ApiResult<T>>, key: string, kept?
   useEffect(() => {
     if (returned.current === returns) return;
     returned.current = returns;
-    // A screen showing a value keeps it, and any form on it keeps what was typed.
-    if (onScreen.current === 'ready') return;
+    // A screen showing a value keeps it on screen while it loads again, and loads again only when
+    // the value is the kept one after a failed request: a form on it keeps what was typed.
+    if (onScreen.current === 'ready') {
+      if (refreshFailed.current) void reload();
+      return;
+    }
     setLoaded(shown(kept));
     void reload();
   }, [returns, reload]);

@@ -1,6 +1,7 @@
 import { type ProgressKind, progressId, WaitingProgressChanges } from '@kerf/core';
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { type ApiResult, api, describeError, send } from './api.ts';
+import { projectStore, ticksAreOlder } from './projectStore.ts';
 import type { ProjectStatus } from './types.ts';
 
 // Ticks made in Shopping and Building (#57, #61). The server holds them, so every device sees the
@@ -276,13 +277,16 @@ function browserStorage(): TickStorage | null {
 }
 
 function sendTo(projectId: string): TickSender {
-  return async (changes, revision) =>
-    send(
+  return async (changes, revision) => {
+    const result = await send(
       api.api.projects[':id'].progress.$patch({
         param: { id: projectId },
         json: { revision, changes },
       }),
     );
+    if (result.ok) projectStore.accept(projectId, result.value);
+    return result;
+  };
 }
 
 /** Asks before a reload or closing the tab while ticks wait that storage does not hold. */
@@ -293,7 +297,10 @@ function warnBeforeUnload() {
   });
 }
 
-/** The project's queue, seeded with the ticks of the latest project response. */
+/**
+ * The project's queue, seeded with the ticks of the latest project response. Ticks read before
+ * the latest accepted save are not: the queue already holds newer ones.
+ */
 function ticksFor(projectId: string, seed: readonly Tick[], revision: number): TickQueue {
   let queue = queues.get(projectId);
   if (!queue) {
@@ -306,7 +313,7 @@ function ticksFor(projectId: string, seed: readonly Tick[], revision: number): T
     );
     queues.set(projectId, queue);
   }
-  queue.seed(seed, revision);
+  if (!ticksAreOlder(projectId, seed)) queue.seed(seed, revision);
   return queue;
 }
 

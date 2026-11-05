@@ -1,6 +1,13 @@
 import { type ReactNode, useState } from 'react';
-import { ProblemScreen, Skeleton, type SkeletonShape } from '../ui/index.ts';
-import { CONNECTION_MESSAGE, failureOf } from './api.ts';
+import {
+  Button,
+  Cluster,
+  Notice,
+  ProblemScreen,
+  Skeleton,
+  type SkeletonShape,
+} from '../ui/index.ts';
+import { type ApiError, CONNECTION_MESSAGE, failureOf } from './api.ts';
 import { href } from './route.ts';
 import type { LoadState } from './useLoad.ts';
 
@@ -8,7 +15,7 @@ import type { LoadState } from './useLoad.ts';
  * What `useLoad` has so far: a skeleton in the screen's `shape` while it loads, named `loading`
  * for screen readers (Stage 9, #266); the problem if it did not load, or has not after 10 s, with
  * the connection icon when the server could not be reached; and otherwise `children` with the
- * value.
+ * value, under a line saying so when it is the kept copy after a failed refresh.
  */
 export function Loaded<T>(props: {
   state: LoadState<T>;
@@ -58,5 +65,25 @@ export function Loaded<T>(props: {
       </ProblemScreen>
     );
   }
-  return <>{props.children?.(state.value)}</>;
+  return (
+    <>
+      {state.refreshFailed && <RefreshFailed error={state.refreshFailed} onRetry={props.onRetry} />}
+      {props.children?.(state.value)}
+    </>
+  );
+}
+
+/** Says the screen shows the copy loaded earlier because loading it again failed, and why. */
+export function RefreshFailed(props: { error: ApiError; onRetry: () => void }) {
+  const failure = failureOf(props.error);
+  return (
+    <Notice icon={failure.connection ? 'connection' : 'error'} alert={false}>
+      <Cluster>
+        <span>Showing the copy loaded earlier. {failure.message}</span>
+        <Button variant="secondary" onClick={props.onRetry}>
+          Try again
+        </Button>
+      </Cluster>
+    </Notice>
+  );
 }

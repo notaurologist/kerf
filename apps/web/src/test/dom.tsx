@@ -30,6 +30,13 @@ export function mount(node: ReactNode) {
   return {
     container,
     rerender: (next: ReactNode) => act(() => root.render(next)),
+    /** Unmounts it now, as leaving the screen does. */
+    unmount: () => {
+      const at = mounted.findIndex((m) => m.root === root);
+      if (at >= 0) mounted.splice(at, 1);
+      act(() => root.unmount());
+      container.remove();
+    },
   };
 }
 
