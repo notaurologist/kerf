@@ -1,6 +1,6 @@
 # Frame analysis
 
-Status: in progress, step 1 of 6 (November 5, 2026). Exploration #545, on `explore/frame-analysis`. Nothing in `apps/` imports `packages/frame`.
+Status: in progress, step 2 of 6 (November 5, 2026). Exploration #545, on `explore/frame-analysis`. Nothing in `apps/` imports `packages/frame`. From step 2, `packages/frame` depends on `@kerf/core` for the swing set's plan, design values, and loads.
 
 Every result this exploration prints is headed "Exploratory frame analysis, not a structural check" and lists its assumptions. It sits beside the sourced checks and replaces none of them (`PRODUCT.md` principle 2). Results read as forces, displacements, and margins under stated assumptions, never as verdicts (hard rule 2).
 
@@ -45,12 +45,14 @@ McGuire, Gallagher and Ziemian, *Matrix Structural Analysis*, 2nd edition (2000)
 | Static condensation | Section 13.1, Eq. 13.5, p. 376 | `condense` | Yes |
 | Member end releases; a pin at end 2 | Section 13.5.1, Eqs. 13.33 and 13.34, p. 398 | `condense` | Yes: the condensation test gives Eq. 13.33 term for term |
 | Cholesky factorization | Section 11.2.2, Eqs. 11.14 and 11.15, pp. 307 and 308 | `solveSymmetric` | Yes |
+| Rigid end offsets: [T] (forces at the joints from forces at the member's ends), displacements by [T]ᵀ, k = [T]·Γᵀ·k'·Γ·[T]ᵀ, and end forces k'·Γ·[T]ᵀ·Δ | Section 13.5.2, Eqs. 13.37 to 13.41 and Example 13.8, pp. 399–401 | `offsetTransformation`, `element`, `analyze` (step 2) | Yes, signs read from the page images; see the note on offsets |
 
 Notes:
 
 - **Example 5.3.** One printed entry, 17.381 for 6EI/L²·cos φ of member bc, is 18.75 × 0.927, with cos φ rounded to three places from the figure's 7.416 m over 8 m. The exact value is 17.3817. The test allows one unit in the last printed digit for that reason.
 - **Condensation.** `condense` eliminates the released rotations one at a time. Each step is one step of Gaussian elimination, which gives the same matrix as eliminating them together by Eq. 13.5 or Eq. 13.34.
 - **Reactions.** Eq. 3.8b gives the total force at the supported degrees of freedom, K_sf·Δ_f. The text treats it as the reaction because it applies no load at a support. `analyze` subtracts any load applied at a supported joint from that total, so a reaction is only what the support supplies.
+- **Offsets.** Eq. 13.38 measures e_i from joint 1 to the member's start and e_j from the member's end to joint 2 (Example 13.8, p. 401, and its figures). `Member.offsets` measures both from the joint, so the end's row has the opposite signs to the book's. `element.test.ts` builds [T] as Eq. 13.38 prints it and checks the element's global stiffness against [T]·Γᵀ·k'·Γ·[T]ᵀ term for term. A release on an offset member acts at the member's end, not at the joint.
 - **Not from the text.** Two behaviors are this package's own choices, so no page covers them. A joint whose rotation is held by neither a member nor a support has that rotation set aside and reported as `null`. A pivot at or below 10⁻¹⁰ of its own diagonal term is read as a mechanism. Section 11.2.2 says only that the matrix must be positive definite.
 
 The closed-form examples below check the same formulas a second way.
@@ -72,6 +74,65 @@ The portal's closed form ignores axial shortening, so the test gives its members
 
 Mechanisms are tested too: a beam on two vertical rollers, a joint with no members, a portal whose bases and beam ends are all pinned, and a moment on a fully released joint.
 
+## One A-frame in its plane (step 2)
+
+`aFrame.ts` builds one A-frame of the swing set from a generated plan, and `pnpm --filter @kerf/frame a-frame` prints it for the worked example, buried and on pads. Every case is headed "Exploratory frame analysis, not a structural check" and carries its assumptions.
+
+### The model
+
+Plane coordinates: x is the plan's y (front to back, front negative), y is the plan's z (up). Nothing is typed in: each point comes from the plan's placements and the holes its bolted laps drilled, and the ground heights from its geometry.
+
+- **The beam** crosses the A-frame's plane, so in the plane it is its cross-section, taken as rigid. It is one joint, at the leg-to-beam bolt's center: halfway between the bolt's outer ends, at the beam's mid-depth.
+- **Legs** run along their centerlines from the bolt's line to the ground, as continuous members with joints at the gusset and crossbar. Each leg's top is joined to the beam's joint by a rigid link from the point where the bolt's line crosses the leg's centerline (Section 13.5.2). The part of the leg above the bolt carries nothing and is left out.
+- **Crossbar and gusset** joints are at the centroid of each joint's bolts, which lies on the leg's centerline at the middle of the board's depth, since each bolt is in the middle of an equal strip. A joint's bolts act together there: this is where a bolt group's pin or rotational spring (step 3) acts.
+- **Gusset.** The beam rests on the gusset (spec, Structural model, Beam; #445), so the gusset is two members meeting under the beam's center, joined to the beam's joint by a rigid link to the middle of its depth. It is not bolted to the beam, so it turns with the beam in both joint cases.
+- **Sections:** each member's depth in the plane and breadth across it, from its stock, on the gross section. E' = E·C_M·C_t·C_i, with E from Table 4B for the species and grade entered for that member, C_M = 0.9 for wet service and C_t = 1.0 as the beam checks apply them, and C_i = 0.95 when incised. The values and factors are core's (`designValues`), checked against NDS 2024 and its Supplement when they were added; they were not re-read for this step. The template asks for no species for the crossbar and gusset, so the script takes them as its own inputs, and a missing one is "input needed".
+- **Joints.** Pinned: the legs' tops, the crossbar's ends, and the gusset's outer ends are released. Rigid: nothing is. The legs are continuous in both.
+- **Feet.** Where each leg's centerline meets the ground (`geometry.back.groundZ`, `front.groundZ`). On pads: both pinned, and, for the two pushes, the lifting foot released (held up and down only) with the other pinned. Buried: both fixed at grade, the leg below grade left out.
+
+### Loads
+
+From core's uplift check (`upliftFeet`, exported for this step with no change to any output): each frame's share W_f of the riders by the beam's span between its supports, half the beam's weight D = w·L/2, and the chain angle φ where each foot lifts most. Chain tension C·W_f·(3·cos φ − 2·cos θ), with the dynamic factor C on the swing part only; F = T·sin φ fore and aft, T·cos φ + D down. They act at the hangers on the beam's underside and are carried to the beam's joint, 2.75 above in the worked example, with the moment F makes about it.
+
+Three load cases for each frame: the bottom of the arc (φ = 0, the load #468's leg check uses), pushed toward the front at the φ where the back foot lifts most, and pushed toward the back at the φ where the front foot lifts most. Each runs with joints pinned and rigid, in every support case: 12 cases for buried legs, 20 on pads.
+
+### Worked example
+
+The spec's worked example with Southern Pine No.2 for every member, not incised, E' = 1,260,000 psi; beam moisture content 30%, θ = 60°, dynamic factor 2. The working is in `aFrame.test.ts`.
+
+**Foot reactions where the frame is statically determinate (#467).** On pads with the lifting foot released, the frame has three reactions, and they are the uplift check's (spec, Structural model, example 4: riders 200 and 80 lb, w = 0.433798 lb/in):
+
+| Foot | Uplift check | Frame, pinned | Frame, rigid |
+|---|---|---|---|
+| Left frame, back | 189.70 | 189.70 | 189.70 |
+| Left frame, front | 176.63 | 176.63 | 176.63 |
+| Right frame, back | 128.96 | 128.96 | 128.96 |
+| Right frame, front | 120.03 | 120.03 | 120.03 |
+
+They agree with core's C·S − D·c_v to 10⁻⁹ lb, and the pivot takes the whole push. With both feet pinned the frame is indeterminate: the lifting foot also takes part of the push, and the left back foot's uplift is 182.90 (pinned) and 182.96 (rigid).
+
+**Leg axial load (#468).** At the bottom of the arc, #468's leg check takes P = (C·R_s + R_w)/(2·cos α), each frame's load shared by its legs along their axes. Below the crossbar the frame gives:
+
+| Case | P (#468) | Back leg, pinned / rigid | Front leg, pinned / rigid |
+|---|---|---|---|
+| Buried, riders 150 and 150 | 333.10 | 333.05 / 332.95 | 332.97 / 332.82 |
+| Pads, both feet pinned, riders 200 and 80 (left frame) | 364.21 | 364.22 / 364.17 | 364.23 / 364.14 |
+
+The difference is under 0.1%. A leg's force at its foot is Ry·cos α plus the outward thrust times sin α, and #468's equals it when the reaction lies along the leg, thrust = Ry·tan α. In the frame the crossbar carries almost nothing under a vertical load (under 1 lb), so the reaction lies nearly along the leg: buried, the thrust is 113.65 lb against Ry·tan α = 113.94. What is left goes into small moments in the legs (10 in-lb at the foot pinned, 150 in-lb rigid). On sloped ground the front foot is lower, so the two legs differ slightly. Above the gusset each leg carries less (196 lb pinned, 170 lb rigid), since the beam bears on the gusset and the gusset's bolts carry part of its load into the legs below the top.
+
+**The push, which #468 leaves out.** The leg check says its load leaves out the swing's push toward the front and back. In the frame, pushed toward the back at φ = 47.2°, the back leg below the crossbar carries 420.7 lb buried (pinned) against 333.10, 26% more, and on pads 474.7 lb with both feet pinned and 494.5 lb with the front foot released, 30% and 36% over 364.21. The other leg goes into tension, 150 to 220 lb. The push also bends the legs: up to 933 in-lb buried and 3,561 in-lb on pads with the lifting foot released, where the crossbar carries about 155 lb of compression.
+
+**Pinned against rigid.** The gusset is bolted to both legs and bears under the beam, so even with every bolted joint pinned it holds the legs' tops: the two runs differ little at the feet. They differ in the legs' moments and in sway. Buried, pushed toward the back, the beam moves 0.0143 in (pinned) and 0.0100 in (rigid) along the frame's plane; on pads with both feet pinned, 0.021 and 0.012; with the lifting foot released, 0.209 and 0.151.
+
+These numbers are for the stated inputs only, under the assumptions listed with each result, and are forces and displacements, not margins against any capacity.
+
+### Verified, and not
+
+- Verified against the printed text: Eqs. 13.37 to 13.41 and Example 13.8 (rigid offsets), with signs read from the page images of pp. 400 and 401; the step 1 formulas, unchanged.
+- Verified by hand in the tests: the frame's geometry against the spec's worked example, the sections, the loads against example 4, the determinate reactions against example 4, the legs' load against example 5, and equilibrium of every case.
+- Not re-verified in this step: Table 4B's E, the wet service and incising factors, the pendulum load, and the uplift check's statics. They are core's, each with its source, verified when it was added (#468, #467).
+- Not from any source: the rigid beam cross-section, the bolt groups acting at their centroids, the gusset turning with the beam, and the foot positions are modeling choices, stated with each result.
+
 ## Assumptions
 
 These hold for every result this exploration prints, and are listed with each one.
@@ -87,8 +148,8 @@ These hold for every result this exploration prints, and are listed with each on
 
 Each step is blocked by the one before. Pull requests go into `explore/frame-analysis`.
 
-1. #726 Package, 2D frame element, and solver, tested against hand-checked examples. *This step.*
-2. #727 One A-frame in its plane from the template's placements and joints, pinned and rigid, checked against #467's foot reactions and #468's leg load in the worked example.
+1. #726 Package, 2D frame element, and solver, tested against hand-checked examples. Done.
+2. #727 One A-frame in its plane from the template's placements and joints, pinned and rigid, checked against #467's foot reactions and #468's leg load in the worked example. *This step.*
 3. #728 Bolt slip source: NDS 2024's load/slip modulus and whether it may be used beyond group action, the textbook basis for a bolt group's rotational stiffness, and Eurocode 5 (EN 1995-1-1, 7.1) as a cross-check. A third joint case if the basis holds.
 4. #729 3D frame element and the whole swing set, with sway along the beam for buried legs and for pads.
 5. #730 A sweep over the template's parameters: where sway is largest and how far the joint cases differ.
