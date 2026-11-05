@@ -40,6 +40,22 @@ export const SHOULDER = 0.25;
 
 export type CabinetPart = Omit<Part, 'letter'>;
 
+/**
+ * How the two aprons' tenons in a leg meet (spec, Joinery). Each tenon's middle is
+ * c = r_a + t_a/2 in from the leg's outside faces. Square, they run into each other once
+ * l_t > s − c − t_t/2; then each is mitered 45° from a long point at its outside cheek, which
+ * clears the other tenon while l_t ≤ s − c + t_t/2, where that tenon's outside cheek is.
+ */
+export function apronTenons(
+  p: RecordCabinetParams,
+  ta: number,
+): { meet: boolean; longest: number } {
+  const s = p.legStock.size;
+  const c = p.apronSetback + ta / 2;
+  const half = p.tenonThickness / 2;
+  return { meet: p.tenonLength > s - c - half + 1e-9, longest: s - c + half };
+}
+
 /** Hardwood lengths, 4 to 16 ft in 1-ft steps (Wood Handbook, ch. 6, p. 6-3). */
 const DEALER_FEET = Array.from({ length: 13 }, (_, i) => i + 4);
 
@@ -199,6 +215,23 @@ export function cabinetParts(
     });
     return { ok: false, issues };
   }
+  const tenons = apronTenons(p, ta);
+  if (tenons.meet && p.tenonLength > tenons.longest + 1e-9) {
+    issues.push({
+      code: 'tenons-collide',
+      message: `Two ${formatLength(p.tenonLength)} tenons would run into each other inside the ${formatLength(s)} leg, even mitered. With these aprons they clear at up to ${formatLimit(tenons.longest, 'max')}: make the tenons that long or shorter, or set the aprons back less, or use larger legs.`,
+      params: ['tenonLength', 'legStock.size', 'apronSetback', 'tenonThickness', 'board'],
+    });
+    return { ok: false, issues };
+  }
+  if (tenons.meet && p.tenonLength <= p.tenonThickness + 1e-9) {
+    issues.push({
+      code: 'tenon-too-short-to-miter',
+      message: `${formatLength(p.tenonLength)} tenons meet inside the leg, but are too short to miter across their ${formatLength(p.tenonThickness)} thickness. Make them longer than ${formatLength(p.tenonThickness)}, or thinner.`,
+      params: ['tenonLength', 'tenonThickness'],
+    });
+    return { ok: false, issues };
+  }
   if (door && partitionDepth - r < p.jacket) {
     issues.push({
       code: 'records-behind-tracks',
@@ -262,7 +295,9 @@ export function cabinetParts(
     quantity: 2,
     length,
     notes: [
-      'A tenon at each end goes into a leg; miter the tenons’ ends where two meet inside it.',
+      tenons.meet
+        ? 'A tenon at each end goes into a leg, its end mitered where it meets the other apron’s tenon inside. The face the cut detail shows goes outside, and its cheek is the long one.'
+        : 'A tenon at each end goes into a leg.',
     ],
     selection: [...SELECTION.rail],
     referenceEdge: 'bottom edge',
@@ -459,12 +494,15 @@ export function cabinetParts(
   place('leg', 1, at(xs[1] as number, ys[0] as number, 0), Z, minusY, X);
   place('leg', 2, at(xs[0] as number, ys[1] as number, 0), Z, Y, minusX);
   place('leg', 3, at(xs[1] as number, ys[1] as number, 0), Z, X, Y);
-  // Aprons between the legs, r_a in from the legs' outside faces, their bottom edge at h_l.
+  // Aprons between the legs, r_a in from the legs' outside faces, their bottom edge at h_l. Each
+  // has its far face outside, so its tenons' miters, long at the outside cheek, are the same on
+  // both of a part's instances.
   const r0 = p.apronSetback;
-  place('apron-long', 0, at(xl + s - p.tenonLength, r0 + ta, p.legShowing), X, Z, minusY);
-  place('apron-long', 1, at(xl + s - p.tenonLength, p.caseDepth - r0, p.legShowing), X, Z, minusY);
-  place('apron-short', 0, at(xl + r0, s - p.tenonLength, p.legShowing), Y, Z, X);
-  place('apron-short', 1, at(xr - r0 - ta, s - p.tenonLength, p.legShowing), Y, Z, X);
+  const l = p.tenonLength;
+  place('apron-long', 0, at(xl + s - l, r0 + ta, p.legShowing), X, Z, minusY);
+  place('apron-long', 1, at(xr - s + l, p.caseDepth - r0 - ta, p.legShowing), minusX, Z, Y);
+  place('apron-short', 0, at(xl + r0 + ta, p.caseDepth - s + l, p.legShowing), minusY, Z, minusX);
+  place('apron-short', 1, at(xr - r0 - ta, s - l, p.legShowing), Y, Z, X);
   // A cleat inside each side apron, lying flat and flush with its top.
   place('cleat', 0, at(xl + r0 + ta, s, zb), Y, X, minusZ);
   place('cleat', 1, at(xr - r0 - ta, s, zb - tc), Y, minusX, Z);

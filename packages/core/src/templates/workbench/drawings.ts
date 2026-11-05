@@ -37,7 +37,7 @@ export function benchExplode(outputs: WorkbenchOutputs): Explode[] {
   const gap = p.topDepth / 2;
   const lift = p.topThickness + gap;
   const middleX = p.overhangEnds + g.baseLength / 2;
-  const lifted = new Set(['top', 'face-chop', 'shelf-upper', 'divider']);
+  const lifted = new Set(['top', 'shelf-upper', 'divider']);
   const frames = new Set(['leg-vise', 'leg-a', 'leg-b', 'foot', 'end-rail']);
   const forward = (id: string) =>
     id.includes('-drawer-') ||
@@ -51,6 +51,8 @@ export function benchExplode(outputs: WorkbenchOutputs): Explode[] {
     const move = (stage: number, offset: Vec3): Explode[] => [
       { partId: id, instance: pl.instance, stage, offset },
     ];
+    // Off the leg's face as it rises, so it never slides along it.
+    if (id === 'face-chop') return move(0, at(0, -gap, 2 * lift));
     if (lifted.has(id)) return move(0, at(0, 0, 2 * lift));
     if (id === 'end-chop' || id === 'vise-block') return move(0, at(4 * gap, 0, 0));
     if (frames.has(id)) return move(0, at(side * 3 * gap, 0, 0));
@@ -110,7 +112,7 @@ export function drawings(outputs: WorkbenchOutputs): Drawings {
       scene,
       VIEW,
       benchExplode(outputs),
-      'The workbench pulled apart: the top lifted with the face vise’s chop, the upper drawer shelf, and the divider, the end vise’s chop and block out, the end frames out from the case, the case sides out and its back back, and the drawers and doors forward off the case bottom, with the door panels out of their frames.',
+      'The workbench pulled apart: the top lifted, with the face vise’s chop lifted and out forward, the upper drawer shelf, and the divider, the end vise’s chop and block out, the end frames out from the case, the case sides out and its back back, and the drawers and doors forward off the case bottom, with the door panels out of their frames.',
       'Exploded',
     ),
     cutDetails: outputs.design.parts.map((part) => cutDetail(part)),

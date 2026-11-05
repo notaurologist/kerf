@@ -85,6 +85,7 @@ export const Method = z.object({
     'cutout',
     'mortise',
     'tenon',
+    'tenon-miter',
     'dovetail-tails',
     'dovetail-pins',
     'screw-holes',
@@ -315,6 +316,13 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     width: { kind: 'length', of: (op) => op.width },
     cheekBack: { kind: 'length', of: (op) => op.cheekBack },
     cheekFront: { kind: 'length', of: (op) => op.cheekFront },
+  },
+  'tenon-miter': {
+    count,
+    angle: { kind: 'angle', of: (op) => op.angle },
+    setback: { kind: 'length', of: (op) => op.setback },
+    tenonThickness: { kind: 'length', of: (op) => op.tenonThickness },
+    width: { kind: 'length', of: (op) => op.width },
   },
   'dovetail-tails': {
     count,
@@ -2345,6 +2353,70 @@ export const METHODS = [
     flags: [categoryFlag('router')],
     easierThan: [],
     moreAccurateThan: ['tenon-hand-saw'],
+  },
+
+  // Tenon miter (a tenon's end, where it meets another tenon inside the mortised part)
+  {
+    id: 'tenon-miter-hand-saw',
+    operation: 'tenon-miter',
+    name: 'With a hand saw',
+    tools: [
+      { use: 'sawing the miter', anyOf: [{ tool: 'hand-saw' }] },
+      { use: 'paring to the line', anyOf: [{ tool: 'chisel' }, { tool: 'block-plane' }] },
+      TAPE,
+      SQUARE,
+      STRAIGHTEDGE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'pare-to-a-line'],
+    setup: [
+      'Find the long cheek on the cut detail. Square a line across the other, short cheek, {setback} back from the end of the {tenonThickness} tenon.',
+      'On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at {angle}.',
+    ],
+    technique: [
+      'Clamp the part so the tenon stands clear of the bench, and saw along the lines on both edges, on the waste side, across the tenon’s {width} width.',
+      'Pare the sawn end to the lines until it is flat from edge to edge.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.',
+      'Sawing on the line shortens the long cheek. Saw on the waste side and pare to the line.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+  {
+    id: 'tenon-miter-chisel',
+    operation: 'tenon-miter',
+    name: 'With a chisel',
+    tools: [
+      { use: 'paring the miter', anyOf: [{ tool: 'chisel' }] },
+      TAPE,
+      SQUARE,
+      STRAIGHTEDGE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'pare-to-a-line'],
+    setup: [
+      'Find the long cheek on the cut detail. Square a line across the other, short cheek, {setback} back from the end of the {tenonThickness} tenon.',
+      'On each edge of the tenon, join that line to the end of the long cheek with a straight line. The lines lie at {angle}.',
+      'Clamp the part flat, short cheek up, with the tenon over the edge of the bench.',
+    ],
+    technique: [
+      'Pare the waste off the end in thin slices, working from each edge toward the middle of the {width} width, down toward the lines.',
+      'Take the last slices to the lines on both edges, so the end is flat.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Mitering from the wrong cheek puts the long point where the other tenon needs room, and the two meet inside the mortise. Check the long cheek on the cut detail before cutting.',
+      'Paring off thick slices splits the tenon along its grain. Take thin slices.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
   },
 
   // Dovetail tails, then pins fitted to them (DOMAIN.md, Dovetails)

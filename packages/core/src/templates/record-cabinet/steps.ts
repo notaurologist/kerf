@@ -36,7 +36,7 @@ const STEPS: {
   {
     id: 'tenons',
     title: 'Cut the tenons on the aprons',
-    types: ['tenon'],
+    types: ['tenon', 'tenon-miter'],
     parts: ['apron-long', 'apron-short'],
   },
   { id: 'screw-holes', title: 'Drill the cleats’ screw holes', types: ['screw-holes'] },

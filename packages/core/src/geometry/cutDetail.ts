@@ -1,6 +1,6 @@
 import { cornerGeometry, type DovetailSide, dovetailSpan } from '../joinery/dovetails.ts';
 import { boredSide } from '../model/operations.ts';
-import { type BoredHole, type Part, widthTapers } from '../model/types.ts';
+import { type BoredHole, miterSetback, type Part, widthTapers } from '../model/types.ts';
 import { endName } from '../outputs/cutList.ts';
 import { angleToEdge, formatAngle } from '../units/angle.ts';
 import { formatLength } from '../units/length.ts';
@@ -302,6 +302,19 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     prims.push({
       kind: 'line',
       role: 'visible',
+      points: [page({ u, v: t.v0 }), page({ u, v: t.v0 + t.width })],
+      part: ref,
+    });
+  }
+  // A mitered tenon's short cheek, where it ends short of the tip: seen on the face shown when the
+  // long cheek is toward the back face, dashed behind the long cheek when it is toward this one.
+  for (const t of part.tenons) {
+    if (!t.miter) continue;
+    const back = miterSetback(t);
+    const u = t.end === 0 ? back : part.length - back;
+    prims.push({
+      kind: 'line',
+      role: t.miter.long === 'far' ? 'hidden' : 'visible',
       points: [page({ u, v: t.v0 }), page({ u, v: t.v0 + t.width })],
       part: ref,
     });
@@ -774,7 +787,11 @@ export function cutDetail(part: Part, title = `${part.letter} · ${part.name}`):
     }),
     ...part.tenons.map(
       (t) =>
-        `Tenon at ${whichEnd(t.end)}: ${formatLength(t.length)} long, ${formatLength(t.thickness)} thick, ${formatLength(t.width)} wide, ${formatLength(t.n0)} from the back face and ${formatLength(t.v0)} from the ${part.referenceEdge}.`,
+        `Tenon at ${whichEnd(t.end)}: ${formatLength(t.length)} long, ${formatLength(t.thickness)} thick, ${formatLength(t.width)} wide, ${formatLength(t.n0)} from the back face and ${formatLength(t.v0)} from the ${part.referenceEdge}.${
+          t.miter
+            ? ` Its end is mitered ${formatAngle(t.miter.angle)} across the thickness: the cheek toward ${t.miter.long === 'far' ? 'the face shown' : 'the back face'} is the long one, and the other is ${formatLength(miterSetback(t))} shorter.`
+            : ''
+        }`,
     ),
   ];
 

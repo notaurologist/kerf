@@ -1,4 +1,4 @@
-import { type Notch, type Part, widthTapers } from '../model/types.ts';
+import { miterSetback, type Notch, type Part, type Tenon, widthTapers } from '../model/types.ts';
 
 // A part's face outline in its own frame (DOMAIN.md, Geometry; Placement in model/types.ts):
 // u along the part from its first end's long point, v across from its reference edge. The
@@ -91,6 +91,38 @@ function shoulders(part: Part): Notch[] {
       ? [{ end: t.end, edge: 'far' as const, along: t.length, across: W - t.v0 - t.width }]
       : []),
   ]);
+}
+
+/** A point in a part's frame seen on its edge: u along the part, n through it from the near face. */
+export interface UN {
+  u: number;
+  n: number;
+}
+
+/**
+ * A tenon seen on the part's edge, in u and n, counterclockwise: from the shoulder to the tip at
+ * each cheek, the tip square or, mitered, set back on the short cheek. The tenon is this outline
+ * run across its width.
+ */
+export function tenonProfile(part: Part, tenon: Tenon): UN[] {
+  const L = part.length;
+  const n0 = tenon.n0;
+  const n1 = tenon.n0 + tenon.thickness;
+  const back = miterSetback(tenon);
+  const longNear = tenon.miter?.long === 'near';
+  // Out from the shoulder at d = 0 to the tip at d = length, at the near cheek and the far one.
+  const nearTip = tenon.length - (tenon.miter && !longNear ? back : 0);
+  const farTip = tenon.length - (tenon.miter && longNear ? back : 0);
+  const shoulder = tenon.end === 0 ? tenon.length : L - tenon.length;
+  const u = (d: number) => (tenon.end === 0 ? shoulder - d : shoulder + d);
+  const points = [
+    { u: u(0), n: n0 },
+    { u: u(nearTip), n: n0 },
+    { u: u(farTip), n: n1 },
+    { u: u(0), n: n1 },
+  ];
+  // Counterclockwise in (u, n): at the second end the shoulder is at the smaller u.
+  return tenon.end === 1 ? points : points.reverse();
 }
 
 /** The outline after tapers, notches, and cutouts, counterclockwise. */

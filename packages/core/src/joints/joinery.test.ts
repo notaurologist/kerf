@@ -105,6 +105,27 @@ describe('mortiseAndTenon', () => {
     });
   });
 
+  it('miters the tenon 45° where another meets it at a right angle, long on that one’s side', () => {
+    // The rail's through runs −y. A tenon running −y, toward the rail's far face, leaves the far
+    // cheek long; one running +y, the near cheek.
+    const joint = { mortised: post, tenoned: rail, end: 1 as const, depth: 1, tenon };
+    const made = (meets: Vec3) => {
+      const result = mortiseAndTenon({ ...joint, meets });
+      return result.ok ? result.tenon.miter : result.message;
+    };
+    expect(made(minus(Y))).toEqual({ angle: 45, long: 'far' });
+    expect(made(Y)).toEqual({ angle: 45, long: 'near' });
+    // Running 120° from this one, as where members meet at 60°: 90 − 120/2 = 30°.
+    const sixty = made(at(-0.5, -Math.sqrt(3) / 2, 0));
+    expect(typeof sixty === 'object' && sixty.angle).toBeCloseTo(30, 12);
+  });
+
+  it('refuses a miter where the other tenon runs across this one’s width or in line with it', () => {
+    const joint = { mortised: post, tenoned: rail, end: 1 as const, depth: 1, tenon };
+    expect(mortiseAndTenon({ ...joint, meets: Z })).toMatchObject({ ok: false });
+    expect(mortiseAndTenon({ ...joint, meets: minus(X) })).toMatchObject({ ok: false });
+  });
+
   it('refuses a tenon that stops short of the mortise bottom', () => {
     expect(
       mortiseAndTenon({ mortised: post, tenoned: rail, end: 1, depth: 1.25, tenon }),

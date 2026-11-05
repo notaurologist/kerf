@@ -144,17 +144,40 @@ describe('the worked example (spec, Worked example and The Shaker-modern base)',
     // Tenons 2" wide from 1/4" above the apron's bottom edge at h_l = 5, 1/4" thick, centered in
     // the 13/16" apron set back 1/8": 1-1/2 − 1/8 − 13/16 + 9/32 = 27/32 from the inside face.
     expect(leg.mortises?.map((m) => [m.side, m.u0, m.u1, m.a0, m.a1, m.depth])).toEqual([
-      ['near', 5.25, 7.25, 0.84375, 1.09375, 1],
       ['reference-edge', 5.25, 7.25, 0.84375, 1.09375, 1],
+      ['near', 5.25, 7.25, 0.84375, 1.09375, 1],
     ]);
-    expect(part(worked, 'apron-long').tenons?.[0]).toEqual({
-      end: 0,
-      length: 1,
-      n0: 0.28125,
-      thickness: 0.25,
-      v0: 0.25,
-      width: 2,
-    });
+    // Each tenon's middle is 1/8 + 13/32 = 17/32 in from the leg's outside faces. Square, two 1"
+    // tenons run into each other: they meet past 1-1/2 − 17/32 − 1/8 = 27/32. Mitered 45° from a
+    // long point at the outside (far) cheek, they clear up to 1-1/2 − 17/32 + 1/8 = 1-3/32.
+    for (const id of ['apron-long', 'apron-short']) {
+      expect(part(worked, id).tenons).toEqual(
+        ([0, 1] as const).map((end) => ({
+          end,
+          length: 1,
+          n0: 0.28125,
+          thickness: 0.25,
+          v0: 0.25,
+          width: 2,
+          miter: { angle: 45, long: 'far' },
+        })),
+      );
+    }
+  });
+
+  it('turns every apron with its far face outside, so the two of each part are cut alike', () => {
+    // The far face of each apron faces away from the cabinet's middle.
+    const middle = { x: 27, y: 8.5 };
+    for (const pl of worked.design.placements.filter((p) => p.partId.startsWith('apron'))) {
+      const apron = part(worked, pl.partId);
+      const T = apron.stock.thickness;
+      const far = {
+        x: pl.origin.x + pl.through.x * T + (pl.along.x * apron.length) / 2,
+        y: pl.origin.y + pl.through.y * T + (pl.along.y * apron.length) / 2,
+      };
+      const outward = (far.x - middle.x) * pl.through.x + (far.y - middle.y) * pl.through.y;
+      expect(outward).toBeGreaterThan(0);
+    }
   });
 
   it('slots the cleats by the case bottom’s movement: 17 × 0.00248 × 4 + 1/16 = 0.2311"', () => {
@@ -422,6 +445,33 @@ describe('refusals (spec, Validation)', () => {
     expect(refused({ apronSetback: 1.25 })).toEqual(['apron-off-leg']);
   });
 
+  it('refuses tenons that run into each other in the leg even mitered, saying how long clears', () => {
+    // Each tenon's middle 1/8 + 13/32 = 17/32 in from the leg's outside faces; mitered from the
+    // outside cheek, the tenons clear up to 1-1/2 − 17/32 + 1/8 = 1-3/32.
+    expect(refused({ tenonLength: 1.0625 })).toEqual([]);
+    expect(refused({ tenonLength: 1.09375 })).toEqual([]);
+    expect(refused({ tenonLength: 1.125 })).toEqual(['tenons-collide']);
+    const result = recordCabinet.generate({ ...WORKED_EXAMPLE, tenonLength: 1.125 }, {});
+    expect(result.ok ? [] : result.issues[0]?.message).toBe(
+      'Two 1-1/8" tenons would run into each other inside the 1-1/2" leg, even mitered. With these aprons they clear at up to 1-1/16": make the tenons that long or shorter, or set the aprons back less, or use larger legs.',
+    );
+  });
+
+  it('leaves tenons square where they do not meet, and refuses ones too short to miter', () => {
+    // Square, the worked example's tenons meet past 1-1/2 − 17/32 − 1/8 = 27/32.
+    const short = recordCabinet.generate({ ...WORKED_EXAMPLE, tenonLength: 0.84375 }, {});
+    if (!short.ok) throw new Error(JSON.stringify(short.issues));
+    expect(part(short.output, 'apron-long').tenons.map((t) => t.miter)).toEqual([
+      undefined,
+      undefined,
+    ]);
+    // 1/2" tenons on aprons set back 1/2": their middles are 1/2 + 13/32 = 29/32 in, so they meet
+    // past 1-1/2 − 29/32 − 1/4 = 11/32, but a 45° miter across 1/2 takes the whole 1/2 length.
+    expect(refused({ tenonThickness: 0.5, tenonLength: 0.5, apronSetback: 0.5 })).toEqual([
+      'tenon-too-short-to-miter',
+    ]);
+  });
+
   it('refuses aprons that put the mortises outside the leg', () => {
     // 1-1/16" boards for 1" panels: within the 1/16 flattening allowance, so the one-board aprons
     // are not planed and stay 1-1/16 thick.
@@ -459,7 +509,9 @@ describe('refusals (spec, Validation)', () => {
   });
 
   it("refuses aprons that stand past the leg's inside face", () => {
-    const legs = { legStock: { size: 1.1875, lengths: [3] }, footSize: 0.75 };
+    // Tenons 1/2" long, so they clear each other in the smaller leg: 1-3/16 − (3/8 + 13/32) + 1/8
+    // = 17/32.
+    const legs = { legStock: { size: 1.1875, lengths: [3] }, footSize: 0.75, tenonLength: 0.5 };
     // 13/16 aprons on 1-3/16 legs: 3/8 + 13/16 = 1-3/16 is flush with the inside face.
     expect(refused({ ...legs, apronSetback: 0.375 })).toEqual([]);
     expect(refused({ ...legs, apronSetback: 0.4375 })).toEqual(['apron-past-leg']);
