@@ -125,7 +125,7 @@ Adopt it, for every stock, with a deterministic work limit and first-fit decreas
 
 The alternative is to leave the shopping list as it is and offer the exact plan as a "uses N ft less" alternative under each line. That keeps today's plans stable, but shows two plans where one would do.
 
-The owner decides (#544, decision issue).
+The owner decides in #677.
 
 ## Still open
 
