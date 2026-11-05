@@ -15,7 +15,7 @@ import {
   type TemplateDefinition,
   workbench,
 } from '@kerf/core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 import { nextShape, swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
 import { backfillHistory } from '../services/history.ts';
@@ -935,6 +935,12 @@ describe('a project whose template version is behind', () => {
       status: 'behind',
       storedVersion: CURRENT,
       currentVersion: CURRENT + 1,
+    });
+    const { version } = await get(`/api/projects/${body.id}/version`);
+    expect(version).toEqual({
+      status: 'behind',
+      storedVersion: CURRENT,
+      currentVersion: CURRENT + 1,
       regenerated: {
         ok: true,
         outputs: expect.objectContaining({ cutList: expect.any(Array) }),
@@ -942,7 +948,7 @@ describe('a project whose template version is behind', () => {
         truncated: false,
       },
     });
-    expect(project.version.regenerated.outputs.cutList[0].length).toBe('121"');
+    expect(version.regenerated.outputs.cutList[0].length).toBe('121"');
     // The stored plan is still the earlier version's.
     expect(project.snapshot.outputs.cutList[0].length).toBe('120"');
 
@@ -972,11 +978,56 @@ describe('a project whose template version is behind', () => {
       unreadable: { reason: 'malformed' },
       version: null,
     });
+    expect(await (await authed(`/api/projects/${body.id}/version`)).json()).toEqual({
+      version: null,
+    });
     const regenerate = await authed(`/api/projects/${body.id}/regenerate`, {
       method: 'POST',
       body: { revision: 1 },
     });
     expect(regenerate.status).toBe(500);
+  });
+});
+
+describe('GET /api/projects/:id/version', () => {
+  it('reads a plan that is behind or has another carry length without generating it', async () => {
+    const before = await createTestApp();
+    const behind = (await create(before.authed)).body;
+    const generate = vi.fn(nextVersion.generate);
+    const after = await createTestApp({
+      database: before,
+      templates: [{ ...nextVersion, generate }],
+    });
+    const carried = (await create(after.authed)).body;
+    generate.mockClear();
+    await after.authed('/api/settings', { method: 'PUT', body: { carryLength: 120, revision: 1 } });
+
+    const read = async (id: string) =>
+      (await (await after.authed(`/api/projects/${id}`)).json()) as Json;
+    expect((await read(behind.id)).version.status).toBe('behind');
+    expect((await read(carried.id)).version.status).toBe('carry-length');
+    const list = await after.authed('/api/projects');
+    expect(list.status).toBe(200);
+    expect(generate).not.toHaveBeenCalled();
+
+    const report = (await (
+      await after.authed(`/api/projects/${carried.id}/version`)
+    ).json()) as Json;
+    expect(report.version).toMatchObject({ status: 'carry-length', regenerated: { ok: true } });
+    expect(generate).toHaveBeenCalledTimes(1);
+  });
+
+  it('answers 404 for a missing project', async () => {
+    const { authed } = await createTestApp();
+    const missing = '00000000-0000-4000-8000-000000000000';
+    expect((await authed(`/api/projects/${missing}/version`)).status).toBe(404);
+  });
+
+  it('requires a session', async () => {
+    const { app, authed } = await createTestApp();
+    const { body } = await create(authed);
+    const res = await app.request(`/api/projects/${body.id}/version`);
+    expect(res.status).toBe(401);
   });
 });
 

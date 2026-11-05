@@ -9,4 +9,6 @@ export {
   type ReadResult,
   readSnapshot,
   type VersionReport,
+  type VersionStatus,
+  versionStatus,
 } from './snapshot.ts';
