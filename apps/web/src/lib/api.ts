@@ -2,6 +2,7 @@ import type { AppType } from '@kerf/api';
 import { type ClientResponse, hc } from 'hono/client';
 import type { SuccessStatusCode } from 'hono/utils/http-status';
 import type { Failure } from '../ui/index.ts';
+import { buildCheck } from './build.ts';
 
 // The only way the web app reaches the API: Hono's typed client over /api on the same origin
 // (ARCHITECTURE.md, apps/web). Request and response types come from the API's routes.
@@ -160,6 +161,7 @@ export async function send<R extends ClientResponse<unknown>>(
     };
   }
   const response = res as unknown as Response;
+  buildCheck.note(response.headers);
   if (response.ok) return { ok: true, value: (await readJson(response)) as SuccessBody<R> };
   const error = await toError(response);
   if (error.kind === 'login-required') onLoginRequired();

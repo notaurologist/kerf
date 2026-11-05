@@ -22,7 +22,12 @@ export interface AppDeps {
   now?: () => Date;
   /** The templates offered; tests pass made-up versions. */
   templates?: readonly TemplateDefinition[];
+  /** The commit this API was built from, sent on every response; absent in development. */
+  build?: string;
 }
+
+/** The response header naming the API's build, which the web compares with its own. */
+export const BUILD_HEADER = 'Kerf-Build';
 
 export const BODY_LIMIT_BYTES = 256 * 1024;
 
@@ -34,6 +39,11 @@ export function createApp(deps: AppDeps) {
   return (
     new Hono()
       .basePath('/api')
+      // First, so it is set on every response, including errors and refusals.
+      .use(async (c, next) => {
+        await next();
+        if (deps.build) c.header(BUILD_HEADER, deps.build);
+      })
       .use(
         secureHeaders({
           contentSecurityPolicy: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },

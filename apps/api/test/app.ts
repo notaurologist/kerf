@@ -15,7 +15,9 @@ type TestDatabase = Awaited<ReturnType<typeof createTestDatabase>>;
  * `passwordHash` to configure another password.
  */
 export async function createTestApp(
-  options: Partial<Pick<AppDeps, 'templates' | 'passwordHash'>> & { database?: TestDatabase } = {},
+  options: Partial<Pick<AppDeps, 'templates' | 'passwordHash' | 'build'>> & {
+    database?: TestDatabase;
+  } = {},
 ) {
   const { database = await createTestDatabase(), ...deps } = options;
   const clock = { now: new Date('2026-10-28T12:00:00Z') };

@@ -3,7 +3,7 @@ import { inspect } from 'node:util';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../test/app.ts';
 import { createIsolatedTestDatabase } from '../test/database.ts';
-import { BODY_LIMIT_BYTES, createApp } from './app.ts';
+import { BODY_LIMIT_BYTES, BUILD_HEADER, createApp } from './app.ts';
 import type { Database } from './db/client.ts';
 
 // Every route except login and the health check needs a session (decision 0007). The routes
@@ -168,6 +168,56 @@ describe('caching', () => {
         });
       }
     }
+  });
+});
+
+describe('build header', () => {
+  it('names the build on every response, with or without a session, including errors', async () => {
+    const { app, sessionCookie } = await createTestApp({ build: 'fa1eade' });
+    const cookie = await sessionCookie();
+    const routes = app.routes
+      .filter((r) => r.method !== 'ALL')
+      .map((r) => ({ method: r.method, path: r.path.replace(/:[^/]+/g, 'x') }));
+    const statuses = new Set<number>();
+    for (const { method, path } of [...routes, { method: 'GET', path: '/api/nope' }]) {
+      for (const headers of [{ cookie }, {}]) {
+        const res = await app.request(path, {
+          method,
+          headers: { ...headers, 'content-type': 'application/json' },
+          ...(method === 'GET' ? {} : { body: '{}' }),
+        });
+        statuses.add(res.status);
+        expect({ method, path, build: res.headers.get(BUILD_HEADER) }).toEqual({
+          method,
+          path,
+          build: 'fa1eade',
+        });
+      }
+    }
+    expect([...statuses].some((s) => s >= 400)).toBe(true);
+  });
+
+  it('names the build on a server error', async () => {
+    const failing = new Proxy({} as Database, {
+      get: () => {
+        throw new Error('the database is unreachable');
+      },
+    });
+    const app = createApp({ db: failing, passwordHash: 'unused', build: 'fa1eade' });
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await app.request('/api/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ password: 'anything' }),
+    });
+    logged.mockRestore();
+    expect(res.status).toBe(500);
+    expect(res.headers.get(BUILD_HEADER)).toBe('fa1eade');
+  });
+
+  it('sends no build header without a build, as in development', async () => {
+    const { app } = await createTestApp();
+    expect((await app.request('/api/health')).headers.has(BUILD_HEADER)).toBe(false);
   });
 });
 

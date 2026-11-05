@@ -15,7 +15,7 @@ export function loadConfigOrReport(env: Record<string, string | undefined>): Con
 
 export function createApi(config: Config, connection: ConnectionOptions = {}) {
   const { db } = createDatabase(config.databaseUrl, connection);
-  return createApp({ db, passwordHash: config.passwordHash });
+  return createApp({ db, passwordHash: config.passwordHash, build: config.build });
 }
 
 // Neon's pooled connection (decision 0006), as rowing-conditions uses it. Prepared statements

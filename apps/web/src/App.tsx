@@ -20,6 +20,7 @@ import {
   setLoginRequiredHandler,
 } from './lib/api.ts';
 import { changeScreen } from './lib/moves.ts';
+import { NewBuildNotice } from './lib/NewBuild.tsx';
 import {
   editReturn,
   href,
@@ -275,6 +276,7 @@ export function App() {
         }
       >
         <Page>
+          <NewBuildNotice />
           <ScreenWithTerms route={route} onLogOut={() => leaveGate.confirm(() => void logout())} />
         </Page>
       </Frame>

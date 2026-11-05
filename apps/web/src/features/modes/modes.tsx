@@ -18,6 +18,7 @@ import {
 import { fieldId } from '../../lib/fieldIds.ts';
 import { takeFlashText } from '../../lib/flash.ts';
 import { Loaded } from '../../lib/Loaded.tsx';
+import { NewBuildNotice } from '../../lib/NewBuild.tsx';
 import { useReadProject } from '../../lib/plan.ts';
 import { useProject } from '../../lib/projectStore.ts';
 import { href, type Route, redirect } from '../../lib/route.ts';
@@ -77,6 +78,7 @@ export function ModeScreen(props: { route: ModeRoute }) {
   if (loaded.state !== 'ready') {
     return (
       <ModeFrame mode={mode} exitHref={href({ screen: 'project', id })} end={<ThemeSwitch />}>
+        <NewBuildNotice />
         <Loaded state={loaded} loading="Loading project…" onRetry={reload} title="Project" />
       </ModeFrame>
     );
@@ -119,6 +121,7 @@ export function ModeView(props: {
   const frame = (children: ReactNode) => (
     <ModeFrame mode={mode} context={project.name} exitHref={exitHref} end={<ThemeSwitch />}>
       <Stack>
+        <NewBuildNotice />
         <Waiting ticks={ticks} />
         {props.drawings.state === 'error' && <DrawingsWaiting state={props.drawings} />}
         {props.stepDrawing?.state === 'error' && <DrawingsWaiting state={props.stepDrawing} />}
