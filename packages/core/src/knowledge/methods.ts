@@ -568,7 +568,7 @@ const NARROW_RIP = {
 } satisfies z.input<typeof SafetyNote>;
 
 const JOINTER_GUARD = {
-  text: 'Keep the jointer guard on: it covers the cutterhead except where the board is passing over it. Take light cuts, since a deep cut makes kickback more likely and opens more of the knives.',
+  text: 'Keep the jointer guard on: it covers the cutterhead except where the board is crossing it. Take light cuts, since a deep cut makes kickback more likely and opens more of the knives.',
   sources: [
     {
       source: 'osha-woodworking-etool',

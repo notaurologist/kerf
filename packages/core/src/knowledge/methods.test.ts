@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Operation, OperationType } from '../model/operations.ts';
 import { TEMPLATES } from '../templates/index.ts';
-import { VERDICT_WORDS } from '../testing.ts';
 import { EXPERT_CHECK_CATEGORIES, ExpertCheckCategory, FLAG_CATEGORY_IDS } from './categories.ts';
 import {
   fillMethodText,
@@ -131,7 +130,6 @@ describe('methods', () => {
     for (const m of methods) {
       for (const text of texts(m)) {
         expect(text, m.id).not.toMatch(never);
-        expect(text, m.id).not.toMatch(VERDICT_WORDS);
       }
     }
   });

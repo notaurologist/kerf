@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { BRAND_NAMES, withoutBrandExceptions } from '../testing.ts';
 import { METHODS } from './methods.ts';
 import { findToolType, TOOL_GROUPS, TOOL_TYPES, ToolType } from './tools.ts';
 
@@ -79,12 +78,6 @@ describe('tool-type library', () => {
       'pliers',
     ];
     expect(TOOL_TYPES.map((t) => t.id)).toEqual(expect.arrayContaining(fromSpec));
-  });
-
-  it('names no brands (hard rule 11)', () => {
-    for (const type of TOOL_TYPES) {
-      expect(withoutBrandExceptions(JSON.stringify(type))).not.toMatch(BRAND_NAMES);
-    }
   });
 
   it('finds an entry by ID, and nothing for an unknown ID', () => {

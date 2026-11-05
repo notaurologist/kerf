@@ -9,6 +9,11 @@ describe('the copy word lists', () => {
     'It passed',
     'A bolt that passes through the leg.',
     'unsafe',
+    'A failing joint.',
+    'Failure under load.',
+    'The bolt passing through the leg.',
+    'A safer layout.',
+    'The safest choice.',
   ])('find a verdict in "%s"', (text) => {
     expect(text).toMatch(VERDICT_WORDS);
   });

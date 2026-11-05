@@ -162,7 +162,7 @@ export const SKILLS = [
     id: 'apply-a-finish',
     name: 'Applying a finish',
     description:
-      'Sand with the grain, clear the dust, and wipe on thin coats as the finish’s instructions say, storing used rags safely.',
+      'Sand with the grain, clear the dust, and wipe on thin coats and store used rags, as the finish’s instructions say.',
   },
   {
     id: 'clamp-parts-in-place',
