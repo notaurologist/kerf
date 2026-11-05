@@ -7,7 +7,7 @@ description: Walks a session through starting a new Kerf template or extending a
 
 `docs/templates/README.md` is the contract: what each `TemplateDefinition` field holds, the tests, the version and fixture rules, and what generic code provides. This skill does not repeat it. It is the order to work in, where to stop for the owner, and what went wrong when the record cabinet was built and extended (#273, #291 to #350). Read the README section each step names before doing that step.
 
-Read `AGENTS.md`, `docs/PRODUCT.md`, `docs/DOMAIN.md`, `docs/ARCHITECTURE.md`, and both template specs (`docs/templates/swing-set-a-frame.md`, `docs/templates/record-cabinet.md`) first.
+Read `AGENTS.md`, `docs/PRODUCT.md`, `docs/DOMAIN.md`, `docs/ARCHITECTURE.md`, and the template specs (`docs/templates/swing-set-a-frame.md`, `docs/templates/record-cabinet.md`, `docs/templates/workbench.md`) first. The workbench was the first built joint-first (decision 0020); its spec's "Parts and their joints" and its `design.ts` are the ones to copy.
 
 Extending a template follows the same steps, smaller: an issue, the spec changed first, then code, tests, a version bump, and docs. Most of the record cabinet's later work (#317, #319, #320) was extension, and so were its leg base (#338) and sliding doors (#339).
 
@@ -39,7 +39,7 @@ README section 1.
 
 - Confirm the template is in `PRODUCT.md`'s after-MVP candidates or that the owner approved it (hard rule 13). The record cabinet was not a candidate; the owner chose it on #99.
 - One issue for the spec, one for the build. Branch from `main` for each.
-- List what the template needs that generic code lacks. For the record cabinet that was edge-glued panels (#278, #297), wood movement (#284), long-term shelf deflection (#288), and dado, notch, and cutout operations (#300). Each became its own issue and pull request and landed before the template. Don't compute a generic thing inside the template folder to avoid waiting.
+- List what the template needs that generic code lacks. For the record cabinet that was edge-glued panels (#278, #297), wood movement (#284), long-term shelf deflection (#288), and dado, notch, and cutout operations (#300). Each became its own issue and pull request and landed before the template. Include each joint `packages/core/src/joints/` doesn't have: the workbench added through tenons, panels in face grooves (open on one side, or flush with one wall), and through dovetails. Don't compute a generic thing inside the template folder to avoid waiting.
 
 **Stop for the owner:** the template choice if it isn't a candidate, and each generic gap that needs a design decision. Label those issues `decision`.
 
@@ -50,6 +50,7 @@ README section 2. Write `docs/templates/<id>.md` with no code.
 - Follow the swing-set spec's headings. Give each parameter its range with a reason, and its suggested value with a basis. The record cabinet's spec first had board stock, allowances, dado depth, and setback owner-entered with no suggestion, which the owner reversed after using the app (#317). Decide the suggestion here, not after the build.
 - Work every worked example by hand, to the numbers the tests will assert, including the stock each part is cut from and that stock's thickness. The cabinet's hand check listed the back rails at the panel thickness though each is one board, not flattened, at the board's thickness. That went out in versions 1 and 2 and needed version 3 (#320).
 - Include an edge-of-range example that hits a refusal.
+- Write the parts and their joints (README section 2, Joints): each part, where it stands, and each joint with its kind and size. Derived geometry then holds positions and joint sizes; give the lengths, end cuts, and grips too, as hand checks of the joints, not as formulas the code will use.
 - Use real sources for real things. While the cabinet was being scoped, the session gave the Sonos Five's size from memory and had it wrong; the spec pull request had to correct it (#291). Read the manufacturer's page and cite it with the date read.
 - List open questions in the spec and record each decision with who made it and the date.
 
@@ -72,7 +73,20 @@ README section 2, Structural model; hard rules 3 and 5; `DOMAIN.md`, Sources.
 
 **Stop for the owner:** design choices the review raises (#306 asked about the grain arrow and where board seams show).
 
-Then the code, README section 3:
+### Place the parts and declare their joints
+
+README section 3, Place the parts and declare their joints; ARCHITECTURE, `joints/`. Do this before any other code: it is the template's design.
+
+1. **Place each part uncut,** from the spec's positions: its frame, its stock's width, and which way it runs. Write no length, end cut, or feature by hand.
+2. **Declare each joint** with its size: a trim plane at each end, a bolt's line and the parts it passes through in order, a dado's depth, a tenon's size, a panel's gaps. Take every length, end cut, origin, hole, dado, notch, mortise, tenon, groove, rabbet, dovetail, screw hole, and grip from the joints. Size a glued-up part's stock after its length comes back.
+3. **Keep only single-part features as template rules:** tapers, tracks, finger recesses, dog holes.
+4. **Check that every instance of a part comes out the same,** since they share a cut-list line. The workbench gathers each instance's features and throws if one differs (`compare`).
+5. **A joint core lacks is a generic change.** Write it in `joints/` with no template words, hand-checked tests, and a mutation test that fails them, in its own pull request before the template's. Each of the workbench's new joints took 10 to 15 minutes; the seven other generic gaps it found in core took longer.
+6. **Run the fit checks and a sweep early.** `contract.test.ts` runs `fitProblems` on every worked example. Add the template's `sweep.test.ts` (copy the workbench's) as soon as `generate` runs. On the workbench, the fit checks caught mortises that named a part no part's ID or role matched, and the sweep found doors placed at the wrong depth, movement gaps that outgrew their grooves, and three parts running into each other, none of which the hand-checked examples showed.
+
+**Stop for the owner:** a joint core lacks whose design isn't obvious, and a refusal the sweep finds that the spec didn't list (the workbench's movement gaps and short doors were two).
+
+Then the rest of the code, README section 3:
 
 - Template knowledge only in `packages/core/src/templates/<id>/` (ARCHITECTURE principle 6). Words only this template uses go in `ownWords`.
 - Register it in `templates/index.ts` only.
@@ -95,7 +109,8 @@ Tests check numbers, not whether a part looks right. Before opening the pull req
 
 README section 4.
 
-- Assert every number in the spec's worked examples, fit tests, structural working, and "input needed" with each input missing.
+- Assert every number in the spec's worked examples, fit tests, structural working, and "input needed" with each input missing. The lengths, end cuts, and grips come from the joints, so asserting them checks the joints against the hand working.
+- The template's `sweep.test.ts` asserts how many draws make plans, so a change that refuses everything fails it.
 - Run a mutation test on each formula that matters, such as the shelf span (`b + t` to `b`), and confirm a test fails. Before mutating a file that has uncommitted edits, copy it aside and restore from the copy. Never undo a mutation with `git checkout -- <file>`; it throws away the uncommitted work too.
 - `pnpm check` runs lint, typecheck, knip, and tests. Knip fails on an unused export, so export only what another module imports. `pnpm biome check --write <files>` fixes import order.
 - While iterating, run one file's tests rather than the whole suite: `pnpm --filter @kerf/core exec vitest run <path> < /dev/null`. Without `< /dev/null`, vitest and pnpm can wait on stdin and hang. Run `pnpm check` once before pushing.

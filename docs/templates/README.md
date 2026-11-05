@@ -7,7 +7,7 @@ Three templates follow it: the swing set (`templates/swing-set-a-frame/`, spec `
 ## 1. Agree the scope
 
 - The template is one of `PRODUCT.md`'s after-MVP candidates, or the owner has approved it (hard rule 13). One issue, one branch.
-- List what it needs that generic code may not have yet, such as sheet goods in the shopping list, a member that is not a beam on two supports, or joinery other than bolts. Each gap is its own issue, decided before the template depends on it. A template does not work around generic code by computing a generic thing itself.
+- List what it needs that generic code may not have yet, such as sheet goods in the shopping list, a member that is not a beam on two supports, or a joint `packages/core/src/joints/` lacks. Each gap is its own issue, decided before the template depends on it. A template does not work around generic code by computing a generic thing itself.
 
 ## 2. Write the spec first
 
@@ -16,7 +16,8 @@ Three templates follow it: the swing set (`templates/swing-set-a-frame/`, spec `
 - **Design covered**: what the template builds, what it leaves out, and the variants it does not cover.
 - **Coordinates**: the origin and axes the geometry uses.
 - **Parameters**: each with its unit, range, and why that range. Every number in the parameter schema has a minimum and a maximum, so no entry can ask for any number of parts or boards, or a size the display cannot show (#421).
-- **Derived geometry**: every length, angle, and position as a formula from the parameters, in the miter-saw convention (`DOMAIN.md`, Units).
+- **Derived geometry**: every length, angle, and position as a formula from the parameters, in the miter-saw convention (`DOMAIN.md`, Units). The template computes only the positions and joint sizes; the lengths, end cuts, and grips are there to check the joints by hand.
+- **Joints**: each part, where it stands, and how it joins its neighbors, with each joint's kind and size (decision 0020). Name the joints from `packages/core/src/joints/`, and mark one core lacks with the issue that adds it. Features with no partner part, such as a taper or a dog hole, are listed as the template's own. The workbench's "Parts and their joints" lists each part this way; the swing set's and record cabinet's specs describe theirs under "Joints".
 - **Hardware, operations, build steps, drawings**: what the template generates for each.
 - **Validation and flags**: combinations it refuses, and what it flags for an expert check (`DOMAIN.md`, Expert-check categories).
 - **Worked examples, hand-checked**: at least one ordinary example and one at the edge of the range, worked through by hand to the numbers the tests will assert.
@@ -42,6 +43,26 @@ The contract is `TemplateDefinition` in `packages/core/src/model/definition.ts`.
 | `snapshotVersion`, `snapshotUpgrades` | The stored shape, and how each older shape becomes the next (step 5) |
 | `questions` | Optional starting questions (`model/questions.ts`) that suggest parameters, never hardware, with `examples`: answer sets that reach the suggestions' notes, for the contract test. A structural input is suggested only from the owner's answers or a cited source, for the owner to check |
 
+### Place the parts and declare their joints
+
+A template does not work out a part's length, end cuts, or the features a joint cuts into it (decision 0020). It places each part uncut, as a `Member` (`joints/trim.ts`): its frame, its stock's width, and which way it runs. Then it declares the joints between parts with their sizes, and takes the rest from them:
+
+| Joint (`packages/core/src/joints/`) | Gives |
+|---|---|
+| `trim` | A part cut to a plane at each end: its length, end cuts, and origin |
+| `boltedLap` | Each part's hole along a bolt's line, and the bolt's grip |
+| `housedEnd`, `housingPlane` | The dado an end goes into, the notch a stopped dado leaves, and the plane the housed part is trimmed to |
+| `mortiseAndTenon`, `throughTenon`, `tenonInGroove` | A tenon and the mortise or groove it fits |
+| `floatingPanel`, `panelInFaces` | A panel's grooves, its size and place in them, and its tongues |
+| `slottedScrews` | Screw holes, round where the part is held and slotted the way it moves |
+| `throughDovetails` | A corner's tails and pins |
+
+Where a part's stock depends on its length, as a glued-up panel's does, size it after the joints give the length. A joint refuses parts that don't meet as it needs, with a message. The workbench returns that message as the plan's refusal; the swing set and record cabinet refuse such parameters in validation first, and throw if a joint still refuses. Either way `generate` never throws for parameters the schemas accept, which the sweep checks. Every instance of a part shares one cut-list line, so each must come out of its joints with the same features; the workbench checks this with `compare` as it builds (`workbench/design.ts`). The swing set's and record cabinet's joints are in `joints.ts` in their folders, the workbench's in `design.ts`.
+
+What stays the template's: where each part stands and the closing formulas behind it, each joint's size, features with no partner part (the swing set's flush cut, the cabinet's tapers, door tracks, and finger recesses, the workbench's dog holes), hardware, the structural model, and wording. A joint the template needs that core lacks is a generic change: add it to `joints/` first, in its own pull request, with hand-checked tests and a mutation test.
+
+### Use what generic code makes
+
 Generic code already makes the cut list, shopping list, hardware list, operations, structural checks, drawings, and build steps from what `generate` returns. Use it: `cutList`, `hardwareList`, and `planLumber` from `outputs/`, `withLetters` from `model/letters.ts`, the structural checks from `structural/`, and the view functions from `geometry/`. The swing set's `definition.ts` and `template.ts` show how they fit together.
 
 Register the template in `templates/index.ts`: add its definition to `TEMPLATES`, and export its folder's `index.ts` as a namespace beside the swing set's, for tests that need its definition by name. Nothing else imports from its folder (`apps/web/src/templateFolders.test.ts`).
@@ -51,7 +72,8 @@ Register the template in `templates/index.ts`: add its definition to `TEMPLATES`
 | Test | Where | What it checks |
 |---|---|---|
 | Worked examples | the template's folder, like `swing-set-a-frame/template.test.ts` | Every number in the spec's hand-checked examples |
-| Fit | the template's folder, like `placements.test.ts` | The parts meet where the spec says they do (`DOMAIN.md`, Verification) |
+| Fit | `templates/contract.test.ts` (runs for every registered template), and the template's folder, like `placements.test.ts` | Every worked example passes the generic fit checks (`fit/`): each joint's two sides agree, no two parts overlap, and no through hole runs into another part. The template's own tests check the parts meet where the spec says they do (`DOMAIN.md`, Verification) |
+| Sweep | the template's folder, `sweep.test.ts` (`templates/sweep.ts`) | Parameters drawn across the schema's ranges each make a plan that reads back and passes the fit checks, or are refused with issues; the test asserts how many draws make plans |
 | Structural | the template's folder, like `structural.test.ts` | Each computed check against the hand-checked working, and "input needed" when an input is missing |
 | Contract | `templates/contract.test.ts` (runs for every registered template) | Each example's outputs parse with `outputs` and read back unchanged through `storedOutputs` and `readSnapshot`; each example's parameters and structural inputs, built from the form as the editor builds them (hidden fields left out), parse with `params` and `structuralInputs`, so a value only a hidden field holds must be optional (#501); `ownWords` is set; no verdict words or brands in the outputs, plan, build steps, form, starting questions and what they suggest for `questions.examples`, or store readings (hard rules 2 and 11) |
 | Random parameters | `templates/properties.test.ts` (runs for every registered template) | Every number in `params` has a range; random values inside the schemas either generate or return issues, within a time budget, and never throw (#421) |

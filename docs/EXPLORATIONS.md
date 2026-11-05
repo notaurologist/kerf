@@ -15,7 +15,7 @@ Kerf's MVP is in place. These are larger directions the owner chose to keep for 
 
 | Direction | Issue | What it teaches |
 |---|---|---|
-| Joint-based parametric model (first) | #543 | Constraint solving, parametric modelling, designing a small language |
+| Joint-based parametric model (first; adopted, decision 0020) | #543 | Constraint solving, parametric modelling, designing a small language |
 | Cut optimization | #544 | Cutting stock, integer programming, column generation |
 | Frame analysis | #545 | The direct stiffness method, the basis of frame analysis software |
 | Fabrication outputs | #546 | Full-size printed templates, DXF and G-code, 3D rendering |
@@ -23,9 +23,9 @@ Kerf's MVP is in place. These are larger directions the owner chose to keep for 
 
 ### Joint-based parametric model
 
-A template becomes a declaration of parts, the joints between them, and constraints, and a solver turns it into geometry. The cut list, operations, fit tests, and diagram placements follow from the joints instead of being written in each template. Code goes in `packages/model` on `explore/joint-model`.
+Adopted in decision 0020 (November 4, 2026). Templates now place their parts and declare the joints between them, and the joints in `packages/core/src/joints/` give each part's length, end cuts, and features, and each bolt's grip. All three templates are written this way.
 
-The goal is parity: both current templates, declared as joints, produce the same parts, lengths, end cuts, and placements as today's template code for every worked example, compared before display rounding. The design is proposed first (#548), in `docs/explorations/joint-model.md`.
+The exploration asked whether a template could be a declaration of parts and the joints between them, with the geometry following from the joints instead of being written in each template. Its code was `packages/model` on `explore/joint-model`, which is kept and not merged. The owner chose joints declared between placed parts over a constraint solver (#548). Both existing templates reached parity with their hand-written versions, and the workbench, built joint-first, was the deciding test. `docs/explorations/joint-model.md` is the record: the design, the parity sweep and what it found, the workbench's measures, and what came to `main`.
 
 ### Cut optimization
 
