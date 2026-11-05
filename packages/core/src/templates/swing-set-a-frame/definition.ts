@@ -264,8 +264,11 @@ export const swingSetAFrame: TemplateDefinition<
       stockFields(params),
       checkFields,
       (path, nominal) => {
-        const other = outputsFor({ ...params, [path]: nominal }, structuralInputs);
-        return other.ok ? beamChecks(other.output.structuralReview) : null;
+        // Only the checks are read, so no lumber plan: planning one searches for the fewest feet.
+        const design = generate({ ...params, [path]: nominal });
+        if (!design.ok) return null;
+        const other = structuralReview(design.output, structuralInputs);
+        return other.ok ? beamChecks(other.review) : null;
       },
     );
     const review = withDeeperStock(made.output.structuralReview, params, structuralInputs);

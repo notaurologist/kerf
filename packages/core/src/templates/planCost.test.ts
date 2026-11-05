@@ -51,34 +51,12 @@ describe('generating the slowest worked example with nothing cached', () => {
   });
 });
 
-// In the order the shopping list plans them. The swing set plans its lumber again for each stock
-// alternative it offers, so it searches the same few stocks several times.
+// In the order the shopping list plans them.
 const SPENT: Record<string, [pieces: number, work: number][]> = {
   'swing-set-a-frame / Worked example, every input entered': [
     [1, 24],
     [4, 68],
     [2, 41],
-    [2, 43],
-    [1, 24],
-    [4, 68],
-    [2, 41],
-    [2, 43],
-    [3, 275],
-    [4, 68],
-    [2, 43],
-    [3, 64],
-    [4, 68],
-    [2, 41],
-    [5, 160],
-    [2, 41],
-    [2, 43],
-    [1, 24],
-    [4, 68],
-    [2, 41],
-    [2, 43],
-    [1, 24],
-    [4, 68],
-    [2, 38],
     [2, 43],
   ],
   'swing-set-a-frame / Worked example, no structural inputs': [
@@ -91,13 +69,6 @@ const SPENT: Record<string, [pieces: number, work: number][]> = {
     [4, 79],
     [4, 29],
     [2, 43],
-    [2, 24],
-    [4, 29],
-    [2, 41],
-    [2, 43],
-    [4, 259],
-    [4, 29],
-    [2, 41],
   ],
   'record-cabinet / Worked example, every input entered': [
     [45, 4_353_072],

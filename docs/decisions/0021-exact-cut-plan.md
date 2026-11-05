@@ -37,4 +37,16 @@ Measured with the planner in core, after it reached the shopping list. `packages
 
 The timing test's budget is 3 s locally and 5 s on CI, so it catches a slowdown of several times, not a small one. Locally it failed at eight times the search's time and passed at four. Doubling the work the search charges fails the work assertions instead.
 
+## One limit shared by every stock (#708)
+
+`planLumber` gives the whole plan one work limit. Stocks are searched in turn, each with the work the ones before it left, and the searches for plans within the carry length get what is left after that (`outputs/shoppingList.ts`). So once a plan spends its limit, a stock's boards can depend on how hard the stocks searched before it were. Editing one stock (adding a piece, changing its length) can change another stock's boards, and a changed board resets its progress (#444) even though nothing about that stock changed. Below the limit this cannot happen: every search finishes and proves its plan, whatever it was given.
+
+Measured November 5, 2026, by running every worked example and every draw of each template's sweep (800 per template) and recording each stock search's limit, work, and whether it proved its plan:
+
+- The swing set and record cabinet never come near the limit. The most any of their plans spends is the record cabinet's worked example, 4,353,072 units.
+- The workbench spends the whole limit in its tallest-bench worked example and in 61 of its 800 sweep draws. The workbench buys one stock of lumber, so each of those plans has one search, and it has the whole limit.
+- No example or draw has a stock that stopped early because an earlier stock spent the work. The effect described above happens in none of them today.
+
+The planner is unchanged. If a template comes to plan several stocks that each need much of the limit, giving each stock a floor of the limit is the fix to weigh then.
+
 The work is in the Cut optimization adoption milestone: #684 (work limit), #685 (move into core), #686 (shopping list).

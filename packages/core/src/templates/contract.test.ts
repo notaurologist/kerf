@@ -1,3 +1,4 @@
+import { statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { fitProblems } from '../fit/index.ts';
 import { solid, solidBox } from '../geometry/solid.ts';
@@ -392,6 +393,26 @@ describe('every template stays readable (decision 0014)', () => {
       expect(SWEEP_DIGESTS[id]).toEqual([String(t.version)]);
     },
   );
+
+  // Every file is committed and loaded by this test, so a jump in size has to be raised here on
+  // purpose. Each cap is about a quarter over the largest file of its kind (decision 0014).
+  const SIZE_CAPS = { snapshots: 1_200_000, shown: 18_000_000, sweeps: 450_000 };
+  const files = import.meta.glob('./*/{snapshots,shown,sweeps}/v*.json', {
+    eager: true,
+    import: 'default',
+  });
+  const committed = Object.keys(files).map((path) => {
+    const kind = path.split('/')[2] as keyof typeof SIZE_CAPS;
+    return [path, statSync(new URL(path, import.meta.url)).size, SIZE_CAPS[kind]] as const;
+  });
+
+  it('finds the fixtures to size', () => {
+    expect(committed.length).toBeGreaterThan(TEMPLATES.length * 3);
+  });
+
+  it.each(committed)('%s is %i bytes, under %i', (_, size, cap) => {
+    expect(size).toBeLessThan(cap);
+  });
 
   it.each(TEMPLATES.map((t) => [t.id, t] as const))(
     '%s generates snapshots in the current shape',

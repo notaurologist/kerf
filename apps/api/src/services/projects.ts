@@ -298,12 +298,7 @@ export function createProjectService(deps: {
     const result = read(row);
     if (!result.ok) return result;
     const { snapshot } = result;
-    return {
-      ok: true,
-      template,
-      snapshot,
-      outputs: template.storedOutputs.parse(snapshot.outputs),
-    };
+    return { ok: true, template, snapshot, outputs: snapshot.outputs };
   }
 
   /** What `count` returns, or null if it throws, which is logged. */
@@ -890,7 +885,7 @@ export function createProjectService(deps: {
             items: unknown.map(({ kind, key }) => ({ kind, key })),
           };
         }
-        const outputs = template.storedOutputs.parse(stored.snapshot.outputs);
+        const outputs = stored.snapshot.outputs;
         const summarize = (ticks: readonly ProgressEntry[]) =>
           counted(row, 'progress', () => progressSummary(template, outputs, ticks));
         const before = summarize(await readProgress(tx, id));
