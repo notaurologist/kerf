@@ -1,7 +1,7 @@
 import { findTemplate, flagProgressKey, PROGRESS_KINDS } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
-import { swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
+import { freshBasis, swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
 import { PROGRESS_KINDS as STORED_KINDS } from '../db/schema.ts';
 
 // Saved progress (#57) on the swing-set worked example. Keys are core's (progress/): the worked
@@ -190,7 +190,7 @@ describe('project progress', () => {
     expect((await renamed.json()) as Json).not.toHaveProperty('progressReset');
     const regenerated = await authed(`/api/projects/${id}/regenerate`, {
       method: 'POST',
-      body: { revision: await revision() },
+      body: { revision: await revision(), ...freshBasis },
     });
     expect(((await regenerated.json()) as Json).progressReset).toEqual([]);
     expect(keys(await progress())).toEqual(['step frames']);

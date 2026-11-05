@@ -4,7 +4,7 @@ import { api, describeError, send } from '../../lib/api.ts';
 import { indexChanges } from '../../lib/changes.tsx';
 import { planOf } from '../../lib/plan.ts';
 import type { Project } from '../../lib/types.ts';
-import { useVersionReport } from '../../lib/versionReport.ts';
+import { type LoadedReport, useVersionReport } from '../../lib/versionReport.ts';
 import {
   Button,
   Card,
@@ -27,6 +27,7 @@ import { PlanOutputs } from '../project-editor/Preview.tsx';
 // generates the whole plan.
 
 type Regenerable = Extract<VersionStatus, { status: 'behind' | 'carry-length' }>;
+type Basis = NonNullable<LoadedReport['basis']>;
 
 const carryText = (inches: number | null) =>
   inches === null ? 'no carry length' : `a carry length of ${formatLength(inches, 'feet-inches')}`;
@@ -73,12 +74,17 @@ export function VersionNotice(props: {
 }) {
   const { project } = props;
   const status = project.version;
-  const loaded = useVersionReport(project);
+  // Counts regenerations refused because the carry length or template changed after the report
+  // was worked out (#700); each asks for the report again.
+  const [attempt, setAttempt] = useState(0);
+  const loaded = useVersionReport(project, attempt);
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // The revision a regeneration was refused at. A newer project, however it arrives, clears it.
   const [refusedAt, setRefusedAt] = useState<number | null>(null);
+  // Set when a regeneration was refused because the report was out of date, until the next one.
+  const [recomputed, setRecomputed] = useState(false);
   const stale = refusedAt === project.revision;
   const trigger = useReturnFocus(confirming);
   if (!status || status.status === 'current') return null;
@@ -95,25 +101,39 @@ export function VersionNotice(props: {
     );
   }
 
-  const regenerate = async () => {
+  const regenerate = async (basis: Basis) => {
     setBusy(true);
     setError(null);
-    // The revision this notice's changes were computed at, so another device's save since is
-    // refused rather than regenerated unseen (0018).
+    // What this notice's changes were computed from, so another device's save, a settings change,
+    // or a deploy since is refused rather than regenerated unseen (0018).
     const result = await send(
       api.api.projects[':id'].regenerate.$post({
         param: { id: project.id },
-        json: { revision: project.revision },
+        json: { revision: project.revision, ...basis },
       }),
     );
-    setBusy(false);
     if (result.ok) {
+      setBusy(false);
       setConfirming(false);
+      setRecomputed(false);
       props.onRegenerated(result.value);
-    } else if (result.error.kind === 'stale') {
+    } else if (result.error.kind === 'stale' && result.error.revision !== project.revision) {
+      setBusy(false);
       setConfirming(false);
       setRefusedAt(project.revision);
-    } else setError(describeError(result.error));
+    } else if (result.error.kind === 'stale') {
+      // The plan is as shown, but the carry length or the template changed since: the project's
+      // status and what regenerating would change are read again, and nothing is regenerated.
+      const fresh = await send(api.api.projects[':id'].$get({ param: { id: project.id } }));
+      setBusy(false);
+      setConfirming(false);
+      setRecomputed(true);
+      if (fresh.ok) props.onNewer?.(fresh.value);
+      setAttempt((n) => n + 1);
+    } else {
+      setBusy(false);
+      setError(describeError(result.error));
+    }
   };
 
   const loadNewer = async () => {
@@ -126,13 +146,20 @@ export function VersionNotice(props: {
   };
 
   const words = wordsFor(status);
-  const report = loaded.state === 'ready' ? loaded.value : null;
+  const report = loaded.state === 'ready' ? (loaded.value?.version ?? null) : null;
+  const basis = loaded.state === 'ready' ? (loaded.value?.basis ?? null) : null;
   const regenerated =
     report?.status === 'behind' || report?.status === 'carry-length' ? report.regenerated : null;
   return (
     <Card as="section">
       <Stack gap="xs">
         <Text>{words.what}</Text>
+        {recomputed && (
+          <Notice>
+            <b>Your carry length or the template changed</b> after this was worked out, so what
+            regenerating would change was worked out again. Nothing was regenerated.
+          </Notice>
+        )}
         {loaded.state === 'loading' && (
           <Text tone="muted">Working out what regenerating would change…</Text>
         )}
@@ -177,6 +204,7 @@ export function VersionNotice(props: {
             </>
           ))}
         {regenerated?.ok &&
+          basis &&
           (stale ? (
             <Stack gap="xs">
               <Notice>
@@ -205,7 +233,7 @@ export function VersionNotice(props: {
               keep="Keep this plan"
               busy={busy}
               error={error}
-              onConfirm={() => void regenerate()}
+              onConfirm={() => void regenerate(basis)}
               onKeep={() => {
                 setConfirming(false);
                 setError(null);

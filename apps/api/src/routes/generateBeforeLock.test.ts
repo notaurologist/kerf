@@ -1,7 +1,7 @@
 import { swingSetAFrame } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
-import { swingSetParams } from '../../test/fixtures.ts';
+import { freshBasis, swingSetParams } from '../../test/fixtures.ts';
 
 // Saves and regenerations generate before they lock the project's row, so a slow generation
 // holds no lock, and check the revision again under the lock (#421).
@@ -48,8 +48,12 @@ async function setup() {
       [created.id],
     );
   };
+  /** A settings save from another device, queued while this request is generating. */
+  const otherSettingsSave = () => {
+    void test.client.query('update owner_settings set carry_length = 96, revision = revision + 1');
+  };
   const read = async () => (await (await test.authed(path)).json()) as Json;
-  return { during, path, send, otherSave, read, close: test.close };
+  return { during, path, send, otherSave, otherSettingsSave, read, close: test.close };
 }
 
 describe('generating before the row lock', () => {
@@ -71,9 +75,21 @@ describe('generating before the row lock', () => {
     const { during, path, send, otherSave, read, close } = await setup();
     const before = await read();
     during.action = otherSave;
-    expect(await send(`${path}/regenerate`, 'POST', { revision: 1 })).toEqual({
+    expect(await send(`${path}/regenerate`, 'POST', { revision: 1, ...freshBasis })).toEqual({
       status: 409,
       body: { error: 'stale-project', revision: 2 },
+    });
+    expect((await read()).snapshot).toEqual(before.snapshot);
+    await close();
+  });
+
+  it('refuses a regeneration when the settings changed while it generated', async () => {
+    const { during, path, send, otherSettingsSave, read, close } = await setup();
+    const before = await read();
+    during.action = otherSettingsSave;
+    expect(await send(`${path}/regenerate`, 'POST', { revision: 1, ...freshBasis })).toEqual({
+      status: 409,
+      body: { error: 'stale-project', revision: 1 },
     });
     expect((await read()).snapshot).toEqual(before.snapshot);
     await close();
