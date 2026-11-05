@@ -5,8 +5,10 @@ import { formatLength } from '../../units/length.ts';
 import type { RecordCabinetParams } from './params.ts';
 
 // Derived geometry (spec, Derived geometry) and the combinations the template refuses (spec,
-// Validation and flags). Exact until display.
+// Validation and flags). Exact until display. The lengths of the parts whose ends are joints come
+// from the joints (joints.ts); a plan stores them with the rest.
 
+/** The geometry a plan stores: what is derived before the joints, and the lengths they give. */
 export const CabinetGeometry = z.object({
   /** W_c: case width, outside face to outside face of the sides. */
   caseWidth: z.number(),
@@ -22,9 +24,9 @@ export const CabinetGeometry = z.object({
   baseHeight: z.number(),
   /** H: floor to the top surface: z_b + t + h_b + t. */
   height: z.number(),
-  /** H_p: each side's and partition's length, between the bottoms of its two dadoes: h_b + 2j. */
+  /** H_p: each side's and partition's length, between the bottoms of its two dadoes, from the joints. */
   panelLength: z.number(),
-  /** Each back rail's length, b + 2j. */
+  /** Each back rail's length, between the bottoms of its two dadoes, from the joints. */
   railLength: z.number(),
   /** The left face of each side and partition, left to right. */
   panelX: z.array(z.number()),
@@ -32,11 +34,11 @@ export const CabinetGeometry = z.object({
   partitionLeft: z.number(),
   /** Each leg's length, h_l + h_a. */
   legLength: z.number(),
-  /** Front and back aprons' length, tenons included: W_c − 2s + 2l_t. */
+  /** Front and back aprons' length, tenons included, from the joints. */
   longApron: z.number(),
-  /** Side aprons' length, tenons included: D_c − 2s + 2l_t. */
+  /** Side aprons' length, tenons included, from the joints. */
   shortApron: z.number(),
-  /** Each cleat's length, between the legs: D_c − 2s. */
+  /** Each cleat's length, between the legs, from the joints. */
   cleatLength: z.number(),
   /** The sliding doors and their tracks (spec, Sliding doors on the end bays); none without doors. */
   door: z
@@ -53,16 +55,47 @@ export const CabinetGeometry = z.object({
       height: z.number(),
       /** Each door's width, from its side past the partition: b + t + o_d. */
       width: z.number(),
-      /** Each rail's length, its stub tenons included: width − 2w_s + 2g_s. */
+      /** Each rail's length, its stub tenons included, from the joints. */
       railLength: z.number(),
       /** The space between the groove bottoms across the panel's grain: width − 2w_s + 2g_s. */
       panelSpan: z.number(),
-      /** The panel along its grain, 1/32" short of each groove bottom: height − 2w_s + 2g_s − 1/16. */
+      /** The panel along its grain, 1/32" short of each groove bottom, from the joints. */
       panelLength: z.number(),
     })
     .optional(),
 });
 export type CabinetGeometry = z.infer<typeof CabinetGeometry>;
+
+/** The lengths the joints give, by the part they belong to. */
+type JointLengths = 'panelLength' | 'railLength' | 'longApron' | 'shortApron' | 'cleatLength';
+type DoorJointLengths = 'railLength' | 'panelLength';
+
+/** The geometry derived before the joints: everything a plan stores but the joints' lengths. */
+export type CaseGeometry = Omit<CabinetGeometry, JointLengths | 'door'> & {
+  door?: Omit<NonNullable<CabinetGeometry['door']>, DoorJointLengths>;
+};
+
+/** The geometry a plan stores, with each length the joints give, by part ID. */
+export function storedGeometry(g: CaseGeometry, lengthOf: (id: string) => number): CabinetGeometry {
+  // Parsed so it has the stored shape exactly.
+  return CabinetGeometry.parse({
+    ...g,
+    panelLength: lengthOf('side-left'),
+    railLength: lengthOf('rail'),
+    longApron: lengthOf('apron-long'),
+    shortApron: lengthOf('apron-short'),
+    cleatLength: lengthOf('cleat'),
+    ...(g.door
+      ? {
+          door: {
+            ...g.door,
+            railLength: lengthOf('door-rail'),
+            panelLength: lengthOf('door-panel'),
+          },
+        }
+      : {}),
+  });
+}
 
 /** The finger recess in each door's outer stile, centered on it: rules of thumb (spec, Sliding doors). */
 export const RECESS = { along: 3, across: 0.75, depth: 0.25 } as const;
@@ -81,7 +114,7 @@ export const oneBoardThicknessOf = (p: RecordCabinetParams) =>
     p.allowances,
   );
 
-function doorGeometry(p: RecordCabinetParams, bayWidth: number): CabinetGeometry['door'] {
+function doorGeometry(p: RecordCabinetParams, bayWidth: number): CaseGeometry['door'] {
   const d = p.door;
   if (p.doors === 'none' || !d) return undefined;
   const thickness = oneBoardThicknessOf(p);
@@ -89,7 +122,6 @@ function doorGeometry(p: RecordCabinetParams, bayWidth: number): CabinetGeometry
   const trackZone = 3 * d.land + 2 * trackWidth;
   const height = p.bayHeight + 2 * d.bottomDepth;
   const width = bayWidth + p.panelThickness + d.overlap;
-  const between = width - 2 * d.frameWidth + 2 * d.grooveDepth;
   return {
     thickness,
     trackWidth,
@@ -97,15 +129,12 @@ function doorGeometry(p: RecordCabinetParams, bayWidth: number): CabinetGeometry
     partitionDepth: p.caseDepth - trackZone,
     height,
     width,
-    railLength: between,
-    panelSpan: between,
-    panelLength: height - 2 * d.frameWidth + 2 * d.grooveDepth - 2 * PANEL_END_GAP,
+    panelSpan: width - 2 * d.frameWidth + 2 * d.grooveDepth,
   };
 }
 
-export function cabinetGeometry(p: RecordCabinetParams): CabinetGeometry {
+export function cabinetGeometry(p: RecordCabinetParams): CaseGeometry {
   const t = p.panelThickness;
-  const s = p.legStock.size;
   const caseWidth = p.width - 2 * p.endOverhang;
   const clearWidth = caseWidth - 2 * t;
   const bayWidth = (clearWidth - (p.bays - 1) * t) / p.bays;
@@ -119,20 +148,15 @@ export function cabinetGeometry(p: RecordCabinetParams): CabinetGeometry {
     topDepth: p.caseDepth + p.frontOverhang,
     baseHeight,
     height: baseHeight + t + p.bayHeight + t,
-    panelLength: p.bayHeight + 2 * p.dadoDepth,
-    railLength: bayWidth + 2 * p.dadoDepth,
     panelX,
     partitionLeft: t - 2 * p.dadoDepth,
     legLength: baseHeight,
-    longApron: caseWidth - 2 * s + 2 * p.tenonLength,
-    shortApron: p.caseDepth - 2 * s + 2 * p.tenonLength,
-    cleatLength: p.caseDepth - 2 * s,
     ...(p.doors === 'sliding' ? { door: doorGeometry(p, bayWidth) } : {}),
   };
 }
 
 /** Combinations the spec refuses, each with the parameters involved. */
-export function validate(p: RecordCabinetParams, g: CabinetGeometry): Issue[] {
+export function validate(p: RecordCabinetParams, g: CaseGeometry): Issue[] {
   const issues: Issue[] = [];
   const refuse = (code: string, message: string, params: string[]) =>
     issues.push({ code, message, params });

@@ -3,7 +3,7 @@ import { withLetters } from '../../model/letters.ts';
 import { cutAndDrillOperations, Operation } from '../../model/operations.ts';
 import { type GenerateResult, HardwareItem, Part, Placement } from '../../model/types.ts';
 import { formatLength } from '../../units/length.ts';
-import { CabinetGeometry, cabinetGeometry, validate } from './geometry.ts';
+import { CabinetGeometry, cabinetGeometry, storedGeometry, validate } from './geometry.ts';
 import { joined } from './joints.ts';
 import { RecordCabinetParams } from './params.ts';
 import { cabinetParts } from './parts.ts';
@@ -186,7 +186,11 @@ export function generate(
     ok: true,
     output: {
       params,
-      geometry: g,
+      geometry: storedGeometry(g, (id) => {
+        const part = parts.find((q) => q.id === id);
+        if (!part) throw new Error(`No ${id}.`);
+        return part.length;
+      }),
       parts,
       placements: design.placements,
       operations,

@@ -1,8 +1,8 @@
 import type { BoardGuideId } from '../../knowledge/boardSelection.ts';
-import { type BoardStock, panelStock } from '../../lumber/panel.ts';
+import { type BoardStock, type PanelStock, panelStock } from '../../lumber/panel.ts';
 import type { Dado, Issue, Part, Placement, Vec3 } from '../../model/types.ts';
 import { formatLength, formatLimit } from '../../units/length.ts';
-import { type CabinetGeometry, RECESS } from './geometry.ts';
+import { type CaseGeometry, RECESS } from './geometry.ts';
 import type { RecordCabinetParams } from './params.ts';
 import type { Allowances } from './structural.ts';
 
@@ -40,6 +40,18 @@ export const SHOULDER = 0.25;
 
 export type CabinetPart = Omit<Part, 'letter'>;
 
+/** A glued-up panel's section, and its stock at whatever length its joints give it. */
+interface Section {
+  thickness: number;
+  width: number;
+  /** How many boards it is glued up from. */
+  boards: number;
+  at: (length: number) => PanelStock;
+}
+
+/** A part whose length its joints give: its stock is sized once they have. */
+export type UncutPart = Omit<CabinetPart, 'length' | 'stock'> & { stock: Section };
+
 /**
  * How the two aprons' tenons in a leg meet (spec, Joinery). Each tenon's middle is
  * c = r_a + t_a/2 in from the leg's outside faces. Square, they run into each other once
@@ -61,10 +73,12 @@ const DEALER_FEET = Array.from({ length: 13 }, (_, i) => i + 4);
 
 export function cabinetParts(
   p: RecordCabinetParams,
-  g: CabinetGeometry,
+  g: CaseGeometry,
   /** The case bottom's slots and the door panels' gaps, from the wood's movement. */
   allowances: Allowances,
-): { ok: true; parts: CabinetPart[]; placements: Placement[] } | { ok: false; issues: Issue[] } {
+):
+  | { ok: true; parts: (CabinetPart | UncutPart)[]; placements: Placement[] }
+  | { ok: false; issues: Issue[] } {
   const { slot, panelGap } = allowances;
   const t = p.panelThickness;
   const j = p.dadoDepth;
@@ -88,12 +102,23 @@ export function cabinetParts(
           },
         };
   const issues: Issue[] = [];
-  const stockFor = (width: number, length: number) => {
-    const made = panelStock({ thickness: t, width, length, board, allowances: p.allowances });
-    if (made.ok) return made.stock;
-    issues.push({ ...made.issue, params: ['board', 'panelThickness', 'allowances'] });
-    return null;
+  const sectionFor = (width: number): Section | null => {
+    const sized = (length: number) =>
+      panelStock({ thickness: t, width, length, board, allowances: p.allowances });
+    // A panel is refused for its width and thickness, never its length.
+    const made = sized(0);
+    if (!made.ok) {
+      issues.push({ ...made.issue, params: ['board', 'panelThickness', 'allowances'] });
+      return null;
+    }
+    const at = (length: number) => {
+      const stock = sized(length);
+      if (!stock.ok) throw new Error(stock.issue.message);
+      return stock.stock;
+    };
+    return { thickness: made.stock.thickness, width, boards: made.stock.boards, at };
   };
+  const stockFor = (width: number, length: number) => sectionFor(width)?.at(length) ?? null;
 
   const s = p.legStock.size;
   const H = g.height;
@@ -134,19 +159,19 @@ export function cabinetParts(
 
   const topStock = stockFor(g.topDepth, p.width);
   const bottomStock = stockFor(p.caseDepth, g.caseWidth);
-  const panelStockFor = stockFor(p.caseDepth, g.panelLength);
-  const partitionStock = stockFor(partitionDepth, g.panelLength);
-  const railStock = stockFor(p.railHeight, g.railLength);
-  const longApronStock = stockFor(p.apronHeight, g.longApron);
-  const shortApronStock = stockFor(p.apronHeight, g.shortApron);
-  const cleatStock = stockFor(CLEAT_WIDTH, g.cleatLength);
+  // The rest of the case and base are cut to the lengths their joints give.
+  const panelStockFor = sectionFor(p.caseDepth);
+  const partitionStock = sectionFor(partitionDepth);
+  const railStock = sectionFor(p.railHeight);
+  const apronStock = sectionFor(p.apronHeight);
+  const cleatStock = sectionFor(CLEAT_WIDTH);
   // Each door's stiles and rails are ripped from one board; its panel is glued up like the others.
   const panelWidth = (door?.panelSpan ?? 0) - 2 * panelGap.length;
   const doorStock = door &&
     sizes && {
       stile: stockFor(sizes.frameWidth, door.height),
-      rail: stockFor(sizes.frameWidth, door.railLength),
-      panel: stockFor(panelWidth, door.panelLength),
+      rail: sectionFor(sizes.frameWidth),
+      panel: sectionFor(panelWidth),
     };
   if (
     !topStock ||
@@ -154,8 +179,7 @@ export function cabinetParts(
     !panelStockFor ||
     !partitionStock ||
     !railStock ||
-    !longApronStock ||
-    !shortApronStock ||
+    !apronStock ||
     !cleatStock ||
     (doorStock && (!doorStock.stile || !doorStock.rail || !doorStock.panel))
   ) {
@@ -179,7 +203,7 @@ export function cabinetParts(
   }
   // A rail, apron, or cleat of one board is not flattened, so it is as thick as the board.
   const r = railStock.thickness;
-  const ta = longApronStock.thickness;
+  const ta = apronStock.thickness;
   const tc = cleatStock.thickness;
   // Each side and partition runs from the bottom of the case bottom's dado to the top of the top's.
   const z0 = zb + t - j;
@@ -274,26 +298,24 @@ export function cabinetParts(
     boredHoles: [],
     hingePlates: [],
   };
-  const panel = (id: string, name: string, quantity: number, note: string) => ({
+  const panel = (id: string, name: string, quantity: number, note: string): UncutPart => ({
     ...base,
     id,
     name,
     role: id === 'partition' ? 'partition' : 'side',
     stock: id === 'partition' ? partitionStock : panelStockFor,
     quantity,
-    length: g.panelLength,
     notes: [note],
     selection: [...SELECTION.panel],
     referenceEdge: 'front edge',
   });
-  const apron = (id: string, name: string, length: number, stock: typeof longApronStock) => ({
+  const apron = (id: string, name: string): UncutPart => ({
     ...base,
     id,
     name,
     role: 'apron',
-    stock,
+    stock: apronStock,
     quantity: 2,
-    length,
     notes: [
       tenons.meet
         ? 'A tenon at each end goes into a leg, its end mitered where it meets the other apron’s tenon inside. The face the cut detail shows goes outside, and its cheek is the long one.'
@@ -302,7 +324,7 @@ export function cabinetParts(
     selection: [...SELECTION.rail],
     referenceEdge: 'bottom edge',
   });
-  const doorParts = (): CabinetPart[] => {
+  const doorParts = (): (CabinetPart | UncutPart)[] => {
     if (!door || !sizes || !doorStock?.stile || !doorStock.rail || !doorStock.panel) return [];
     const ws = sizes.frameWidth;
     const stile = {
@@ -346,7 +368,6 @@ export function cabinetParts(
         role: 'door-rail',
         stock: doorStock.rail,
         quantity: 4,
-        length: door.railLength,
         notes: [
           'A stub tenon at each end fits the stiles’ grooves. Each door’s bottom rail runs in the bottom track and its top rail in the top track.',
         ],
@@ -360,7 +381,6 @@ export function cabinetParts(
         role: 'door-panel',
         stock: doorStock.panel,
         quantity: 2,
-        length: door.panelLength,
         notes: [
           'Its grain runs up and down. Rabbeted on both faces at every edge, to a tongue that fits the grooves.',
           panelGap.basis,
@@ -371,7 +391,7 @@ export function cabinetParts(
       },
     ];
   };
-  const parts: CabinetPart[] = [
+  const parts: (CabinetPart | UncutPart)[] = [
     {
       ...base,
       id: 'top',
@@ -419,7 +439,6 @@ export function cabinetParts(
       role: 'rail',
       stock: railStock,
       quantity: p.bays,
-      length: g.railLength,
       notes: ['Under the top at the back of its bay, its ends in the back of the dadoes.'],
       selection: [...SELECTION.rail],
       referenceEdge: 'bottom edge',
@@ -439,8 +458,8 @@ export function cabinetParts(
       referenceEdge: 'inside face',
       tapers: [taperOf('Inside face'), taperOf('Other inside face', 'thickness')],
     },
-    apron('apron-long', 'Front and back apron', g.longApron, longApronStock),
-    apron('apron-short', 'Side apron', g.shortApron, shortApronStock),
+    apron('apron-long', 'Front and back apron'),
+    apron('apron-short', 'Side apron'),
     {
       ...base,
       id: 'cleat',
@@ -448,7 +467,6 @@ export function cabinetParts(
       role: 'cleat',
       stock: cleatStock,
       quantity: 2,
-      length: g.cleatLength,
       notes: [
         'Glued to the inside of a side apron, flush with its top; the case bottom is screwed down through it.',
         slot.basis,
