@@ -29,10 +29,11 @@ import { COST, OutOfWork, Work } from './work.ts';
 // generation.
 
 /**
- * The work a search may spend on one stock (`work.ts`): about 0.6 s on the benchmark's slowest
- * workbench stock, keeping three quarters of the workbench's saving (report.md, Work limit).
+ * The work a search may spend on one stock (`work.ts`): enough for the workbench's worked example
+ * to find and prove its fewest feet, at about 0.8 s on the benchmark's slowest workbench stock
+ * (report.md, Work limit).
  */
-export const WORK_LIMIT = 30_000_000;
+export const WORK_LIMIT = 40_000_000;
 
 export interface Solved {
   plan: CutPlan;

@@ -6,8 +6,8 @@ The best lower bound totals 17760 ft. An instance is open when a method buys mor
 
 | Method | Feet | Boards | Time (ms) | Proven | Over best bound (ft) | Instances open |
 |---|---|---|---|---|---|---|
-| first-fit decreasing | 18137 | 1879 | 8.1 |  | 377 | 74 |
-| branch-and-bound, 30M work | 17832 | 1934 | 9729.0 | 244 of 260 | 72 | 16 |
+| first-fit decreasing | 18137 | 1879 | 8.2 |  | 377 | 74 |
+| branch-and-bound, 40M work | 17818 | 1933 | 12319.4 | 246 of 260 | 58 | 14 |
 
 ## Work limit
 
@@ -21,23 +21,25 @@ Feet saved against first-fit decreasing, by template, and instances proven, at e
 | 20M | 20 | 123 | 112 | 255 | 75% | 241 of 260 | 175 |
 | 25M | 20 | 123 | 140 | 283 | 83% | 243 of 260 | 191 |
 | 30M | 20 | 123 | 162 | 305 | 89% | 244 of 260 | 201 |
+| 40M | 20 | 123 | 176 | 319 | 94% | 246 of 260 | 225 |
 | 100M | 20 | 123 | 198 | 341 | 100% | 249 of 260 | 259 |
 
 The slowest instance, by template, and the time for every instance, in milliseconds.
 
 | Work limit | swing-set-a-frame slowest | record-cabinet slowest | workbench slowest | All, total |
 |---|---|---|---|---|
-| 3M | 1 | 104 | 52 | 1232 |
-| 10M | 0 | 134 | 185 | 3681 |
-| 15M | 1 | 136 | 284 | 5380 |
-| 20M | 1 | 135 | 389 | 7206 |
-| 25M | 0 | 133 | 480 | 8518 |
-| 30M | 0 | 132 | 586 | 9729 |
-| 100M | 0 | 130 | 1845 | 24554 |
+| 3M | 1 | 108 | 58 | 1255 |
+| 10M | 1 | 141 | 194 | 3754 |
+| 15M | 0 | 142 | 296 | 5489 |
+| 20M | 0 | 157 | 398 | 7280 |
+| 25M | 1 | 151 | 480 | 8735 |
+| 30M | 0 | 141 | 585 | 9918 |
+| 40M | 0 | 134 | 772 | 12319 |
+| 100M | 0 | 135 | 1931 | 25154 |
 
 ## Open instances (74)
 
-| Instance | Pieces | material bound (ft) | linear relaxation bound (ft) | first-fit decreasing (ft / boards) | branch-and-bound, 30M work (ft / boards) |
+| Instance | Pieces | material bound (ft) | linear relaxation bound (ft) | first-fit decreasing (ft / boards) | branch-and-bound, 40M work (ft / boards) |
 |---|---|---|---|---|---|
 | swing-set-a-frame / sweep 6, 2x6 | 4 | 18 | 18 | 24 / 2 | 18 / 2 (proven) |
 | swing-set-a-frame / sweep 101, 2x6 | 4 | 20 | 20 | 24 / 2 | 20 / 2 (proven) |
@@ -91,11 +93,11 @@ The slowest instance, by template, and the time for every instance, in milliseco
 | record-cabinet / sweep 185, 1-1/16" x 5-7/8" | 27 | 64 | 66 | 68 / 9 | 66 / 10 (proven) |
 | record-cabinet / sweep 190, 13/16" x 4-5/16" | 32 | 98 | 102 | 104 / 13 | 102 / 14 (proven) |
 | record-cabinet / sweep 195, 1-1/4" x 3-15/16" | 34 | 76 | 80 | 86 / 11 | 80 / 12 (proven) |
-| workbench / Worked example, every input entered, 13/16" x 5-1/2" | 164 | 376 | 376 | 386 / 39 | 386 / 39 (stopped) |
+| workbench / Worked example, every input entered, 13/16" x 5-1/2" | 164 | 376 | 376 | 386 / 39 | 376 / 38 (proven) |
 | workbench / Edge of range: the tallest bench, with a 4" top, 13/16" x 5-1/2" | 176 | 466 | 466 | 476 / 48 | 472 / 51 (stopped) |
 | workbench / sweep 2, 13/16" x 5-1/2" | 181 | 584 | 590 | 606 / 61 | 592 / 70 (stopped) |
 | workbench / sweep 40, 13/16" x 5-1/2" | 249 | 766 | 774 | 796 / 80 | 778 / 78 (stopped) |
-| workbench / sweep 68, 13/16" x 5-1/2" | 225 | 482 | 482 | 496 / 50 | 484 / 49 (stopped) |
+| workbench / sweep 68, 13/16" x 5-1/2" | 225 | 482 | 482 | 496 / 50 | 482 / 49 (proven) |
 | workbench / sweep 70, 13/16" x 5-1/2" | 170 | 364 | 364 | 370 / 37 | 364 / 37 (proven) |
 | workbench / sweep 85, 13/16" x 5-1/2" | 164 | 424 | 426 | 436 / 44 | 426 / 45 (proven) |
 | workbench / sweep 94, 13/16" x 5-1/2" | 203 | 620 | 624 | 630 / 63 | 624 / 67 (proven) |
@@ -106,7 +108,7 @@ The slowest instance, by template, and the time for every instance, in milliseco
 | workbench / sweep 137, 13/16" x 5-1/2" | 182 | 558 | 558 | 568 / 57 | 560 / 57 (stopped) |
 | workbench / sweep 138, 13/16" x 5-1/2" | 188 | 494 | 494 | 506 / 51 | 496 / 53 (stopped) |
 | workbench / sweep 142, 13/16" x 5-1/2" | 170 | 380 | 380 | 390 / 39 | 380 / 39 (proven) |
-| workbench / sweep 149, 13/16" x 5-1/2" | 226 | 742 | 750 | 766 / 77 | 756 / 85 (stopped) |
+| workbench / sweep 149, 13/16" x 5-1/2" | 226 | 742 | 750 | 766 / 77 | 754 / 85 (stopped) |
 | workbench / sweep 157, 13/16" x 5-1/2" | 248 | 786 | 790 | 806 / 81 | 790 / 79 (proven) |
 | workbench / sweep 158, 13/16" x 5-1/2" | 173 | 396 | 396 | 408 / 41 | 398 / 40 (stopped) |
 | workbench / sweep 166, 13/16" x 5-1/2" | 184 | 484 | 484 | 496 / 50 | 486 / 51 (stopped) |
@@ -116,7 +118,7 @@ The slowest instance, by template, and the time for every instance, in milliseco
 
 ## Every instance
 
-| Instance | Pieces | material bound (ft) | linear relaxation bound (ft) | first-fit decreasing (ft / boards) | branch-and-bound, 30M work (ft / boards) |
+| Instance | Pieces | material bound (ft) | linear relaxation bound (ft) | first-fit decreasing (ft / boards) | branch-and-bound, 40M work (ft / boards) |
 |---|---|---|---|---|---|
 | swing-set-a-frame / Worked example, every input entered, 4x6 | 1 | 12 | 12 | 12 / 1 | 12 / 1 (proven) |
 | swing-set-a-frame / Worked example, every input entered, 4x4 | 4 | 46 | 48 | 48 / 4 | 48 / 4 (proven) |
@@ -356,11 +358,11 @@ The slowest instance, by template, and the time for every instance, in milliseco
 | record-cabinet / sweep 190, 2-5/8" x 2-5/8" | 4 | 6 | 6 | 6 / 2 | 6 / 2 (proven) |
 | record-cabinet / sweep 195, 1-1/4" x 3-15/16" | 34 | 76 | 80 | 86 / 11 | 80 / 12 (proven) |
 | record-cabinet / sweep 195, 2-9/16" x 2-9/16" | 4 | 3 | 3 | 3 / 1 | 3 / 1 (proven) |
-| workbench / Worked example, every input entered, 13/16" x 5-1/2" | 164 | 376 | 376 | 386 / 39 | 386 / 39 (stopped) |
+| workbench / Worked example, every input entered, 13/16" x 5-1/2" | 164 | 376 | 376 | 386 / 39 | 376 / 38 (proven) |
 | workbench / Edge of range: the tallest bench, with a 4" top, 13/16" x 5-1/2" | 176 | 466 | 466 | 476 / 48 | 472 / 51 (stopped) |
 | workbench / sweep 2, 13/16" x 5-1/2" | 181 | 584 | 590 | 606 / 61 | 592 / 70 (stopped) |
 | workbench / sweep 40, 13/16" x 5-1/2" | 249 | 766 | 774 | 796 / 80 | 778 / 78 (stopped) |
-| workbench / sweep 68, 13/16" x 5-1/2" | 225 | 482 | 482 | 496 / 50 | 484 / 49 (stopped) |
+| workbench / sweep 68, 13/16" x 5-1/2" | 225 | 482 | 482 | 496 / 50 | 482 / 49 (proven) |
 | workbench / sweep 70, 13/16" x 5-1/2" | 170 | 364 | 364 | 370 / 37 | 364 / 37 (proven) |
 | workbench / sweep 85, 13/16" x 5-1/2" | 164 | 424 | 426 | 436 / 44 | 426 / 45 (proven) |
 | workbench / sweep 94, 13/16" x 5-1/2" | 203 | 620 | 624 | 630 / 63 | 624 / 67 (proven) |
@@ -371,7 +373,7 @@ The slowest instance, by template, and the time for every instance, in milliseco
 | workbench / sweep 137, 13/16" x 5-1/2" | 182 | 558 | 558 | 568 / 57 | 560 / 57 (stopped) |
 | workbench / sweep 138, 13/16" x 5-1/2" | 188 | 494 | 494 | 506 / 51 | 496 / 53 (stopped) |
 | workbench / sweep 142, 13/16" x 5-1/2" | 170 | 380 | 380 | 390 / 39 | 380 / 39 (proven) |
-| workbench / sweep 149, 13/16" x 5-1/2" | 226 | 742 | 750 | 766 / 77 | 756 / 85 (stopped) |
+| workbench / sweep 149, 13/16" x 5-1/2" | 226 | 742 | 750 | 766 / 77 | 754 / 85 (stopped) |
 | workbench / sweep 157, 13/16" x 5-1/2" | 248 | 786 | 790 | 806 / 81 | 790 / 79 (proven) |
 | workbench / sweep 158, 13/16" x 5-1/2" | 173 | 396 | 396 | 408 / 41 | 398 / 40 (stopped) |
 | workbench / sweep 166, 13/16" x 5-1/2" | 184 | 484 | 484 | 496 / 50 | 486 / 51 (stopped) |

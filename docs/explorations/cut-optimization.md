@@ -128,25 +128,25 @@ The fit also showed the board enumeration costing far more per step than it shou
 
 | Work limit | Workbench saved (ft) | All saved (ft) | Proven | Saved where proven | Slowest workbench stock | Slowest record cabinet stock |
 |---|---|---|---|---|---|---|
-| 3M | 0 | 141 | 237 of 260 | 137 | 52 ms | 104 ms |
-| 10M | 74 | 217 | 239 | 149 | 185 ms | 134 ms |
-| 20M | 112 | 255 | 241 | 175 | 389 ms | 135 ms |
-| 30M | 162 | 305 | 244 | 201 | 586 ms | 132 ms |
-| 100M | 198 | 341 | 249 | 259 | 1,845 ms | 130 ms |
+| 3M | 0 | 141 | 237 of 260 | 137 | 58 ms | 108 ms |
+| 10M | 74 | 217 | 239 | 149 | 194 ms | 141 ms |
+| 20M | 112 | 255 | 241 | 175 | 398 ms | 157 ms |
+| 30M | 162 | 305 | 244 | 201 | 585 ms | 141 ms |
+| 40M | 176 | 319 | 246 | 225 | 772 ms | 134 ms |
+| 100M | 198 | 341 | 249 | 259 | 1,931 ms | 135 ms |
 
-The most any run of the exact method has saved on the workbench is 218 ft, with a limit of about 13 s on the slowest stock. The swing set saves its 20 ft and the record cabinet its 123 ft at 10M and above, so the limit only matters for the workbench. "Saved where proven" is the fallback in 0021, which uses the exact plan only where the search finishes. On the workbench it saves 58 ft at 30M, against 162 ft for keeping the best plan found, because most workbench stocks are not proven within a second.
+The most any run of the exact method has saved on the workbench is 218 ft, with a limit of about 13 s on the slowest stock. The swing set saves its 20 ft and the record cabinet its 123 ft at 10M and above, so the limit only matters for the workbench. "Saved where proven" is the fallback in 0021, which uses the exact plan only where the search finishes. On the workbench it saves 82 ft at 40M, against 176 ft for keeping the best plan found, because most workbench stocks are not proven within a second.
 
-**Chosen limit: 30M units** (owner, November 5, 2026, #689). The slowest workbench stock takes about 0.6 s on this machine, and the limit keeps 162 of the 218 ft on the workbench (74%), so the fallback does not apply. Below it the saving falls quickly: 20M keeps half, 10M a third. The owner kept 30M knowing two things:
+**Chosen limit: 40M units** (owner, November 5, 2026, #689). The workbench's worked example needs 35.9M units to find and prove its 376 ft; at 30M it stays at today's 386 ft. At 40M the slowest workbench stock takes about 0.8 s on this machine, and the limit keeps 176 of the 218 ft on the workbench (81%), so the fallback does not apply. Below it the saving falls quickly: 30M keeps three quarters, 20M half, 10M a third.
 
-- The workbench's worked example needs 35.9M units (about 0.57 s) to find and prove its 376 ft. At 30M it stops at today's 386 ft. A limit of 40M reaches it, with the slowest stock near 0.8 s, and saves 176 ft on the workbench.
-- The times are from a development machine. The API runs on Vercel's functions, which may be slower, so a plan that takes 0.6 s here could take longer there. #685 and #686 can measure it there before release.
+The times are from a development machine. The API runs on Vercel's functions, which may be slower, so a plan that takes 0.8 s here could take over a second there. #685 and #686 can measure it there before release.
 
 ## What adopting it would take
 
 Adopting means `planLumber` in core plans each stock with the exact method, keeping first-fit decreasing as its starting plan and fallback.
 
 1. **The same plan on every machine.** Done in #684 (Work limit, above). A time limit gives different plans on different machines and loads, which would break stored snapshot fixtures (0014) and make a regeneration change a plan for no reason. The limit has to count work instead: nodes plus relaxation rounds (or knapsack calls), with the best plan found at the limit kept. A node budget alone does not bound the time, since one workbench node can cost a second.
-2. **Time in the request.** Plans are generated in the API on each save and on each preview of proposed changes (`services/projects.ts`). Swing set and record cabinet stocks finish in milliseconds. The workbench's largest stocks would need the work limit set so a plan takes well under a second, which means accepting the best plan found rather than a proof on those. Measuring that limit is the first task of adoption; #684 set it at 30M units.
+2. **Time in the request.** Plans are generated in the API on each save and on each preview of proposed changes (`services/projects.ts`). Swing set and record cabinet stocks finish in milliseconds. The workbench's largest stocks would need the work limit set so a plan takes well under a second, which means accepting the best plan found rather than a proof on those. Measuring that limit is the first task of adoption; #684 set it at 40M units.
 3. **A template version bump for each template** (0008), new snapshot fixtures, and new catalog samples, since the boards change for the same parameters.
 4. **Cutting order and board IDs (#57, #58).** Boards come out in the search's order. They need sorting into a stable cutting order: longest pieces first, as today. Board IDs are by line and position, so saved progress on a board survives only where its line's boards are unchanged. Progress resets (#444) already handle the rest.
 5. **Store alternatives (#450).** `lengthAlternatives` refits a line's pieces onto shorter lengths with first-fit decreasing. It can keep doing so. Whether it should use the exact method too is a smaller follow-up.
