@@ -80,6 +80,25 @@ The file is labeled R12, since nearly every DXF reader takes its POLYLINE. LWPOL
 
 No CAD viewer was available to open the files in, so that check is left for the owner. G-code waits on #546's first question.
 
+## Hidden-line removal
+
+Core's isometric and exploded views paint every face toward the viewer back to front (a BSP tree in `views.ts`), each followed by its own edges, so on screen a nearer face's fill covers the edges behind it. Every edge is still in the drawing, whole. `removeHiddenLines(drawing)` works on that output in 2D: each visible edge is split where a face painted after it strictly covers it on the page, and the covered pieces are dropped or kept as hidden (dashed) lines. The face fills are removed, and letters, leaders, grade lines, and phantom lines are kept. An edge on a later face's boundary, such as the one two faces of a box share, is not covered. The result is line art with no fills, for a pen plotter, a laser, or a print without tones.
+
+It needs nothing new from core, since paint order already settles which face is in front, and it adds no dependency. Each edge is cut where it crosses the outline of a later face whose bounding box overlaps it, and each piece is tested at its middle.
+
+Times on this machine, for every template example (`pnpm --filter @kerf/fabrication write-line-art`, which also writes the first example's views as SVG to `packages/fabrication/out/line-art/`):
+
+| Template | View | Edges in | Visible lines out | Time |
+|---|---|---|---|---|
+| Swing set (3 examples) | Isometric | 144–178 | 126–151 | 1–2 ms |
+| Swing set | Exploded | 144–178 | 153–185 | under 1 ms |
+| Record cabinet (3 examples) | Isometric | 556–1023 | 126–141 | 3–10 ms |
+| Record cabinet | Exploded | 472–776 | 357–547 | 2–3 ms |
+| Workbench (3 examples) | Isometric | 2545–2557 | 681–691 | 27–46 ms |
+| Workbench | Exploded | 1991 | 1228–1256 | 11–18 ms |
+
+Fast enough to run on every request, so adopting it would not need caching. A 3D view in WebGL waits on #546's second question.
+
 ## Steps
 
 1. #666 Package and whole-part templates
