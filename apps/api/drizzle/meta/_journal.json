@@ -134,6 +134,13 @@
       "when": 1793890443015,
       "tag": "0018_owner_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793894234391,
+      "tag": "0019_progress_outline_version",
+      "breakpoints": true
     }
   ]
 }

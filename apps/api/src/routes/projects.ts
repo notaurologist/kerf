@@ -84,6 +84,10 @@ export function projectRoutes(projects: ProjectService) {
       const result = await projects.drawings(c.req.valid('param').id);
       return result.ok ? c.json(result.value, 200) : failure(c, result);
     })
+    .get('/projects/:id/version', valid('param', ById), async (c) => {
+      const result = await projects.version(c.req.valid('param').id);
+      return result.ok ? c.json(result.value, 200) : failure(c, result);
+    })
     .get('/projects/:id/steps/:stepId/drawing', valid('param', ByStep), async (c) => {
       const { id, stepId } = c.req.valid('param');
       const result = await projects.stepDrawing(id, stepId);

@@ -209,15 +209,14 @@ export function readSnapshot(
  */
 type Regenerated = ({ ok: true; outputs: unknown } & Diff) | { ok: false; issues: Issue[] };
 
-export type VersionReport =
+/**
+ * How a stored plan stands against the template's current version and the owner's settings now.
+ * Working it out generates nothing, so it can come with every read of a project.
+ */
+export type VersionStatus =
   | { status: 'current'; version: number }
   | { status: 'ahead'; storedVersion: number; currentVersion: number }
-  | {
-      status: 'behind';
-      storedVersion: number;
-      currentVersion: number;
-      regenerated: Regenerated;
-    }
+  | { status: 'behind'; storedVersion: number; currentVersion: number }
   | {
       /**
        * The plan's template version is current, but its boards were planned with another carry
@@ -230,8 +229,12 @@ export type VersionReport =
       storedCarryLength: number | null;
       /** The owner's carry length now, in inches; null for none. */
       carryLength: number | null;
-      regenerated: Regenerated;
     };
+
+/** A plan's version status, with what regenerating would change when it can be regenerated. */
+export type VersionReport =
+  | Extract<VersionStatus, { status: 'current' | 'ahead' }>
+  | (Extract<VersionStatus, { status: 'behind' | 'carry-length' }> & { regenerated: Regenerated });
 
 /** The carry length a stored plan's boards were planned with, or null for none. */
 function plannedCarryLength(
@@ -242,17 +245,15 @@ function plannedCarryLength(
 }
 
 /**
- * Compares a snapshot, already read (and so in the current shape), with what the template's
- * current version produces from the same parameters and inputs under the owner's settings, with
- * what an older plan lacks filled as regenerating would. The limit matches `compareSnapshots`: a
- * plan several versions behind can differ in more than a hundred places.
+ * Whether a snapshot, already read (and so in the current shape), was made with the template's
+ * current version and the owner's carry length now. Generates nothing: `compareWithCurrent` says
+ * what regenerating would change.
  */
-export function compareWithCurrent(
+export function versionStatus(
   template: TemplateDefinition,
   snapshot: ProjectSnapshot,
   settings: OwnerSettings = NO_OWNER_SETTINGS,
-  limit = 1000,
-): VersionReport {
+): VersionStatus {
   if (snapshot.templateVersion > template.version) {
     return {
       status: 'ahead',
@@ -260,23 +261,11 @@ export function compareWithCurrent(
       currentVersion: template.version,
     };
   }
-  const regenerated = (): Regenerated => {
-    const filled = fillMissing(template, snapshot);
-    const current = createSnapshot(template, filled.params, filled.structuralInputs, [], settings);
-    return current.ok
-      ? {
-          ok: true,
-          outputs: current.output.outputs,
-          ...compareSnapshots(template, snapshot, current.output, limit),
-        }
-      : { ok: false, issues: current.issues };
-  };
   if (snapshot.templateVersion < template.version) {
     return {
       status: 'behind',
       storedVersion: snapshot.templateVersion,
       currentVersion: template.version,
-      regenerated: regenerated(),
     };
   }
   const storedCarryLength = plannedCarryLength(template, snapshot);
@@ -288,7 +277,35 @@ export function compareWithCurrent(
     version: template.version,
     storedCarryLength,
     carryLength: settings.carryLength,
-    regenerated: regenerated(),
+  };
+}
+
+/**
+ * Compares a snapshot, already read (and so in the current shape), with what the template's
+ * current version produces from the same parameters and inputs under the owner's settings, with
+ * what an older plan lacks filled as regenerating would. This generates the whole plan when it is
+ * out of date, so it runs only when asked. The limit matches `compareSnapshots`: a plan several
+ * versions behind can differ in more than a hundred places.
+ */
+export function compareWithCurrent(
+  template: TemplateDefinition,
+  snapshot: ProjectSnapshot,
+  settings: OwnerSettings = NO_OWNER_SETTINGS,
+  limit = 1000,
+): VersionReport {
+  const status = versionStatus(template, snapshot, settings);
+  if (status.status === 'current' || status.status === 'ahead') return status;
+  const filled = fillMissing(template, snapshot);
+  const current = createSnapshot(template, filled.params, filled.structuralInputs, [], settings);
+  return {
+    ...status,
+    regenerated: current.ok
+      ? {
+          ok: true,
+          outputs: current.output.outputs,
+          ...compareSnapshots(template, snapshot, current.output, limit),
+        }
+      : { ok: false, issues: current.issues },
   };
 }
 

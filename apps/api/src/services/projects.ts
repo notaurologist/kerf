@@ -17,6 +17,7 @@ import {
   type ProjectSnapshot,
   planSteps,
   progressId,
+  progressOutlineKey,
   progressSummary,
   projectDrawings,
   type ResetNote,
@@ -30,6 +31,8 @@ import {
   suggestedFor,
   type TemplateDefinition,
   type VersionReport,
+  type VersionStatus,
+  versionStatus,
 } from '@kerf/core';
 import { and, desc, eq, inArray, isNotNull, isNull, lt } from 'drizzle-orm';
 import type { z } from 'zod';
@@ -128,8 +131,12 @@ export interface Project extends ProjectSummary {
    */
   snapshot: ProjectSnapshot | null;
   unreadable?: { reason: string; message: string };
-  /** Null when the snapshot cannot be read, or comparing it with the template fails. */
-  version: VersionReport | null;
+  /**
+   * Whether the plan was made with the template's current version and the owner's carry length
+   * now. What regenerating would change comes on its own (`ProjectVersion`), since working it out
+   * generates the whole plan. Null when the snapshot cannot be read, or comparing it fails.
+   */
+  version: VersionStatus | null;
   /**
    * The build steps (#105, #52), with methods chosen from the current tool inventory on each read,
    * and the key of that inventory so a client can tell when they are stale. In the project
@@ -153,6 +160,16 @@ export interface Project extends ProjectSummary {
 
 /** A reset as the owner reads it, and when it was made, which dismissing it names. */
 export type ProjectReset = ResetNote & { resetAt: string };
+
+/**
+ * What regenerating the plan would change, with the outputs it would store, in a request of its
+ * own: working it out generates the whole plan, which takes most of a second for a large one, so
+ * it runs only when the version notice asks. Null when the snapshot cannot be read, or comparing
+ * it fails.
+ */
+export interface ProjectVersion {
+  version: VersionReport | null;
+}
 
 /** A snapshot generated from proposed changes and not saved, with what it changes. */
 export interface Preview {
@@ -224,6 +241,7 @@ const summaryColumns = {
   revision: projects.revision,
   progressOutline: projects.progressOutline,
   progressOutlineRevision: projects.progressOutlineRevision,
+  progressOutlineVersion: projects.progressOutlineVersion,
   deletedAt: projects.deletedAt,
   createdAt: projects.createdAt,
   updatedAt: projects.updatedAt,
@@ -362,8 +380,8 @@ export function createProjectService(deps: {
         ticks,
         resets,
         snapshot,
-        version: drawn(row, 'the version report', () =>
-          compareWithCurrent(template, snapshot, settings),
+        version: drawn(row, 'the version status', () =>
+          versionStatus(template, snapshot, settings),
         ),
         steps: drawn(row, 'the build steps', () => planSteps(template, outputs, inventory)),
       },
@@ -440,13 +458,14 @@ export function createProjectService(deps: {
       snapshot: s,
       progressOutline,
       progressOutlineRevision: progressOutline ? revision : null,
+      progressOutlineVersion: progressOutline ? progressOutlineKey(template) : null,
     };
   }
 
   /**
-   * Each row's progress outline: the stored one when it was made at the row's revision, otherwise
-   * read from the snapshot once and stored for the next read. Null when the snapshot cannot be
-   * read or counted.
+   * Each row's progress outline: the stored one when it was made at the row's revision by this
+   * code, otherwise read from the snapshot once and stored for the next read. Null when the
+   * snapshot cannot be read or counted.
    */
   async function outlines(
     rows: readonly SummaryRow[],
@@ -454,8 +473,11 @@ export function createProjectService(deps: {
     const found = new Map<string, ProgressOutline | null>();
     const stale: string[] = [];
     for (const row of rows) {
+      const template = templates.find((t) => t.id === row.templateId);
       const stored =
-        row.progressOutlineRevision === row.revision
+        template &&
+        row.progressOutlineRevision === row.revision &&
+        row.progressOutlineVersion === progressOutlineKey(template)
           ? ProgressOutline.safeParse(row.progressOutline)
           : undefined;
       if (stored?.success) found.set(row.id, stored.data);
@@ -465,11 +487,16 @@ export function createProjectService(deps: {
     for (const row of await db.select().from(projects).where(inArray(projects.id, stale))) {
       const outline = outlineOf(templates, row);
       found.set(row.id, outline);
-      if (!outline) continue;
+      const template = templates.find((t) => t.id === row.templateId);
+      if (!outline || !template) continue;
       // Only at the revision read: a save since then raised it and wrote its own outline.
       await db
         .update(projects)
-        .set({ progressOutline: outline, progressOutlineRevision: row.revision })
+        .set({
+          progressOutline: outline,
+          progressOutlineRevision: row.revision,
+          progressOutlineVersion: progressOutlineKey(template),
+        })
         .where(and(eq(projects.id, row.id), eq(projects.revision, row.revision)));
     }
     return found;
@@ -558,6 +585,24 @@ export function createProjectService(deps: {
           drawings: drawn(row, 'the drawings', () => projectDrawings(template, outputs)),
           subAssemblies:
             drawn(row, 'the sub-assemblies', () => subAssemblies(template, outputs)) ?? [],
+        },
+      };
+    },
+
+    /** What regenerating the plan would change; none for a plan that cannot be read. */
+    async version(id: string): Promise<Result<ProjectVersion>> {
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      const stored = readStored(row);
+      if (!stored.ok) return { ok: true, value: { version: null } };
+      const { template, snapshot } = stored;
+      const { revision: _, ...settings } = await getSettings(db);
+      return {
+        ok: true,
+        value: {
+          version: drawn(row, 'the version report', () =>
+            compareWithCurrent(template, snapshot, settings),
+          ),
         },
       };
     },

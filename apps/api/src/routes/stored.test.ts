@@ -2,7 +2,9 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  PROGRESS_OUTLINE_VERSION,
   progressItems,
+  progressOutlineKey,
   progressSummary,
   readSnapshot,
   recordCabinet,
@@ -53,6 +55,10 @@ describe('stored projects of every shape', () => {
     expect(project.unreadable).toBeUndefined();
     expect(project.steps).not.toBeNull();
     expect(project.progress).not.toBeNull();
+
+    const version = await authed(`/api/projects/${id}/version`);
+    expect(version.status).toBe(200);
+    expect(await version.json()).not.toEqual({ version: null });
 
     const drawings = await authed(`/api/projects/${id}/drawings`);
     expect(drawings.status).toBe(200);
@@ -145,10 +151,62 @@ describe('stored projects of every shape', () => {
       return plan.mock.calls.length;
     };
     expect(await list()).toBe(0);
-    // As a save by the previous deploy leaves it: a new revision, and the outline from before.
+    // A save that left the outline from before: a new revision.
     await client.query('update projects set revision = revision + 1');
     expect(await list()).toBe(1);
     expect(await list()).toBe(0);
+    await close();
+  });
+
+  it('reads again an outline made by other code at the current revision', async () => {
+    const [swingSet] = TEMPLATES;
+    if (!swingSet) throw new Error('needs a template');
+    const plan = vi.fn(swingSet.plan);
+    const counting = { ...swingSet, plan };
+    const { client, authed, close } = await createTestApp({ templates: [counting] });
+    const created = await authed('/api/projects', {
+      method: 'POST',
+      body: {
+        name: 'Stored',
+        templateId: swingSet.id,
+        params: swingSetParams,
+        structuralInputs: swingSetInputs,
+      },
+    });
+    expect(created.status).toBe(201);
+    const stored = async () =>
+      (
+        await client.query<{ outline: unknown; version: string | null }>(
+          'select progress_outline as outline, progress_outline_version as version from projects',
+        )
+      ).rows[0];
+    const made = await stored();
+    expect(made?.version).toBe(progressOutlineKey(swingSet));
+    const list = async () => {
+      plan.mockClear();
+      const res = await authed('/api/projects');
+      expect(res.status).toBe(200);
+      return plan.mock.calls.length;
+    };
+    // As the previous deploy leaves a save during a release: this revision, its own outline.
+    await client.query(
+      `update projects set progress_outline = '{"shopping": [], "pieces": [], "steps": []}',
+         progress_outline_version = $1`,
+      [`${PROGRESS_OUTLINE_VERSION - 1}:${swingSet.version}`],
+    );
+    expect(await list()).toBe(1);
+    expect(await stored()).toEqual(made);
+    expect(await list()).toBe(0);
+    // As an outline made under the template's previous version.
+    await client.query('update projects set progress_outline_version = $1', [
+      `${PROGRESS_OUTLINE_VERSION}:${swingSet.version - 1}`,
+    ]);
+    expect(await list()).toBe(1);
+    expect(await stored()).toEqual(made);
+    // As an outline from before outline versions.
+    await client.query('update projects set progress_outline_version = null');
+    expect(await list()).toBe(1);
+    expect(await stored()).toEqual(made);
     await close();
   });
 
@@ -234,8 +292,10 @@ describe('stored projects of every shape', () => {
 
 // Vercel refuses a function response over 4.5 MB, and a project is read on every open and save.
 // The drawings, which are most of a plan's size, come in a request of their own, and each build
-// step's action drawing in another, opened one step at a time.
+// step's action drawing in another, opened one step at a time. What regenerating an out-of-date
+// plan would change comes in another, with the plan it would store.
 const PROJECT_BUDGET = 1_000_000;
+const VERSION_BUDGET = 1_000_000;
 const DRAWINGS_BUDGET = 4_000_000;
 const STEP_DRAWING_BUDGET = 1_000_000;
 const SUB_ASSEMBLY_BUDGET = 1_000_000;
@@ -291,6 +351,44 @@ describe('response sizes', () => {
     }
     expect(drawn).toBeGreaterThan(0);
     await close();
+  });
+
+  // An out-of-date plan's project response carries only its version status; the plan
+  // regenerating would store comes with the version report.
+  it('keeps a workbench plan behind its template version under budget', async () => {
+    const template = TEMPLATES.find((t) => t.id === 'workbench');
+    const example = template?.examples[0];
+    if (!template || !example) throw new Error('no workbench worked example');
+    const before = await createTestApp();
+    const created = await before.authed('/api/projects', {
+      method: 'POST',
+      body: {
+        name: example.name,
+        templateId: template.id,
+        params: example.params,
+        structuralInputs: example.structuralInputs,
+      },
+    });
+    expect(created.status).toBe(201);
+    const { id } = (await created.json()) as { id: string };
+    const next = { ...template, version: template.version + 1 };
+    const after = await createTestApp({
+      database: before,
+      templates: TEMPLATES.map((t) => (t.id === template.id ? next : t)),
+    });
+    const read = await after.authed(`/api/projects/${id}`);
+    expect(read.status).toBe(200);
+    const readText = await read.text();
+    expect(JSON.parse(readText)).toMatchObject({ version: { status: 'behind' } });
+    expect(bytes(readText)).toBeLessThan(PROJECT_BUDGET);
+    const version = await after.authed(`/api/projects/${id}/version`);
+    expect(version.status).toBe(200);
+    const versionText = await version.text();
+    expect(JSON.parse(versionText)).toMatchObject({
+      version: { status: 'behind', regenerated: { ok: true } },
+    });
+    expect(bytes(versionText)).toBeLessThan(VERSION_BUDGET);
+    await before.close();
   });
 
   // Narrower boards make more board drawings. The most boards found within the ranges: the

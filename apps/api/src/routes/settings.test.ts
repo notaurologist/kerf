@@ -77,7 +77,14 @@ describe('projects and the carry length', () => {
     await authed('/api/settings', { method: 'PUT', body: { carryLength: 120, revision: 1 } });
 
     const opened = (await (await authed(`/api/projects/${made.id}`)).json()) as Json;
-    expect(opened.version).toMatchObject({
+    expect(opened.version).toEqual({
+      status: 'carry-length',
+      version: made.templateVersion,
+      storedCarryLength: null,
+      carryLength: 120,
+    });
+    const report = (await (await authed(`/api/projects/${made.id}/version`)).json()) as Json;
+    expect(report.version).toMatchObject({
       status: 'carry-length',
       storedCarryLength: null,
       carryLength: 120,
