@@ -121,7 +121,17 @@ function toPlan(
   };
 }
 
-export function solveExact(instance: Instance, { timeLimitMs = 2000 } = {}): Solved {
+/**
+ * The fewest feet, proven, unless the search runs past `timeLimitMs` or `maxNodes`. A node limit
+ * gives the same plan on any machine; a time limit does not.
+ */
+export function solveExact(
+  instance: Instance,
+  {
+    timeLimitMs = 2000,
+    maxNodes = Number.POSITIVE_INFINITY,
+  }: { timeLimitMs?: number; maxNodes?: number } = {},
+): Solved {
   const deadline = performance.now() + timeLimitMs;
   const baseline = firstFitDecreasing(instance);
   const by = step(instance);
@@ -165,11 +175,11 @@ export function solveExact(instance: Instance, { timeLimitMs = 2000 } = {}): Sol
   const chosen: Board[] = [];
   const search = (left: number[], feet: number) => {
     if (timedOut) return;
-    nodes++;
-    if (performance.now() > deadline) {
+    if (nodes >= maxNodes || performance.now() > deadline) {
       timedOut = true;
       return;
     }
+    nodes++;
     const first = left.findIndex((n) => n > 0);
     if (first < 0) {
       const boards = chosen.length;

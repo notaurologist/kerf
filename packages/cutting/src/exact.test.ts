@@ -64,6 +64,22 @@ describe('solveExact', () => {
     });
   });
 
+  it('stops after its node limit, unproven, with the best plan found', () => {
+    const instance: Instance = {
+      nominal: 'x',
+      lengths: [8, 10],
+      pieces: pieces(60, 60, 36, 36),
+      kerf: 0,
+      trimPerEnd: 0,
+    };
+    expect(solveExact(instance, { maxNodes: 0 })).toMatchObject({
+      feet: 18,
+      proven: false,
+      nodes: 0,
+    });
+    expect(solveExact(instance, { maxNodes: 100 })).toMatchObject({ feet: 16, proven: true });
+  });
+
   it('keeps a piece no length holds out of the plan', () => {
     const instance: Instance = {
       nominal: 'x',
