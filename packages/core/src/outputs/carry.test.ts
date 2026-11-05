@@ -1,18 +1,20 @@
 import { describe, expect, it, vi } from 'vitest';
-import * as exact from '../cutting/exact.ts';
+import type * as cache from '../cutting/cache.ts';
+import { WORK_LIMIT } from '../cutting/exact.ts';
 import { stock } from '../lumber/stock.ts';
 import type { Part } from '../model/types.ts';
 import { type BoardOptions, boardOptionsFor, planLumber } from './shoppingList.ts';
 
 // The longest board the owner can carry (#690), on made-up parts.
 
+// Recorded where the shopping list asks for a plan, so a plan the cache answers is counted too.
 const calls: { workLimit: number; work: number }[] = [];
-vi.mock('../cutting/exact.ts', async (actual) => {
-  const real = await actual<typeof exact>();
+vi.mock('../cutting/cache.ts', async (actual) => {
+  const real = await actual<typeof cache>();
   return {
     ...real,
-    solveExact: (...args: Parameters<typeof real.solveExact>) => {
-      const solved = real.solveExact(...args);
+    solveCached: (...args: Parameters<typeof real.solveCached>) => {
+      const solved = real.solveCached(...args);
       calls.push({ workLimit: args[1]?.workLimit ?? Number.NaN, work: solved.work });
       return solved;
     },
@@ -137,7 +139,7 @@ describe('planLumber with a carry length', () => {
     calls.length = 0;
     planLumber([piece(60, 3), piece(46, 4, 'Brace', '2x6')], options(96));
     expect(calls).toHaveLength(4);
-    let left = exact.WORK_LIMIT;
+    let left = WORK_LIMIT;
     for (const call of calls) {
       expect(call.workLimit).toBe(Math.max(0, left));
       left -= call.work;
