@@ -85,6 +85,7 @@ The template definitions still carry the generation code into the web bundle, si
 │           ├── outputs/        # Cut list, shopping list (boards for the fewest feet, with kerf and trim)
 │           ├── cutting/        # The fewest feet of boards for one stock's pieces: branch-and-bound
 │           │                   # with a deterministic work limit, shared by a plan's stocks (0021)
+│           │                   # and a cache of recent plans, which gives the same output as a new search
 │           ├── structural/     # Generic beam and hardware checks and adjustment factors
 │           ├── movement/       # Wood movement across the grain, with its working (Wood Handbook Eq. 13-3)
 │           ├── steps/          # Build steps: operations to methods, using the tool inventory
