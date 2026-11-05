@@ -1,0 +1,16 @@
+{
+  "name": "@kerf/fabrication",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "write-templates": "node scripts/writeTemplates.ts"
+  },
+  "dependencies": {
+    "@kerf/core": "workspace:*"
+  }
+}
