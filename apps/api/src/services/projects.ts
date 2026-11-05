@@ -23,6 +23,8 @@ import {
   resetNotes,
   type SuggestedValue,
   stepDrawing,
+  subAssemblies,
+  subAssemblyDrawings,
   suggestedAfter,
   suggestedFor,
   type TemplateDefinition,
@@ -165,6 +167,8 @@ export interface Preview {
  */
 export interface ProjectDrawings {
   drawings: geometry.Drawings | null;
+  /** The plan's sub-assemblies (#647), listed only: each one's drawings come on their own. */
+  subAssemblies: geometry.SubAssemblySummary[];
 }
 
 /**
@@ -176,6 +180,14 @@ export interface ProjectStepDrawing {
   drawing: geometry.Drawing | null;
 }
 
+/**
+ * One sub-assembly's assembled and exploded views, drawn on read, in a request of its own like a
+ * step's. Null when the snapshot cannot be read or drawing it fails.
+ */
+export interface ProjectSubAssemblyDrawings {
+  drawings: geometry.SubAssemblyDrawings | null;
+}
+
 /** A plan's assembled and exploded views from one corner. */
 type CornerViews = Pick<geometry.Drawings, 'isometric' | 'exploded'>;
 
@@ -184,7 +196,13 @@ export type Result<T> =
   | {
       ok: false;
       /** `missing-template`: a stored project names a template this code no longer has. */
-      error: 'not-found' | 'unknown-template' | 'missing-template' | 'unreadable-snapshot';
+      error:
+        | 'not-found'
+        | 'unknown-template'
+        | 'missing-template'
+        | 'unreadable-snapshot'
+        /** A sub-assembly the plan does not have. */
+        | 'unknown-sub-assembly';
     }
   | { ok: false; error: 'invalid-project'; issues: Issue[] }
   | { ok: false; error: 'unknown-progress'; items: { kind: string; key: string }[] }
@@ -521,11 +539,15 @@ export function createProjectService(deps: {
       const row = await load(id);
       if (!row) return { ok: false, error: 'not-found' };
       const stored = readStored(row);
-      if (!stored.ok) return { ok: true, value: { drawings: null } };
+      if (!stored.ok) return { ok: true, value: { drawings: null, subAssemblies: [] } };
       const { template, outputs } = stored;
       return {
         ok: true,
-        value: { drawings: drawn(row, 'the drawings', () => projectDrawings(template, outputs)) },
+        value: {
+          drawings: drawn(row, 'the drawings', () => projectDrawings(template, outputs)),
+          subAssemblies:
+            drawn(row, 'the sub-assemblies', () => subAssemblies(template, outputs)) ?? [],
+        },
       };
     },
 
@@ -540,6 +562,29 @@ export function createProjectService(deps: {
         stepDrawing(template, outputs, stepId),
       );
       return { ok: true, value: { drawing } };
+    },
+
+    /**
+     * One sub-assembly's views, drawn on read. A group the plan does not list is not found; a plan
+     * that cannot be read lists none, so it answers the same.
+     */
+    async subAssemblyDrawings(
+      id: string,
+      groupId: string,
+    ): Promise<Result<ProjectSubAssemblyDrawings>> {
+      const row = await load(id);
+      if (!row) return { ok: false, error: 'not-found' };
+      const stored = readStored(row);
+      if (!stored.ok) return { ok: false, error: 'unknown-sub-assembly' };
+      const { template, outputs } = stored;
+      const listed = drawn(row, 'the sub-assemblies', () => subAssemblies(template, outputs));
+      if (listed && !listed.some((g) => g.id === groupId)) {
+        return { ok: false, error: 'unknown-sub-assembly' };
+      }
+      const drawings = drawn(row, `the drawings for sub-assembly ${groupId}`, () =>
+        subAssemblyDrawings(template, outputs, groupId),
+      );
+      return { ok: true, value: { drawings } };
     },
 
     async create(input: NewProject): Promise<Result<Project>> {

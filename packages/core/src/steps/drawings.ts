@@ -9,6 +9,9 @@ import {
   fromCorner,
   isometric,
   isometricView,
+  type SubAssemblyDrawings,
+  type SubAssemblySummary,
+  subAssemblyViews,
 } from '../geometry/index.ts';
 import { isPanel, isStripGlueUp } from '../lumber/partStock.ts';
 import type { TemplateDefinition } from '../model/definition.ts';
@@ -258,6 +261,33 @@ export function unletteredView<O>(
   return isometricView(assembly.scene, assembly.view, own.description, own.title, {
     letters: false,
   });
+}
+
+/** The plan's sub-assemblies as its drawings list them, without drawing any. */
+export function subAssemblies<O>(
+  template: Pick<TemplateDefinition<unknown, unknown, O>, 'assembly'>,
+  outputs: O,
+): SubAssemblySummary[] {
+  return (template.assembly(outputs)?.subAssemblies ?? []).map((g) => ({
+    id: g.id,
+    title: g.title,
+    alike: g.alike,
+    ...(g.stepId ? { stepId: g.stepId } : {}),
+  }));
+}
+
+/**
+ * One sub-assembly's assembled and exploded views, drawn on their own, since together a plan's
+ * groups would add much to its drawings. Null for a group the plan does not have.
+ */
+export function subAssemblyDrawings<O>(
+  template: Pick<TemplateDefinition<unknown, unknown, O>, 'assembly'>,
+  outputs: O,
+  groupId: string,
+): SubAssemblyDrawings | null {
+  const assembly = template.assembly(outputs);
+  const group = assembly?.subAssemblies.find((g) => g.id === groupId);
+  return assembly && group ? subAssemblyViews(assembly.scene, assembly.view, group) : null;
 }
 
 const CORNER_WORDS: Record<Corner, string> = {
