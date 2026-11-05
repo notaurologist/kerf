@@ -23,6 +23,7 @@ import { createSnapshot, readSnapshot } from '../snapshot/snapshot.ts';
 import { planSteps } from '../steps/build.ts';
 import { BRAND_NAMES, VERDICT_WORDS, withoutBrandExceptions } from '../testing.ts';
 import { TEMPLATES } from './index.ts';
+import { SWEEPS } from './sweeps.ts';
 
 // What every template promises generic code (model/definition.ts), checked on its worked examples.
 
@@ -113,6 +114,21 @@ const SHOWN = (() => {
   }
   return byTemplate;
 })();
+
+/**
+ * The template versions each template has a sweep digest for (`templates/sweep.ts`). Written with
+ * the fixture; the previous version's is removed then.
+ */
+const SWEEP_DIGESTS: Record<string, string[]> = {};
+const sweepFiles = import.meta.glob<unknown>('./*/sweeps/v*.json', {
+  eager: true,
+  import: 'default',
+});
+for (const path of Object.keys(sweepFiles)) {
+  const [, id, version] = path.match(/^\.\/([^/]+)\/sweeps\/v(\d+)\.json$/) ?? [];
+  if (!id || !version) throw new Error(`Unexpected file ${path}`);
+  SWEEP_DIGESTS[id] = [...(SWEEP_DIGESTS[id] ?? []), version];
+}
 
 /**
  * What each template's upgrades write into parameters and structural inputs, by the shape they
@@ -364,6 +380,16 @@ describe('every template stays readable (decision 0014)', () => {
           `template it changes and write the new fixture: pnpm --filter @kerf/api ` +
           `write-snapshot-fixture ${id} (decision 0014).`,
       ).toEqual(SHOWN[id]?.[t.version]);
+    },
+  );
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))(
+    '%s has a sweep, and its digest for the current version only',
+    (id, t) => {
+      // The template's own sweep.test.ts runs the sweep and compares it with this digest, so a
+      // change to output the worked examples do not reach also needs a version bump.
+      expect(SWEEPS[id]).toBeDefined();
+      expect(SWEEP_DIGESTS[id]).toEqual([String(t.version)]);
     },
   );
 
