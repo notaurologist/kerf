@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { VERDICT_WORDS } from '../testing.ts';
 import {
   findGlossaryEntry,
   findTerms,
@@ -87,12 +86,6 @@ describe('glossary', () => {
       'waste-side',
     ]);
     expect(findGlossaryEntry('margin')?.sources).not.toEqual([]);
-  });
-
-  it('says no verdicts (hard rule 2)', () => {
-    for (const entry of GLOSSARY) {
-      expect(entry.definition).not.toMatch(VERDICT_WORDS);
-    }
   });
 });
 

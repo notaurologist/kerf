@@ -1,7 +1,8 @@
 // Word lists for tests that scan copy, shared so every scan applies the same rules.
 
 /** Verdicts (hard rule 2): copy reports margins under assumptions instead. */
-export const VERDICT_WORDS = /\b(safe|safely|unsafe|fail|fails|failed|pass|passes|passed)\b/i;
+export const VERDICT_WORDS =
+  /\b(safe|safer|safest|safely|unsafe|fail|fails|failed|failing|failure|failures|pass|passes|passed|passing)\b/i;
 
 /**
  * Tool, hardware, and store brands (hard rule 11), including trademarks often used as generic

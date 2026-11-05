@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { z } from 'zod';
+import { BRAND_NAMES, VERDICT_WORDS, withoutBrandExceptions } from '../testing.ts';
 import { TEMPLATES } from './index.ts';
 
 // Random parameters and structural inputs inside each template's schemas either generate or come
-// back as issues, quickly, and never throw (#421).
+// back as issues, quickly, and never throw (#421). The issues are read as copy too: the editor
+// shows them as they are (hard rules 2 and 11).
 
 /** A small seeded generator (mulberry32), so a failure can be repeated from its seed. */
 function random(seed: number): () => number {
@@ -188,6 +190,8 @@ describe.each(TEMPLATES.map((t) => [t.id, t] as const))('%s', (_, t) => {
       let generated = 0;
       /** One example of each distinct failure, by its message. */
       const failures = new Map<string, string>();
+      /** Each issue's message, by its code, as the editor shows it. */
+      const issues = new Map<string, string>();
       for (let run = 0; run < RUNS; run++) {
         const next = random(run + 1);
         const example = t.examples[run % t.examples.length];
@@ -201,7 +205,10 @@ describe.each(TEMPLATES.map((t) => [t.id, t] as const))('%s', (_, t) => {
         const tried = `run ${run}: ${JSON.stringify(params.data)} ${JSON.stringify(inputs.data)}`;
         const started = Date.now();
         try {
-          if (t.generate(params.data, inputs.data).ok) generated++;
+          const made = t.generate(params.data, inputs.data);
+          if (made.ok) generated++;
+          else
+            for (const issue of made.issues) issues.set(`${issue.code}: ${issue.message}`, tried);
         } catch (error) {
           const message = String(error).replace(/-?\d[\d.e+-]*/g, 'N');
           if (!failures.has(message)) failures.set(message, tried);
@@ -210,6 +217,10 @@ describe.each(TEMPLATES.map((t) => [t.id, t] as const))('%s', (_, t) => {
         if (took > BUDGET_MS) failures.set(`took ${Math.round(took)} ms`, tried);
       }
       expect([...failures].map(([message, tried]) => `${message}\n  ${tried}`)).toEqual([]);
+      const said = [...issues.keys()];
+      expect(said.length).toBeGreaterThan(0);
+      expect(said.filter((text) => VERDICT_WORDS.test(text))).toEqual([]);
+      expect(said.filter((text) => BRAND_NAMES.test(withoutBrandExceptions(text)))).toEqual([]);
       // Enough runs get past validation for the test to say something about generation itself.
       expect(generated).toBeGreaterThan(RUNS / 10);
     },

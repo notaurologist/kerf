@@ -93,7 +93,7 @@ describe('capabilityForm', () => {
 
   it('says in each hint what the value decides and where to read it', () => {
     expect(form[0]?.fields[0]?.help).toBe(
-      "Decides which boards it cuts across in one pass. Read it from: the tool's manual, or its specifications.",
+      "Decides which boards it cuts across from one side. Read it from: the tool's manual, or its specifications.",
     );
   });
 });
