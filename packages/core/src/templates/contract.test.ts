@@ -22,8 +22,7 @@ import { shownOnRead } from '../snapshot/shown.ts';
 import { createSnapshot, readSnapshot } from '../snapshot/snapshot.ts';
 import { planSteps } from '../steps/build.ts';
 import { BRAND_NAMES, VERDICT_WORDS, withoutBrandExceptions } from '../testing.ts';
-import { TEMPLATES } from './index.ts';
-import { SWEEPS } from './sweeps.ts';
+import { SWEEPS, TEMPLATES } from './index.ts';
 
 // What every template promises generic code (model/definition.ts), checked on its worked examples.
 
