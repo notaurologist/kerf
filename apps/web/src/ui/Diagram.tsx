@@ -1,5 +1,15 @@
 import { geometry } from '@kerf/core';
-import { type CSSProperties, memo, useCallback, useEffect, useId, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  memo,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
+import { flushSync } from 'react-dom';
 import type { Motion } from './assemblyMotion.ts';
 import { DiagramFrame } from './DiagramFrame.tsx';
 
@@ -33,6 +43,50 @@ const PX = {
 function maxHeight(): number {
   return typeof window === 'undefined' ? 800 : Math.max(320, window.innerHeight * 0.8);
 }
+
+/**
+ * The width and height a drawing is laid out for on paper, in CSS pixels (96 to the inch): US
+ * Letter inside 1/2" margins, portrait or landscape, no taller than `print.css` lets a drawing be
+ * (7in). Paper does not depend on the screen the plan is printed from, so neither does the layout.
+ */
+const PAPER = {
+  portrait: { width: 7.5 * 96, height: 7 * 96 },
+  landscape: { width: 10 * 96, height: 7 * 96 },
+};
+
+// Whether the page is being printed, from `beforeprint` to `afterprint`. The drawings are laid
+// out again for paper inside `beforeprint`, before the browser lays out the printed pages.
+let printing = false;
+const printListeners = new Set<() => void>();
+const setPrinting = (value: boolean) => () => {
+  printing = value;
+  flushSync(() => {
+    for (const listener of printListeners) listener();
+  });
+};
+const beforePrint = setPrinting(true);
+const afterPrint = setPrinting(false);
+function subscribePrinting(listener: () => void) {
+  if (printListeners.size === 0) {
+    window.addEventListener('beforeprint', beforePrint);
+    window.addEventListener('afterprint', afterPrint);
+  }
+  printListeners.add(listener);
+  return () => {
+    printListeners.delete(listener);
+    if (printListeners.size === 0) {
+      window.removeEventListener('beforeprint', beforePrint);
+      window.removeEventListener('afterprint', afterPrint);
+      printing = false;
+    }
+  };
+}
+const usePrinting = () =>
+  useSyncExternalStore(
+    subscribePrinting,
+    () => printing,
+    () => false,
+  );
 
 /** Width the drawing is shown at, before it is measured (server rendering, tests). */
 const ASSUMED_WIDTH = 720;
@@ -90,17 +144,24 @@ const pts = (points: readonly Point2[]) => points.map((p) => `${p.x},${p.y}`).jo
 export function drawingLayout(
   drawing: Drawing,
   width: number,
-  options: { minWidth?: number; frame?: Drawing['bounds']; letters?: 'always' | 'wide' } = {},
+  options: {
+    minWidth?: number;
+    frame?: Drawing['bounds'];
+    letters?: 'always' | 'wide';
+    /** The tallest the drawing may be shown; most of the window when not given. */
+    maxHeight?: number;
+  } = {},
 ) {
   const b = options.frame ?? drawing.bounds;
+  const tallest = options.maxHeight ?? maxHeight();
   const narrow = width < PX.narrow;
   // Model units per CSS pixel at the shown width. Letters in one column widen the view a little,
   // so the scale is taken from the bounds; the difference is a few pixels.
   // A tall drawing is shown no taller than most of the window, so it is narrower than its
   // container; text is sized for the width it is drawn at.
   const shown = Math.max(
-    Math.min(width, (maxHeight() * b.width) / b.height),
-    Math.min(options.minWidth ?? 0, (maxHeight() * b.width) / b.height),
+    Math.min(width, (tallest * b.width) / b.height),
+    Math.min(options.minWidth ?? 0, (tallest * b.width) / b.height),
   );
   const u = b.width / shown;
   const letters = drawing.primitives.filter(
@@ -177,7 +238,10 @@ export function DiagramDrawing(props: {
   letters?: 'always' | 'wide';
 }) {
   const { drawing } = props;
-  const { ref, width } = useWidth(props.assumedWidth ?? ASSUMED_WIDTH);
+  const { ref, width: measured } = useWidth(props.assumedWidth ?? ASSUMED_WIDTH);
+  // On paper, a drawing is laid out for the page, not for the screen it was printed from.
+  const paper = usePrinting() ? PAPER[props.page ?? 'portrait'] : undefined;
+  const width = paper?.width ?? measured;
   const track = props.motion?.track;
   const wrap = useCallback(
     (el: HTMLDivElement | null) => {
@@ -187,7 +251,10 @@ export function DiagramDrawing(props: {
     [ref, track],
   );
   const hatch = `${useId().replace(/:/g, '')}-hatch`;
-  const { shown, u, placed, placedText, viewBox } = drawingLayout(drawing, width, props);
+  const { shown, u, placed, placedText, viewBox } = drawingLayout(drawing, width, {
+    ...props,
+    maxHeight: paper?.height,
+  });
   const scroller = useRef<HTMLDivElement>(null);
   const hidden = useHidden(scroller, shown);
   // A moving part's shapes carry how far it goes in its stage of a move, for the move to slide.
