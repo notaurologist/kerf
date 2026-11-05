@@ -23,6 +23,8 @@ export interface BoardOptions {
   trimPerEnd: number;
   /** Lengths the store sells dimension lumber in, in feet. Board stock gives its own. */
   buyableFeet: readonly number[];
+  /** The longest board the owner can easily carry, in inches, when they entered one. */
+  carryLength?: number;
 }
 
 export const DEFAULT_BOARD_OPTIONS: BoardOptions = {
@@ -30,6 +32,31 @@ export const DEFAULT_BOARD_OPTIONS: BoardOptions = {
   trimPerEnd: 0.5,
   buyableFeet: [8, 10, 12, 14, 16],
 };
+
+/** Settings the owner enters once and every project's plan uses, like the tool inventory. */
+export const OwnerSettings = z.object({
+  /**
+   * The longest board the owner can easily carry, in inches (#690). Null until entered, which
+   * plans as if there were no limit. Kerf suggests none: it depends on the owner's vehicle.
+   */
+  carryLength: z.number().positive().finite().nullable(),
+});
+export type OwnerSettings = z.infer<typeof OwnerSettings>;
+
+export const NO_OWNER_SETTINGS: OwnerSettings = { carryLength: null };
+
+/** The settings with the revision they were read at, which a save must send back (0018). */
+export const RevisedOwnerSettings = OwnerSettings.extend({
+  revision: z.number().int().positive(),
+});
+export type RevisedOwnerSettings = z.infer<typeof RevisedOwnerSettings>;
+
+/** The board options a plan is made with under the owner's settings. */
+export function boardOptionsFor(settings: OwnerSettings = NO_OWNER_SETTINGS): BoardOptions {
+  return settings.carryLength === null
+    ? DEFAULT_BOARD_OPTIONS
+    : { ...DEFAULT_BOARD_OPTIONS, carryLength: settings.carryLength };
+}
 
 /** A stock's name: a nominal size for dimension lumber, or the owner's name for board stock. */
 const Nominal = z.string();
@@ -129,6 +156,8 @@ export const LumberPlan = z.object({
    */
   kerf: z.number(),
   trimPerEnd: z.number(),
+  /** The carry length the boards were planned with (BoardOptions), when the owner entered one. */
+  carryLength: z.number().optional(),
   lines: z.array(ShoppingLine),
   /** Assumptions and tips for the whole list. Each line has its own notes too. */
   notes: z.array(z.string()),
@@ -325,6 +354,53 @@ function lengthAlternatives(
   return alternatives;
 }
 
+/** Total feet of a stock's boards. */
+const feetOf = (boards: readonly { feet: number }[]) => boards.reduce((sum, b) => sum + b.feet, 0);
+
+/**
+ * For a stock whose fewest-feet plan has boards over the carry length (#690): the plan with none,
+ * when it buys no more feet, as the tie-break; otherwise what it costs, or which pieces cannot
+ * avoid a longer board, as a note for the lines over the carry length. Undefined when the plan
+ * has no board over it.
+ */
+function withinCarry(
+  stock: { nominal: string; group: { feet: readonly number[] }; fitted: FittedBoard[] },
+  carry: number,
+  options: BoardOptions,
+  workLimit: number,
+): { fitted?: FittedBoard[]; note?: string; work: number } | undefined {
+  const over = (feet: number) => feet * 12 > carry;
+  if (!stock.fitted.some((board) => over(board.feet))) return undefined;
+  const limit = formatLength(carry, 'feet-inches');
+  const carryable = stock.group.feet.filter((feet) => !over(feet));
+  const pieces = stock.fitted.flatMap((board) => board.pieces);
+  const longest = Math.max(0, ...carryable) * 12;
+  const tooLong = [
+    ...new Set(pieces.filter((p) => used([p], options) > longest).map((p) => p.name)),
+  ];
+  if (carryable.length === 0) {
+    return { note: `${stock.nominal} is sold only in lengths over ${limit}.`, work: 0 };
+  }
+  if (tooLong.length > 0) {
+    const names = tooLong.join(', ');
+    return {
+      note: `${names} ${tooLong.length === 1 ? 'is' : 'are'} too long for a board of ${limit} or shorter after trim and kerf, so this plan keeps boards over ${limit}.`,
+      work: 0,
+    };
+  }
+  const within = planStock(pieces, carryable, options, workLimit);
+  const extra = feetOf(within.fitted) - feetOf(stock.fitted);
+  if (extra <= 0) return { fitted: within.fitted, work: within.work };
+  const buy = byLength(within.fitted.map((board) => board.feet))
+    .map((b) => `${b.count} × ${b.feet}'`)
+    .join(' and ');
+  const more = within.searched === 'proven' ? '' : 'at most ';
+  return {
+    note: `No boards over ${limit} buys ${more}${extra} ft more: ${buy}.`,
+    work: within.work,
+  };
+}
+
 export function planLumber(
   parts: readonly Part[],
   options: BoardOptions = DEFAULT_BOARD_OPTIONS,
@@ -403,18 +479,29 @@ export function planLumber(
     }
   }
 
+  // One work limit for the whole plan, each stock searching with what the ones before it left.
+  // Every stock is planned for the fewest feet first, so the searches for plans within the carry
+  // length get only the work left after them and never change those plans' feet.
+  let workLeft = WORK_LIMIT;
+  const planned = [...byStock].map(([nominal, group]) => {
+    const plan = planStock(group.pieces, group.feet, options, Math.max(0, workLeft));
+    workLeft -= plan.work;
+    return { nominal, group, ...plan, carryNote: undefined as string | undefined };
+  });
+  const carry = options.carryLength;
+  if (carry !== undefined) {
+    for (const stock of planned) {
+      const within = withinCarry(stock, carry, options, Math.max(0, workLeft));
+      if (!within) continue;
+      workLeft -= within.work;
+      if (within.fitted) stock.fitted = within.fitted;
+      stock.carryNote = within.note;
+    }
+  }
+
   const boards: PlannedBoard[] = [];
   const lineNotes = new Map<string, string[]>();
-  // One work limit for the whole plan, each stock searching with what the ones before it left.
-  let workLeft = WORK_LIMIT;
-  for (const [nominal, group] of byStock) {
-    const { fitted, unfit, searched, work } = planStock(
-      group.pieces,
-      group.feet,
-      options,
-      Math.max(0, workLeft),
-    );
-    workLeft -= work;
+  for (const { nominal, group, fitted, unfit, searched, carryNote } of planned) {
     for (const piece of unfit) {
       issues.push({
         code: 'part-longer-than-any-board',
@@ -441,7 +528,9 @@ export function planLumber(
     }
     for (const feet of new Set(fitted.map((board) => board.feet))) {
       const key = lumberLineKey({ nominal, feet });
-      lineNotes.set(key, [...(lineNotes.get(key) ?? []), searchedNote(nominal, searched)]);
+      const add = [searchedNote(nominal, searched)];
+      if (carryNote && carry !== undefined && feet * 12 > carry) add.push(carryNote);
+      lineNotes.set(key, [...(lineNotes.get(key) ?? []), ...add]);
     }
   }
   if (boards.length > 0) {
@@ -485,6 +574,7 @@ export function planLumber(
     boards,
     kerf: options.kerf,
     trimPerEnd: options.trimPerEnd,
+    ...(options.carryLength !== undefined ? { carryLength: options.carryLength } : {}),
     lines: [...counts.values()].map((line) => ({
       ...line,
       alternatives: lengthAlternatives(

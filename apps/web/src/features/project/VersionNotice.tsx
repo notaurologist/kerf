@@ -1,4 +1,4 @@
-import type { Change } from '@kerf/core';
+import { type Change, formatLength, type VersionReport } from '@kerf/core';
 import { useState } from 'react';
 import { api, describeError, send } from '../../lib/api.ts';
 import { indexChanges } from '../../lib/changes.tsx';
@@ -19,8 +19,48 @@ import {
 } from '../../ui/index.ts';
 import { PlanOutputs } from '../project-editor/Preview.tsx';
 
-// Tells the owner when a project's template has a newer version, what regenerating would change,
-// and regenerates only when asked (decision 0008). The stored plan is never replaced otherwise.
+// Tells the owner when a project's template has a newer version, or its boards were planned with
+// another carry length than theirs now (#690), what regenerating would change, and regenerates
+// only when asked (decision 0008). The stored plan is never replaced otherwise.
+
+type Regenerable = Extract<VersionReport, { status: 'behind' | 'carry-length' }>;
+
+const carryText = (inches: number | null) =>
+  inches === null ? 'no carry length' : `a carry length of ${formatLength(inches, 'feet-inches')}`;
+
+/** What the notice says for each reason a plan can be regenerated. */
+function wordsFor(report: Regenerable) {
+  if (report.status === 'behind') {
+    const next = `version ${report.currentVersion}`;
+    return {
+      what: (
+        <>
+          <b>The template has a newer version.</b> This plan was made with version{' '}
+          {report.storedVersion}; the current version is {report.currentVersion}. The plan below is
+          version {report.storedVersion}'s, unchanged.
+        </>
+      ),
+      values: `These are ${next}'s values.`,
+      cannot: `Version ${report.currentVersion} cannot make a plan from this project's values:`,
+      confirm: `Replace the stored plan with ${next}'s? This cannot be undone.`,
+      button: `Regenerate with ${next}`,
+    };
+  }
+  return {
+    what: (
+      <>
+        <b>Your carry length changed.</b> This plan's boards were planned with{' '}
+        {carryText(report.storedCarryLength)}; you now have {carryText(report.carryLength)}. The
+        plan below is unchanged.
+      </>
+    ),
+    values: 'These are the values with your carry length now.',
+    cannot: "Kerf cannot make a plan from this project's values now:",
+    confirm:
+      'Replace the stored plan with one planned for your carry length now? This cannot be undone.',
+    button: 'Update the shopping list',
+  };
+}
 
 export function VersionNotice(props: {
   project: Project;
@@ -82,14 +122,11 @@ export function VersionNotice(props: {
   };
 
   const { regenerated } = report;
+  const words = wordsFor(report);
   return (
     <Card as="section">
       <Stack gap="xs">
-        <Text>
-          <b>The template has a newer version.</b> This plan was made with version{' '}
-          {report.storedVersion}; the current version is {report.currentVersion}. The plan below is
-          version {report.storedVersion}'s, unchanged.
-        </Text>
+        <Text>{words.what}</Text>
         {regenerated.ok ? (
           regenerated.changes.length === 0 ? (
             <Text>Regenerating would change no values.</Text>
@@ -102,15 +139,13 @@ export function VersionNotice(props: {
                 outputs={regenerated.outputs}
                 changes={regenerated.changes}
                 truncated={regenerated.truncated}
-                currentVersion={report.currentVersion}
+                values={words.values}
               />
             </Disclosure>
           )
         ) : (
           <>
-            <Text>
-              Version {report.currentVersion} cannot make a plan from this project's values:
-            </Text>
+            <Text>{words.cannot}</Text>
             <List items={regenerated.issues.map((i) => i.message)} />
             <Text>
               Edit the project to change them; saving regenerates with the current version.
@@ -152,15 +187,12 @@ export function VersionNotice(props: {
                 setError(null);
               }}
             >
-              <Text>
-                Replace the stored plan with version {report.currentVersion}'s? This cannot be
-                undone.
-              </Text>
+              <Text>{words.confirm}</Text>
             </InlineConfirm>
           ) : (
             <Cluster>
               <Button ref={trigger} variant="secondary" onClick={() => setConfirming(true)}>
-                Regenerate with version {report.currentVersion}
+                {words.button}
               </Button>
             </Cluster>
           ))}
@@ -175,15 +207,15 @@ function RegeneratedPlan(props: {
   outputs: unknown;
   changes: readonly Change[];
   truncated: boolean;
-  currentVersion: number;
+  /** Whose values these are. */
+  values: string;
 }) {
   const plan = planOf(props.templateId, props.outputs);
   if (!plan.ok) return <Text>{plan.message}</Text>;
   return (
     <Stack gap="xs">
       <Text tone="muted">
-        These are version {props.currentVersion}'s values. Each changed value shows this plan's
-        value under it.
+        {props.values} Each changed value shows this plan's value under it.
         {props.truncated && ' More values changed than can be listed; regenerate to see them all.'}
       </Text>
       <PlanOutputs plan={plan.plan} changes={indexChanges(props.changes)} />

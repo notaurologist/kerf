@@ -9,6 +9,7 @@ describe('createTestDatabase', () => {
     );
     expect(tables.rows.map((r) => r.tablename)).toEqual([
       'login_failures',
+      'owner_settings',
       'project_history',
       'project_progress',
       'project_resets',

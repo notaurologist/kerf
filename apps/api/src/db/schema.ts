@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   bigint,
   check,
+  doublePrecision,
   index,
   integer,
   jsonb,
@@ -42,6 +43,24 @@ export const toolsRevision = pgTable(
   (t) => [
     check('tools_revision_single_row', sql`${t.id} = 1`),
     check('tools_revision_positive', sql`${t.revision} > 0`),
+  ],
+);
+
+// Settings the owner enters once and every project's plan uses (#690): one row, with its revision
+// (0018). A missing row reads as nothing entered.
+export const ownerSettings = pgTable(
+  'owner_settings',
+  {
+    id: integer('id').primaryKey().default(1),
+    /** The longest board the owner can easily carry, in inches; null until entered. */
+    carryLength: doublePrecision('carry_length'),
+    revision: integer('revision').notNull().default(1),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check('owner_settings_single_row', sql`${t.id} = 1`),
+    check('owner_settings_revision_positive', sql`${t.revision} > 0`),
+    check('owner_settings_carry_length_positive', sql`${t.carryLength} > 0`),
   ],
 );
 

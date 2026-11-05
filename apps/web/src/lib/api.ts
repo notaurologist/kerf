@@ -112,7 +112,7 @@ async function toError(res: Response): Promise<ApiError> {
       return { kind: 'not-found' };
     case 409:
       if (
-        (code === 'stale-project' || code === 'stale-tools') &&
+        (code === 'stale-project' || code === 'stale-tools' || code === 'stale-settings') &&
         isRecord(body) &&
         typeof body.revision === 'number'
       ) {

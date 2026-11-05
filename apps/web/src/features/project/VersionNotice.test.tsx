@@ -51,6 +51,28 @@ describe('VersionNotice', () => {
     expect(text).toContain('Regenerate with version 2');
   });
 
+  it('offers to update a plan made with another carry length (#690)', () => {
+    const text = show({
+      status: 'carry-length',
+      version: 1,
+      storedCarryLength: null,
+      carryLength: 96,
+      regenerated: {
+        ok: true,
+        outputs: lengthened,
+        changes: [{ path: 'cutList[0].length', before: '120"', after: '121"' }],
+        truncated: false,
+      },
+    });
+    expect(text).toContain('Your carry length changed.');
+    expect(text).toContain(
+      `This plan's boards were planned with no carry length; you now have a carry length of 8' 0".`,
+    );
+    expect(text).toContain('These are the values with your carry length now.');
+    expect(text).toContain('Update the shopping list');
+    expect(text).not.toContain('template');
+  });
+
   it('says when more values changed than it can list', () => {
     const text = show({
       status: 'behind',

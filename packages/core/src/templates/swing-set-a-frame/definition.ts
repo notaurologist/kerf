@@ -4,7 +4,12 @@ import { withLetters } from '../../model/letters.ts';
 import type { GenerateResult } from '../../model/types.ts';
 import { cutList, withSettings } from '../../outputs/cutList.ts';
 import { hardwareList } from '../../outputs/hardwareList.ts';
-import { DEFAULT_BOARD_OPTIONS, planLumber } from '../../outputs/shoppingList.ts';
+import {
+  boardOptionsFor,
+  DEFAULT_BOARD_OPTIONS,
+  type OwnerSettings,
+  planLumber,
+} from '../../outputs/shoppingList.ts';
 import { withStockAlternatives } from '../../outputs/stockAlternatives.ts';
 import { noSuggestions } from '../../snapshot/snapshot.ts';
 import { withDeeperStock } from './deeperStock.ts';
@@ -117,6 +122,7 @@ function reviewChecks(
 function outputsFor(
   params: SwingSetParams,
   structuralInputs: SwingSetStructuralInputs,
+  settings?: OwnerSettings,
 ): GenerateResult<SwingSetOutputs> {
   const design = generate(params);
   if (!design.ok) return design;
@@ -127,7 +133,7 @@ function outputsFor(
     output: {
       design: design.output,
       cutList: cutList(design.output.parts),
-      lumber: planLumber(design.output.parts),
+      lumber: planLumber(design.output.parts, boardOptionsFor(settings)),
       hardware: hardwareList(design.output.hardware),
       structuralReview: review.review,
     },
@@ -249,8 +255,8 @@ export const swingSetAFrame: TemplateDefinition<
   },
   drawings,
   assembly,
-  generate(params, structuralInputs) {
-    const made = outputsFor(params, structuralInputs);
+  generate(params, structuralInputs, settings) {
+    const made = outputsFor(params, structuralInputs, settings);
     if (!made.ok) return made;
     const lumber = withStockAlternatives(
       made.output.lumber,

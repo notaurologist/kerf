@@ -33,6 +33,7 @@ import {
   useDraft,
   useFormIssues,
 } from '../../ui/index.ts';
+import { CarrySetting } from './CarrySetting.tsx';
 import {
   addAnother,
   addTool,
@@ -72,13 +73,16 @@ export function ToolsScreen() {
       title="My toolbox"
     >
       {(inventory) => (
-        <ToolsEditor
-          key={generation}
-          saved={fromInventory(inventory)}
-          revision={inventory.revision}
-          onSaved={set}
-          onReload={loadNewer}
-        />
+        <Stack>
+          <ToolsEditor
+            key={generation}
+            saved={fromInventory(inventory)}
+            revision={inventory.revision}
+            onSaved={set}
+            onReload={loadNewer}
+          />
+          <CarrySetting />
+        </Stack>
       )}
     </Loaded>
   );

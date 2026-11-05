@@ -50,8 +50,8 @@ export function projectRoutes(projects: ProjectService) {
       const result = await projects.create(c.req.valid('json'));
       return result.ok ? c.json(result.value, 201) : failure(c, result);
     })
-    .post('/projects/preview', valid('json', NewProjectPreview), (c) => {
-      const result = projects.previewNew(c.req.valid('json'));
+    .post('/projects/preview', valid('json', NewProjectPreview), async (c) => {
+      const result = await projects.previewNew(c.req.valid('json'));
       return result.ok ? c.json(result.value, 200) : failure(c, result);
     })
     .get('/projects/:id', valid('param', ById), async (c) => {
