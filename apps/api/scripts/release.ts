@@ -21,6 +21,7 @@ export interface ReleaseConnection {
 export type ReleaseResult =
   | { status: 'skipped'; reason: string }
   | { status: 'invalid-url' }
+  | { status: 'needs-direct-url' }
   | { status: 'unreadable'; projects: { id: string; reason: string }[] }
   | { status: 'released'; history: { projects: number; rows: number } };
 
@@ -29,6 +30,51 @@ function skipReason(env: Record<string, string | undefined>): string | undefined
     return `a ${env.VERCEL_ENV ?? 'unknown'} deployment`;
   }
   return undefined;
+}
+
+type DatabaseUrl =
+  | { ok: true; url: string }
+  | { ok: false; status: 'invalid-url' | 'needs-direct-url'; message: string };
+
+// The release holds a session-level advisory lock, which Neon's pooler (PgBouncer in transaction
+// mode, host ending in -pooler) cannot keep: the unlock can reach another server connection and
+// leave the lock held for the next build.
+function databaseUrl(env: Record<string, string | undefined>): DatabaseUrl {
+  const production = env.VERCEL_ENV === 'production';
+  if (production && !env.DATABASE_URL_UNPOOLED) {
+    return {
+      ok: false,
+      status: 'needs-direct-url',
+      message:
+        "release: a production release needs DATABASE_URL_UNPOOLED, Neon's direct connection string.",
+    };
+  }
+  const variable = env.DATABASE_URL_UNPOOLED
+    ? 'DATABASE_URL_UNPOOLED'
+    : env.DATABASE_URL
+      ? 'DATABASE_URL'
+      : undefined;
+  const url = (variable && env[variable]) || LOCAL_DATABASE_URL;
+  const name = variable ?? 'the local database URL';
+  let host: string;
+  try {
+    if (!/^postgres(ql)?:\/\//.test(url)) throw new Error('not postgres');
+    host = new URL(url).hostname;
+  } catch {
+    return {
+      ok: false,
+      status: 'invalid-url',
+      message: `release: ${name} must be a postgres:// URL.`,
+    };
+  }
+  if (host.includes('-pooler')) {
+    return {
+      ok: false,
+      status: 'needs-direct-url',
+      message: `release: ${name} points at a pooled host (-pooler); use Neon's direct connection string.`,
+    };
+  }
+  return { ok: true, url };
 }
 
 async function unreadableProjects(db: Database, templates: readonly TemplateDefinition[]) {
@@ -66,14 +112,13 @@ export async function release(options: {
     return { status: 'skipped', reason: skip };
   }
 
-  // Neon advises schema changes over the direct connection, not the pooler.
-  const url = env.DATABASE_URL_UNPOOLED || env.DATABASE_URL || LOCAL_DATABASE_URL;
-  if (!/^postgres(ql)?:\/\//.test(url)) {
-    log('release: DATABASE_URL_UNPOOLED or DATABASE_URL must be a postgres:// URL.');
-    return { status: 'invalid-url' };
+  const selected = databaseUrl(env);
+  if (!selected.ok) {
+    log(selected.message);
+    return { status: selected.status };
   }
 
-  const { db, migrate, close } = connect(url);
+  const { db, migrate, close } = connect(selected.url);
   try {
     // Session-level, which holds because every step uses this one connection.
     await db.execute(sql`select pg_advisory_lock(${RELEASE_LOCK})`);
@@ -114,5 +159,5 @@ if (import.meta.main) {
     now: () => new Date(),
     log: console.log,
   });
-  if (result.status === 'invalid-url' || result.status === 'unreadable') process.exitCode = 1;
+  if (result.status !== 'released' && result.status !== 'skipped') process.exitCode = 1;
 }
