@@ -492,6 +492,22 @@ export function nextUp(progress: ProgressSummary, toDo: number): NextUp {
   return steps.total > 0 ? { kind: 'done' } : null;
 }
 
+/**
+ * Bumped whenever `progressOutline` would outline the same plan differently in a way the template
+ * version does not cover: the keys `outlineProgress` gives, or the outline's shape. A change to a
+ * template's plan or steps, or to how steps are made, already changes what its plans show, which
+ * needs a new template version (decision 0014).
+ */
+export const PROGRESS_OUTLINE_VERSION = 1;
+
+/**
+ * What a stored outline was made by: this outline version and the template's version. An outline
+ * stored under another key was made by other code, such as the previous deploy during a release,
+ * and is read again.
+ */
+export const progressOutlineKey = (template: Pick<TemplateDefinition, 'version'>) =>
+  `${PROGRESS_OUTLINE_VERSION}:${template.version}`;
+
 /** The progress outline for a template's stored outputs. Draws nothing. */
 export function progressOutline<O>(
   template: Pick<TemplateDefinition<unknown, unknown, O>, 'steps' | 'plan'>,

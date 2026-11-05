@@ -2,7 +2,9 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  PROGRESS_OUTLINE_VERSION,
   progressItems,
+  progressOutlineKey,
   progressSummary,
   readSnapshot,
   recordCabinet,
@@ -149,10 +151,62 @@ describe('stored projects of every shape', () => {
       return plan.mock.calls.length;
     };
     expect(await list()).toBe(0);
-    // As a save by the previous deploy leaves it: a new revision, and the outline from before.
+    // A save that left the outline from before: a new revision.
     await client.query('update projects set revision = revision + 1');
     expect(await list()).toBe(1);
     expect(await list()).toBe(0);
+    await close();
+  });
+
+  it('reads again an outline made by other code at the current revision', async () => {
+    const [swingSet] = TEMPLATES;
+    if (!swingSet) throw new Error('needs a template');
+    const plan = vi.fn(swingSet.plan);
+    const counting = { ...swingSet, plan };
+    const { client, authed, close } = await createTestApp({ templates: [counting] });
+    const created = await authed('/api/projects', {
+      method: 'POST',
+      body: {
+        name: 'Stored',
+        templateId: swingSet.id,
+        params: swingSetParams,
+        structuralInputs: swingSetInputs,
+      },
+    });
+    expect(created.status).toBe(201);
+    const stored = async () =>
+      (
+        await client.query<{ outline: unknown; version: string | null }>(
+          'select progress_outline as outline, progress_outline_version as version from projects',
+        )
+      ).rows[0];
+    const made = await stored();
+    expect(made?.version).toBe(progressOutlineKey(swingSet));
+    const list = async () => {
+      plan.mockClear();
+      const res = await authed('/api/projects');
+      expect(res.status).toBe(200);
+      return plan.mock.calls.length;
+    };
+    // As the previous deploy leaves a save during a release: this revision, its own outline.
+    await client.query(
+      `update projects set progress_outline = '{"shopping": [], "pieces": [], "steps": []}',
+         progress_outline_version = $1`,
+      [`${PROGRESS_OUTLINE_VERSION - 1}:${swingSet.version}`],
+    );
+    expect(await list()).toBe(1);
+    expect(await stored()).toEqual(made);
+    expect(await list()).toBe(0);
+    // As an outline made under the template's previous version.
+    await client.query('update projects set progress_outline_version = $1', [
+      `${PROGRESS_OUTLINE_VERSION}:${swingSet.version - 1}`,
+    ]);
+    expect(await list()).toBe(1);
+    expect(await stored()).toEqual(made);
+    // As an outline from before outline versions.
+    await client.query('update projects set progress_outline_version = null');
+    expect(await list()).toBe(1);
+    expect(await stored()).toEqual(made);
     await close();
   });
 
