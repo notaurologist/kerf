@@ -60,6 +60,15 @@ export function Diagrams(props: {
     key: string;
     load: (corner: geometry.Corner) => Promise<ApiResult<CornerViews>>;
   };
+  /**
+   * The plan's sub-assemblies (#647), listed with its drawings, each one's views fetched when it
+   * is opened and kept until `key`, the plan they were drawn from, changes.
+   */
+  subAssemblies?: {
+    key: string;
+    list: readonly geometry.SubAssemblySummary[];
+    load: (groupId: string) => Promise<ApiResult<geometry.SubAssemblyDrawings | null>>;
+  };
 }) {
   const { rows } = props;
   const common = {
@@ -71,55 +80,6 @@ export function Diagrams(props: {
   const chosen = rows.find((r) => r.partId === props.selected);
   const corner = useCorner(props.drawings, props.corners);
   const drawings = { ...props.drawings, ...corner.views };
-  const motion = useAssemblyMotion(drawings.exploded?.stages);
-  // Both views at one scale, so a part can slide from one to the other. Kept between renders, so
-  // a stage of the move redraws only the two views that move.
-  const isometricBounds = drawings.isometric?.bounds;
-  const explodedBounds = drawings.exploded?.bounds;
-  const frame = useMemo(
-    () =>
-      isometricBounds && explodedBounds ? sharedFrame(isometricBounds, explodedBounds) : undefined,
-    [isometricBounds, explodedBounds],
-  );
-  const assembled: View | null = drawings.isometric && {
-    id: 'assembled',
-    label: 'Assembled',
-    action: 'Assemble',
-    content: (
-      <Diagram
-        {...common}
-        page="landscape"
-        frame={frame}
-        motion={frame && motion.assembled}
-        letters="wide"
-        drawing={drawings.isometric}
-        label={`Isometric view. ${drawings.isometric.description} ${parts}`}
-      />
-    ),
-  };
-  const exploded: View | null = drawings.exploded && {
-    id: 'exploded',
-    label: 'Exploded',
-    action: 'Explode',
-    content: (
-      <Diagram
-        {...common}
-        page="landscape"
-        frame={frame}
-        motion={frame && motion.exploded}
-        letters="wide"
-        drawing={
-          drawings.isometric
-            ? drawingInMove(drawings.isometric, drawings.exploded, motion.at)
-            : drawings.exploded
-        }
-        label={`Exploded view. ${drawings.exploded.description} ${parts}`}
-      />
-    ),
-  };
-  const lone = assembled ?? exploded;
-  const assembly =
-    assembled && exploded ? ([assembled, exploded] as const) : lone && ([lone] as const);
   return (
     <Stack gap="l">
       <Text tone="muted" screenOnly>
@@ -132,24 +92,35 @@ export function Diagrams(props: {
           <a href={props.partHref(chosen.partId)}>Show it in the cut list</a>
         </StatusLine>
       )}
-      {assembly && (
-        <ViewSwitch
-          views={assembly}
-          control={frame && motion.control}
-          tools={
-            props.corners && (
-              <CompactSelect
-                label="Seen from"
-                value={corner.asked}
-                options={geometry.CORNERS.map((c) => ({ value: c, label: CORNER_LABELS[c] }))}
-                onChange={(c) => corner.choose(c as geometry.Corner)}
-              />
-            )
-          }
+      <AssemblyViews
+        {...common}
+        isometric={drawings.isometric}
+        exploded={drawings.exploded}
+        parts={parts}
+        tools={
+          props.corners && (
+            <CompactSelect
+              label="Seen from"
+              value={corner.asked}
+              options={geometry.CORNERS.map((c) => ({ value: c, label: CORNER_LABELS[c] }))}
+              onChange={(c) => corner.choose(c as geometry.Corner)}
+            />
+          )
+        }
+      />
+      {corner.status}
+      {(drawings.isometric || drawings.exploded) && (
+        <PartPicker rows={rows} selected={props.selected} onSelect={props.onSelect} />
+      )}
+      {props.subAssemblies && props.subAssemblies.list.length > 0 && (
+        <SubAssemblies
+          {...common}
+          rows={rows}
+          plan={props.subAssemblies.key}
+          list={props.subAssemblies.list}
+          load={props.subAssemblies.load}
         />
       )}
-      {corner.status}
-      {assembly && <PartPicker rows={rows} selected={props.selected} onSelect={props.onSelect} />}
       {(drawings.elevations ?? []).length > 0 && (
         <>
           <h3>Elevations and sections</h3>
@@ -195,6 +166,190 @@ export function Diagrams(props: {
         </Stack>
       )}
     </Stack>
+  );
+}
+
+type Common = {
+  describedBy: string;
+  selected: string | null;
+  onSelect: (partId: string) => void;
+};
+
+/**
+ * An assembly's assembled and exploded views in one frame, with the switch between them and the
+ * staged move (`useAssemblyMotion`, which swaps them at once under reduced motion). Either view
+ * alone is shown under its heading.
+ */
+function AssemblyViews(
+  props: Common & {
+    isometric: Drawing | null;
+    exploded: Drawing | null;
+    /** The part letters the views show, for assistive technology. */
+    parts: string;
+    tools?: ReactNode;
+    headingLevel?: 3 | 4;
+  },
+) {
+  const { isometric, exploded, parts, describedBy, selected, onSelect } = props;
+  const common = { describedBy, selected, onSelect };
+  const motion = useAssemblyMotion(exploded?.stages);
+  // Both views at one scale, so a part can slide from one to the other. Kept between renders, so
+  // a stage of the move redraws only the two views that move.
+  const isometricBounds = isometric?.bounds;
+  const explodedBounds = exploded?.bounds;
+  const frame = useMemo(
+    () =>
+      isometricBounds && explodedBounds ? sharedFrame(isometricBounds, explodedBounds) : undefined,
+    [isometricBounds, explodedBounds],
+  );
+  const assembled: View | null = isometric && {
+    id: 'assembled',
+    label: 'Assembled',
+    action: 'Assemble',
+    content: (
+      <Diagram
+        {...common}
+        page="landscape"
+        frame={frame}
+        motion={frame && motion.assembled}
+        letters="wide"
+        drawing={isometric}
+        label={`Isometric view. ${isometric.description} ${parts}`}
+      />
+    ),
+  };
+  const apart: View | null = exploded && {
+    id: 'exploded',
+    label: 'Exploded',
+    action: 'Explode',
+    content: (
+      <Diagram
+        {...common}
+        page="landscape"
+        frame={frame}
+        motion={frame && motion.exploded}
+        letters="wide"
+        drawing={isometric ? drawingInMove(isometric, exploded, motion.at) : exploded}
+        label={`Exploded view. ${exploded.description} ${parts}`}
+      />
+    ),
+  };
+  const lone = assembled ?? apart;
+  const views = assembled && apart ? ([assembled, apart] as const) : lone && ([lone] as const);
+  if (!views) return null;
+  return (
+    <ViewSwitch
+      views={views}
+      control={frame && motion.control}
+      tools={props.tools}
+      headingLevel={props.headingLevel}
+    />
+  );
+}
+
+/** A group's title, with how many the plan has when there are more than one. */
+const groupTitle = (g: geometry.SubAssemblySummary) =>
+  g.alike > 1 ? `${g.title} (${g.alike} alike)` : g.title;
+
+/**
+ * The plan's sub-assemblies (#647), each taken fully apart in a view of its own, opened from a
+ * list one at a time. A group's views are fetched the first time it is opened and kept for the
+ * plan they were drawn from. Not printed (owner's decision on #647): the list and the open group
+ * are screen only.
+ */
+function SubAssemblies(
+  props: Common & {
+    rows: readonly CutListRow[];
+    /** The plan the views are drawn from. */
+    plan: string;
+    list: readonly geometry.SubAssemblySummary[];
+    load: (groupId: string) => Promise<ApiResult<geometry.SubAssemblyDrawings | null>>;
+  },
+) {
+  const { plan, list, load, rows, describedBy, selected, onSelect } = props;
+  // What is open, loaded, or failed is kept with the plan it was for, so a changed plan closes
+  // the group, which it may no longer have, and draws its views afresh.
+  const [opened, setOpened] = useState<{ plan: string; id: string } | null>(null);
+  const [loaded, setLoaded] = useState<{
+    plan?: string;
+    views: Map<string, geometry.SubAssemblyDrawings | null>;
+  }>({ views: new Map() });
+  const [failed, setFailed] = useState<{ plan: string; id: string; message: string } | null>(null);
+  const open = opened?.plan === plan ? opened.id : null;
+  const views = loaded.plan === plan ? loaded.views : new Map<string, never>();
+  const failure = failed?.plan === plan && failed.id === open ? failed.message : null;
+  const choose = async (groupId: string) => {
+    setFailed(null);
+    if (open === groupId) {
+      setOpened(null);
+      return;
+    }
+    setOpened({ plan, id: groupId });
+    if (views.has(groupId)) return;
+    const result = await load(groupId);
+    if (!result.ok) {
+      setFailed({ plan, id: groupId, message: describeError(result.error) });
+      return;
+    }
+    setLoaded((l) => ({
+      plan,
+      views: new Map(l.plan === plan ? l.views : []).set(groupId, result.value),
+    }));
+  };
+  const group = list.find((g) => g.id === open);
+  const shown = open !== null ? views.get(open) : undefined;
+  const lettered = (d: geometry.SubAssemblyDrawings) => {
+    const ids = new Set(
+      d.isometric.primitives.flatMap((p) => ('part' in p && p.part ? [p.part.partId] : [])),
+    );
+    return `Parts ${lettersOf(rows.filter((r) => ids.has(r.partId)))}, lettered as in the cut list.`;
+  };
+  return (
+    <section data-screen-only aria-labelledby="sub-assemblies">
+      <Stack gap="s">
+        <h3 id="sub-assemblies">Sub-assemblies</h3>
+        <Text tone="muted">
+          Each group built as a unit, taken fully apart. Alike groups are drawn once.
+        </Text>
+        <Cluster>
+          {list.map((g) => (
+            <Button
+              key={g.id}
+              variant="secondary"
+              pressed={open === g.id}
+              onClick={() => void choose(g.id)}
+            >
+              {groupTitle(g)}
+            </Button>
+          ))}
+        </Cluster>
+        {failure !== null && (
+          <StatusLine tone="error">That sub-assembly could not be drawn. {failure}</StatusLine>
+        )}
+        {group && failure === null && (
+          <Stack gap="xs">
+            <h4>{groupTitle(group)}</h4>
+            {shown === undefined ? (
+              <StatusLine tone="working">Drawing the {group.title.toLowerCase()}…</StatusLine>
+            ) : shown === null ? (
+              <Text tone="muted">This sub-assembly could not be drawn.</Text>
+            ) : (
+              // Each group opens assembled, with a move of its own.
+              <AssemblyViews
+                key={group.id}
+                describedBy={describedBy}
+                selected={selected}
+                onSelect={onSelect}
+                isometric={shown.isometric}
+                exploded={shown.exploded}
+                parts={lettered(shown)}
+                headingLevel={4}
+              />
+            )}
+          </Stack>
+        )}
+      </Stack>
+    </section>
   );
 }
 

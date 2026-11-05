@@ -75,6 +75,13 @@ export const SubAssemblySummary = z.object({
 });
 export type SubAssemblySummary = z.infer<typeof SubAssemblySummary>;
 
+/** A plan's drawings as the API sends them, with its sub-assemblies listed (#651). */
+export const PlanDrawings = z.object({
+  drawings: Drawings.nullable(),
+  subAssemblies: z.array(SubAssemblySummary),
+});
+export type PlanDrawings = z.infer<typeof PlanDrawings>;
+
 /** One sub-assembly's assembled and exploded views. */
 export const SubAssemblyDrawings = z.object({ isometric: Drawing, exploded: Drawing });
 export type SubAssemblyDrawings = z.infer<typeof SubAssemblyDrawings>;

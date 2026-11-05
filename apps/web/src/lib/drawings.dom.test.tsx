@@ -49,7 +49,7 @@ afterEach(() => {
 describe('the plan’s drawings', () => {
   it('come apart from the project, and stay for the modes with the connection gone', async () => {
     const asked = server((path) =>
-      path.endsWith('/drawings') ? json({ drawings }) : json(project),
+      path.endsWith('/drawings') ? json({ drawings, subAssemblies: [] }) : json(project),
     );
     const plan = mount(<ProjectScreen id={project.id} section="diagrams" />);
     await arrive();
@@ -74,7 +74,7 @@ describe('the plan’s drawings', () => {
       path.endsWith('/drawings')
         ? fail
           ? json({ error: 'internal' }, 500)
-          : json({ drawings })
+          : json({ drawings, subAssemblies: [] })
         : json({ ...project, revision: project.revision + 1 }),
     );
     const plan = mount(<ProjectScreen id={project.id} section="diagrams" />);
@@ -108,7 +108,7 @@ describe('a build step’s action drawing', () => {
     const frames = loadedStepDrawing(project, 'frames');
     if (frames.state !== 'ready' || !frames.value) throw new Error('frames has no drawing');
     const asked = server((path) => {
-      if (path.endsWith('/drawings')) return json({ drawings });
+      if (path.endsWith('/drawings')) return json({ drawings, subAssemblies: [] });
       const step = path.match(/\/steps\/([^/]+)\/drawing$/)?.[1];
       if (step) return json({ drawing: step === 'frames' ? frames.value : null });
       return json(project);
