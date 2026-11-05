@@ -11,7 +11,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 // React draws again only when the drawing under the parts changes. Under reduced motion the views
 // swap at once.
 
-/** How long each stage's parts take to slide. */
+/** How long the move takes for each stage it has. */
 const MOVE_MS = 400;
 
 type Bounds = geometry.Drawing['bounds'];
@@ -56,8 +56,18 @@ const reducedMotion = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
-/** Eased in and out within each stage, so each one starts and settles gently. */
+/** Eased in and out over the whole move, so it starts and settles gently and runs on between stages. */
 const ease = (p: number) => (p < 0.5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p));
+
+/**
+ * Where the parts are `at` of the way through a move of `count` stages: the stage, and how far
+ * through it they have gone.
+ */
+export function placeInMove(at: number, count: number): { stage: number; t: number } {
+  const eased = count * ease(Math.min(1, Math.max(0, at / count)));
+  const stage = Math.min(count - 1, Math.floor(eased));
+  return { stage, t: eased - stage };
+}
 
 /** Both drawings' bounds together, so the two are drawn at one scale and nothing jumps. */
 export function sharedFrame(a: Bounds, b: Bounds): Bounds {
@@ -108,8 +118,7 @@ export function useAssemblyMotion(stages: readonly Stage[] = NO_STAGES) {
 
   const place = () => {
     const { stages: all, count: n } = live.current;
-    const k = Math.min(n - 1, Math.floor(at.current));
-    const t = ease(at.current - k);
+    const { stage: k, t } = placeInMove(at.current, n);
     return { stage: k, t, over: (t < (all[k]?.from ?? 0) ? 'start' : 'end') as Over };
   };
   // While the assembled view shows, the exploded one waits at rest, as it prints.
