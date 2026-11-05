@@ -8,7 +8,8 @@
   },
   "scripts": {
     "typecheck": "tsc -p .",
-    "write-templates": "node scripts/writeTemplates.ts"
+    "write-templates": "node scripts/writeTemplates.ts",
+    "write-dxf": "node scripts/writeDxf.ts"
   },
   "dependencies": {
     "@kerf/core": "workspace:*"

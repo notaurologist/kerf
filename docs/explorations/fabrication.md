@@ -65,6 +65,21 @@ An end template takes in each face hole whose circle starts within two widths of
 
 Notes wrap at 7", and a drawing that spans pages starts at the first page's left edge (one that fits across a page is centered), so no note crosses a vertical trim line. A note can still straddle a horizontal one on a sheet more than one page tall.
 
+## DXF
+
+`partDxf(part)` writes one ASCII DXF file per part for a CAM program: the face outline as one closed polyline on layer `OUTLINE`, and each hole square to the faces as a circle on `THROUGH_HOLES`, `STOPPED_HOLES` (bored into the face shown), or `BACK_HOLES` (bored into the other face, cut with the part turned over). Coordinates are core's, unrounded, in inches: x along the part from the first end's long point, y from the reference edge, looking at the face the drawings show. `pnpm --filter @kerf/fabrication write-dxf <template-id> [part letter...]` writes them to `packages/fabrication/out/dxf/`.
+
+The group codes were checked against Autodesk's DXF Reference for AutoCAD 2024 (help.autodesk.com: HEADER Section Group Codes, POLYLINE, VERTEX, CIRCLE, and Writing a DXF File):
+
+- `$ACADVER` is code 1, and AC1009 means R11 and R12. `$INSUNITS` is code 70, and 1 means inches.
+- POLYLINE: 66 is the old "entities follow" flag (now ignored if present), 10/20/30 a dummy point, 70 bit 1 closed; then VERTEX entities with 10/20/30 and a SEQEND.
+- CIRCLE: center 10/20/30 and radius 40. Code 8 names the layer.
+- The HEADER may be omitted, layers named in ENTITIES are created when read, and the file must end with EOF.
+
+The file is labeled R12, since nearly every DXF reader takes its POLYLINE. LWPOLYLINE and object handles came later and would need the newer structure. `$INSUNITS` is newer than R12, and a reader that does not know it ignores it. Dadoes, mortises, and tapers that take off thickness are not written; each would need a depth, which a 2D DXF can only carry by layer name.
+
+No CAD viewer was available to open the files in, so that check is left for the owner. G-code waits on #546's first question.
+
 ## Steps
 
 1. #666 Package and whole-part templates

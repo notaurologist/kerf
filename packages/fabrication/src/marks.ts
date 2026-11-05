@@ -21,6 +21,8 @@ export interface FaceHole {
   from: 'shown' | 'other';
   /** Whether it comes out on the face shown, so the circle there is solid. */
   showsHere: boolean;
+  /** Whether it goes all the way through the part. */
+  through: boolean;
 }
 
 /** A rectangle in a face: a dado or a mortise, solid on the face shown and dashed on the other. */
@@ -50,6 +52,7 @@ export function faceHoles(part: Part): FaceHole[] {
         use: `for a ${formatLength(h.boltDiameter)} bolt`,
         from: fromShown(h.entry.n) ? ('shown' as const) : ('other' as const),
         showsHere: true,
+        through: Math.abs(h.length - T) < 1e-9,
       })),
     ...part.boredHoles
       .filter((h) => squareToFaces(h.direction))
@@ -61,6 +64,7 @@ export function faceHoles(part: Part): FaceHole[] {
           use: h.use,
           from,
           showsHere: h.through || from === 'shown',
+          through: h.through,
         };
       }),
   ];
