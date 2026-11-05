@@ -190,6 +190,37 @@ describe('sessions', () => {
     expect((await client.query('select * from sessions')).rows).toEqual([]);
   });
 
+  it('all end at logout everywhere, on every device', async () => {
+    const { app, client, sessionCookie } = await createTestApp();
+    const phone = await sessionCookie();
+    const laptop = await sessionCookie();
+    expect(phone).not.toBe(laptop);
+    const res = await app.request('/api/logout-all', {
+      method: 'POST',
+      headers: { cookie: laptop, 'content-type': 'application/json' },
+      body: '{}',
+    });
+    expect(res.status).toBe(204);
+    expect(res.headers.get('set-cookie')).toMatch(/^__Host-kerf_session=;/);
+    for (const cookie of [phone, laptop]) {
+      expect((await app.request('/api/session', { headers: { cookie } })).status).toBe(401);
+      expect((await app.request('/api/tools', { headers: { cookie } })).status).toBe(401);
+    }
+    expect((await client.query('select * from sessions')).rows).toEqual([]);
+  });
+
+  it('end everywhere only for a logged-in device', async () => {
+    const { app, client, sessionCookie } = await createTestApp();
+    await sessionCookie();
+    const res = await app.request('/api/logout-all', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: '{}',
+    });
+    expect(res.status).toBe(401);
+    expect((await client.query('select * from sessions')).rows).toHaveLength(1);
+  });
+
   it('end when the password changes', async () => {
     const database = await createTestDatabase();
     const before = await createTestApp({ database });
