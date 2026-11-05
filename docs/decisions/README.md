@@ -24,3 +24,4 @@ One file per decision. Format: context, decision, consequences. Never edit a pas
 | 0018 | Project revisions: a save or tick made on an older plan is refused | Accepted |
 | 0019 | Templates are made in Claude Code, starting from the owner's pictures | Accepted |
 | 0020 | Templates declare their parts' joints, and the joints give the geometry | Accepted |
+| 0021 | The shopping list buys the fewest feet a bounded search finds | Accepted |
