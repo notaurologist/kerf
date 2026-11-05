@@ -123,19 +123,32 @@ function actionSteps<O>(
 /** Space between boards or strips pulled apart, and between glue-ups, in board widths. */
 const GAP = 0.6;
 
-/** A board or strip of a glued-up part, drawn as the part with its size and square ends. */
+/**
+ * A board or strip of a glued-up part, drawn as the part with its size and square ends, and none
+ * of the joinery or holes cut into the part once it is glued up.
+ */
 function piece(part: Part, length: number, stock: Part['stock']): Part {
   return {
     ...part,
     length,
     stock,
     ends: [part.ends[0], part.ends[1]].map((e) => ({ ...e, setting: 0 })) as Part['ends'],
+    markLengths: [],
     tapers: [],
     holes: [],
     boltAreas: [],
     dadoes: [],
     notches: [],
     cutouts: [],
+    mortises: [],
+    tenons: [],
+    dovetails: [],
+    screwHoles: [],
+    grooves: [],
+    rabbets: [],
+    recesses: [],
+    boredHoles: [],
+    hingePlates: [],
   };
 }
 

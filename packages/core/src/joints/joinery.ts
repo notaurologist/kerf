@@ -33,7 +33,7 @@ const parallel = (a: Vec3, b: Vec3) => Math.abs(Math.abs(dot(a, b)) - 1) <= EPSI
 type Refused = { ok: false; message: string };
 
 /** A tenon's outline on the end it is cut from: v0 and width across, n0 and thickness through. */
-interface TenonSize {
+export interface TenonSize {
   v0: number;
   width: number;
   n0: number;

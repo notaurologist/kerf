@@ -100,6 +100,7 @@ README section 4.
 - `pnpm check` runs lint, typecheck, knip, and tests. Knip fails on an unused export, so export only what another module imports. `pnpm biome check --write <files>` fixes import order.
 - While iterating, run one file's tests rather than the whole suite: `pnpm --filter @kerf/core exec vitest run <path> < /dev/null`. Without `< /dev/null`, vitest and pnpm can wait on stdin and hang. Run `pnpm check` once before pushing.
 - A change to a worked example or a suggested value moves numbers outside the template folder too: `apps/web/src/features/project/RecordCabinet.test.tsx` asserted the cabinet's top depth and glue-up width, and changing the suggested case depth on #339 broke it. Search the repo for the old numbers as formatted (`17-3/4`), not only as decimals.
+- `apps/api/src/routes/stored.test.ts` holds each worked example's project and drawings responses under a budget, because Vercel refuses a function response over 4.5 MB. A template with many parts and features can go over it; the workbench's drawings came to 6.3 MB before each build step's drawing moved to its own request (#635). Run the API tests before the fixtures, and look at which drawing is large before changing anything generic.
 - Say in the pull request what wasn't checked. Every cabinet PR said "Not checked in the running app," because the dev server needs Postgres and logging in needs the owner's password.
 
 ### Versions and fixtures when extending

@@ -1,4 +1,10 @@
-import { recordCabinet, swingSetAFrame, type TemplateDefinition, unletteredView } from '@kerf/core';
+import {
+  recordCabinet,
+  swingSetAFrame,
+  type TemplateDefinition,
+  unletteredView,
+  workbench,
+} from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
 
@@ -160,14 +166,24 @@ describe('/api/templates', () => {
           name: 'Record cabinet',
           description: recordCabinet.definition.description,
         },
+        {
+          id: 'workbench',
+          version: workbench.definition.version,
+          name: 'Workbench',
+          description: workbench.definition.description,
+        },
       ],
     });
   });
 
   it("draws a template's first worked example, assembled and unlettered, from core", async () => {
     const { authed } = await createTestApp();
-    // The two templates' types differ, so they are read through the shared definition type.
-    const definitions: TemplateDefinition[] = [swingSetAFrame.definition, recordCabinet.definition];
+    // The templates' types differ, so they are read through the shared definition type.
+    const definitions: TemplateDefinition[] = [
+      swingSetAFrame.definition,
+      recordCabinet.definition,
+      workbench.definition as TemplateDefinition,
+    ];
     for (const definition of definitions) {
       const example = definition.examples[0];
       if (!example) throw new Error('no worked example');

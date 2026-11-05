@@ -487,6 +487,11 @@ describe('dadoes, notches, and cutouts', () => {
     const corner = { ...housing, dadoes: [dado(18, 20, 5, 5.5)] };
     const [op] = cutAndDrillOperations([corner], []).filter((o) => o.id === 'side/dado-0');
     expect(op).toMatchObject({ type: 'stopped-rabbet', length: 0.5, width: 2 });
+    // Open at the second end and at both edges: a rabbet across the end.
+    const end = { ...housing, dadoes: [dado(19.25, 20, 0, 5.5)] };
+    const [across] = cutAndDrillOperations([end], []).filter((o) => o.id === 'side/dado-0');
+    expect(across).toMatchObject({ type: 'end-rabbet', length: 5.5, width: 0.75 });
+    expect(Operation.safeParse(across).error).toBeUndefined();
   });
 
   it('makes a notch and a cutout through the thickness, each from a square end', () => {

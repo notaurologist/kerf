@@ -78,6 +78,7 @@ export const Method = z.object({
     'dado',
     'stopped-dado',
     'stopped-rabbet',
+    'end-rabbet',
     'double-stopped-dado',
     'face-groove',
     'notch',
@@ -245,6 +246,12 @@ export const METHOD_VALUES: { [T in OperationType]: ValuesOf<T> } = {
     depth: { kind: 'length', of: (op) => op.depth },
   },
   'stopped-rabbet': {
+    count,
+    width: { kind: 'length', of: (op) => op.width },
+    length: { kind: 'length', of: (op) => op.length },
+    depth: { kind: 'length', of: (op) => op.depth },
+  },
+  'end-rabbet': {
     count,
     width: { kind: 'length', of: (op) => op.width },
     length: { kind: 'length', of: (op) => op.length },
@@ -1949,6 +1956,61 @@ export const METHODS = [
     ],
     mistakes: [
       'Chopping the stopped end with the bevel facing the waste pushes the chisel past the line. Keep the flat of the chisel toward the end wall.',
+    ],
+    safety: [CLAMP_THE_WORK],
+    flags: [],
+    easierThan: [],
+    moreAccurateThan: [],
+  },
+
+  // Rabbet across an end (a dado at the end, open there and at both edges)
+  {
+    id: 'end-rabbet-router',
+    operation: 'end-rabbet',
+    name: 'With a router and a guide',
+    tools: [{ use: 'cutting the rabbet', anyOf: [{ tool: 'router' }] }, TAPE, SQUARE, CLAMPS],
+    skills: ['measure-and-mark', 'square-a-line', 'rout-along-a-guide'],
+    setup: [
+      DADO_FROM_THE_PART,
+      'Fit a straight bit and set it to cut {depth} deep, in shallow cuts if the bit is small.',
+      'Measure from the bit to the edge of the router base, to set the guide back by that much.',
+    ],
+    technique: [
+      "Mark the rabbet's inside wall across the face, {width} in from the end, and square it down the edges.",
+      'Clamp a straight board as a guide so the bit cuts on the waste side of the wall, along the full {length}.',
+      'Rout the wall, then clear the wood out to the end the same way, with a scrap clamped at the far edge so the bit does not tear it out.',
+      'Check the fit with the part it houses before you unclamp the guide.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Routing off the far edge with nothing behind it splits the grain there. Clamp a scrap flush with the edge first.',
+    ],
+    safety: [ROUTER_BIT, ROUTER_FEED, EYE_PROTECTION, HEARING_PROTECTION],
+    flags: [categoryFlag('router')],
+    easierThan: ['end-rabbet-hand-saw'],
+    moreAccurateThan: ['end-rabbet-hand-saw'],
+  },
+  {
+    id: 'end-rabbet-hand-saw',
+    operation: 'end-rabbet',
+    name: 'With a hand saw and a chisel',
+    tools: [
+      { use: 'sawing the inside wall', anyOf: [{ tool: 'hand-saw' }] },
+      { use: 'clearing the waste', anyOf: [{ tool: 'chisel' }] },
+      TAPE,
+      SQUARE,
+      CLAMPS,
+    ],
+    skills: ['measure-and-mark', 'square-a-line', 'saw-by-hand', 'pare-to-a-line'],
+    setup: [DADO_FROM_THE_PART, 'Clamp the part flat to the bench.'],
+    technique: [
+      'Mark the inside wall across the face, {width} in from the end, and the depth, {depth}, on both edges and the end.',
+      'Saw the inside wall on the waste side of its line, down to the depth lines on both edges.',
+      'Chisel out the waste toward the end, working in from both edges, then pare the bottom flat.',
+      'Cut {count} this way.',
+    ],
+    mistakes: [
+      'Chiseling straight across from one edge splits off the far edge. Work in from both edges toward the middle.',
     ],
     safety: [CLAMP_THE_WORK],
     flags: [],
