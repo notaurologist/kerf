@@ -2,7 +2,13 @@ import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { TEMPLATES } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
-import { fixtureFolder, hashOf, readHashes, shownFolder } from './snapshot-fixtures.ts';
+import {
+  changesFromBase,
+  fixtureFolder,
+  hashOf,
+  readHashes,
+  shownFolder,
+} from './snapshot-fixtures.ts';
 
 describe('snapshot fixtures', () => {
   it.each(TEMPLATES.map((t) => [t.id, t] as const))(
@@ -28,4 +34,45 @@ describe('snapshot fixtures', () => {
       expect(Object.keys(hashes)).toContain(`shown/v${template.version}.json`);
     },
   );
+});
+
+describe('fixture hashes compared with the base branch', () => {
+  const base = { t: { 'v1.json': 'a', 'v2.json': 'b', 'shown/v2.json': 'c' } };
+
+  it('accepts the same hashes', () => {
+    expect(changesFromBase(base, structuredClone(base))).toEqual([]);
+  });
+
+  it("accepts a new version's fixture that replaces what plans show", () => {
+    const current = { t: { 'v1.json': 'a', 'v2.json': 'b', 'v3.json': 'd', 'shown/v3.json': 'e' } };
+    expect(changesFromBase(base, current)).toEqual([]);
+  });
+
+  it('accepts a new template', () => {
+    expect(changesFromBase(base, { ...base, u: { 'v1.json': 'f' } })).toEqual([]);
+  });
+
+  it("reports an old version's fixture edited together with its hash", () => {
+    const current = { t: { ...base.t, 'v1.json': 'x' } };
+    expect(changesFromBase(base, current)).toEqual(['t v1.json changed']);
+  });
+
+  it('reports the current fixture removed and written again', () => {
+    const current = { t: { 'v1.json': 'a', 'v2.json': 'x', 'shown/v2.json': 'y' } };
+    expect(changesFromBase(base, current)).toEqual([
+      't v2.json changed',
+      "t shown/v2.json changed without a new version's fixture",
+    ]);
+  });
+
+  it('reports a removed fixture and a removed template', () => {
+    expect(changesFromBase(base, { t: { 'v2.json': 'b', 'shown/v2.json': 'c' } })).toEqual([
+      't v1.json was removed',
+    ]);
+    expect(changesFromBase(base, {})).toEqual([
+      't v1.json was removed',
+      't v2.json was removed',
+      "t shown/v2.json changed without a new version's fixture",
+    ]);
+  });
 });
