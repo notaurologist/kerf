@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { solveExact, WORK_LIMIT } from '../cutting/exact.ts';
+import { solveCached } from '../cutting/cache.ts';
+import { WORK_LIMIT } from '../cutting/exact.ts';
 import { firstFitDecreasing } from '../cutting/firstFit.ts';
 import type { CutInstance } from '../cutting/instance.ts';
 import type { BoardStock } from '../lumber/panel.ts';
@@ -222,7 +223,7 @@ function planStock(
     trimPerEnd: options.trimPerEnd,
   };
   const whole = instance.lengths.every(Number.isInteger);
-  const solved = whole ? solveExact(instance, { workLimit }) : undefined;
+  const solved = whole ? solveCached(instance, { workLimit }) : undefined;
   const plan = solved?.plan ?? firstFitDecreasing(instance);
   const length = (i: number) => instance.pieces[i] ?? 0;
   const longestFirst = (a: number, b: number) => length(b) - length(a) || a - b;
