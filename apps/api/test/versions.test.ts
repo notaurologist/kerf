@@ -20,7 +20,8 @@ describe('dependency versions', () => {
     const declared = SECTIONS.flatMap((section) =>
       Object.entries((manifest[section] ?? {}) as Record<string, string>),
     );
-    expect(declared.length).toBeGreaterThan(0);
+    // A package may declare none (packages/frame has no dependency); the manifest still parses.
+    expect(manifest.name).toEqual(expect.any(String));
     const loose = declared.filter(([, v]) => v !== 'workspace:*' && !EXACT.test(v));
     expect(loose).toEqual([]);
   });

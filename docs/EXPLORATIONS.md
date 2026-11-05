@@ -35,6 +35,8 @@ Done, November 4, 2026; adopted in decision 0021 (#677), with the work in the Cu
 
 Analyse the whole frame for member forces, reactions, and sway. `PRODUCT.md` principle 2 keeps racking, connections, and tipping on the checklist, so this would only ever be a labeled exploratory view beside the sourced checks.
 
+In progress, November 5, 2026. Its code is `packages/frame` on `explore/frame-analysis`, with no new dependency, and its steps are #726 to #731. `docs/explorations/frame-analysis.md` on that branch states the question, method, assumptions, and plan.
+
 ### Fabrication outputs
 
 Full-size printable templates for angled cuts and gussets, DXF or G-code for a CNC router, and a real 3D view or hidden-line removal for the isometrics.
