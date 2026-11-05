@@ -86,15 +86,21 @@ export const projects = pgTable(
     snapshot: jsonb('snapshot').notNull(),
     /**
      * What the projects list counts progress against (core's `ProgressOutline`, #636), derived from
-     * the snapshot so the list need not read it. Written with every snapshot and recomputed by
-     * every release. Null until first written.
+     * the snapshot so the list need not read it. Written with every snapshot. Null until first
+     * written.
      */
     progressOutline: jsonb('progress_outline'),
     /**
-     * The revision the outline was made at. An outline from another revision is stale, as when the
-     * previous deploy saved the snapshot during a release, and the list reads the snapshot once.
+     * The revision the outline was made at. An outline from another revision is stale, and the
+     * list reads the snapshot once and stores it again.
      */
     progressOutlineRevision: integer('progress_outline_revision'),
+    /**
+     * Core's `progressOutlineKey` for the code that made the outline. The previous deploy keeps
+     * serving through a release and writes outlines with its own code, so an outline under another
+     * key is stale too, whatever its revision.
+     */
+    progressOutlineVersion: text('progress_outline_version'),
     /** Set when the project is deleted: it waits in the trash, and is purged after 30 days. */
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     ...timestamps,

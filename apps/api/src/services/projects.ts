@@ -17,6 +17,7 @@ import {
   type ProjectSnapshot,
   planSteps,
   progressId,
+  progressOutlineKey,
   progressSummary,
   projectDrawings,
   type ResetNote,
@@ -224,6 +225,7 @@ const summaryColumns = {
   revision: projects.revision,
   progressOutline: projects.progressOutline,
   progressOutlineRevision: projects.progressOutlineRevision,
+  progressOutlineVersion: projects.progressOutlineVersion,
   deletedAt: projects.deletedAt,
   createdAt: projects.createdAt,
   updatedAt: projects.updatedAt,
@@ -440,13 +442,14 @@ export function createProjectService(deps: {
       snapshot: s,
       progressOutline,
       progressOutlineRevision: progressOutline ? revision : null,
+      progressOutlineVersion: progressOutline ? progressOutlineKey(template) : null,
     };
   }
 
   /**
-   * Each row's progress outline: the stored one when it was made at the row's revision, otherwise
-   * read from the snapshot once and stored for the next read. Null when the snapshot cannot be
-   * read or counted.
+   * Each row's progress outline: the stored one when it was made at the row's revision by this
+   * code, otherwise read from the snapshot once and stored for the next read. Null when the
+   * snapshot cannot be read or counted.
    */
   async function outlines(
     rows: readonly SummaryRow[],
@@ -454,8 +457,11 @@ export function createProjectService(deps: {
     const found = new Map<string, ProgressOutline | null>();
     const stale: string[] = [];
     for (const row of rows) {
+      const template = templates.find((t) => t.id === row.templateId);
       const stored =
-        row.progressOutlineRevision === row.revision
+        template &&
+        row.progressOutlineRevision === row.revision &&
+        row.progressOutlineVersion === progressOutlineKey(template)
           ? ProgressOutline.safeParse(row.progressOutline)
           : undefined;
       if (stored?.success) found.set(row.id, stored.data);
@@ -465,11 +471,16 @@ export function createProjectService(deps: {
     for (const row of await db.select().from(projects).where(inArray(projects.id, stale))) {
       const outline = outlineOf(templates, row);
       found.set(row.id, outline);
-      if (!outline) continue;
+      const template = templates.find((t) => t.id === row.templateId);
+      if (!outline || !template) continue;
       // Only at the revision read: a save since then raised it and wrote its own outline.
       await db
         .update(projects)
-        .set({ progressOutline: outline, progressOutlineRevision: row.revision })
+        .set({
+          progressOutline: outline,
+          progressOutlineRevision: row.revision,
+          progressOutlineVersion: progressOutlineKey(template),
+        })
         .where(and(eq(projects.id, row.id), eq(projects.revision, row.revision)));
     }
     return found;

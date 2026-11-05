@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "progress_outline_version" text;
