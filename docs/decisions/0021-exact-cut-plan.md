@@ -26,4 +26,15 @@ The cut optimization exploration (#544, `docs/explorations/cut-optimization.md` 
 - `PRODUCT.md` no longer lists cut optimization as a non-goal, and `DOMAIN.md`'s buyable lengths describe the search.
 - Store alternatives (#450) keep refitting with first-fit decreasing. Whether they use the exact method too is left open.
 
+## Measured cost, November 5, 2026 (#698)
+
+Measured with the planner in core, after it reached the shopping list. `packages/core/src/templates/planCost.test.ts` asserts each worked example's work exactly and times the slowest one.
+
+- **Work:** the workbench's worked example spends 35,896,819 units of the 40,000,000 limit and proves its plan. The tallest bench spends the whole limit (40,000,362 units, the last step past it) and keeps the plan found by then. The record cabinet's worked example spends 4,353,072 units. Every swing set stock spends under 300.
+- **Time, development machine** (Apple M1 Pro, Node 24): generating the tallest bench with nothing cached took 0.76 s with little else running, and 1.2 to 2.2 s while other test runs shared the machine. That is under a second, but not "well under" as the decision above set out.
+- **Time, GitHub's runners:** the same took 1.46 s in the timing test on #711's CI run, about twice the development machine's quiet time. Every test passed there with the timeouts lowered from 30 s to 10 s (core), 15 s (web), and 20 s (API).
+- **Production was not measured.** A Vercel function generating the tallest bench on a new instance pays the same search; how long it takes there is not known.
+
+The timing test's budget is 3 s locally and 5 s on CI, so it catches a slowdown of several times, not a small one. Locally it failed at eight times the search's time and passed at four. Doubling the work the search charges fails the work assertions instead.
+
 The work is in the Cut optimization adoption milestone: #684 (work limit), #685 (move into core), #686 (shopping list).
