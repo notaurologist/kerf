@@ -17,7 +17,7 @@ import {
 } from '../../lib/drawings.ts';
 import { fieldId } from '../../lib/fieldIds.ts';
 import { takeFlashText } from '../../lib/flash.ts';
-import { Loaded } from '../../lib/Loaded.tsx';
+import { Loaded, RefreshFailed } from '../../lib/Loaded.tsx';
 import { NewBuildNotice } from '../../lib/NewBuild.tsx';
 import { useReadProject } from '../../lib/plan.ts';
 import { useProject } from '../../lib/projectStore.ts';
@@ -83,11 +83,14 @@ export function ModeScreen(props: { route: ModeRoute }) {
       </ModeFrame>
     );
   }
-  return <ModeWithDrawings route={props.route} project={loaded.value} />;
+  const stale = loaded.refreshFailed && (
+    <RefreshFailed error={loaded.refreshFailed} onRetry={() => void reload()} />
+  );
+  return <ModeWithDrawings route={props.route} project={loaded.value} stale={stale} />;
 }
 
 /** The mode, with the plan's drawings and the open step's action drawing loaded where shown. */
-function ModeWithDrawings(props: { route: ModeRoute; project: Project }) {
+function ModeWithDrawings(props: { route: ModeRoute; project: Project; stale?: ReactNode }) {
   const { route, project } = props;
   const steps = useReadProject(project).steps?.steps ?? [];
   const at = route.screen === 'build-step' ? steps.findIndex((s) => s.id === route.step) : -1;
@@ -102,6 +105,8 @@ export function ModeView(props: {
   drawings: DrawingsState;
   /** The open build step's action drawing, in a request of its own again. None on other screens. */
   stepDrawing?: StepDrawingState;
+  /** The line saying the project is the copy loaded earlier, when refreshing it failed. */
+  stale?: ReactNode;
 }) {
   const { route, project } = props;
   const exitHref = href({ screen: 'project', id: project.id });
@@ -122,6 +127,7 @@ export function ModeView(props: {
     <ModeFrame mode={mode} context={project.name} exitHref={exitHref} end={<ThemeSwitch />}>
       <Stack>
         <NewBuildNotice />
+        {props.stale}
         <Waiting ticks={ticks} />
         {props.drawings.state === 'error' && <DrawingsWaiting state={props.drawings} />}
         {props.stepDrawing?.state === 'error' && <DrawingsWaiting state={props.stepDrawing} />}
