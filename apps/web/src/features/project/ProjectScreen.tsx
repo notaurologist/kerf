@@ -67,7 +67,12 @@ const SHOP_SET_NOTE =
 const BUILD_STEPS_INTRO =
   'Methods are chosen from the tools in your toolbox. Change your toolbox to change them.';
 
-export function ProjectScreen(props: { id: string; section?: PlanSectionId; part?: string }) {
+export function ProjectScreen(props: {
+  id: string;
+  section?: PlanSectionId;
+  part?: string;
+  group?: string;
+}) {
   const { loaded, set, reload } = useProject(props.id);
   return (
     <Loaded state={loaded} shape="plan" loading="Loading project…" onRetry={reload} title="Project">
@@ -76,6 +81,7 @@ export function ProjectScreen(props: { id: string; section?: PlanSectionId; part
           project={project}
           section={props.section}
           part={props.part}
+          group={props.group}
           onChange={set}
         />
       )}
@@ -94,6 +100,8 @@ export function ProjectView(props: {
   section?: PlanSectionId;
   /** The part selected in the drawings and the cut list, from the address. */
   part?: string;
+  /** The sub-assembly open in the diagrams, from the address (#653). */
+  group?: string;
   /** The plan's drawings, which come in a request of their own. */
   drawings: DrawingsState;
   onChange?: (project: Project) => void;
@@ -180,6 +188,7 @@ export function ProjectView(props: {
   // clears it.
   const selected = props.part ?? null;
   // The same function from render to render, so drawings that did not change are not redrawn.
+  const group = current.id === 'diagrams' ? (props.group ?? null) : null;
   const select = useCallback(
     (partId: string) =>
       redirect({
@@ -187,8 +196,22 @@ export function ProjectView(props: {
         id: project.id,
         section: current.id,
         ...(selected === partId ? {} : { part: partId }),
+        ...(group ? { group } : {}),
       }),
-    [project.id, current.id, selected],
+    [project.id, current.id, selected, group],
+  );
+  // The sub-assembly open in the diagrams, in the address like the part (#653), so a build step
+  // can link to it and a reload keeps it.
+  const openGroup = useCallback(
+    (groupId: string | null) =>
+      redirect({
+        screen: 'project',
+        id: project.id,
+        section: 'diagrams',
+        ...(selected ? { part: selected } : {}),
+        ...(groupId ? { group: groupId } : {}),
+      }),
+    [project.id, selected],
   );
   // "Saved." from the editor stays until the next action (#67), not a toast that disappears. A
   // regenerate that clears ticks says so the same way (#57).
@@ -347,6 +370,8 @@ export function ProjectView(props: {
                     key: `${project.id}/${project.revision}`,
                     list: groups,
                     load: (groupId) => loadSubAssemblyDrawings(project.id, groupId),
+                    open: group,
+                    onOpen: openGroup,
                   }}
                 />
               )}

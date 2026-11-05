@@ -70,7 +70,12 @@ export function Screen(props: { route: Route; onLogOut?: () => void }) {
       );
     case 'project':
       return (
-        <ProjectScreen id={props.route.id} section={props.route.section} part={props.route.part} />
+        <ProjectScreen
+          id={props.route.id}
+          section={props.route.section}
+          part={props.route.part}
+          group={props.route.group}
+        />
       );
     case 'shop':
     case 'build':

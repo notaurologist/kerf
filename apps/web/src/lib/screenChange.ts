@@ -6,16 +6,21 @@ import type { Route } from './route.ts';
 // Moves between the plan's sections stay on one screen and move focus themselves
 // (`usePlanMoves`).
 
-/** The screen a route shows, leaving out the place within it: the plan's section and part. */
+/**
+ * The screen a route shows, leaving out the place within it: the plan's section, part, and open
+ * sub-assembly.
+ */
 export function screenKey(route: Route): string {
   const {
     section: _section,
     part: _part,
+    group: _group,
     from: _from,
     ...screen
   } = route as Route & {
     section?: unknown;
     part?: unknown;
+    group?: unknown;
     from?: unknown;
   };
   return JSON.stringify(screen);

@@ -15,6 +15,7 @@ import {
   Skeleton,
   Stack,
   StatusLine,
+  scrollBelowBars,
   sharedFrame,
   Text,
   useAssemblyMotion,
@@ -62,12 +63,16 @@ export function Diagrams(props: {
   };
   /**
    * The plan's sub-assemblies (#647), listed with its drawings, each one's views fetched when it
-   * is opened and kept until `key`, the plan they were drawn from, changes.
+   * is opened and kept until `key`, the plan they were drawn from, changes. The group open is in
+   * the address.
    */
   subAssemblies?: {
     key: string;
     list: readonly geometry.SubAssemblySummary[];
     load: (groupId: string) => Promise<ApiResult<geometry.SubAssemblyDrawings | null>>;
+    /** The group open, from the address (#653). */
+    open: string | null;
+    onOpen: (groupId: string | null) => void;
   };
 }) {
   const { rows } = props;
@@ -119,6 +124,8 @@ export function Diagrams(props: {
           plan={props.subAssemblies.key}
           list={props.subAssemblies.list}
           load={props.subAssemblies.load}
+          open={props.subAssemblies.open}
+          onOpen={props.subAssemblies.onOpen}
         />
       )}
       {(drawings.elevations ?? []).length > 0 && (
@@ -251,11 +258,15 @@ function AssemblyViews(
 const groupTitle = (g: geometry.SubAssemblySummary) =>
   g.alike > 1 ? `${g.title} (${g.alike} alike)` : g.title;
 
+/** The element ID of the open sub-assembly's heading, which a link to it focuses (#653). */
+const OPEN_GROUP_HEADING = 'sub-assembly-heading';
+
 /**
  * The plan's sub-assemblies (#647), each taken fully apart in a view of its own, opened from a
- * list one at a time. A group's views are fetched the first time it is opened and kept for the
- * plan they were drawn from. Not printed (owner's decision on #647): the list and the open group
- * are screen only.
+ * list one at a time. The group open is in the address, so a build step can link to it (#653),
+ * and arriving with one scrolls to it once it is drawn. A group's views are fetched the first time
+ * it is opened and kept for the plan they were drawn from. Not printed (owner's decision on
+ * #647): the list and the open group are screen only.
  */
 function SubAssemblies(
   props: Common & {
@@ -264,40 +275,60 @@ function SubAssemblies(
     plan: string;
     list: readonly geometry.SubAssemblySummary[];
     load: (groupId: string) => Promise<ApiResult<geometry.SubAssemblyDrawings | null>>;
+    /** The group open, from the address. */
+    open: string | null;
+    /** Opens a group, or closes the one open with null. */
+    onOpen: (groupId: string | null) => void;
   },
 ) {
-  const { plan, list, load, rows, describedBy, selected, onSelect } = props;
-  // What is open, loaded, or failed is kept with the plan it was for, so a changed plan closes
-  // the group, which it may no longer have, and draws its views afresh.
-  const [opened, setOpened] = useState<{ plan: string; id: string } | null>(null);
+  const { plan, list, load, open, onOpen, rows, describedBy, selected, onSelect } = props;
+  // What is loaded or failed is kept with the plan it was for, so a changed plan draws its views
+  // afresh.
   const [loaded, setLoaded] = useState<{
     plan?: string;
     views: Map<string, geometry.SubAssemblyDrawings | null>;
   }>({ views: new Map() });
   const [failed, setFailed] = useState<{ plan: string; id: string; message: string } | null>(null);
-  const open = opened?.plan === plan ? opened.id : null;
-  const views = loaded.plan === plan ? loaded.views : new Map<string, never>();
-  const failure = failed?.plan === plan && failed.id === open ? failed.message : null;
-  const choose = async (groupId: string) => {
-    setFailed(null);
-    if (open === groupId) {
-      setOpened(null);
-      return;
-    }
-    setOpened({ plan, id: groupId });
-    if (views.has(groupId)) return;
-    const result = await load(groupId);
-    if (!result.ok) {
-      setFailed({ plan, id: groupId, message: describeError(result.error) });
-      return;
-    }
-    setLoaded((l) => ({
-      plan,
-      views: new Map(l.plan === plan ? l.views : []).set(groupId, result.value),
-    }));
-  };
   const group = list.find((g) => g.id === open);
-  const shown = open !== null ? views.get(open) : undefined;
+  const views = loaded.plan === plan ? loaded.views : new Map<string, never>();
+  const failure = failed?.plan === plan && failed.id === group?.id ? failed.message : null;
+  const shown = group ? views.get(group.id) : undefined;
+  // Each group's request in flight for this plan, so one opened again while on its way is asked
+  // for once.
+  const asking = useRef(new Set<string>());
+  const groupId = group?.id;
+  const known = groupId !== undefined && (views.has(groupId) || failure !== null);
+  useEffect(() => {
+    if (groupId === undefined || known) return;
+    const key = `${plan}/${groupId}`;
+    if (asking.current.has(key)) return;
+    asking.current.add(key);
+    void load(groupId).then((result) => {
+      asking.current.delete(key);
+      if (!result.ok) {
+        setFailed({ plan, id: groupId, message: describeError(result.error) });
+        return;
+      }
+      setLoaded((l) => ({
+        plan,
+        views: new Map(l.plan === plan ? l.views : []).set(groupId, result.value),
+      }));
+    });
+  }, [plan, groupId, known, load]);
+  // Arriving with a group open, as from a build step's link, scrolls to it once it is drawn.
+  const arriving = useRef(open !== null);
+  useEffect(() => {
+    if (!arriving.current || shown === undefined) return;
+    arriving.current = false;
+    const heading = document.getElementById(OPEN_GROUP_HEADING);
+    if (!heading) return;
+    heading.focus({ preventScroll: true });
+    scrollBelowBars(heading);
+  }, [shown]);
+  const choose = (id: string) => {
+    setFailed(null);
+    onOpen(open === id ? null : id);
+  };
   const lettered = (d: geometry.SubAssemblyDrawings) => {
     const ids = new Set(
       d.isometric.primitives.flatMap((p) => ('part' in p && p.part ? [p.part.partId] : [])),
@@ -317,7 +348,7 @@ function SubAssemblies(
               key={g.id}
               variant="secondary"
               pressed={open === g.id}
-              onClick={() => void choose(g.id)}
+              onClick={() => choose(g.id)}
             >
               {groupTitle(g)}
             </Button>
@@ -328,7 +359,10 @@ function SubAssemblies(
         )}
         {group && failure === null && (
           <Stack gap="xs">
-            <h4>{groupTitle(group)}</h4>
+            {/* Focusable, so a link to the group can move focus here (#653). */}
+            <h4 id={OPEN_GROUP_HEADING} tabIndex={-1}>
+              {groupTitle(group)}
+            </h4>
             {shown === undefined ? (
               <StatusLine tone="working">Drawing the {group.title.toLowerCase()}…</StatusLine>
             ) : shown === null ? (

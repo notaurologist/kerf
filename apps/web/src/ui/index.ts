@@ -72,6 +72,7 @@ export { PlanHead, PlanSection } from './Section.tsx';
 export { type Back, Frame, ModeFrame, useFrameProject } from './Shell.tsx';
 export { Skeleton, type SkeletonShape } from './Skeleton.tsx';
 export { PieceRow, StepLayout } from './StepLayout.tsx';
+export { scrollBelowBars } from './scrollBelowBars.ts';
 export { Term, TermScope } from './Term.tsx';
 export { Tick } from './Tick.tsx';
 export { ToolIcon, ToolLabel } from './ToolIcon.tsx';
