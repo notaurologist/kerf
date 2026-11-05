@@ -1,0 +1,16 @@
+{
+  "name": "@kerf/cutting",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "report": "node scripts/report.ts"
+  },
+  "dependencies": {
+    "@kerf/core": "workspace:*"
+  }
+}
