@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { endSheet, endWindow, partTemplates, RUN_ON, shapedReach } from './ends.ts';
 import { exampleParts } from './parts.ts';
 import { PAD, type Shape, type Sheet } from './sheet.ts';
+import { tile } from './tile.ts';
 
 const RAD = Math.PI / 180;
 const TEMPLATE_IDS = ['swing-set-a-frame', 'record-cabinet', 'workbench'] as const;
@@ -19,11 +20,11 @@ const notesOf = (sheet: Sheet) =>
     .join(' ');
 
 describe('a 20° level cut on a 3-1/2" leg, worked by hand', () => {
-  // The swing set's back leg without its flush cut, 100" long. Both ends are level cuts at 20°,
+  // The swing set's back leg without its flush cut or bolt holes, 100" long. Both ends are level cuts at 20°,
   // parallel: the first end's long point is on the reference edge, the second end's on the far
   // edge. 3.5 × tan 20° = 1.2738958: the short point is that far from the square line.
   const example = byName('Back leg');
-  const leg: Part = { ...example, length: 100, tapers: [] };
+  const leg: Part = { ...example, length: 100, tapers: [], holes: [] };
   const run = 3.5 * Math.tan(20 * RAD);
 
   it('starts from the worked example', () => {
@@ -168,6 +169,20 @@ describe('every template example', () => {
       expect.stringContaining('right end'),
     ]);
     expect(partTemplates(byName('Back leg'))).toHaveLength(2);
+  });
+
+  it('keeps every note inside the first page across', () => {
+    // Notes wrap at 7" from x = 1/4", and a sheet that spans pages starts at the first page's
+    // edge, so even at the estimate of 0.08" a character no note crosses the 7-1/2" trim line.
+    for (const { part } of shaped) {
+      for (const sheet of partTemplates(part)) {
+        const t = tile(sheet.size);
+        if (t.columns > 1) expect(t.offset.x).toBe(0);
+        for (const note of shapesOf(sheet, 'text').filter((s) => s.size === 0.16)) {
+          expect(note.at.x + t.offset.x + note.text.length * 0.08).toBeLessThanOrEqual(7.5);
+        }
+      }
+    }
   });
 
   it('makes no template for a part with two square ends', () => {

@@ -41,7 +41,7 @@ An end template shows the end as far in as its shape reaches (from the long poin
 
 The distance from the square line to the short point is the difference between two of the blank's corners from core's `blankOutline`, rounded by `formatLength`. The package does no trigonometry of its own.
 
-Written from each template's first worked example, the swing set needs 9 pages (gusset 3, crossbar ends 2, leg ends 4), the record cabinet 21, and the workbench 26. The cabinet's sides and the workbench's drawer shelves are 13" to 17" wide, so each notched end takes 2 pages for a 3/16" by 1/2" notch that is quicker to lay out with a square. Leaving out notches that small is a question for the write-up.
+Written from each template's first worked example, the swing set needed 9 pages at this step (gusset 3, crossbar ends 2, leg ends 4), the record cabinet 21, and the workbench 26. The cabinet's sides and the workbench's drawer shelves are 13" to 17" wide, so each notched end takes 2 pages for a 3/16" by 1/2" notch that is quicker to lay out with a square. Leaving out notches that small is a question for the write-up.
 
 ## Printing
 
@@ -52,6 +52,18 @@ Each page is an SVG whose width and height are in inches and whose viewBox spans
 - **Scale check:** every page has a 1" check square and a 6" scale bar with a tick at each inch. A printer set to fit the page shrinks it by a few percent; on 6" that is about 3/16", easy to see against a tape.
 - **Footer:** the part's letter, name, stock, and quantity; the printing instructions; the checks; a small map of the sheet with this page filled in; and the page's row and column.
 - **File:** one HTML file holds every page, each on its own sheet, with named `@page` rules turning the landscape ones. `pnpm --filter @kerf/fabrication write-templates <template-id> <part letter>...` writes it to `packages/fabrication/out/` from the template's first worked example.
+
+## Holes and joinery marks
+
+Templates mark what goes on the face the drawings show (the far face, as in the cut details):
+
+- Each hole or bored hole square to the faces gets a circle at its diameter and center lines past it, to prick through with an awl, labeled with its diameter. Its circle is dashed when it stops short of the face shown. Holes alike share one note: how many, the diameter, what for, and which face the bit enters.
+- Each dado and face mortise is outlined, solid in the face shown and dashed in the other, labeled D1, M2, and so on, with its width or size and depth in the notes.
+- Holes and mortises in an edge or end are counted in a note pointing to the cut detail, since a face template cannot show them.
+
+An end template takes in each face hole whose circle starts within two widths of what it already shows, nearest first, as the cut detail merges its pieces, so a joint's bolts stay on one template. The swing set's leg tops now run to 15.56", past both leg-to-beam bolts, and take 2 landscape pages each. The swing set needs 13 pages, the record cabinet 21, and the workbench 28.
+
+Notes wrap at 7", and a drawing that spans pages starts at the first page's left edge (one that fits across a page is centered), so no note crosses a vertical trim line. A note can still straddle a horizontal one on a sheet more than one page tall.
 
 ## Steps
 

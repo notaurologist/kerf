@@ -1,4 +1,5 @@
 import { cutList, formatLength, geometry, type Part } from '@kerf/core';
+import { faceHoles, markShapes, unmarkedNote } from './marks.ts';
 import { printSheet } from './print.ts';
 import { noteBlock, PAD, partSheet, type Shape, type Sheet } from './sheet.ts';
 
@@ -105,8 +106,19 @@ function endSpan(part: Part, end: 0 | 1) {
   const us = [...outline, ...geometry.blankOutline(part)].map((p) => p.u);
   const minU = Math.min(...us);
   const maxU = Math.max(...us);
-  const run = shapedReach(part, end) + Math.min(part.stock.width, RUN_ON);
-  return { outline, minU, maxU, shown: Math.min(run, maxU - minU) };
+  const W = part.stock.width;
+  const runOn = Math.min(W, RUN_ON);
+  let shown = shapedReach(part, end) + runOn;
+  // Take in each face hole that starts within two widths of what is shown, nearest first, as the
+  // cut detail merges its pieces, so a joint's bolts stay on one template.
+  const fromEnd = faceHoles(part)
+    .map((h) => ({ d: end === 0 ? h.at.u - minU : maxU - h.at.u, r: h.diameter / 2 }))
+    .sort((a, b) => a.d - b.d);
+  for (const h of fromEnd) {
+    if (h.d - h.r > shown + 2 * W) break;
+    shown = Math.max(shown, h.d + h.r + runOn);
+  }
+  return { outline, minU, maxU, shown: Math.min(shown, maxU - minU) };
 }
 
 /** The stretch of the part, in u, that an end template shows. */
@@ -160,6 +172,10 @@ export function endSheet(part: Part, end: 0 | 1): Sheet {
     shapes.push({ kind: 'dot', at: at(corners.long), radius: DOT });
   }
 
+  const { u0: from, u1: to } = endWindow(part, end);
+  const marks = markShapes(part, at, from, to);
+  shapes.push(...marks.shapes);
+
   const side = end === 0 ? 'Left' : 'Right';
   const longEdge = corners.long.v === 0 ? 'reference edge' : 'far edge';
   const shortEdge = corners.long.v === 0 ? 'far edge' : 'reference edge';
@@ -171,9 +187,11 @@ export function endSheet(part: Part, end: 0 | 1): Sheet {
         ]
       : []),
     `Bottom: the reference edge (${part.referenceEdge}). ${whole ? 'The whole part' : 'The part continues past the break'}: ${row.length} long, long point to long point.`,
+    ...marks.notes,
+    ...unmarkedNote(part),
   ];
   const notesTop = PAD + height + PAD;
-  const block = noteBlock(notes, shown, notesTop);
+  const block = noteBlock(notes, notesTop);
   shapes.push(...block.shapes);
   return {
     title: `${row.letter} · ${row.name} · ${side.toLowerCase()} end · ${row.stock} · make ${row.quantity}`,

@@ -222,17 +222,19 @@ describe('a gusset, worked by hand', () => {
     const sheet = partSheet(gusset);
     const notes = sheet.shapes.flatMap((s) => (s.kind === 'text' ? [s.text] : []));
     const [row] = cutList([gusset]);
-    expect(notes[0]).toBe(`Left end: ${row?.ends[0]}`);
-    expect(notes[1]).toBe(`Right end: ${row?.ends[1]}`);
-    expect(notes[0]).toContain('saw at 20.0°, 70.0° to the edge');
+    // The two ends are cut alike, so they share a note.
+    expect(row?.ends[0]).toBe(row?.ends[1]);
+    expect(notes).toContain(`Both ends: ${row?.ends[0]}`);
+    expect(notes.join(' ')).toContain('saw at 20.0°, 70.0° to the edge');
     // 14.722432" is 235.56 sixteenths, so 14-3/4".
-    expect(notes[2]).toContain('the reference edge (bottom edge), 20"');
-    expect(notes[2]).toContain('the far edge, 14-3/4"');
+    const edges = notes.find((n) => n.startsWith('Bottom:'));
+    expect(edges).toContain('the reference edge (bottom edge), 20"');
+    expect(edges).toContain('the far edge, 14-3/4"');
   });
 
   it('takes 3 portrait pages, worked by hand', () => {
     // Width: the 20" outline and 1/4" either side, 20-1/2". Height: 1/4" + 7-1/4" + 1/4" to the
-    // notes, then three 0.24" lines: 8.47". Portrait cells are 7-1/2" by 8.6": 3 by 1. Landscape
+    // notes, then three 0.24" lines (both ends, the edges, the four bolt holes): 8.47". Portrait cells are 7-1/2" by 8.6": 3 by 1. Landscape
     // cells are 10" by 6.1": 3 by 2.
     const sheet = partSheet(gusset);
     expect(sheet.size.width).toBeCloseTo(20.5, 12);

@@ -65,6 +65,15 @@ function shape(s: Shape): string {
       return `<polyline class="waste" points="${pointList(s.points)}" fill="none" ${FINE} stroke-dasharray="0.05 0.05"/>`;
     case 'square':
       return `<polyline class="square" points="${pointList(s.points)}" fill="none" ${FINE} stroke-dasharray="0.1 0.05"/>`;
+    case 'circle':
+      return `<circle class="hole" cx="${n(s.at.x)}" cy="${n(s.at.y)}" r="${n(s.radius)}" fill="none" ${FINE}${s.dashed ? ' stroke-dasharray="0.05 0.04"' : ''}/>`;
+    case 'cross':
+      return [
+        line(s.at.x - s.arm, s.at.y, s.at.x + s.arm, s.at.y, `class="center" ${FINE}`),
+        line(s.at.x, s.at.y - s.arm, s.at.x, s.at.y + s.arm, `class="center" ${FINE}`),
+      ].join('');
+    case 'rect':
+      return `<polygon class="joinery" points="${pointList(s.points)}" fill="none" ${FINE}${s.dashed ? ' stroke-dasharray="0.08 0.05"' : ''}/>`;
     case 'dot':
       return `<circle class="long-point" cx="${n(s.at.x)}" cy="${n(s.at.y)}" r="${n(s.radius)}" fill="#000"/>`;
   }

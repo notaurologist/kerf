@@ -23,7 +23,10 @@ export interface Tiling {
   cell: Size;
   columns: number;
   rows: number;
-  /** Where the drawing's origin sits in the grid of cells, so it is centered in the grid. */
+  /**
+   * Where the drawing's origin sits in the grid of cells: centered across one page, and against
+   * the first page's edge when it spans pages, so notes written from the left stay on that page.
+   */
   offset: { x: number; y: number };
 }
 
@@ -45,8 +48,8 @@ function tileOn(drawing: Size, orientation: Tiling['orientation']): Tiling {
     columns,
     rows,
     offset: {
-      x: (columns * cell.width - drawing.width) / 2,
-      y: (rows * cell.height - drawing.height) / 2,
+      x: columns === 1 ? (cell.width - drawing.width) / 2 : 0,
+      y: rows === 1 ? (cell.height - drawing.height) / 2 : 0,
     },
   };
 }
