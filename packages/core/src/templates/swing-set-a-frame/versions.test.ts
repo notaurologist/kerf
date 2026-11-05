@@ -1356,7 +1356,8 @@ describe('swing-set template versions', () => {
       expect(snapshot.templateVersion).toBe(37);
       const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
       expect(changes.filter((c) => !isVersion38(c) && !isVersion40(c))).toEqual([]);
-      expect(changes.length).toBeGreaterThan(0);
+      // Within sameNumber, so diff no longer reports them; compared exactly, they differ.
+      expect(json(snapshot.outputs)).not.toEqual(json(fresh(snapshot)));
     }
   });
 
@@ -1371,7 +1372,7 @@ describe('swing-set template versions', () => {
       expect(
         changes.filter((c) => !isVersion40(c) && (!isVersion38(c) || !lengths.test(c.path))),
       ).toEqual([]);
-      expect(changes.length).toBeGreaterThan(0);
+      expect(json(snapshot.outputs)).not.toEqual(json(fresh(snapshot)));
     }
   });
 

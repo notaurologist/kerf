@@ -1,26 +1,33 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createSnapshot, findTemplate } from '@kerf/core';
+import { digestJson, SWEEPS, sweep, sweepDigest } from '@kerf/core/sweeps';
 import {
+  CURRENT_ONLY,
   fixtureFolder,
   hashesFile,
   hashOf,
   readHashes,
   shownFolder,
   shownFor,
+  sweepsFolder,
 } from './snapshot-fixtures.ts';
 
 // Writes the fixture for a template's current version (decision 0014): its worked examples as
-// snapshots, stored as JSON the way Postgres holds them, and what those plans show when read. It
-// replaces the previous version's copy of what plans show, and records the hash of both files.
+// snapshots, stored as JSON the way Postgres holds them, what those plans show when read, and a
+// digest of what its seeded sweep generates. It replaces the previous version's copies of the
+// last two, and records the hash of all three files.
 // Run once each time a template's version is bumped; a version already written is never written
 // again, because its fixture stands for projects already stored by that version.
 //   pnpm --filter @kerf/api write-snapshot-fixture <template-id>
 
 const id = process.argv[2] ?? '';
 const template = findTemplate(id);
-if (!template) {
-  console.error(`No template has the ID "${id}".`);
+const plan = SWEEPS[id];
+if (!template || !plan) {
+  console.error(
+    `No template has the ID "${id}", or it has no sweep in SWEEPS (templates/index.ts).`,
+  );
   process.exit(1);
 }
 
@@ -42,18 +49,38 @@ const snapshots = template.examples.map((example) => {
 });
 writeFileSync(file, `${JSON.stringify(snapshots, null, 2)}\n`);
 
-const shownIn = shownFolder(template.id);
-rmSync(shownIn, { recursive: true, force: true });
-mkdirSync(shownIn);
-const shown = join(shownIn, name);
-const stored = JSON.parse(JSON.stringify(snapshots));
-writeFileSync(shown, `${JSON.stringify(shownFor(template, stored), null, 2)}\n`);
+/** Writes a file kept for the current version only, removing the previous version's. */
+function replace(folder: string, content: string) {
+  rmSync(folder, { recursive: true, force: true });
+  mkdirSync(folder);
+  const written = join(folder, name);
+  writeFileSync(written, content);
+  return written;
+}
 
-const kept = Object.entries(hashes[template.id] ?? {}).filter(([f]) => !f.startsWith('shown/'));
+const stored = JSON.parse(JSON.stringify(snapshots));
+const shown = replace(
+  shownFolder(template.id),
+  `${JSON.stringify(shownFor(template, stored), null, 2)}\n`,
+);
+
+const swept = sweep(template, plan);
+if (swept.failures.length > 0) {
+  console.error(
+    `The sweep failed, so its digest was not written:\n  ${swept.failures.join('\n  ')}`,
+  );
+  process.exit(1);
+}
+const digest = replace(sweepsFolder(template.id), digestJson(sweepDigest(template, plan, swept)));
+
+const kept = Object.entries(hashes[template.id] ?? {}).filter(
+  ([f]) => !CURRENT_ONLY.some((folder) => f.startsWith(folder)),
+);
 hashes[template.id] = Object.fromEntries([
   ...kept,
   [name, hashOf(file)],
   [`shown/${name}`, hashOf(shown)],
+  [`sweeps/${name}`, hashOf(digest)],
 ]);
 writeFileSync(hashesFile, `${JSON.stringify(hashes, null, 2)}\n`);
-console.log(`Wrote ${file} and ${shown}, and their hashes in ${hashesFile}`);
+console.log(`Wrote ${file}, ${shown}, and ${digest}, and their hashes in ${hashesFile}`);

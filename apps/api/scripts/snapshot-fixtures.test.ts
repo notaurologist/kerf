@@ -8,6 +8,7 @@ import {
   hashOf,
   readHashes,
   shownFolder,
+  sweepsFolder,
 } from './snapshot-fixtures.ts';
 
 describe('snapshot fixtures', () => {
@@ -23,6 +24,7 @@ describe('snapshot fixtures', () => {
       const hashes = Object.fromEntries([
         ...files(fixtureFolder(id), ''),
         ...files(shownFolder(id), 'shown/'),
+        ...files(sweepsFolder(id), 'sweeps/'),
       ]);
       expect(
         hashes,
@@ -32,19 +34,30 @@ describe('snapshot fixtures', () => {
       ).toEqual(readHashes()[id]);
       expect(Object.keys(hashes)).toContain(`v${template.version}.json`);
       expect(Object.keys(hashes)).toContain(`shown/v${template.version}.json`);
+      expect(Object.keys(hashes)).toContain(`sweeps/v${template.version}.json`);
     },
   );
 });
 
 describe('fixture hashes compared with the base branch', () => {
-  const base = { t: { 'v1.json': 'a', 'v2.json': 'b', 'shown/v2.json': 'c' } };
+  const base = {
+    t: { 'v1.json': 'a', 'v2.json': 'b', 'shown/v2.json': 'c', 'sweeps/v2.json': 'g' },
+  };
 
   it('accepts the same hashes', () => {
     expect(changesFromBase(base, structuredClone(base))).toEqual([]);
   });
 
-  it("accepts a new version's fixture that replaces what plans show", () => {
-    const current = { t: { 'v1.json': 'a', 'v2.json': 'b', 'v3.json': 'd', 'shown/v3.json': 'e' } };
+  it("accepts a new version's fixture that replaces what plans show and the sweep digest", () => {
+    const current = {
+      t: {
+        'v1.json': 'a',
+        'v2.json': 'b',
+        'v3.json': 'd',
+        'shown/v3.json': 'e',
+        'sweeps/v3.json': 'h',
+      },
+    };
     expect(changesFromBase(base, current)).toEqual([]);
   });
 
@@ -58,21 +71,31 @@ describe('fixture hashes compared with the base branch', () => {
   });
 
   it('reports the current fixture removed and written again', () => {
-    const current = { t: { 'v1.json': 'a', 'v2.json': 'x', 'shown/v2.json': 'y' } };
+    const current = {
+      t: { 'v1.json': 'a', 'v2.json': 'x', 'shown/v2.json': 'y', 'sweeps/v2.json': 'z' },
+    };
     expect(changesFromBase(base, current)).toEqual([
       't v2.json changed',
       "t shown/v2.json changed without a new version's fixture",
+      "t sweeps/v2.json changed without a new version's fixture",
+    ]);
+  });
+
+  it('reports a sweep digest rewritten at the same version', () => {
+    const current = { t: { ...base.t, 'sweeps/v2.json': 'z' } };
+    expect(changesFromBase(base, current)).toEqual([
+      "t sweeps/v2.json changed without a new version's fixture",
     ]);
   });
 
   it('reports a removed fixture and a removed template', () => {
-    expect(changesFromBase(base, { t: { 'v2.json': 'b', 'shown/v2.json': 'c' } })).toEqual([
-      't v1.json was removed',
-    ]);
+    const { 'v1.json': _, ...withoutV1 } = base.t;
+    expect(changesFromBase(base, { t: withoutV1 })).toEqual(['t v1.json was removed']);
     expect(changesFromBase(base, {})).toEqual([
       't v1.json was removed',
       't v2.json was removed',
       "t shown/v2.json changed without a new version's fixture",
+      "t sweeps/v2.json changed without a new version's fixture",
     ]);
   });
 });

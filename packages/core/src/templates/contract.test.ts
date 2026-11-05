@@ -17,12 +17,13 @@ import {
 import { ChecklistItem, Flag, type Part } from '../model/types.ts';
 import { LumberPlan } from '../outputs/shoppingList.ts';
 import { leaveOutDefaults } from '../snapshot/defaults.ts';
+import { diff } from '../snapshot/diff.ts';
 import { shapeOf } from '../snapshot/shape.ts';
 import { shownOnRead } from '../snapshot/shown.ts';
 import { createSnapshot, readSnapshot } from '../snapshot/snapshot.ts';
 import { planSteps } from '../steps/build.ts';
 import { BRAND_NAMES, VERDICT_WORDS, withoutBrandExceptions } from '../testing.ts';
-import { TEMPLATES } from './index.ts';
+import { SWEEPS, TEMPLATES } from './index.ts';
 
 // What every template promises generic code (model/definition.ts), checked on its worked examples.
 
@@ -113,6 +114,21 @@ const SHOWN = (() => {
   }
   return byTemplate;
 })();
+
+/**
+ * The template versions each template has a sweep digest for (`templates/sweep.ts`). Written with
+ * the fixture; the previous version's is removed then.
+ */
+const SWEEP_DIGESTS: Record<string, string[]> = {};
+const sweepFiles = import.meta.glob<unknown>('./*/sweeps/v*.json', {
+  eager: true,
+  import: 'default',
+});
+for (const path of Object.keys(sweepFiles)) {
+  const [, id, version] = path.match(/^\.\/([^/]+)\/sweeps\/v(\d+)\.json$/) ?? [];
+  if (!id || !version) throw new Error(`Unexpected file ${path}`);
+  SWEEP_DIGESTS[id] = [...(SWEEP_DIGESTS[id] ?? []), version];
+}
 
 /**
  * What each template's upgrades write into parameters and structural inputs, by the shape they
@@ -334,20 +350,20 @@ describe('every template stays readable (decision 0014)', () => {
   });
 
   it.each(TEMPLATES.map((t) => [t.id, t] as const))(
-    '%s regenerates the fixture of its current version exactly',
+    '%s regenerates the fixture of its current version, numbers within sameNumber',
     (id, t) => {
       expect(
-        current(t),
+        diff(fixturesOf(t)[t.version], current(t), 20).changes,
         'The worked examples generate different output at the same template version. Bump the ' +
           "template's version, and its snapshotVersion too if the stored shape changed (decision " +
           `0008), then write the new fixture: pnpm --filter @kerf/api write-snapshot-fixture ${id} ` +
           '(decision 0014).',
-      ).toEqual(fixturesOf(t)[t.version]);
+      ).toEqual([]);
     },
   );
 
   it.each(TEMPLATES.map((t) => [t.id, t] as const))(
-    '%s shows its current fixture as it did when the fixture was written',
+    '%s shows its current fixture as it did when the fixture was written, numbers within sameNumber',
     (id, t) => {
       // Plans, build steps, and drawings are derived from stored outputs on every read, so a
       // change to generic code there changes every stored plan, with no new fixture to show it.
@@ -358,12 +374,22 @@ describe('every template stays readable (decision 0014)', () => {
         return asJson(shownOnRead(t, t.storedOutputs.parse(read.snapshot.outputs)));
       });
       expect(
-        shown,
+        diff(SHOWN[id]?.[t.version], shown, 20).changes,
         'A stored plan reads differently: its plan, build steps, or drawing dimensions changed. ' +
           'That changes every stored plan, older versions included. Bump the version of each ' +
           `template it changes and write the new fixture: pnpm --filter @kerf/api ` +
           `write-snapshot-fixture ${id} (decision 0014).`,
-      ).toEqual(SHOWN[id]?.[t.version]);
+      ).toEqual([]);
+    },
+  );
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))(
+    '%s has a sweep, and its digest for the current version only',
+    (id, t) => {
+      // The template's own sweep.test.ts runs the sweep and compares it with this digest, so a
+      // change to output the worked examples do not reach also needs a version bump.
+      expect(SWEEPS[id]).toBeDefined();
+      expect(SWEEP_DIGESTS[id]).toEqual([String(t.version)]);
     },
   );
 
