@@ -16,7 +16,7 @@ Kerf's MVP is in place. These are larger directions the owner chose to keep for 
 | Direction | Issue | What it teaches |
 |---|---|---|
 | Joint-based parametric model (first; adopted, decision 0020) | #543 | Constraint solving, parametric modelling, designing a small language |
-| Cut optimization | #544 | Cutting stock, integer programming, column generation |
+| Cut optimization (done; adoption proposed, #677) | #544 | Cutting stock, integer programming, column generation |
 | Frame analysis | #545 | The direct stiffness method, the basis of frame analysis software |
 | Fabrication outputs | #546 | Full-size printed templates, DXF and G-code, 3D rendering |
 | AI as author, code as verifier | #547 | Building gates and evals around generated code |
@@ -29,7 +29,7 @@ The exploration asked whether a template could be a declaration of parts and the
 
 ### Cut optimization
 
-Fit parts into buyable boards to use less lumber: the current grouping, then first-fit decreasing, then an exact method, compared on both templates. 2D cutting for sheet goods would follow a plywood template.
+Done, November 4, 2026; whether to adopt it is the owner's open decision (#677). The exploration asked how far the shopping list's grouping, first-fit decreasing, is from the fewest feet of lumber that hold the same pieces. Its code is `packages/cutting` on `explore/cut-optimization`, not merged: a material bound, the linear relaxation by column generation with a simplex and knapsack written in the package, and branch-and-bound over boards. On 260 instances from all three templates the grouping buys 2.0% more than the exact method, which proves 253 of them optimal. The gain is in board stock (6% of the cherry on the record cabinet's worked example, 2.6% on the workbench's), and the swing set barely changes. `docs/explorations/cut-optimization.md` on that branch is the record: the method, the results, where the time went, and what adopting it would take. 2D cutting for sheet goods would follow a plywood template.
 
 ### Frame analysis
 
