@@ -11,6 +11,7 @@ import {
   formValues,
   readPath,
   type TemplateForm,
+  writePath,
 } from './form.ts';
 import {
   describeBasis,
@@ -108,21 +109,6 @@ function waiting(
 }
 
 const FILLED = 'Your plan was saved before Kerf asked for this, so Kerf suggests it.';
-
-function writePath(object: Record<string, unknown>, path: string, value: unknown): void {
-  const keys = path.split('.');
-  let at: Record<string, unknown> = object;
-  keys.forEach((key, i) => {
-    if (i === keys.length - 1) {
-      at[key] = value;
-      return;
-    }
-    if (typeof at[key] !== 'object' || at[key] === null) {
-      at[key] = /^\d+$/.test(keys[i + 1] ?? '') ? [] : {};
-    }
-    at = at[key] as Record<string, unknown>;
-  });
-}
 
 const copy = (value: unknown): Record<string, unknown> =>
   typeof value === 'object' && value !== null

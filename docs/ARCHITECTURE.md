@@ -221,7 +221,7 @@ The preference order is the order of `METHODS` in `knowledge/methods.ts`, where 
 
 | Route | Purpose |
 |---|---|
-| `GET /api/health` | Deploy and uptime check; no session, no data |
+| `GET /api/health` (and `HEAD`) | Deploy and uptime check; no session, no data |
 | `POST /api/login`, `POST /api/logout`, `GET /api/session` | Login and session (0007) |
 | `GET /api/templates` | Templates with their current version, name, and a one-sentence description |
 | `GET /api/templates/:id/drawing` | The template's first worked example drawn assembled, for choosing a template (#357); drawn by core on the first request and kept |
@@ -257,7 +257,7 @@ Errors are JSON with an `error` code: 400 for a malformed request (with `issues`
 - The session cookie `__Host-kerf_session` holds a random 256-bit token; `sessions` stores only its SHA-256 hash, so the table alone gives no working session. Sessions last 30 days. Expired rows are deleted at the next login.
 - Each session stores `password_fingerprint`, the first 64 bits of a SHA-256 of `PASSWORD_HASH`, and is accepted only while it matches the configured hash, so changing the password ends every session. Rows without one never match.
 - Rate limiting counts failed logins in fixed windows, twice: per client address, at most 10 per 15 minutes, and for the whole app, at most 100 per hour. Either limit answers 429 with `Retry-After` until its window ends, even for the right password. The address is the first entry of `x-forwarded-for`, which Vercel overwrites (`auth/clientAddress.ts`); an IPv6 address counts by its /64, and a request without the header counts as one unknown address, as in local development. On 3 November 2026 a login on the deployment was checked: the api service saw the client's own public address, as the header's only entry. Each attempt is counted before the password is checked and taken back on success, so parallel guesses cannot slip under a limit. An attempt the address limit refuses is not counted for the whole app, so one address cannot use up the global cap. Many addresses together still can, which keeps the owner from logging in for the rest of the hour but leaves existing sessions working (0007).
-- One middleware requires a session on every route except `GET /api/health` and `POST /api/login`, listed by method and path. A test walks every route the app registers and checks each answers 401 without a session.
+- One middleware requires a session on every route except `GET` and `HEAD /api/health` and `POST /api/login`, listed by method and path. A test walks every route the app registers, with every method for an `.all()` route and `HEAD` for each `GET`, and checks each answers 401 without a session.
 - `POST`, `PUT`, `PATCH`, and `DELETE` requests must have a JSON content type (415 otherwise).
 
 ### Data (sketch)
