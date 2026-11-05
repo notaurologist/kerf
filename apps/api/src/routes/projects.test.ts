@@ -17,7 +17,7 @@ import {
 } from '@kerf/core';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
-import { nextShape, swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
+import { freshBasis, nextShape, swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
 import { backfillHistory } from '../services/history.ts';
 
 const newProject: Record<string, unknown> = {
@@ -402,7 +402,7 @@ describe('project history (#106)', () => {
     await putTools({ tools: [] });
     const regenerated = await authed(`/api/projects/${body.id}/regenerate`, {
       method: 'POST',
-      body: { revision: 3 },
+      body: { revision: 3, ...freshBasis },
     });
     expect(regenerated.status).toBe(200);
     const again = await history(client, body.id);
@@ -668,7 +668,7 @@ describe('deleting, the trash, and restoring (#21)', () => {
       (
         await authed(`/api/projects/${body.id}/regenerate`, {
           method: 'POST',
-          body: { revision: 1 },
+          body: { revision: 1, ...freshBasis },
         })
       ).status,
     ).toBe(404);
@@ -936,7 +936,8 @@ describe('a project whose template version is behind', () => {
       storedVersion: CURRENT,
       currentVersion: CURRENT + 1,
     });
-    const { version } = await get(`/api/projects/${body.id}/version`);
+    const { version, basis } = await get(`/api/projects/${body.id}/version`);
+    expect(basis).toEqual({ templateVersion: CURRENT + 1, settingsRevision: 1 });
     expect(version).toEqual({
       status: 'behind',
       storedVersion: CURRENT,
@@ -955,7 +956,7 @@ describe('a project whose template version is behind', () => {
     const regenerated = (await (
       await after.authed(`/api/projects/${body.id}/regenerate`, {
         method: 'POST',
-        body: { revision: project.revision },
+        body: { revision: project.revision, ...basis },
       })
     ).json()) as Json;
     expect(regenerated).toMatchObject({
@@ -964,6 +965,29 @@ describe('a project whose template version is behind', () => {
       version: { status: 'current', version: CURRENT + 1 },
     });
     expect(regenerated.snapshot.outputs.cutList[0].length).toBe('121"');
+  });
+
+  it('refuses a regeneration named for an older template version than the deployed one', async () => {
+    const before = await createTestApp();
+    const { body } = await create(before.authed);
+    await before.authed('/api/settings', {
+      method: 'PUT',
+      body: { carryLength: 120, revision: 1 },
+    });
+    // The notice was worked out for the carry length, before a deploy raised the template version.
+    const shown = (await (await before.authed(`/api/projects/${body.id}/version`)).json()) as Json;
+    expect(shown.basis).toEqual({ templateVersion: CURRENT, settingsRevision: 2 });
+
+    const after = await createTestApp({ database: before, templates: [nextVersion] });
+    const regenerate = await after.authed(`/api/projects/${body.id}/regenerate`, {
+      method: 'POST',
+      body: { revision: body.revision, ...shown.basis },
+    });
+    expect(regenerate.status).toBe(409);
+    expect(await regenerate.json()).toEqual({ error: 'stale-project', revision: body.revision });
+    const project = (await (await after.authed(`/api/projects/${body.id}`)).json()) as Json;
+    expect(project).toMatchObject({ revision: body.revision, templateVersion: CURRENT });
+    expect(project.snapshot.outputs.cutList[0].length).toBe('120"');
   });
 
   it('says so when a stored snapshot is damaged, rather than guessing', async () => {
@@ -980,10 +1004,11 @@ describe('a project whose template version is behind', () => {
     });
     expect(await (await authed(`/api/projects/${body.id}/version`)).json()).toEqual({
       version: null,
+      basis: null,
     });
     const regenerate = await authed(`/api/projects/${body.id}/regenerate`, {
       method: 'POST',
-      body: { revision: 1 },
+      body: { revision: 1, ...freshBasis },
     });
     expect(regenerate.status).toBe(500);
   });

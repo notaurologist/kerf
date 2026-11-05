@@ -25,6 +25,15 @@ export const swingSetParams = {
   },
 };
 
+/**
+ * What a version notice on a fresh database is worked out with: the swing set's current version
+ * and the settings as first stored. A regeneration names them (#700).
+ */
+export const freshBasis = {
+  templateVersion: swingSetAFrame.definition.version,
+  settingsRevision: 1,
+};
+
 export const swingSetInputs = {
   beamSpeciesGrade: 'southern-pine-no2',
   beamIncised: false,

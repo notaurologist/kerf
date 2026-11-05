@@ -33,6 +33,9 @@ function statusOf(report: VersionReport): Project['version'] {
   return report;
 }
 
+/** What every report here was worked out with, unless a test changes it. */
+const basis = { templateVersion: 2, settingsRevision: 1 };
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -51,7 +54,7 @@ function server(report: VersionReport, newer?: Project) {
     const path = new URL(url, 'http://kerf.test').pathname;
     if (method === 'GET') {
       sent.push({ method, path, body: null });
-      return path.endsWith('/version') ? json({ version: report }) : json(newer);
+      return path.endsWith('/version') ? json({ version: report, basis }) : json(newer);
     }
     const raw = input instanceof Request ? await input.text() : String(init?.body ?? '');
     const body = JSON.parse(raw) as { revision: number };
@@ -204,6 +207,7 @@ describe('VersionNotice', () => {
         currentVersion: 2,
         regenerated: lengthenedFirstCut,
       },
+      basis,
     });
     await click(byText(container, 'button', 'Try again'));
     for (let i = 0; i < 3; i++) await settle();
@@ -246,7 +250,7 @@ describe('regenerating from the version notice', () => {
     await click(byText(container, 'button', 'Regenerate'));
     await settle();
     const posts = () => sent.filter((s) => s.method === 'POST').map((s) => s.body);
-    expect(posts()).toEqual([{ revision: 1 }]);
+    expect(posts()).toEqual([{ revision: 1, ...basis }]);
     expect(regenerated).not.toHaveBeenCalled();
     expect(container.textContent).toContain('Changed on another device.');
     expect(container.textContent).toContain('Nothing was regenerated.');
@@ -260,7 +264,76 @@ describe('regenerating from the version notice', () => {
     await click(byText(container, 'button', 'Regenerate with version 2'));
     await click(byText(container, 'button', 'Regenerate'));
     await settle();
-    expect(posts().at(-1)).toEqual({ revision: 2 });
+    expect(posts().at(-1)).toEqual({ revision: 2, ...basis });
     expect(regenerated).toHaveBeenCalledWith(expect.objectContaining({ revision: 3 }));
+  });
+
+  it('works the changes out again when the carry length changed after they were shown (#700)', async () => {
+    const carry = (carryLength: number): VersionReport => ({
+      status: 'carry-length',
+      version: 2,
+      storedCarryLength: null,
+      carryLength,
+      regenerated: lengthenedFirstCut,
+    });
+    const at = (carryLength: number) =>
+      projectFrom(snapshot, { revision: 1, version: statusOf(carry(carryLength)) });
+    // The phone saves a carry length of 8' after the laptop's notice was worked out for 10'.
+    const settings = { carryLength: 120, settingsRevision: 1 };
+    const sent: unknown[] = [];
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+      const method = (input instanceof Request ? input.method : init?.method) ?? 'GET';
+      const url = input instanceof Request ? input.url : String(input);
+      const path = new URL(url, 'http://kerf.test').pathname;
+      if (method === 'GET') {
+        sent.push(path);
+        return path.endsWith('/version')
+          ? json({
+              version: carry(settings.carryLength),
+              basis: { templateVersion: 2, settingsRevision: settings.settingsRevision },
+            })
+          : json(at(settings.carryLength));
+      }
+      const raw = input instanceof Request ? await input.text() : String(init?.body ?? '');
+      const body = JSON.parse(raw) as { revision: number; settingsRevision: number };
+      sent.push(body);
+      return body.settingsRevision === settings.settingsRevision
+        ? json({ ...at(settings.carryLength), revision: 2 })
+        : json({ error: 'stale-project', revision: 1 }, 409);
+    });
+    const regenerated = vi.fn();
+    const notice = (project: Project) => (
+      <VersionNotice
+        project={project}
+        onRegenerated={regenerated}
+        onNewer={(p) => view.rerender(notice(p))}
+      />
+    );
+    const view = mount(notice(at(120)));
+    const { container } = view;
+    for (let i = 0; i < 3; i++) await settle();
+    expect(container.textContent).toContain(`you now have a carry length of 10' 0"`);
+
+    Object.assign(settings, { carryLength: 96, settingsRevision: 2 });
+    await click(byText(container, 'button', 'Update the shopping list'));
+    await click(byText(container, 'button', 'Regenerate'));
+    for (let i = 0; i < 3; i++) await settle();
+    expect(regenerated).not.toHaveBeenCalled();
+    expect(sent.at(-3)).toEqual({ revision: 1, templateVersion: 2, settingsRevision: 1 });
+    // The project and what regenerating would change are both read again.
+    expect(sent.slice(-2)).toEqual([
+      `/api/projects/${opened.id}`,
+      `/api/projects/${opened.id}/version`,
+    ]);
+    expect(container.textContent).toContain('Your carry length or the template changed');
+    expect(container.textContent).toContain('Nothing was regenerated.');
+    expect(container.textContent).toContain(`you now have a carry length of 8' 0"`);
+    expect(container.textContent).not.toContain('Changed on another device.');
+
+    await click(byText(container, 'button', 'Update the shopping list'));
+    await click(byText(container, 'button', 'Regenerate'));
+    await settle();
+    expect(sent.at(-1)).toEqual({ revision: 1, templateVersion: 2, settingsRevision: 2 });
+    expect(regenerated).toHaveBeenCalledWith(expect.objectContaining({ revision: 2 }));
   });
 });

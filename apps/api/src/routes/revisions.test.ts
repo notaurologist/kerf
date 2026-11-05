@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
-import { swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
+import { freshBasis, swingSetInputs, swingSetParams } from '../../test/fixtures.ts';
 
 // Two devices saving one project (#207): a save or tick made against an older revision of the
 // plan is refused, so neither silently undoes the other.
@@ -94,7 +94,7 @@ describe('project revisions', () => {
 
   it('refuse a tick made before the plan was regenerated, and save none of it', async () => {
     const { regenerate, tick, read } = await setup();
-    expect((await regenerate({ revision: 1 })).body.revision).toBe(2);
+    expect((await regenerate({ revision: 1, ...freshBasis })).body.revision).toBe(2);
     // A tick queued on a phone against revision 1, retried after the regeneration.
     expect(await tick(1, 'frames')).toEqual({
       status: 409,
@@ -110,19 +110,23 @@ describe('project revisions', () => {
     // parameters, so regenerating now would store a plan the owner was not shown.
     await put({ params: { ...swingSetParams, crossbarHeight: 44 }, revision: 1 });
     const before = await read();
-    expect(await regenerate({ revision: 1 })).toEqual({
+    expect(await regenerate({ revision: 1, ...freshBasis })).toEqual({
       status: 409,
       body: { error: 'stale-project', revision: 2 },
     });
     const after = await read();
     expect(after.revision).toBe(2);
     expect(after.snapshot).toEqual(before.snapshot);
-    expect((await regenerate({ revision: 2 })).body.revision).toBe(3);
+    expect((await regenerate({ revision: 2, ...freshBasis })).body.revision).toBe(3);
   });
 
-  it('need a revision to regenerate', async () => {
+  it('need a revision, template version, and settings revision to regenerate', async () => {
     const { regenerate, read } = await setup();
     expect((await regenerate({})).status).toBe(400);
+    expect((await regenerate({ revision: 1 })).status).toBe(400);
+    expect(
+      (await regenerate({ revision: 1, templateVersion: freshBasis.templateVersion })).status,
+    ).toBe(400);
     expect((await read()).revision).toBe(1);
   });
 

@@ -91,11 +91,15 @@ describe('the web client against the API', () => {
       },
     });
 
-    // Regenerate sends the revision the notice was computed at.
+    // Regenerate sends the revision, template version, and settings revision the notice was
+    // computed from.
+    const { basis } = report.value;
+    if (!basis) throw new Error('a readable plan has a basis');
+    expect(basis.templateVersion).toBe(nextVersion.version);
     const regenerated = await send(
       v2.api.projects[':id'].regenerate.$post({
         param: { id },
-        json: { revision: read.value.revision },
+        json: { revision: read.value.revision, ...basis },
       }),
     );
     if (!regenerated.ok) throw new Error(JSON.stringify(regenerated.error));

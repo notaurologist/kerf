@@ -1,29 +1,23 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ciFilters, pullRequestFilter, reads, root, runsCi, workflow } from './ciPaths.ts';
+import { CHECKED_PATHS, needsChecks, reads, root, runsCi } from './ciPaths.ts';
 
-const filters = ciFilters(readFileSync(workflow, 'utf8'));
+const workflow = readFileSync(join(root, '.github', 'workflows', 'ci.yml'), 'utf8');
 
-describe('CI path filters', () => {
-  it('are the same for pushes to main and pull requests', () => {
-    expect(filters.pull_request?.length).toBeGreaterThan(0);
-    expect(filters.push).toEqual(filters.pull_request);
-  });
-
+describe('CI checked paths', () => {
   it('skip Markdown and docs/ and run on everything else', () => {
-    const filter = pullRequestFilter();
-    expect(runsCi('README.md', filter)).toBe(false);
-    expect(runsCi('apps/web/notes.md', filter)).toBe(false);
-    expect(runsCi('docs/PRODUCT.md', filter)).toBe(false);
-    expect(runsCi('docs/templates/diagram.svg', filter)).toBe(false);
-    expect(runsCi('apps/web/src/ui/styles/styles.test.ts', filter)).toBe(true);
-    expect(runsCi('.github/workflows/ci.yml', filter)).toBe(true);
-    expect(runsCi('package.json', filter)).toBe(true);
+    expect(runsCi('README.md', CHECKED_PATHS)).toBe(false);
+    expect(runsCi('apps/web/notes.md', CHECKED_PATHS)).toBe(false);
+    expect(runsCi('docs/PRODUCT.md', CHECKED_PATHS)).toBe(false);
+    expect(runsCi('docs/templates/diagram.svg', CHECKED_PATHS)).toBe(false);
+    expect(runsCi('apps/web/src/ui/styles/styles.test.ts', CHECKED_PATHS)).toBe(true);
+    expect(runsCi('.github/workflows/ci.yml', CHECKED_PATHS)).toBe(true);
+    expect(runsCi('package.json', CHECKED_PATHS)).toBe(true);
   });
 
   it('run on the design system doc, whose breakpoints styles.test.ts reads', () => {
-    expect(runsCi('docs/design/system.md', pullRequestFilter())).toBe(true);
+    expect(runsCi('docs/design/system.md', CHECKED_PATHS)).toBe(true);
   });
 
   it('let a later pattern override an earlier one', () => {
@@ -33,9 +27,30 @@ describe('CI path filters', () => {
     expect(runsCi('a/b.ts', ['**.ts'])).toBe(true);
   });
 
-  it('refuse paths-ignore, which cannot list a doc back in', () => {
-    const yaml = 'on:\n  pull_request:\n    paths-ignore:\n      - "docs/**"\n';
-    expect(() => ciFilters(yaml)).toThrow(/paths-ignore/);
+  it('need the checks when any changed file is code, or when the changes are unknown', () => {
+    expect(needsChecks(['docs/PRODUCT.md', 'README.md'])).toBe(false);
+    expect(needsChecks(['docs/PRODUCT.md', 'apps/api/src/app.ts'])).toBe(true);
+    expect(needsChecks(['docs/design/system.md'])).toBe(true);
+    expect(needsChecks([])).toBe(true);
+  });
+});
+
+describe('the CI workflow', () => {
+  // Main requires the check job (0010). A workflow-level paths filter would never start it on a
+  // docs-only pull request, which would then wait on a check that never reports.
+  it('starts on every pull request and push to main, with no paths filter', () => {
+    expect(workflow).not.toMatch(/^\s+paths(-ignore)?:/m);
+    expect(workflow).toMatch(/^ {2}pull_request:\s*$/m);
+  });
+
+  // A step that ran on a docs-only change before pnpm install would fail there.
+  it('runs every step after deciding only when the change needs the checks', () => {
+    const steps = workflow
+      .slice(workflow.indexOf('id: changes'))
+      .split(/\n {6}- /)
+      .slice(1);
+    expect(steps.length).toBeGreaterThan(5);
+    for (const step of steps) expect(step).toContain("if: steps.changes.outputs.run == 'true'");
   });
 });
 
@@ -51,7 +66,7 @@ describe('reads during a test', () => {
     const doc = 'docs/PRODUCT.md';
     readFileSync(join(root, doc), 'utf8');
     expect(reads()).toContain(doc);
-    expect(runsCi(doc, pullRequestFilter())).toBe(false);
+    expect(runsCi(doc, CHECKED_PATHS)).toBe(false);
     // Forgotten here so this file passes; any other test file reading it would fail.
     reads().delete(doc);
   });
