@@ -278,6 +278,8 @@ describe('hardware', () => {
     const output = run(example);
     expect(item(output, 'leg-beam-bolts')?.quantity).toBe(2);
     expect(item(output, 'leg-beam-bolts')?.bolt?.grip).toBeCloseTo(8.947, 3);
+    // The line and the stored geometry both take the grip from the joints.
+    expect(item(output, 'leg-beam-bolts')?.bolt?.grip).toBe(output.geometry.boltGrip);
     expect(item(output, 'crossbar-bolts')).toMatchObject({
       quantity: 8,
       bolt: { diameter: 0.5, grip: 5 },

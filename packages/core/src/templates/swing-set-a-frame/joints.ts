@@ -1,8 +1,7 @@
 import { type Bolt, boltedLap, type Side } from '../../joints/boltedLap.ts';
 import { compare } from '../../joints/compare.ts';
 import { type Member, type Plane, type Trimmed, trim } from '../../joints/trim.ts';
-import type { HardwareItem, Hole, Part, Placement, Vec3 } from '../../model/types.ts';
-import { boltLength } from '../../structural/boltLength.ts';
+import type { Hole, Part, Placement, Vec3 } from '../../model/types.ts';
 import {
   type Dimensions,
   type FrameGeometry,
@@ -50,8 +49,14 @@ export function joined(
   dims: Dimensions,
   g: FrameShape,
   swings: SwingGeometry,
-  made: { parts: UncutPart[]; hardware: HardwareItem[] },
-): { geometry: FrameGeometry; parts: Part[]; placements: Placement[]; hardware: HardwareItem[] } {
+  uncut: UncutPart[],
+): {
+  geometry: FrameGeometry;
+  parts: Part[];
+  placements: Placement[];
+  /** Each bolted hardware line's grip, by hardware ID. */
+  grips: ReadonlyMap<string, number>;
+} {
   const a = g.splay * RAD;
   const sin = Math.sin(a);
   const cos = Math.cos(a);
@@ -159,7 +164,7 @@ export function joined(
   }));
 
   const cuts = new Map<string, Extract<Trimmed, { ok: true }>>();
-  const trimmed = made.parts.map(({ marks, ...part }): Part => {
+  const trimmed = uncut.map(({ marks, ...part }): Part => {
     const [first, ...others] = trims.filter((t) => t.partId === part.id).map((t) => t.cut);
     if (!first) throw new Error(`${part.id} has no joints to cut it to length.`);
     for (const other of others) {
@@ -274,40 +279,16 @@ export function joined(
   const parts = trimmed.map((part) => ({ ...part, holes: holes.get(part.id) ?? [] }));
   const legBeamGrip = grips.get('leg-beam-bolts');
   if (legBeamGrip === undefined) throw new Error('No leg-to-beam bolts.');
-  if (Math.abs(legBeamGrip - g.boltGrip) > 1e-9) {
-    throw new Error(
-      `The leg-to-beam bolts' grip: the joints give ${legBeamGrip}, the geometry ${g.boltGrip}.`,
-    );
-  }
   const cutOf = (id: string) => {
     const found = cuts.get(id);
     if (!found) throw new Error(`No ${id} cut.`);
     return found;
   };
   return {
-    geometry: storedGeometry({ ...g, boltGrip: legBeamGrip }, cutOf),
+    geometry: storedGeometry(g, cutOf, legBeamGrip),
     parts,
     placements,
-    hardware: made.hardware.map((item) => withGrip(item, grips.get(item.id))),
-  };
-}
-
-/**
- * A bolt's grip from its laps, and the lengths that fit it (#449): through the grip, its washers,
- * and its nut, and at most one diameter past the nut (CPSC Pub. 324, p. 3), as the template has it.
- */
-function withGrip(item: HardwareItem, grip: number | undefined): HardwareItem {
-  if (!item.bolt || grip === undefined) return item;
-  const b = item.bolt;
-  const fits = b.fits && boltLength(b.diameter, grip, b.washers, b.nut, b.diameter);
-  return {
-    ...item,
-    bolt: {
-      ...b,
-      grip,
-      ...(fits?.length ? { length: fits.length } : {}),
-      ...(fits ? { fits: { min: fits.min, max: fits.max } } : {}),
-    },
+    grips,
   };
 }
 

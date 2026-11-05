@@ -366,16 +366,16 @@ export function generate(
   if (issues.length > 0) return { ok: false, issues };
 
   // The parts as the template stands them, then cut, placed, and drilled by their joints.
-  const made = joined(p, dims, frame, swings, {
-    parts: withLetters(parts(p, dims, frame)),
-    hardware: hardware(p, dims, frame),
-  });
+  const made = joined(p, dims, frame, swings, withLetters(parts(p, dims, frame)));
   const g = made.geometry;
   const joints = boltJoints(p, dims, g);
   const madeParts = made.parts;
   // Every part is pressure-treated lumber: the beam checks take a waterborne treatment
   // (structural.ts), and the legs stand in or on the ground.
-  const madeHardware = [...made.hardware, ...preservativeFor(madeParts, PRESERVATIVE_GROUP)];
+  const madeHardware = [
+    ...hardware(p, dims, made.grips),
+    ...preservativeFor(madeParts, PRESERVATIVE_GROUP),
+  ];
   return {
     ok: true,
     output: {
