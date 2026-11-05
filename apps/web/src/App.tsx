@@ -48,8 +48,15 @@ const Catalog = lazy(() => import('./ui/Catalog.tsx').then((m) => ({ default: m.
 // `expired` keeps the screen mounted under the login, so a form keeps what was typed.
 type Session = 'checking' | 'logged-out' | 'logged-in' | 'expired' | { unreachable: string };
 
-/** `onLogOut` is for Workshop's Log out; without it, Log out does nothing, as in tests. */
-export function Screen(props: { route: Route; onLogOut?: () => void }) {
+/**
+ * `onLogOut` is for Workshop's Log out, and `onLoggedOutEverywhere` for after its Log out
+ * everywhere; without them, they do nothing, as in tests.
+ */
+export function Screen(props: {
+  route: Route;
+  onLogOut?: () => void;
+  onLoggedOutEverywhere?: () => void;
+}) {
   switch (props.route.screen) {
     case 'projects':
       return <ProjectsScreen />;
@@ -84,7 +91,12 @@ export function Screen(props: { route: Route; onLogOut?: () => void }) {
     case 'trash':
       return <TrashScreen />;
     case 'workshop':
-      return <WorkshopScreen onLogOut={props.onLogOut ?? (() => {})} />;
+      return (
+        <WorkshopScreen
+          onLogOut={props.onLogOut ?? (() => {})}
+          onLoggedOutEverywhere={props.onLoggedOutEverywhere}
+        />
+      );
     case 'catalog':
       return (
         <Suspense
@@ -169,10 +181,10 @@ function subjectOf(route: Route): string | undefined {
 }
 
 /** A screen with its scope for marking the first use of each glossary term. */
-function ScreenWithTerms(props: { route: Route; onLogOut?: () => void }) {
+function ScreenWithTerms(props: Parameters<typeof Screen>[0]) {
   return (
     <TermScope key={subjectOf(props.route)} entryHref={entryHref}>
-      <Screen route={props.route} onLogOut={props.onLogOut} />
+      <Screen {...props} />
     </TermScope>
   );
 }
@@ -282,7 +294,11 @@ export function App() {
       >
         <Page>
           <NewBuildNotice />
-          <ScreenWithTerms route={route} onLogOut={() => leaveGate.confirm(() => void logout())} />
+          <ScreenWithTerms
+            route={route}
+            onLogOut={() => leaveGate.confirm(() => void logout())}
+            onLoggedOutEverywhere={() => setSession('logged-out')}
+          />
         </Page>
       </Frame>
       {loginAgain}

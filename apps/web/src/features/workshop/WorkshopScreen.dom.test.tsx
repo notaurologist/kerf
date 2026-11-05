@@ -156,4 +156,59 @@ describe('WorkshopScreen', () => {
       'could not reach the server',
     );
   });
+
+  it('asks in place before logging out everywhere, and keeps the session on Stay logged in', async () => {
+    const request = vi.fn(async () => ({ ok: true as const, value: null }));
+    const onLoggedOut = vi.fn();
+    const { container } = mount(
+      <WorkshopScreen
+        onLogOut={() => {}}
+        onLoggedOutEverywhere={onLoggedOut}
+        logOutEverywhere={request}
+      />,
+    );
+    await click(byText(container, 'button', 'Log out everywhere'));
+    expect(container.textContent).toContain('Log out on every device?');
+    expect(document.activeElement?.textContent).toBe('Stay logged in');
+    await click(byText(container, 'button', 'Stay logged in'));
+    expect(container.textContent).not.toContain('Log out on every device?');
+    expect(request).not.toHaveBeenCalled();
+    expect(onLoggedOut).not.toHaveBeenCalled();
+  });
+
+  it('goes to the login screen once every session has ended', async () => {
+    const request = vi.fn(async () => ({ ok: true as const, value: null }));
+    const onLoggedOut = vi.fn();
+    const { container } = mount(
+      <WorkshopScreen
+        onLogOut={() => {}}
+        onLoggedOutEverywhere={onLoggedOut}
+        logOutEverywhere={request}
+      />,
+    );
+    await click(byText(container, 'button', 'Log out everywhere'));
+    await click(byText(container, 'button', 'Log out everywhere'));
+    expect(request).toHaveBeenCalledOnce();
+    expect(onLoggedOut).toHaveBeenCalledOnce();
+  });
+
+  it('says why and stays logged in when logging out everywhere fails', async () => {
+    const onLoggedOut = vi.fn();
+    const { container } = mount(
+      <WorkshopScreen
+        onLogOut={() => {}}
+        onLoggedOutEverywhere={onLoggedOut}
+        logOutEverywhere={async () => ({
+          ok: false,
+          error: { kind: 'failed', status: 0, message: 'Kerf could not reach the server.' },
+        })}
+      />,
+    );
+    await click(byText(container, 'button', 'Log out everywhere'));
+    await click(byText(container, 'button', 'Log out everywhere'));
+    expect(onLoggedOut).not.toHaveBeenCalled();
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain(
+      'could not reach the server',
+    );
+  });
 });

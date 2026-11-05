@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitest/config';
+import { recordDataImports } from '../../apps/api/test/ciPaths.plugin.ts';
 
 export default defineConfig({
+  // Fails a test file that imports a path CI skips as JSON or ?raw (0010).
+  plugins: [recordDataImports()],
   test: {
     // Generating a plan searches for the fewest feet of lumber, up to its work limit (decision
     // 0021), so a test that generates several workbench plans passes Vitest's 5 s default on

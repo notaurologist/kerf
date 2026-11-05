@@ -3,9 +3,10 @@ import { createMiddleware } from 'hono/factory';
 import type { Database } from '../db/client.ts';
 import { findSession, SESSION_COOKIE } from './sessions.ts';
 
-// Every route needs a session except these two (decision 0007). Listed by method and full path,
-// so a new route is protected unless it is added here on purpose.
-const PUBLIC_ROUTES = new Set(['GET /api/health', 'POST /api/login']);
+// Every route needs a session except the health check and login (decision 0007). Listed by method
+// and full path, so a new route is protected unless it is added here on purpose. Hono answers a
+// HEAD request with the GET route, and uptime checks often send HEAD.
+const PUBLIC_ROUTES = new Set(['GET /api/health', 'HEAD /api/health', 'POST /api/login']);
 
 export function requireSession(db: Database, fingerprint: string, now: () => Date) {
   return createMiddleware(async (c, next) => {

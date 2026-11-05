@@ -72,3 +72,8 @@ export async function findSession(
 export async function deleteSession(db: Database, token: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash(token)));
 }
+
+/** Ends every session, the caller's too: Log out everywhere. */
+export async function deleteAllSessions(db: Database): Promise<void> {
+  await db.delete(sessions);
+}

@@ -159,14 +159,40 @@ export function visibleFields(sections: readonly FormSection[], values: FormValu
   return sections.flatMap((s) => s.fields.filter((f) => !f.when || f.when(value)));
 }
 
+// A path naming one of these would reach an object's prototype instead of its own fields.
+const PROTOTYPE_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+
+function pathKeys(path: string): string[] {
+  const keys = path.split('.');
+  const refused = keys.find((key) => PROTOTYPE_KEYS.has(key));
+  if (refused !== undefined) throw new Error(`Form path ${path} names ${refused}.`);
+  return keys;
+}
+
 /** The value at a form path, such as `legStock.lengths.0`, or undefined. */
 export function readPath(object: unknown, path: string): unknown {
   let at: unknown = object;
-  for (const key of path.split('.')) {
+  for (const key of pathKeys(path)) {
     if (typeof at !== 'object' || at === null) return undefined;
     at = (at as Record<string, unknown>)[key];
   }
   return at;
+}
+
+/** Sets the value at a form path, making the objects and arrays on the way that are missing. */
+export function writePath(object: Record<string, unknown>, path: string, value: unknown): void {
+  const keys = pathKeys(path);
+  let at: Record<string, unknown> = object;
+  keys.forEach((key, i) => {
+    if (i === keys.length - 1) {
+      at[key] = value;
+      return;
+    }
+    if (typeof at[key] !== 'object' || at[key] === null) {
+      at[key] = /^\d+$/.test(keys[i + 1] ?? '') ? [] : {};
+    }
+    at = at[key] as Record<string, unknown>;
+  });
 }
 
 /**
