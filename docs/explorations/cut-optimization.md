@@ -136,7 +136,7 @@ The fit also showed the board enumeration costing far more per step than it shou
 
 The most any run of the exact method has saved on the workbench is 218 ft, with a limit of about 13 s on the slowest stock. The swing set saves its 20 ft and the record cabinet its 123 ft at 10M and above, so the limit only matters for the workbench. "Saved where proven" is the fallback in 0021, which uses the exact plan only where the search finishes. On the workbench it saves 58 ft at 30M, against 162 ft for keeping the best plan found, because most workbench stocks are not proven within a second.
 
-**Chosen limit: 30M units.** The slowest workbench stock takes about 0.6 s on this machine, and the limit keeps 162 of the 218 ft on the workbench (74%), so the fallback does not apply. Below it the saving falls quickly: 20M keeps half, 10M a third. Two things the owner should weigh:
+**Chosen limit: 30M units** (owner, November 5, 2026, #689). The slowest workbench stock takes about 0.6 s on this machine, and the limit keeps 162 of the 218 ft on the workbench (74%), so the fallback does not apply. Below it the saving falls quickly: 20M keeps half, 10M a third. The owner kept 30M knowing two things:
 
 - The workbench's worked example needs 35.9M units (about 0.57 s) to find and prove its 376 ft. At 30M it stops at today's 386 ft. A limit of 40M reaches it, with the slowest stock near 0.8 s, and saves 176 ft on the workbench.
 - The times are from a development machine. The API runs on Vercel's functions, which may be slower, so a plan that takes 0.6 s here could take longer there. #685 and #686 can measure it there before release.
