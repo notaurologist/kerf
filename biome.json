@@ -13,6 +13,7 @@
       "!**/*.md",
       "!docs",
       "!packages/core/src/templates/*/shown",
+      "!packages/core/src/templates/*/sweeps",
       "!apps/web/src/ui/catalog-sample.json"
     ]
   },

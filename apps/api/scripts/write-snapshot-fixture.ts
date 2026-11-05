@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createSnapshot, findTemplate } from '@kerf/core';
-import { SWEEPS, sweep, sweepDigest } from '@kerf/core/sweeps';
+import { digestJson, SWEEPS, sweep, sweepDigest } from '@kerf/core/sweeps';
 import {
   CURRENT_ONLY,
   fixtureFolder,
@@ -50,16 +50,19 @@ const snapshots = template.examples.map((example) => {
 writeFileSync(file, `${JSON.stringify(snapshots, null, 2)}\n`);
 
 /** Writes a file kept for the current version only, removing the previous version's. */
-function replace(folder: string, content: unknown) {
+function replace(folder: string, content: string) {
   rmSync(folder, { recursive: true, force: true });
   mkdirSync(folder);
   const written = join(folder, name);
-  writeFileSync(written, `${JSON.stringify(content, null, 2)}\n`);
+  writeFileSync(written, content);
   return written;
 }
 
 const stored = JSON.parse(JSON.stringify(snapshots));
-const shown = replace(shownFolder(template.id), shownFor(template, stored));
+const shown = replace(
+  shownFolder(template.id),
+  `${JSON.stringify(shownFor(template, stored), null, 2)}\n`,
+);
 
 const swept = sweep(template, plan);
 if (swept.failures.length > 0) {
@@ -68,7 +71,7 @@ if (swept.failures.length > 0) {
   );
   process.exit(1);
 }
-const digest = replace(sweepsFolder(template.id), sweepDigest(template, plan, swept));
+const digest = replace(sweepsFolder(template.id), digestJson(sweepDigest(template, plan, swept)));
 
 const kept = Object.entries(hashes[template.id] ?? {}).filter(
   ([f]) => !CURRENT_ONLY.some((folder) => f.startsWith(folder)),

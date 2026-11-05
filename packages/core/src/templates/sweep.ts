@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { fitProblems } from '../fit/index.ts';
 import type { TemplateDefinition } from '../model/definition.ts';
+import { sameNumber } from '../snapshot/diff.ts';
 import { shownOnRead } from '../snapshot/shown.ts';
 
 // A seeded random sweep of a template's parameters, for tests (#571): draws parameter sets as an
@@ -9,7 +10,8 @@ import { shownOnRead } from '../snapshot/shown.ts';
 // parts that go together (fit/), and, for a sample, can be shown and drawn. Hand-picked cases
 // cover what someone thought to write down; the joint model's sweep found four bugs they missed.
 // What each draw generates is also pinned per template version (sweeps/v<n>.json, decision 0014),
-// so a change to output the worked examples do not reach needs a version bump too.
+// numbers within sameNumber, so a change to output the worked examples do not reach needs a
+// version bump too.
 
 export interface Random {
   /** Uniform in [0, 1). */
@@ -59,15 +61,40 @@ export interface Swept {
   made: number;
   /** Each draw that failed, by its number, and how. */
   failures: string[];
-  /**
-   * What each accepted draw generated, by draw number: a hash of the plan's outputs, or of the
-   * issues that refused it.
-   */
-  outputs: Record<string, string>;
+  /** What each accepted draw generated, by draw number: its plan's outputs or its issues. */
+  outputs: Record<string, DrawDigest>;
 }
 
-/** The first 16 hex digits of the SHA-256 of a draw's JSON, plenty to notice any change. */
-const hashOf = (json: string) => createHash('sha256').update(json).digest('hex').slice(0, 16);
+/**
+ * What one draw generated, small enough to keep for every draw. `values` holds its distinct
+ * numbers in the order they first appear, rounded to 7 decimal places; numbers within
+ * `sameNumber` of one already listed count as that one. `shape` is a hash of the output's JSON
+ * with each number replaced by its place in `values`, so it pins every string, key, and where each
+ * number goes. Storing every number would take megabytes per template version; a plan repeats
+ * most of its numbers.
+ */
+export interface DrawDigest {
+  shape: string;
+  values: number[];
+}
+
+const MARK = '\u0000';
+
+export function drawDigest(output: unknown): DrawDigest {
+  const values: number[] = [];
+  const exact = new Map<number, number>();
+  const place = (n: number) => {
+    let at = exact.get(n) ?? values.findIndex((v) => sameNumber(v, n));
+    if (at < 0) at = values.push(n) - 1;
+    exact.set(n, at);
+    return at;
+  };
+  const json = JSON.stringify(output, (_, v) => (typeof v === 'number' ? `${MARK}${place(v)}` : v));
+  return {
+    shape: createHash('sha256').update(json).digest('hex').slice(0, 16),
+    values: values.map((v) => Number(v.toFixed(7))),
+  };
+}
 
 export function sweep(
   template: TemplateDefinition,
@@ -85,13 +112,13 @@ export function sweep(
     try {
       const made = template.generate(params.data, inputs.data);
       if (!made.ok) {
-        swept.outputs[i] = hashOf(JSON.stringify(made.issues));
+        swept.outputs[i] = drawDigest(made.issues);
         continue;
       }
       swept.made++;
-      const json = JSON.stringify(made.output);
-      swept.outputs[i] = hashOf(json);
-      const outputs = template.storedOutputs.parse(JSON.parse(json));
+      const json = JSON.parse(JSON.stringify(made.output));
+      swept.outputs[i] = drawDigest(json);
+      const outputs = template.storedOutputs.parse(json);
       const assembly = template.assembly(outputs);
       if (!assembly) {
         fail('no 3D scene');
@@ -116,7 +143,7 @@ export interface SweepDigest {
   templateVersion: number;
   seed: number;
   count: number;
-  outputs: Record<string, string>;
+  outputs: Record<string, DrawDigest>;
 }
 
 export const sweepDigest = (
@@ -124,6 +151,19 @@ export const sweepDigest = (
   { seed, count }: SweepPlan,
   swept: Swept,
 ): SweepDigest => ({ templateVersion: template.version, seed, count, outputs: swept.outputs });
+
+/** A digest as written to `sweeps/v<n>.json`: one line per draw, so a change reads by draw. */
+export function digestJson(digest: SweepDigest): string {
+  const { outputs, ...rest } = digest;
+  const draws = Object.entries(outputs).map(([d, o]) => `    "${d}": ${JSON.stringify(o)}`);
+  const head = JSON.stringify(rest, null, 2).slice(0, -2);
+  return `${head},\n  "outputs": {\n${draws.join(',\n')}\n  }\n}\n`;
+}
+
+const sameDraw = (a: DrawDigest, b: DrawDigest) =>
+  a.shape === b.shape &&
+  a.values.length === b.values.length &&
+  a.values.every((v, i) => sameNumber(v, b.values[i] as number));
 
 /**
  * How a sweep differs from the digest recorded for its template version: the draws whose output
@@ -139,7 +179,7 @@ export function digestChanges(recorded: SweepDigest | undefined, now: SweepDiges
   for (const draw of [...draws].sort((a, b) => Number(a) - Number(b))) {
     const before = recorded.outputs[draw];
     const after = now.outputs[draw];
-    if (before === after) continue;
+    if (before && after && sameDraw(before, after)) continue;
     problems.push(
       `draw ${draw} ${!before ? 'is newly accepted' : !after ? 'is no longer accepted' : 'generates different output'}`,
     );

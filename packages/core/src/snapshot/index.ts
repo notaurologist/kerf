@@ -1,4 +1,4 @@
-export { type Change, type Diff, diff } from './diff.ts';
+export { type Change, type Diff, diff, sameNumber, sameOutput } from './diff.ts';
 export { shapeOf } from './shape.ts';
 export { type Shown, shownOnRead } from './shown.ts';
 export {

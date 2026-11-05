@@ -17,6 +17,7 @@ import {
 import { ChecklistItem, Flag, type Part } from '../model/types.ts';
 import { LumberPlan } from '../outputs/shoppingList.ts';
 import { leaveOutDefaults } from '../snapshot/defaults.ts';
+import { diff } from '../snapshot/diff.ts';
 import { shapeOf } from '../snapshot/shape.ts';
 import { shownOnRead } from '../snapshot/shown.ts';
 import { createSnapshot, readSnapshot } from '../snapshot/snapshot.ts';
@@ -349,20 +350,20 @@ describe('every template stays readable (decision 0014)', () => {
   });
 
   it.each(TEMPLATES.map((t) => [t.id, t] as const))(
-    '%s regenerates the fixture of its current version exactly',
+    '%s regenerates the fixture of its current version, numbers within sameNumber',
     (id, t) => {
       expect(
-        current(t),
+        diff(fixturesOf(t)[t.version], current(t), 20).changes,
         'The worked examples generate different output at the same template version. Bump the ' +
           "template's version, and its snapshotVersion too if the stored shape changed (decision " +
           `0008), then write the new fixture: pnpm --filter @kerf/api write-snapshot-fixture ${id} ` +
           '(decision 0014).',
-      ).toEqual(fixturesOf(t)[t.version]);
+      ).toEqual([]);
     },
   );
 
   it.each(TEMPLATES.map((t) => [t.id, t] as const))(
-    '%s shows its current fixture as it did when the fixture was written',
+    '%s shows its current fixture as it did when the fixture was written, numbers within sameNumber',
     (id, t) => {
       // Plans, build steps, and drawings are derived from stored outputs on every read, so a
       // change to generic code there changes every stored plan, with no new fixture to show it.
@@ -373,12 +374,12 @@ describe('every template stays readable (decision 0014)', () => {
         return asJson(shownOnRead(t, t.storedOutputs.parse(read.snapshot.outputs)));
       });
       expect(
-        shown,
+        diff(SHOWN[id]?.[t.version], shown, 20).changes,
         'A stored plan reads differently: its plan, build steps, or drawing dimensions changed. ' +
           'That changes every stored plan, older versions included. Bump the version of each ' +
           `template it changes and write the new fixture: pnpm --filter @kerf/api ` +
           `write-snapshot-fixture ${id} (decision 0014).`,
-      ).toEqual(SHOWN[id]?.[t.version]);
+      ).toEqual([]);
     },
   );
 

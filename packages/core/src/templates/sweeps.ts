@@ -2,4 +2,4 @@
 // (decision 0014). Running a sweep hashes with node:crypto, so it stays out of the main entry.
 
 export { SWEEPS } from './index.ts';
-export { type SweepDigest, sweep, sweepDigest } from './sweep.ts';
+export { digestJson, sweep, sweepDigest } from './sweep.ts';

@@ -1,6 +1,21 @@
 // Differences between two JSON values, as paths with the value before and after. Used to tell the
 // owner what regenerating a project with the current template version would change (decision
-// 0008). Generic: it knows nothing about what the values describe.
+// 0008), and wherever tests compare stored output with fresh output (0014). Generic: it knows
+// nothing about what the values describe.
+
+/**
+ * How far apart two numbers may be and still count as the same output: 1e-6 absolute, plus 1e-12
+ * of the larger for values past a million. ECMAScript leaves Math.sin, tan, atan, log, pow and the
+ * like implementation-approximated, and they differ in the last bits between macOS arm64, Linux
+ * arm64, and Linux x64 (decision 0014). Those differences are around 1e-15 of the value; a
+ * sixty-fourth of an inch is 0.0156. Computation and stored values stay exact (hard rule 4).
+ */
+export function sameNumber(a: number, b: number): boolean {
+  return a === b || Math.abs(a - b) <= 1e-6 + 1e-12 * Math.max(Math.abs(a), Math.abs(b));
+}
+
+/** Whether two JSON values are the same output: equal, with numbers compared by `sameNumber`. */
+export const sameOutput = (a: unknown, b: unknown): boolean => !diff(a, b, 0).truncated;
 
 export interface Change {
   /** Such as 'cutList[1].length'. */
@@ -54,7 +69,9 @@ export function diff(before: unknown, after: unknown, limit = 100): Diff {
       }
       return;
     }
-    if (a !== b) add({ path, before: a, after: b });
+    if (typeof a === 'number' && typeof b === 'number' ? !sameNumber(a, b) : a !== b) {
+      add({ path, before: a, after: b });
+    }
   };
 
   walk(before, after, '', true, true);
