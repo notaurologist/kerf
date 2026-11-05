@@ -1,7 +1,8 @@
-// The direct stiffness method for a plane frame: each member's global stiffness is added into the
-// structure's at its joints' degrees of freedom, the supported degrees of freedom are set aside,
-// the free ones are solved for, and the reactions and member end forces follow from the
-// displacements. Nothing is rounded here; rounding belongs to whatever displays the results.
+// The direct stiffness method for a plane frame (McGuire, Gallagher and Ziemian, 2nd edition,
+// Chapter 3): each member's global stiffness is added into the structure's at its joints' degrees
+// of freedom (Section 3.1, Eqs. 3.2–3.5, p. 33), the supported degrees of freedom are set aside and
+// the free ones solved for (Section 3.2, Eqs. 3.7–3.9, p. 41), and the reactions (Eq. 3.8b) and
+// member end forces follow from the displacements. Nothing is rounded here; rounding belongs to whatever displays the results.
 
 import { type Element, element } from './element.ts';
 import { Matrix } from './matrix.ts';
@@ -159,7 +160,8 @@ export function analyze(frame: Frame): Analysis {
     };
   });
 
-  // Each member's end forces from its own end displacements, f' = k'·Γ·d. A released end's
+  // Each member's end forces from its own end displacements, f' = k'·Γ·d (Eqs. 5.11 and 5.12,
+  // p. 98). A released end's
   // rotation is condensed out of k', so the loose rotation's placeholder zero never enters.
   const atJoints = new Array<number>(n).fill(0);
   const memberForces: Record<string, { start: EndForces; end: EndForces }> = {};
@@ -181,6 +183,7 @@ export function analyze(frame: Frame): Analysis {
   }
 
   // At a supported joint, the support and the applied load together supply what the members take.
+  // Eq. 3.8b (p. 41) gives their sum, K_sf·Δ_f; the applied load is taken out to leave the reaction.
   const reactions: Record<string, Reaction> = {};
   frame.joints.forEach((joint, i) => {
     const support = frame.supports[joint.id];

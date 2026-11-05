@@ -28,15 +28,32 @@ Loads are applied at joints only. Member loads (self-weight, distributed loads) 
 
 ### Source
 
-McGuire, Gallagher and Ziemian, *Matrix Structural Analysis*, 2nd edition (2000) is the reference text (#545). For step 1, the element stiffness matrix, the transformation, assembly, supports by partitioning, and condensation for releases are the standard forms that text presents.
+McGuire, Gallagher and Ziemian, *Matrix Structural Analysis*, 2nd edition (2000), is the reference text (#545). Each formula in step 1 was checked against the printed page, with signs and the order of degrees of freedom read from page images, since the text layer drops minus signs in matrices. Page numbers are the printed ones.
 
-**Verification status.** The text's full PDF (Bucknell Digital Commons, `digitalcommons.bucknell.edu/books/7`) could not be fetched from this environment: the server refused the request (HTTP 403), and the browser pane offers it only as a download. So the formulas have not yet been checked page by page against the printed text, and no equation numbers are quoted here. They are checked instead against closed-form results that are derived independently in the tests' comments:
+| What | Where in the text | Code | Agrees |
+|---|---|---|---|
+| Sign convention: forces and translations along the axes, moments and rotations counterclockwise | Section 4.5.4, p. 72 | `model.ts`, `element.ts` | Yes |
+| Axial member | Eq. 4.26b, Section 4.5.1, p. 67 | `localStiffness` | Yes |
+| Beam bent about z: v₁, θ₁, v₂, θ₂ terms and signs | Eq. 4.32, Section 4.5.3, p. 70 | `localStiffness` | Yes |
+| Complete element: the u, v, θz rows and columns of the 12 by 12 matrix, in that order at each end | Eq. 4.34, Figure 4.11, Section 4.5.5, p. 73 | `localStiffness` | Yes, term for term |
+| Local from global, d' = Γ·d; k = Γᵀ·k'·Γ | Eqs. 5.11 and 5.16, Section 5.1.2, p. 98 | `transformation`, `element` | Yes |
+| Γ for a member in the x-y plane | Example 5.2, p. 102 | `transformation` | Yes |
+| Global [k] of a vertical and a sloped member, printed numerically | Example 5.3, p. 103 | `element.test.ts` reproduces both | Yes, to the printed digits (see below) |
+| Assembly | Section 3.1, Eqs. 3.2 to 3.5, p. 33 | `analyze` | Yes |
+| Supports by partitioning; reactions from K_sf·Δ_f | Section 3.2, Eqs. 3.7 to 3.9 and 3.8b, p. 41 | `analyze` | Yes; see the note on reactions |
+| A singular matrix means rigid-body motion | Example 3.4, part 3, p. 44 | `solve.ts`, `analyze` | Yes |
+| Static condensation | Section 13.1, Eq. 13.5, p. 376 | `condense` | Yes |
+| Member end releases; a pin at end 2 | Section 13.5.1, Eqs. 13.33 and 13.34, p. 398 | `condense` | Yes: the condensation test gives Eq. 13.33 term for term |
+| Cholesky factorization | Section 11.2.2, Eqs. 11.14 and 11.15, pp. 307 and 308 | `solveSymmetric` | Yes |
 
-- the element's terms for round values of E, A, I, and L;
-- condensation giving 3EI/L³, 3EI/L², and 3EI/L for a member pinned at one end;
-- a cantilever, a propped cantilever, a beam with an internal hinge, and a fixed-base portal frame (below).
+Notes:
 
-Checking against the printed text, with chapter, section, and equation numbers recorded here, is still open for this step.
+- **Example 5.3.** One printed entry, 17.381 for 6EI/L²·cos φ of member bc, is 18.75 × 0.927, with cos φ rounded to three places from the figure's 7.416 m over 8 m. The exact value is 17.3817. The test allows one unit in the last printed digit for that reason.
+- **Condensation.** `condense` eliminates the released rotations one at a time. Each step is one step of Gaussian elimination, which gives the same matrix as eliminating them together by Eq. 13.5 or Eq. 13.34.
+- **Reactions.** Eq. 3.8b gives the total force at the supported degrees of freedom, K_sf·Δ_f. The text treats it as the reaction because it applies no load at a support. `analyze` subtracts any load applied at a supported joint from that total, so a reaction is only what the support supplies.
+- **Not from the text.** Two behaviors are this package's own choices, so no page covers them. A joint whose rotation is held by neither a member nor a support has that rotation set aside and reported as `null`. A pivot at or below 10⁻¹⁰ of its own diagonal term is read as a mechanism. Section 11.2.2 says only that the matrix must be positive definite.
+
+The closed-form examples below check the same formulas a second way.
 
 ## Worked examples (step 1)
 

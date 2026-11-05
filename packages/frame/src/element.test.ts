@@ -89,3 +89,117 @@ describe('element', () => {
     );
   });
 });
+
+describe('Example 5.3 of McGuire, Gallagher and Ziemian, 2nd edition (p. 103)', () => {
+  // E = 200,000 MPa. Member ab: A = 4 × 10³ mm², I = 50 × 10⁶ mm⁴, 5 m vertical. Member bc:
+  // A = 6 × 10³ mm², I = 200 × 10⁶ mm⁴, 8 m long rising 3 m (sin φ = 0.375). The text prints each
+  // global [k] as 200 times a matrix in kN and mm, to four or five significant figures. Here forces
+  // are in N, so each printed entry is multiplied by 200 × 1,000 and compared to within one unit of
+  // its last printed digit. One unit, not half: the text's 17.381 for 6EI/L²·cos φ is 18.75 × 0.927,
+  // cos φ rounded to three places (7.416 m / 8 m in its figure); exactly, it is 17.3817.
+  function matches(actual: number[][], printed: [number, number][][]): void {
+    printed.forEach((row, i) => {
+      row.forEach(([value, decimals], j) => {
+        const ours = (actual[i]?.[j] ?? Number.NaN) / 200_000;
+        expect(Math.abs(ours - value), `row ${i + 1}, column ${j + 1}`).toBeLessThanOrEqual(
+          10 ** -decimals + 1e-12,
+        );
+      });
+    });
+  }
+  // [value, decimals printed]; the text prints the upper triangle, so rows are completed by symmetry.
+  const symmetric = (upper: [number, number][][]): [number, number][][] =>
+    upper.map((row, i) =>
+      Array.from({ length: 6 }, (_, j) =>
+        j >= i ? (row[j - i] as [number, number]) : (upper[j]?.[i - j] as [number, number]),
+      ),
+    );
+
+  it('member ab, vertical', () => {
+    const el = element(
+      { id: 'ab', start: 'a', end: 'b', section: { e: 200_000, area: 4_000, inertia: 50e6 } },
+      { id: 'a', x: 0, y: 0 },
+      { id: 'b', x: 0, y: 5_000 },
+    );
+    matches(
+      el.global.rows(),
+      symmetric([
+        [
+          [0.0048, 4],
+          [0, 4],
+          [-12, 2],
+          [-0.0048, 4],
+          [0, 4],
+          [-12, 2],
+        ],
+        [
+          [0.8, 3],
+          [0, 4],
+          [0, 4],
+          [-0.8, 3],
+          [0, 4],
+        ],
+        [
+          [0.4e5, -4],
+          [12, 2],
+          [0, 4],
+          [0.2e5, -4],
+        ],
+        [
+          [0.0048, 4],
+          [0, 4],
+          [12, 2],
+        ],
+        [
+          [0.8, 3],
+          [0, 4],
+        ],
+        [[0.4e5, -4]],
+      ]),
+    );
+  });
+
+  it('member bc, sloped', () => {
+    const el = element(
+      { id: 'bc', start: 'b', end: 'c', section: { e: 200_000, area: 6_000, inertia: 200e6 } },
+      { id: 'b', x: 0, y: 0 },
+      { id: 'c', x: Math.sqrt(8_000 ** 2 - 3_000 ** 2), y: 3_000 },
+    );
+    matches(
+      el.global.rows(),
+      symmetric([
+        [
+          [0.6452, 4],
+          [0.2591, 4],
+          [-7.0313, 4],
+          [-0.6452, 4],
+          [-0.2591, 4],
+          [-7.0313, 4],
+        ],
+        [
+          [0.1095, 4],
+          [17.381, 3],
+          [-0.2591, 4],
+          [-0.1095, 4],
+          [17.381, 3],
+        ],
+        [
+          [1e5, -5],
+          [7.0313, 4],
+          [-17.381, 3],
+          [0.5e5, -4],
+        ],
+        [
+          [0.6452, 4],
+          [0.2591, 4],
+          [7.0313, 4],
+        ],
+        [
+          [0.1095, 4],
+          [-17.381, 3],
+        ],
+        [[1e5, -5]],
+      ]),
+    );
+  });
+});

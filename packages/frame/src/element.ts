@@ -2,10 +2,10 @@
 // rotation), Euler–Bernoulli bending, linear elastic, small displacements. Shear deformation is
 // left out, as Euler–Bernoulli theory leaves it out.
 //
-// Source: McGuire, Gallagher and Ziemian, Matrix Structural Analysis, 2nd edition (2000): the
-// element's elastic stiffness in local axes, its rotation to global axes (k = Γᵀ·k'·Γ), and static
-// condensation for member end releases. docs/explorations/frame-analysis.md records which of these
-// were checked against the printed text and which against closed-form results only.
+// Source: McGuire, Gallagher and Ziemian, Matrix Structural Analysis, 2nd edition (2000), cited
+// below by section, equation, and printed page. Its sign convention is the one used here: forces
+// and translations positive along the axes, moments and rotations counterclockwise (Section 4.5.4,
+// p. 72).
 
 import { Matrix } from './matrix.ts';
 import type { Joint, Member } from './model.ts';
@@ -31,7 +31,9 @@ function geometry(member: Member, start: Joint, end: Joint): Geometry {
 
 /**
  * The element's stiffness in local axes, k', with no releases. Rows and columns follow the local
- * degrees of freedom above; forces act in the same directions as the displacements.
+ * degrees of freedom above; forces act in the same directions as the displacements. These are the
+ * u, v, θz rows and columns of Eq. 4.34 (Figure 4.11, Section 4.5.5, p. 73), which combines the
+ * axial member of Eq. 4.26b (p. 67) and the beam bent about z of Eq. 4.32 (p. 70).
  */
 export function localStiffness(e: number, area: number, inertia: number, length: number): Matrix {
   const l = length;
@@ -53,8 +55,10 @@ export function localStiffness(e: number, area: number, inertia: number, length:
 /**
  * Releases local degrees of freedom by static condensation: each released degree of freedom is
  * eliminated as one step of Gaussian elimination, k_ij − k_ir·k_rj / k_rr, and its row and column
- * are left at zero, so the force there is zero whatever the joint does. Releasing both rotations
- * leaves a member that carries axial force only.
+ * are left at zero, so the force there is zero whatever the joint does. Eliminating them one at a
+ * time gives the same matrix as Eq. 4.34 condensed all at once by Eq. 13.5 (Section 13.1, p. 376),
+ * or by Eq. 13.34 with [G] selecting the released rotations (Section 13.5.1, p. 398); a pin at the
+ * end gives Eq. 13.33 (p. 398). Releasing both rotations leaves an axial-only member.
  */
 export function condense(k: Matrix, released: readonly number[]): Matrix {
   const out = Matrix.from(k.rows());
@@ -79,7 +83,10 @@ export function condense(k: Matrix, released: readonly number[]): Matrix {
   return out;
 }
 
-/** Γ, which takes global displacements at the member's ends to local ones: d' = Γ·d. */
+/**
+ * Γ, which takes global displacements at the member's ends to local ones, d' = Γ·d (Eq. 5.11,
+ * p. 98). Its form for a member in the x-y plane is Example 5.2 (p. 102).
+ */
 function transformation({ cos: c, sin: s }: Geometry): Matrix {
   return Matrix.from([
     [c, s, 0, 0, 0, 0],
@@ -97,7 +104,7 @@ export interface Element {
   /** k' with the member's releases condensed out. */
   local: Matrix;
   gamma: Matrix;
-  /** Γᵀ·k'·Γ, the element's stiffness in global axes. */
+  /** Γᵀ·k'·Γ, the element's stiffness in global axes (Eq. 5.16, p. 98). */
   global: Matrix;
 }
 

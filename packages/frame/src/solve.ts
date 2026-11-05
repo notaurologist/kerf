@@ -1,8 +1,9 @@
 // Solves K·d = P for a symmetric stiffness matrix by Cholesky factorization, K = L·Lᵀ, written
-// here so the package has no dependency. A stable structure's stiffness matrix, with its supports
+// here so the package has no dependency (McGuire, Gallagher and Ziemian, 2nd edition, Section
+// 11.2.2, Eqs. 11.14 and 11.15, pp. 307–308, which require the matrix to be positive definite). A stable structure's stiffness matrix, with its supports
 // applied, is positive definite, so the factorization succeeds. When a pivot vanishes, the
 // structure can move without straining any member there (a mechanism) and no displacements exist
-// to report.
+// to report, as for the unsupported truss of Example 3.4 (p. 44).
 
 import type { Matrix } from './matrix.ts';
 
