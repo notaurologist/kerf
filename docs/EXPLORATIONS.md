@@ -39,6 +39,8 @@ Analyse the whole frame for member forces, reactions, and sway. `PRODUCT.md` pri
 
 Full-size printable templates for angled cuts and gussets, DXF or G-code for a CNC router, and a real 3D view or hidden-line removal for the isometrics.
 
+Built on `explore/fabrication` in `packages/fabrication` (November 2026), with no new dependency: full-size templates tiled across letter pages with a check square and registration marks, end templates for long parts, hole centers and joinery marks, a DXF per part, and hidden-line removal for the isometric and exploded views. G-code and a WebGL view wait on questions in #546. `docs/explorations/fabrication.md` on that branch is the record and proposes adopting the templates after the owner prints and checks the gusset.
+
 ### AI as author, code as verifier
 
 A model drafts a template from photos and a brief (extending 0019), and Kerf's existing gates decide whether it is accepted. The model writes code that is checked and never supplies numbers (hard rule 1). The explanation layer from `PRODUCT.md` belongs here too.

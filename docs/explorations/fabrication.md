@@ -1,6 +1,6 @@
 # Fabrication outputs
 
-Status: In progress (November 2026). Issue #546. The scope in #546 is proposed and awaits the owner's review.
+Status: Built, awaiting the owner's review and a garage check (November 5, 2026). Issue #546; its scope is proposed and its four questions are open.
 
 Outputs for the shop beyond the plan's drawings: full-size paper templates to trace or stick on a board, DXF files for a CNC router's CAM program, and hidden-line removal for the isometric views. Code lives in `packages/fabrication` on `explore/fabrication`. Nothing in `apps/` imports it.
 
@@ -98,6 +98,62 @@ Times on this machine, for every template example (`pnpm --filter @kerf/fabricat
 | Workbench | Exploded | 1991 | 1228–1256 | 11–18 ms |
 
 Fast enough to run on every request, so adopting it would not need caching. A 3D view in WebGL waits on #546's second question.
+
+## What was built
+
+Five steps, each a pull request stacked on the one before, all into `explore/fabrication`:
+
+| Step | Issue | Pull request | What it does |
+|---|---|---|---|
+| 1 | #666 | #674 | A whole part full size, tiled across letter pages, with a check square, a scale bar, trim lines, and registration marks |
+| 2 | #667 | #676 | Templates of a long part's shaped ends, with the long point and a square line |
+| 3 | #668 | #680 | Hole centers to prick through, and dadoes and mortises outlined |
+| 4 | #669 | #681 | A DXF file per part: outline and holes on layers, in inches |
+| 5 | #670 | #682 | Hidden-line removal for the isometric and exploded views |
+
+The package holds about 1,300 lines of code and scripts and 1,100 lines of tests, and adds no dependency. Every length and angle on a template comes from core: `partOutline`, `blankOutline`, `edgeLengths`, the cut list's end text, and `formatLength`. The package computes page layout and the differences between core's coordinates, such as how far a short point sits from its square line.
+
+### What changed along the way
+
+- **Whole part or ends.** The first rule, whole when it fits on 6 pages, would have printed the record cabinet's 17"-wide sides whole for a 3/16" notch. A part now prints whole only when its end templates would cover at least half its length anyway.
+- **Notes.** Templates first sized their sheet to fit the notes, which made narrow end templates two pages wide, then let notes run across trim lines. Notes now wrap at 7", and a sheet that spans pages starts at the first page's edge. Identical end notes merge, and holes alike share one note, so the gusset still prints on 3 pages.
+- **Holes on end templates.** The leg's top template first stopped at 8.85", past one of its two leg-to-beam bolts. An end template now takes in face holes near it, by the same two-widths rule the cut detail uses to merge its pieces.
+- **The long point under a taper.** The swing set's flush cut removes the blank's long point. Templates place the long point and square line from the blank's corners and draw the taper's waste dashed.
+- **DXF version.** The file is labeled R12 for the widest reach, with `$INSUNITS` set to inches. Group codes were read from Autodesk's DXF Reference.
+- **Hidden lines in 2D.** Core already paints faces back to front, so hidden-line removal works on its drawing without any new 3D code and takes at most 46 ms on the workbench.
+
+## Printing in the garage
+
+Not done yet: this needs the owner. The check that matters:
+
+1. `pnpm --filter @kerf/fabrication write-templates swing-set-a-frame E`, open the file in a browser, and print at actual size (100%).
+2. Measure the check square (1") and the scale bar (6") on each page.
+3. Trim on the dashed lines, butt the 3 pages so the registration marks meet, and tape them.
+4. Lay the gusset on a 2x8: it should be 19-1/2" along the reference edge and 14-1/4" along the far edge, with both ends at 70° to the edges.
+5. Print a leg's top template and check the short point against a square line from the long point (1-1/4" along the far edge on a 4x4).
+6. Open `write-dxf swing-set-a-frame E` in a free CAD viewer and measure the same gusset.
+
+Record here what measured off, what was hard to line up, and whether a template was quicker than laying the cut out with a square.
+
+## Adoption proposal
+
+The owner decides; each adoption is a separate decision issue with its own record. Proposed:
+
+1. **Full-size templates: adopt after the garage check, if the gusset measures true.** They answer the most likely recut on the swing set: angles laid out from the wrong reference. Where: a "Print templates" action on the Diagrams page and in the printed plan, beside the cut details. What it takes:
+   - Choosing a template's windows (shaped reach, the hole rule, whole or ends) is geometry, so it moves into `packages/core` as generic code (principle 6), and the API returns the sheets as drawings (principle 1).
+   - Page layout (tiling, trim lines, check square) is presentation. It could stay in its own module served by the API as print-ready SVG, or move to the web app's print path. The web app must not compute numbers it presents as authoritative, and tile positions are not those numbers, but the check square's size has to stay exact, which favors the API.
+   - No template version bump: templates are drawn from stored parts on read, like the cut details.
+   - Tests that print scale holds through the web app's print stylesheet as well as the SVG.
+2. **DXF: adopt only if the owner has or plans to use a CNC router (#546, question 1).** It is small: a download per part beside its cut card, served by an API route behind the session (hard rule 10). Dadoes and mortises would need a depth convention the owner's CAM program reads.
+3. **Hidden-line removal: do not adopt now.** The app's views are toned, and on screen and in print the fills already hide what is behind. Line art matters for a plotter or a laser, which Kerf has no use for yet. Keep it on the branch. If the printed plan ever goes black-and-white without tones, it is ready and fast enough to run on every request.
+4. **G-code and WebGL: not built.** Both wait on #546's questions. WebGL would need a dependency.
+
+## Still open
+
+- The owner's answers to #546's four questions, and the garage check above.
+- Very small notches, such as 3/16" by 1/2", probably need no template; leaving them out is a one-line rule once the owner says so.
+- Hinge plate screws on case sides are not marked on templates.
+- On a sheet more than one page tall, a note line can straddle a horizontal trim line.
 
 ## Steps
 
