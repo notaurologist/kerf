@@ -81,12 +81,13 @@ function isTickRef(value: unknown): value is { kind: string; key: string } {
   return isRecord(value) && typeof value.kind === 'string' && typeof value.key === 'string';
 }
 
+/** The parsed body, or `undefined` when there is none or it is not JSON. */
 async function readJson(res: Response): Promise<unknown> {
-  if (res.status === 204) return null;
+  if (res.status === 204) return undefined;
   try {
     return await res.json();
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -137,8 +138,15 @@ export function setLoginRequiredHandler(handler: () => void) {
 }
 
 /** When Kerf could not reach the server at all (docs/design/content.md). */
-export const CONNECTION_MESSAGE =
+const CONNECTION_MESSAGE =
   'Kerf could not reach the server. Check your connection, then try again.';
+
+/** When a request has gone on so long that the screen offers to start it again (ui/Skeleton.tsx). */
+export const SLOW_MESSAGE =
+  'Kerf is still waiting for the server. Check your connection, then try again.';
+
+/** When a successful status came with a body that could not be read. */
+const UNREADABLE_MESSAGE = 'Kerf could not read the answer from the server.';
 
 /**
  * Sends a request made with the typed client and reads its body. Network failures and error
@@ -162,10 +170,25 @@ export async function send<R extends ClientResponse<unknown>>(
   }
   const response = res as unknown as Response;
   buildCheck.note(response.headers);
-  if (response.ok) return { ok: true, value: (await readJson(response)) as SuccessBody<R> };
+  if (response.status === 204) return { ok: true, value: null as SuccessBody<R> };
+  if (response.ok) {
+    const body = await readJson(response);
+    if (body === undefined) {
+      return {
+        ok: false,
+        error: { kind: 'failed', status: response.status, message: UNREADABLE_MESSAGE },
+      };
+    }
+    return { ok: true, value: body as SuccessBody<R> };
+  }
   const error = await toError(response);
   if (error.kind === 'login-required') onLoginRequired();
   return { ok: false, error };
+}
+
+/** A successful status whose body could not be read, such as a stream cut off partway. */
+export function unreadable(error: ApiError): boolean {
+  return error.kind === 'failed' && error.status >= 200 && error.status < 300;
 }
 
 /** An error as a failed request the UI shows: its words, and whether the server was reached. */
@@ -192,17 +215,26 @@ export function describeError(error: ApiError): string {
       return 'That password is not right.';
     case 'rate-limited':
       return error.retryAfterSeconds
-        ? `Too many attempts. Try again in ${Math.ceil(error.retryAfterSeconds / 60)} minutes.`
+        ? `Too many attempts. Try again in ${minutes(error.retryAfterSeconds)}.`
         : 'Too many attempts. Try again later.';
-    case 'invalid':
-      return error.issues.map((i) => (i.field ? `${i.field}: ${i.message}` : i.message)).join(' ');
+    // A field's path is for the form that shows the message beside it, not for this one line.
+    case 'invalid': {
+      const messages = [...new Set(error.issues.map((i) => i.message))];
+      return messages.length > 0 ? messages.join(' ') : 'Kerf could not use what was sent.';
+    }
     case 'not-found':
       return 'Not found.';
     case 'stale':
       return 'This was changed on another device.';
     case 'failed':
-      return error.status === 0 ? error.message : `The server answered ${error.status}.`;
+      if (error.status === 0 || unreadable(error)) return error.message;
+      return `The server answered ${error.status}.`;
   }
+}
+
+function minutes(seconds: number): string {
+  const n = Math.ceil(seconds / 60);
+  return n === 1 ? '1 minute' : `${n} minutes`;
 }
 
 export const api = createClient();

@@ -1,5 +1,6 @@
 import { geometry } from '@kerf/core';
 import {
+  type ComponentProps,
   type CSSProperties,
   memo,
   useCallback,
@@ -11,6 +12,7 @@ import {
 } from 'react';
 import { flushSync } from 'react-dom';
 import type { Motion } from './assemblyMotion.ts';
+import { Contained } from './Contained.tsx';
 import { DiagramFrame } from './DiagramFrame.tsx';
 
 // Core's drawing primitives (#90) drawn as SVG (#91), in the language of the drawing standard
@@ -449,7 +451,18 @@ export function DiagramDrawing(props: {
       data-labels={props.motion?.labels === false ? 'hidden' : undefined}
       data-over={props.motion?.over}
     >
-      <div ref={scroller} className="k-diagram-scroll" data-hidden={hidden}>
+      {/* A drawing wider than its box is a region keyboard users can reach and scroll with the
+          arrows (WCAG 2.1.1; lib/arrowKeys.ts leaves the arrows to it). */}
+      <div
+        ref={scroller}
+        className="k-diagram-scroll"
+        data-hidden={hidden}
+        {...(hidden && {
+          tabIndex: 0,
+          role: 'region',
+          'aria-label': `${props.label}, scrolls sideways`,
+        })}
+      >
         <DiagramFrame
           label={props.label}
           describedBy={props.describedBy}
@@ -500,7 +513,13 @@ export function DiagramDrawing(props: {
  * A drawing is thousands of shapes, so a screen with many, such as the plan's drawings during a
  * move between views, redraws only those whose props change.
  */
-export const Diagram = memo(DiagramDrawing);
+export const Diagram = memo(function Diagram(props: ComponentProps<typeof DiagramDrawing>) {
+  return (
+    <Contained what="drawing">
+      <DiagramDrawing {...props} />
+    </Contained>
+  );
+});
 
 type Box = { x0: number; x1: number; y0: number; y1: number };
 

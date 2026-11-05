@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 
 // Left and Right go to the previous and next of the plan's sections, or of Building's steps
-// (Stage 9, K1, #267). Only outside fields, controls that use the arrows, and dialogs, and never
-// with a modifier held, so typing and the browser's own shortcuts keep working. No single-letter
-// shortcuts (WCAG 2.1.4).
+// (Stage 9, K1, #267). Only outside fields, controls that use the arrows, dialogs, and focusable
+// regions that scroll (a drawing wider than its box, ui/Diagram.tsx), and never with a modifier
+// held, so typing and the browser's own shortcuts keep working. No single-letter shortcuts
+// (WCAG 2.1.4).
 
 const USES_ARROWS =
-  'input, textarea, select, [contenteditable]:not([contenteditable="false"]), dialog, [role="dialog"], [role="radiogroup"], [role="slider"], [role="tablist"], [role="listbox"], [role="menu"]';
+  'input, textarea, select, [contenteditable]:not([contenteditable="false"]), dialog, [role="dialog"], [role="radiogroup"], [role="slider"], [role="tablist"], [role="listbox"], [role="menu"], [role="region"][tabindex]';
 
 /** Where an arrow key goes from this key event, if anywhere. */
 export function arrowTarget(

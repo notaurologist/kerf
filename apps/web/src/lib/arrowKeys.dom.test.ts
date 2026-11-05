@@ -48,11 +48,16 @@ describe('arrowTarget', () => {
       '<div contenteditable="true"><p data-at></p></div>',
       '<div role="radiogroup"><span data-at></span></div>',
       '<dialog open><button data-at>Keep editing</button></dialog>',
+      '<div role="region" tabindex="0" aria-label="Rail, scrolls sideways"><svg data-at></svg></div>',
     ]) {
       expect(arrowTarget(key('ArrowRight', { target: inside(html) }), targets)).toBeUndefined();
     }
     expect(
       arrowTarget(key('ArrowRight', { target: inside('<a data-at>Cut list</a>') }), targets),
+    ).toBe(targets.next);
+    // A drawing that fits its box does not scroll, so it is not a region to stop in.
+    expect(
+      arrowTarget(key('ArrowRight', { target: inside('<div><svg data-at></svg></div>') }), targets),
     ).toBe(targets.next);
   });
 });

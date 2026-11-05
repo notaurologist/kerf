@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createClient, fieldIssues, send, setLoginRequiredHandler, withJsonBodies } from './api.ts';
+import {
+  createClient,
+  describeError,
+  fieldIssues,
+  send,
+  setLoginRequiredHandler,
+  withJsonBodies,
+} from './api.ts';
 
 const json = (status: number, body: unknown, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
@@ -36,6 +43,31 @@ describe('send', () => {
   it('returns the body of a successful response', async () => {
     const { client } = clientAnswering(() => json(200, { tools: [] }));
     expect(await send(client.api.tools.$get())).toEqual({ ok: true, value: { tools: [] } });
+  });
+
+  it('reads a 204 as no body', async () => {
+    const { client } = clientAnswering(() => new Response(null, { status: 204 }));
+    expect(await send(client.api.logout.$post())).toEqual({ ok: true, value: null });
+  });
+
+  it('reports a successful status whose body is not JSON as a failure', async () => {
+    for (const body of ['<!doctype html><title>Kerf</title>', '']) {
+      const { client } = clientAnswering(
+        () => new Response(body, { status: 200, headers: { 'content-type': 'text/html' } }),
+      );
+      const result = await send(client.api.tools.$get());
+      expect(result).toEqual({
+        ok: false,
+        error: {
+          kind: 'failed',
+          status: 200,
+          message: 'Kerf could not read the answer from the server.',
+        },
+      });
+      if (!result.ok) {
+        expect(describeError(result.error)).toBe('Kerf could not read the answer from the server.');
+      }
+    }
   });
 
   it('reports a missing session and tells the app', async () => {
@@ -113,5 +145,38 @@ describe('fieldIssues', () => {
       { field: 'b', message: 'both' },
       { field: '', message: 'whole' },
     ]);
+  });
+});
+
+describe('describeError', () => {
+  it('says how many minutes to wait, singular for one', () => {
+    const wait = (retryAfterSeconds: number) =>
+      describeError({ kind: 'rate-limited', retryAfterSeconds });
+    expect(wait(30)).toBe('Too many attempts. Try again in 1 minute.');
+    expect(wait(60)).toBe('Too many attempts. Try again in 1 minute.');
+    expect(wait(61)).toBe('Too many attempts. Try again in 2 minutes.');
+    expect(wait(900)).toBe('Too many attempts. Try again in 15 minutes.');
+  });
+
+  it('gives the messages of invalid fields without their dotted paths, each once', () => {
+    expect(
+      describeError({
+        kind: 'invalid',
+        issues: [
+          { field: 'tools.0.toolTypeId', message: 'Choose a tool type.' },
+          { field: 'tools.1.toolTypeId', message: 'Choose a tool type.' },
+          { field: '', message: 'The list is too long.' },
+        ],
+      }),
+    ).toBe('Choose a tool type. The list is too long.');
+    expect(describeError({ kind: 'invalid', issues: [] })).toBe(
+      'Kerf could not use what was sent.',
+    );
+  });
+
+  it("gives a status, not the server's error code, for other failures", () => {
+    expect(describeError({ kind: 'failed', status: 500, message: 'internal' })).toBe(
+      'The server answered 500.',
+    );
   });
 });

@@ -29,6 +29,7 @@ import { useWakeLock } from '../../lib/wakeLock.ts';
 import {
   ButtonLink,
   Cluster,
+  Contained,
   Disclosure,
   InputNeeded,
   List,
@@ -132,7 +133,7 @@ export function ModeView(props: {
         {props.drawings.state === 'error' && <DrawingsWaiting state={props.drawings} />}
         {props.stepDrawing?.state === 'error' && <DrawingsWaiting state={props.stepDrawing} />}
         {route.screen !== 'shop' && read.steps?.toolboxEmpty && <EmptyToolbox />}
-        {children}
+        <Contained what="part of the page">{children}</Contained>
       </Stack>
     </ModeFrame>
   );

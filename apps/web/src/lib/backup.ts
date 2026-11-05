@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Failure } from '../ui/index.ts';
-import { api, failureOf, send } from './api.ts';
+import { api, failureOf, send, unreadable } from './api.ts';
 
 // Download a backup fetches the file first, so a failed request, such as a lost login, shows a
 // notice instead of saving the error as the backup. In a browser the fetched file is then saved as
@@ -88,7 +88,9 @@ export async function fetchBackup(
   client = api,
 ): Promise<{ ok: true; file: File } | { ok: false; failure: Failure }> {
   const result = await send(client.api.export.$get());
-  if (!result.ok) return { ok: false, failure: failureOf(result.error) };
+  if (!result.ok) {
+    return { ok: false, failure: unreadable(result.error) ? INCOMPLETE : failureOf(result.error) };
+  }
   const backup: unknown = result.value;
   if (
     typeof backup !== 'object' ||
