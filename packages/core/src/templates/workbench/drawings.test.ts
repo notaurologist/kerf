@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { type Explode, type SubAssembly, subAssemblyViews } from '../../geometry/index.ts';
 import { solid, solidBox } from '../../geometry/solid.ts';
+import { subAssemblies, subAssemblyDrawings } from '../../steps/drawings.ts';
 import { workbench } from './definition.ts';
 import { CHERRY, WORKED_EXAMPLE } from './examples.ts';
 
@@ -132,5 +133,17 @@ describe('the workbench’s sub-assemblies', () => {
     expect(exploded.stages?.map((s) => s.moves.length)).toEqual([1, 2, 1]);
     const lower = subAssemblyViews(assembly.scene, assembly.view, group('lower-drawer'));
     expect(lower.isometric.title).toBe('Lower drawer, assembled');
+  });
+
+  it('lists each group without its members or explode, and draws one by its ID', () => {
+    expect(subAssemblies(workbench, outputs)).toEqual(
+      groups.map((g) => ({ id: g.id, title: g.title, alike: g.alike, stepId: g.stepId })),
+    );
+    const assembly = workbench.assembly(outputs);
+    if (!assembly) throw new Error('no assembly');
+    expect(subAssemblyDrawings(workbench, outputs, 'door')).toEqual(
+      subAssemblyViews(assembly.scene, assembly.view, group('door')),
+    );
+    expect(subAssemblyDrawings(workbench, outputs, 'no-such-group')).toBeNull();
   });
 });

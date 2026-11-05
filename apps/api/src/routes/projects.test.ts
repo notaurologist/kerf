@@ -8,9 +8,12 @@ import {
   projectDrawings,
   readSnapshot,
   stepDrawings,
+  subAssemblies,
+  subAssemblyDrawings,
   swingSetAFrame,
   TEMPLATES,
   type TemplateDefinition,
+  workbench,
 } from '@kerf/core';
 import { describe, expect, it } from 'vitest';
 import { createTestApp } from '../../test/app.ts';
@@ -174,6 +177,71 @@ describe('GET /api/projects/:id/steps/:stepId/drawing (#635)', () => {
     const { app, authed } = await createTestApp();
     const { body } = await create(authed);
     const res = await app.request(`/api/projects/${body.id}/steps/frames/drawing`);
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('GET /api/projects/:id/subassemblies/:groupId/drawing (#651)', () => {
+  const definition = workbench.definition;
+  const [example] = definition.examples;
+  if (!example) throw new Error('no worked example');
+  const bench = {
+    name: example.name,
+    templateId: definition.id,
+    params: example.params,
+    structuralInputs: example.structuralInputs,
+  };
+
+  it("lists the plan's sub-assemblies with its drawings, and draws each one on its own", async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed, bench);
+    const project = (await (await authed(`/api/projects/${body.id}`)).json()) as Json;
+    const outputs = definition.storedOutputs.parse(project.snapshot.outputs);
+    const res = await authed(`/api/projects/${body.id}/drawings`);
+    const { drawings, subAssemblies: listed } = (await res.json()) as Json;
+    expect(drawings).toEqual(JSON.parse(JSON.stringify(projectDrawings(definition, outputs))));
+    expect(listed).toEqual(subAssemblies(definition, outputs));
+    expect(listed.map((g: Json) => g.id)).toEqual([
+      'left-end-frame',
+      'right-end-frame',
+      'upper-drawer',
+      'lower-drawer',
+      'door',
+    ]);
+    expect(listed.find((g: Json) => g.id === 'upper-drawer')).toMatchObject({ alike: 2 });
+    for (const group of listed) {
+      expect(geometry.SubAssemblySummary.parse(group)).toEqual(group);
+      const one = await authed(`/api/projects/${body.id}/subassemblies/${group.id}/drawing`);
+      expect(one.status).toBe(200);
+      const expected = subAssemblyDrawings(definition, outputs, group.id);
+      expect(expected).not.toBeNull();
+      expect(await one.json()).toEqual({ drawings: JSON.parse(JSON.stringify(expected)) });
+    }
+  });
+
+  it('lists none for a template that declares none', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed);
+    const res = await authed(`/api/projects/${body.id}/drawings`);
+    expect(((await res.json()) as Json).subAssemblies).toEqual([]);
+  });
+
+  it('answers 404 for a group the plan does not have, and for a missing project', async () => {
+    const { authed } = await createTestApp();
+    const { body } = await create(authed, bench);
+    const unknown = await authed(`/api/projects/${body.id}/subassemblies/no-such-group/drawing`);
+    expect(unknown.status).toBe(404);
+    expect(await unknown.json()).toEqual({ error: 'unknown-sub-assembly' });
+    const missing = '00000000-0000-4000-8000-000000000000';
+    const gone = await authed(`/api/projects/${missing}/subassemblies/door/drawing`);
+    expect(gone.status).toBe(404);
+    expect(await gone.json()).toEqual({ error: 'not-found' });
+  });
+
+  it('requires a session', async () => {
+    const { app, authed } = await createTestApp();
+    const { body } = await create(authed, bench);
+    const res = await app.request(`/api/projects/${body.id}/subassemblies/door/drawing`);
     expect(res.status).toBe(401);
   });
 });
@@ -822,7 +890,9 @@ describe('a stored project whose template this code no longer has', () => {
     });
     const drawings = await after.authed(`/api/projects/${body.id}/drawings`);
     expect(drawings.status).toBe(200);
-    expect(await drawings.json()).toEqual({ drawings: null });
+    expect(await drawings.json()).toEqual({ drawings: null, subAssemblies: [] });
+    const group = await after.authed(`/api/projects/${body.id}/subassemblies/door/drawing`);
+    expect(group.status).toBe(404);
   });
 
   it('answers a preview as the server’s problem, not the request’s', async () => {

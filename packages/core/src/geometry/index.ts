@@ -62,3 +62,19 @@ export const Drawings = z.object({
   boards: z.array(Drawing).optional(),
 });
 export type Drawings = z.infer<typeof Drawings>;
+
+/**
+ * A sub-assembly as the plan's drawings list it (#647): which group, its title, how many alike,
+ * and the build step that puts it together. Its drawings come in a request of their own.
+ */
+export const SubAssemblySummary = z.object({
+  id: z.string(),
+  title: z.string(),
+  alike: z.number().int().positive(),
+  stepId: z.string().optional(),
+});
+export type SubAssemblySummary = z.infer<typeof SubAssemblySummary>;
+
+/** One sub-assembly's assembled and exploded views. */
+export const SubAssemblyDrawings = z.object({ isometric: Drawing, exploded: Drawing });
+export type SubAssemblyDrawings = z.infer<typeof SubAssemblyDrawings>;

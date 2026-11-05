@@ -56,7 +56,16 @@ describe('stored projects of every shape', () => {
 
     const drawings = await authed(`/api/projects/${id}/drawings`);
     expect(drawings.status).toBe(200);
-    expect(await drawings.json()).not.toEqual({ drawings: null });
+    const drawn = (await drawings.json()) as {
+      drawings: unknown;
+      subAssemblies: { id: string }[];
+    };
+    expect(drawn.drawings).not.toBeNull();
+    for (const group of drawn.subAssemblies) {
+      const res = await authed(`/api/projects/${id}/subassemblies/${group.id}/drawing`);
+      expect(res.status).toBe(200);
+      expect(await res.json()).not.toEqual({ drawings: null });
+    }
 
     const list = await authed('/api/projects');
     expect(list.status).toBe(200);
@@ -216,7 +225,7 @@ describe('stored projects of every shape', () => {
     expect(project.version).toEqual({ status: 'current', version: swingSet.version });
     expect(project.steps).toBeNull();
     expect(drawings.status).toBe(200);
-    expect(await drawings.json()).toEqual({ drawings: null });
+    expect(await drawings.json()).toEqual({ drawings: null, subAssemblies: [] });
     expect(step.status).toBe(200);
     expect(await step.json()).toEqual({ drawing: null });
     await close();
@@ -229,6 +238,7 @@ describe('stored projects of every shape', () => {
 const PROJECT_BUDGET = 1_000_000;
 const DRAWINGS_BUDGET = 4_000_000;
 const STEP_DRAWING_BUDGET = 1_000_000;
+const SUB_ASSEMBLY_BUDGET = 1_000_000;
 
 const bytes = (text: string) => new TextEncoder().encode(text).length;
 
@@ -262,7 +272,14 @@ describe('response sizes', () => {
     expect(bytes(readText)).toBeLessThan(PROJECT_BUDGET);
     const drawings = await authed(`/api/projects/${id}/drawings`);
     expect(drawings.status).toBe(200);
-    expect(bytes(await drawings.text())).toBeLessThan(DRAWINGS_BUDGET);
+    const drawingsText = await drawings.text();
+    expect(bytes(drawingsText)).toBeLessThan(DRAWINGS_BUDGET);
+    const { subAssemblies } = JSON.parse(drawingsText) as { subAssemblies: { id: string }[] };
+    for (const group of subAssemblies) {
+      const res = await authed(`/api/projects/${id}/subassemblies/${group.id}/drawing`);
+      expect(res.status).toBe(200);
+      expect(bytes(await res.text())).toBeLessThan(SUB_ASSEMBLY_BUDGET);
+    }
     const { steps } = JSON.parse(readText) as { steps: { steps: { id: string }[] } };
     let drawn = 0;
     for (const step of steps.steps) {

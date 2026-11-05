@@ -19,11 +19,13 @@ import { valid } from './validate.ts';
 const ById = z.object({ id: z.uuid() });
 const ByCorner = ById.extend({ corner: z.enum(geometry.CORNERS) });
 const ByStep = ById.extend({ stepId: z.string().min(1).max(100) });
+const ByGroup = ById.extend({ groupId: z.string().min(1).max(100) });
 
 /** Every project route answers a failed result the same way. */
 function failure(c: Context, result: Extract<Result<unknown>, { ok: false }>) {
   switch (result.error) {
     case 'not-found':
+    case 'unknown-sub-assembly':
       return c.json({ error: result.error }, 404);
     case 'unknown-template':
       return c.json({ error: result.error }, 400);
@@ -85,6 +87,11 @@ export function projectRoutes(projects: ProjectService) {
     .get('/projects/:id/steps/:stepId/drawing', valid('param', ByStep), async (c) => {
       const { id, stepId } = c.req.valid('param');
       const result = await projects.stepDrawing(id, stepId);
+      return result.ok ? c.json(result.value, 200) : failure(c, result);
+    })
+    .get('/projects/:id/subassemblies/:groupId/drawing', valid('param', ByGroup), async (c) => {
+      const { id, groupId } = c.req.valid('param');
+      const result = await projects.subAssemblyDrawings(id, groupId);
       return result.ok ? c.json(result.value, 200) : failure(c, result);
     })
     .get('/projects/:id/views/:corner', valid('param', ByCorner), async (c) => {
