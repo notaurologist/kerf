@@ -14,12 +14,17 @@ export interface Method {
 
 export const BASELINE: Method = { name: 'first-fit decreasing', plan: firstFitDecreasing };
 
-/** The exact method, stopped after `timeLimitMs` on each instance. */
-export function exact(timeLimitMs: number): Method {
+/** A work limit as millions of units, such as "30M". */
+export function units(workLimit: number): string {
+  return `${workLimit / 1e6}M`;
+}
+
+/** The exact method, stopped after `workLimit` units of work on each instance. */
+export function exact(workLimit: number): Method {
   return {
-    name: 'branch-and-bound',
+    name: `branch-and-bound, ${units(workLimit)} work`,
     plan(instance) {
-      const solved = solveExact(instance, { timeLimitMs });
+      const solved = solveExact(instance, { workLimit });
       return { ...solved.plan, proven: solved.proven };
     },
   };
@@ -79,9 +84,14 @@ function best(row: Row): number {
 
 /**
  * The rows as a Markdown report: totals per method, with each method's feet over the best bound,
- * then the instances where some method buys more than the best bound, then every instance.
+ * then any `sections`, then the instances where some method buys more than the best bound, then
+ * every instance.
  */
-export function formatReport(rows: readonly Row[], methods: readonly Method[]): string {
+export function formatReport(
+  rows: readonly Row[],
+  methods: readonly Method[],
+  sections: readonly string[] = [],
+): string {
   const result = (row: Row, name: string) => row.results.find((r) => r.method === name);
   const total = (name: string, key: 'feet' | 'boards' | 'ms') =>
     rows.reduce((sum, row) => sum + (result(row, name)?.[key] ?? 0), 0);
@@ -92,10 +102,11 @@ export function formatReport(rows: readonly Row[], methods: readonly Method[]): 
   const boundNames = rows[0]?.bounds.map((b) => b.name) ?? [];
   const cells = (row: Row) => [
     ...row.bounds.map((b) => `${b.feet}`),
-    ...row.results.map(
-      (r) =>
-        `${r.feet} / ${r.boards}${r.proven === undefined ? '' : r.proven ? ' (proven)' : ' (stopped)'}`,
-    ),
+    ...methods.map((m) => {
+      const r = result(row, m.name);
+      if (!r) return '';
+      return `${r.feet} / ${r.boards}${r.proven === undefined ? '' : r.proven ? ' (proven)' : ' (stopped)'}`;
+    }),
   ];
   const header = [
     '| Instance | Pieces | ',
@@ -128,6 +139,7 @@ export function formatReport(rows: readonly Row[], methods: readonly Method[]): 
       const count = rows.filter((row) => over(row, m.name) > 0).length;
       return `${base} ${total(m.name, 'feet') - boundTotal} | ${count} |`;
     }),
+    ...sections.flatMap((section) => ['', section.trimEnd()]),
     ...(bounded
       ? ['', `## Open instances (${open.length})`, '', header, rule, ...open.map(line)]
       : []),
@@ -137,6 +149,62 @@ export function formatReport(rows: readonly Row[], methods: readonly Method[]): 
     header,
     rule,
     ...rows.map(line),
+    '',
+  ].join('\n');
+}
+
+/** The template an instance came from: its source up to the first " / ". */
+function template(row: Row): string {
+  return row.source.split(' / ')[0] ?? row.source;
+}
+
+/**
+ * The exact method at each work limit against the baseline: the feet it saves, by template, and
+ * the slowest instance's time, by template.
+ */
+export function formatWorkLimits(
+  rows: readonly Row[],
+  baseline: Method,
+  limits: readonly { limit: number; method: Method }[],
+): string {
+  const templates = [...new Set(rows.map(template))];
+  const of = (row: Row, name: string) => row.results.find((r) => r.method === name);
+  /** Feet saved; with `proven`, only on the instances the search finished. */
+  const saved = (name: string, among: readonly Row[], proven = false) =>
+    among
+      .filter((row) => !proven || of(row, name)?.proven)
+      .reduce(
+        (sum, row) => sum + (of(row, baseline.name)?.feet ?? 0) - (of(row, name)?.feet ?? 0),
+        0,
+      );
+  const slowest = (name: string, among: readonly Row[]) =>
+    Math.max(0, ...among.map((row) => of(row, name)?.ms ?? 0));
+  const by = (t: string) => rows.filter((row) => template(row) === t);
+  const most = Math.max(0, ...limits.map(({ method }) => saved(method.name, rows)));
+  const head = (cols: readonly string[]) => [
+    `| Work limit | ${cols.join(' | ')} |`,
+    `|---|${cols.map(() => '---').join('|')}|`,
+  ];
+  return [
+    '## Work limit',
+    '',
+    `Feet saved against ${baseline.name}, by template, and instances proven, at each work limit. Saved where proven counts only the instances the search finished, as if ${baseline.name} planned the rest.`,
+    '',
+    ...head([...templates, 'All', 'Share of the most saved', 'Proven', 'Saved where proven']),
+    ...limits.map(({ limit, method }) => {
+      const all = saved(method.name, rows);
+      const proven = rows.filter((row) => of(row, method.name)?.proven).length;
+      const share = most === 0 ? '' : `${Math.round((100 * all) / most)}%`;
+      return `| ${units(limit)} | ${templates.map((t) => saved(method.name, by(t))).join(' | ')} | ${all} | ${share} | ${proven} of ${rows.length} | ${saved(method.name, rows, true)} |`;
+    }),
+    '',
+    'The slowest instance, by template, and the time for every instance, in milliseconds.',
+    '',
+    ...head([...templates.map((t) => `${t} slowest`), 'All, total']),
+    ...limits.map(({ limit, method }) => {
+      const total = rows.reduce((sum, row) => sum + (of(row, method.name)?.ms ?? 0), 0);
+      return `| ${units(limit)} | ${templates.map((t) => slowest(method.name, by(t)).toFixed(0)).join(' | ')} | ${total.toFixed(0)} |`;
+    }),
     '',
   ].join('\n');
 }

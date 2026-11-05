@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { firstFitDecreasing } from './baseline.ts';
 import { measure, planProblems } from './check.ts';
 import { solveExact } from './exact.ts';
@@ -48,7 +48,7 @@ describe('solveExact', () => {
   // though the material bound is 16 ft and the relaxation, which cannot put two on a board
   // either, is 24 ft. Pieces of 70" and 30" on 8' and 10' with 1/8" kerf and 1/2" trim show the
   // search proving an answer above every bound: see the benchmark test below.
-  it('returns the baseline, unproven, when the time runs out before the root bound', () => {
+  it('returns the baseline, unproven, when the work runs out before the root bound', () => {
     const instance: Instance = {
       nominal: 'x',
       lengths: [8, 10],
@@ -56,7 +56,7 @@ describe('solveExact', () => {
       kerf: 0,
       trimPerEnd: 0,
     };
-    expect(solveExact(instance, { timeLimitMs: -1 })).toMatchObject({
+    expect(solveExact(instance, { workLimit: 0 })).toMatchObject({
       feet: 18,
       bound: 16,
       proven: false,
@@ -64,7 +64,9 @@ describe('solveExact', () => {
     });
   });
 
-  it('stops after its node limit, unproven, with the best plan found', () => {
+  // The search follows the same path whatever the limit, and its best plan only improves along
+  // it, so each unit of work up to a proof can only keep or lower the feet.
+  it('stops at its work limit, unproven, with the best plan found so far', () => {
     const instance: Instance = {
       nominal: 'x',
       lengths: [8, 10],
@@ -72,12 +74,37 @@ describe('solveExact', () => {
       kerf: 0,
       trimPerEnd: 0,
     };
-    expect(solveExact(instance, { maxNodes: 0 })).toMatchObject({
-      feet: 18,
-      proven: false,
-      nodes: 0,
+    const full = solveExact(instance, { workLimit: Number.POSITIVE_INFINITY });
+    expect(full).toMatchObject({ feet: 16, proven: true });
+    const stops = Array.from({ length: full.work }, (_, limit) =>
+      solveExact(instance, { workLimit: limit }),
+    );
+    expect(stops.every((s) => !s.proven)).toBe(true);
+    expect(stops.map((s) => s.feet)).toEqual([...stops.map((s) => s.feet)].sort((a, b) => b - a));
+    expect(stops.some((s) => s.feet === 18 && s.nodes > 0)).toBe(true);
+    expect(solveExact(instance, { workLimit: full.work })).toEqual(full);
+  });
+
+  // A workbench stock the search cannot prove within this limit, so the plan is the one found when
+  // the work ran out. Neither the clock nor the run before it changes where that is.
+  it('gives the same plan on repeated runs and whatever the clock reads', () => {
+    const tallest = benchmarkInstances({ sweepCount: 0, seed: 544 }).find((s) =>
+      s.source.startsWith('workbench / Edge of range: the tallest bench'),
+    )?.instance;
+    if (!tallest) throw new Error('No tallest workbench instance.');
+    const first = solveExact(tallest, { workLimit: 2e6 });
+    expect(first.proven).toBe(false);
+    expect(solveExact(tallest, { workLimit: 2e6 })).toEqual(first);
+    let now = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => {
+      now += 1e6 * Math.random();
+      return now;
     });
-    expect(solveExact(instance, { maxNodes: 100 })).toMatchObject({ feet: 16, proven: true });
+    try {
+      expect(solveExact(tallest, { workLimit: 2e6 })).toEqual(first);
+    } finally {
+      clock.mockRestore();
+    }
   });
 
   it('keeps a piece no length holds out of the plan', () => {
@@ -98,7 +125,7 @@ describe('solveExact on benchmark instances', () => {
   const instances = benchmarkInstances({ sweepCount: 20, seed: 544 });
 
   it.each(instances.map((s) => [s.source, s.instance] as const))('%s', (_, instance) => {
-    const solved = solveExact(instance, { timeLimitMs: 500 });
+    const solved = solveExact(instance, { workLimit: 3e6 });
     expect(planProblems(instance, solved.plan)).toEqual([]);
     expect(solved.feet).toBe(measure(solved.plan).feet);
     expect(solved.feet).toBeLessThanOrEqual(measure(firstFitDecreasing(instance)).feet);

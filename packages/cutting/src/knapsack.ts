@@ -1,3 +1,5 @@
+import { COST, type Work } from './work.ts';
+
 // A bounded knapsack by branch-and-bound (Horowitz and Sahni, "Computing partitions with
 // applications to the knapsack problem", Journal of the ACM 21(2), 1974; Martello and Toth,
 // Knapsack Problems, 1990, ch. 3). Items are tried most valuable per inch first, each at every
@@ -23,7 +25,7 @@ export interface Packed {
 
 const EPS = 1e-9;
 
-export function knapsack(items: readonly KnapsackItem[], capacity: number): Packed {
+export function knapsack(items: readonly KnapsackItem[], capacity: number, work?: Work): Packed {
   const order = items
     .map((item, i) => ({ ...item, i }))
     .filter((item) => item.value > EPS && item.limit > 0 && item.weight <= capacity + EPS)
@@ -45,6 +47,7 @@ export function knapsack(items: readonly KnapsackItem[], capacity: number): Pack
   };
 
   const visit = (k: number, weight: number, value: number) => {
+    work?.spend(COST.knapsackStep);
     if (value > best.value + EPS) best = { value, weight, counts: [...counts] };
     if (k === order.length) return;
     if (value + fractional(k, capacity - weight) <= best.value + EPS) return;

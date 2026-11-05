@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { firstFitDecreasing } from './baseline.ts';
-import { materialBound, OutOfTime, relaxation } from './bounds.ts';
+import { materialBound, relaxation } from './bounds.ts';
 import { measure } from './check.ts';
 import type { Instance } from './instance.ts';
 import { benchmarkInstances } from './sources.ts';
+import { OutOfWork, Work } from './work.ts';
 
 const pieces = (...lengths: number[]) =>
   lengths.map((length, i) => ({ partId: `${i}`, name: `${i}`, length }));
@@ -70,7 +71,7 @@ describe('bounds on hand-worked examples', () => {
     expect(seeded.patterns).toContainEqual({ feet: 8, counts: [0, 2] });
   });
 
-  it('stops at its deadline', () => {
+  it('stops when its work runs out', () => {
     const instance: Instance = {
       nominal: 'x',
       lengths: [8],
@@ -78,7 +79,7 @@ describe('bounds on hand-worked examples', () => {
       kerf: 0,
       trimPerEnd: 0,
     };
-    expect(() => relaxation(instance, { deadline: 0 })).toThrow(OutOfTime);
+    expect(() => relaxation(instance, { work: new Work(0) })).toThrow(OutOfWork);
   });
 
   it('leaves out pieces no length holds', () => {

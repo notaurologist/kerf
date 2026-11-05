@@ -1,7 +1,6 @@
 import { firstFitDecreasing } from './baseline.ts';
 import {
   materialBound,
-  OutOfTime,
   type PieceType,
   pieceTypes,
   relaxation,
@@ -10,6 +9,7 @@ import {
 } from './bounds.ts';
 import { measure } from './check.ts';
 import { type CutPlan, fitsNoLength, type Instance } from './instance.ts';
+import { COST, OutOfWork, Work } from './work.ts';
 
 // Branch-and-bound over boards. Each node holds the pieces still to place, as a count of each
 // piece length. A node branches on the longest length left: some board must hold one of those
@@ -18,7 +18,7 @@ import { type CutPlan, fitsNoLength, type Instance } from './instance.ts';
 // own board at no cost, so the search loses no plan by skipping such boards). A node is pruned
 // when its feet so far plus a lower bound on what is left cannot beat the best plan found: the
 // material bound first, as it is cheap, then the linear relaxation. The search starts from the
-// baseline's plan, and stops early when that plan meets the root's bound or the time runs out.
+// baseline's plan, and stops early when that plan meets the root's bound or its work runs out.
 //
 // Branch-and-price was the alternative: branching inside column generation, so each node's
 // relaxation stays exact. It needs branching rules the knapsack can respect (Vance, Barnhart,
@@ -27,6 +27,13 @@ import { type CutPlan, fitsNoLength, type Instance } from './instance.ts';
 // have at most a few hundred pieces in a few dozen lengths, so branching on boards is simpler,
 // and the relaxation of each residual node still prunes with the full strength of column
 // generation.
+
+/**
+ * The work a search may spend on one stock (`work.ts`): enough for the workbench's worked example
+ * to find and prove its fewest feet, at about 0.8 s on the benchmark's slowest workbench stock
+ * (report.md, Work limit).
+ */
+export const WORK_LIMIT = 40_000_000;
 
 export interface Solved {
   plan: CutPlan;
@@ -37,6 +44,8 @@ export interface Solved {
   proven: boolean;
   /** Nodes searched. */
   nodes: number;
+  /** Units of work spent, past the limit when the search stopped there. */
+  work: number;
 }
 
 interface Board {
@@ -70,12 +79,14 @@ function boardsFor(
   types: readonly PieceType[],
   left: readonly number[],
   first: number,
+  work: Work,
 ): Board[] {
   const weight = types.map((t) => t.length + instance.kerf);
   const longest = (instance.lengths.at(-1) ?? 0) * 12 - 2 * instance.trimPerEnd;
   const out: Board[] = [];
   const counts = new Array<number>(types.length).fill(0);
   const visit = (i: number, used: number) => {
+    work.spend(COST.boardStep);
     if (i === types.length) {
       const feet = instance.lengths.find((f) => f * 12 - 2 * instance.trimPerEnd >= used - EPS);
       if (feet === undefined) return;
@@ -95,8 +106,11 @@ function boardsFor(
     counts[i] = 0;
   };
   visit(0, 0);
-  const material = (b: Board) => b.counts.reduce((s, n, j) => s + n * (types[j]?.length ?? 0), 0);
-  return out.sort((a, b) => material(b) / b.feet - material(a) / a.feet || a.feet - b.feet);
+  const perFoot = new Map(
+    out.map((b) => [b, b.counts.reduce((s, n, j) => s + n * (types[j]?.length ?? 0), 0) / b.feet]),
+  );
+  const of = (b: Board) => perFoot.get(b) ?? 0;
+  return out.sort((a, b) => of(b) - of(a) || a.feet - b.feet);
 }
 
 /** Turns boards of piece counts into a plan of piece indexes. */
@@ -122,17 +136,15 @@ function toPlan(
 }
 
 /**
- * The fewest feet, proven, unless the search runs past `timeLimitMs` or `maxNodes`. A node limit
- * gives the same plan on any machine; a time limit does not.
+ * The fewest feet, proven, unless the search spends more than `workLimit` units of work (`work.ts`)
+ * first. At the limit it keeps the best plan found, so the same instance and limit give the same
+ * plan on any machine.
  */
 export function solveExact(
   instance: Instance,
-  {
-    timeLimitMs = 2000,
-    maxNodes = Number.POSITIVE_INFINITY,
-  }: { timeLimitMs?: number; maxNodes?: number } = {},
+  { workLimit = WORK_LIMIT }: { workLimit?: number } = {},
 ): Solved {
-  const deadline = performance.now() + timeLimitMs;
+  const work = new Work(workLimit);
   const baseline = firstFitDecreasing(instance);
   const by = step(instance);
   const types = pieceTypes(instance);
@@ -140,11 +152,18 @@ export function solveExact(
   const material = materialBound(instance);
   let rootLp: ReturnType<typeof relaxation>;
   try {
-    rootLp = relaxation(instance, { deadline });
+    rootLp = relaxation(instance, { work });
   } catch (error) {
-    if (!(error instanceof OutOfTime)) throw error;
+    if (!(error instanceof OutOfWork)) throw error;
     const { feet } = measure(baseline);
-    return { plan: baseline, feet, bound: material, proven: feet <= material, nodes: 0 };
+    return {
+      plan: baseline,
+      feet,
+      bound: material,
+      proven: feet <= material,
+      nodes: 0,
+      work: work.spent,
+    };
   }
   const bound = Math.max(material, rootLp.bound);
   // The root's patterns start every residual relaxation, which then needs few rounds.
@@ -154,7 +173,6 @@ export function solveExact(
   }));
   let best = { feet: measure(baseline).feet, boards: measure(baseline).boards, plan: baseline };
   let nodes = 0;
-  let timedOut = false;
 
   const memo = new Map<string, number>();
   const lpMemo = new Map<string, number>();
@@ -166,7 +184,7 @@ export function solveExact(
     const key = left.join(',');
     let lp = lpMemo.get(key);
     if (lp === undefined) {
-      lp = relaxation(rest, { seed, deadline }).bound;
+      lp = relaxation(rest, { seed, work }).bound;
       lpMemo.set(key, lp);
     }
     return Math.max(material, lp);
@@ -174,12 +192,8 @@ export function solveExact(
 
   const chosen: Board[] = [];
   const search = (left: number[], feet: number) => {
-    if (timedOut) return;
-    if (nodes >= maxNodes || performance.now() > deadline) {
-      timedOut = true;
-      return;
-    }
     nodes++;
+    work.spend(COST.node);
     const first = left.findIndex((n) => n > 0);
     if (first < 0) {
       const boards = chosen.length;
@@ -194,16 +208,8 @@ export function solveExact(
     memo.set(key, feet);
     // Only a plan with fewer feet, by at least one step, is worth finding.
     const needed = best.feet - by - feet;
-    let lower: number;
-    try {
-      lower = lowerBound(left, needed);
-    } catch (error) {
-      if (!(error instanceof OutOfTime)) throw error;
-      timedOut = true;
-      return;
-    }
-    if (lower > needed) return;
-    for (const board of boardsFor(instance, types, left, first)) {
+    if (lowerBound(left, needed) > needed) return;
+    for (const board of boardsFor(instance, types, left, first, work)) {
       if (feet + board.feet > best.feet - by) continue;
       chosen.push(board);
       search(
@@ -211,16 +217,16 @@ export function solveExact(
         feet + board.feet,
       );
       chosen.pop();
-      if (best.feet <= bound || timedOut) return;
+      if (best.feet <= bound) return;
     }
   };
 
-  if (best.feet > bound) search(root, 0);
-  return {
-    plan: best.plan,
-    feet: best.feet,
-    bound,
-    proven: !timedOut,
-    nodes,
-  };
+  let proven = true;
+  try {
+    if (best.feet > bound) search(root, 0);
+  } catch (error) {
+    if (!(error instanceof OutOfWork)) throw error;
+    proven = false;
+  }
+  return { plan: best.plan, feet: best.feet, bound, proven, nodes, work: work.spent };
 }
