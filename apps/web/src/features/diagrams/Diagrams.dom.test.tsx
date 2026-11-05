@@ -608,6 +608,8 @@ describe('the sub-assemblies (#652)', () => {
     expect(container.querySelector('section[aria-labelledby="sub-assemblies"]')).toBeNull();
   });
 
+  // Opens every group in one mount, so fetching each once can be checked: fifteen views drawn in
+  // one test, about 1.3 s here and four times that on CI, near Vitest's 5 s default.
   it('opens each group, fetched once, and moves it between assembled and exploded', async () => {
     const asked: string[] = [];
     const { container } = mount(
@@ -638,7 +640,7 @@ describe('the sub-assemblies (#652)', () => {
     expect(
       byText(groupSection(container), 'button', 'Left end frame').getAttribute('aria-pressed'),
     ).toBe('false');
-  });
+  }, 20_000);
 
   it('names only the group’s own part letters', async () => {
     const { container } = mount(withGroups(async (id) => ({ ok: true, value: drawn(id) })));
