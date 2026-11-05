@@ -65,6 +65,8 @@ What stays the template's: where each part stands and the closing formulas behin
 
 Generic code already makes the cut list, shopping list, hardware list, operations, structural checks, drawings, and build steps from what `generate` returns. Use it: `cutList`, `hardwareList`, and `planLumber` from `outputs/`, `withLetters` from `model/letters.ts`, the structural checks from `structural/`, and the view functions from `geometry/`. The swing set's `definition.ts` and `template.ts` show how they fit together.
 
+Work out only what is read. `planLumber` searches for the fewest feet of lumber (decision 0021), which can take seconds, so a template that regenerates for another reason, such as the margins `withStockAlternatives` gives each other stock size, runs its design and structural review there and never plans lumber it does not read. The swing set's `regenerate` callback in `definition.ts` does this.
+
 Register the template in `templates/index.ts`: add its definition to `TEMPLATES`, and export its folder's `index.ts` as a namespace beside the swing set's, for tests that need its definition by name. Nothing else imports from its folder (`apps/web/src/templateFolders.test.ts`).
 
 ## 4. Test it

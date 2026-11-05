@@ -118,6 +118,10 @@ const Envelope = z.looseObject({
 export type ReadResult =
   | {
       ok: true;
+      /**
+       * Parsed by the template's schemas, its outputs by `storedOutputs`, so a reader passes them
+       * to the template as they are, with no second parse.
+       */
       snapshot: ProjectSnapshot;
       /** The shape version it was stored in, when it had to be upgraded to read it. */
       upgradedFrom?: number;
