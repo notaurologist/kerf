@@ -1,6 +1,6 @@
 # Frame analysis
 
-Status: in progress, step 4 of 6 (November 5, 2026). Exploration #545, on `explore/frame-analysis`. Nothing in `apps/` imports `packages/frame`. From step 2, `packages/frame` depends on `@kerf/core` for the swing set's plan, design values, and loads.
+Status: in progress, step 5 of 6 (November 5, 2026). Exploration #545, on `explore/frame-analysis`. Nothing in `apps/` imports `packages/frame`. From step 2, `packages/frame` depends on `@kerf/core` for the swing set's plan, design values, and loads.
 
 Every result this exploration prints is headed "Exploratory frame analysis, not a structural check" and lists its assumptions. It sits beside the sourced checks and replaces none of them (`PRODUCT.md` principle 2). Results read as forces, displacements, and margins under stated assumptions, never as verdicts (hard rule 2).
 
@@ -276,6 +276,50 @@ These numbers are for the stated inputs only, under the assumptions listed with 
 - Modeling choices, stated with each result: which rotations a pinned joint frees; the bearing's position along the beam differing between pinned and rigid; no friction at the gusset or a lifting foot; the beam's overhangs left out; the beam's cross-section rigid; and the plies of a built-up beam separate across their strong axis and in torsion.
 - Not re-verified in this step: Table 4B's E and its factors, the pendulum load, and the uplift check's statics, which are core's, as in step 2.
 
+## A sweep over the template's parameters (step 5)
+
+`sweep.ts` runs step 4's analysis on the template's worked examples and on core's seeded sweep of the swing set's parameters (`templates/sweep.ts`, the swing set's `sweep.ts`: 800 draws from seed 571), and `sweepReport.ts` writes what it finds. `pnpm --filter @kerf/frame sweep` writes the whole report to [`frame-analysis-sweep.md`](frame-analysis-sweep.md), headed "Exploratory frame analysis, not a structural check" with its assumptions. It runs in about three seconds. The tests run the examples and the first 160 draws.
+
+Every number in this section is quoted from that report, which computes every count, range, median, and largest value from the run. Nothing below is entered by hand.
+
+### How it runs
+
+- **The draws are core's.** The script draws parameters exactly as core's sweep does, from the same seed in the same order, so draw n here is draw n in core's sweep digest. A test checks that the same draws are accepted and made. Every sweep draw carries the worked example's structural inputs, since core's sweep draws parameters only: Southern Pine No.2, riders 150 and 150 lb, θ = 60°, dynamic factor 2, beam moisture content 30%.
+- **What only the frame needs.** The crossbar and gusset take the legs' species, grade, and incising, since core asks for none. G is slash pine's ratio, as in step 4.
+- **Every instance is counted.** An instance the analysis cannot handle is reported by its reason: the parameter schema rejects it, the template refuses it, an input is needed, or the analysis is not computed. Nothing is dropped.
+- **Pinned on pads is the mechanism.** With pinned joints on pads, every case is reported as the mechanism along the beam (step 4; the owner's decision on #735), with no numbers. See below for the instances where the solver returned numbers anyway.
+- **Tolerances, fixed before the run.** A leg's axial load differs from core's P when they are more than 1% apart. A foot's pull differs from core's uplift when they are more than the larger of 1% of core's value and 1 lb apart. Step 2 found the legs within 0.1% and step 4 found the uplift within 1% for the worked example, so 1% is ten times step 2's agreement. The 1 lb floor keeps a foot that is barely lifting from reading as a large relative difference.
+
+### What it found
+
+**Instances.** Of 803 (3 examples and 800 draws), 102 are analyzed: 82 buried and 20 on pads. Core's parameter schema rejects 409: the sweep draws a 2x10 gusset (197), a 6x8 beam (123), and a 2x10 built-up beam (89), sizes the template's stock list does not have. Core's own sweep skips the same draws without counting them. The template refuses 207, mostly for seat clearances and hangers outside the span. 84 are not computed, because Table 4B has no row for 6x6 legs (59) or a 6x6 beam (25) in Southern Pine No.2. One needs inputs: the worked example with no structural inputs.
+
+**Sway along the beam, per pound.** Buried with pinned joints: 0.0009486 to 0.02619 in/lb, median 0.006228. With rigid joints, buried and on pads: 0.0003631 to 0.01543, median 0.002106. Sway grows most with beam height. With pinned joints its median rises from 0.00194 in/lb in the lowest quarter of heights (61.6 to 74.4 in) to 0.01298 in the highest (122.4 to 142.4 in). It also grows with splay and falls with burial depth. Its median rises with crossbar height too, from 0.002863 to 0.007104 in/lb, but the sweep draws the crossbar's height below the beam's, so the two move together. With rigid joints, the largest five are all on pads.
+
+**Spread between joint cases.** Buried, pinned joints sway 2.48 to 4.15 times as far as rigid, median 3.43. This is the range the real joints lie in, and it holds across the sweep. The joint cases differ far less in the foot reactions: the largest pull on a foot changes by −3.79% to +8.27% from pinned to rigid. They differ most in member forces: rigid joints lower the largest bending moment by 13.09% to 49.53% and raise the largest axial compression by 44.50% to 663.76%.
+
+**Where the largest member forces and reactions are.** The push toward the front and back sets most of them, and splay matters most. With pinned joints, the five largest compressions, pulls on a foot, and downward loads on a foot are all at splays of 6.7° to 8.1°, where the legs are close together at the base. The largest bending moment is in the beam at the bottom of the arc, in the longest beams. With rigid joints, the largest compressions (up to 4,698.8 lb) are in the legs' top members, from the beam to the gusset. A one-off run of the same analysis on draw 302 shows why, though the report does not print it: with rigid joints, the moment the push makes about the beam's axis enters each frame as a couple between the leg's top and the gusset's bearing, a few inches apart, so the leg's top member and the gusset carry large and opposite axial forces. That is a consequence of taking the joints and the beam's cross-section as rigid, and it marks the rigid case as a bound.
+
+**Legs against #468.** 184 comparisons. Buried with pinned joints, every one is within tolerance: −0.27% to +0.65%. With rigid joints, 23 of 82 buried and 2 of 20 on pads are over. They range from −14.26% to +1.43%, and most are lower than P. The lowest is draw 435: splay 35°, beam height 68 in, a 201 in beam. A one-off run on that draw, not printed in the report, shows why: with rigid joints and fixed feet, the foot's reaction no longer lies along the leg, which P assumes. The crossbar and gusset take part of the outward thrust in tension, and the foot takes a moment. The leg then carries less axial force and more bending, which core's column check does not see.
+
+**Uplift against #467.** 80 comparisons on pads, all with rigid joints, since pinned on pads is the mechanism. 3 are over tolerance, by 1.29 to 3.40 lb, in draws 239 and 617. The median difference is 0.000 lb. These are the share between frames that step 4 found: core supports the beam at the middle of each gusset, while the frame carries it at the bolt and the gusset together. The difference shows when the swings are not centered between the frames.
+
+**Pinned on pads, the solver's threshold.** In 8 of 20 instances on pads, the solver returned a stiffness along the beam with pinned joints instead of reading the mechanism: 0.0003674 to 0.003885 lb/in, against 70.49 to 331 lb/in for the same frames with rigid joints. This is step 4's near-mechanism on sloped ground. The stiffness left by the sloped line through the feet falls on either side of the solver's pivot threshold, 10⁻¹⁰ of the diagonal term, depending on the geometry. The report lists these stiffnesses and uses them nowhere else.
+
+These numbers are for the stated inputs only, under the assumptions listed with each result, and are forces, displacements, and stiffnesses, not margins against any capacity.
+
+### Core changes
+
+Two small exports, no change to any output: `legAxialLoad` is the leg check's P, moved out of `legColumn` so the sweep compares against the same function the check uses, and `pendulumFactor` and `EXAMPLES` are exported from the swing set's index. `seeded` is exported from `@kerf/core/sweeps`, so the script draws as core does.
+
+### Verified, and not
+
+- No new formula. The sweep uses step 4's analysis and core's P (`legAxialLoad`) and uplift (`upliftFeet`).
+- Tested: every example and draw is counted once; the draws accepted and made match core's sweep; core's P for the worked example is 333.10 (example 5), and the buried, pinned leg is within 0.1% of it, as in step 2; the uplift matches core to 10⁻⁶ lb on the symmetric two-ply example on pads, where each frame is determinate; buried legs are stiffer along the beam with rigid joints in every draw; pinned on pads gives no numbers; the report is headed as exploratory, counts every instance, and uses no verdict words.
+- Not in the report: the reasons given above for draws 302 and 435 come from one-off runs of the same analysis that print member forces and reactions the report does not keep. They explain the numbers and are not quoted as results.
+- Not checked by hand: the sweep's values beyond the worked examples. They are the step 4 analysis on other parameters, and each case's equilibrium is tested in step 4.
+- Modeling choices, stated in the report: the crossbar's and gusset's species from the legs'; pinned on pads reported as the mechanism even where the solver returns numbers; the tolerances.
+
 ## Assumptions
 
 These hold for every result this exploration prints, and are listed with each one.
@@ -285,6 +329,7 @@ These hold for every result this exploration prints, and are listed with each on
 - Bolted joints are run twice: pinned and rigid. The real joint lies between them. Step 3 found no basis for a single rotational stiffness that covers the swing set's bolts in their oversize holes, so no third case is run. In 3D (step 4), pinned frees the single leg-to-beam bolt every way and each two-bolt joint about its bolts' axis.
 - Feet on pads are pinned; the uplift case runs with the lifting foot released. Buried legs are fixed at grade, and the soil makes the real fixity lower.
 - Loads are the quasi-static load cases the existing checks use. No dynamic or modal analysis. No load along the beam has a source, so step 4 reports the frame's stiffness along the beam instead of a sway under an assumed load.
+- With pinned joints on pads, the frame is reported as a mechanism along the beam in every case, including where the solver returns a very small stiffness on sloped ground (steps 4 and 5).
 - Out of scope: connection capacity, soil, sliding, and whole-frame buckling. They stay on the checklist.
 
 ## Plan of steps
@@ -295,5 +340,5 @@ Each step is blocked by the one before. Pull requests go into `explore/frame-ana
 2. #727 One A-frame in its plane from the template's placements and joints, pinned and rigid, checked against #467's foot reactions and #468's leg load in the worked example. Done.
 3. #728 Bolt slip source: NDS 2024's load/slip modulus and whether it may be used beyond group action, the textbook basis for a bolt group's rotational stiffness, and Eurocode 5 (EN 1995-1-1, 7.1) as a cross-check. A third joint case if the basis holds. The basis does not hold for these joints, so no spring is added. Done.
 4. #729 3D frame element and the whole swing set, with sway along the beam for buried legs and for pads. Done.
-5. #730 A sweep over the template's parameters: where sway is largest and how far the joint cases differ.
+5. #730 A sweep over the template's parameters: where sway is largest and how far the joint cases differ. Done.
 6. #731 Write-up and an adoption proposal, if there is one to make.

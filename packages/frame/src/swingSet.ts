@@ -318,7 +318,7 @@ export function middleJoint(g: SetGeometry): string {
   return hanger >= 0 ? `hanger-${hanger + 1}` : 'middle';
 }
 
-const ASSUMPTIONS = [
+export const ASSUMPTIONS = [
   "The whole swing set: both A-frames and the beam, in the spec's coordinates (x along the beam, y front to back, z up).",
   'Linear elastic, small displacements, Euler–Bernoulli members: shear deformation and torsional warping are left out (McGuire et al., Section 4.6.1). No second-order (P-Δ) effects and no buckling.',
   "Members are prismatic, on their gross sections. E is from Table 4B for the species and grade entered for each member, with wet service, C_t = 1.0, and incising where entered, as in step 2. G is E times the ratio stated with each section. J is the Wood Handbook's approximation for a rectangle, with φ read from its Figure 9–9. A built-up beam's plies bend together about the strong axis; across it and in torsion each ply is taken on its own.",

@@ -830,6 +830,29 @@ export function legLengths(output: SwingSetOutput, leg: 'back' | 'front') {
   };
 }
 
+/**
+ * Each leg's axial load at the bottom of the arc (spec, Structural model, Legs): the more loaded
+ * frame's load shared equally by its two legs along their axes, P = (C·R_s + R_w) / (2·cos α).
+ * `factored` is the part the dynamic factor multiplies, R_s / (2·cos α).
+ */
+export function legAxialLoad(
+  output: SwingSetOutput,
+  /** Pendulum load per hanger, left to right, without the dynamic factor. */
+  perHanger: readonly number[],
+  /** The beam's weight per inch. */
+  w: number,
+) {
+  const cosA = Math.cos((output.geometry.splay * Math.PI) / 180);
+  const [x0, x1] = beamSupports(output).x;
+  const R = reactions(x1 - x0, {
+    points: output.swings.hangersX.map((x, i) => ({ a: x - x0, P: perHanger[i] ?? 0 })),
+    w: 0,
+  });
+  const Rs = Math.max(R.left, R.right);
+  const Rw = (w * output.params.beamLength) / 2;
+  return { Rs, Rw, factored: Rs / (2 * cosA), unfactored: Rw / (2 * cosA) };
+}
+
 function legColumn(
   output: SwingSetOutput,
   inputs: SwingSetStructuralInputs,
@@ -845,7 +868,6 @@ function legColumn(
   const level = Math.abs(g.front.groundZ - g.back.groundZ) < 1e-9;
   const subject = `${level ? 'Legs' : which === 'front' ? 'Front legs' : 'Back legs'}, ${p.legStock}`;
   const lengths = legLengths(output, which);
-  const cosA = Math.cos((g.splay * Math.PI) / 180);
 
   const inPlane: ColumnAxis = {
     label: 'In the plane of the A-frame',
@@ -870,17 +892,10 @@ function legColumn(
 
   const load = combine(swing, beamWeight, (s, weight): AxialLoad | null => {
     if (!weight) return null;
-    const [x0, x1] = beamSupports(output).x;
-    const R = reactions(x1 - x0, {
-      points: output.swings.hangersX.map((x, i) => ({ a: x - x0, P: s.perHanger[i] ?? 0 })),
-      w: 0,
-    });
-    const Rs = Math.max(R.left, R.right);
-    const Rw = (weight.w * p.beamLength) / 2;
+    const { Rs, Rw, factored, unfactored } = legAxialLoad(output, s.perHanger, weight.w);
     return {
-      // P = (C·R_s + R_w) / (2·cos α).
-      factored: Rs / (2 * cosA),
-      unfactored: Rw / (2 * cosA),
+      factored,
+      unfactored,
       working: [
         ...s.working,
         ...weight.working,
