@@ -37,6 +37,6 @@ The owner's decision in #215 expected about 350 KB per fixture. Measured at 760b
 | `snapshots/`, record cabinet | 23 | 225 to 417 KB |
 | `snapshots/`, workbench | 2 | 935 and 937 KB |
 | `shown/`, one per template | 3 | 1.5 MB (swing set), 4.1 MB (record cabinet), 14.4 MB (workbench) |
-| `sweeps/`, one per template | 3 | 284 to 339 KB |
+| `sweeps/`, one per template | 3 | 284 KB (record cabinet), 339 KB (workbench), 639 KB (swing set) |
 
-Snapshot fixtures add about 0.4 MB per swing set or record cabinet version and 0.9 MB per workbench version. `shown/` holds every drawing's dimension text, so it is the largest; it is replaced at each version, not added to. `contract.test.ts` caps each file's size by kind, about a quarter over today's largest (1.2 MB for `snapshots/`, 18 MB for `shown/`, 450 KB for `sweeps/`), so a file that outgrows its cap fails `pnpm check` and the cap is raised on purpose, in review.
+Snapshot fixtures add about 0.4 MB per swing set or record cabinet version and 0.9 MB per workbench version. `shown/` holds every drawing's dimension text, so it is the largest; it is replaced at each version, not added to. `contract.test.ts` caps each file's size by kind, about a quarter over today's largest (1.2 MB for `snapshots/`, 18 MB for `shown/`, 800 KB for `sweeps/`), so a file that outgrows its cap fails `pnpm check` and the cap is raised on purpose, in review. The `sweeps/` cap was raised from 450 KB when the swing set's sweep stopped drawing stock sizes its parameters refuse (#737): all 800 of its draws now reach `generate`, where 391 did.

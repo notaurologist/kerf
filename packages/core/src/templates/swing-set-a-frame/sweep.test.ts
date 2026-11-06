@@ -12,8 +12,8 @@ describe('the swing set across its ranges', () => {
   const swept = sweep(swingSetAFrame as never, SWEEP);
 
   it('makes enough plans for the sweep to mean something', () => {
-    expect(swept.accepted).toBeGreaterThan(300);
-    expect(swept.made).toBeGreaterThan(150);
+    expect(swept.accepted).toBeGreaterThan(760);
+    expect(swept.made).toBeGreaterThan(300);
   });
 
   it('never throws, and every plan goes together, reads back, and shows', () => {
