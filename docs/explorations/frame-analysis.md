@@ -408,7 +408,7 @@ A, with B. A puts the one robust finding into the check that already asks the qu
 
 If the owner prefers to keep everything as it is, the exploration stands as a record of why: the per-member checks agree with the frame where they overlap, and the frame cannot narrow racking without a joint stiffness or a load along the beam that no source gives.
 
-The owner decides in a separate decision issue. Nothing here changes `main`.
+The owner decides in #741. Nothing here changes `main`.
 
 ## Still open
 
