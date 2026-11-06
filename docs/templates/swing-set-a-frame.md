@@ -83,6 +83,10 @@ Template version 37 (#536) measures the leg's bolts at the gusset joint against 
 
 Template version 40 (#686, decision 0021) plans each stock's boards to buy the fewest feet the search finds, and each lumber line says whether that is proven; the list notes that offcuts run short. The worked examples' boards are the same, since first-fit decreasing already bought the fewest feet for them. No part, cut, or check changes.
 
+Template version 42 (#742) gives the checklist's racking item the reason the frame analysis exploration found (#545, #741). On pads, nothing in the frames themselves holds them along the beam: each foot can turn on its pad and each frame about its leg-to-beam bolt, so how tightly the bolts clamp, the ground anchors, or corner braces keep the frames from leaning. Buried legs hold the frames by bending at grade, and how far the frames lean depends on how tightly the bolts clamp. The item gives no number, since no source gives a load along the beam or a limit on how far the frames may lean. No part, cut, or check changes.
+
+Template version 43 (#744, decision 0022) checks each leg under the swing's push toward the front and back as well as at the bottom of the arc, by statics, with the frame analysis exploration as its cross-check (Structural model, Legs, below). In example 5's lower frame the push raises the leg's load from 333.10 lb to 544.66 lb, and the margin goes from 5.32 to 3.26. On a slope both legs are checked. No worked example computes the leg check, so their stored outputs are unchanged; the sweep's draws change. No part, cut, or bolt moves.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -704,9 +708,12 @@ On pads, the anchor check also needs two hardware parameters (Hardware, above): 
 
 ### Legs
 
-Version 34 (#468) checks the leg that is longer above grade as a solid column (`DOMAIN.md`, Column compression). Both legs of a frame carry the same load, so the longer one, the downhill one, has the lower margin; on level ground the two are the same and the check names "Legs". NDS 2024 sections read for it: 3.6.3 (compression parallel to grain, net and gross section), 3.7.1.1 to 3.7.1.5 (effective length, slenderness, the limit of 50, Eq. 3.7-1), all p. 23; Appendix G, G.1 to G.4 and Table G1 (p. 183); Table 4.3.1 (p. 31), Table 4.3.8 (p. 32), and Table 2.3.3 (p. 13) for which factors apply to Fc; and Supplement Table 4B's wet service and size factors (p. 39): C_M = 0.8 for Fc unless Fc ≤ 750 psi, and C_F = 1.0 for every Southern Pine size Kerf offers.
+Version 34 (#468) checks the leg that is longer above grade as a solid column (`DOMAIN.md`, Column compression). Version 43 (#744, decision 0022) adds the swing's push toward the front and back, which loads one leg of a frame more than the other. On a slope the push can load the shorter leg more, so both legs are checked and the result is the one with the lower margin. If the longer leg is over the slenderness limit or has no end condition, so is the shorter one, and the check says so for the longer one. On level ground the two legs are the same length and the push loads each alike, so the check names "Legs". NDS 2024 sections read for it: 3.6.3 (compression parallel to grain, net and gross section), 3.7.1.1 to 3.7.1.5 (effective length, slenderness, the limit of 50, Eq. 3.7-1), all p. 23; Appendix G, G.1 to G.4 and Table G1 (p. 183); Table 4.3.1 (p. 31), Table 4.3.8 (p. 32), and Table 2.3.3 (p. 13) for which factors apply to Fc; and Supplement Table 4B's wet service and size factors (p. 39): C_M = 0.8 for Fc unless Fc ≤ 750 psi, and C_F = 1.0 for every Southern Pine size Kerf offers.
 
-- **Load per leg:** P = (C · R_s + R_w) / (2 · cos α). R_s is the beam's larger support reaction under the swing loads alone, which the dynamic factor C multiplies. R_w = w · L_beam / 2 is half the beam's whole weight, overhangs included, which it does not. Each frame's load is shared equally by its two legs, along their axes. The legs', crossbars', and gussets' own weight is left out, and so is the swing's push toward the front and back, which loads one leg of a frame more than the other.
+- **Load per leg:** the larger of two loads, each with the dynamic factor C multiplying the swing part only. The legs', crossbars', and gussets' own weight is left out.
+  - **At the bottom of the arc:** P = (C · R_s + R_w) / (2 · cos α). R_s is the beam's larger support reaction under the swing loads alone. R_w = w · L_beam / 2 is half the beam's whole weight, overhangs included. Each frame's load is shared equally by its two legs, along their axes.
+  - **Pushed toward the front or back** (version 43): on the way down from θ, at angle φ, each chain carries W·(3·cos φ − 2·cos θ), as for the uplift at the feet, from the same sources. Its vertical part V and fore-and-aft part F act at the beam, (0, H). Each A-frame is taken as a rigid body standing on its two feet where the legs' centerlines meet the ground, y_b = q_y + (H − z_g,b)·tan α and y_f = −(q_y + (H − z_g,f)·tan α), with q_y = bw/2 + w / (2·cos α). The push toward a leg's side lifts the other foot. Moments about this leg's foot give the other foot's share, and this foot takes the rest (equilibrium of forces and torques, OpenStax University Physics Volume 1, 12.1): R = V·c_v + F·c_h, with c_v = |y_other| / (y_b − y_f) and c_h = (H − z_g,this) / (y_b − y_f). The leg carries R along its axis, so N = (C · S + R_w · c_v) / cos α, with S = W_f · (3·cos φ − 2·cos θ) · (c_v·cos φ + c_h·sin φ). W_f is the riders the more loaded frame carries, split between the frames by the beam's span as in the uplift check, and φ is searched over [0, θ] for the largest S (90 samples, then golden-section search, as for the uplift). At φ = 0 on level ground c_v = 1/2 and N = P, so the push never reads lower than P there.
+  - **How close the statics are** (#741, #744; the frame analysis exploration's sweep, template version 41, seed 571, run with this φ): against a frame analysis of the whole swing set with the same loads at the same φ, the larger of P and N read at most 1.65% under the frame for buried legs with pinned joints and 2.17% with rigid joints, and at most 4.52% under it on pads with rigid joints. The frame reads more because the legs also bend. Where buried legs' fixed bases take part of the push by bending, N reads up to 42% over the frame. The check states 2.2% for buried legs; on pads it is not computed. An earlier comparison at the uplift check's φ, where the push loads the leg less, gave up to 4.74% buried and 9.65% on pads; the owner accepted statics that read up to about 10% low on pads on November 6, 2026.
 - **In the A-frame's plane** (d = w, the leg's width toward the beam): the crossbar and gusset tie the splayed legs into triangles, so each holds the leg from moving sideways at the middle of its height, zc − cw/2 for the crossbar and H − gh/2 for the gusset. The leg is taken as free to turn there: Table G1 case d, Ke = 1.0. ℓ is the longer of (zc − cw/2 − z_g) / cos α, from the leg's centerline at the ground to the crossbar, and (H − gh/2 − zc + cw/2) / cos α, from the crossbar to the gusset.
 - **Along the beam** (d = t), buried legs (d > 0): the leg is taken as fixed at grade. At the top the frame can lean along the beam and turn about the single leg-to-beam bolt, so the top is free to move and to turn: Table G1 case e, a flagpole, Ke = 2.10. ℓ = (H − z_g) / cos α, from grade to the underside of the beam, where the gusset carries the beam into the legs. Soil near the surface gives, so the real point of fixity is below grade and the real effective length longer; the result says so.
 - **Along the beam on pads** (d = 0): each foot can turn on its pad and the frame can turn about the bolt, so no Table G1 case applies and the check is not computed. The reason it gives says that the ground anchors and how tightly the bolts clamp are what hold the frame along the beam, for an experienced builder to judge.
@@ -715,7 +722,7 @@ Version 34 (#468) checks the leg that is longer above grade as a solid column (`
 
 ### Checklist
 
-Leg-to-beam bolt and gusset; beam plies (built-up beams only); beam held against rotation at each frame; racking of the A-frames and crossbars; burial, or on pads the ground anchors' type, soil, fastening to the legs, and sliding; swing hanger installation; lumber quality in the beam and legs; an inspection routine (CPSC Pub. 324, p. 5).
+Leg-to-beam bolt and gusset; beam plies (built-up beams only); beam held against rotation at each frame; racking of the A-frames and crossbars, with what holds the frames along the beam (on pads, nothing in the frames themselves: the bolts' clamping, the anchors, or corner braces; buried, the legs' bending at grade, with how far the frames lean depending on the bolts' clamping); burial, or on pads the ground anchors' type, soil, fastening to the legs, and sliding; swing hanger installation; lumber quality in the beam and legs; an inspection routine (CPSC Pub. 324, p. 5).
 
 ### Worked examples (hand-checked)
 
@@ -842,10 +849,18 @@ A lower frame, the worked example with H = 72, the crossbar's top at zc = 30, an
 | Fc' = 1160 · 0.14870 | 172.49 psi |
 | R_s, the swing loads on a frame at factor 1 (symmetric) | 300 lb |
 | R_w = 0.433798 · 120 / 2 | 26.028 lb |
-| P = (2 · 300 + 26.028) / (2 · 0.939693) | 333.10 lb |
+| P = (2 · 300 + 26.028) / (2 · 0.939693) | 333.10 lb, at the bottom of the arc |
+| q_y = 3.5/2 + 3.5 / (2 · 0.939693); y_b = −y_f = 3.61231 + 72 · 0.363970 | 29.8182; y_b − y_f = 59.6363 |
+| c_v = 29.8182 / 59.6363; c_h = 72 / 59.6363 | 0.5; 1.20732 |
+| W_f, each frame's riders (symmetric) | 150 lb |
+| Largest (3·cos φ − 1)(0.5·cos φ + 1.20732·sin φ) over 0 to 60° | 1.66267 at φ = 27.575° (3·cos φ − 1 = 1.65922) |
+| S = 150 · 1.66267 | 249.401 lb |
+| N = (2 · 249.401 + 26.028 · 0.5) / 0.939693 | 544.66 lb, which governs (1.635 · P) |
 | A_n = (3.5 − 0.5625) · 3.5 | 10.28125 in² |
-| f_c = 333.10 / 10.28125 | 32.399 psi; margin 172.49 / 32.399 = 5.32 |
-| Break-even dynamic factor | (172.49 · 10.28125 · 2 · 0.939693 − 26.028) / 300 = 11.02 |
+| f_c = 544.66 / 10.28125 | 52.976 psi; margin 172.49 / 52.976 = 3.26 |
+| Break-even dynamic factor | (172.49 · 10.28125 − 26.028 · 0.5 / 0.939693) · 0.939693 / 249.401 = 6.63 |
+
+Version 42 and earlier took P alone: f_c = 32.399 psi, margin 5.32, break-even 11.02. With θ = 0 the swing has no push, and P = (300 + 26.028) / (2 · 0.939693) = 173.476 lb governs.
 
 Computed by hand and by a separate script before the code, and matched by `structural.test.ts`.
 

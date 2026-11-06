@@ -4,6 +4,7 @@ export type { SwingSetParams } from './params.ts';
 export {
   beamWeightPerInch,
   legAxialLoad,
+  legPush,
   pendulumFactor,
   type SwingSetStructuralInputs,
   upliftFeet,
