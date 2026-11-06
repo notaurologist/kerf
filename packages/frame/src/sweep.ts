@@ -105,6 +105,22 @@ interface PushComparison {
   relative: number;
 }
 
+/**
+ * The frame against core's leg check (template version 43): the larger of P and the frame's push
+ * load on a leg, against the larger of P and core's push load N, both at core's chain angle for
+ * that leg. `relative` is frame over core less 1, so a positive value is the statics reading low.
+ */
+interface LegCheckComparison {
+  supports: string;
+  joints: JointModel;
+  load: string;
+  P: number;
+  N: number;
+  frame: number;
+  at: string;
+  relative: number;
+}
+
 interface UpliftComparison {
   foot: string;
   joints: JointModel;
@@ -128,6 +144,8 @@ export type Instance =
       joints: Record<JointModel, JointResult>;
       legs: LegComparison[];
       pushes: PushComparison[];
+      /** The push at core's own chain angle, against core's leg check. */
+      legCheck: LegCheckComparison[];
       /** Empty for buried legs, which core gives no uplift check. */
       uplift: UpliftComparison[];
     };
@@ -333,6 +351,50 @@ function comparisons(
   return { legs, pushes, uplift };
 }
 
+/** The frame's push cases at the leg check's chain angle, against the leg check's load. */
+function legCheckComparisons(
+  output: Output,
+  inputs: SwingSetInputs,
+  cases: SwingSetCase[],
+): LegCheckComparison[] {
+  const v = inputs as Required<SwingSetInputs>;
+  const pads = output.params.burialDepth === 0;
+  const w = swingSetAFrame.beamWeightPerInch(output, v.beamSpeciesGrade, v.beamMoistureContent);
+  if (w === null) throw new Error('No beam weight, though the frame analysis computed.');
+  const k = swingSetAFrame.pendulumFactor(v.maxSwingAngle);
+  const perHanger = v.riderWeights.flatMap((W) => [(W * k) / 2, (W * k) / 2]);
+  const shared = swingSetAFrame.legAxialLoad(output, perHanger, w);
+  const P = v.dynamicFactor * shared.factored + shared.unfactored;
+  const cosA = Math.cos((output.geometry.splay * Math.PI) / 180);
+  const out: LegCheckComparison[] = [];
+  for (const c of cases) {
+    if (c.phi === null || c.phi === 0) continue;
+    if (c.result.kind !== 'solved' || leansOnPads(pads, c.joints)) continue;
+    const leg = c.load.startsWith('Pushed toward the back') ? 'back' : 'front';
+    const push = swingSetAFrame.legPush(output, v.riderWeights, v.maxSwingAngle, leg);
+    // N = (C·S + R_w·c_v) / cos α (core, Legs).
+    const N = (v.dynamicFactor * push.swing + shared.Rw * push.cv) / cosA;
+    const largest = lowestLegCompression(c.result.analysis.memberForces);
+    out.push({
+      supports: c.supports,
+      joints: c.joints,
+      load: c.load,
+      P,
+      N,
+      frame: largest.value,
+      at: largest.at,
+      relative: Math.max(P, largest.value) / Math.max(P, N) - 1,
+    });
+  }
+  return out;
+}
+
+function legCheckCases(output: Output, frame: SwingSetInputs): SwingSetCase[] {
+  const report = swingSetAnalysis(output, frame, 'leg-check');
+  if (report.status !== 'computed') throw new Error('The leg-check push cases did not compute.');
+  return report.cases.filter((c) => c.phi !== null && c.phi !== 0);
+}
+
 /** One generated plan through the frame analysis, with every outcome kept. */
 function analyzeInstance(
   instance: string,
@@ -359,6 +421,7 @@ function analyzeInstance(
         rigid: jointResult(report.cases, 'rigid', pads),
       },
       ...comparisons(output, frame, report.cases),
+      legCheck: legCheckComparisons(output, frame, legCheckCases(output, frame)),
     };
   } catch (error) {
     return {

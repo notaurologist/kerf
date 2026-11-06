@@ -1,6 +1,6 @@
 # Frame analysis
 
-Status: done, adoption proposed (November 5, 2026). Exploration #545, steps #726 to #731. Code in `packages/frame` on `explore/frame-analysis`, not merged. Nothing in `apps/` imports `packages/frame`. From step 2, `packages/frame` depends on `@kerf/core` for the swing set's plan, design values, and loads.
+Status: done (November 5, 2026); A and B adopted (November 6, 2026, decision 0022). Exploration #545, steps #726 to #731. Code in `packages/frame` on `explore/frame-analysis`, not merged. Nothing in `apps/` imports `packages/frame`. From step 2, `packages/frame` depends on `@kerf/core` for the swing set's plan, design values, and loads.
 
 Every result this exploration prints is headed "Exploratory frame analysis, not a structural check" and lists its assumptions. It sits beside the sourced checks and replaces none of them (`PRODUCT.md` principle 2). Results read as forces, displacements, and margins under stated assumptions, never as verdicts (hard rule 2).
 
@@ -410,11 +410,20 @@ If the owner prefers to keep everything as it is, the exploration stands as a re
 
 The owner decides in #741. Nothing here changes `main`.
 
+### Adopted
+
+The owner chose A with B on #741 (November 6, 2026), recorded in decision 0022.
+
+- **B** is template version 42 (#742, #743). The racking item says that on pads nothing in the frames themselves holds them along the beam, and that buried legs hold them by bending at grade.
+- **A** is template version 43 (#744, #745). The leg check takes the larger of P and N, the push's load on a leg by statics: each A-frame is a rigid body on its feet, with the uplift check's loads and lever arms, and the leg carries its foot's reaction along its axis. The chain angle is searched for the largest N, and on a slope both legs are checked.
+- **Statics against the frame.** Before adoption, the statics were checked against this analysis at the uplift check's chain angle. They read at most 4.74% under the frame for buried legs and 9.65% on pads, and the owner accepted up to about 10% low on pads (#741). The sweep now also runs both pushes at the leg check's own angle ("The push against core's leg check" in the sweep's report). There the statics read at most 1.65% under the frame buried with pinned joints, 2.17% with rigid joints, and 4.52% on pads with rigid joints. The leg check states 2.2% for buried legs; on pads it is not computed. Where buried legs' fixed bases take part of the push by bending, N reads up to 42.47% over the frame.
+- **The worked example** at the leg check's angle: N = 551.3 lb on a back leg, with the frame within 2% of it.
+- **Nothing in `packages/frame` came to `main`.** The sweep's other tables still use the pushes where a foot lifts most, so the numbers above this section are unchanged. The sweep's template version is now 43; versions 42 and 43 change no geometry.
+
 ## Still open
 
 - A joint stiffness with the hole clearance taken up first (step 3, option 2): needs EN 1995-1-1 itself, a density for Southern Pine on Eurocode's basis, and a nonlinear analysis.
 - A sourced load along the beam for a swing set, or a sway limit. Either would turn the stiffness into a margin.
-- The push case's φ searched for the largest leg load rather than the largest uplift.
 - Soil stiffness for buried legs, which needs a soil input Kerf does not have.
 - The workbench's racking under planing, left until after this write-up (#545, question 4).
 - The relative mechanism test above, if a later model needs the analysis to decide.

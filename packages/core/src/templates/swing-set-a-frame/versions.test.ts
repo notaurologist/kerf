@@ -44,6 +44,8 @@ import v37 from './snapshots/v37.json' with { type: 'json' };
 import v38 from './snapshots/v38.json' with { type: 'json' };
 import v39 from './snapshots/v39.json' with { type: 'json' };
 import v40 from './snapshots/v40.json' with { type: 'json' };
+import v41 from './snapshots/v41.json' with { type: 'json' };
+import v42 from './snapshots/v42.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -71,6 +73,18 @@ const isVersion40 = (c: { path: string; before?: unknown; after?: unknown }) =>
     String(c.after).startsWith('No plan buys fewer feet of ')) ||
     (/^lumber\.notes\[\d+\]$/.test(c.path) &&
       String(c.after).startsWith('Boards are planned to buy the fewest feet')));
+/**
+ * Version 42's change (#742): the racking item's reason says what holds the frames along the beam.
+ * Set aside in every comparison with the current version, like version 40's.
+ */
+const RACKING_BEFORE =
+  'Swinging pushes the top of the frame back and forth; racking is not computed.';
+const isVersion42 = (c: { path: string; before?: unknown; after?: unknown }) =>
+  /^structuralReview\.checklist\[\d+\]\.why$/.test(c.path) &&
+  c.before === RACKING_BEFORE &&
+  String(c.after).startsWith(
+    'Swinging pushes the top of the frame back and forth. Along the beam, ',
+  );
 /**
  * Version 20's change (#455): each leg's flush-cut note, in its part and its cut-list row, calls the
  * cut a taper and gives one measurement for the mark on the top cut. Set aside like version 18's.
@@ -327,7 +341,8 @@ function regenerated(
         (keepVersion36 || later !== undefined || !isVersion36(c)) &&
         (keepVersion37 || !isVersion37(c)) &&
         !isVersion38(c) &&
-        !isVersion40(c),
+        !isVersion40(c) &&
+        !isVersion42(c),
     ),
   };
   return keepVersion18
@@ -853,7 +868,8 @@ describe('swing-set template versions', () => {
           !isVersion36(c) &&
           !isVersion37(c) &&
           !isVersion38(c) &&
-          !isVersion40(c),
+          !isVersion40(c) &&
+          !isVersion42(c),
       );
       expect(changes.every(isVersion20)).toBe(true);
       // Two legs, each in its part and its cut-list row.
@@ -1356,7 +1372,9 @@ describe('swing-set template versions', () => {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(37);
       const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
-      expect(changes.filter((c) => !isVersion38(c) && !isVersion40(c))).toEqual([]);
+      expect(changes.filter((c) => !isVersion38(c) && !isVersion40(c) && !isVersion42(c))).toEqual(
+        [],
+      );
       // Within sameNumber, so diff no longer reports them; compared exactly, they differ.
       expect(json(snapshot.outputs)).not.toEqual(json(fresh(snapshot)));
     }
@@ -1371,7 +1389,9 @@ describe('swing-set template versions', () => {
       expect(snapshot.templateVersion).toBe(38);
       const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
       expect(
-        changes.filter((c) => !isVersion40(c) && (!isVersion38(c) || !lengths.test(c.path))),
+        changes.filter(
+          (c) => !isVersion40(c) && !isVersion42(c) && (!isVersion38(c) || !lengths.test(c.path)),
+        ),
       ).toEqual([]);
       expect(json(snapshot.outputs)).not.toEqual(json(fresh(snapshot)));
     }
@@ -1382,7 +1402,9 @@ describe('swing-set template versions', () => {
     for (const stored of v39) {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(39);
-      const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
+      const changes = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000).changes.filter(
+        (c) => !isVersion42(c),
+      );
       expect(changes.filter((c) => !isVersion40(c))).toEqual([]);
       // A note on each line, and one on the list.
       const lines = (snapshot.outputs as { lumber: { lines: unknown[] } }).lumber.lines;
@@ -1395,7 +1417,42 @@ describe('swing-set template versions', () => {
     for (const stored of v40) {
       const snapshot = read(stored);
       expect(snapshot.templateVersion).toBe(40);
+      const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
+      expect(changes.filter((c) => !isVersion42(c))).toEqual([]);
+    }
+  });
+
+  it("version 42 changes only the racking item's reason, for buried legs and on pads (#742)", () => {
+    const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+    const reasons = new Set<string>();
+    for (const stored of v41) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(41);
+      const { changes } = diff(json(snapshot.outputs), json(fresh(snapshot)), 1000);
+      expect(changes).toHaveLength(1);
+      expect(changes.every(isVersion42)).toBe(true);
+      const pads = (snapshot.params as { burialDepth: number }).burialDepth === 0;
+      const after = String(changes[0]?.after);
+      expect(after).toContain(
+        pads ? 'on pads, nothing in the frames' : 'buried legs hold the frames',
+      );
+      expect(after).toMatch(/Racking is not computed\.$/);
+      reasons.add(after);
+    }
+    expect(reasons.size).toBe(2);
+  });
+
+  it("version 43 changes no worked example's output: none computes the leg check (#744)", () => {
+    // The push changes the leg check's load, and every worked example's leg check is input
+    // needed or not computed (over the slenderness limit, or on pads). The sweep shows the change.
+    const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+    for (const stored of v42) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(42);
       expect(diff(json(snapshot.outputs), json(fresh(snapshot)), 1000).changes).toEqual([]);
+      const legs = (snapshot.outputs as { structuralReview?: { legs?: { status: string } } })
+        .structuralReview?.legs;
+      expect(legs?.status).not.toBe('computed');
     }
   });
 });

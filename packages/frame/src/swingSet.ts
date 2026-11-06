@@ -335,7 +335,18 @@ export const ASSUMPTIONS = [
 const MECHANISM_ALONG_THE_BEAM =
   "Mechanism along the beam: with every bolted joint pinned and the feet free to turn on their pads, each A-frame can lean along the beam, turning about the line through its feet, while the beam moves along its length, so no sway is given. Holding the beam along its length makes the same frame stable, which shows this is the way it moves. On level ground nothing strains at all. On sloped ground the line through the feet is not level, so leaning also turns the beam a little in plan and bends it sideways; that stiffness is so small that the solver reads it as a mechanism. What holds the real frame along the beam is how tightly the bolts clamp, the anchors' grip on the legs, and any bracing along the beam, none of which this model has a value for.";
 
-export function swingSetAnalysis(output: Output, inputs: SwingSetInputs): SwingSetReport {
+/**
+ * Where the push cases take the chain angle: where each foot lifts most, as the uplift check takes
+ * it (#467), or where the push loads each leg most, as the leg check takes it (core's `legPush`,
+ * template version 43).
+ */
+export type PushAngle = 'uplift' | 'leg-check';
+
+export function swingSetAnalysis(
+  output: Output,
+  inputs: SwingSetInputs,
+  pushAt: PushAngle = 'uplift',
+): SwingSetReport {
   const missing = (Object.keys(INPUT_LABELS) as (keyof typeof INPUT_LABELS)[])
     .filter((key) => inputs[key] === undefined)
     .map((key) => INPUT_LABELS[key]);
@@ -400,6 +411,8 @@ export function swingSetAnalysis(output: Output, inputs: SwingSetInputs): SwingS
     if (!f) throw new Error(`No uplift for the ${foot} foot.`);
     return f.phi;
   };
+  const legPhi = (leg: Side) =>
+    swingSetAFrame.legPush(output, v.riderWeights, v.maxSwingAngle, leg).phi;
   const theta = (v.maxSwingAngle * Math.PI) / 180;
   const C = v.dynamicFactor;
   const pads = p.burialDepth === 0;
@@ -428,18 +441,32 @@ export function swingSetAnalysis(output: Output, inputs: SwingSetInputs): SwingS
   }[] = [
     { name: ALONG_THE_BEAM, phi: null, loads: [{ joint: middleJoint(g), fx: 1 }] },
     { name: 'Bottom of the arc', phi: 0, loads: swingLoads(0, 1) },
-    {
-      name: 'Pushed toward the front, where the back foot lifts most',
-      phi: phiOf('back'),
-      lifting: 'back',
-      loads: swingLoads(phiOf('back'), -1),
-    },
-    {
-      name: 'Pushed toward the back, where the front foot lifts most',
-      phi: phiOf('front'),
-      lifting: 'front',
-      loads: swingLoads(phiOf('front'), 1),
-    },
+    pushAt === 'uplift'
+      ? {
+          name: 'Pushed toward the front, where the back foot lifts most',
+          phi: phiOf('back'),
+          lifting: 'back',
+          loads: swingLoads(phiOf('back'), -1),
+        }
+      : {
+          name: 'Pushed toward the front, where it loads the front leg most',
+          phi: legPhi('front'),
+          lifting: 'back',
+          loads: swingLoads(legPhi('front'), -1),
+        },
+    pushAt === 'uplift'
+      ? {
+          name: 'Pushed toward the back, where the front foot lifts most',
+          phi: phiOf('front'),
+          lifting: 'front',
+          loads: swingLoads(phiOf('front'), 1),
+        }
+      : {
+          name: 'Pushed toward the back, where it loads the back leg most',
+          phi: legPhi('back'),
+          lifting: 'front',
+          loads: swingLoads(legPhi('back'), 1),
+        },
   ];
 
   const both = (s: Record<Side, Support3>) => ({ left: s, right: s });

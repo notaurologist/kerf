@@ -93,6 +93,34 @@ describe("the push against core's P", () => {
   });
 });
 
+describe("the push against core's leg check", () => {
+  it("takes core's N for the worked example and finds the frame within 2% of it", () => {
+    const worked = named('Example: Worked example, every input entered');
+    const back = worked.legCheck.filter((c) => c.load.startsWith('Pushed toward the back'));
+    expect(back.map((c) => c.joints)).toEqual(['pinned', 'rigid']);
+    for (const c of back) {
+      expect(c.P).toBeCloseTo(333.1, 1);
+      expect(c.N).toBeCloseTo(551.3, 1);
+      expect(c.at).toMatch(/-back-leg-/);
+      expect(Math.abs(c.frame / c.N - 1)).toBeLessThan(0.02);
+    }
+  });
+
+  it('runs both pushes wherever the push cases solve', () => {
+    for (const i of analyzed) {
+      expect(i.legCheck.map((c) => [c.supports, c.joints])).toEqual(
+        i.pushes.map((p) => [p.supports, p.joints]),
+      );
+    }
+  });
+
+  it("stays within what core's leg check states: 2.2% buried, and 4.52% on pads", () => {
+    const checks = analyzed.flatMap((i) => i.legCheck.map((c) => ({ pads: i.pads, ...c })));
+    expect(checks.length).toBeGreaterThan(0);
+    for (const c of checks) expect(c.relative).toBeLessThan(c.pads ? 0.0452 : 0.022);
+  });
+});
+
 describe('foot uplift against core’s uplift check', () => {
   it('matches it where each frame is determinate and the set symmetric', () => {
     // The two-ply beam on pads: level ground, equal riders, swings centered on the beam, so each

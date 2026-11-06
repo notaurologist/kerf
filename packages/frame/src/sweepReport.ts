@@ -271,7 +271,7 @@ export function sweepMarkdown(run: SweepRun): string {
     "- Structural inputs: each instance's own, which for every sweep draw are the worked example's (core's sweep draws parameters only).",
     `- The crossbar and gusset take the legs' species, grade, and incising: core asks for none, so the script supplies them.`,
     `- G = ${run.extra.shearModulus.ratio.toFixed(6)} × E: ${run.extra.shearModulus.basis}.`,
-    '- Each instance runs every load case (one pound along the beam; the bottom of the arc; pushed toward the front and toward the back where a foot lifts most) in every support case (buried: fixed at grade; on pads: both feet pinned, and for each push the lifting feet released), with bolted joints pinned and rigid.',
+    "- Each instance runs every load case (one pound along the beam; the bottom of the arc; pushed toward the front and toward the back where a foot lifts most) in every support case (buried: fixed at grade; on pads: both feet pinned, and for each push the lifting feet released), with bolted joints pinned and rigid. The two pushes run again at the leg check's chain angle for the comparison with core's leg check only; every other table uses the pushes where a foot lifts most.",
     '- With pinned joints on pads, every case is reported as the mechanism along the beam (step 4; owner\'s decision on #735). Where the solver still returned a stiffness, it is listed under "Mechanisms" and used nowhere else.',
     "- Sway along the beam is a stiffness, inches per pound of load along the beam at its middle, the larger of the two frames' tops. No load along the beam is applied and no sway limit is assumed.",
     "- Largest member forces and foot reactions are over the swing load cases only, and over every member: legs, crossbars, gussets, and the beam. A member's bending moment is the resultant of its two bending moments at either end.",
@@ -423,6 +423,41 @@ export function sweepMarkdown(run: SweepRun): string {
     '',
     'Each instance\'s largest, with where it is largest by parameter, is under "A leg\'s load when pushed" below.',
   );
+  const checks = analyzed.flatMap((i) => i.legCheck.map((c) => ({ i, ...c })));
+  out.push(
+    '',
+    "### The push against core's leg check",
+    '',
+    `Since template version 43 (#744, decision 0022) core's leg check takes the larger of P and N, the push's load on a leg by statics: each A-frame a rigid body on its feet, the leg carrying its foot's reaction along its axis, at the chain angle where that load is largest. Here the frame runs its push cases again at that angle, and the larger of P and the frame's leg load is compared with the larger of P and N. A positive difference is the statics reading under the frame. ${checks.length} comparisons in ${analyzed.length} instances.`,
+    '',
+    '| Feet | Joints | Supports | Comparisons | Statics under the frame | Smallest | Median | Largest |',
+    '|---|---|---|---|---|---|---|---|',
+  );
+  for (const [[isPads, joints, supports], group] of countBy(checks, (c) =>
+    JSON.stringify([c.i.pads, c.joints, c.supports]),
+  )
+    .map(([k, g]) => [JSON.parse(k) as [boolean, JointModel, string], g] as const)
+    .sort((a, b) => a[0].join().localeCompare(b[0].join()))) {
+    const rel = group.map((c) => c.relative);
+    out.push(
+      `| ${isPads ? 'On pads' : 'Buried'} | ${joints} | ${supports} | ${group.length} | ${group.filter((c) => c.relative > 0).length} | ${pct(Math.min(...rel))} | ${pct(median(rel))} | ${pct(Math.max(...rel))} |`,
+    );
+  }
+  const under = [...checks].sort((a, b) => b.relative - a.relative).slice(0, 5);
+  if (under.length > 0) {
+    out.push(
+      '',
+      'Where the statics read furthest under the frame:',
+      '',
+      '| Instance | Load | Supports | Joints | P (lb) | N (lb) | Frame (lb) | Difference | Where |',
+      '|---|---|---|---|---|---|---|---|---|',
+    );
+    for (const c of under) {
+      out.push(
+        `| ${c.i.where.instance} | ${c.load} | ${c.supports} | ${c.joints} | ${fixed(c.P, 2)} | ${fixed(c.N, 2)} | ${fixed(c.frame, 2)} | ${pct(c.relative)} | ${describe(c.i.where)} |`,
+      );
+    }
+  }
   const uplift = analyzed.flatMap((i) => i.uplift.map((u) => ({ i, ...u })));
   out.push(
     '',

@@ -1,6 +1,6 @@
 # Exploratory frame analysis, not a structural check
 
-The swing set's frame analysis (exploration #545, step 5) over the template's 3 worked examples and the first 800 draws of its seeded sweep (seed 571, template version 41), drawn as core's sweep draws them, so draw n here is draw n there. Written by `pnpm --filter @kerf/frame sweep`; every number below comes from that run.
+The swing set's frame analysis (exploration #545, step 5) over the template's 3 worked examples and the first 800 draws of its seeded sweep (seed 571, template version 43), drawn as core's sweep draws them, so draw n here is draw n there. Written by `pnpm --filter @kerf/frame sweep`; every number below comes from that run.
 
 These are forces, displacements, and stiffnesses under the stated assumptions, not margins against any capacity and not a structural check.
 
@@ -9,7 +9,7 @@ These are forces, displacements, and stiffnesses under the stated assumptions, n
 - Structural inputs: each instance's own, which for every sweep draw are the worked example's (core's sweep draws parameters only).
 - The crossbar and gusset take the legs' species, grade, and incising: core asks for none, so the script supplies them.
 - G = 0.053991 × E: √(G_LR·G_LT)/E_L for slash pine, Wood Handbook FPL-GTR-282 Table 5–1, p. 5–2, and Eq. 9–9, p. 9–5.
-- Each instance runs every load case (one pound along the beam; the bottom of the arc; pushed toward the front and toward the back where a foot lifts most) in every support case (buried: fixed at grade; on pads: both feet pinned, and for each push the lifting feet released), with bolted joints pinned and rigid.
+- Each instance runs every load case (one pound along the beam; the bottom of the arc; pushed toward the front and toward the back where a foot lifts most) in every support case (buried: fixed at grade; on pads: both feet pinned, and for each push the lifting feet released), with bolted joints pinned and rigid. The two pushes run again at the leg check's chain angle for the comparison with core's leg check only; every other table uses the pushes where a foot lifts most.
 - With pinned joints on pads, every case is reported as the mechanism along the beam (step 4; owner's decision on #735). Where the solver still returned a stiffness, it is listed under "Mechanisms" and used nowhere else.
 - Sway along the beam is a stiffness, inches per pound of load along the beam at its middle, the larger of the two frames' tops. No load along the beam is applied and no sway limit is assumed.
 - Largest member forces and foot reactions are over the swing load cases only, and over every member: legs, crossbars, gussets, and the beam. A member's bending moment is the resultant of its two bending moments at either end.
@@ -255,6 +255,28 @@ Core's P is the load at the bottom of the arc and leaves out the push toward the
 | On pads | rigid | The lifting front feet released | 62 | -28.16% | +34.07% | +203.26% |
 
 Each instance's largest, with where it is largest by parameter, is under "A leg's load when pushed" below.
+
+### The push against core's leg check
+
+Since template version 43 (#744, decision 0022) core's leg check takes the larger of P and N, the push's load on a leg by statics: each A-frame a rigid body on its feet, the leg carrying its foot's reaction along its axis, at the chain angle where that load is largest. Here the frame runs its push cases again at that angle, and the larger of P and the frame's leg load is compared with the larger of P and N. A positive difference is the statics reading under the frame. 972 comparisons in 243 instances.
+
+| Feet | Joints | Supports | Comparisons | Statics under the frame | Smallest | Median | Largest |
+|---|---|---|---|---|---|---|---|
+| Buried | pinned | Both feet fixed at grade | 362 | 31 | -42.47% | -2.47% | +1.65% |
+| Buried | rigid | Both feet fixed at grade | 362 | 23 | -30.13% | -3.27% | +2.17% |
+| On pads | rigid | Both feet pinned on their pads | 124 | 80 | -12.25% | +0.78% | +4.52% |
+| On pads | rigid | The lifting back feet released | 62 | 46 | -10.40% | +2.31% | +4.05% |
+| On pads | rigid | The lifting front feet released | 62 | 45 | -11.13% | +2.28% | +4.12% |
+
+Where the statics read furthest under the frame:
+
+| Instance | Load | Supports | Joints | P (lb) | N (lb) | Frame (lb) | Difference | Where |
+|---|---|---|---|---|---|---|---|---|
+| draw 430 | Pushed toward the back, where it loads the back leg most | Both feet pinned on their pads | rigid | 355.29 | 929.42 | 971.44 | +4.52% | splay 7.6°, beam height 94.48, burial 0.00, crossbar height 42.35, beam length 134.88, 4x8 legs, 3-ply 2x4 beam |
+| draw 333 | Pushed toward the front, where it loads the front leg most | Both feet pinned on their pads | rigid | 381.15 | 638.62 | 666.71 | +4.40% | splay 16.9°, beam height 66.44, burial 0.00, crossbar height 44.38, beam length 98.31, 4x6 legs, 3-ply 2x8 beam |
+| draw 333 | Pushed toward the back, where it loads the back leg most | The lifting front feet released | rigid | 381.15 | 666.23 | 693.71 | +4.12% | splay 16.9°, beam height 66.44, burial 0.00, crossbar height 44.38, beam length 98.31, 4x6 legs, 3-ply 2x8 beam |
+| draw 333 | Pushed toward the front, where it loads the front leg most | The lifting back feet released | rigid | 381.15 | 638.62 | 664.45 | +4.05% | splay 16.9°, beam height 66.44, burial 0.00, crossbar height 44.38, beam length 98.31, 4x6 legs, 3-ply 2x8 beam |
+| draw 102 | Pushed toward the front, where it loads the front leg most | Both feet pinned on their pads | rigid | 354.87 | 745.62 | 774.31 | +3.85% | splay 11.2°, beam height 80.25, burial 0.00, crossbar height 29.25, beam length 152.06, 4x6 legs, 3-ply 2x6 beam |
 
 ### Foot uplift against #467
 
