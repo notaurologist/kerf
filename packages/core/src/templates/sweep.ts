@@ -96,6 +96,33 @@ export function drawDigest(output: unknown): DrawDigest {
   };
 }
 
+/**
+ * The share of a sweep's draws its schemas may reject. A rejected draw never reaches `generate`,
+ * so a sampler that draws values the schemas refuse sweeps less than it seems to.
+ */
+export const MAX_REJECTED_SHARE = 0.05;
+
+/** The draws a sweep's schemas reject, and how many draws had each issue, by path and message. */
+export function rejections(
+  template: TemplateDefinition,
+  { count, seed, sample }: SweepPlan,
+): { rejected: number; issues: Record<string, number> } {
+  const random = seeded(seed);
+  const found = { rejected: 0, issues: {} as Record<string, number> };
+  for (let i = 0; i < count; i++) {
+    const drawn = sample(random);
+    const params = template.params.safeParse(drawn.params);
+    const inputs = template.structuralInputs.safeParse(drawn.structuralInputs);
+    if (params.success && inputs.success) continue;
+    found.rejected++;
+    for (const issue of [...(params.error?.issues ?? []), ...(inputs.error?.issues ?? [])]) {
+      const key = `${issue.path.join('.')}: ${issue.message}`;
+      found.issues[key] = (found.issues[key] ?? 0) + 1;
+    }
+  }
+  return found;
+}
+
 export function sweep(
   template: TemplateDefinition,
   { count, seed, showEvery, sample }: SweepPlan,

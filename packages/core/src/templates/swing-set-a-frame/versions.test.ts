@@ -43,6 +43,7 @@ import v36 from './snapshots/v36.json' with { type: 'json' };
 import v37 from './snapshots/v37.json' with { type: 'json' };
 import v38 from './snapshots/v38.json' with { type: 'json' };
 import v39 from './snapshots/v39.json' with { type: 'json' };
+import v40 from './snapshots/v40.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -1386,6 +1387,15 @@ describe('swing-set template versions', () => {
       // A note on each line, and one on the list.
       const lines = (snapshot.outputs as { lumber: { lines: unknown[] } }).lumber.lines;
       expect(changes).toHaveLength(lines.length + 1);
+    }
+  });
+
+  it('version 41 changes no output: only its sweep draws differently (#737)', () => {
+    const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+    for (const stored of v40) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(40);
+      expect(diff(json(snapshot.outputs), json(fresh(snapshot)), 1000).changes).toEqual([]);
     }
   });
 });

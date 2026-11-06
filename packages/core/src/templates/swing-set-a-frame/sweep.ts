@@ -1,3 +1,4 @@
+import { NOMINAL_SIZES, stock } from '../../lumber/stock.ts';
 import type { Random, SweepPlan } from '../sweep.ts';
 import { EXAMPLES } from './examples.ts';
 
@@ -7,6 +8,9 @@ import { EXAMPLES } from './examples.ts';
 const [worked] = EXAMPLES;
 if (!worked) throw new Error('No worked example');
 const DIAMETERS = [0.375, 0.5, 0.625, 0.75] as const;
+// Every size the parameters accept, split as a built-up beam needs: its plies are 2x (validate.ts).
+const TWO_BY = NOMINAL_SIZES.filter((n) => stock(n).thickness === 1.5);
+const TIMBERS = NOMINAL_SIZES.filter((n) => stock(n).thickness > 1.5);
 
 function sample(r: Random) {
   const p = worked?.params;
@@ -25,12 +29,12 @@ function sample(r: Random) {
       splay: r.chance(0.7)
         ? { kind: 'angle', degrees: r.between(5, 35) }
         : { kind: 'footprint', depth: r.between(40, 220) },
-      beamStock: builtUp ? r.pick(['2x6', '2x8', '2x10']) : r.pick(['4x6', '4x8', '6x6', '6x8']),
+      beamStock: r.pick(builtUp ? TWO_BY : TIMBERS),
       beamPlies: builtUp ? r.int(2, 3) : 1,
-      legStock: r.pick(['4x4', '4x6', '6x6']),
-      crossbarStock: r.pick(['2x4', '2x6', '2x8']),
+      legStock: r.pick(TIMBERS),
+      crossbarStock: r.pick(TWO_BY),
       crossbarHeight: r.between(12, beamHeight - 12),
-      gussetStock: r.pick(['2x6', '2x8', '2x10']),
+      gussetStock: r.pick(TWO_BY),
       frameInset: r.between(0, 24),
       groundSlope: r.between(-3, 3),
       burialDepth,
