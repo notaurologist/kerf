@@ -45,6 +45,7 @@ import v38 from './snapshots/v38.json' with { type: 'json' };
 import v39 from './snapshots/v39.json' with { type: 'json' };
 import v40 from './snapshots/v40.json' with { type: 'json' };
 import v41 from './snapshots/v41.json' with { type: 'json' };
+import v42 from './snapshots/v42.json' with { type: 'json' };
 
 // What each template version changed in the stored outputs of the worked examples (decision 0008).
 
@@ -1439,5 +1440,19 @@ describe('swing-set template versions', () => {
       reasons.add(after);
     }
     expect(reasons.size).toBe(2);
+  });
+
+  it("version 43 changes no worked example's output: none computes the leg check (#744)", () => {
+    // The push changes the leg check's load, and every worked example's leg check is input
+    // needed or not computed (over the slenderness limit, or on pads). The sweep shows the change.
+    const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+    for (const stored of v42) {
+      const snapshot = read(stored);
+      expect(snapshot.templateVersion).toBe(42);
+      expect(diff(json(snapshot.outputs), json(fresh(snapshot)), 1000).changes).toEqual([]);
+      const legs = (snapshot.outputs as { structuralReview?: { legs?: { status: string } } })
+        .structuralReview?.legs;
+      expect(legs?.status).not.toBe('computed');
+    }
   });
 });
