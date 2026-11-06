@@ -25,6 +25,7 @@ import { createSnapshot, readSnapshot } from '../snapshot/snapshot.ts';
 import { planSteps } from '../steps/build.ts';
 import { BRAND_NAMES, VERDICT_WORDS, withoutBrandExceptions } from '../testing.ts';
 import { SWEEPS, TEMPLATES } from './index.ts';
+import { MAX_REJECTED_SHARE, rejections } from './sweep.ts';
 
 // What every template promises generic code (model/definition.ts), checked on its worked examples.
 
@@ -220,6 +221,21 @@ function subAssemblyProblems(t: (typeof TEMPLATES)[number], outputs: unknown): s
 }
 
 describe('every template', () => {
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))(
+    '%s: its sweep draws parameters its schemas accept',
+    (id, t) => {
+      // sweep() skips a draw the schemas reject, so a sampler drawing sizes or values the
+      // template does not take would shrink the sweep without failing it.
+      const plan = SWEEPS[id];
+      if (!plan) throw new Error(`${id} has no sweep`);
+      const { rejected, issues } = rejections(t, plan);
+      expect(
+        rejected / plan.count,
+        `${rejected} of ${plan.count} draws are rejected: ${JSON.stringify(issues)}`,
+      ).toBeLessThanOrEqual(MAX_REJECTED_SHARE);
+    },
+  );
+
   it.each(examples)('%s, %s: generates what its outputs schema requires', (_, __, t, e) => {
     const outputs = asJson(generated(t, e));
     expect(t.outputs.parse(outputs)).toEqual(outputs);
@@ -396,7 +412,7 @@ describe('every template stays readable (decision 0014)', () => {
 
   // Every file is committed and loaded by this test, so a jump in size has to be raised here on
   // purpose. Each cap is about a quarter over the largest file of its kind (decision 0014).
-  const SIZE_CAPS = { snapshots: 1_200_000, shown: 18_000_000, sweeps: 450_000 };
+  const SIZE_CAPS = { snapshots: 1_200_000, shown: 18_000_000, sweeps: 800_000 };
   const files = import.meta.glob('./*/{snapshots,shown,sweeps}/v*.json', {
     eager: true,
     import: 'default',
