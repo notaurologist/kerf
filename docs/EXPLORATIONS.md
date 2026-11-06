@@ -17,7 +17,7 @@ Kerf's MVP is in place. These are larger directions the owner chose to keep for 
 |---|---|---|
 | Joint-based parametric model (first; adopted, decision 0020) | #543 | Constraint solving, parametric modelling, designing a small language |
 | Cut optimization (done; adopted, decision 0021) | #544 | Cutting stock, integer programming, column generation |
-| Frame analysis | #545 | The direct stiffness method, the basis of frame analysis software |
+| Frame analysis (done; adoption proposed) | #545 | The direct stiffness method, the basis of frame analysis software |
 | Fabrication outputs (done; adoption after the printed check) | #546 | Full-size printed templates, DXF and G-code, 3D rendering |
 | AI as author, code as verifier | #547 | Building gates and evals around generated code |
 
@@ -34,6 +34,8 @@ Done, November 4, 2026; adopted in decision 0021 (#677), with the work in the Cu
 ### Frame analysis
 
 Analyse the whole frame for member forces, reactions, and sway. `PRODUCT.md` principle 2 keeps racking, connections, and tipping on the checklist, so this would only ever be a labeled exploratory view beside the sourced checks.
+
+Done, November 5, 2026. Its code is `packages/frame` on `explore/frame-analysis`, not merged, with no new dependency: plane and space frame elements and a Cholesky solver written in the package, checked against McGuire, Gallagher and Ziemian, one A-frame and then the whole swing set in 3D, with bolted joints run pinned and rigid, and a sweep over the template's examples and seeded draws. Where it overlaps the per-member checks it agrees with them. It finds that the swing's push toward the front and back, which the leg check leaves out, loads one leg well over the check's load at narrow splays. Along the beam the result depends mostly on the joint assumption, and on pads with pinned joints the frame is a mechanism. No source gives a load along the beam or a sway limit, so none of that becomes a margin. `docs/explorations/frame-analysis.md` on that branch is the record. It proposes adding the push to the leg check as statics, cross-checked against the analysis, and not showing the analysis in the app.
 
 ### Fabrication outputs
 
