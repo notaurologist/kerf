@@ -69,6 +69,14 @@ const spreadOf =
       : null;
   };
 
+/** The push's largest load on a leg below its crossbar, over its push and support cases, against P. */
+const pushOf = (joints: JointModel) => (i: Analyzed) => {
+  const mine = i.pushes.filter((p) => p.joints === joints);
+  if (mine.length === 0) return null;
+  const top = mine.reduce((a, b) => (b.relative > a.relative ? b : a));
+  return { value: top.relative, at: `${top.at}, ${top.load}; ${top.supports}` };
+};
+
 const METRICS: Metric[] = [
   ...JOINTS.map(
     (j): Metric => ({
@@ -152,6 +160,14 @@ const METRICS: Metric[] = [
     format: pct,
     value: spreadOf('footHorizontal'),
   },
+  ...JOINTS.map(
+    (j): Metric => ({
+      title: `A leg's load when pushed, against #468's P, joints ${j}`,
+      unit: 'over P',
+      format: pct,
+      value: pushOf(j),
+    }),
+  ),
 ];
 
 /** The parameters the issue asks where each result is largest along. */
@@ -318,13 +334,27 @@ export function sweepMarkdown(run: SweepRun): string {
   );
   if (residual.length > 0) {
     out.push(
-      '| Instance | Ground slope (in/ft) | Pinned, lb/in | Rigid, lb/in |',
-      '|---|---|---|---|',
+      '| Instance | Ground slope (in/ft) | Pinned, lb/in | Rigid, lb/in | Pinned over rigid |',
+      '|---|---|---|---|---|',
     );
     for (const i of residual) {
       const r = i.joints.rigid.sway;
       out.push(
-        `| ${i.where.instance} | ${fixed(i.where.groundSlope, 3)} | ${sig(i.joints.pinned.residual as number)} | ${r.kind === 'solved' ? sig(1 / r.perPound) : swayCell(i.joints.rigid)} |`,
+        `| ${i.where.instance} | ${fixed(i.where.groundSlope, 3)} | ${sig(i.joints.pinned.residual as number)} | ${r.kind === 'solved' ? sig(1 / r.perPound) : swayCell(i.joints.rigid)} | ${r.kind === 'solved' ? sig((i.joints.pinned.residual as number) * r.perPound) : '–'} |`,
+      );
+    }
+    const ratios = residual.flatMap((i) => {
+      const r = i.joints.rigid.sway;
+      return r.kind === 'solved' ? [(i.joints.pinned.residual as number) * r.perPound] : [];
+    });
+    const buriedRatios = buried.flatMap((i) => {
+      const s = swaySpread(i);
+      return s ? [1 / s.value] : [];
+    });
+    if (ratios.length > 0 && buriedRatios.length > 0) {
+      out.push(
+        '',
+        `Pinned over rigid, these stiffnesses are at most ${sig(Math.max(...ratios))}. Buried, where pinned joints are not a mechanism, the pinned stiffness is at least ${sig(Math.min(...buriedRatios))} of the rigid one.`,
       );
     }
     out.push('');
@@ -369,6 +399,30 @@ export function sweepMarkdown(run: SweepRun): string {
       );
     }
   }
+  const pushes = analyzed.flatMap((i) => i.pushes.map((p) => ({ i, ...p })));
+  out.push(
+    '',
+    "### The push against #468's P",
+    '',
+    `Core's P is the load at the bottom of the arc and leaves out the push toward the front and back. Here the frame's value is the largest compression in a leg's lowest member when pushed toward the front or the back, where a foot lifts most, against the same P. No tolerance applies: this is a load core does not compute. ${pushes.length} comparisons in ${analyzed.length} instances.`,
+    '',
+    '| Feet | Joints | Supports | Comparisons | Smallest | Median | Largest |',
+    '|---|---|---|---|---|---|---|',
+  );
+  for (const [[isPads, joints, supports], group] of countBy(pushes, (p) =>
+    JSON.stringify([p.i.pads, p.joints, p.supports]),
+  )
+    .map(([k, g]) => [JSON.parse(k) as [boolean, JointModel, string], g] as const)
+    .sort((a, b) => a[0].join().localeCompare(b[0].join()))) {
+    const rel = group.map((p) => p.relative);
+    out.push(
+      `| ${isPads ? 'On pads' : 'Buried'} | ${joints} | ${supports} | ${group.length} | ${pct(Math.min(...rel))} | ${pct(median(rel))} | ${pct(Math.max(...rel))} |`,
+    );
+  }
+  out.push(
+    '',
+    'Each instance\'s largest, with where it is largest by parameter, is under "A leg\'s load when pushed" below.',
+  );
   const uplift = analyzed.flatMap((i) => i.uplift.map((u) => ({ i, ...u })));
   out.push(
     '',

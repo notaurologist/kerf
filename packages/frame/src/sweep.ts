@@ -91,6 +91,20 @@ interface LegComparison {
   over: boolean;
 }
 
+/**
+ * The push toward the front or back, which core's P leaves out: the largest compression in a leg
+ * below its crossbar in that load case, against P.
+ */
+interface PushComparison {
+  supports: string;
+  joints: JointModel;
+  load: string;
+  core: number;
+  frame: number;
+  at: string;
+  relative: number;
+}
+
 interface UpliftComparison {
   foot: string;
   joints: JointModel;
@@ -113,6 +127,7 @@ export type Instance =
       pads: boolean;
       joints: Record<JointModel, JointResult>;
       legs: LegComparison[];
+      pushes: PushComparison[];
       /** Empty for buried legs, which core gives no uplift check. */
       uplift: UpliftComparison[];
     };
@@ -232,12 +247,26 @@ function jointResult(cases: SwingSetCase[], joints: JointModel, pads: boolean): 
   return r;
 }
 
+/** The largest compression in a leg's lowest member, which runs from its crossbar to its foot. */
+function lowestLegCompression(forces: Record<string, { start: { axial: number } }>): Peak {
+  let largest: Peak | null = null;
+  for (const id of Object.keys(forces)) {
+    const m = /^(left|right)-(back|front)-leg-(\d+)$/.exec(id);
+    if (!m) continue;
+    const next = `${m[1]}-${m[2]}-leg-${Number(m[3]) + 1}`;
+    if (next in forces) continue;
+    largest = larger(largest, forces[id]?.start.axial ?? Number.NaN, id);
+  }
+  if (!largest) throw new Error('No legs.');
+  return largest;
+}
+
 /** The frame's and core's sourced checks side by side for one plan. */
 function comparisons(
   output: Output,
   inputs: SwingSetInputs,
   cases: SwingSetCase[],
-): { legs: LegComparison[]; uplift: UpliftComparison[] } {
+): { legs: LegComparison[]; pushes: PushComparison[]; uplift: UpliftComparison[] } {
   const v = inputs as Required<SwingSetInputs>;
   const pads = output.params.burialDepth === 0;
   const w = swingSetAFrame.beamWeightPerInch(output, v.beamSpeciesGrade, v.beamMoistureContent);
@@ -248,20 +277,23 @@ function comparisons(
   const P = v.dynamicFactor * leg.factored + leg.unfactored;
 
   const legs: LegComparison[] = [];
+  const pushes: PushComparison[] = [];
   for (const c of cases) {
-    if (c.phi !== 0 || c.result.kind !== 'solved' || leansOnPads(pads, c.joints)) continue;
-    let largest: Peak | null = null;
-    const forces = c.result.analysis.memberForces;
-    for (const id of Object.keys(forces)) {
-      // The leg's lowest member runs from its crossbar to its foot.
-      const m = /^(left|right)-(back|front)-leg-(\d+)$/.exec(id);
-      if (!m) continue;
-      const next = `${m[1]}-${m[2]}-leg-${Number(m[3]) + 1}`;
-      if (next in forces) continue;
-      largest = larger(largest, forces[id]?.start.axial ?? Number.NaN, id);
-    }
-    if (!largest) throw new Error('No legs.');
+    if (c.phi === null || c.result.kind !== 'solved' || leansOnPads(pads, c.joints)) continue;
+    const largest = lowestLegCompression(c.result.analysis.memberForces);
     const relative = (largest.value - P) / P;
+    if (c.phi !== 0) {
+      pushes.push({
+        supports: c.supports,
+        joints: c.joints,
+        load: c.load,
+        core: P,
+        frame: largest.value,
+        at: largest.at,
+        relative,
+      });
+      continue;
+    }
     legs.push({
       supports: c.supports,
       joints: c.joints,
@@ -298,7 +330,7 @@ function comparisons(
       }
     }
   }
-  return { legs, uplift };
+  return { legs, pushes, uplift };
 }
 
 /** One generated plan through the frame analysis, with every outcome kept. */

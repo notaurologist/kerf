@@ -71,6 +71,28 @@ describe("the legs' axial load against core's leg check", () => {
   });
 });
 
+describe("the push against core's P", () => {
+  it("gives step 2's pushed leg for the worked example: 420.7 lb buried, pinned, 26% over P", () => {
+    const worked = named('Example: Worked example, every input entered');
+    const back = worked.pushes.find(
+      (p) => p.joints === 'pinned' && p.load.startsWith('Pushed toward the back'),
+    );
+    expect(back?.at).toMatch(/-back-leg-/);
+    expect(Math.abs((back?.frame ?? 0) / 420.7 - 1)).toBeLessThan(0.001);
+    expect(back?.relative).toBeGreaterThan(0.25);
+    expect(back?.relative).toBeLessThan(0.27);
+  });
+
+  it('runs both pushes in every support case that solves, and none pinned on pads', () => {
+    for (const i of analyzed) {
+      for (const p of i.pushes) expect(p.load).toMatch(/^Pushed toward the (front|back)/);
+      const pinned = i.pushes.filter((p) => p.joints === 'pinned');
+      expect(pinned).toHaveLength(i.pads ? 0 : 2);
+      expect(i.pushes.filter((p) => p.joints === 'rigid')).toHaveLength(i.pads ? 4 : 2);
+    }
+  });
+});
+
 describe('foot uplift against core’s uplift check', () => {
   it('matches it where each frame is determinate and the set symmetric', () => {
     // The two-ply beam on pads: level ground, equal riders, swings centered on the beam, so each
