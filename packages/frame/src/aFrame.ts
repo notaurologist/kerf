@@ -157,7 +157,7 @@ function leg(output: Output, side: Side, instance: number): Leg {
 }
 
 /** E' = E·C_M·C_t·C_i for a member's stock (NDS Supplement 2024 Table 4B; core's factors). */
-function section(
+export function section(
   label: string,
   nominal: string,
   stock: { thickness: number; width: number },
