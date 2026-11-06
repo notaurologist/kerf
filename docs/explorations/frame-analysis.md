@@ -1,6 +1,6 @@
 # Frame analysis
 
-Status: in progress, step 2 of 6 (November 5, 2026). Exploration #545, on `explore/frame-analysis`. Nothing in `apps/` imports `packages/frame`. From step 2, `packages/frame` depends on `@kerf/core` for the swing set's plan, design values, and loads.
+Status: in progress, step 3 of 6 (November 5, 2026). Exploration #545, on `explore/frame-analysis`. Nothing in `apps/` imports `packages/frame`. From step 2, `packages/frame` depends on `@kerf/core` for the swing set's plan, design values, and loads.
 
 Every result this exploration prints is headed "Exploratory frame analysis, not a structural check" and lists its assumptions. It sits beside the sourced checks and replaces none of them (`PRODUCT.md` principle 2). Results read as forces, displacements, and margins under stated assumptions, never as verdicts (hard rule 2).
 
@@ -84,7 +84,7 @@ Plane coordinates: x is the plan's y (front to back, front negative), y is the p
 
 - **The beam** crosses the A-frame's plane, so in the plane it is its cross-section, taken as rigid. It is one joint, at the leg-to-beam bolt's center: halfway between the bolt's outer ends, at the beam's mid-depth.
 - **Legs** run along their centerlines from the bolt's line to the ground, as continuous members with joints at the gusset and crossbar. Each leg's top is joined to the beam's joint by a rigid link from the point where the bolt's line crosses the leg's centerline (Section 13.5.2). The part of the leg above the bolt carries nothing and is left out.
-- **Crossbar and gusset** joints are at the centroid of each joint's bolts, which lies on the leg's centerline at the middle of the board's depth, since each bolt is in the middle of an equal strip. A joint's bolts act together there: this is where a bolt group's pin or rotational spring (step 3) acts.
+- **Crossbar and gusset** joints are at the centroid of each joint's bolts, which lies on the leg's centerline at the middle of the board's depth, since each bolt is in the middle of an equal strip. A joint's bolts act together there: this is where a bolt group's pin acts, or a rotational spring would (step 3 adds none; see below).
 - **Gusset.** The beam rests on the gusset (spec, Structural model, Beam; #445), so the gusset is two members meeting under the beam's center, joined to the beam's joint by a rigid link to the middle of its depth. It is not bolted to the beam, so it turns with the beam in both joint cases.
 - **Sections:** each member's depth in the plane and breadth across it, from its stock, on the gross section. E' = E·C_M·C_t·C_i, with E from Table 4B for the species and grade entered for that member, C_M = 0.9 for wet service and C_t = 1.0 as the beam checks apply them, and C_i = 0.95 when incised. The values and factors are core's (`designValues`), checked against NDS 2024 and its Supplement when they were added; they were not re-read for this step. The template asks for no species for the crossbar and gusset, so the script takes them as its own inputs, and a missing one is "input needed".
 - **Joints.** Pinned: the legs' tops, the crossbar's ends, and the gusset's outer ends are released. Rigid: nothing is. The legs are continuous in both.
@@ -133,13 +133,70 @@ These numbers are for the stated inputs only, under the assumptions listed with 
 - Not re-verified in this step: Table 4B's E, the wet service and incising factors, the pendulum load, and the uplift check's statics. They are core's, each with its source, verified when it was added (#468, #467).
 - Not from any source: the rigid beam cross-section, the bolt groups acting at their centroids, the gusset turning with the beam, and the foot positions are modeling choices, stated with each result.
 
+## Bolt slip and joint stiffness (step 3)
+
+The owner asked for a rotational stiffness at each bolted joint if its basis could be verified (#545, question 2). The result: no spring is added. Each piece of the basis exists on its own, but NDS gives its slip modulus only for the group action factor, and the one free source for Eurocode 5's says a bolt's hole clearance must be added to the slip separately. The swing set's holes are 1/16" over the bolt, and that clearance is ten to fifty times the elastic slip at the loads step 2 computes. A linear spring from zero rotation does not describe these joints. Pinned and rigid stay as the two cases. What was found is below, so the owner can decide whether a textbook or Eurocode value is enough for some other use.
+
+### What each source says
+
+**NDS 2024: the load/slip modulus γ.** 11.3.6.1, Eq. 11.3-1, p. 74 (free view-only copy, Chapter 11). γ is defined there as the "load/slip modulus for a connection, lbs/in.", and for dowel-type fasteners in wood-to-wood connections γ = (180,000)(D^1.5), with D the fastener's diameter in inches; (270,000)(D^1.5) for wood to metal. The notation list (Chapter 1, p. 9) defines γ the same way. It appears nowhere else in the free chapters: a search of Chapters 1, 3, 11, and 12 and the Appendix for slip, stiffness, rotation, and γ finds only the group action factor and the notation entry. So NDS gives γ only to compute C_g, the share of load among fasteners in a row. It neither allows nor forbids using it for a joint's stiffness or rotation, does not say whether it is per shear plane, and does not mention hole clearance in the definition. The NDS Commentary, which might say where γ comes from, is not in the free copy and was not read.
+
+**Rotational stiffness of a fastener group.** Swedish Wood, *Design of timber structures*, Volume 1, Edition 3:2022, Section 4.15.1, p. 112 (free from Swedish Wood). For a moment-resisting joint it assumes a linear force-slip relation, F_mi = K·α·r_i, with K the slip modulus of one connector, α the joint's rotation, and r_i each fastener's distance from the group's centre of gravity, and sets the moment equal to the sum of the fasteners' moments: M = K·α·Σr_i². The book uses this for load distribution among the fasteners. Its rotational stiffness, k_θ = M/α = K·Σr_i², is one line from the printed equation, not printed itself. The members are taken as rigid bodies turning about the group's centroid (its Figure 4.35), which the book shows but does not state as an assumption.
+
+**Putting a rotational spring in a frame element.** McGuire, Gallagher and Ziemian, 2nd edition, Section 13.5.1, pp. 394–397: a linear rotational spring at each end of an element, M = k·θ_r (Eq. 13.30), gives the element stiffness of Eq. 13.31, derived by condensation in Example 13.7. That is how `packages/frame` would take a spring if one were added. The book leaves the value of k to the reader: determining a connection's moment-rotation curve is, in its words, "not within the purview of this text", and it takes k as "an empirically determined initial stiffness" (p. 394).
+
+**Eurocode 5, cross-check.** EN 1995-1-1 is a paid standard and was not read. Swedish Wood reproduces its Table 7.1 in *Design of timber structures*, Volume 2, Edition 3:2022, Section 9.2, Table 9.2, p. 33, citing EN 1995-1-1:2004, 7.1, and repeats it in Volume 1, Section 4.16, Eq. 4.35, p. 114. For dowels, bolts, screws, and pre-drilled nails, the slip modulus per shear plane and per fastener is K_ser = ρ_m^1.5·d/23 N/mm, with ρ_m the mean density in kg/m³ and d the diameter in mm. A footnote on bolts says the clearance is to be added separately to the fastener's slip. Volume 2's Table 3.3 (Section 3.4.1, p. 10, citing EN 338:2016) gives ρ_mean = 420 kg/m³ for strength class C24 and 480 for C40.
+
+### The numbers, for a 1/2" bolt
+
+Hand computed (1 lb/in = 4.4482216 N / 25.4 mm = 0.175127 N/mm):
+
+| | Value |
+|---|---|
+| NDS γ, wood to wood, D = 0.5 | 180,000 × 0.5^1.5 = 63,640 lb/in (11,145 N/mm) |
+| EC5 K_ser, d = 12.7 mm, ρ_m = 420 (C24) | 420^1.5 × 12.7 / 23 = 4,753 N/mm (27,139 lb/in) |
+| EC5 K_ser, ρ_m = 480 (C40) | 5,807 N/mm (33,158 lb/in) |
+| γ over K_ser | 2.34 (C24), 1.92 (C40) |
+| ρ_m at which K_ser equals γ | (11,145 × 23 / 12.7)^(2/3) = 741 kg/m³ |
+
+So NDS's γ is about twice Eurocode's K_ser for European softwood classes. The two are not directly comparable for the swing set: Southern Pine is not graded to EN 338, NDS gives specific gravity on an oven-dry basis rather than ρ_m, and no source read here converts one to the other, so no K_ser is given for Southern Pine.
+
+With k_θ = K·Σr_i² for the worked example's two 1/2" bolts per joint (spec, Bolt layout: crossbar bolts 2.75 apart, gusset bolts 3.625 apart, so r = 1.375 and 1.8125):
+
+| Joint | Σr_i² (in²) | k_θ from NDS γ (in-lb/rad) | k_θ from K_ser at C24 (in-lb/rad) |
+|---|---|---|---|
+| Crossbar to leg | 2 × 1.375² = 3.781 | 240,640 | 102,620 |
+| Gusset to leg | 2 × 1.8125² = 6.570 | 418,130 | 178,310 |
+
+These would be the springs if the basis held. They are recorded so the owner can see the size of the choice, not used in any result.
+
+### Why the basis does not hold for these joints
+
+- **NDS does not extend γ beyond C_g.** Its only use is inside the group action factor. Using it for rotation is an extrapolation NDS does not make.
+- **The clearance.** Every bolt hole is 1/16" over its bolt (template version 9; NDS 2024 12.1.3.2, as the spec cites it), so a bolt can move up to 1/16" across its hole before it bears. Eurocode 5, through Swedish Wood, says this clearance is added to the slip separately, and none of the sources read gives a way to do that in a frame. In step 2's push case on pads with the lifting foot released, the crossbar carries about 155 lb, 78 lb per bolt; its elastic slip is 78 / 63,640 = 0.0012 in by γ, or 78 / 27,139 = 0.0029 in by K_ser at C24. Both are ten to fifty times smaller than the 1/32" to 1/16" of clearance. A joint turning about its bolt group would turn freely through about 1/32 / 1.375 = 0.023 rad to 1/16 / 1.375 = 0.045 rad at the crossbar before both bolts bear. A linear spring from zero describes none of that.
+- **Tightening.** The plan tightens every bolt with a locknut (CPSC), so the faces are clamped and friction carries some moment before the bolts slip. No source read gives a value for it, and NDS 11.1.5 (p. 70), which bases its design values on the members' faces being brought into contact, does not give one either.
+
+### Options for the owner
+
+1. Keep pinned and rigid, as now. The real joint lies between them; with the clearance, it starts nearer pinned.
+2. A spring from Eurocode 5's K_ser through Σr_i², as Swedish Wood's derivation allows, with the clearance taken up first. This needs EN 1995-1-1 itself to be read (paid), a density for Southern Pine on Eurocode's basis, and a nonlinear analysis (a gap, then the spring), which McGuire describes as an incremental analysis (Section 13.5.1, Eq. 13.30a, p. 397). That is beyond this exploration's linear scope.
+3. A spring from NDS γ through Σr_i², stated as an extrapolation of a group action modulus and ignoring the clearance. It would give a third number with no source behind its use.
+
+The recommendation is option 1. Option 3 would be a number presented with a source that does not support it.
+
+### Verified, and not
+
+- Verified against the printed source, with page: NDS 2024 11.3.6.1, Eq. 11.3-1, p. 74, and the notation entry for γ, p. 9 (read in AWC's free view-only copy); Swedish Wood Volume 1, Edition 3:2022, 4.15.1, p. 112 (M = K·α·Σr_i², read from the page image) and 4.16, p. 114; Swedish Wood Volume 2, Edition 3:2022, Table 9.2 and its clearance footnote, p. 33, and Table 3.3's ρ_mean, p. 10 (both read from page images); McGuire et al., 13.5.1, pp. 394–397.
+- Not verified: EN 1995-1-1 itself (paid; K_ser and its clearance footnote are as Swedish Wood reproduces them, a secondary source); the NDS Commentary on γ; NDS 12.1.3.2's oversize holes, taken from the template spec, where it was verified for version 9; whether NDS's γ is per shear plane.
+- Hand computed, not from code: the table of γ, K_ser, and k_θ above, and the slip and clearance rotations. No code changed in this step, so nothing printed by the scripts depends on them.
+
 ## Assumptions
 
 These hold for every result this exploration prints, and are listed with each one.
 
 - Linear elastic, small displacements, Euler–Bernoulli members (plane sections stay plane, shear deformation ignored). No second-order (P-Δ) effects and no buckling of the whole frame.
 - Members are prismatic, with E, A, and I from the section and grade the owner entered (step 2 onward).
-- Bolted joints are run twice: pinned and rigid. The real joint lies between them. Step 3 looks for a sourced rotational stiffness from a bolt slip modulus.
+- Bolted joints are run twice: pinned and rigid. The real joint lies between them. Step 3 found no basis for a single rotational stiffness that covers the swing set's bolts in their oversize holes, so no third case is run.
 - Feet on pads are pinned; the uplift case runs with the lifting foot released. Buried legs are fixed at grade, and the soil makes the real fixity lower.
 - Loads are the quasi-static load cases the existing checks use. No dynamic or modal analysis.
 - Out of scope: connection capacity, soil, sliding, and whole-frame buckling. They stay on the checklist.
@@ -149,8 +206,8 @@ These hold for every result this exploration prints, and are listed with each on
 Each step is blocked by the one before. Pull requests go into `explore/frame-analysis`.
 
 1. #726 Package, 2D frame element, and solver, tested against hand-checked examples. Done.
-2. #727 One A-frame in its plane from the template's placements and joints, pinned and rigid, checked against #467's foot reactions and #468's leg load in the worked example. *This step.*
-3. #728 Bolt slip source: NDS 2024's load/slip modulus and whether it may be used beyond group action, the textbook basis for a bolt group's rotational stiffness, and Eurocode 5 (EN 1995-1-1, 7.1) as a cross-check. A third joint case if the basis holds.
+2. #727 One A-frame in its plane from the template's placements and joints, pinned and rigid, checked against #467's foot reactions and #468's leg load in the worked example. Done.
+3. #728 Bolt slip source: NDS 2024's load/slip modulus and whether it may be used beyond group action, the textbook basis for a bolt group's rotational stiffness, and Eurocode 5 (EN 1995-1-1, 7.1) as a cross-check. A third joint case if the basis holds. *This step:* the basis does not hold for these joints, so no spring is added.
 4. #729 3D frame element and the whole swing set, with sway along the beam for buried legs and for pads.
 5. #730 A sweep over the template's parameters: where sway is largest and how far the joint cases differ.
 6. #731 Write-up and an adoption proposal, if there is one to make.
