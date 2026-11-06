@@ -133,8 +133,10 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * Version 40 plans each stock's boards to buy the fewest feet the search finds (decision 0021,
  * #686), and each lumber line says whether that is proven. The worked examples' boards are the
  * same; their lines and the list gain notes.
+ * Version 41 changes no output. Its sweep draws only stock sizes the parameters accept, where half
+ * its draws were sizes they refuse, and the sweep's digest is kept per version (decision 0014, #737).
  */
-export const TEMPLATE_VERSION = 40;
+export const TEMPLATE_VERSION = 41;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
