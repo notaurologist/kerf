@@ -9,7 +9,8 @@
   "scripts": {
     "typecheck": "tsc -p .",
     "a-frame": "node scripts/a-frame.ts",
-    "swing-set": "node scripts/swing-set.ts"
+    "swing-set": "node scripts/swing-set.ts",
+    "sweep": "node scripts/sweep.ts"
   },
   "dependencies": {
     "@kerf/core": "workspace:*"
