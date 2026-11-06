@@ -25,3 +25,4 @@ One file per decision. Format: context, decision, consequences. Never edit a pas
 | 0019 | Templates are made in Claude Code, starting from the owner's pictures | Accepted |
 | 0020 | Templates declare their parts' joints, and the joints give the geometry | Accepted |
 | 0021 | The shopping list buys the fewest feet a bounded search finds | Accepted |
+| 0022 | The leg check takes the swing's push by statics, and the frame analysis stays an exploration | Accepted |

@@ -788,6 +788,58 @@ export function legLengths(output: SwingSetOutput, leg: 'back' | 'front') {
   };
 }
 
+type Leg = 'back' | 'front';
+
+/**
+ * The swing's push on one leg (spec, Structural model, Legs). Each A-frame stands on its two feet
+ * where the legs meet the ground, loaded at (0, H) as for the uplift at the feet. With the other
+ * foot lifting, moments about the loaded foot give the other foot's share, and the loaded foot
+ * takes the rest: R = V·c_v + F·c_h, with c_v = |y_other| / (y_b − y_f) and c_h = (H − z) /
+ * (y_b − y_f). The leg carries R along its axis, R / cos α. φ is where the swing part is largest.
+ */
+export function legPush(
+  output: SwingSetOutput,
+  riderWeights: readonly [number, number],
+  maxSwingAngle: number,
+  leg: Leg,
+) {
+  const p = output.params;
+  const g = output.geometry;
+  const dims = dimensions(p);
+  const a = g.splay * RAD;
+  const qy = dims.bw / 2 + dims.w / (2 * Math.cos(a));
+  const H = dims.H;
+  const zb = g.back.groundZ;
+  const zf = g.front.groundZ;
+  const yb = qy + (H - zb) * Math.tan(a);
+  const yf = -(qy + (H - zf) * Math.tan(a));
+  const base = yb - yf;
+  const cv = (leg === 'back' ? -yf : yb) / base;
+  const ch = (H - (leg === 'back' ? zb : zf)) / base;
+  const theta = maxSwingAngle * RAD;
+  const cosT = Math.cos(theta);
+  const m = minimize(
+    (phi) => -(3 * Math.cos(phi) - 2 * cosT) * (cv * Math.cos(phi) + ch * Math.sin(phi)),
+    0,
+    theta,
+  );
+  const [x0, x1] = beamSupports(output).x;
+  const left = output.swings.hangersX.reduce(
+    (sum, x, i) => sum + ((riderWeights[i < 2 ? 0 : 1] / 2) * (x1 - x)) / (x1 - x0),
+    0,
+  );
+  const W = Math.max(left, riderWeights[0] + riderWeights[1] - left);
+  return {
+    W,
+    phi: m.x / RAD,
+    tension: 3 * Math.cos(m.x) - 2 * cosT,
+    cv,
+    ch,
+    /** The swing part of R per unit dynamic factor, W·(3·cos φ − 2·cos θ)·(c_v·cos φ + c_h·sin φ). */
+    swing: -W * m.value,
+  };
+}
+
 function legColumn(
   output: SwingSetOutput,
   inputs: SwingSetStructuralInputs,
@@ -798,93 +850,150 @@ function legColumn(
   const p = output.params;
   const g = output.geometry;
   const leg = stock(p.legStock);
-  // Both legs carry the same load, so the one longer above grade, the downhill one, governs.
-  const which = g.front.groundZ < g.back.groundZ ? 'front' : 'back';
   const level = Math.abs(g.front.groundZ - g.back.groundZ) < 1e-9;
-  const subject = `${level ? 'Legs' : which === 'front' ? 'Front legs' : 'Back legs'}, ${p.legStock}`;
-  const lengths = legLengths(output, which);
+  // The leg longer above grade, the downhill one, first: its slenderness governs whether either is
+  // computed. On level ground the two are the same, and the push loads each alike.
+  const longer: Leg = g.front.groundZ < g.back.groundZ ? 'front' : 'back';
+  const legs: Leg[] = level ? [longer] : [longer, longer === 'front' ? 'back' : 'front'];
   const cosA = Math.cos((g.splay * Math.PI) / 180);
-
-  const inPlane: ColumnAxis = {
-    label: 'In the plane of the A-frame',
-    d: leg.width,
-    length: Math.max(lengths.toCrossbar, lengths.crossbarToGusset),
-    Ke: 1,
-    basis:
-      'The crossbar and gusset tie the splayed legs into triangles, so each holds the leg from moving sideways at the middle of its height, and the leg is taken as free to turn there (NDS Table G1, case d, Ke = 1.0). ℓ is the longer of the stretch from the ground to the middle of the crossbar and the stretch from there to the middle of the gusset.',
-  };
-  const alongBeam: ColumnAxis = {
-    label: 'Along the beam',
-    d: leg.thickness,
-    length: lengths.toBeam,
-    Ke: 2.1,
-    basis:
-      "A buried leg is taken as fixed at grade. At the top the frame can lean along the beam and turn about the leg-to-beam bolt, so the leg's top is free to move and to turn (NDS Table G1, case e, Ke = 2.10). ℓ runs from grade to the underside of the beam, where the gusset carries the beam into the legs.",
-  };
   const hole = Math.max(
     boltHoleDiameter(p.hardware.crossbarBolts.diameter),
     boltHoleDiameter(p.hardware.gussetBolts.diameter),
   );
+  const C = 'value' in dynamicFactor.value ? dynamicFactor.value.value : undefined;
+  const riders = need(inputs, STRUCTURAL_INPUT_LABELS, 'riderWeights', 'maxSwingAngle');
 
-  const load = combine(swing, beamWeight, (s, weight): AxialLoad | null => {
-    if (!weight) return null;
-    const [x0, x1] = beamSupports(output).x;
-    const R = reactions(x1 - x0, {
-      points: output.swings.hangersX.map((x, i) => ({ a: x - x0, P: s.perHanger[i] ?? 0 })),
-      w: 0,
-    });
-    const Rs = Math.max(R.left, R.right);
-    const Rw = (weight.w * p.beamLength) / 2;
-    return {
-      // P = (C·R_s + R_w) / (2·cos α).
-      factored: Rs / (2 * cosA),
-      unfactored: Rw / (2 * cosA),
-      working: [
-        ...s.working,
-        ...weight.working,
-        {
-          symbol: 'R_s',
-          label: "Swing loads on the more loaded frame, the beam's larger support reaction",
-          value: Rs,
-          unit: 'lb',
-        },
-        {
-          symbol: 'R_w',
-          label: "Beam's weight on each frame, w · beam length / 2",
-          value: Rw,
-          unit: 'lb',
-        },
-        {
-          symbol: 'α',
-          label: 'Splay of each leg from vertical',
-          value: g.splay,
-          unit: '°',
-          basis: 'From the template geometry',
-        },
-      ],
-      assumptions: [
-        ...SWING_ASSUMPTIONS,
-        "The dynamic factor covers snap loads from slack chains. It is not applied to the beam's own weight.",
-        "Each frame's load is shared equally by its two legs, along each leg's axis: the frame's load divided by 2·cos α.",
-        "The beam's whole weight, its overhangs included, is split equally between the frames. The legs', crossbars', and gussets' own weight is left out.",
-        "The swing's push toward the front and back, which loads one leg of a frame more than the other, is not included.",
-      ],
+  const checkLeg = (which: Leg) => {
+    const subject = `${level ? 'Legs' : which === 'front' ? 'Front legs' : 'Back legs'}, ${p.legStock}`;
+    const lengths = legLengths(output, which);
+    const inPlane: ColumnAxis = {
+      label: 'In the plane of the A-frame',
+      d: leg.width,
+      length: Math.max(lengths.toCrossbar, lengths.crossbarToGusset),
+      Ke: 1,
+      basis:
+        'The crossbar and gusset tie the splayed legs into triangles, so each holds the leg from moving sideways at the middle of its height, and the leg is taken as free to turn there (NDS Table G1, case d, Ke = 1.0). ℓ is the longer of the stretch from the ground to the middle of the crossbar and the stretch from there to the middle of the gusset.',
     };
-  });
-  if ('value' in load && load.value === null) {
-    return {
-      kind: 'column',
-      title: 'Compression',
-      subject,
-      loadCase: LOAD_CASES.strength,
-      status: 'not-computed',
-      reason: `No design values are entered for the beam's species and grade in ${p.beamStock}, so its weight on the legs is not known.`,
-      sources: [],
+    const alongBeam: ColumnAxis = {
+      label: 'Along the beam',
+      d: leg.thickness,
+      length: lengths.toBeam,
+      Ke: 2.1,
+      basis:
+        "A buried leg is taken as fixed at grade. At the top the frame can lean along the beam and turn about the leg-to-beam bolt, so the leg's top is free to move and to turn (NDS Table G1, case e, Ke = 2.10). ℓ runs from grade to the underside of the beam, where the gusset carries the beam into the legs.",
     };
-  }
 
-  return columnCheck({
-    member: {
+    const loads = combine(
+      combine(swing, beamWeight, (s, weight) => ({ s, weight })),
+      riders,
+      (v, r): { shared: AxialLoad; pushed: AxialLoad } | null => {
+        const { s, weight } = v;
+        if (!weight) return null;
+        const [x0, x1] = beamSupports(output).x;
+        const R = reactions(x1 - x0, {
+          points: output.swings.hangersX.map((x, i) => ({ a: x - x0, P: s.perHanger[i] ?? 0 })),
+          w: 0,
+        });
+        const Rs = Math.max(R.left, R.right);
+        const Rw = (weight.w * p.beamLength) / 2;
+        const push = legPush(output, r.riderWeights, r.maxSwingAngle, which);
+        // P = (C·R_s + R_w) / (2·cos α); N = (C·S + R_w·c_v) / cos α.
+        const shared = { factored: Rs / (2 * cosA), unfactored: Rw / (2 * cosA) };
+        const pushed = { factored: push.swing / cosA, unfactored: (Rw * push.cv) / cosA };
+        const at = (l: { factored: number; unfactored: number }) =>
+          C === undefined ? [] : [(C * l.factored + l.unfactored) as number];
+        const toward = which === 'back' ? 'the back' : 'the front';
+        const working: Quantity[] = [
+          ...s.working,
+          ...weight.working,
+          {
+            symbol: 'R_s',
+            label: "Swing loads on the more loaded frame, the beam's larger support reaction",
+            value: Rs,
+            unit: 'lb',
+          },
+          {
+            symbol: 'R_w',
+            label: "Beam's weight on each frame, w · beam length / 2",
+            value: Rw,
+            unit: 'lb',
+          },
+          {
+            symbol: 'α',
+            label: 'Splay of each leg from vertical',
+            value: g.splay,
+            unit: '°',
+            basis: 'From the template geometry',
+          },
+          {
+            symbol: 'W_f',
+            label: "Riders carried by the more loaded frame, by the beam's span",
+            value: push.W,
+            unit: 'lb',
+          },
+          {
+            symbol: 'φ',
+            label: `Chain angle where the push toward ${toward} loads this leg most`,
+            value: push.phi,
+            unit: '°',
+          },
+          {
+            symbol: '3·cos φ − 2·cos θ',
+            label: 'Chain tension per pound of rider at φ, on the way down from θ',
+            value: push.tension,
+            unit: '',
+            basis: 'Smooth pendulum, from conservation of energy and the centripetal force',
+            sources: PENDULUM_SOURCES,
+          },
+          {
+            symbol: 'c_v',
+            label: "This leg's foot: share of the downward load",
+            value: push.cv,
+            unit: '',
+          },
+          {
+            symbol: 'c_h',
+            label: "This leg's foot: load per pound of fore-and-aft force",
+            value: push.ch,
+            unit: '',
+          },
+          {
+            symbol: 'S',
+            label:
+              "Swing part of the foot's load at factor 1, W_f·(3·cos φ − 2·cos θ)·(c_v·cos φ + c_h·sin φ)",
+            value: push.swing,
+            unit: 'lb',
+          },
+          ...at(shared).map((value) => ({
+            symbol: 'P_0',
+            label: 'Load per leg at the bottom of the arc, (C·R_s + R_w) / (2·cos α)',
+            value,
+            unit: 'lb',
+          })),
+          ...at(pushed).map((value) => ({
+            symbol: 'N',
+            label: `Load on this leg pushed toward ${toward}, (C·S + R_w·c_v) / cos α`,
+            value,
+            unit: 'lb',
+          })),
+        ];
+        const assumptions = [
+          ...SWING_ASSUMPTIONS,
+          "The dynamic factor covers snap loads from slack chains. It is not applied to the beam's own weight.",
+          "The leg is checked under the larger of two loads. At the bottom of the arc each frame's load is shared equally by its two legs, along their axes: the frame's load divided by 2·cos α. Pushed toward the front or the back, one leg carries more.",
+          'Chain tension at angle φ on the way down from θ is W·(3·cos φ − 2·cos θ). Its vertical and fore-and-aft parts act at the beam, and φ is the angle where they load this leg most.',
+          "For the push, each A-frame is taken as a rigid body standing on its feet where the legs meet the ground. Moments about this leg's foot give the other foot's share, this foot takes the rest, and the leg carries it along its axis, divided by cos α.",
+          'Analyzing the whole frame with the same loads gave buried legs up to 2.2% more than this, because the legs also bend.',
+          "The beam's whole weight, its overhangs included, is split equally between the frames. The legs', crossbars', and gussets' own weight is left out.",
+        ];
+        return {
+          shared: { ...shared, working, assumptions },
+          pushed: { ...pushed, working, assumptions },
+        };
+      },
+    );
+
+    const member = {
       subject,
       nominal: p.legStock,
       breadth: leg.thickness,
@@ -901,24 +1010,58 @@ function legColumn(
         value: (leg.width - hole) * leg.thickness,
         basis: `The crossbar and gusset bolts pass through each leg along the beam, in holes up to ${formatLength(hole)} across, which leave (w − hole) · t (NDS 2024 3.1.2.1).`,
       },
-    },
-    material: mapNeeded(
-      need(inputs, STRUCTURAL_INPUT_LABELS, 'legSpeciesGrade', 'legIncised'),
-      (v) => ({ speciesGrade: v.legSpeciesGrade, incised: v.legIncised }),
-    ),
-    conditions: LEG_CONDITIONS,
-    loadCase: LOAD_CASES.strength,
-    load: load as Needed<AxialLoad>,
-    factor: dynamicFactor,
-    assumptions: [
-      ...(p.burialDepth > 0
-        ? [
-            'A buried leg is taken as fixed at grade. Soil near the surface gives, so the real point of fixity is below grade, which makes the effective length along the beam longer than this.',
-          ]
-        : []),
-      'Only the longer leg is checked: both carry the same load, so the longer one has the lower margin.',
-    ],
-  });
+    };
+    const check = (load: Needed<AxialLoad>) =>
+      columnCheck({
+        member,
+        material: mapNeeded(
+          need(inputs, STRUCTURAL_INPUT_LABELS, 'legSpeciesGrade', 'legIncised'),
+          (v) => ({ speciesGrade: v.legSpeciesGrade, incised: v.legIncised }),
+        ),
+        conditions: LEG_CONDITIONS,
+        loadCase: LOAD_CASES.strength,
+        load,
+        factor: dynamicFactor,
+        assumptions: [
+          ...(p.burialDepth > 0
+            ? [
+                'A buried leg is taken as fixed at grade. Soil near the surface gives, so the real point of fixity is below grade, which makes the effective length along the beam longer than this.',
+              ]
+            : []),
+          level
+            ? 'On level ground both legs are the same length, and the push loads the front leg toward the front as it loads the back leg toward the back.'
+            : 'The push can load the shorter leg more than the longer one, so both are checked, and this is the one with the lower margin.',
+        ],
+      });
+    if ('value' in loads && loads.value === null) {
+      return [
+        {
+          kind: 'column',
+          title: 'Compression',
+          subject,
+          loadCase: LOAD_CASES.strength,
+          status: 'not-computed',
+          reason: `No design values are entered for the beam's species and grade in ${p.beamStock}, so its weight on the legs is not known.`,
+          sources: [],
+        } satisfies CheckResult,
+      ];
+    }
+    const both = loads as Needed<{ shared: AxialLoad; pushed: AxialLoad }>;
+    return [check(mapNeeded(both, (l) => l.shared)), check(mapNeeded(both, (l) => l.pushed))];
+  };
+
+  // Every leg under both loads: the lowest margin, or with the factor missing the lowest
+  // break-even factor. If the longer leg is not computed, neither is the other, for the same reason.
+  const results = legs.flatMap(checkLeg);
+  const first = results[0] as CheckResult;
+  if (first.status === 'not-computed') return first;
+  const computed = results.filter((r) => r.status === 'computed');
+  if (computed.length > 0) {
+    return computed.reduce((low, r) => (r.margin < low.margin ? r : low));
+  }
+  const breakEven = (r: CheckResult) =>
+    (r.status === 'input-needed' && r.breakEven?.value) || Number.POSITIVE_INFINITY;
+  return results.reduce((low, r) => (breakEven(r) < breakEven(low) ? r : low));
 }
 
 const params = (...paths: string[]) => paths.map((path): FieldRef => ({ from: 'params', path }));

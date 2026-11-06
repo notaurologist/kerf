@@ -137,8 +137,10 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * its draws were sizes they refuse, and the sweep's digest is kept per version (decision 0014, #737).
  * Version 42 gives the racking item the reason the frame analysis found: on pads nothing in the
  * frames holds them along the beam, and buried legs hold them by bending at grade (#742).
+ * Version 43 checks each leg under the swing's push toward the front and back too, by statics
+ * (decision 0022, #744), and on a slope checks both legs.
  */
-export const TEMPLATE_VERSION = 42;
+export const TEMPLATE_VERSION = 43;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The

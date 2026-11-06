@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { type SuggestedValue, withSuggested } from '../../model/suggested.ts';
 import { createSnapshot } from '../../snapshot/snapshot.ts';
+import { columnStabilityFactor } from '../../structural/column.ts';
 import type { CheckResult, ComputedCheck } from '../../structural/types.ts';
 import { VERDICT_WORDS } from '../../testing.ts';
 import { swingSetAFrame } from './definition.ts';
@@ -9,6 +10,7 @@ import { suggest } from './questions.ts';
 import {
   beamSupports,
   legLengths,
+  legPush,
   pendulumFactor,
   type SwingSetStructuralInputs,
   type SwingSetStructuralReview,
@@ -759,7 +761,7 @@ describe('legs as columns', () => {
     );
   });
 
-  it('matches the hand-checked lower frame on level ground', () => {
+  it('matches the hand-checked lower frame on level ground, pushed', () => {
     const r = computed(legs(low, legInputs));
     expect(r.subject).toBe('Legs, 4x4');
     const input = (symbol: string) => r.inputs.find((q) => q.symbol === symbol)?.value;
@@ -769,18 +771,75 @@ describe('legs as columns', () => {
     expect(input('Ke2')).toBe(2.1);
     expect(input('R_s')).toBeCloseTo(300, 9);
     expect(input('R_w')).toBeCloseTo(26.0279, 3);
+    // The push (spec, Example 5): y_b = 3.61231 + 72·tan 20° = 29.8182, so c_v = 1/2 and
+    // c_h = 72 / 59.6363 = 1.20732; the swing part peaks at φ = 27.575°.
+    expect(input('W_f')).toBeCloseTo(150, 9);
+    expect(input('φ')).toBeCloseTo(27.575, 2);
+    expect(input('3·cos φ − 2·cos θ')).toBeCloseTo(1.65922, 4);
+    expect(input('c_v')).toBeCloseTo(0.5, 9);
+    expect(input('c_h')).toBeCloseTo(1.207318, 5);
+    expect(input('S')).toBeCloseTo(150 * 1.66267, 2);
+    expect(input('P_0')).toBeCloseTo(333.102, 2);
+    expect(input('N')).toBeCloseTo(544.662, 2);
     expect(step(r, 'ℓe1/d1')).toBeCloseTo(12.5041, 3);
     expect(step(r, 'ℓe/d')).toBeCloseTo(45.9725, 3);
     expect(step(r, 'Fc*')).toBeCloseTo(1160, 9);
     expect(step(r, "Emin'")).toBeCloseTo(459_000, 6);
     expect(step(r, 'F_cE')).toBeCloseTo(178.521, 2);
     expect(step(r, 'C_P')).toBeCloseTo(0.1487, 4);
-    expect(step(r, 'P')).toBeCloseTo(333.102, 2);
+    expect(step(r, 'P')).toBeCloseTo(544.662, 2);
     expect(step(r, 'A_n')).toBeCloseTo(10.28125, 9);
-    expect(r.computed.value).toBeCloseTo(32.399, 2);
+    expect(r.computed.value).toBeCloseTo(52.976, 2);
     expect(r.allowable.value).toBeCloseTo(172.49, 1);
-    expect(r.margin).toBeCloseTo(5.324, 2);
-    expect(r.breakEven?.value).toBeCloseTo(11.023, 2);
+    expect(r.margin).toBeCloseTo(3.256, 3);
+    expect(r.breakEven?.value).toBeCloseTo(6.63, 3);
+  });
+
+  it('takes the load at the bottom of the arc where the swing has no push (θ = 0)', () => {
+    // P = (2·(150·1) + 26.028) / (2·cos 20°) = 173.476 lb, and the push adds nothing.
+    const r = computed(legs(low, { ...legInputs, maxSwingAngle: 0 }));
+    const input = (symbol: string) => r.inputs.find((q) => q.symbol === symbol)?.value;
+    expect(input('P_0')).toBeCloseTo(173.4758, 3);
+    expect(step(r, 'P')).toBeCloseTo(173.4758, 3);
+  });
+
+  it('checks both legs on a slope, and shows the one with the lower margin', () => {
+    // The same frame on a 1-in-12 slope. Each leg's capacity from its own lengths, against the
+    // larger of P and its own push.
+    const sloped = { ...low, groundSlope: 1 };
+    const out = output(sloped);
+    const cosA = Math.cos((20 * Math.PI) / 180);
+    const Rw = 26.02788;
+    const P = (2 * 300 + Rw) / (2 * cosA);
+    const each = (['back', 'front'] as const).map((leg) => {
+      const l = legLengths(out, leg);
+      const ratio = Math.max(
+        Math.max(l.toCrossbar, l.crossbarToGusset) / 3.5,
+        (2.1 * l.toBeam) / 3.5,
+      );
+      const capacity = 1160 * columnStabilityFactor(1160, 459_000, ratio).CP * 10.28125;
+      const push = legPush(out, [150, 150], 60, leg);
+      const N = (2 * push.swing + Rw * push.cv) / cosA;
+      return { leg, cv: push.cv, margin: capacity / Math.max(P, N) };
+    });
+    const [back, front] = each as [(typeof each)[0], (typeof each)[0]];
+    // The uphill back foot is nearer under the beam, so it takes more of the downward load.
+    expect(back.cv).toBeGreaterThan(0.5);
+    expect(back.cv + front.cv).toBeCloseTo(1, 9);
+    const lower = back.margin < front.margin ? back : front;
+    const r = computed(legs(sloped, legInputs));
+    expect(r.subject).toBe(`${lower.leg === 'back' ? 'Back' : 'Front'} legs, 4x4`);
+    expect(r.margin).toBeCloseTo(lower.margin, 6);
+    expect(r.assumptions).toContain(
+      'The push can load the shorter leg more than the longer one, so both are checked, and this is the one with the lower margin.',
+    );
+  });
+
+  it('states the push and its comparison with the whole frame', () => {
+    const r = computed(legs(low, legInputs));
+    expect(r.assumptions.join(' ')).toContain('taken as a rigid body standing on its feet');
+    expect(r.assumptions.join(' ')).toContain('up to 2.2% more than this');
+    expect(r.assumptions.join(' ')).not.toContain('is not included');
   });
 
   it("needs the legs' species, grade, and incising", () => {
