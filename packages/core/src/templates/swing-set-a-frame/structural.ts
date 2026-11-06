@@ -983,7 +983,7 @@ function legColumn(
           "The leg is checked under the larger of two loads. At the bottom of the arc each frame's load is shared equally by its two legs, along their axes: the frame's load divided by 2·cos α. Pushed toward the front or the back, one leg carries more.",
           'Chain tension at angle φ on the way down from θ is W·(3·cos φ − 2·cos θ). Its vertical and fore-and-aft parts act at the beam, and φ is the angle where they load this leg most.',
           "For the push, each A-frame is taken as a rigid body standing on its feet where the legs meet the ground. Moments about this leg's foot give the other foot's share, this foot takes the rest, and the leg carries it along its axis, divided by cos α.",
-          'Analyzing the whole frame with the same loads gave buried legs up to 5% more than this, because the legs also bend.',
+          'Analyzing the whole frame with the same loads gave buried legs up to 2.2% more than this, because the legs also bend.',
           "The beam's whole weight, its overhangs included, is split equally between the frames. The legs', crossbars', and gussets' own weight is left out.",
         ];
         return {

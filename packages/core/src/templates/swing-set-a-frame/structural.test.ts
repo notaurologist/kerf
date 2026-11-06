@@ -838,7 +838,7 @@ describe('legs as columns', () => {
   it('states the push and its comparison with the whole frame', () => {
     const r = computed(legs(low, legInputs));
     expect(r.assumptions.join(' ')).toContain('taken as a rigid body standing on its feet');
-    expect(r.assumptions.join(' ')).toContain('up to 5% more than this');
+    expect(r.assumptions.join(' ')).toContain('up to 2.2% more than this');
     expect(r.assumptions.join(' ')).not.toContain('is not included');
   });
 
