@@ -1006,7 +1006,10 @@ function checklist(output: SwingSetOutput): ChecklistItem[] {
       hardwareIds: ['crossbar-bolts', 'gusset-bolts'],
       confirm:
         'That the frames resist side-to-side and front-to-back swing forces without racking, and whether corner braces are needed.',
-      why: 'Swinging pushes the top of the frame back and forth; racking is not computed.',
+      why:
+        p.burialDepth > 0
+          ? 'Swinging pushes the top of the frame back and forth. Along the beam, buried legs hold the frames by bending at grade, and how far the frames lean depends on how tightly the bolts clamp. Racking is not computed.'
+          : 'Swinging pushes the top of the frame back and forth. Along the beam, on pads, nothing in the frames themselves holds them: each foot can turn on its pad and each frame about its leg-to-beam bolt, so only how tightly the bolts clamp, the ground anchors, or corner braces keep the frames from leaning. Racking is not computed.',
     },
     p.burialDepth > 0
       ? {

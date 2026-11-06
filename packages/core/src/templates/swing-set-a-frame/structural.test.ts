@@ -634,6 +634,17 @@ describe('checklist', () => {
       'long-term-condition',
     ]);
   });
+
+  it('says what holds the frames along the beam: on pads nothing in them, buried the legs', () => {
+    const why = (p: SwingSetParams) =>
+      review(p, {}).checklist.find((c) => c.category === 'racking')?.why;
+    expect(why({ ...params, burialDepth: 0 })).toContain(
+      'on pads, nothing in the frames themselves holds them',
+    );
+    expect(why({ ...params, burialDepth: 0 })).toContain('the ground anchors, or corner braces');
+    expect(why(params)).toContain('buried legs hold the frames by bending at grade');
+    expect(why(params)).not.toContain('anchors');
+  });
 });
 
 describe('wording', () => {

@@ -83,6 +83,8 @@ Template version 37 (#536) measures the leg's bolts at the gusset joint against 
 
 Template version 40 (#686, decision 0021) plans each stock's boards to buy the fewest feet the search finds, and each lumber line says whether that is proven; the list notes that offcuts run short. The worked examples' boards are the same, since first-fit decreasing already bought the fewest feet for them. No part, cut, or check changes.
 
+Template version 42 (#742) gives the checklist's racking item the reason the frame analysis exploration found (#545, #741). On pads, nothing in the frames themselves holds them along the beam: each foot can turn on its pad and each frame about its leg-to-beam bolt, so how tightly the bolts clamp, the ground anchors, or corner braces keep the frames from leaning. Buried legs hold the frames by bending at grade, and how far the frames lean depends on how tightly the bolts clamp. The item gives no number, since no source gives a load along the beam or a limit on how far the frames may lean. No part, cut, or check changes.
+
 Not covered in version 1: metal A-frame brackets, legs with seat cuts under the beam, corner braces, a gusset on the inside face, crossbar ends cut square, and ground that slopes along the beam.
 
 ## Coordinates
@@ -715,7 +717,7 @@ Version 34 (#468) checks the leg that is longer above grade as a solid column (`
 
 ### Checklist
 
-Leg-to-beam bolt and gusset; beam plies (built-up beams only); beam held against rotation at each frame; racking of the A-frames and crossbars; burial, or on pads the ground anchors' type, soil, fastening to the legs, and sliding; swing hanger installation; lumber quality in the beam and legs; an inspection routine (CPSC Pub. 324, p. 5).
+Leg-to-beam bolt and gusset; beam plies (built-up beams only); beam held against rotation at each frame; racking of the A-frames and crossbars, with what holds the frames along the beam (on pads, nothing in the frames themselves: the bolts' clamping, the anchors, or corner braces; buried, the legs' bending at grade, with how far the frames lean depending on the bolts' clamping); burial, or on pads the ground anchors' type, soil, fastening to the legs, and sliding; swing hanger installation; lumber quality in the beam and legs; an inspection routine (CPSC Pub. 324, p. 5).
 
 ### Worked examples (hand-checked)
 

@@ -135,8 +135,10 @@ import { assemblyOrderFlag, flags, validate, validateSwings } from './validate.t
  * same; their lines and the list gain notes.
  * Version 41 changes no output. Its sweep draws only stock sizes the parameters accept, where half
  * its draws were sizes they refuse, and the sweep's digest is kept per version (decision 0014, #737).
+ * Version 42 gives the racking item the reason the frame analysis found: on pads nothing in the
+ * frames holds them along the beam, and buried legs hold them by bending at grade (#742).
  */
-export const TEMPLATE_VERSION = 41;
+export const TEMPLATE_VERSION = 42;
 
 /**
  * Board selection guides for each part (knowledge/boardSelection.ts; spec, Board selection). The
