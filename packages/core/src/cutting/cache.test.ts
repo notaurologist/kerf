@@ -53,6 +53,20 @@ describe('cached', () => {
     expect(searches()).toBe(2);
   });
 
+  it('does not use a search that stopped in the root relaxation for a larger limit', () => {
+    // One 90" piece: first-fit's 8 ft meets the material bound, so a search stopped in the root
+    // relaxation still reports its plan as proven, but with less work than a finished search.
+    const single: CutInstance = { lengths: [8, 10], pieces: [90], kerf: 0, trimPerEnd: 0 };
+    const { solve, searches } = counted();
+    const stopped = solve(single, { workLimit: 1 });
+    expect(stopped.proven).toBe(true);
+    expect(stopped.work).toBeGreaterThan(1);
+    const fresh = solveExact(single, { workLimit: 1e6 });
+    expect(fresh.work).toBeGreaterThan(stopped.work);
+    expect(solve(single, { workLimit: 1e6 })).toEqual(fresh);
+    expect(searches()).toBe(2);
+  });
+
   it('tells instances apart by their pieces in order', () => {
     const { solve, searches } = counted();
     solve(INSTANCE, { workLimit: 1e6 });
